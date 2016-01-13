@@ -121,7 +121,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
       // TODO(calvin): Make this more efficient
-      masterClient.getFileInfo(path);
+      masterClient.getStatus(path);
       return true;
     } catch (FileDoesNotExistException e) {
       return false;
@@ -159,7 +159,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
     // TODO(calvin): Fix the exception handling in the master
     try {
-      return new URIStatus(masterClient.getFileInfo(path));
+      return new URIStatus(masterClient.getStatus(path));
     } catch (FileDoesNotExistException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } finally {
@@ -180,7 +180,7 @@ public class BaseFileSystem implements FileSystem {
     List<FileInfo> fileInfos;
     // TODO(calvin): Fix the exception handling in the master
     try {
-      fileInfos = masterClient.getFileInfoList(path);
+      fileInfos = masterClient.listStatus(path);
     } catch (FileDoesNotExistException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } finally {

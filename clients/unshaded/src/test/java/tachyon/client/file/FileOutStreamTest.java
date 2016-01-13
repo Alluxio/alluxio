@@ -110,7 +110,7 @@ public class FileOutStreamTest {
     Mockito.when(mFileSystemContext.getTachyonBlockStore()).thenReturn(mBlockStore);
     Mockito.when(mBlockStoreContext.acquireWorkerClient()).thenReturn(mBlockWorkerClient);
     Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
-    Mockito.when(mFileSystemMasterClient.getFileInfo(Mockito.any(TachyonURI.class))).thenReturn(
+    Mockito.when(mFileSystemMasterClient.getStatus(Mockito.any(TachyonURI.class))).thenReturn(
         new FileInfo());
 
     // Return sequentially increasing numbers for new block ids

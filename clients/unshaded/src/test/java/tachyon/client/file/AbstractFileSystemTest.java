@@ -190,10 +190,10 @@ public final class AbstractFileSystemTest {
   @Test
   public void getInfoTest() throws Exception {
     FileInfo info = new FileInfo();
-    Mockito.when(mFileSystemMasterClient.getFileInfo(FILE_ID)).thenReturn(info);
+    Mockito.when(mFileSystemMasterClient.getStatus(FILE_ID)).thenReturn(info);
     GetInfoOptions getInfoOptions = GetInfoOptions.defaults();
     Assert.assertSame(info, mFileSystem.getInfo(new TachyonFile(FILE_ID), getInfoOptions));
-    Mockito.verify(mFileSystemMasterClient).getFileInfo(FILE_ID);
+    Mockito.verify(mFileSystemMasterClient).getStatus(FILE_ID);
   }
 
   /**
@@ -203,7 +203,7 @@ public final class AbstractFileSystemTest {
    */
   @Test
   public void getInfoExceptionTest() throws Exception {
-    Mockito.when(mFileSystemMasterClient.getFileInfo(FILE_ID)).thenThrow(EXCEPTION);
+    Mockito.when(mFileSystemMasterClient.getStatus(FILE_ID)).thenThrow(EXCEPTION);
     GetInfoOptions getInfoOptions = GetInfoOptions.defaults();
     try {
       mFileSystem.getInfo(new TachyonFile(FILE_ID), getInfoOptions);
@@ -222,10 +222,10 @@ public final class AbstractFileSystemTest {
   @Test
   public void listStatusTest() throws Exception {
     List<FileInfo> infos = Lists.newArrayList(new FileInfo());
-    Mockito.when(mFileSystemMasterClient.getFileInfoList(FILE_ID)).thenReturn(infos);
+    Mockito.when(mFileSystemMasterClient.listStatus(FILE_ID)).thenReturn(infos);
     ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
     Assert.assertSame(infos, mFileSystem.listStatus(new TachyonFile(FILE_ID), listStatusOptions));
-    Mockito.verify(mFileSystemMasterClient).getFileInfoList(FILE_ID);
+    Mockito.verify(mFileSystemMasterClient).listStatus(FILE_ID);
   }
 
   /**
@@ -235,7 +235,7 @@ public final class AbstractFileSystemTest {
    */
   @Test
   public void listStatusExceptionTest() throws Exception {
-    Mockito.when(mFileSystemMasterClient.getFileInfoList(FILE_ID)).thenThrow(EXCEPTION);
+    Mockito.when(mFileSystemMasterClient.listStatus(FILE_ID)).thenThrow(EXCEPTION);
     ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
     try {
       mFileSystem.listStatus(new TachyonFile(FILE_ID), listStatusOptions);

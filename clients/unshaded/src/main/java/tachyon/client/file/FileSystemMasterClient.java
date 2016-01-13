@@ -17,6 +17,7 @@ package tachyon.client.file;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.thrift.TException;
@@ -27,13 +28,10 @@ import tachyon.TachyonURI;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
-import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
-import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.SetAttributeOptions;
-import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
@@ -49,7 +47,6 @@ import tachyon.thrift.TachyonTException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-// TODO(calvin): Only use uris for rpcs.
 public final class FileSystemMasterClient extends MasterClientBase {
   private FileSystemMasterClientService.Client mClient = null;
 
@@ -203,28 +200,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized FileInfo getFileInfo(final TachyonURI path) throws IOException,
+  public synchronized URIStatus getStatus(final TachyonURI path) throws IOException,
       TachyonException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<FileInfo>() {
+    return retryRPC(new RpcCallableThrowsTachyonTException<URIStatus>() {
       @Override
-      public FileInfo call() throws TachyonTException, TException {
-        return mClient.getFileInfo(path.getPath());
-      }
-    });
-  }
-
-  /**
-   * @param path the path to list
-   * @return the list of file information for the given path
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized List<FileInfo> getFileInfoList(final TachyonURI path)
-      throws IOException, TachyonException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<List<FileInfo>>() {
-      @Override
-      public List<FileInfo> call() throws TachyonTException, TException {
-        return mClient.getFileInfoList(path.getPath());
+      public URIStatus call() throws TachyonTException, TException {
+        return new URIStatus(mClient.getStatus(path.getPath()));
       }
     });
   }
@@ -255,6 +236,27 @@ public final class FileSystemMasterClient extends MasterClientBase {
       @Override
       public String call() throws TException {
         return mClient.getUfsAddress();
+      }
+    });
+  }
+
+  /**
+   * @param path the path to list
+   * @return the list of file information for the given path
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized List<URIStatus> listStatus(final TachyonURI path)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<List<URIStatus>>() {
+      @Override
+      public List<URIStatus> call() throws TachyonTException, TException {
+        List<FileInfo> statuses = mClient.listStatus(path.getPath());
+        List<URIStatus> ret = new ArrayList<URIStatus>(statuses.size());
+        for (FileInfo status : statuses) {
+          ret.add(new URIStatus(status));
+        }
+        return ret;
       }
     });
   }

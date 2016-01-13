@@ -54,12 +54,12 @@ public class FileSystemMasterClientIntegrationTest {
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
     fsMasterClient.create("/file", CreateOptions.defaults());
-    Assert.assertTrue(fsMasterClient.getFileInfo(fsMasterClient.getFileId("/file")) != null);
+    Assert.assertTrue(fsMasterClient.getStatus(fsMasterClient.getFileId("/file")) != null);
     fsMasterClient.disconnect();
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
-    Assert.assertTrue(fsMasterClient.getFileInfo(fsMasterClient.getFileId("/file")) != null);
+    Assert.assertTrue(fsMasterClient.getStatus(fsMasterClient.getFileId("/file")) != null);
     fsMasterClient.close();
   }
 
@@ -70,7 +70,7 @@ public class FileSystemMasterClientIntegrationTest {
     // in the cases we don't want to disconnect from master
     FileSystemMasterClient fsMasterClient = new FileSystemMasterClient(
         mLocalTachyonClusterResource.get().getMaster().getAddress(), mMasterTachyonConf);
-    fsMasterClient.getFileInfo(Long.MAX_VALUE);
+    fsMasterClient.getStatus(Long.MAX_VALUE);
     fsMasterClient.close();
   }
 }

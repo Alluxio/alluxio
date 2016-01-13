@@ -93,17 +93,10 @@ service FileSystemMasterClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Frees the given file from Tachyon
+   * Frees the given file or directory from Tachyon
    */
-  void free( /** the path of the file */ 1: string path,
+  void free( /** the path of the file or directory */ 1: string path,
       /** whether to free recursively */ 2: bool recursive)
-    throws (1: exception.TachyonTException e)
-
-  /**
-   * Returns the file block information for the given file and file block index.
-   */
-  common.FileBlockInfo getFileBlockInfo( /** the path of the file */ 1: string path,
-      /** the index of the file block */ 2: i32 fileBlockIndex)
     throws (1: exception.TachyonTException e)
 
   /**
@@ -113,17 +106,9 @@ service FileSystemMasterClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e)
 
   /**
-   * Returns the file information.
+   * Returns the status of the file or directory
    */
-  FileInfo getFileInfo( /** the path of the file */ 1: string path)
-    throws (1: exception.TachyonTException e)
-
-  /**
-   * If the path points to a file, the method returns a singleton with its file information.
-   * If the path points to a directory, the method returns a list with file information for the
-   * directory contents.
-   */
-  list<FileInfo> getFileInfoList( /** the path of the file */ 1: string path)
+  FileInfo getStatus( /** the path of the file or directory */ 1: string path)
     throws (1: exception.TachyonTException e)
 
   /**
@@ -137,6 +122,14 @@ service FileSystemMasterClientService extends common.TachyonService {
    */
   // TODO(gene): Is this necessary?
   string getUfsAddress()
+
+  /**
+   * If the path points to a file, the method returns a singleton with its file information.
+   * If the path points to a directory, the method returns a list with file information for the
+   * directory contents.
+   */
+  list<FileInfo> listStatus( /** the path of the file or directory */ 1: string path)
+    throws (1: exception.TachyonTException e)
 
   /**
    * Loads metadata for the object identified by the given Tachyon path from UFS into Tachyon.
@@ -170,7 +163,7 @@ service FileSystemMasterClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Sets file attributes
+   * Sets file or directory attributes
    */
   void setAttribute( /** the path of the file or directory */ 1: string path,
        /** the method options */ 2: SetAttributeTOptions options)
