@@ -29,7 +29,6 @@ import tachyon.TachyonURI;
 import tachyon.client.ReadType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileSystem;
-import tachyon.client.file.TachyonFile;
 import tachyon.client.file.URIStatus;
 import tachyon.client.file.options.OpenFileOptions;
 import tachyon.conf.TachyonConf;
@@ -118,7 +117,6 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
    * @throws IOException
    */
   private void copyToLocal(TachyonURI srcPath, File dstFile) throws IOException {
-    TachyonFile srcFd;
     URIStatus srcStatus;
     try {
       srcStatus = mTfs.getStatus(srcPath);

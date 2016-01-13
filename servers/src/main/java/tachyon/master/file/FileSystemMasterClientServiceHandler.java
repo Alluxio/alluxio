@@ -22,7 +22,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.TachyonException;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
@@ -204,10 +204,11 @@ public final class FileSystemMasterClientServiceHandler implements
     }
   }
 
+  // TODO(calvin): Do not rely on client side options
   @Override
   public void setState(long fileId, SetStateTOptions options) throws TachyonTException {
     try {
-      mFileSystemMaster.setState(fileId, new SetStateOptions(options));
+      mFileSystemMaster.setState(fileId, SetAttributeOptions.fromThriftOptions(options));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
