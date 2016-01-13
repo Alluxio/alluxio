@@ -17,6 +17,7 @@ package tachyon.master.file.meta;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -35,6 +36,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Tachyon file system's file representation in the file system master.
  */
+@ThreadSafe
 public final class InodeFile extends Inode {
   /** This default umask is used to calculate file permission from directory permission. */
   private static final FileSystemPermission UMASK =
