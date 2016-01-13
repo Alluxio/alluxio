@@ -40,18 +40,18 @@ import tachyon.util.CommonUtils;
 /**
  * Collection of utility methods to handle with {@link FileSystem} related objects
  */
-public final class TachyonFileSystemUtils {
+public final class FileSystemUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // prevent instantiation
-  private TachyonFileSystemUtils() {}
+  private FileSystemUtils() {}
 
   /**
    * Shortcut for {@code waitCompleted(tfs, uri, -1, TimeUnit.MILLISECONDS)}, i.e., wait for an
    * indefinite amount of time. Note that if a file is never completed, the thread will block
    * forever, so use with care.
    *
-   * @param tfs a {@link TachyonFileSystemCore} instance
+   * @param tfs a {@link FileSystem} instance
    * @param uri the URI of the file on which the thread should wait
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
@@ -64,18 +64,18 @@ public final class TachyonFileSystemUtils {
    */
   public static boolean waitCompleted(FileSystem tfs, TachyonURI uri)
       throws IOException, TachyonException, InterruptedException {
-    return TachyonFileSystemUtils.waitCompleted(tfs, uri, -1, TimeUnit.MILLISECONDS);
+    return FileSystemUtils.waitCompleted(tfs, uri, -1, TimeUnit.MILLISECONDS);
   }
 
   /**
    * Wait for a file to be marked as completed.
    * <p/>
    * The calling thread will block for <i>at most</i> {@code timeout} time units (as specified via
-   * {@code tunit} or until the {@link TachyonFile} is reported as complete by the master. The
-   * method will return the last known completion status of the file (hence, false only if the
-   * method has timed out). A zero value on the {@code timeout} parameter will make the calling
-   * thread check once and return; a negative value will make it block indefinitely. Note that, in
-   * this last case, if a file is never completed, the thread will block forever, so use with care.
+   * {@code tunit} or until the file is reported as complete by the master. The method will return
+   * the last known completion status of the file (hence, false only if the method has timed out). A
+   * zero value on the {@code timeout} parameter will make the calling thread check once and return;
+   * a negative value will make it block indefinitely. Note that, in this last case, if a file is
+   * never completed, the thread will block forever, so use with care.
    * <p/>
    * Note that the file whose uri is specified, might not exist at the moment this method this call.
    * The method will deliberately block anyway for the specified amount of time, waiting for the
@@ -88,7 +88,7 @@ public final class TachyonFileSystemUtils {
    * {@link Constants#USER_FILE_WAITCOMPLETED_POLL_MS} java property and defaults to a generous 1
    * second.
    *
-   * @param tfs an instance of {@link TachyonFileSystemCore}
+   * @param tfs an instance of {@link FileSystem}
    * @param uri the URI of the file whose completion status is to be watied for
    * @param timeout maximum time the calling thread should be blocked on this call
    * @param tunit the @{link TimeUnit} instance describing the {@code timeout} parameter
