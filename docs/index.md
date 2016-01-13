@@ -29,8 +29,9 @@ The project is the storage layer of the Berkeley Data Analytics Stack
 ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
 
-[Github Repository](https://github.com/amplab/tachyon/) |
-[Releases and Downloads](https://github.com/amplab/tachyon/releases) |
+[Github](https://github.com/amplab/tachyon/) |
+[Releases](http://tachyon-project.org/releases/) |
+[Downloads](http://tachyon-project.org/downloads/) |
 [User Documentation](Getting-Started.html) |
 [Developer Documentation](Contributing-to-Tachyon.html) |
 [Meetup Group](https://www.meetup.com/Tachyon/) |
