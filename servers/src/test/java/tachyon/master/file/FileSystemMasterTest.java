@@ -259,7 +259,7 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
-    mFileSystemMaster.setState(fileId, SetAttributeOptions.defaults().setTTL(0));
+    mFileSystemMaster.setState(fileId, SetAttributeOptions.defaults().setTTL(Constants.NO_TTL));
     executeTTLCheckOnce();
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
   }
