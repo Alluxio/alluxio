@@ -67,6 +67,6 @@ public class MkdirOptionsTest {
     Assert.assertFalse(options.isAllowExists());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
-    ClientContext.reset();
+    ClientContext.reset(new TachyonConf());
   }
 }

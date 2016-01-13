@@ -18,6 +18,7 @@ package tachyon.client;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -60,6 +61,14 @@ public class TachyonFileSystemUtilsIntegrationTest {
     sTfs = sLocalTachyonClusterResource.get().getClient();
     TachyonConf conf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
     sWriteBoth =  StreamOptionUtils.getOutStreamOptionsWriteBoth(conf);
+  }
+
+  /**
+   * Resets the context after a test ran.
+   */
+  @After
+  public void after() {
+    ClientContext.reset(new TachyonConf());
   }
 
   @Test

@@ -17,7 +17,6 @@ package tachyon.client.block;
 
 import java.io.IOException;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,14 +39,6 @@ import tachyon.thrift.BlockMasterClientService;
 public class BlockMasterClientTest {
 
   /**
-   * Reset the conf of ClientContext to clean the case specific settings.
-   */
-  @After
-  public void after() {
-    ClientContext.getConf().merge(new TachyonConf());
-  }
-
-  /**
    * Tests for an unsupported version.
    *
    * @throws Exception when the Whitebox fails
@@ -55,7 +46,7 @@ public class BlockMasterClientTest {
   @Test
   public void unsupportedVersionTest() throws Exception {
     // Client context needs to be initialized before the block store context can be used.
-    ClientContext.reset();
+    ClientContext.reset(new TachyonConf());
 
     BlockMasterClientService.Client mock = PowerMockito.mock(BlockMasterClientService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);

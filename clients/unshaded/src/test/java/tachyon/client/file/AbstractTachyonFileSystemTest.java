@@ -44,6 +44,7 @@ import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
+import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
 import tachyon.thrift.FileInfo;
@@ -73,7 +74,7 @@ public final class AbstractTachyonFileSystemTest {
    */
   @Before
   public void before() {
-    ClientContext.reset();
+    ClientContext.reset(new TachyonConf());
     mFileSystem = new DummyTachyonFileSystem();
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     Whitebox.setInternalState(mFileSystem, "mContext", mFileContext);
