@@ -47,8 +47,8 @@ public final class KeyValueStoreIntegrationTest {
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE,
-      /* ensure key-value service is turned on */
-      Constants.KEYVALUE_ENABLED, "true");
+          /* ensure key-value service is turned on */
+          Constants.KEYVALUE_ENABLED, "true");
 
   @BeforeClass
   public static void beforeClass() throws Exception {
