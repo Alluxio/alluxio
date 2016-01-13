@@ -53,6 +53,8 @@ public final class BlockStoreContextTest {
    */
   @Test(timeout = 10000)
   public void acquireMasterLimitTest() throws Exception {
+    BlockStoreContext.INSTANCE.reset();
+
     final List<BlockMasterClient> clients = Lists.newArrayList();
 
     // Acquire all the clients
@@ -107,6 +109,8 @@ public final class BlockStoreContextTest {
    */
   @Test(timeout = 10000)
   public void acquireWorkerLimitTest() throws Exception {
+    BlockStoreContext.INSTANCE.reset();
+
     // Use mocks for the master client to make sure the pool of local block worker clients is
     // initialized properly.
     Whitebox.setInternalState(NetworkAddressUtils.class, "sLocalHost", "localhost");
