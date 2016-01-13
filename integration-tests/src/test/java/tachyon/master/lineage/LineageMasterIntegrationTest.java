@@ -91,7 +91,7 @@ public final class LineageMasterIntegrationTest {
       Assert.assertEquals(1, infos.size());
       String uri = infos.get(0).outputFiles.get(0);
       long fileId = getFileSystemMasterClient().getFileId(uri);
-      FileInfo fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
+      FileInfo fileInfo = getFileSystemMasterClient().getStatus(fileId);
       Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
           fileInfo.getPersistenceState());
       Assert.assertFalse(fileInfo.isCompleted);
@@ -125,7 +125,7 @@ public final class LineageMasterIntegrationTest {
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
       String uri = infos.get(0).outputFiles.get(0);
       long fileId = getFileSystemMasterClient().getFileId(uri);
-      FileInfo fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
+      FileInfo fileInfo = getFileSystemMasterClient().getStatus(fileId);
       Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
           fileInfo.getPersistenceState());
       Assert.assertTrue(fileInfo.isCompleted);
@@ -138,7 +138,7 @@ public final class LineageMasterIntegrationTest {
       Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
           TimeUnit.SECONDS));
 
-      fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
+      fileInfo = getFileSystemMasterClient().getStatus(fileId);
       Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(),
           fileInfo.getPersistenceState());
 
@@ -150,7 +150,7 @@ public final class LineageMasterIntegrationTest {
       Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
           TimeUnit.SECONDS));
 
-      fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
+      fileInfo = getFileSystemMasterClient().getStatus(fileId);
       Assert.assertEquals(PersistenceState.PERSISTED.toString(),
           fileInfo.getPersistenceState());
 

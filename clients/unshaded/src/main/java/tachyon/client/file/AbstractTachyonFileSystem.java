@@ -125,7 +125,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
       throws IOException, FileDoesNotExistException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.getFileInfo(file.getFileId());
+      return masterClient.getStatus(file.getFileId());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -142,7 +142,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
       throws IOException, FileDoesNotExistException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.getFileInfoList(file.getFileId());
+      return masterClient.listStatus(file.getFileId());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

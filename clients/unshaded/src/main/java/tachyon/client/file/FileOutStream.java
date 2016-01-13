@@ -296,7 +296,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private void updateUfsPath() throws IOException {
     FileSystemMasterClient client = mContext.acquireMasterClient();
     try {
-      FileInfo fileInfo = client.getFileInfo(mUri);
+      FileInfo fileInfo = client.getStatus(mUri);
       mUfsPath = fileInfo.getUfsPath();
     } catch (TachyonException e) {
       throw new IOException(e);
