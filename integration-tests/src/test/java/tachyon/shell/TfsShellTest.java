@@ -513,7 +513,7 @@ public class TfsShellTest {
 
     FileInfo[] files = new FileInfo[4];
     String testUser = "test_user_lsr";
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
+    ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, testUser);
 
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA",
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
@@ -540,8 +540,6 @@ public class TfsShellTest {
         getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30, "Not In Memory",
             testUser, testUser);
     Assert.assertEquals(expected, mOutput.toString());
-    // clear testing username
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
   @Test
@@ -553,7 +551,7 @@ public class TfsShellTest {
 
     FileInfo[] files = new FileInfo[4];
     String testUser = "test_user_ls";
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
+    ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, testUser);
 
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA",
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
@@ -576,8 +574,6 @@ public class TfsShellTest {
         getLsResultStr("/testRoot/testFileC", files[2].getCreationTimeMs(), 30, "Not In Memory",
             testUser, testUser);
     Assert.assertEquals(expected, mOutput.toString());
-    // clear testing username
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
   @Test
@@ -883,7 +879,7 @@ public class TfsShellTest {
     MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
     String testUser = "test_user_lsWildcard";
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
+    ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, testUser);
 
     TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
 
@@ -900,8 +896,6 @@ public class TfsShellTest {
     expect += getLsResultStr(new TachyonURI("/testWildCards/foobar4"), 40, testUser, testUser);
     mFsShell.run("ls", "/testWildCards/*");
     Assert.assertEquals(expect, mOutput.toString());
-    // clear testing username
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
   private String getLsResultStr(TachyonURI tUri, int size, String testUser, String testGroup)
