@@ -32,7 +32,7 @@ import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
@@ -263,7 +263,7 @@ public final class MasterSourceTest {
   public void setStateTest() throws Exception {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
 
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().build());
+    mFileSystemMaster.setState(fileId, SetAttributeOptions.defaults());
 
     Assert.assertEquals(1, mCounters.get("SetStateOps").getCount());
   }
@@ -272,7 +272,7 @@ public final class MasterSourceTest {
   public void filePersistedTest() throws Exception {
     long fileId = createCompleteFileWithSingleBlock(NESTED_FILE_URI);
 
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPersisted(true).build());
+    mFileSystemMaster.setState(fileId, SetAttributeOptions.defaults().setPersisted(true));
 
     Assert.assertEquals(1, mCounters.get("FilesPersisted").getCount());
   }

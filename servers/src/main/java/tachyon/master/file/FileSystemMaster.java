@@ -39,7 +39,7 @@ import com.google.protobuf.Message;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
@@ -1538,10 +1538,10 @@ public final class FileSystemMaster extends MasterBase {
    * Sets the file state.
    *
    * @param fileId the id of the file
-   * @param options state options to be set, see {@link SetStateOptions}
+   * @param options attributes to be set, see {@link SetAttributeOptions}
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public void setState(long fileId, SetStateOptions options) throws FileDoesNotExistException {
+  public void setState(long fileId, SetAttributeOptions options) throws FileDoesNotExistException {
     MasterContext.getMasterSource().incSetStateOps(1);
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
@@ -1717,8 +1717,7 @@ public final class FileSystemMaster extends MasterBase {
   public synchronized FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException, InvalidPathException {
     for (long fileId : persistedFiles) {
-      SetStateOptions.Builder builder = new SetStateOptions.Builder().setPersisted(true);
-      setState(fileId, builder.build());
+      setState(fileId, SetAttributeOptions.defaults().setPersisted(true));
     }
 
     // get the files for the given worker to checkpoint
@@ -1731,7 +1730,7 @@ public final class FileSystemMaster extends MasterBase {
     return new FileSystemCommand(CommandType.Persist, options);
   }
 
-  private void setStateInternal(long fileId, long opTimeMs, SetStateOptions options)
+  private void setStateInternal(long fileId, long opTimeMs, SetAttributeOptions options)
       throws FileDoesNotExistException {
     Inode inode = mInodeTree.getInodeById(fileId);
     if (options.hasPinned()) {
@@ -1766,18 +1765,19 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  // TODO(calvin): Rename SetStateEntry to SetAttributeEntry, do not rely on client side options
   private void setStateFromEntry(SetStateEntry entry) throws FileDoesNotExistException {
-    SetStateOptions.Builder builder = new SetStateOptions.Builder();
+    SetAttributeOptions options = SetAttributeOptions.defaults();
     if (entry.hasPinned()) {
-      builder.setPinned(entry.getPinned());
+      options.setPinned(entry.getPinned());
     }
     if (entry.hasTtl()) {
-      builder.setTTL(entry.getTtl());
+      options.setTTL(entry.getTtl());
     }
     if (entry.hasPersisted()) {
-      builder.setPersisted(entry.getPersisted());
+      options.setPersisted(entry.getPersisted());
     }
-    setStateInternal(entry.getId(), entry.getOpTimeMs(), builder.build());
+    setStateInternal(entry.getId(), entry.getOpTimeMs(), options);
   }
 
   /**
