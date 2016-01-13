@@ -27,13 +27,10 @@ import tachyon.TachyonURI;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
-import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
-import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.SetAttributeOptions;
-import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
@@ -81,26 +78,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
   @Override
   protected void afterConnect() throws IOException {
     mClient = new FileSystemMasterClientService.Client(mProtocol);
-  }
-
-  /**
-   * Creates a new file.
-   *
-   * @param path the file path
-   * @param options method options
-   * @return the file id referencing the newly created file
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  // TODO(calvin): Remove this
-  public synchronized long create(final String path, final CreateOptions options)
-      throws IOException, TachyonException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
-      @Override
-      public Long call() throws TachyonTException, TException {
-        return mClient.create(path, options.toThrift());
-      }
-    });
   }
 
   /**
@@ -437,44 +414,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
         // TODO(calvin): Look into changing the master side implementation to take a uri
         mClient.setState(mClient.getFileId(path.getPath()), options.toThrift());
         return null;
-      }
-    });
-  }
-
-  /**
-   * Sets the file state.
-   *
-   * @param fileId the file id
-   * @param options the file state options to be set
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void setState(final long fileId, final SetStateOptions options)
-      throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
-      @Override
-      public Void call() throws TachyonTException, TException {
-        mClient.setState(fileId, options.toThrift());
-        return null;
-      }
-    });
-  }
-
-  /**
-   * Creates a new directory.
-   *
-   * @param path the directory path
-   * @param options method options
-   * @return whether operation succeeded or not
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized boolean mkdir(final String path, final MkdirOptions options)
-      throws IOException, TachyonException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
-      @Override
-      public Boolean call() throws TachyonTException, TException {
-        return mClient.mkdir(path, options.toThrift());
       }
     });
   }
