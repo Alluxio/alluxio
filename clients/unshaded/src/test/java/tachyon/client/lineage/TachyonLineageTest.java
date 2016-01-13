@@ -54,7 +54,6 @@ public final class TachyonLineageTest {
     mTachyonConf = new TachyonConf();
     mTachyonConf.set(Constants.USER_LINEAGE_ENABLED, "true");
     ClientContext.reset(mTachyonConf);
-    PowerMockito.when(ClientContext.getConf()).thenReturn(mTachyonConf);
     mLineageMasterClient = PowerMockito.mock(LineageMasterClient.class);
     mLineageContext = PowerMockito.mock(LineageContext.class);
     Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
