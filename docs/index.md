@@ -32,8 +32,8 @@ The project is the storage layer of the Berkeley Data Analytics Stack
 [Github](https://github.com/amplab/tachyon/) |
 [Releases](http://tachyon-project.org/releases/) |
 [Downloads](http://tachyon-project.org/downloads/) |
-[User Documentation](Getting-Started.html) |
-[Developer Documentation](Contributing-to-Tachyon.html) |
+[User Document](Getting-Started.html) |
+[Developer Document](Contributing-to-Tachyon.html) |
 [Meetup Group](https://www.meetup.com/Tachyon/) |
 [JIRA](https://tachyon.atlassian.net/browse/TACHYON) |
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
