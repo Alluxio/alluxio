@@ -48,8 +48,8 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
+import tachyon.worker.NetAddress;
 
 /**
  * Unit tests for {@link tachyon.master.block.BlockMaster}.

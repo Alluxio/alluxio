@@ -81,7 +81,7 @@ do_mount() {
 }
 
 stop() {
-  $bin/tachyon-stop.sh
+  $bin/tachyon-stop.sh all
 }
 
 

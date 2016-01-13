@@ -91,6 +91,11 @@ public abstract class UIWebServer {
     mServer.setHandler(handlers);
   }
 
+  /**
+   * Adds a handler.
+   *
+   * @param handler the handler to add
+   */
   public void addHandler(AbstractHandler handler) {
     HandlerList handlers = new HandlerList();
     handlers.addHandler(handler);

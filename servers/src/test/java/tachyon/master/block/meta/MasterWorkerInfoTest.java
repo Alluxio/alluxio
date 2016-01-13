@@ -19,21 +19,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.MasterStorageTierAssoc;
 import tachyon.StorageTierAssoc;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
+import tachyon.thrift.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 
 /**
  * Unit tests for {@link MasterWorkerInfo}.
@@ -55,7 +56,7 @@ public final class MasterWorkerInfoTest {
   @Before
   public void before() {
     // register
-    mInfo = new MasterWorkerInfo(0, new NetAddress());
+    mInfo = new MasterWorkerInfo(0, new NetAddress(new WorkerNetAddress()));
     mInfo.register(GLOBAL_STORAGE_TIER_ASSOC, STORAGE_TIER_ALIASES, TOTAL_BYTES_ON_TIERS,
         USED_BYTES_ON_TIERS, NEW_BLOCKS);
   }
@@ -112,7 +113,7 @@ public final class MasterWorkerInfoTest {
   public void workerInfoGenerationTest() {
     WorkerInfo workerInfo = mInfo.generateClientWorkerInfo();
     Assert.assertEquals(mInfo.getId(), workerInfo.id);
-    Assert.assertEquals(mInfo.getAddress(), workerInfo.address);
+    Assert.assertEquals(mInfo.getWorkerAddress().toThrift(), workerInfo.address);
     Assert.assertEquals("In Service", workerInfo.state);
     Assert.assertEquals(mInfo.getCapacityBytes(), workerInfo.capacityBytes);
     Assert.assertEquals(mInfo.getUsedBytes(), workerInfo.usedBytes);

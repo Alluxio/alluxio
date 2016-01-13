@@ -33,7 +33,7 @@ import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.Command;
-import tachyon.thrift.NetAddress;
+import tachyon.worker.NetAddress;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 

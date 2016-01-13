@@ -45,8 +45,8 @@ import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.worker.NetAddress;
 
 /**
  * Unit tests for {@link MasterSource}.

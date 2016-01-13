@@ -149,11 +149,11 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Provides {@link StorageTierView} given tierAlias.
+   * Provides {@link StorageTierView} given tierAlias. Throws an {@link IllegalArgumentException} if
+   * the tierAlias is not found.
    *
    * @param tierAlias the alias of this tierView
    * @return the {@link StorageTierView} object associated with the alias
-   * @throws IllegalArgumentException if tierAlias is not found
    */
   public StorageTierView getTierView(String tierAlias) {
     StorageTierView tierView = mAliasToTierViews.get(tierAlias);
@@ -175,11 +175,11 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Gets all tierViews before certain tierView.
+   * Gets all tierViews before certain tierView. Throws an {@link IllegalArgumentException} if the
+   * tierAlias is not found.
    *
    * @param tierAlias the alias of a tierView
    * @return the list of {@link StorageTierView}
-   * @throws IllegalArgumentException if tierAlias is not found
    */
   public List<StorageTierView> getTierViewsBelow(String tierAlias) {
     int ordinal = getTierView(tierAlias).getTierViewOrdinal();
@@ -202,11 +202,11 @@ public class BlockMetadataManagerView {
 
   /**
    * Gets available bytes given certain location
-   * {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}.
+   * {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}. Throws an
+   * {@link IllegalArgumentException} if the location does not belong to tiered storage.
    *
    * @param location location the check available bytes
    * @return available bytes
-   * @throws IllegalArgumentException if location does not belong to tiered storage
    */
   public long getAvailableBytes(BlockStoreLocation location) {
     return mMetadataManager.getAvailableBytes(location);

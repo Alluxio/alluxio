@@ -15,7 +15,7 @@ struct BlockInfo {
 */
 struct BlockLocation {
   1: i64 workerId
-  2: NetAddress workerAddress
+  2: WorkerNetAddress workerAddress
   3: string tierAlias
 }
 
@@ -26,7 +26,7 @@ struct BlockLocation {
 struct FileBlockInfo {
   1: BlockInfo blockInfo
   2: i64 offset
-  3: list<NetAddress> ufsLocations
+  3: list<WorkerNetAddress> ufsLocations
 }
 
 enum CommandType {
@@ -44,9 +44,9 @@ struct Command {
 }
 
 /**
-* Information about workers.
+* Address information about workers.
 */
-struct NetAddress {
+struct WorkerNetAddress {
   1: string host
   2: i32 rpcPort
   3: i32 dataPort

@@ -27,24 +27,24 @@ public interface DataBuffer {
    *
    * @return the object to output to Netty. Must be ByteBuf or FileRegion
    */
-  public Object getNettyOutput();
+  Object getNettyOutput();
 
   /**
    * Returns the length of the data.
    *
    * @return the length of the data in bytes
    */
-  public long getLength();
+  long getLength();
 
   /**
    * Returns a {@link ByteBuffer} for read-only access to the data.
    *
    * @return a read-only ByteBuffer representing the data
    */
-  public ByteBuffer getReadOnlyByteBuffer();
+  ByteBuffer getReadOnlyByteBuffer();
 
   /**
    * Release the underlying buffer of this DataBuffer if no longer needed.
    */
-  public void release();
+  void release();
 }

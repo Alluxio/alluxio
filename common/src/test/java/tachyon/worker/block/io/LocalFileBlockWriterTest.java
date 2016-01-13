@@ -29,24 +29,39 @@ import org.junit.rules.TemporaryFolder;
 
 import tachyon.util.io.BufferUtils;
 
+/**
+ * Tests for the {@link LocalFileBlockWriter} class.
+ */
 public class LocalFileBlockWriterTest {
   private static final long TEST_BLOCK_SIZE = 1024;
 
   private LocalFileBlockWriter mWriter;
   private String mTestFilePath;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
+  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up the file path and writer before a test runs.
+   *
+   * @throws Exception if one of the file operations fails
+   */
   @Before
   public void before() throws Exception {
     mTestFilePath = mFolder.newFile().getAbsolutePath();
     mWriter = new LocalFileBlockWriter(mTestFilePath);
   }
 
+  /**
+   * Test for the {@link LocalFileBlockWriter#getChannel()} method.
+   *
+   * @throws Exception if writing to the channel or closing it fails
+   */
   @Test
   public void getChannelTest() throws Exception {
     WritableByteChannel channel = mWriter.getChannel();
@@ -58,6 +73,11 @@ public class LocalFileBlockWriterTest {
     Assert.assertEquals(TEST_BLOCK_SIZE, new File(mTestFilePath).length());
   }
 
+  /**
+   * Test for the {@link LocalFileBlockWriter#append(ByteBuffer)} method.
+   *
+   * @throws Exception if appending to the channel or closing it fails
+   */
   @Test
   public void appendTest() throws Exception {
     ByteBuffer buf = BufferUtils.getIncreasingByteBuffer((int) TEST_BLOCK_SIZE);
@@ -69,6 +89,12 @@ public class LocalFileBlockWriterTest {
     // equalIncreasingByteBuffer.
   }
 
+  /**
+   * Tests that a {@link ClosedChannelException} is thrown when trying to append to a channel after
+   * closing it.
+   *
+   * @throws Exception if appending to the channel or closing it fails
+   */
   @Test
   public void closeTest() throws Exception {
     mThrown.expect(ClosedChannelException.class);
