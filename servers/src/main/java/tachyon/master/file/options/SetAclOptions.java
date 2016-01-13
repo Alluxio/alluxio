@@ -162,18 +162,7 @@ public class SetAclOptions {
    * @return true if the instance of {@link SetAclOptions} is valid, false otherwise
    */
   public boolean isValid() {
-    int num = 0;
-    if (mOwner != null) {
-      num ++;
-    }
-    if (mGroup != null) {
-      num ++;
-    }
-    if (mPermission != Constants.INVALID_PERMISSION) {
-      num ++;
-    }
-
-    return num >= 1 ? true : false;
+    return mOwner != null || mGroup != null || mPermission != Constants.INVALID_PERMISSION;
   }
 
   /**

@@ -1879,20 +1879,22 @@ public final class FileSystemMaster extends MasterBase {
    */
   private void setGroupOrPermission(TachyonURI path, SetAclOptions options) throws
       AccessControlException, InvalidPathException {
-    checkOwner(path);
-    long opTimeMs = System.currentTimeMillis();
-    Inode targetInode = mInodeTree.getInodeByPath(path);
-    if (options.isRecursive() && targetInode.isDirectory()) {
-      List<Inode> inodeChildren =
-          mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
-      for (Inode inode : inodeChildren) {
-        checkOwner(mInodeTree.getPath(inode));
+    synchronized (mInodeTree) {
+      checkOwner(path);
+      long opTimeMs = System.currentTimeMillis();
+      Inode targetInode = mInodeTree.getInodeByPath(path);
+      if (options.isRecursive() && targetInode.isDirectory()) {
+        List<Inode> inodeChildren =
+            mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
+        for (Inode inode : inodeChildren) {
+          checkOwner(mInodeTree.getPath(inode));
+        }
+        for (Inode inode : inodeChildren) {
+          setAclInternal(inode, opTimeMs, options);
+        }
       }
-      for (Inode inode : inodeChildren) {
-        setAclInternal(inode, opTimeMs, options);
-      }
+      setAclInternal(targetInode, opTimeMs, options);
     }
-    setAclInternal(targetInode, opTimeMs, options);
   }
 
   /**
