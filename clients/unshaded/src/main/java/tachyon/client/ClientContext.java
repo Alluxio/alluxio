@@ -18,6 +18,7 @@ package tachyon.client;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 
@@ -32,8 +33,9 @@ import tachyon.worker.ClientMetrics;
 
 /**
  * A shared context in each client JVM. It provides common functionality such as the Tachyon
- * configuration and master address. This class is thread safe.
+ * configuration and master address.
  */
+@ThreadSafe
 public final class ClientContext {
   private static ExecutorService sExecutorService;
   private static TachyonConf sTachyonConf;

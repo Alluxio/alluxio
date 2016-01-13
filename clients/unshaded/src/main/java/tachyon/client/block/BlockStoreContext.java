@@ -18,6 +18,7 @@ package tachyon.client.block;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -35,7 +36,7 @@ import tachyon.worker.NetAddress;
 /**
  * A shared context in each client JVM for common block master client functionality such as a pool
  * of master clients and a pool of local worker clients. Any remote clients will be created and
- * destroyed on a per use basis. This class is thread safe.
+ * destroyed on a per use basis.
  *
  * NOTE: The context maintains a pool of block master clients and a pool of block worker clients
  * that are already thread-safe. Synchronizing {@link BlockStoreContext} methods could lead to
@@ -44,6 +45,7 @@ import tachyon.worker.NetAddress;
  * client it owns, it is unable to do so, because thread A holds the lock on
  * {@link BlockStoreContext}.
  */
+@ThreadSafe
 public enum BlockStoreContext {
   INSTANCE;
 
@@ -64,7 +66,7 @@ public enum BlockStoreContext {
    * manner.
    */
   private void initializeLocalBlockWorkerClientPool() {
-    if (mLocalBlockWorkerClientPoolInitialized.compareAndSet(false, true)) {
+    if (!mLocalBlockWorkerClientPoolInitialized.getAndSet(true)) {
       NetAddress localWorkerAddress =
           getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
       // If the local worker is not available, do not initialize the local worker client pool.

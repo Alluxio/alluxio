@@ -17,6 +17,7 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +35,9 @@ import tachyon.worker.block.io.LocalFileBlockWriter;
 
 /**
  * Provides a streaming API to write to a Tachyon block. This output stream will directly write the
- * input to a file in local Tachyon storage. The instances of this class should only be used by one
- * thread and are not thread safe.
+ * input to a file in local Tachyon storage.
  */
+@NotThreadSafe
 public final class LocalBlockOutStream extends BufferedBlockOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final Closer mCloser;
