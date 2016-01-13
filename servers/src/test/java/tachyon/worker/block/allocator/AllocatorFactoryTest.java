@@ -36,9 +36,15 @@ public class AllocatorFactoryTest {
   private TachyonConf mTachyonConf;
   private BlockMetadataManagerView mManagerView;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the dependencies fails
+   */
   @Before
   public void before() throws Exception {
     String baseDir = mTestFolder.newFolder().getAbsolutePath();
@@ -46,11 +52,19 @@ public class AllocatorFactoryTest {
     mTachyonConf = WorkerContext.getConf();
   }
 
+  /**
+   * Resets the context of the worker after a test ran.
+   */
   @After
   public void after() {
     WorkerContext.reset();
   }
 
+  /**
+   * Tests the creation of the {@link GreedyAllocator} via the
+   * {@link tachyon.worker.block.allocator.Allocator.Factory#create(TachyonConf,
+   *        BlockMetadataManagerView)} method.
+   */
   @Test
   public void createGreedyAllocatorTest() {
     mTachyonConf.set(Constants.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
@@ -58,6 +72,11 @@ public class AllocatorFactoryTest {
     Assert.assertTrue(allocator instanceof GreedyAllocator);
   }
 
+  /**
+   * Tests the creation of the {@link MaxFreeAllocator} via the
+   * {@link tachyon.worker.block.allocator.Allocator.Factory#create(TachyonConf,
+   *        BlockMetadataManagerView)} method.
+   */
   @Test
   public void createMaxFreeAllocatorTest() {
     mTachyonConf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
@@ -65,6 +84,11 @@ public class AllocatorFactoryTest {
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
   }
 
+  /**
+   * Tests the creation of the {@link RoundRobinAllocator} via the
+   * {@link tachyon.worker.block.allocator.Allocator.Factory#create(TachyonConf,
+   *        BlockMetadataManagerView)} method.
+   */
   @Test
   public void createRoundRobinAllocatorTest() {
     mTachyonConf.set(Constants.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
@@ -72,6 +96,11 @@ public class AllocatorFactoryTest {
     Assert.assertTrue(allocator instanceof RoundRobinAllocator);
   }
 
+  /**
+   * Tests the creation of the default allocator via the
+   * {@link tachyon.worker.block.allocator.Allocator.Factory#create(TachyonConf,
+   *        BlockMetadataManagerView)} method.
+   */
   @Test
   public void createDefaultAllocatorTest() {
     /*
