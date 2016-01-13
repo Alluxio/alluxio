@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -40,6 +41,7 @@ import tachyon.thrift.TachyonService;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
+@ThreadSafe
 public final class FileSystemMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

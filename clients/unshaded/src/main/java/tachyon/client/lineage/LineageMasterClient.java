@@ -18,6 +18,7 @@ package tachyon.client.lineage;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.thrift.TException;
 
@@ -38,6 +39,7 @@ import tachyon.thrift.TachyonTException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
+@ThreadSafe
 public final class LineageMasterClient extends MasterClientBase {
   private LineageMasterClientService.Client mClient = null;
 

@@ -18,6 +18,7 @@ package tachyon.client.table;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.thrift.TException;
 
@@ -39,6 +40,7 @@ import tachyon.util.IdUtils;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
+@ThreadSafe
 public final class RawTableMasterClient extends MasterClientBase {
   private RawTableMasterClientService.Client mClient = null;
 

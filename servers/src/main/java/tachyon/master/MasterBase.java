@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +40,9 @@ import tachyon.util.ThreadFactoryUtils;
 /**
  * This is the base class for all masters, and contains common functionality. Common functionality
  * mostly consists of journal operations, like initialization, journal tailing when in standby mode,
- * or journal writing when the master is the leader. This class is not thread safe.
+ * or journal writing when the master is the leader.
  */
+@NotThreadSafe
 public abstract class MasterBase implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

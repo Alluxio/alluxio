@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import tachyon.Constants;
 import tachyon.WorkerStorageTierAssoc;
@@ -32,9 +33,8 @@ import tachyon.worker.WorkerContext;
  * Represents a tier of storage, for example memory or SSD. It serves as a container of
  * {@link StorageDir} which actually contains metadata information about blocks stored and space
  * used/available.
- * <p>
- * This class does not guarantee thread safety.
  */
+@NotThreadSafe
 public final class StorageTier {
   /** Alias value of this tier in tiered storage */
   private final String mTierAlias;

@@ -18,6 +18,7 @@ package tachyon.client.block;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Preconditions;
 
@@ -30,9 +31,8 @@ import tachyon.util.io.BufferUtils;
 
 /**
  * Provides a stream API to write a block to Tachyon. An instance of this class can be obtained by
- * calling {@link TachyonBlockStore#getOutStream(long, long, String)}. Only one
- * {@link BufferedBlockOutStream} should be opened for a block. This class is not thread safe and
- * should only be used by one thread.
+ * calling {@link TachyonBlockStore#getOutStream}. Only one {@link BufferedBlockOutStream} should be
+ * opened for a block.
  *
  * <p>
  * The type of {@link BufferedBlockOutStream} returned will depend on the user configuration and
@@ -40,6 +40,7 @@ import tachyon.util.io.BufferUtils;
  * Tachyon worker and the user has enabled this optimization. Otherwise, a
  * {@link RemoteBlockOutStream} will be returned which will write the data through a Tachyon worker.
  */
+@NotThreadSafe
 public abstract class BufferedBlockOutStream extends OutputStream implements Cancelable {
   /** The block id of the block being written */
   protected final long mBlockId;

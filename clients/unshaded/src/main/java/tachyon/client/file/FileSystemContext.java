@@ -15,13 +15,14 @@
 
 package tachyon.client.file;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.client.ClientContext;
 import tachyon.client.block.TachyonBlockStore;
 
 /**
  * A shared context in each client JVM for common file master client functionality such as a pool of
- * master clients. Any remote clients will be created and destroyed on a per use basis. This class
- * is thread safe.
+ * master clients. Any remote clients will be created and destroyed on a per use basis.
  *
  *
  * NOTE: The context maintains a pool of file system master clients that is already thread-safe.
@@ -30,6 +31,7 @@ import tachyon.client.block.TachyonBlockStore;
  * {@link FileSystemContext}, when thread B attempts to release a client it owns it is unable to do
  * so, because thread A holds the lock on {@link FileSystemContext}.
  */
+@ThreadSafe
 public enum FileSystemContext {
   INSTANCE;
 
