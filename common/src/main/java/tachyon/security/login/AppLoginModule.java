@@ -15,10 +15,14 @@
 
 package tachyon.security.login;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.security.auth.Subject;
+import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.callback.NameCallback;
+import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
@@ -35,11 +39,13 @@ import tachyon.security.User;
 public final class AppLoginModule implements LoginModule {
   private Subject mSubject;
   private User mUser;
+  private CallbackHandler mCallbackHandler;
 
   @Override
   public void initialize(Subject subject, CallbackHandler callbackHandler,
       Map<String, ?> sharedState, Map<String, ?> options) {
     mSubject = subject;
+    mCallbackHandler = callbackHandler;
   }
 
   /**
@@ -50,9 +56,17 @@ public final class AppLoginModule implements LoginModule {
    */
   @Override
   public boolean login() throws LoginException {
-    // TODO(qifan): after TachyonConf is refactored into Singleton, we will use TachyonConf
-    // instead of System.getProperty for retrieving user name.
-    String userName = System.getProperty(Constants.SECURITY_LOGIN_USERNAME, "");
+    Callback[] callbacks = new Callback[1];
+    callbacks[0] = new NameCallback("user name: ");
+    try {
+      mCallbackHandler.handle(callbacks);
+    } catch (IOException ioe) {
+      throw new LoginException(ioe.getMessage());
+    } catch (UnsupportedCallbackException uce) {
+      throw new LoginException(uce.getMessage());
+    }
+
+    String userName = ((NameCallback) callbacks[0]).getName();
     if (!userName.isEmpty()) {
       mUser = new User(userName);
       return true;
