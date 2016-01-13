@@ -17,6 +17,7 @@ package tachyon.client.block;
 
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,11 +25,20 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.conf.TachyonConf;
 
 /**
  * Tests {@link BlockStoreContext}.
  */
 public final class BlockStoreContextTest {
+
+  /**
+   * Reset the conf of ClientContext to clean the case specific settings.
+   */
+  @After
+  public void after() {
+    ClientContext.getConf().merge(new TachyonConf());
+  }
   /**
    * This test ensures acquiring all the available BlockStore master clients blocks further
    * requests for clients. It also ensures clients are available for reuse after they are released

@@ -19,6 +19,7 @@ import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -81,6 +82,14 @@ public final class TachyonBlockStoreTest {
   private BlockStoreContext mBlockStoreContext;
   private BlockMasterClient mMasterClient;
   private BlockWorkerClient mBlockWorkerClient;
+
+  /**
+   * Reset the conf of ClientContext to clean the case specific settings.
+   */
+  @After
+  public void after() {
+    ClientContext.getConf().merge(new TachyonConf());
+  }
 
   /**
    * Sets up a testable {@link TachyonBlockStore}. Setup consists of the following:
