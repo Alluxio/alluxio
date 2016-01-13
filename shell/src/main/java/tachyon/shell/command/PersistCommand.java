@@ -23,7 +23,7 @@ import com.google.common.base.Joiner;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
-import tachyon.client.file.TachyonFileSystemUtils;
+import tachyon.client.file.FileSystemUtils;
 import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -83,7 +83,7 @@ public final class PersistCommand extends AbstractTfsShellCommand {
       } else if (status.isPersisted()) {
         System.out.println(filePath + " is already persisted");
       } else {
-        long size = TachyonFileSystemUtils.persistFile(mTfs, filePath, status, mTachyonConf);
+        long size = FileSystemUtils.persistFile(mTfs, filePath, status, mTachyonConf);
         System.out.println("persisted file " + filePath + " with size " + size);
       }
     } catch (TachyonException e) {
