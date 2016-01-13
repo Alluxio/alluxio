@@ -27,6 +27,7 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.thrift.transport.TServerSocket;
 import org.slf4j.Logger;
@@ -44,6 +45,7 @@ import tachyon.worker.NetAddress;
 /**
  * Common network address related utilities shared by all components in Tachyon.
  */
+@ThreadSafe
 public final class NetworkAddressUtils {
   public static final String WILDCARD_ADDRESS = "0.0.0.0";
 

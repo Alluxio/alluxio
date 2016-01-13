@@ -18,6 +18,7 @@ package tachyon.master.journal;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
@@ -44,6 +45,7 @@ import tachyon.underfs.UnderFileSystem;
  * The latest state can be reconstructed by reading the checkpoint file, and applying all the
  * completed logs and then the remaining log in progress.
  */
+@ThreadSafe
 public final class JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

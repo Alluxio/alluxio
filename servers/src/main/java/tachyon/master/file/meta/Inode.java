@@ -15,6 +15,8 @@
 
 package tachyon.master.file.meta;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.master.journal.JournalEntryRepresentable;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
@@ -22,6 +24,7 @@ import tachyon.thrift.FileInfo;
 /**
  * {@link Inode} is an abstract class, with information shared by all types of Inodes.
  */
+@ThreadSafe
 public abstract class Inode implements JournalEntryRepresentable {
 
   /**

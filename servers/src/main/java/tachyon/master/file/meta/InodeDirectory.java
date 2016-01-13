@@ -17,6 +17,7 @@ package tachyon.master.file.meta;
 
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -30,6 +31,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Tachyon file system's directory representation in the file system master.
  */
+@ThreadSafe
 public final class InodeDirectory extends Inode {
 
   /**
@@ -98,7 +100,7 @@ public final class InodeDirectory extends Inode {
    * @return the generated {@link FileInfo}
    */
   @Override
-  public FileInfo generateClientFileInfo(String path) {
+  public synchronized FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
     ret.fileId = getId();
     ret.name = getName();
@@ -183,8 +185,8 @@ public final class InodeDirectory extends Inode {
   }
 
   @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder("InodeFolder(");
+  public synchronized String toString() {
+    StringBuilder sb = new StringBuilder("InodeDirectory(");
     sb.append(super.toString()).append(",").append(getChildren()).append(")");
     return sb.toString();
   }
