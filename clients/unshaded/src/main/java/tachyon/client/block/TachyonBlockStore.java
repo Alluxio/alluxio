@@ -229,9 +229,9 @@ public final class TachyonBlockStore {
   }
 
   /**
-   * Attempts to promote a block in Tachyon space. If the block is not present, this method will
-   * return without an error. If the block is present in multiple workers, only one worker will
-   * receive the promotion request.
+   * Attempts to promote a block in Tachyon space. If the block is not present or is already in
+   * memory, this method will return without an error. If the block is present in multiple workers,
+   * only one worker will receive the promotion request.
    *
    * @param blockId the id of the block to promote
    * @throws IOException if the block does not exist
@@ -249,6 +249,12 @@ public final class TachyonBlockStore {
     if (info.getLocations().isEmpty()) {
       // Nothing to promote
       return;
+    }
+    for (BlockLocation loc : info.getLocations()) {
+      if (loc.getTierAlias().equals("mem")) {
+        // the block is already in memory, promote is no longer needed
+        return;
+      }
     }
     // Get the first worker address for now, as this will likely be the location being read from
     // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
