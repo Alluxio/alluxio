@@ -30,7 +30,7 @@ import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystem;
-import tachyon.client.file.TachyonFileSystemUtils;
+import tachyon.client.file.FileSystemUtils;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -38,7 +38,7 @@ import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Tests for {@link tachyon.client.file.TachyonFileSystemUtils}.
+ * Tests for {@link tachyon.client.file.FileSystemUtils}.
  */
 public class FileSystemUtilsIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
@@ -91,7 +91,7 @@ public class FileSystemUtilsIntegrationTest {
       @Override
       public void run() {
         try {
-          boolean completed = TachyonFileSystemUtils.waitCompleted(sTfs, uri);
+          boolean completed = FileSystemUtils.waitCompleted(sTfs, uri);
           Assert.assertTrue(completed);
           completed = sTfs.getStatus(uri).isCompleted();
           Assert.assertTrue(completed);
@@ -149,7 +149,7 @@ public class FileSystemUtilsIntegrationTest {
           // to speed up the tests artificial waiting times
           conf.set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
           // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
-          boolean completed = TachyonFileSystemUtils.waitCompleted(sTfs, uri, 300,
+          boolean completed = FileSystemUtils.waitCompleted(sTfs, uri, 300,
               TimeUnit.MILLISECONDS);
           Assert.assertFalse(completed);
           completed = sTfs.getStatus(uri).isCompleted();
