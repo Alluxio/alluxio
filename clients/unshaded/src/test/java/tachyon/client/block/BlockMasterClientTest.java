@@ -17,6 +17,7 @@ package tachyon.client.block;
 
 import java.io.IOException;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,6 +28,7 @@ import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.BlockMasterClientService;
 
@@ -36,6 +38,14 @@ import tachyon.thrift.BlockMasterClientService;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMasterClient.class)
 public class BlockMasterClientTest {
+
+  /**
+   * Reset the conf of ClientContext to clean the case specific settings.
+   */
+  @After
+  public void after() {
+    ClientContext.getConf().merge(new TachyonConf());
+  }
 
   /**
    * Tests for an unsupported version.
