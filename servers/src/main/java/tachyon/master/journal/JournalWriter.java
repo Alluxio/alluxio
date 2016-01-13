@@ -86,6 +86,8 @@ public final class JournalWriter {
 
   /**
    * Marks all logs as completed.
+   *
+   * @throws IOException if an I/O error occurs
    */
   public synchronized void completeAllLogs() throws IOException {
     LOG.info("Marking all logs as complete.");
@@ -108,7 +110,7 @@ public final class JournalWriter {
    *        number will be used to determine the next sequence numbers for the subsequent journal
    *        entries.
    * @return the output stream for the journal checkpoint
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized JournalOutputStream getCheckpointOutputStream(long latestSequenceNumber)
       throws IOException {
@@ -132,7 +134,7 @@ public final class JournalWriter {
    * this writer.
    *
    * @return the output stream for the journal entries
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized JournalOutputStream getEntryOutputStream() throws IOException {
     if (mCheckpointOutputStream == null || !mCheckpointOutputStream.isClosed()) {
@@ -360,10 +362,12 @@ public final class JournalWriter {
         ((FSDataOutputStream) mRawOutputStream).sync();
       }
       boolean overSize = mDataOutputStream.size() > mMaxLogSize;
-      if (overSize || mUfs.getUnderFSType() == UnderFileSystem.UnderFSType.S3) {
+      if (overSize || mUfs.getUnderFSType() == UnderFileSystem.UnderFSType.S3
+          || mUfs.getUnderFSType() == UnderFileSystem.UnderFSType.OSS) {
         // (1) The log file is oversize, needs to be rotated. Or
-        // (2) Underfs is S3, flush on S3OutputStream will only flush to local temporary file,
-        //     call close and complete the log to sync the journal entry to S3.
+        // (2) Underfs is S3 or OSS, flush on S3OutputStream/OSSOutputStream will only flush to
+        // local temporary file,
+        // call close and complete the log to sync the journal entry to S3/OSS.
         if (overSize) {
           LOG.info("Rotating log file. size: {} maxSize: {}", mDataOutputStream.size(),
               mMaxLogSize);

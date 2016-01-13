@@ -43,7 +43,7 @@ import tachyon.master.TachyonMaster;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -217,7 +217,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
           FileBlockInfo blockInfo =
               mMaster.getFileSystemMaster().getFileBlockInfoList(toAdd.getId()).get(0);
-          List<NetAddress> addrs = Lists.newArrayList();
+          List<WorkerNetAddress> addrs = Lists.newArrayList();
           // add the in-memory block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
             addrs.add(location.getWorkerAddress());

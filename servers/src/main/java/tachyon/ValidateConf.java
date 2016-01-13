@@ -88,6 +88,11 @@ public final class ValidateConf {
     return valid;
   }
 
+  /**
+   * Console program that validates the configuration.
+   *
+   * @param args there are no arguments needed
+   */
   public static void main(String[] args) {
     if (!validate()) {
       System.exit(-1);

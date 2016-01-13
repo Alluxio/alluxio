@@ -18,21 +18,25 @@ package tachyon.client.block;
 import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 
 /**
  * Information of an active block worker.
  */
 @PublicApi
 public final class BlockWorkerInfo {
-  private final WorkerNetAddress mNetAddress;
+  private final NetAddress mNetAddress;
   private final long mCapacityBytes;
   private final long mUsedBytes;
 
   /**
    * Constructs the block worker information.
+   *
+   * @param netAddress the address of the worker
+   * @param capacityBytes the capacity of the worker in bytes
+   * @param usedBytes the used bytes of the worker
    */
-  public BlockWorkerInfo(WorkerNetAddress netAddress, long capacityBytes, long usedBytes) {
+  public BlockWorkerInfo(NetAddress netAddress, long capacityBytes, long usedBytes) {
     mNetAddress = Preconditions.checkNotNull(netAddress);
     mCapacityBytes = capacityBytes;
     mUsedBytes = usedBytes;
@@ -41,7 +45,7 @@ public final class BlockWorkerInfo {
   /**
    * @return the address of the worker
    */
-  public WorkerNetAddress getNetAddress() {
+  public NetAddress getNetAddress() {
     return mNetAddress;
   }
 

@@ -23,6 +23,10 @@ import tachyon.thrift.FileInfo;
  * {@link Inode} is an abstract class, with information shared by all types of Inodes.
  */
 public abstract class Inode implements JournalEntryRepresentable {
+
+  /**
+   * Builder for {@link Inode}.
+   */
   public abstract static class Builder<T extends Builder<T>> {
     private long mCreationTimeMs;
     protected boolean mDirectory;

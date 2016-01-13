@@ -298,6 +298,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   /**
    * This method is not supported in {@link HdfsFileInputStream}.
    *
+   * @param position N/A
+   * @param buffer N/A
    * @throws IOException always
    */
   @Override
@@ -308,6 +310,10 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   /**
    * This method is not supported in {@link HdfsFileInputStream}.
    *
+   * @param position N/A
+   * @param buffer N/A
+   * @param offset N/A
+   * @param length N/A
    * @throws IOException always
    */
   @Override
@@ -315,6 +321,13 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
   }
 
+  /**
+   * Seek to the given offset from the start of the file. The next {@link #read()} will be from that
+   * location. Can't seek past the end of the file.
+   *
+   * @param pos the position to seek to
+   * @throws IOException if the position is negative or exceeds the end of the file
+   */
   @Override
   public void seek(long pos) throws IOException {
     if (pos == mCurrentPosition) {
@@ -343,6 +356,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   /**
    * This method is not supported in {@link HdfsFileInputStream}.
    *
+   * @param targetPos N/A
    * @return N/A
    * @throws IOException always
    */

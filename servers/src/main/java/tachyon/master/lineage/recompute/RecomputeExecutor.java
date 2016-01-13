@@ -49,6 +49,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
    * Creates a new instance of {@link RecomputeExecutor}.
    *
    * @param planner recompute planner
+   * @param fileSystemMaster the file system master
    */
   public RecomputeExecutor(RecomputePlanner planner, FileSystemMaster fileSystemMaster) {
     mPlanner = Preconditions.checkNotNull(planner);

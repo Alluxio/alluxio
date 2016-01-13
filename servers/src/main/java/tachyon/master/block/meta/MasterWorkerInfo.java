@@ -32,9 +32,9 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.StorageTierAssoc;
 import tachyon.WorkerStorageTierAssoc;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
+import tachyon.worker.NetAddress;
 
 /**
  * Metadata for a Tachyon worker.
@@ -177,7 +177,7 @@ public final class MasterWorkerInfo {
   public synchronized WorkerInfo generateClientWorkerInfo() {
     WorkerInfo ret = new WorkerInfo();
     ret.id = mId;
-    ret.address = mWorkerAddress;
+    ret.address = mWorkerAddress.toThrift();
     ret.lastContactSec =
         (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS);
     ret.state = "In Service";
@@ -190,7 +190,7 @@ public final class MasterWorkerInfo {
   /**
    * @return the worker's address
    */
-  public NetAddress getAddress() {
+  public NetAddress getWorkerAddress() {
     return mWorkerAddress;
   }
 

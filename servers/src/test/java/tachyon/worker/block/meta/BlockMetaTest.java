@@ -17,6 +17,7 @@ package tachyon.worker.block.meta;
 
 import java.io.IOException;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -25,6 +26,7 @@ import org.junit.rules.TemporaryFolder;
 
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 /**
@@ -42,9 +44,15 @@ public class BlockMetaTest {
   private TempBlockMeta mTempBlockMeta;
   private String mTestDirPath;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up a dependency fails
+   */
   @Before
   public void before() throws Exception {
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
@@ -57,6 +65,19 @@ public class BlockMetaTest {
     mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
   }
 
+  /**
+   * Resets the context of the worker after a test ran.
+   */
+  @After
+  public void after() {
+    WorkerContext.reset();
+  }
+
+  /**
+   * Tests the {@link BlockMeta#getBlockSize()} method.
+   *
+   * @throws IOException if writting the buffer to the file fails
+   */
   @Test
   public void getBlockSizeTest() throws IOException {
     // With the block file not really existing, expect committed block size to be zero.
@@ -76,6 +97,9 @@ public class BlockMetaTest {
     Assert.assertEquals(TEST_BLOCK_SIZE, mBlockMeta.getBlockSize());
   }
 
+  /**
+   * Tests the {@link BlockMeta#getPath()} method.
+   */
   @Test
   public void getPathTest() {
     mBlockMeta = new BlockMeta(mTempBlockMeta);
