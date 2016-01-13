@@ -17,6 +17,7 @@ package tachyon.client.lineage;
 
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +53,7 @@ public final class TachyonLineageTest {
   public void before() throws Exception {
     mTachyonConf = new TachyonConf();
     mTachyonConf.set(Constants.USER_LINEAGE_ENABLED, "true");
-    PowerMockito.mockStatic(ClientContext.class);
+    ClientContext.reset(mTachyonConf);
     PowerMockito.when(ClientContext.getConf()).thenReturn(mTachyonConf);
     mLineageMasterClient = PowerMockito.mock(LineageMasterClient.class);
     mLineageContext = PowerMockito.mock(LineageContext.class);
@@ -60,6 +61,11 @@ public final class TachyonLineageTest {
     Whitebox.setInternalState(LineageContext.class, "INSTANCE", mLineageContext);
     mTachyonLineage = TachyonLineage.get();
     Whitebox.setInternalState(mTachyonLineage, "mContext", mLineageContext);
+  }
+
+  @After
+  public void after() {
+    ClientContext.reset();
   }
 
   @Test
