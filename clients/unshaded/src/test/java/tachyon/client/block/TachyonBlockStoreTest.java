@@ -19,7 +19,6 @@ import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -84,14 +83,6 @@ public final class TachyonBlockStoreTest {
   private BlockWorkerClient mBlockWorkerClient;
 
   /**
-   * Reset the conf of ClientContext to clean the case specific settings.
-   */
-  @After
-  public void after() {
-    ClientContext.getConf().merge(new TachyonConf());
-  }
-
-  /**
    * Sets up a testable {@link TachyonBlockStore}. Setup consists of the following:
    *
    * 1. The singleton {@link BlockStoreContext} is replaced with {@link #mBlockStoreContext}<br>
@@ -107,7 +98,7 @@ public final class TachyonBlockStoreTest {
   public void before() throws Exception {
     mTestFile = mTestFolder.newFile("testFile");
 
-    ClientContext.reset();
+    ClientContext.reset(new TachyonConf());
     mBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
     Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", mBlockStoreContext);
     mBlockStore = TachyonBlockStore.get();

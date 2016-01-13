@@ -1223,5 +1223,6 @@ public class TfsShellTest {
     checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/foo/foobar2")), 20);
     checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/bar/foobar3")), 30);
     checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/foobar4")), 40);
+    ClientContext.getConf().merge(new TachyonConf());
   }
 }
