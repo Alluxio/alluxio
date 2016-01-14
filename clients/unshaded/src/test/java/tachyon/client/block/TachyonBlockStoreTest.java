@@ -98,7 +98,7 @@ public final class TachyonBlockStoreTest {
   public void before() throws Exception {
     mTestFile = mTestFolder.newFile("testFile");
 
-    ClientContext.reset(new TachyonConf());
+    ClientContext.reset();
     mBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
     Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", mBlockStoreContext);
     mBlockStore = TachyonBlockStore.get();
