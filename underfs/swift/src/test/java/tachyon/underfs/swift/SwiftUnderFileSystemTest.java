@@ -23,7 +23,7 @@ import org.powermock.reflect.Whitebox;
 
 /**
  * Tests for the private helper methods in {@link SwiftUnderFileSystem} that do not require a
- * Swift backend
+ * Swift backend.
  */
 public class SwiftUnderFileSystemTest {
   private SwiftUnderFileSystem mMockSwiftUnderFileSystem;

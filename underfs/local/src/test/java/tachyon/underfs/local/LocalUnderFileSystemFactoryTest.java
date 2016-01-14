@@ -23,12 +23,12 @@ import tachyon.underfs.UnderFileSystemFactory;
 import tachyon.underfs.UnderFileSystemRegistry;
 
 /**
- * Tests for the {@link LocalUnderFileSystemFactory} class.
+ * Unit tests for the {@link LocalUnderFileSystemFactory}.
  */
 public class LocalUnderFileSystemFactoryTest {
 
   /**
-   * This test ensures the local ufs module correctly accepts paths that begin with / or file://.
+   * This test ensures the local UFS module correctly accepts paths that begin with / or file://.
    */
   @Test
   public void factoryTest() {
