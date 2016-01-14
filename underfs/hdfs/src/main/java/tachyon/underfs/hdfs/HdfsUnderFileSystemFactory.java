@@ -16,6 +16,7 @@
 package tachyon.underfs.hdfs;
 
 import java.util.Map;
+import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -28,13 +29,14 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
 
 /**
- * Factory for creating HDFS under file systems. As an implementation detail, it caches created
- * {@link HdfsUnderFileSystem}s, using paths' schemes and authorities as the keys. This class is
- * thread-safe.
+ * Factory for creating {@link HdfsUnderFileSystem}.
+ *
+ * It caches created {@link HdfsUnderFileSystem}s, using the scheme and authority pair as the key.
  */
+@ThreadSafe
 public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
   /**
-   * Cache mapping {@link Path}s to existing {@link UnderFileSystem} instances. The Paths should be
+   * Cache mapping {@code Path}s to existing {@link UnderFileSystem} instances. The path should be
    * normalized to root paths because only their schemes and authorities are needed to identify
    * which {@link FileSystem} they belong to.
    */
