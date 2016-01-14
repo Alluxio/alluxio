@@ -114,7 +114,7 @@ service FileSystemMasterClientService extends common.TachyonService {
   /**
    * Returns the status of the file or directory, only used internally by servers
    */
-  FileInfo getStatus( /** the path of the file or directory */ 1: i64 fileId)
+  FileInfo getStatusInternal( /** the path of the file or directory */ 1: i64 fileId)
     throws (1: exception.TachyonTException e)
 
   /**
