@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -152,6 +153,14 @@ public class FileOutStreamTest {
     OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
         .setBlockSizeBytes(BLOCK_LENGTH).setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     mTestStream = createTestStream(FILE_ID, options);
+  }
+
+  /**
+   * Resets the context after a test ran.
+   */
+  @After
+  public void after() {
+    ClientContext.reset();
   }
 
   /**
