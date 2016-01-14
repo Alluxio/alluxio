@@ -435,9 +435,9 @@ public final class NetworkAddressUtils {
    * @throws IOException if the address resolution fails
    */
   private static boolean isValidAddress(InetAddress address, int timeout) throws IOException {
-    return (!address.isAnyLocalAddress() && !address.isLinkLocalAddress()
+    return !address.isAnyLocalAddress() && !address.isLinkLocalAddress()
         && !address.isLoopbackAddress() && address.isReachable(timeout)
-        && (address instanceof Inet4Address));
+        && (address instanceof Inet4Address);
   }
 
   /**
