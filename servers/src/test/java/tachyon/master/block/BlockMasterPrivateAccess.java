@@ -24,12 +24,16 @@ import tachyon.master.block.meta.MasterWorkerInfo;
  * Class which provides access to private state of {@link BlockMaster}.
  */
 public final class BlockMasterPrivateAccess {
+  /**
+   * Checks whether a worker with the given workerId is registered with the given block master.
+   *
+   * @param master the block master
+   * @param workerId the workerId
+   * @return true if the worker has registered, false otherwise
+   */
   public static boolean isWorkerRegistered(BlockMaster master, long workerId) {
     IndexedSet<MasterWorkerInfo> workers = Whitebox.getInternalState(master, "mWorkers");
     IndexedSet.FieldIndex<MasterWorkerInfo> idIndex = Whitebox.getInternalState(master, "mIdIndex");
-    if (workers == null || idIndex == null) {
-      return false;
-    }
     synchronized (workers) {
       MasterWorkerInfo workerInfo = workers.getFirstByField(idIndex, workerId);
       return workerInfo != null && workerInfo.isRegistered();
