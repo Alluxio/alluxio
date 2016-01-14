@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.slf4j.Logger;
@@ -276,7 +277,7 @@ public final class MasterWorkerInfo {
   /**
    * @return whether the worker has been registered yet
    */
-  public boolean isRegistered() {
+  public synchronized boolean isRegistered() {
     return mIsRegistered;
   }
 

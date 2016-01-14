@@ -16,7 +16,6 @@
 package tachyon.master.block;
 
 import java.util.List;
-import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 
@@ -30,7 +29,6 @@ import tachyon.thrift.WorkerInfo;
 /**
  * This class is a Thrift handler for block master RPCs invoked by a Tachyon client.
  */
-@ThreadSafe
 public class BlockMasterClientServiceHandler implements BlockMasterClientService.Iface {
   private final BlockMaster mBlockMaster;
 

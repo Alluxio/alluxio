@@ -17,7 +17,6 @@ package tachyon.master.rawtable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 
@@ -34,7 +33,6 @@ import tachyon.thrift.ThriftIOException;
 /**
  * This class is a Thrift handler for raw table master RPCs invoked by a Tachyon client.
  */
-@ThreadSafe
 public class RawTableMasterClientServiceHandler implements RawTableMasterClientService.Iface {
   private final RawTableMaster mRawTableMaster;
   /** We use Object so that we can have one cache per master, not one per type of return value */

@@ -17,7 +17,6 @@ package tachyon.master.file;
 
 import java.io.IOException;
 import java.util.List;
-import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 
@@ -42,7 +41,6 @@ import tachyon.thrift.ThriftIOException;
 /**
  * This class is a Thrift handler for file system master RPCs invoked by a Tachyon client.
  */
-@ThreadSafe
 public final class FileSystemMasterClientServiceHandler implements
     FileSystemMasterClientService.Iface {
   private final FileSystemMaster mFileSystemMaster;

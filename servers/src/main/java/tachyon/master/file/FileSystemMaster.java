@@ -1227,7 +1227,7 @@ public final class FileSystemMaster extends MasterBase {
       }
 
       // We go through each inode.
-      for (int i = freeInodes.size() - 1; i >= 0; i --) {
+      for (int i = freeInodes.size() - 1; i >= 0; i--) {
         Inode freeInode = freeInodes.get(i);
 
         if (freeInode.isFile()) {

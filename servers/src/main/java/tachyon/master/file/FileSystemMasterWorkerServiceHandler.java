@@ -17,7 +17,6 @@ package tachyon.master.file;
 
 import java.util.List;
 import java.util.Set;
-import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.thrift.TException;
 
@@ -35,7 +34,6 @@ import tachyon.thrift.TachyonTException;
 /**
  * This class is a Thrift handler for file system master RPCs invoked by a Tachyon worker.
  */
-@ThreadSafe
 public final class FileSystemMasterWorkerServiceHandler
     implements FileSystemMasterWorkerService.Iface {
   private final FileSystemMaster mFileSystemMaster;

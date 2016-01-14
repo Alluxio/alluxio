@@ -18,6 +18,7 @@ package tachyon.master.journal;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.hadoop.fs.FSDataOutputStream;

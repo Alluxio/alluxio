@@ -18,6 +18,7 @@ package tachyon.client.table;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.thrift.TException;
