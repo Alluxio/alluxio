@@ -27,7 +27,6 @@ import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.BlockMasterClientService;
 
@@ -46,7 +45,7 @@ public class BlockMasterClientTest {
   @Test
   public void unsupportedVersionTest() throws Exception {
     // Client context needs to be initialized before the block store context can be used.
-    ClientContext.reset(new TachyonConf());
+    ClientContext.reset();
 
     BlockMasterClientService.Client mock = PowerMockito.mock(BlockMasterClientService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);

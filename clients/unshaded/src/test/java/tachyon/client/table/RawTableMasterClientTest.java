@@ -27,7 +27,6 @@ import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.RawTableMasterClientService;
 
@@ -46,7 +45,7 @@ public class RawTableMasterClientTest {
   @Test
   public void unsupportedVersionTest() throws Exception {
     // Client context needs to be initialized before the raw table context can be used.
-    ClientContext.reset(new TachyonConf());
+    ClientContext.reset();
 
     RawTableMasterClientService.Client mock =
         PowerMockito.mock(RawTableMasterClientService.Client.class);

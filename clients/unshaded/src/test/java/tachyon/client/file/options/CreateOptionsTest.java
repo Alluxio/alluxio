@@ -73,6 +73,6 @@ public class CreateOptionsTest {
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
-    ClientContext.reset(new TachyonConf());
+    ClientContext.reset();
   }
 }
