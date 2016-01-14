@@ -52,6 +52,15 @@ public final class JournalTool {
   private static boolean sNoTimeout = false;
   private static boolean sHelp = false;
 
+  /**
+   * Reads a journal via
+   * {@code java -cp \
+   * assembly/target/tachyon-assemblies-<VERSION-OF-TACHYON>-jar-with-dependencies.jar \
+   * tachyon.master.journal.JournalTool < journal/FileSystemMaster/log.out}.
+   *
+   * @param args arguments passed to the tool
+   * @throws IOException if a non-Tachyon related exception occurs
+   */
   public static void main(String[] args) throws IOException {
     if (!parseInputArgs(args)) {
       usage();
@@ -75,7 +84,7 @@ public final class JournalTool {
   }
 
   /**
-   * Parse the input args with a command line format, using
+   * Parses the input args with a command line format, using
    * {@link org.apache.commons.cli.CommandLineParser}.
    *
    * @param args the input args

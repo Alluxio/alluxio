@@ -146,7 +146,7 @@ export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:9000
 Start Tachyon locally:
 
 ```bash
-$ ./bin/tachyon-stop.sh
+$ ./bin/tachyon-stop.sh all
 $ ./bin/tachyon-start.sh local
 ```
 

@@ -52,8 +52,14 @@ public class LineageFileOutStream extends FileOutStream {
     builder.setBlockSizeBytes(options.getBlockSizeBytes());
     builder.setLocationPolicy(options.getLocationPolicy());
     builder.setTachyonStorageType(options.getTachyonStorageType());
-    builder.setTTL(options.getTTL());
+    builder.setTtl(options.getTtl());
     builder.setUnderStorageType(UnderStorageType.ASYNC_PERSIST);
     return builder.build();
+  }
+
+  @Override
+  protected void scheduleAsyncPersist() throws IOException {
+    // do nothing, the scheduling is handled by the lineage master
+    return;
   }
 }

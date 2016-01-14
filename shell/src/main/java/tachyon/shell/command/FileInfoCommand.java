@@ -30,6 +30,10 @@ import tachyon.thrift.FileInfo;
  */
 public final class FileInfoCommand extends WithWildCardPathCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public FileInfoCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -64,5 +68,10 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
   @Override
   public String getUsage() {
     return "fileinfo <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Displays all block info for the specified file.";
   }
 }

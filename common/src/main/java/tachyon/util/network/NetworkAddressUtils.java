@@ -38,8 +38,8 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.NetAddress;
 import tachyon.util.OSUtils;
+import tachyon.worker.NetAddress;
 
 /**
  * Common network address related utilities shared by all components in Tachyon.
@@ -562,7 +562,7 @@ public final class NetworkAddressUtils {
   public static InetSocketAddress getRpcPortSocketAddress(NetAddress netAddress) {
     try {
       String host = getFqdnHost(netAddress);
-      int port = netAddress.rpcPort;
+      int port = netAddress.getRpcPort();
       return new InetSocketAddress(host, port);
     } catch (UnknownHostException e) {
       throw Throwables.propagate(e);
@@ -578,7 +578,7 @@ public final class NetworkAddressUtils {
   public static InetSocketAddress getDataPortSocketAddress(NetAddress netAddress) {
     try {
       String host = getFqdnHost(netAddress);
-      int port = netAddress.dataPort;
+      int port = netAddress.getDataPort();
       return new InetSocketAddress(host, port);
     } catch (UnknownHostException e) {
       throw Throwables.propagate(e);

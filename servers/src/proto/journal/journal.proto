@@ -1,13 +1,15 @@
+syntax = "proto2";
+
 package tachyon.proto.journal;
 option java_package = "tachyon.proto.journal";
 
-import "journal/block.proto";
-import "journal/file.proto";
-import "journal/lineage.proto";
-import "journal/raw_table.proto";
+import "block.proto";
+import "file.proto";
+import "lineage.proto";
+import "raw_table.proto";
 
 // Wraps around all types of Tachyon journal messages.
-// next available id: 23
+// next available id: 22
 message JournalEntry {
   optional int64 sequence_number = 1;
   oneof entry {
@@ -25,12 +27,11 @@ message JournalEntry {
     LineageEntry lineage = 13;
     LineageIdGeneratorEntry lineage_id_generator = 14;
     PersistDirectoryEntry persist_directory = 15;
-    PersistFileEntry persist_file = 16;
-    PersistFilesRequestEntry persist_files_request = 17;
-    RawTableEntry raw_table = 18;
-    ReinitializeFileEntry reinitialize_file = 19;
-    RenameEntry rename = 20;
-    SetStateEntry set_state = 21;
-    UpdateMetadataEntry update_metadata = 22;
+    AsyncPersistRequestEntry async_persist_request = 16;
+    RawTableEntry raw_table = 17;
+    ReinitializeFileEntry reinitialize_file = 18;
+    RenameEntry rename = 19;
+    SetStateEntry set_state = 20;
+    UpdateMetadataEntry update_metadata = 21;
   }
 }

@@ -48,8 +48,8 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
+import tachyon.worker.NetAddress;
 
 /**
  * Unit tests for {@link tachyon.master.block.BlockMaster}.
@@ -328,9 +328,9 @@ public class BlockMasterTest {
     }
 
     /**
-     * Looks up the {@link MasterWorkerInfo} for a given worker ID.
+     * Looks up the {@link MasterWorkerInfo} for a given worker id.
      *
-     * @param workerId the worker ID to look up
+     * @param workerId the worker id to look up
      * @return the {@link MasterWorkerInfo} for the given workerId
      */
     private MasterWorkerInfo getWorkerById(long workerId) {
@@ -340,9 +340,9 @@ public class BlockMasterTest {
     }
 
     /**
-     * Looks up the {@link MasterBlockInfo} for the given block ID.
+     * Looks up the {@link MasterBlockInfo} for the given block id.
      *
-     * @param blockId the block ID
+     * @param blockId the block id
      * @return the {@link MasterBlockInfo}
      */
     public MasterBlockInfo getMasterBlockInfo(long blockId) {

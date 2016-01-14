@@ -37,7 +37,7 @@ public final class ConsoleSink implements Sink {
   private Properties mProperties;
 
   /**
-   * Creates a ConsoleSink with a {@link Properties} and {@link MetricRegistry}.
+   * Creates a new {@link ConsoleSink} with a {@link Properties} and {@link MetricRegistry}.
    *
    * @param properties the properties which may contain polling period and unit properties
    * @param registry the metric registry to register

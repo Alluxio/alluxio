@@ -28,13 +28,19 @@ public final class BlockHeartbeatReport {
   /** List of block ids removed in the last heartbeat period */
   private final List<Long> mRemovedBlocks;
 
+  /**
+   * Creates a new instance of {@link BlockHeartbeatReport}.
+   *
+   * @param addedBlocks added blocks
+   * @param removedBlocks remove blocks
+   */
   public BlockHeartbeatReport(Map<String, List<Long>> addedBlocks, List<Long> removedBlocks) {
     mAddedBlocks = addedBlocks;
     mRemovedBlocks = removedBlocks;
   }
 
   /**
-   * Gets the list of blocks added by the worker in the heartbeat this report represents
+   * Gets the list of blocks added by the worker in the heartbeat this report represents.
    *
    * @return a map from storage tier alias to lists of block ids added
    */
@@ -43,7 +49,7 @@ public final class BlockHeartbeatReport {
   }
 
   /**
-   * Gets the list of blocks removed from this worker in the heartbeat this report represents
+   * Gets the list of blocks removed from this worker in the heartbeat this report represents.
    *
    * @return a list of block ids which have been removed
    */

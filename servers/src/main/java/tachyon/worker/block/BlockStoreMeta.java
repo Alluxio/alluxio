@@ -50,6 +50,11 @@ public final class BlockStoreMeta {
   private final Map<Pair<String, String>, Long> mUsedBytesOnDirs =
       new HashMap<Pair<String, String>, Long>();
 
+  /**
+   * Creates a new instance of {@link BlockStoreMeta}.
+   *
+   * @param manager a block metadata manager handle
+   */
   public BlockStoreMeta(BlockMetadataManager manager) {
     Preconditions.checkNotNull(manager);
     for (StorageTier tier : manager.getTiers()) {
@@ -80,6 +85,9 @@ public final class BlockStoreMeta {
     return mBlockIdsOnTiers;
   }
 
+  /**
+   * @return the capacity in bytes
+   */
   public long getCapacityBytes() {
     long capacityBytes = 0L;
     for (long capacityBytesOnTier : mCapacityBytesOnTiers.values()) {
@@ -88,14 +96,23 @@ public final class BlockStoreMeta {
     return capacityBytes;
   }
 
+  /**
+   * @return a mapping from tier aliases to capacity in bytes
+   */
   public Map<String, Long> getCapacityBytesOnTiers() {
     return mCapacityBytesOnTiers;
   }
 
+  /**
+   * @return a mapping from tier directory-path pairs to capacity in bytes
+   */
   public Map<Pair<String, String>, Long> getCapacityBytesOnDirs() {
     return mCapacityBytesOnDirs;
   }
 
+  /**
+   * @return the number of blocks
+   */
   public int getNumberOfBlocks() {
     int numberOfBlocks = 0;
     for (List<Long> blockIds : mBlockIdsOnTiers.values()) {
@@ -104,6 +121,9 @@ public final class BlockStoreMeta {
     return numberOfBlocks;
   }
 
+  /**
+   * @return the used capacity in bytes
+   */
   public long getUsedBytes() {
     long usedBytes = 0L;
     for (long usedBytesOnTier : mUsedBytesOnTiers.values()) {
@@ -112,10 +132,16 @@ public final class BlockStoreMeta {
     return usedBytes;
   }
 
+  /**
+   * @return a mapping from tier aliases to used capacity in bytes
+   */
   public Map<String, Long> getUsedBytesOnTiers() {
     return Collections.unmodifiableMap(mUsedBytesOnTiers);
   }
 
+  /**
+   * @return a mapping from tier directory-path pairs to used capacity in bytes
+   */
   public Map<Pair<String, String>, Long> getUsedBytesOnDirs() {
     return mUsedBytesOnDirs;
   }

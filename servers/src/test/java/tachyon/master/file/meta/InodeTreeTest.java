@@ -15,7 +15,6 @@
 
 package tachyon.master.file.meta;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -74,7 +73,7 @@ public final class InodeTreeTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
-  public void before() throws IOException {
+  public void before() throws Exception {
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
     BlockMaster blockMaster = new BlockMaster(blockJournal);

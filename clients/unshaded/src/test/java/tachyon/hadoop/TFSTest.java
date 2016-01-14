@@ -118,6 +118,7 @@ public class TFSTest {
 
     PowerMockito.verifyStatic();
     TachyonFileSystem.TachyonFileSystemFactory.get();
+    ClientContext.reset();
   }
 
   /**
@@ -147,6 +148,7 @@ public class TFSTest {
 
     PowerMockito.verifyStatic();
     TachyonFileSystem.TachyonFileSystemFactory.get();
+    ClientContext.reset();
   }
 
   private boolean isHadoop1x() {

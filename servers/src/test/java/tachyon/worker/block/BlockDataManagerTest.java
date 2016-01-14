@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,6 +42,9 @@ import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.TempBlockMeta;
 import tachyon.worker.file.FileSystemMasterClient;
 
+/**
+ * Unit tests for {@link BlockDataManager}.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
@@ -71,7 +75,7 @@ public class BlockDataManagerTest {
       mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
       mSessions = PowerMockito.mock(Sessions.class);
       mWorkerId = mRandom.nextLong();
-      WorkerIdRegistry.setWorkerIdForTesting(mWorkerId);
+      ((AtomicLong) Whitebox.getInternalState(WorkerIdRegistry.class, "sWorkerId")).set(mWorkerId);
       mWorkerSource = PowerMockito.mock(WorkerSource.class);
 
       mManager =
@@ -84,11 +88,21 @@ public class BlockDataManagerTest {
     }
   }
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws IOException if creating the test harness fails
+   */
   @Before
   public void initialize() throws IOException {
     mHarness = new TestHarness();
   }
 
+  /**
+   * Tests the {@link BlockDataManager#abortBlock(long, long)} method.
+   *
+   * @throws Exception if aborting the block fails
+   */
   @Test
   public void abortBlockTest() throws Exception {
     long blockId = mHarness.mRandom.nextLong();
@@ -97,6 +111,11 @@ public class BlockDataManagerTest {
     Mockito.verify(mHarness.mBlockStore).abortBlock(sessionId, blockId);
   }
 
+  /**
+   * Tests the {@link BlockDataManager#accessBlock(long, long)} method.
+   *
+   * @throws Exception if accessing the block fails
+   */
   @Test
   public void accessBlockTest() throws Exception {
     long blockId = mHarness.mRandom.nextLong();
@@ -105,8 +124,11 @@ public class BlockDataManagerTest {
     Mockito.verify(mHarness.mBlockStore).accessBlock(sessionId, blockId);
   }
 
+  /**
+   * Tests the {@link BlockDataManager#cleanupSessions()} method.
+   */
   @Test
-  public void cleanupSessionsTest() throws Exception {
+  public void cleanupSessionsTest() {
     long sessionId = 1;
     LinkedList<Long> sessions = new LinkedList<Long>();
     sessions.add(sessionId);
@@ -117,6 +139,11 @@ public class BlockDataManagerTest {
     Mockito.verify(mHarness.mBlockStore).cleanupSession(sessionId);
   }
 
+  /**
+   * Tests the {@link BlockDataManager#commitBlock(long, long)} method.
+   *
+   * @throws Exception if a block operation fails
+   */
   @Test
   public void commitBlockTest() throws Exception {
     long blockId = mHarness.mRandom.nextLong();
@@ -146,6 +173,11 @@ public class BlockDataManagerTest {
     Mockito.verify(mHarness.mBlockStore).unlockBlock(lockId);
   }
 
+  /**
+   * Tests the {@link BlockDataManager#createBlock(long, long, String, long)} method.
+   *
+   * @throws Exception if the creation of the block or its metadata fails
+   */
   @Test
   public void createBlockTest() throws Exception {
     long blockId = mHarness.mRandom.nextLong();

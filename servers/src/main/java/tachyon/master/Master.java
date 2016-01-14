@@ -25,6 +25,9 @@ import tachyon.master.journal.JournalInputStream;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.proto.journal.Journal.JournalEntry;
 
+/**
+ * This interface contains common operations for all masters.
+ */
 public interface Master extends JournalCheckpointStreamable {
   /**
    * @return a map from service names to {@link TProcessor}s that serve RPCs for this master
@@ -40,7 +43,7 @@ public interface Master extends JournalCheckpointStreamable {
    * Processes the journal checkpoint file and applies the entries to the master.
    *
    * @param inputStream the input stream for the journal checkpoint file
-   * @throws IOException
+   * @throws IOException if I/O error occurs
    */
   void processJournalCheckpoint(JournalInputStream inputStream) throws IOException;
 
@@ -49,7 +52,7 @@ public interface Master extends JournalCheckpointStreamable {
    * entries.
    *
    * @param entry the entry to process to update the state of the master
-   * @throws IOException
+   * @throws IOException if I/O error occurs
    */
   void processJournalEntry(JournalEntry entry) throws IOException;
 
@@ -62,7 +65,7 @@ public interface Master extends JournalCheckpointStreamable {
    *
    * @param isLeader if true, the master should behave as the leader master in the system. If false,
    *        the master should act as a standby master.
-   * @throws IOException
+   * @throws IOException if I/O error occurs
    */
   void start(boolean isLeader) throws IOException;
 
@@ -70,7 +73,7 @@ public interface Master extends JournalCheckpointStreamable {
    * Stops the master. Here, anything created or started in {@link #start(boolean)} should be
    * cleaned up and shutdown.
    *
-   * @throws IOException
+   * @throws IOException if I/O error occurs
    */
   void stop() throws IOException;
 

@@ -483,7 +483,7 @@ public class FileSystemMasterPermissionCheckTest {
     SetStateOptions expect = getNonDefaultSetState();
     SetStateOptions result = verifySetState(TEST_USER_2, getFileId(TEST_USER_1, file), expect);
 
-    Assert.assertEquals(expect.getTTL(), result.getTTL());
+    Assert.assertEquals(expect.getTtl(), result.getTtl());
     Assert.assertEquals(expect.getPinned(), result.getPinned());
   }
 
@@ -508,7 +508,7 @@ public class FileSystemMasterPermissionCheckTest {
     boolean recursive = true;
     long ttl = 11;
 
-    return new SetStateOptions.Builder().setPinned(recursive).setTTL(ttl).build();
+    return new SetStateOptions.Builder().setPinned(recursive).setTtl(ttl).build();
   }
 
   private long getFileId(TestUser user, String path) throws AccessControlException {
@@ -525,7 +525,7 @@ public class FileSystemMasterPermissionCheckTest {
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     return new SetStateOptions.Builder()
         .setPinned(fileInfo.isIsPinned())
-        .setTTL(fileInfo.getTtl())
+        .setTtl(fileInfo.getTtl())
         .setPersisted(fileInfo.isIsPersisted())
         .build();
   }

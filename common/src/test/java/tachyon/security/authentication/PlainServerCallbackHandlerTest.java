@@ -55,7 +55,7 @@ public class PlainServerCallbackHandlerTest {
     mConf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         NameMatchAuthenticationProvider.class.getName());
     mPlainServerCBHandler = new PlainSaslServer.PlainServerCallbackHandler(
-        AuthenticationProvider.Factory.getAuthenticationProvider(AuthType.CUSTOM, mConf));
+        AuthenticationProvider.Factory.create(AuthType.CUSTOM, mConf));
   }
 
   /**

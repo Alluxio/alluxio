@@ -26,12 +26,15 @@ import tachyon.proto.journal.Journal.JournalEntry;
 public interface JournalInputStream {
   /**
    * @return the next {@link JournalEntry} in the stream, null if the are no more entries in the
-   *         stream.
+   *         stream
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   JournalEntry getNextEntry() throws IOException;
 
   /**
    * Closes the stream.
+   *
+   * @throws IOException if an I/O error occurs
    */
   void close() throws IOException;
 
