@@ -1037,12 +1037,11 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param fileId the source file to rename
    * @param dstPath the destination path to rename the file to
-   * @return true if the operation was successful and false otherwise
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
    */
-  public boolean rename(long fileId, TachyonURI dstPath) throws FileAlreadyExistsException,
+  public void rename(long fileId, TachyonURI dstPath) throws FileAlreadyExistsException,
       FileDoesNotExistException, InvalidPathException, IOException {
     MasterContext.getMasterSource().incRenamePathOps(1);
     synchronized (mInodeTree) {
@@ -1050,30 +1049,30 @@ public final class FileSystemMaster extends MasterBase {
       TachyonURI srcPath = mInodeTree.getPath(srcInode);
       // Renaming path to itself is a no-op.
       if (srcPath.equals(dstPath)) {
-        return true;
+        return;
       }
       // Renaming the root is not allowed.
       if (srcPath.isRoot() || dstPath.isRoot()) {
-        throw new UnsupportedOperationException("Cannot rename root.");
+        throw new InvalidPathException(ExceptionMessage.ROOT_CANNOT_BE_RENAMED.getMessage());
       }
       // Renaming across mount points is not allowed.
       String srcMount = mMountTable.getMountPoint(srcPath);
       String dstMount = mMountTable.getMountPoint(dstPath);
       if ((srcMount == null && dstMount != null) || (srcMount != null && dstMount == null)
           || (srcMount != null && dstMount != null && !srcMount.equals(dstMount))) {
-        LOG.warn("Renaming {} to {} spans mount points.", srcPath, dstPath);
-        throw new UnsupportedOperationException("Renaming " + srcPath + " to " + dstPath + " spans"
-            + " mount points.");
+        throw new InvalidPathException(ExceptionMessage.RENAME_CANNOT_BE_ACROSS_MOUNTS.getMessage(
+            srcPath, dstPath));
       }
       // Renaming onto a mount point is not allowed.
       if (mMountTable.isMountPoint(dstPath)) {
-        throw new UnsupportedOperationException(dstPath + " is a mount point.");
+        throw new InvalidPathException(
+            ExceptionMessage.RENAME_CANNOT_BE_ONTO_MOUNT_POINT.getMessage(dstPath));
       }
       // Renaming a path to one of its subpaths is not allowed. Check for that, by making sure
       // srcComponents isn't a prefix of dstComponents.
       if (PathUtils.hasPrefix(dstPath.getPath(), srcPath.getPath())) {
-        throw new InvalidPathException("Failed to rename: " + srcPath + " is a prefix of "
-            + dstPath);
+        throw new InvalidPathException(ExceptionMessage.RENAME_CANNOT_BE_TO_SUBPATH.getMessage(
+            srcPath, dstPath));
       }
 
       TachyonURI dstParentURI = dstPath.getParent();
@@ -1081,11 +1080,13 @@ public final class FileSystemMaster extends MasterBase {
       // Get the inodes of the src and dst parents.
       Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
       if (!srcParentInode.isDirectory()) {
-        throw new UnsupportedOperationException("File to rename must have a valid parent.");
+        throw new InvalidPathException(
+            ExceptionMessage.FILE_MUST_HAVE_VALID_PARENT.getMessage(srcPath));
       }
       Inode dstParentInode = mInodeTree.getInodeByPath(dstParentURI);
       if (!dstParentInode.isDirectory()) {
-        throw new UnsupportedOperationException("Destination must have a valid parent.");
+        throw new InvalidPathException(
+            ExceptionMessage.FILE_MUST_HAVE_VALID_PARENT.getMessage(dstPath));
       }
 
       // Make sure destination path does not exist
@@ -1098,9 +1099,7 @@ public final class FileSystemMaster extends MasterBase {
 
       // Now we remove srcInode from it's parent and insert it into dstPath's parent
       long opTimeMs = System.currentTimeMillis();
-      if (!renameInternal(fileId, dstPath, false, opTimeMs)) {
-        throw new IOException("Internal error.");
-      }
+      renameInternal(fileId, dstPath, false, opTimeMs);
 
       RenameEntry rename = RenameEntry.newBuilder()
           .setId(fileId)
@@ -1111,7 +1110,6 @@ public final class FileSystemMaster extends MasterBase {
       flushJournal();
 
       LOG.debug("Renamed {} to {}", srcPath, dstPath);
-      return true;
     }
   }
 
@@ -1127,7 +1125,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error is encountered
    */
-  boolean renameInternal(long fileId, TachyonURI dstPath, boolean replayed, long opTimeMs)
+  void renameInternal(long fileId, TachyonURI dstPath, boolean replayed, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     Inode srcInode = mInodeTree.getInodeById(fileId);
@@ -1142,12 +1140,11 @@ public final class FileSystemMaster extends MasterBase {
       UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath, MasterContext.getConf());
       String parentPath = new TachyonURI(ufsDstPath).getParent().toString();
       if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
-        LOG.error("Failed to create {}", parentPath);
-        return false;
+        throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentPath));
       }
       if (!ufs.rename(ufsSrcPath, ufsDstPath)) {
-        LOG.error("Failed to rename {} to {}", ufsSrcPath, ufsDstPath);
-        return false;
+        throw new IOException(
+            ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstPath));
       }
     }
 
@@ -1164,8 +1161,6 @@ public final class FileSystemMaster extends MasterBase {
     dstParentInode.setLastModificationTimeMs(opTimeMs);
     MasterContext.getMasterSource().incPathsRenamed(1);
     propagatePersisted(srcInode, replayed);
-
-    return true;
   }
 
   private void renameFromEntry(RenameEntry entry) {

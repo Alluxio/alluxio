@@ -40,6 +40,7 @@ import tachyon.TachyonURI;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.heartbeat.HeartbeatContext;
@@ -326,8 +327,8 @@ public final class FileSystemMasterTest {
     try {
       mFileSystemMaster.rename(fileId, ROOT_URI);
       Assert.fail("Renaming to root should fail.");
-    } catch (Exception e) {
-      // Expected
+    } catch (InvalidPathException e) {
+      Assert.assertEquals(ExceptionMessage.ROOT_CANNOT_BE_RENAMED.getMessage(), e.getMessage());
     }
 
     // move root to another path
@@ -335,20 +336,22 @@ public final class FileSystemMasterTest {
     try {
       mFileSystemMaster.rename(rootId, TEST_URI);
       Assert.fail("Should not be able to rename root");
-    } catch (Exception e) {
-      // Expected
+    } catch (InvalidPathException e) {
+      Assert.assertEquals(ExceptionMessage.ROOT_CANNOT_BE_RENAMED.getMessage(), e.getMessage());
     }
 
     // move to existing path
     try {
       mFileSystemMaster.rename(fileId, NESTED_URI);
       Assert.fail("Should not be able to overwrite existing file.");
-    } catch (Exception e) {
-      // Expected
+    } catch (FileAlreadyExistsException e) {
+      Assert.assertEquals(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(NESTED_URI.getPath()),
+          e.getMessage());
     }
 
     // move a nested file to a root file
-    Assert.assertTrue(mFileSystemMaster.rename(fileId, TEST_URI));
+    mFileSystemMaster.rename(fileId, TEST_URI);
+    Assert.assertEquals(mFileSystemMaster.getFileInfo(fileId).getPath(), TEST_URI.getPath());
   }
 
   @Test
@@ -362,7 +365,7 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(TEST_URI, options);
 
     // nested dir
-    Assert.assertFalse(mFileSystemMaster.rename(fileId, NESTED_FILE_URI));
+    mFileSystemMaster.rename(fileId, NESTED_FILE_URI);
   }
 
   @Test
