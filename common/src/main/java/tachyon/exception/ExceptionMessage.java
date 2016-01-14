@@ -134,9 +134,11 @@ public enum ExceptionMessage {
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
-  PERMISSION_IS_NULL("Permission cannot be null when constructing PermissionStatus"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
+  INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
   PERMISSION_DENIED("Permission denied: {0}"),
+  PERMISSION_IS_NULL("Permission cannot be null when constructing PermissionStatus"),
+  SECURITY_IS_NOT_ENABLED("Security is not enabled"),
 
   // yarn
   YARN_NOT_ENOUGH_HOSTS(

@@ -74,6 +74,7 @@ import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
+import tachyon.master.file.options.SetAclOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
@@ -89,6 +90,7 @@ import tachyon.proto.journal.File.InodeLastModificationTimeEntry;
 import tachyon.proto.journal.File.PersistDirectoryEntry;
 import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
+import tachyon.proto.journal.File.SetAclEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
@@ -251,8 +253,30 @@ public final class FileSystemMaster extends MasterBase {
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
+    } else if (innerEntry instanceof SetAclEntry) {
+      try {
+        setAclFromEntry((SetAclEntry) innerEntry);
+      } catch (FileDoesNotExistException e) {
+        throw new RuntimeException(e);
+      }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
+    }
+  }
+
+  private void setAclFromEntry(SetAclEntry setAclEntry) throws FileDoesNotExistException {
+    synchronized (mInodeTree) {
+      Inode inode = mInodeTree.getInodeById(setAclEntry.getId());
+      inode.setLastModificationTimeMs(setAclEntry.getOpTimeMs());
+      if (setAclEntry.hasUserName()) {
+        inode.setUserName(setAclEntry.getUserName());
+      }
+      if (setAclEntry.hasGroupName()) {
+        inode.setGroupName(setAclEntry.getGroupName());
+      }
+      if (setAclEntry.hasPermission()) {
+        inode.setPermission((short) setAclEntry.getPermission());
+      }
     }
   }
 
@@ -1795,6 +1819,147 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
+   * Sets the acl of a file or directory. At least one of owner, group, or permission in the
+   * {@link SetAclOptions} could be set at a time.
+   *
+   * @param path to be set acl on
+   * @param options acl option to be set
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
+  public void setAcl(TachyonURI path, SetAclOptions options) throws AccessControlException,
+      InvalidPathException {
+    Preconditions.checkArgument(options.isValid(), PreconditionMessage.INVALID_SET_ACL_OPTIONS,
+        options.getOwner(), options.getGroup(), options.getPermission());
+
+    if (options.getOwner() != null) {
+      setOwner(path,new SetAclOptions.Builder().setOwner(options.getOwner())
+          .setRecursive(options.isRecursive()).build());
+    }
+
+    if (options.getGroup() != null
+        || options.getPermission() != Constants.INVALID_PERMISSION) {
+      setGroupOrPermission(path, new SetAclOptions.Builder().setGroup(options.getGroup())
+          .setPermission(options.getPermission()).setRecursive(options.isRecursive()).build());
+    }
+  }
+
+  /**
+   * Sets the user to be the owner of the path. Only a super user can change the owner of a path.
+   *
+   * @param path to be set owner on
+   * @param options acl option to be set
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
+  private void setOwner(TachyonURI path, SetAclOptions options)
+      throws AccessControlException, InvalidPathException {
+    FileSystemPermissionChecker.checkSuperuser(getClientUser(), getGroups(getClientUser()));
+    synchronized (mInodeTree) {
+      long opTimeMs = System.currentTimeMillis();
+      Inode targetInode = mInodeTree.getInodeByPath(path);
+      if (options.isRecursive() && targetInode.isDirectory()) {
+        List<Inode> inodeChildren =
+            mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
+        for (Inode inode : inodeChildren) {
+          setAclInternal(inode, opTimeMs, options);
+        }
+      }
+      setAclInternal(targetInode, opTimeMs, options);
+    }
+  }
+
+  /**
+   * Sets the group or permission of the path. Only a super user or the path owner can change.
+   *
+   * @param path to be set permission on
+   * @param options acl option to be set
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
+  private void setGroupOrPermission(TachyonURI path, SetAclOptions options) throws
+      AccessControlException, InvalidPathException {
+    synchronized (mInodeTree) {
+      checkOwner(path);
+      long opTimeMs = System.currentTimeMillis();
+      Inode targetInode = mInodeTree.getInodeByPath(path);
+      if (options.isRecursive() && targetInode.isDirectory()) {
+        List<Inode> inodeChildren =
+            mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
+        for (Inode inode : inodeChildren) {
+          checkOwner(mInodeTree.getPath(inode));
+        }
+        for (Inode inode : inodeChildren) {
+          setAclInternal(inode, opTimeMs, options);
+        }
+      }
+      setAclInternal(targetInode, opTimeMs, options);
+    }
+  }
+
+  /**
+   * Sets acl attributes to the inode. At least one of user, group, or permission in
+   * {@link SetAclOptions} is set.
+   *
+   * @param inode the inode to be set on
+   * @param opTimeMs the time of the operation
+   * @param options acl option to be set
+   * @throws AccessControlException if security is not enabled
+   */
+  private void setAclInternal(Inode inode, long opTimeMs, SetAclOptions options)
+      throws AccessControlException {
+    // throws exception if security is not enabled.
+    if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
+      throw new AccessControlException(ExceptionMessage.SECURITY_IS_NOT_ENABLED.getMessage());
+    }
+
+    SetAclEntry.Builder setAcl = SetAclEntry.newBuilder().setId(inode.getId())
+        .setOpTimeMs(opTimeMs);
+    if (options.getOwner() != null) {
+      setAcl.setUserName(options.getOwner());
+    }
+    if (options.getGroup() != null) {
+      setAcl.setGroupName(options.getGroup());
+    }
+    if (options.getPermission() != Constants.INVALID_PERMISSION) {
+      setAcl.setPermission(options.getPermission());
+    }
+
+    try {
+      setAclFromEntry(setAcl.build());
+    } catch (FileDoesNotExistException e) {
+      LOG.warn("Exception happens when setting acl: ", e);
+    }
+
+    writeJournalEntry(JournalEntry.newBuilder().setSetAcl(setAcl).build());
+    flushJournal();
+  }
+
+  /**
+   * Checks whether the client user is the owner of the path.
+   *
+   * @param path to be checked on
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
+  private void checkOwner(TachyonURI path) throws AccessControlException, InvalidPathException {
+    // throws exception if security is not enabled.
+    if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
+      throw new AccessControlException(ExceptionMessage.SECURITY_IS_NOT_ENABLED.getMessage());
+    }
+
+    // collects inodes info on the path
+    List<FileInfo> fileInfos = collectFileInfoList(path);
+
+    // collects user and groups
+    String user = getClientUser();
+    List<String> groups = getGroups(user);
+
+    // checks the owner
+    FileSystemPermissionChecker.checkOwner(user, groups, path, fileInfos);
+  }
+
+  /**
    * Checks user's permission on a path. If the path is invalid, it should bypass the
    * {@link InvalidPathException} and the logic at operation will handle it. The caller should lock
    * mInodeTree before calling it.
@@ -1813,36 +1978,14 @@ public final class FileSystemMaster extends MasterBase {
 
     try {
       // collects inodes info on the path
-      List<Inode> inodes = mInodeTree.collectInodes(path);
-      List<FileInfo> fileInfos = new ArrayList<FileInfo>();
-      for (Inode inode : inodes) {
-        fileInfos.add(inode.generateClientFileInfo(mInodeTree.getPath(inode).toString()));
-      }
-
-      String[] pathComponents = PathUtils.getPathComponents(path.getPath());
-      if (pathComponents.length < fileInfos.size()) {
-        LOG.warn(
-            "Invalid Path {} for checking permission: "
-                + ExceptionMessage.PATH_INVALID.getMessage(path.getPath()), path);
-        return;
-      }
+      List<FileInfo> fileInfos = collectFileInfoList(path);
 
       // collects user and groups
-      User authorizedUser = PlainSaslServer.AuthorizedClientUser.get();
-      if (authorizedUser == null) {
-        throw new AccessControlException(
-            ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
-      }
-      String user = authorizedUser.getName();
-      List<String> groups;
-      try {
-        groups = mGroupMappingService.getGroups(user);
-      } catch (IOException e) {
-        throw new AccessControlException(
-            ExceptionMessage.PERMISSION_DENIED.getMessage(e.getMessage()));
-      }
+      String user = getClientUser();
+      List<String> groups = getGroups(user);
 
       // perform permission check
+      String[] pathComponents = PathUtils.getPathComponents(path.getPath());
       if (checkParent) {
         if (// involved methods: create, mkdir, rename, deleteFile
             action.equals(FileSystemAction.WRITE)
@@ -1863,6 +2006,38 @@ public final class FileSystemMaster extends MasterBase {
     } catch (InvalidPathException e) {
       LOG.warn("Invalid Path {} for checking permission: " + e.getMessage(), path);
     }
+  }
+
+  private String getClientUser() throws AccessControlException {
+    User authorizedUser = PlainSaslServer.AuthorizedClientUser.get();
+    if (authorizedUser == null) {
+      throw new AccessControlException(
+          ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
+    }
+    return authorizedUser.getName();
+  }
+
+  private List<String> getGroups(String user) throws AccessControlException {
+    try {
+      return mGroupMappingService.getGroups(user);
+    } catch (IOException e) {
+      throw new AccessControlException(
+          ExceptionMessage.PERMISSION_DENIED.getMessage(e.getMessage()));
+    }
+  }
+
+  private List<FileInfo> collectFileInfoList(TachyonURI path) throws AccessControlException,
+      InvalidPathException {
+    List<FileInfo> fileInfos = Lists.newArrayList();
+    for (Inode inodeOnPath :  mInodeTree.collectInodes(path)) {
+      fileInfos.add(inodeOnPath.generateClientFileInfo(mInodeTree.getPath(inodeOnPath).toString()));
+    }
+
+    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
+    if (pathComponents.length < fileInfos.size()) {
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path.getPath()));
+    }
+    return fileInfos;
   }
 
   /**
