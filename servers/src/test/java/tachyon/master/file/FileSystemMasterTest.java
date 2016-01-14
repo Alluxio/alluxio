@@ -95,6 +95,7 @@ public final class FileSystemMasterTest {
   @AfterClass
   public static void afterClass() {
     TtlBucketPrivateAccess.setTtlIntervalMs(sOldTtlIntervalMs);
+    MasterContext.reset();
   }
 
   @Before
