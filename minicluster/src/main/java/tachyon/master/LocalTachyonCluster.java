@@ -22,10 +22,9 @@ import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
-import tachyon.thrift.WorkerNetAddress;
+import tachyon.worker.NetAddress;
+import tachyon.worker.TachyonWorker;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.block.BlockWorker;
-import tachyon.worker.file.FileSystemWorker;
 
 /**
  * Local Tachyon cluster for integration tests.
@@ -77,20 +76,16 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     return mTachyonHome;
   }
 
-  public BlockWorker getWorker() {
+  public TachyonWorker getWorker() {
     return mWorker;
-  }
-
-  public FileSystemWorker getFileSystemWorker() {
-    return mFileSystemWorker;
   }
 
   public TachyonConf getWorkerTachyonConf() {
     return mWorkerConf;
   }
 
-  public WorkerNetAddress getWorkerAddress() {
-    return mWorker.getWorkerNetAddress();
+  public NetAddress getWorkerAddress() {
+    return mWorker.getNetAddress();
   }
 
   @Override
@@ -133,7 +128,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
 
     // Stopping Worker before stopping master speeds up tests
     mWorker.stop();
-    mFileSystemWorker.stop();
     mMaster.stop();
   }
 
@@ -145,7 +139,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   public void stopWorker() throws Exception {
     mMaster.clearClients();
     mWorker.stop();
-    mFileSystemWorker.stop();
   }
 
   @Override

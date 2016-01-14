@@ -17,6 +17,9 @@ package tachyon.worker.block.evictor;
 
 import tachyon.worker.block.BlockStoreLocation;
 
+/**
+ * Provides information about the transfer of a block.
+ */
 public class BlockTransferInfo {
   private final long mBlockId;
   private final BlockStoreLocation mSrcLocation;

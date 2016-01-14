@@ -46,6 +46,7 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
+import tachyon.master.file.meta.PersistenceState;
 import tachyon.master.file.meta.TtlBucket;
 import tachyon.master.file.meta.TtlBucketPrivateAccess;
 import tachyon.master.file.options.CompleteFileOptions;
@@ -55,8 +56,8 @@ import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemCommand;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.IdUtils;
+import tachyon.worker.NetAddress;
 
 /**
  * Unit tests for {@link FileSystemMaster}.
@@ -104,6 +105,8 @@ public final class FileSystemMasterTest {
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_TTL_CHECK,
         HeartbeatContext.SCHEDULED_TIMER_CLASS);
+    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
+        HeartbeatContext.SCHEDULED_TIMER_CLASS);
 
     mBlockMaster = new BlockMaster(blockJournal);
     mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal);
@@ -112,12 +115,12 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.start(true);
 
     // set up workers
-    mWorkerId1 = mBlockMaster.getWorkerId(new WorkerNetAddress("localhost", 80, 81, 82));
+    mWorkerId1 = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81, 82));
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
         Maps.<String, List<Long>>newHashMap());
-    mWorkerId2 = mBlockMaster.getWorkerId(new WorkerNetAddress("remote", 80, 81, 82));
+    mWorkerId2 = mBlockMaster.getWorkerId(new NetAddress("remote", 80, 81, 82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
@@ -429,6 +432,26 @@ public final class FileSystemMasterTest {
 
     long workerId = mFileSystemMaster.scheduleAsyncPersistence(fileId);
     Assert.assertEquals(IdUtils.INVALID_WORKER_ID, workerId);
+  }
+
+  @Test
+  public void lostFilesDetectionTest() throws Exception {
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5, TimeUnit.SECONDS);
+
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    long fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
+    mFileSystemMaster.reportLostFile(fileId);
+
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    Assert.assertEquals(PersistenceState.NOT_PERSISTED.name(), fileInfo.getPersistenceState());
+
+    // run the detector
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5,
+        TimeUnit.SECONDS));
+
+    fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    Assert.assertEquals(PersistenceState.LOST.name(), fileInfo.getPersistenceState());
   }
 
   private long createFileWithSingleBlock(TachyonURI uri) throws Exception {

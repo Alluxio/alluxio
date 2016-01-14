@@ -111,6 +111,7 @@ public final class Lineage implements JournalEntryRepresentable {
   /**
    * Converts the entry to a {@link Lineage}.
    *
+   * @param entry the entry to convert
    * @return the {@link Lineage} representation
    */
   public static Lineage fromJournalEntry(LineageEntry entry) {

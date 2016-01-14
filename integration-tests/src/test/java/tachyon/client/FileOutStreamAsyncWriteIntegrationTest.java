@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import tachyon.IntegrationTestUtils;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
@@ -69,8 +70,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
         TimeUnit.SECONDS));
 
-    // sleep and wait for worker to persist the file
-    CommonUtils.sleepMs(200);
+    IntegrationTestUtils.waitForPersist(mLocalTachyonClusterResource, file.getFileId());
 
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
