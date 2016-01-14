@@ -50,9 +50,6 @@ public final class ClientContext {
    * Initializes the client context singleton.
    */
   public static synchronized void reset() {
-    if (sInitialized) {
-      return;
-    }
     reset(new TachyonConf());
   }
 

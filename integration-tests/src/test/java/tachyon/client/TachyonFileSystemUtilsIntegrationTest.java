@@ -163,6 +163,7 @@ public class TachyonFileSystemUtilsIntegrationTest {
           final TachyonFile file = sTfs.open(uri);
           completed = sTfs.getInfo(file, GetInfoOptions.defaults()).isCompleted;
           Assert.assertFalse(completed);
+          ClientContext.reset();
         } catch (Exception e) {
           e.printStackTrace();
           Assert.fail(e.getMessage());
