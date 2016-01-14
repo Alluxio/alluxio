@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,10 +27,9 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 
 /**
- * Swift output stream implements OutputStream.
- * This class is used to write data into Swift.
- * Class is not thread-safe.
+ * A stream for writing data to Swift.
  */
+@NotThreadSafe
 public class SwiftOutputStream extends OutputStream {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -38,8 +38,10 @@ public class SwiftOutputStream extends OutputStream {
   private HttpURLConnection mHttpCon;
 
   /**
+   * Creates a new instance of {@link SwiftOutputStream}.
+   *
    * @param httpCon connection to Swift
-   * @throws IOException on failure to get OutputStream
+   * @throws IOException if an I/O error occurs
    */
   public SwiftOutputStream(HttpURLConnection httpCon) throws IOException {
     try {
