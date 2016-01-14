@@ -141,7 +141,7 @@ public final class FileSystemMaster extends MasterBase {
   private Future<?> mLostFilesDetectionService;
 
   /**
-   * This records innodesfiles with ttl set in the corresponding ttlbucket,for the
+   * This maintains inodes with ttl set in the corresponding ttlbucket, for the
    * mTtlCheckerService to use
    */
   private final TtlBucketList mTtlBuckets = new TtlBucketList();
