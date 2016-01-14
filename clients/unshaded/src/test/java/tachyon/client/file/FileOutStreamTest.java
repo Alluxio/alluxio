@@ -427,6 +427,25 @@ public class FileOutStreamTest {
     }
   }
 
+  /**
+   * Tests that the number of bytes written is correct when the stream is created with different
+   * under storage types.
+   *
+   * @throws IOException if creating the test stream fails
+   */
+  @Test
+  public void getBytesWrittenWithDifferentUnderStorageTypeTest() throws IOException {
+    for (UnderStorageType type : UnderStorageType.values()) {
+      OutStreamOptions options =
+          new OutStreamOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(BLOCK_LENGTH)
+              .setUnderStorageType(type).build();
+      mTestStream = createTestStream(FILE_ID, options);
+      mTestStream.write(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH));
+      mTestStream.flush();
+      Assert.assertEquals(BLOCK_LENGTH, mTestStream.getBytesWritten());
+    }
+  }
+
   private void verifyIncreasingBytesWritten(int len) {
     verifyIncreasingBytesWritten(0, len);
   }
