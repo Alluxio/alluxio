@@ -99,7 +99,7 @@ public final class FileSystemMasterTest {
   }
 
   @After
-  public static void after() {
+  public void after() {
     MasterContext.reset();
   }
 
