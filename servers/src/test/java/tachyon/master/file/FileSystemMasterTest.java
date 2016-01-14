@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -95,6 +96,10 @@ public final class FileSystemMasterTest {
   @AfterClass
   public static void afterClass() {
     TtlBucketPrivateAccess.setTtlIntervalMs(sOldTtlIntervalMs);
+  }
+
+  @After
+  public static void after() {
     MasterContext.reset();
   }
 
