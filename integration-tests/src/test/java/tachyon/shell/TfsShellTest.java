@@ -1259,17 +1259,20 @@ public class TfsShellTest {
     TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 1);
 
-    //Ensure that the file exists first
+    // Ensure that the file exists first
     Assert.assertTrue(fileExist(new TachyonURI(filePath)));
 
-    //By default the file in pinned , so must be unpinned first
-    Assert.assertFalse(mTfs.getInfo(file).isPinned);
+    // Explicitly unpin an unpinned file
     Assert.assertEquals(0, mFsShell.run("unpin", filePath));
     Assert.assertFalse(mTfs.getInfo(file).isPinned);
 
-    //Now explicitly pin the file
+    // Explicitly pin the file
     Assert.assertEquals(0, mFsShell.run("pin", filePath));
     Assert.assertEquals(true, mTfs.getInfo(file).isPinned);
+
+    // Explicitly unpin the file
+    Assert.assertEquals(0, mFsShell.run("unpin", filePath));
+    Assert.assertFalse(mTfs.getInfo(file).isPinned);
   }
 
   /**
