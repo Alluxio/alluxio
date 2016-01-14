@@ -281,8 +281,13 @@ public final class MasterSourceTest {
   public void renameTest() throws Exception {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
 
-    // move a nested file to root
-    Assert.assertFalse(mFileSystemMaster.rename(fileId, ROOT_URI));
+    // try to rename a file to root
+    try {
+      mFileSystemMaster.rename(fileId, ROOT_URI);
+      Assert.fail("Renaming to root should fail.");
+    } catch (Exception e) {
+      // Expected
+    }
 
     Assert.assertEquals(1, mCounters.get("RenamePathOps").getCount());
     Assert.assertEquals(0, mCounters.get("PathsRenamed").getCount());
@@ -326,7 +331,12 @@ public final class MasterSourceTest {
     Assert.assertEquals(1, mCounters.get("MountOps").getCount());
 
     // trying to mount an existing file
-    Assert.assertFalse(mFileSystemMaster.mount(TEST_URI, MOUNT_URI));
+    try {
+      mFileSystemMaster.mount(TEST_URI, MOUNT_URI);
+      Assert.fail("Should not be able to mount to an existing file");
+    } catch (Exception e) {
+      // Expected, continue
+    }
 
     Assert.assertEquals(1, mCounters.get("PathsMounted").getCount());
     Assert.assertEquals(2, mCounters.get("MountOps").getCount());

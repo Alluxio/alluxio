@@ -322,15 +322,30 @@ public final class FileSystemMasterTest {
   public void renameTest() throws Exception {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
 
-    // move a nested file to root
-    Assert.assertFalse(mFileSystemMaster.rename(fileId, ROOT_URI));
+    // try to rename a file to root
+    try {
+      mFileSystemMaster.rename(fileId, ROOT_URI);
+      Assert.fail("Renaming to root should fail.");
+    } catch (Exception e) {
+      // Expected
+    }
 
-    // move root
+    // move root to another path
     long rootId = mFileSystemMaster.getFileId(ROOT_URI);
-    Assert.assertFalse(mFileSystemMaster.rename(rootId, TEST_URI));
+    try {
+      mFileSystemMaster.rename(rootId, TEST_URI);
+      Assert.fail("Should not be able to rename root");
+    } catch (Exception e) {
+      // Expected
+    }
 
     // move to existing path
-    Assert.assertFalse(mFileSystemMaster.rename(fileId, NESTED_URI));
+    try {
+      mFileSystemMaster.rename(fileId, NESTED_URI);
+      Assert.fail("Should not be able to overwrite existing file.");
+    } catch (Exception e) {
+      // Expected
+    }
 
     // move a nested file to a root file
     Assert.assertTrue(mFileSystemMaster.rename(fileId, TEST_URI));
