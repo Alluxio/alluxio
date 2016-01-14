@@ -1267,7 +1267,7 @@ public class TfsShellTest {
     //Now explicitly pin the file
     Assert.assertEquals(0, mFsShell.run("pin", filePath));
     Assert.assertTrue(mTfs.getInfo(file).isPinned);
-    //test unpin 
+    //test unpin
     Assert.assertEquals(0, mFsShell.run("unpin", filePath));
     Assert.assertFalse(mTfs.getInfo(file).isPinned);
   }
