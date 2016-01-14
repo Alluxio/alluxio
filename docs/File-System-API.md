@@ -117,7 +117,37 @@ as the deprecated `WriteType, ReadType` equivalents.
   created.</td>
   <td>Data is written synchronously to the under storage system.</td>
 </tr>
+<tr>
+  <td>STORE</td>
+  <td>ASYNC_PERSIST</td>
+  <td>ASYNC_THROUGH</td>
+  <td>If the data was not in the Tachyon storage of the local worker, a replica will be added to the
+  local Tachyon worker for each completely read data block.</td>
+  <td>Data is written to a Tachyon worker first, then asynchronously to the under storage system.</td>
+</tr>
 </table>
+
+### Location policy
+
+Tachyon provides location policy to choose which workers to store the blocks of a file. Tachyon supports custom location policy, and the built-in polices include:
+
+* **LocalFirstPolicy**
+
+    Returns the local host first, and if the local worker doesn't have enough capacity of a block, it randomly picks a worker from the active workers list. This is the default policy.
+
+* **MostAvailableFirstPolicy**
+
+    Returns the worker with the most available bytes.
+
+* **RoundRobinPolicy**
+
+    Chooses the worker for the next block in a round-robin manner and skips workers that do not have enough capacity.
+
+* **SpecificHostPolicy**
+
+    Returns a worker with the specified host name. This policy cannot be set as default policy.
+
+Tachyon supports custom policies, so you can also develop your own policy appropriate for your workload. Note that a default policy must have an empty constructor. And to use ASYNC_THROUGH write type, all the blocks of a file must be written to the same worker.
 
 ### Opening a TachyonFile
 
