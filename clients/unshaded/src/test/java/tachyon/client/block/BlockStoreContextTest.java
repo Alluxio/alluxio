@@ -18,6 +18,7 @@ package tachyon.client.block;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -43,6 +44,12 @@ import tachyon.util.network.NetworkAddressUtils;
 @PrepareForTest({BlockMasterClient.class, BlockMasterClientPool.class, BlockStoreContext.class,
     BlockWorkerClient.class, BlockWorkerClientPool.class})
 public final class BlockStoreContextTest {
+
+  @Before
+  public void before() {
+    BlockStoreContext.INSTANCE.reset();
+  }
+
   /**
    * This test ensures acquiring all the available BlockStore master clients blocks further
    * requests for clients. It also ensures clients are available for reuse after they are released
@@ -53,8 +60,6 @@ public final class BlockStoreContextTest {
    */
   @Test(timeout = 10000)
   public void acquireMasterLimitTest() throws Exception {
-    BlockStoreContext.INSTANCE.reset();
-
     final List<BlockMasterClient> clients = Lists.newArrayList();
 
     // Acquire all the clients
