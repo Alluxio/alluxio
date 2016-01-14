@@ -398,14 +398,15 @@ public final class FileSystemMaster extends MasterBase {
    * only contains a single object. If it is a directory, the resulting list contains all direct
    * children of the directory. Called via RPC, as well as internal masters.
    *
-   * @param fileId the file id to get the {@link FileInfo} for
+   * @param uri the file id to get the {@link FileInfo} for
    * @return the list of {@link FileInfo}s
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException {
+  public List<FileInfo> getFileInfoList(TachyonURI uri)
+      throws FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeById(fileId);
+      Inode inode = mInodeTree.getInodeByPath(uri);
 
       List<FileInfo> ret = new ArrayList<FileInfo>();
       if (inode.isDirectory()) {
@@ -642,19 +643,21 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Deletes a given file id. Called via RPC.
+   * Deletes a given path. Called via RPC.
    *
-   * @param fileId the file id to delete
+   * @param uri the path to delete
    * @param recursive if true, will delete all its children
    * @return true if the file was deleted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  public boolean deleteFile(long fileId, boolean recursive)
-      throws IOException, FileDoesNotExistException, DirectoryNotEmptyException {
+  public boolean deleteFile(TachyonURI uri, boolean recursive) throws IOException,
+      FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException {
     MasterContext.getMasterSource().incDeletePathOps(1);
     synchronized (mInodeTree) {
+      Inode inode = mInodeTree.getInodeByPath(uri);
+      long fileId = inode.getId();
       long opTimeMs = System.currentTimeMillis();
       boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
       DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder()
@@ -1037,18 +1040,17 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Renames a file to a destination. Called via RPC.
    *
-   * @param fileId the source file to rename
+   * @param srcPath the source path to rename
    * @param dstPath the destination path to rename the file to
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
    */
-  public void rename(long fileId, TachyonURI dstPath) throws FileAlreadyExistsException,
+  public void rename(TachyonURI srcPath, TachyonURI dstPath) throws FileAlreadyExistsException,
       FileDoesNotExistException, InvalidPathException, IOException {
     MasterContext.getMasterSource().incRenamePathOps(1);
     synchronized (mInodeTree) {
-      Inode srcInode = mInodeTree.getInodeById(fileId);
-      TachyonURI srcPath = mInodeTree.getPath(srcInode);
+      Inode srcInode = mInodeTree.getInodeByPath(srcPath);
       // Renaming path to itself is a no-op.
       if (srcPath.equals(dstPath)) {
         return;
@@ -1101,10 +1103,10 @@ public final class FileSystemMaster extends MasterBase {
 
       // Now we remove srcInode from it's parent and insert it into dstPath's parent
       long opTimeMs = System.currentTimeMillis();
-      renameInternal(fileId, dstPath, false, opTimeMs);
+      renameInternal(srcInode.getId(), dstPath, false, opTimeMs);
 
       RenameEntry rename = RenameEntry.newBuilder()
-          .setId(fileId)
+          .setId(srcInode.getId())
           .setDstPath(dstPath.getPath())
           .setOpTimeMs(opTimeMs)
           .build();
@@ -1311,7 +1313,7 @@ public final class FileSystemMaster extends MasterBase {
 
       List<Long> blockIds = Lists.newArrayList();
       try {
-        for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
+        for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(getPath(fileId))) {
           blockIds.add(fileBlockInfo.blockInfo.blockId);
         }
       } catch (InvalidPathException e) {
@@ -1363,7 +1365,7 @@ public final class FileSystemMaster extends MasterBase {
         CompleteFileOptions completeOptions =
             new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(ufsLength)
                 .build();
-        completeFile(fileId, completeOptions);
+        completeFile(path, completeOptions);
         return fileId;
       } else {
         return loadMetadataDirectory(path, recursive);
@@ -1523,11 +1525,11 @@ public final class FileSystemMaster extends MasterBase {
    * @param fileId the id of the file
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public void resetFile(long fileId) throws FileDoesNotExistException {
+  public void resetFile(long fileId) throws FileDoesNotExistException, InvalidPathException {
     // TODO(yupeng) check the file is not persisted
     synchronized (mInodeTree) {
       // free the file first
-      free(fileId, false);
+      free(getPath(fileId), false);
       InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
       inodeFile.reset();
     }
@@ -1536,13 +1538,15 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Sets the file state.
    *
-   * @param fileId the id of the file
+   * @param path the path to set state
    * @param options attributes to be set, see {@link SetAttributeOptions}
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public void setState(long fileId, SetAttributeOptions options) throws FileDoesNotExistException {
+  public void setState(TachyonURI path, SetAttributeOptions options) throws
+      FileDoesNotExistException {
     MasterContext.getMasterSource().incSetStateOps(1);
     synchronized (mInodeTree) {
+      long fileId = getFileId(path);
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
       SetStateEntry.Builder setState =
@@ -1607,7 +1611,7 @@ public final class FileSystemMaster extends MasterBase {
     Map<Long, Integer> workerBlockCounts = Maps.newHashMap();
     List<FileBlockInfo> blockInfoList;
     try {
-      blockInfoList = getFileBlockInfoList(fileId);
+      blockInfoList = getFileBlockInfoList(getPath(fileId));
 
       for (FileBlockInfo fileBlockInfo : blockInfoList) {
         for (BlockLocation blockLocation : fileBlockInfo.blockInfo.locations) {
@@ -1668,7 +1672,7 @@ public final class FileSystemMaster extends MasterBase {
           if (inode.isCompleted()) {
             fileIdsToPersist.add(fileId);
             List<Long> blockIds = Lists.newArrayList();
-            for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
+            for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(mInodeTree.getPath(inode))) {
               blockIds.add(fileBlockInfo.blockInfo.blockId);
             }
 
@@ -1716,7 +1720,7 @@ public final class FileSystemMaster extends MasterBase {
   public synchronized FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException, InvalidPathException {
     for (long fileId : persistedFiles) {
-      setState(fileId, SetAttributeOptions.defaults().setPersisted(true));
+      setState(getPath(fileId), SetAttributeOptions.defaults().setPersisted(true));
     }
 
     // get the files for the given worker to checkpoint
@@ -1793,7 +1797,7 @@ public final class FileSystemMaster extends MasterBase {
               // file.isPinned() is deliberately not checked because ttl will have effect no matter
               // whether the file is pinned.
               try {
-                deleteFile(file.getId(), false);
+                deleteFile(mInodeTree.getPath(file), false);
               } catch (Exception e) {
                 LOG.error("Exception trying to clean up {} for ttl check: {}", file.toString(),
                     e.toString());

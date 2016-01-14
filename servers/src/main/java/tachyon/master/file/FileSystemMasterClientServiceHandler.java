@@ -145,8 +145,7 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public List<FileInfo> listStatus(String path) throws TachyonTException {
     try {
-      long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
-      return mFileSystemMaster.getFileInfoList(fileId);
+      return mFileSystemMaster.getFileInfoList(new TachyonURI(path));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -180,8 +179,7 @@ public final class FileSystemMasterClientServiceHandler implements
   public void remove(String path, boolean recursive)
       throws TachyonTException, ThriftIOException {
     try {
-      long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
-      mFileSystemMaster.deleteFile(fileId, recursive);
+      mFileSystemMaster.deleteFile(new TachyonURI(path), recursive);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     } catch (IOException e) {
@@ -193,8 +191,7 @@ public final class FileSystemMasterClientServiceHandler implements
   public void rename(String srcPath, String dstPath)
       throws TachyonTException, ThriftIOException {
     try {
-      long fileId = mFileSystemMaster.getFileId(new TachyonURI(srcPath));
-      mFileSystemMaster.rename(fileId, new TachyonURI(dstPath));
+      mFileSystemMaster.rename(new TachyonURI(srcPath), new TachyonURI(dstPath));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     } catch (IOException e) {
@@ -206,8 +203,8 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public void setAttribute(String path, SetAttributeTOptions options) throws TachyonTException {
     try {
-      long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
-      mFileSystemMaster.setState(fileId, SetAttributeOptions.fromThriftOptions(options));
+      mFileSystemMaster.setState(new TachyonURI(path),
+          SetAttributeOptions.fromThriftOptions(options));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
