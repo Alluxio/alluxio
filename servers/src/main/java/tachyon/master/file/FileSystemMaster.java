@@ -133,10 +133,11 @@ public final class FileSystemMaster extends MasterBase {
    */
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mTtlCheckerService;
+
   /**
-   * Creates a new list of {@link TtlBucket}s.
+   * This records innodesfiles with ttl set in the corresponding ttlbucket,for the
+   * mTtlCheckerService to use
    *
-   * @return the list of {@link TtlBucket}s for this master
    */
   private final TtlBucketList mTtlBuckets = new TtlBucketList();
 
