@@ -140,6 +140,10 @@ public final class FileSystemMaster extends MasterBase {
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mLostFilesDetectionService;
 
+  /**
+   * This maintains inodes with ttl set in the corresponding ttlbucket, for the
+   * mTtlCheckerService to use
+   */
   private final TtlBucketList mTtlBuckets = new TtlBucketList();
 
   /**
