@@ -605,6 +605,30 @@ public class TfsShellTest {
   }
 
   @Test
+  public void mkdirMultiPathTest() throws IOException, TachyonException {
+    String path1 = "/testDir1";
+    String path2 = "/testDir2";
+    String path3 = "/testDir2/testDir2.1";
+    Assert.assertEquals(0, mFsShell.run("mkdir", path1, path2, path3));
+
+    TachyonFile tFile = mTfs.open(new TachyonURI(path1));
+    FileInfo fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
+    Assert.assertTrue(fileInfo.isIsFolder());
+
+    tFile = mTfs.open(new TachyonURI(path2));
+    fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
+    Assert.assertTrue(fileInfo.isIsFolder());
+
+    tFile = mTfs.open(new TachyonURI(path3));
+    fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
+    Assert.assertTrue(fileInfo.isIsFolder());
+
+  }
+
+  @Test
   public void mkdirShortPathTest() throws IOException, TachyonException {
     mFsShell.run("mkdir", "/root/testFile1");
     TachyonFile tFile = mTfs.open(new TachyonURI("/root/testFile1"));
