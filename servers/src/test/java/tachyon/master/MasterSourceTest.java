@@ -40,8 +40,8 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.options.CompleteFileOptions;
-import tachyon.master.file.options.CreateOptions;
-import tachyon.master.file.options.MkdirOptions;
+import tachyon.master.file.options.CreateFileOptions;
+import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileInfo;
@@ -62,8 +62,8 @@ public final class MasterSourceTest {
   private static final TachyonURI MOUNT_URI =
       new TachyonURI("/tmp/mount-" + System.currentTimeMillis());
 
-  private static CreateOptions sNestedFileOptions =
-      new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+  private static CreateFileOptions sNestedFileOptions =
+      new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
           .setRecursive(true).build();
 
   private BlockMaster mBlockMaster;
@@ -134,14 +134,14 @@ public final class MasterSourceTest {
 
   @Test
   public void mkdirTest() throws Exception {
-    mFileSystemMaster.mkdir(DIRECTORY_URI, MkdirOptions.defaults());
+    mFileSystemMaster.mkdir(DIRECTORY_URI, CreateDirectoryOptions.defaults());
 
     Assert.assertEquals(1, mCounters.get("CreateDirectoryOps").getCount());
     Assert.assertEquals(1, mCounters.get("DirectoriesCreated").getCount());
 
     // trying to create a directory that already exist
     try {
-      mFileSystemMaster.mkdir(DIRECTORY_URI, MkdirOptions.defaults());
+      mFileSystemMaster.mkdir(DIRECTORY_URI, CreateDirectoryOptions.defaults());
       Assert.fail("create a directory that already exist must throw an exception");
     } catch (FileAlreadyExistsException e) {
       // do nothing

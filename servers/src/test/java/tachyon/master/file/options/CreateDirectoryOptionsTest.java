@@ -20,51 +20,39 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.master.MasterContext;
 
 /**
- * Unit tests for {@link CreateOptions}.
+ * Unit tests for {@link CreateDirectoryOptions}.
  */
-public class CreateOptionsTest {
+public class CreateDirectoryOptionsTest {
   @Test
   public void builderTest() {
     Random random = new Random();
-    long blockSize = random.nextLong();
+    boolean allowExists = random.nextBoolean();
     long operationTimeMs = random.nextLong();
     boolean persisted = random.nextBoolean();
     boolean recursive = random.nextBoolean();
-    long ttl = random.nextLong();
 
-    CreateOptions options =
-        new CreateOptions.Builder(new TachyonConf())
-            .setBlockSizeBytes(blockSize)
-            .setOperationTimeMs(operationTimeMs)
-            .setPersisted(persisted)
-            .setRecursive(recursive)
-            .setTTL(ttl)
-            .build();
+    CreateDirectoryOptions options = new CreateDirectoryOptions.Builder(new TachyonConf())
+        .setAllowExists(allowExists)
+        .setOperationTimeMs(operationTimeMs)
+        .setPersisted(persisted)
+        .setRecursive(recursive)
+        .build();
 
-    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
+    Assert.assertEquals(allowExists, options.isAllowExists());
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
     Assert.assertEquals(persisted, options.isPersisted());
     Assert.assertEquals(recursive, options.isRecursive());
-    Assert.assertEquals(ttl, options.getTTL());
   }
 
   @Test
   public void defaultsTest() {
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
-    MasterContext.reset(conf);
+    CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
 
-    CreateOptions options = CreateOptions.defaults();
-
-    Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
+    Assert.assertFalse(options.isAllowExists());
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
-    Assert.assertEquals(Constants.NO_TTL, options.getTTL());
-    MasterContext.reset();
   }
 }

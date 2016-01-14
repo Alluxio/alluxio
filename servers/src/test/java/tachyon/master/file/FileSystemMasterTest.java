@@ -49,7 +49,7 @@ import tachyon.master.block.BlockMaster;
 import tachyon.master.file.meta.TTLBucket;
 import tachyon.master.file.meta.TTLBucketPrivateAccess;
 import tachyon.master.file.options.CompleteFileOptions;
-import tachyon.master.file.options.CreateOptions;
+import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.CommandType;
@@ -68,7 +68,7 @@ public final class FileSystemMasterTest {
   private static final TachyonURI ROOT_URI = new TachyonURI("/");
   private static final TachyonURI ROOT_FILE_URI = new TachyonURI("/file");
   private static final TachyonURI TEST_URI = new TachyonURI("/test");
-  private static CreateOptions sNestedFileOptions;
+  private static CreateFileOptions sNestedFileOptions;
   private static long sOldTtlIntervalMs;
 
   private BlockMaster mBlockMaster;
@@ -85,7 +85,7 @@ public final class FileSystemMasterTest {
   @BeforeClass
   public static void beforeClass() {
     sNestedFileOptions =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
     sOldTtlIntervalMs = TTLBucket.getTTLIntervalMs();
     TTLBucketPrivateAccess.setTTLIntervalMs(TTLCHECKER_INTERVAL_MS);
@@ -191,8 +191,8 @@ public final class FileSystemMasterTest {
 
   @Test
   public void createFileWithTTLTest() throws Exception {
-    CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+    CreateFileOptions options =
+        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).setTTL(1).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
@@ -205,8 +205,8 @@ public final class FileSystemMasterTest {
 
   @Test
   public void setTTLForFileWithNoTTLTest() throws Exception {
-    CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+    CreateFileOptions options =
+        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     executeTTLCheckOnce();
@@ -222,8 +222,8 @@ public final class FileSystemMasterTest {
 
   @Test
   public void setSmallerTTLForFileWithTTLTest() throws Exception {
-    CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+    CreateFileOptions options =
+        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).setTTL(Constants.HOUR_MS).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     executeTTLCheckOnce();
@@ -239,8 +239,8 @@ public final class FileSystemMasterTest {
 
   @Test
   public void setLargerTTLForFileWithTTLTest() throws Exception {
-    CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+    CreateFileOptions options =
+        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).setTTL(0).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
@@ -253,8 +253,8 @@ public final class FileSystemMasterTest {
 
   @Test
   public void setNoTTLForFileWithTTLTest() throws Exception {
-    CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+    CreateFileOptions options =
+        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).setTTL(0).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
@@ -341,8 +341,9 @@ public final class FileSystemMasterTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/nested/test"));
 
-    CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB).build();
+    CreateFileOptions options =
+        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+            .build();
     long fileId = mFileSystemMaster.create(TEST_URI, options);
 
     // nested dir

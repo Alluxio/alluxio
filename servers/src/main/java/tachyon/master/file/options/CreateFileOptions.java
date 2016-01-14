@@ -18,9 +18,9 @@ package tachyon.master.file.options;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
-import tachyon.thrift.CreateTOptions;
+import tachyon.thrift.CreateFileTOptions;
 
-public final class CreateOptions {
+public final class CreateFileOptions {
   public static class Builder {
     private long mBlockSizeBytes;
     private long mOperationTimeMs;
@@ -29,7 +29,7 @@ public final class CreateOptions {
     private long mTTL;
 
     /**
-     * Creates a new builder for {@link CreateOptions}.
+     * Creates a new builder for {@link CreateFileOptions}.
      *
      * @param conf a Tachyon configuration
      */
@@ -90,12 +90,12 @@ public final class CreateOptions {
     }
 
     /**
-     * Builds a new instance of {@link CreateOptions}.
+     * Builds a new instance of {@link CreateFileOptions}.
      *
-     * @return a {@link CreateOptions} instance
+     * @return a {@link CreateFileOptions} instance
      */
-    public CreateOptions build() {
-      return new CreateOptions(this);
+    public CreateFileOptions build() {
+      return new CreateFileOptions(this);
     }
   }
 
@@ -106,13 +106,13 @@ public final class CreateOptions {
   private long mTTL;
 
   /**
-   * @return the default {@link CreateOptions}
+   * @return the default {@link CreateFileOptions}
    */
-  public static CreateOptions defaults() {
+  public static CreateFileOptions defaults() {
     return new Builder(MasterContext.getConf()).build();
   }
 
-  private CreateOptions(CreateOptions.Builder builder) {
+  private CreateFileOptions(CreateFileOptions.Builder builder) {
     mBlockSizeBytes = builder.mBlockSizeBytes;
     mOperationTimeMs = builder.mOperationTimeMs;
     mPersisted = builder.mPersisted;
@@ -121,11 +121,11 @@ public final class CreateOptions {
   }
 
   /**
-   * Creates a new instance of {@link CreateOptions} from {@link CreateTOptions}.
+   * Creates a new instance of {@link CreateFileOptions} from {@link CreateFileTOptions}.
    *
    * @param options Thrift options
    */
-  public CreateOptions(CreateTOptions options) {
+  public CreateFileOptions(CreateFileTOptions options) {
     mBlockSizeBytes = options.getBlockSizeBytes();
     mOperationTimeMs = System.currentTimeMillis();
     mPersisted = options.isPersisted();
