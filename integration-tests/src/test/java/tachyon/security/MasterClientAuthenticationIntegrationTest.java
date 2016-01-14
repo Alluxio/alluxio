@@ -123,11 +123,12 @@ public class MasterClientAuthenticationIntegrationTest {
     FileSystemMasterClient masterClient =
         new FileSystemMasterClient(mLocalTachyonClusterResource.get().getMaster().getAddress(),
             mLocalTachyonClusterResource.get().getMasterTachyonConf());
+    TachyonURI uri = new TachyonURI(filename);
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
-    masterClient.createFile(new TachyonURI(filename), CreateFileOptions.defaults());
-    Assert.assertNotNull(masterClient.getFileId(filename));
+    masterClient.createFile(uri, CreateFileOptions.defaults());
+    Assert.assertNotNull(masterClient.getStatus(uri));
     masterClient.disconnect();
     masterClient.close();
   }
