@@ -660,7 +660,7 @@ public class TfsShellTest {
 
     Assert.assertEquals(-1, ret);
     String output = mOutput.toString();
-    Assert.assertTrue(output.contains("mv: Failed to rename /testFolder1 to /testFolder"));
+    Assert.assertTrue(output.contains("/testFolder already exists"));
   }
 
   @Test

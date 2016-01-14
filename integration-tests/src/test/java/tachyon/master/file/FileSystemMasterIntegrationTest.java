@@ -659,8 +659,13 @@ public class FileSystemMasterIntegrationTest {
   public void renameExistingDstTest() throws Exception {
     mFsMaster.create(new TachyonURI("/testFile1"), CreateFileOptions.defaults());
     mFsMaster.create(new TachyonURI("/testFile2"), CreateFileOptions.defaults());
-    Assert.assertFalse(mFsMaster.rename(mFsMaster.getFileId(new TachyonURI("/testFile1")),
-        new TachyonURI("/testFile2")));
+    try {
+      mFsMaster.rename(mFsMaster.getFileId(new TachyonURI("/testFile1")), new TachyonURI(
+          "/testFile2"));
+      Assert.fail("Should not be able to rename to an existing file");
+    } catch (Exception e) {
+      // expected
+    }
   }
 
   @Test

@@ -1038,8 +1038,8 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
    */
-  public boolean rename(long fileId, TachyonURI dstPath)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+  public boolean rename(long fileId, TachyonURI dstPath) throws FileAlreadyExistsException,
+      FileDoesNotExistException, InvalidPathException, IOException {
     MasterContext.getMasterSource().incRenamePathOps(1);
     synchronized (mInodeTree) {
       Inode srcInode = mInodeTree.getInodeById(fileId);
@@ -1050,7 +1050,7 @@ public final class FileSystemMaster extends MasterBase {
       }
       // Renaming the root is not allowed.
       if (srcPath.isRoot() || dstPath.isRoot()) {
-        return false;
+        throw new UnsupportedOperationException("Cannot rename root.");
       }
       // Renaming across mount points is not allowed.
       String srcMount = mMountTable.getMountPoint(srcPath);
@@ -1058,17 +1058,18 @@ public final class FileSystemMaster extends MasterBase {
       if ((srcMount == null && dstMount != null) || (srcMount != null && dstMount == null)
           || (srcMount != null && dstMount != null && !srcMount.equals(dstMount))) {
         LOG.warn("Renaming {} to {} spans mount points.", srcPath, dstPath);
-        return false;
+        throw new UnsupportedOperationException("Renaming " + srcPath + " to " + dstPath + " spans"
+            + " mount points.");
       }
       // Renaming onto a mount point is not allowed.
       if (mMountTable.isMountPoint(dstPath)) {
-        return false;
+        throw new UnsupportedOperationException(dstPath + " is a mount point.");
       }
       // Renaming a path to one of its subpaths is not allowed. Check for that, by making sure
       // srcComponents isn't a prefix of dstComponents.
       if (PathUtils.hasPrefix(dstPath.getPath(), srcPath.getPath())) {
-        throw new InvalidPathException(
-            "Failed to rename: " + srcPath + " is a prefix of " + dstPath);
+        throw new InvalidPathException("Failed to rename: " + srcPath + " is a prefix of "
+            + dstPath);
       }
 
       TachyonURI dstParentURI = dstPath.getParent();
@@ -1076,24 +1077,25 @@ public final class FileSystemMaster extends MasterBase {
       // Get the inodes of the src and dst parents.
       Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
       if (!srcParentInode.isDirectory()) {
-        return false;
+        throw new UnsupportedOperationException("File to rename must have a valid parent.");
       }
       Inode dstParentInode = mInodeTree.getInodeByPath(dstParentURI);
       if (!dstParentInode.isDirectory()) {
-        return false;
+        throw new UnsupportedOperationException("Destination must have a valid parent.");
       }
 
       // Make sure destination path does not exist
       InodeDirectory dstParentDirectory = (InodeDirectory) dstParentInode;
       String[] dstComponents = PathUtils.getPathComponents(dstPath.getPath());
       if (dstParentDirectory.getChild(dstComponents[dstComponents.length - 1]) != null) {
-        return false;
+        throw new FileAlreadyExistsException(
+            ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(dstPath));
       }
 
       // Now we remove srcInode from it's parent and insert it into dstPath's parent
       long opTimeMs = System.currentTimeMillis();
       if (!renameInternal(fileId, dstPath, false, opTimeMs)) {
-        return false;
+        throw new IOException("Internal error.");
       }
 
       RenameEntry rename = RenameEntry.newBuilder()
@@ -1436,7 +1438,7 @@ public final class FileSystemMaster extends MasterBase {
         return true;
       }
     }
-    return false;
+    throw new IOException("Internal error when mounting.");
   }
 
   void mountFromEntry(AddMountPointEntry entry) throws InvalidPathException, IOException {
@@ -1450,19 +1452,17 @@ public final class FileSystemMaster extends MasterBase {
     // Check that the ufsPath exists and is a directory
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
     if (!ufs.exists(ufsPath.getPath())) {
-      LOG.warn(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
-      return false;
+      throw new IOException(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
     }
     if (ufs.isFile(ufsPath.getPath())) {
-      LOG.warn(ExceptionMessage.PATH_MUST_BE_DIRECTORY.getMessage(ufsPath.getPath()));
-      return false;
+      throw new IOException(ExceptionMessage.PATH_MUST_BE_DIRECTORY.getMessage(ufsPath.getPath()));
     }
     // Check that the tachyonPath we're creating doesn't shadow a path in the default UFS
     String defaultUfsPath = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
     UnderFileSystem defaultUfs = UnderFileSystem.get(defaultUfsPath, MasterContext.getConf());
     if (defaultUfs.exists(PathUtils.concatPath(defaultUfsPath, tachyonPath.getPath()))) {
-      LOG.warn(ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(tachyonPath));
-      return false;
+      throw new IOException(
+          ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(tachyonPath));
     }
     // This should check that we are not mounting a prefix of an existing mount, and that no
     // existing mount is a prefix of this mount.
