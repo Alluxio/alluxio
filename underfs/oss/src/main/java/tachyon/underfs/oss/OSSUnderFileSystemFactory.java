@@ -61,7 +61,7 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   /**
-   * Adds Aliyun credentials from system properties to the Tachyon configuration if they are not
+   * Adds OSS credentials from system properties to the Tachyon configuration if they are not
    * already present.
    *
    * @param tachyonConf the Tachyon configuration to check and add credentials to

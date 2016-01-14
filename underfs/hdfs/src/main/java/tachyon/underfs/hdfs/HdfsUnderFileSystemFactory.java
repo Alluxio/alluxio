@@ -36,7 +36,7 @@ import tachyon.underfs.UnderFileSystemFactory;
 @ThreadSafe
 public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
   /**
-   * Cache mapping {@code Path}s to existing {@link UnderFileSystem} instances. The path should be
+   * Cache mapping {@code Path}s to existing {@link UnderFileSystem} instances. The paths should be
    * normalized to root paths because only their schemes and authorities are needed to identify
    * which {@link FileSystem} they belong to.
    */

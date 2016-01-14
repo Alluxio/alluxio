@@ -108,7 +108,7 @@ public final class OSSOutputStream extends OutputStream {
   }
 
   /**
-   * Writes the given byt array to this output stream. Before close, the bytes are all written to
+   * Writes the given byte array to this output stream. Before close, the bytes are all written to
    * local file.
    *
    * @param b the byte array

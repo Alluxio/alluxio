@@ -384,10 +384,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the parent key of the input key, or null if no parent exists.
-   *
    * @param key the key to get the parent of
-   * @return the the parent key
+   * @return the parent key, or null if the parent does not exist
    */
   private String getParentKey(String key) {
     // Root does not have a parent.
