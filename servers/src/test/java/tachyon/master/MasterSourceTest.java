@@ -293,7 +293,7 @@ public final class MasterSourceTest {
     Assert.assertEquals(0, mCounters.get("PathsRenamed").getCount());
 
     // move a nested file to a root file
-    Assert.assertTrue(mFileSystemMaster.rename(fileId, TEST_URI));
+    mFileSystemMaster.rename(fileId, TEST_URI);
 
     Assert.assertEquals(2, mCounters.get("RenamePathOps").getCount());
     Assert.assertEquals(1, mCounters.get("PathsRenamed").getCount());
