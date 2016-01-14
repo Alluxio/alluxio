@@ -1259,23 +1259,28 @@ public class TfsShellTest {
     TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 1);
 
-    //Ensure that the file exists first
+    // Ensure that the file exists
     Assert.assertTrue(fileExist(new TachyonURI(filePath)));
 
-    //By default the file in pinned , so must be unpinned first
-    Assert.assertFalse(mTfs.getInfo(file).isPinned);
+    // Unpin an unpinned file
     Assert.assertEquals(0, mFsShell.run("unpin", filePath));
     Assert.assertFalse(mTfs.getInfo(file).isPinned);
 
-    //Now explicitly pin the file
+    // Pin the file
     Assert.assertEquals(0, mFsShell.run("pin", filePath));
-    Assert.assertEquals(true, mTfs.getInfo(file).isPinned);
+    Assert.assertTrue(mTfs.getInfo(file).isPinned);
+
+    // Unpin the file
+    Assert.assertEquals(0, mFsShell.run("unpin", filePath));
+    Assert.assertFalse(mTfs.getInfo(file).isPinned);
   }
 
-  /*
-   * create three files with initial size of 5MB to be added to Tachyon once the third file is
-   * added Tachyon is forced to evict one file. Since fileA is is pinned it will not be
-   * evicted only fileB
+  /**
+   * Creates three files with initial size of 5MB to be added to Tachyon. Once the third file is
+   * added, Tachyon is forced to evict one file. Since fileA is pinned it will not be evicted only
+   * fileB.
+   *
+   * @throws Exception
    */
   @Test
   public void setPinTest() throws Exception {
@@ -1298,7 +1303,7 @@ public class TfsShellTest {
         UnderStorageType.NO_PERSIST, fileSize);
     Assert.assertTrue(fileExist(new TachyonURI(filePathC)));
 
-    //fileA is in memory because it is pinned, but not fileB
+    // fileA is in memory because it is pinned, but not fileB
     Assert.assertEquals(100, mTfs.getInfo(fileA).inMemoryPercentage);
     Assert.assertEquals(0, mTfs.getInfo(fileB).inMemoryPercentage);
   }
