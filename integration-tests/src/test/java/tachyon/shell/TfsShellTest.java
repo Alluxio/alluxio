@@ -452,7 +452,7 @@ public class TfsShellTest {
         return "Successfully created directory " + command[1] + "\n";
       } else if (cmd.equals("rm") || cmd.equals("rmr")) {
         return command[1] + " has been removed" + "\n";
-      } else if (cmd.equals("touch")) {
+      } else if (cmd.equals("	")) {
         return command[1] + " has been created" + "\n";
       }
     } else if (command.length == 3) {
@@ -1266,8 +1266,8 @@ public class TfsShellTest {
 
     //Now explicitly pin the file
     Assert.assertEquals(0, mFsShell.run("pin", filePath));
-    Assert.assertTrue( mTfs.getInfo(file).isPinned);
-    //test unpin 
+    Assert.assertTrue(mTfs.getInfo(file).isPinned);
+    //test unpin
     Assert.assertEquals(0, mFsShell.run("unpin", filePath));
     Assert.assertFalse(mTfs.getInfo(file).isPinned);
 
