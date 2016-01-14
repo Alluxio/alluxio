@@ -1270,7 +1270,6 @@ public class TfsShellTest {
     //test unpin
     Assert.assertEquals(0, mFsShell.run("unpin", filePath));
     Assert.assertFalse(mTfs.getInfo(file).isPinned);
-
   }
 
   /*
