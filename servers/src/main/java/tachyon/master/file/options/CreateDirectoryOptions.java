@@ -17,9 +17,9 @@ package tachyon.master.file.options;
 
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
-import tachyon.thrift.MkdirTOptions;
+import tachyon.thrift.CreateDirectoryTOptions;
 
-public final class MkdirOptions {
+public final class CreateDirectoryOptions {
   public static class Builder {
     private boolean mAllowExists;
     private long mOperationTimeMs;
@@ -27,7 +27,7 @@ public final class MkdirOptions {
     private boolean mRecursive;
 
     /**
-     * Creates a new builder for {@link MkdirOptions}.
+     * Creates a new builder for {@link CreateDirectoryOptions}.
      *
      * @param conf a Tachyon configuration
      */
@@ -77,19 +77,19 @@ public final class MkdirOptions {
     }
 
     /**
-     * Builds a new instance of {@link MkdirOptions}.
+     * Builds a new instance of {@link CreateDirectoryOptions}.
      *
-     * @return a {@link MkdirOptions} instance
+     * @return a {@link CreateDirectoryOptions} instance
      */
-    public MkdirOptions build() {
-      return new MkdirOptions(this);
+    public CreateDirectoryOptions build() {
+      return new CreateDirectoryOptions(this);
     }
   }
 
   /**
-   * @return the default {@link MkdirOptions}
+   * @return the default {@link CreateDirectoryOptions}
    */
-  public static MkdirOptions defaults() {
+  public static CreateDirectoryOptions defaults() {
     return new Builder(MasterContext.getConf()).build();
   }
 
@@ -98,7 +98,7 @@ public final class MkdirOptions {
   private boolean mPersisted;
   private boolean mRecursive;
 
-  private MkdirOptions(MkdirOptions.Builder builder) {
+  private CreateDirectoryOptions(CreateDirectoryOptions.Builder builder) {
     mAllowExists = builder.mAllowExists;
     mOperationTimeMs = builder.mOperationTimeMs;
     mPersisted = builder.mPersisted;
@@ -106,11 +106,11 @@ public final class MkdirOptions {
   }
 
   /**
-   * Creates a new instance of {@link MkdirOptions} from {@link MkdirTOptions}.
+   * Creates a new instance of {@link CreateDirectoryOptions} from {@link CreateDirectoryTOptions}.
    *
    * @param options Thrift options
    */
-  public MkdirOptions(MkdirTOptions options) {
+  public CreateDirectoryOptions(CreateDirectoryTOptions options) {
     mAllowExists = options.isAllowExists();
     mOperationTimeMs = System.currentTimeMillis();
     mPersisted = options.isPersisted();

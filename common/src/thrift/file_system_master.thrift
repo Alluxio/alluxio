@@ -112,6 +112,12 @@ service FileSystemMasterClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e)
 
   /**
+   * Returns the status of the file or directory, only used internally by servers
+   */
+  FileInfo getStatus( /** the path of the file or directory */ 1: i64 fileId)
+    throws (1: exception.TachyonTException e)
+
+  /**
    * Generates a new block id for the given file.
    */
   i64 getNewBlockIdForFile( /** the path of the file */ 1: string path)

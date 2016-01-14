@@ -42,7 +42,7 @@ import tachyon.exception.TableMetadataException;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.master.file.options.MkdirOptions;
+import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
@@ -154,8 +154,8 @@ public class RawTableMaster extends MasterBase {
     validateMetadataSize(metadata);
 
     // Create a directory at path to hold the columns
-    MkdirOptions options =
-        new MkdirOptions.Builder(MasterContext.getConf())
+    CreateDirectoryOptions options =
+        new CreateDirectoryOptions.Builder(MasterContext.getConf())
             .setPersisted(true)
             .setRecursive(true)
             .build();

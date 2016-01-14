@@ -71,8 +71,8 @@ import tachyon.master.file.meta.TTLBucket;
 import tachyon.master.file.meta.TTLBucketList;
 import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.file.options.CompleteFileOptions;
-import tachyon.master.file.options.CreateOptions;
-import tachyon.master.file.options.MkdirOptions;
+import tachyon.master.file.options.CreateFileOptions;
+import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
@@ -508,7 +508,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileAlreadyExistsException if the file already exists
    * @throws BlockInfoException if an invalid block information in encountered
    */
-  public long create(TachyonURI path, CreateOptions options)
+  public long create(TachyonURI path, CreateFileOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
     MasterContext.getMasterSource().incCreateFileOps(1);
     synchronized (mInodeTree) {
@@ -522,7 +522,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  InodeTree.CreatePathResult createInternal(TachyonURI path, CreateOptions options)
+  InodeTree.CreatePathResult createInternal(TachyonURI path, CreateFileOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
@@ -969,7 +969,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws IOException
    */
-  public InodeTree.CreatePathResult mkdir(TachyonURI path, MkdirOptions options)
+  public InodeTree.CreatePathResult mkdir(TachyonURI path, CreateDirectoryOptions options)
       throws InvalidPathException, FileAlreadyExistsException, IOException {
     LOG.debug("mkdir {} ", path);
     MasterContext.getMasterSource().incCreateDirectoriesOps(1);
@@ -1350,12 +1350,12 @@ public final class FileSystemMaster extends MasterBase {
         long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
         long ufsLength = ufs.getFileSize(ufsPath.toString());
         // Metadata loaded from UFS has no TTL set.
-        CreateOptions createOptions = new CreateOptions.Builder(MasterContext.getConf())
+        CreateFileOptions createFileOptions = new CreateFileOptions.Builder(MasterContext.getConf())
             .setBlockSizeBytes(ufsBlockSizeByte)
             .setRecursive(recursive)
             .setPersisted(true)
             .build();
-        long fileId = create(path, createOptions);
+        long fileId = create(path, createFileOptions);
         CompleteFileOptions completeOptions =
             new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(ufsLength)
                 .build();
@@ -1383,8 +1383,8 @@ public final class FileSystemMaster extends MasterBase {
    */
   private long loadMetadataDirectory(TachyonURI path, boolean recursive)
       throws IOException, FileAlreadyExistsException, InvalidPathException {
-    MkdirOptions options =
-        new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(recursive)
+    CreateDirectoryOptions options =
+        new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(recursive)
             .setPersisted(true).build();
     InodeTree.CreatePathResult result = mkdir(path, options);
     List<Inode> inodes = null;

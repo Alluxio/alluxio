@@ -195,6 +195,25 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
+   * Internal API, only used by the WebUI of the servers.
+   *
+   * @param fileId the file id
+   * @return the file info for the given file id
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  // TODO(calvin): Split this into its own client
+  public synchronized URIStatus getStatus(final long fileId) throws IOException,
+      TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<URIStatus>() {
+      @Override
+      public URIStatus call() throws TachyonTException, TException {
+        return new URIStatus(mClient.getStatus(fileId));
+      }
+    });
+  }
+
+  /**
    * @param path the file path
    * @return the file info for the given file id
    * @throws IOException if an I/O error occurs
