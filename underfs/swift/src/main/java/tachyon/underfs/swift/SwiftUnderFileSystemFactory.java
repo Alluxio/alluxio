@@ -30,7 +30,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
 
 /**
- * Factory for creating Swift under file systems.
+ * Factory for creating {@link SwiftUnderFileSystem}.
  */
 public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -61,10 +61,10 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   /**
-   * This method adds Swift credentials from system properties to the Tachyon Conf if they are not
+   * Adds Swift credentials from system properties to the Tachyon configuration if they are not
    * already present.
    *
-   * @param tachyonConf the conf to check and add credentials to
+   * @param tachyonConf the Tachyon configuration to check and add credentials to
    * @return true if both access and secret key are present, false otherwise
    */
   private boolean addAndCheckSwiftCredentials(TachyonConf tachyonConf) {
