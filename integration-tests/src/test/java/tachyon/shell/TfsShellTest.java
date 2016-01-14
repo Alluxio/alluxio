@@ -529,16 +529,16 @@ public class TfsShellTest {
     String expected = "";
     expected +=
         getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10, "In Memory",
-            testUser, testUser);
+            testUser, testUser, false);
     expected +=
         getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 0, "", testUser,
-            testUser);
+            testUser, true);
     expected +=
         getLsResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), 20,
-            "In Memory", testUser, testUser);
+            "In Memory", testUser, testUser, false);
     expected +=
         getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30, "Not In Memory",
-            testUser, testUser);
+            testUser, testUser, false);
     Assert.assertEquals(expected, mOutput.toString());
     // clear testing username
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
@@ -568,13 +568,13 @@ public class TfsShellTest {
     String expected = "";
     expected +=
         getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10, "In Memory",
-            testUser, testUser);
+            testUser, testUser, false);
     expected +=
         getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 0, "", testUser,
-            testUser);
+            testUser, true);
     expected +=
         getLsResultStr("/testRoot/testFileC", files[2].getCreationTimeMs(), 30, "Not In Memory",
-            testUser, testUser);
+            testUser, testUser, false);
     Assert.assertEquals(expected, mOutput.toString());
     // clear testing username
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
@@ -888,32 +888,40 @@ public class TfsShellTest {
     TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
 
     String expect = "";
-    expect += getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30, testUser, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10, testUser, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20, testUser, testUser);
+    expect +=
+        getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30, testUser, testUser, false);
+    expect +=
+        getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10, testUser, testUser, false);
+    expect +=
+        getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20, testUser, testUser, false);
     mFsShell.run("ls", "/testWildCards/*/foo*");
     Assert.assertEquals(expect, mOutput.toString());
 
-    expect += getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30, testUser, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10, testUser, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20, testUser, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foobar4"), 40, testUser, testUser);
+    expect +=
+        getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30, testUser, testUser, false);
+    expect +=
+        getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10, testUser, testUser, false);
+    expect +=
+        getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20, testUser, testUser, false);
+    expect +=
+        getLsResultStr(new TachyonURI("/testWildCards/foobar4"), 40, testUser, testUser, false);
     mFsShell.run("ls", "/testWildCards/*");
     Assert.assertEquals(expect, mOutput.toString());
     // clear testing username
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
-  private String getLsResultStr(TachyonURI tUri, int size, String testUser, String testGroup)
-      throws IOException, TachyonException {
+  private String getLsResultStr(TachyonURI tUri, int size, String testUser, String testGroup,
+      boolean isFolder) throws IOException, TachyonException {
     return getLsResultStr(tUri.getPath(), mTfs.getInfo(mTfs.open(tUri)).getCreationTimeMs(), size,
-        "In Memory", testUser, testGroup);
+        "In Memory", testUser, testGroup, isFolder);
   }
 
   private String getLsResultStr(String path, long createTime, int size, String fileType,
-      String testUser, String testGroup) throws IOException, TachyonException {
+      String testUser, String testGroup, boolean isFolder) throws IOException, TachyonException {
+    String permission = (isFolder) ? "drwxr-xr-x" : "-rw-r--r--";
     return String.format(Constants.COMMAND_FORMAT_LS, FormatUtils.getSizeFromBytes(size),
-        CommandUtils.convertMsToDate(createTime), fileType, testUser, testGroup, path);
+        CommandUtils.convertMsToDate(createTime), fileType, permission, testUser, testGroup, path);
   }
 
   @Test

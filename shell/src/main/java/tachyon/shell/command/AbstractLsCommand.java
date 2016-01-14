@@ -58,8 +58,9 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
       }
       System.out.format(Constants.COMMAND_FORMAT_LS,
           FormatUtils.getSizeFromBytes(file.getLength()),
-          CommandUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getUserName(),
-          file.getGroupName(), file.getPath());
+          CommandUtils.convertMsToDate(file.getCreationTimeMs()), inMemory,
+          FormatUtils.formatFilePermission((short) file.getPermission(), file.isFolder),
+          file.getUserName(), file.getGroupName(), file.getPath());
       if (recursive && file.isFolder) {
         ls(new TachyonURI(path.getScheme(), path.getAuthority(), file.getPath()), true);
       }

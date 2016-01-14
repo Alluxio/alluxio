@@ -79,7 +79,7 @@ public final class UiFileInfo {
   private final boolean mIsPinned;
   private final String mUserName;
   private final String mGroupName;
-  private final int mPermission;
+  private final String mPermission;
   private final String mPersistenceState;
   private List<String> mFileLocations;
 
@@ -101,7 +101,8 @@ public final class UiFileInfo {
     mIsPinned = fileInfo.isPinned;
     mUserName = fileInfo.getUserName();
     mGroupName = fileInfo.getGroupName();
-    mPermission = fileInfo.getPermission();
+    mPermission =
+        FormatUtils.formatFilePermission((short) fileInfo.getPermission(), fileInfo.isFolder);
     mPersistenceState = fileInfo.persistenceState;
     mFileLocations = new ArrayList<String>();
   }
@@ -120,7 +121,9 @@ public final class UiFileInfo {
     mIsPinned = false;
     mUserName = "";
     mGroupName = "";
-    mPermission = FileSystemPermission.getNoneFsPermission().toShort();
+    mPermission =
+        FormatUtils.formatFilePermission((short) FileSystemPermission.getNoneFsPermission()
+            .toShort(), true);
     mPersistenceState = PersistenceState.NOT_PERSISTED.name();
     mFileLocations = new ArrayList<String>();
   }
@@ -236,7 +239,7 @@ public final class UiFileInfo {
   /**
    * @return the permission of the file
    */
-  public int getPermission() {
+  public String getPermission() {
     return mPermission;
   }
 }
