@@ -1273,9 +1273,14 @@ public class TfsShellTest {
   }
 
   /*
-   * create three files with initial size of 5MB to be added to Tachyon once the third file is
-   * added Tachyon is forced to evict one file. Since fileA is is pinned it will not be
-   * evicted only fileB
+   */
+
+  /**
+   * Creates three files with initial size of 5MB to be added to Tachyon. Once the third file is
+   * added, Tachyon is forced to evict one file. Since fileA is pinned it will not be evicted only
+   * fileB.
+   *
+   * @throws Exception
    */
   @Test
   public void setPinTest() throws Exception {
