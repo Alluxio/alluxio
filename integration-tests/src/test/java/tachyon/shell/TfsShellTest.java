@@ -1262,15 +1262,15 @@ public class TfsShellTest {
     // Ensure that the file exists
     Assert.assertTrue(fileExist(new TachyonURI(filePath)));
 
-    // Explicitly unpin an unpinned file
+    // Unpin an unpinned file
     Assert.assertEquals(0, mFsShell.run("unpin", filePath));
     Assert.assertFalse(mTfs.getInfo(file).isPinned);
 
-    // Explicitly pin the file
+    // Pin the file
     Assert.assertEquals(0, mFsShell.run("pin", filePath));
     Assert.assertTrue(mTfs.getInfo(file).isPinned);
 
-    // Explicitly unpin the file
+    // Unpin the file
     Assert.assertEquals(0, mFsShell.run("unpin", filePath));
     Assert.assertFalse(mTfs.getInfo(file).isPinned);
   }
