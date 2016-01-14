@@ -49,8 +49,8 @@ public final class FileWorkerMasterSyncExecutorTest {
   }
 
   /**
-   * Ensure {@link FileDataManager.#clearPersistedFiles(java.util.List)} is only called when the
-   * heartbeat of {@link FileSystemMasterClient} does not fail.
+   * {@link FileDataManager.#clearPersistedFiles(java.util.List)} is not called when the heartbeat
+   * of {@link FileSystemMasterClient} fails.
    */
   @Test
   public void heartbeatFailureTest() throws Exception {
@@ -58,9 +58,18 @@ public final class FileWorkerMasterSyncExecutorTest {
     Mockito.when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
     // first time fails, second time passes
     Mockito.when(mFileSystemMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(), persistedFiles))
-        .thenThrow(new IOException("failure")).thenReturn(new FileSystemCommand());
+        .thenThrow(new IOException("failure"));
     mFileWorkerMasterSyncExecutor.heartbeat();
     Mockito.verify(mFileDataManager, Mockito.never()).clearPersistedFiles(persistedFiles);
+  }
+
+  @Test
+  public void heartbeatTest() throws Exception {
+    List<Long> persistedFiles = Lists.newArrayList(1L);
+    Mockito.when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
+    // first time fails, second time passes
+    Mockito.when(mFileSystemMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(), persistedFiles))
+        .thenReturn(new FileSystemCommand());
     mFileWorkerMasterSyncExecutor.heartbeat();
     Mockito.verify(mFileDataManager).clearPersistedFiles(persistedFiles);
   }
