@@ -542,6 +542,7 @@ public class TfsShellTest {
     Assert.assertEquals(expected, mOutput.toString());
     // clear testing username
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+    MasterContext.reset();
   }
 
   @Test
@@ -578,6 +579,7 @@ public class TfsShellTest {
     Assert.assertEquals(expected, mOutput.toString());
     // clear testing username
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+    MasterContext.reset();
   }
 
   @Test
@@ -902,6 +904,7 @@ public class TfsShellTest {
     Assert.assertEquals(expect, mOutput.toString());
     // clear testing username
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+    MasterContext.reset();
   }
 
   private String getLsResultStr(TachyonURI tUri, int size, String testUser, String testGroup)
