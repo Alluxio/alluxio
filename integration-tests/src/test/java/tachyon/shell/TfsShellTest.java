@@ -1252,6 +1252,7 @@ public class TfsShellTest {
     checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/foobar4")), 40);
     ClientContext.reset();
   }
+
   @Test
   public void setIsPinnedTest() throws Exception {
     String filePath = "/testFile";
@@ -1269,14 +1270,14 @@ public class TfsShellTest {
     //Now explicitly pin the file
     Assert.assertEquals(0, mFsShell.run("pin", filePath));
     Assert.assertEquals(true, mTfs.getInfo(file).isPinned);
- }
+  }
 
   /*
    * create three files with initial size of 5MB to be added to Tachyon once the third file is
    * added Tachyon is forced to evict one file. Since fileA is is pinned it will not be
    * evicted only fileB
    */
- @Test
+  @Test
   public void setPinTest() throws Exception {
     String filePathA = "/testFileA";
     String filePathB = "/testFileB";
