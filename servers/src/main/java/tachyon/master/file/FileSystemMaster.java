@@ -232,6 +232,8 @@ public final class FileSystemMaster extends MasterBase {
     } else if (innerEntry instanceof AddMountPointEntry) {
       try {
         mountFromEntry((AddMountPointEntry) innerEntry);
+      } catch (FileAlreadyExistsException e) {
+        throw new RuntimeException(e);
       } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
@@ -268,6 +270,8 @@ public final class FileSystemMaster extends MasterBase {
       String defaultUFS = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new TachyonURI(MountTable.ROOT), new TachyonURI(defaultUFS));
+      } catch (FileAlreadyExistsException e) {
+        throw new IOException("Failed to mount the default UFS " + defaultUFS);
       } catch (InvalidPathException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS);
       }
@@ -1408,47 +1412,44 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param tachyonPath the URI of the Tachyon path
    * @param ufsPath the URI of the UFS path
-   * @return true if the UFS path was successfully mounted, false otherwise
    * @throws FileAlreadyExistsException if the path to be mounted already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
    */
-  public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath)
+  public void mount(TachyonURI tachyonPath, TachyonURI ufsPath)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     MasterContext.getMasterSource().incMountOps(1);
     synchronized (mInodeTree) {
-      if (mountInternal(tachyonPath, ufsPath)) {
-        boolean loadMetadataSuceeded = false;
-        try {
-          // This will create the directory at tachyonPath
-          loadMetadataDirectory(tachyonPath, false);
-          loadMetadataSuceeded = true;
-        } finally {
-          if (!loadMetadataSuceeded) {
-            // We should be throwing an exception in this scenario
-            unmountInternal(tachyonPath);
-          }
+      mountInternal(tachyonPath, ufsPath);
+      boolean loadMetadataSuceeded = false;
+      try {
+        // This will create the directory at tachyonPath
+        loadMetadataDirectory(tachyonPath, false);
+        loadMetadataSuceeded = true;
+      } finally {
+        if (!loadMetadataSuceeded) {
+          unmountInternal(tachyonPath);
         }
-        AddMountPointEntry addMountPoint =
-            AddMountPointEntry.newBuilder().setTachyonPath(tachyonPath.toString())
-                .setUfsPath(ufsPath.toString()).build();
-        writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
-        flushJournal();
-        MasterContext.getMasterSource().incPathsMounted(1);
-        return true;
+        // Exception will be propagated from loadMetadataDirectory
       }
+      AddMountPointEntry addMountPoint =
+          AddMountPointEntry.newBuilder().setTachyonPath(tachyonPath.toString())
+              .setUfsPath(ufsPath.toString()).build();
+      writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
+      flushJournal();
+      MasterContext.getMasterSource().incPathsMounted(1);
     }
-    throw new IOException("Internal error when mounting.");
   }
 
-  void mountFromEntry(AddMountPointEntry entry) throws InvalidPathException, IOException {
+  void mountFromEntry(AddMountPointEntry entry)
+      throws FileAlreadyExistsException, InvalidPathException, IOException {
     TachyonURI tachyonURI = new TachyonURI(entry.getTachyonPath());
     TachyonURI ufsURI = new TachyonURI(entry.getUfsPath());
     mountInternal(tachyonURI, ufsURI);
   }
 
-  boolean mountInternal(TachyonURI tachyonPath, TachyonURI ufsPath) throws InvalidPathException,
-      IOException {
+  void mountInternal(TachyonURI tachyonPath, TachyonURI ufsPath)
+      throws FileAlreadyExistsException, InvalidPathException, IOException {
     // Check that the ufsPath exists and is a directory
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
     if (!ufs.exists(ufsPath.getPath())) {
@@ -1466,7 +1467,7 @@ public final class FileSystemMaster extends MasterBase {
     }
     // This should check that we are not mounting a prefix of an existing mount, and that no
     // existing mount is a prefix of this mount.
-    return mMountTable.add(tachyonPath, ufsPath);
+    mMountTable.add(tachyonPath, ufsPath);
   }
 
   /**
