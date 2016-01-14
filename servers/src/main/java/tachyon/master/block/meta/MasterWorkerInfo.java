@@ -272,6 +272,13 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * @return whether the worker has been registered yet
+   */
+  public boolean isRegistered() {
+    return mIsRegistered;
+  }
+
+  /**
    * @return the free bytes on each storage tier
    */
   public synchronized Map<String, Long> getFreeBytesOnTiers() {
