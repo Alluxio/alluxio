@@ -23,12 +23,12 @@ import tachyon.underfs.UnderFileSystemFactory;
 import tachyon.underfs.UnderFileSystemRegistry;
 
 /**
- * Tests for the {@link SwiftUnderFileSystem} class.
+ * Unit tests for the {@link SwiftUnderFileSystem}.
  */
 public class SwiftUnderFileSystemFactoryTest {
 
   /**
-   * This test ensures the HDFS ufs module correctly accepts paths that begin with swift://.
+   * This test ensures the Swift UFS module correctly accepts paths that begin with swift://.
    */
   @Test
   public void factoryTest() {
