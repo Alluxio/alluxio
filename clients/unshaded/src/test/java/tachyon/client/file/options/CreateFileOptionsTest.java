@@ -25,7 +25,7 @@ import tachyon.client.ClientContext;
 import tachyon.client.WriteType;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.client.file.policy.RoundRobinPolicy;
-import tachyon.thrift.CreateTOptions;
+import tachyon.thrift.CreateFileTOptions;
 
 /**
  * Tests for the {@link CreateFileOptions} class.
@@ -77,7 +77,7 @@ public class CreateFileOptionsTest {
   @Test
   public void toThriftTest() {
     CreateFileOptions options = CreateFileOptions.defaults();
-    CreateTOptions thriftOptions = options.toThrift();
+    CreateFileTOptions thriftOptions = options.toThrift();
     Assert.assertTrue(thriftOptions.isRecursive());
     Assert.assertTrue(thriftOptions.isSetPersisted());
     Assert.assertEquals(mDefaultWriteType.getUnderStorageType().isSyncPersist(), thriftOptions
