@@ -38,7 +38,7 @@ import tachyon.worker.NetAddress;
  * A shared context in each client JVM for common block master client functionality such as a pool
  * of master clients and a pool of local worker clients. Any remote clients will be created and
  * destroyed on a per use basis.
- *
+ * <p/>
  * NOTE: The context maintains a pool of block master clients and a pool of block worker clients
  * that are already thread-safe. Synchronizing {@link BlockStoreContext} methods could lead to
  * deadlock: thread A attempts to acquire a client when there are no clients left in the pool and

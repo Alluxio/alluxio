@@ -23,7 +23,7 @@ import tachyon.client.block.TachyonBlockStore;
 /**
  * A shared context in each client JVM for common file master client functionality such as a pool of
  * master clients. Any remote clients will be created and destroyed on a per use basis.
- *
+ * <p>
  * NOTE: The context maintains a pool of file system master clients that is already thread-safe.
  * Synchronizing {@link FileSystemContext} methods could lead to deadlock: thread A attempts to
  * acquire a client when there are no clients left in the pool and blocks holding a lock on the
