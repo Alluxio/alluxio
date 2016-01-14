@@ -346,15 +346,15 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Returns the {@link FileInfo} for a given path. Called via RPC, as well as internal masters.
    *
-   * @param uri the path to get the {@link FileInfo} for
+   * @param path the path to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file id
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public FileInfo getFileInfo(TachyonURI uri)
+  public FileInfo getFileInfo(TachyonURI path)
       throws FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeByPath(uri);
+      Inode inode = mInodeTree.getInodeByPath(path);
       return getFileInfoInternal(inode);
     }
   }
@@ -398,15 +398,15 @@ public final class FileSystemMaster extends MasterBase {
    * only contains a single object. If it is a directory, the resulting list contains all direct
    * children of the directory. Called via RPC, as well as internal masters.
    *
-   * @param uri the file id to get the {@link FileInfo} for
+   * @param path the path to get the {@link FileInfo} list for
    * @return the list of {@link FileInfo}s
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public List<FileInfo> getFileInfoList(TachyonURI uri)
+  public List<FileInfo> getFileInfoList(TachyonURI path)
       throws FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeByPath(uri);
+      Inode inode = mInodeTree.getInodeByPath(path);
 
       List<FileInfo> ret = new ArrayList<FileInfo>();
       if (inode.isDirectory()) {
@@ -431,7 +431,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Completes a file. After a file is completed, it cannot be written to. Called via RPC.
    *
-   * @param uri the file uri to complete
+   * @param path the file path to complete
    * @param options the method options
    * @throws BlockInfoException if a block information exception is encountered
    * @throws FileDoesNotExistException if the file does not exist
@@ -439,16 +439,16 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidFileSizeException if an invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
    */
-  public void completeFile(TachyonURI uri, CompleteFileOptions options)
+  public void completeFile(TachyonURI path, CompleteFileOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException {
     MasterContext.getMasterSource().incCompleteFileOps(1);
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
-      Inode inode = mInodeTree.getInodeByPath(uri);
+      Inode inode = mInodeTree.getInodeByPath(path);
       long fileId = inode.getId();
       if (!inode.isFile()) {
-        throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(uri));
+        throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
       }
 
       InodeFile fileInode = (InodeFile) inode;
@@ -602,19 +602,19 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Returns the next block id for a given file id. Called via RPC.
    *
-   * @param uri the uri of the file to get the next block id for
+   * @param path the path of the file to get the next block id for
    * @return the next block id for the file
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public long getNewBlockIdForFile(TachyonURI uri)
+  public long getNewBlockIdForFile(TachyonURI path)
       throws FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetNewBlockOps(1);
     Inode inode;
     synchronized (mInodeTree) {
-      inode = mInodeTree.getInodeByPath(uri);
+      inode = mInodeTree.getInodeByPath(path);
     }
     if (!inode.isFile()) {
-      throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(uri));
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
     }
     MasterContext.getMasterSource().incNewBlocksGot(1);
     return ((InodeFile) inode).getNewBlockId();
@@ -645,18 +645,18 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Deletes a given path. Called via RPC.
    *
-   * @param uri the path to delete
+   * @param path the path to delete
    * @param recursive if true, will delete all its children
    * @return true if the file was deleted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  public boolean deleteFile(TachyonURI uri, boolean recursive) throws IOException,
+  public boolean deleteFile(TachyonURI path, boolean recursive) throws IOException,
       FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException {
     MasterContext.getMasterSource().incDeletePathOps(1);
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeByPath(uri);
+      Inode inode = mInodeTree.getInodeByPath(path);
       long fileId = inode.getId();
       long opTimeMs = System.currentTimeMillis();
       boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
@@ -811,17 +811,17 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Returns all the {@link FileBlockInfo} of the given file. Called via RPC, and internal masters.
    *
-   * @param uri the file id to get the info for
+   * @param path the path to get the info for
    * @return a list of {@link FileBlockInfo} for all the blocks of the file
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public List<FileBlockInfo> getFileBlockInfoList(TachyonURI uri)
+  public List<FileBlockInfo> getFileBlockInfoList(TachyonURI path)
       throws FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileBlockInfoOps(1);
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeByPath(uri);
+      Inode inode = mInodeTree.getInodeByPath(path);
       if (inode.isDirectory()) {
-        throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(uri));
+        throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
       }
       InodeFile file = (InodeFile) inode;
       List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
@@ -1216,16 +1216,16 @@ public final class FileSystemMaster extends MasterBase {
    * directory, and the 'recursive' flag is enabled, all descendant files will also be freed. Called
    * via RPC.
    *
-   * @param uri the path to free
+   * @param path the path to free
    * @param recursive if true, and the file is a directory, all descendants will be freed
    * @return true if the file was freed
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public boolean free(TachyonURI uri, boolean recursive)
+  public boolean free(TachyonURI path, boolean recursive)
       throws FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incFreeFileOps(1);
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeByPath(uri);
+      Inode inode = mInodeTree.getInodeByPath(path);
 
       if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
         // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
@@ -1410,8 +1410,8 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Mounts a UFS path onto a Tachyon path.
    *
-   * @param tachyonPath the URI of the Tachyon path
-   * @param ufsPath the URI of the UFS path
+   * @param tachyonPath the Tachyon path to mount to
+   * @param ufsPath the UFS path to mount
    * @throws FileAlreadyExistsException if the path to be mounted already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
@@ -1473,7 +1473,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Unmounts a UFS path previously mounted path onto a Tachyon path.
    *
-   * @param tachyonPath the URI of the Tachyon path
+   * @param tachyonPath the Tachyon path path to unmount, must be a mount point
    * @return true if the UFS path was successfully unmounted, false otherwise
    * @throws FileDoesNotExistException if the path to be mounted does not exist
    * @throws InvalidPathException if an invalid path is encountered
