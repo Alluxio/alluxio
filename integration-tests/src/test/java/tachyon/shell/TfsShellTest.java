@@ -506,14 +506,17 @@ public class TfsShellTest {
 
   @Test
   public void lsrTest() throws IOException, TachyonException {
-    // clear the loginUser
-    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
     MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
 
     FileInfo[] files = new FileInfo[4];
     String testUser = "test_user_lsr";
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
+    // clear the loginUser and re-login with new user
+    synchronized (LoginUser.class) {
+      Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+      System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
+      LoginUser.get(ClientContext.getConf());
+    }
 
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA",
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
@@ -546,14 +549,17 @@ public class TfsShellTest {
 
   @Test
   public void lsTest() throws IOException, TachyonException {
-    // clear the loginUser
-    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
     MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
 
     FileInfo[] files = new FileInfo[4];
     String testUser = "test_user_ls";
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
+    // clear the loginUser and re-login with new user
+    synchronized (LoginUser.class) {
+      Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+      System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
+      LoginUser.get(ClientContext.getConf());
+    }
 
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA",
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
