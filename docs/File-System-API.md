@@ -129,7 +129,7 @@ as the deprecated `WriteType, ReadType` equivalents.
 
 ### Location policy
 
-Tachyon provides location policy to choose which workers to store the blocks of a file. Tachyon supports custom location policy, and the built-in polices include:
+Tachyon provides location policy to choose which workers to store the blocks of a file. User can set the policy in `OutStreamOptions` for writing files and `InStreamOptions` for reading files into Tachyon. Tachyon supports custom location policy, and the built-in polices include:
 
 * **LocalFirstPolicy**
 
