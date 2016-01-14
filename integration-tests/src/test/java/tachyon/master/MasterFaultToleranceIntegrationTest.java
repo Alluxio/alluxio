@@ -23,8 +23,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
@@ -45,7 +43,6 @@ import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
 public class MasterFaultToleranceIntegrationTest {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final int BLOCK_SIZE = 30;
