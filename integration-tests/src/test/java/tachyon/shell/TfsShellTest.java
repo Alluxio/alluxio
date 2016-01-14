@@ -1272,9 +1272,6 @@ public class TfsShellTest {
     Assert.assertEquals(true, mTfs.getInfo(file).isPinned);
   }
 
-  /*
-   */
-
   /**
    * Creates three files with initial size of 5MB to be added to Tachyon. Once the third file is
    * added, Tachyon is forced to evict one file. Since fileA is pinned it will not be evicted only
