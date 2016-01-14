@@ -408,11 +408,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the {@link StorageObject} representing the metadata of a key. If the key does not exist as
-   * a file or folder, null is returned.
-   *
    * @param key the key to get the object details of
-   * @return {@link StorageObject} of the key, or null if the key does not exist as a file or folder
+   * @return {@link StorageObject} of the key, or null if the key does not exist
    */
   private StorageObject getObjectDetails(String key) {
     try {
@@ -428,10 +425,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the parent key of the input key, or null if no parent exists.
-   *
    * @param key the key to get the parent of
-   * @return the the parent key
+   * @return the parent key, or null if the parent does not exist
    */
   private String getParentKey(String key) {
     // Root does not have a parent.

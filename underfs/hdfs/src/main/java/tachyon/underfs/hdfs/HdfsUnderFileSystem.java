@@ -45,7 +45,7 @@ import tachyon.retry.CountingRetry;
 import tachyon.underfs.UnderFileSystem;
 
 /**
- * Hadoop FS {@link UnderFileSystem} implementation.
+ * HDFS {@link UnderFileSystem} implementation.
  */
 public class HdfsUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -144,7 +144,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Creates a new file
+   * Creates a new file.
    *
    * @param path the path
    * @param blockSizeByte the size of the block in bytes; should be a multiple of 512
