@@ -70,7 +70,7 @@ Passed the test!
 You can also stop the system by using:
 
 ```bash
-$ ./bin/tachyon-stop.sh
+$ ./bin/tachyon-stop.sh all
 ```
 
 # Unit Tests

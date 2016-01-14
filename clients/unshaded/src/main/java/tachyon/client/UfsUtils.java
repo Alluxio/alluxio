@@ -72,6 +72,7 @@ public final class UfsUtils {
    * @param excludePaths paths to exclude from ufsRootPath, which will not be loaded in mTachyonFS
    * @param tachyonConf the instance of {@link tachyon.conf.TachyonConf} to be used
    * @throws IOException when an event that prevents the operation from completing is encountered
+   * @throws TachyonException if an unexpected tachyon error occurs
    */
   private static void loadUfs(TachyonURI tfsAddrRootPath, TachyonURI ufsAddrRootPath,
       String excludePaths, TachyonConf tachyonConf) throws IOException, TachyonException {
@@ -93,6 +94,7 @@ public final class UfsUtils {
    *        mTachyonFS.
    * @param tachyonConf instance of {@link TachyonConf}
    * @throws IOException when an event that prevents the operation from completing is encountered
+   * @throws TachyonException if an unexpected tachyon error occurs
    * @deprecated As of version 0.8.
    *             Use {@link #loadUfs(TachyonURI, TachyonURI, String, TachyonConf)} instead.
    */
@@ -210,6 +212,13 @@ public final class UfsUtils {
     }
   }
 
+  /**
+   * Starts the command line utility to load files under path "ufsAddress/ufsRootPath"
+   * (excluding excludePathPrefix) to the given tfs under the given tfsRootPath directory.
+   *
+   * @param args the parameters as <TachyonPath> <UfsPath> [<Optional ExcludePathPrefix, seperated
+   *             by ;>]
+   */
   public static void main(String[] args) {
     if (!(args.length == 2 || args.length == 3)) {
       printUsage();
@@ -229,6 +238,9 @@ public final class UfsUtils {
     System.exit(0);
   }
 
+  /**
+   * Prints an example usage of the command line.
+   */
   public static void printUsage() {
     String cmd = "java -cp " + Version.TACHYON_JAR + " tachyon.client.UfsUtils ";
 

@@ -51,6 +51,12 @@ public final class BlockStoreLocation {
     return new BlockStoreLocation(tierAlias, ANY_DIR);
   }
 
+  /**
+   * Creates a new instance of {@link BlockStoreLocation}.
+   *
+   * @param tierAlias the tier alias to use
+   * @param dirIndex the directory index to use
+   */
   public BlockStoreLocation(String tierAlias, int dirIndex) {
     mTierAlias = tierAlias;
     mDirIndex = dirIndex;

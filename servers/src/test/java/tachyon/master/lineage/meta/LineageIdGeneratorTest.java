@@ -21,7 +21,7 @@ import org.junit.Test;
 import tachyon.proto.journal.Journal.JournalEntry;
 
 /**
- * Tests lineage id generator.
+ * Unit tests for {@link LineageIdGenerator}.
  */
 public final class LineageIdGeneratorTest {
 

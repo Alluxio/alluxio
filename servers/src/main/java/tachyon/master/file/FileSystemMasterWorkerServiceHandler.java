@@ -39,6 +39,11 @@ public final class FileSystemMasterWorkerServiceHandler
     implements FileSystemMasterWorkerService.Iface {
   private final FileSystemMaster mFileSystemMaster;
 
+  /**
+   * Creates a new instance of {@link FileSystemMasterWorkerServiceHandler}.
+   *
+   * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
+   */
   public FileSystemMasterWorkerServiceHandler(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster);
     mFileSystemMaster = fileSystemMaster;

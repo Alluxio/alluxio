@@ -41,7 +41,7 @@ public class CsvSink implements Sink {
   private Properties mProperties;
 
   /**
-   * Creates a CsvSink with a {@link Properties} and {@link MetricRegistry}.
+   * Creates a new {@link CsvSink} with a {@link Properties} and {@link MetricRegistry}.
    *
    * @param properties the properties which may contain polling period, unit and  directory
    *                   properties.

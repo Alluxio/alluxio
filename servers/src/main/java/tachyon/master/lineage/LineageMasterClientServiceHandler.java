@@ -38,6 +38,11 @@ import tachyon.thrift.ThriftIOException;
 public final class LineageMasterClientServiceHandler implements LineageMasterClientService.Iface {
   private final LineageMaster mLineageMaster;
 
+  /**
+   * Creates a new instance of {@link LineageMasterClientServiceHandler}.
+   *
+   * @param lineageMaster the {@link LineageMaster} the handler uses internally
+   */
   public LineageMasterClientServiceHandler(LineageMaster lineageMaster) {
     Preconditions.checkNotNull(lineageMaster);
     mLineageMaster = lineageMaster;

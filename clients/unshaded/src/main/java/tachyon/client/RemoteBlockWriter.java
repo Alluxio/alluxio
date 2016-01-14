@@ -30,14 +30,17 @@ import tachyon.util.CommonUtils;
  */
 public interface RemoteBlockWriter extends Closeable {
 
+  /**
+   * The factory for the {@link RemoteBlockWriter}.
+   */
   class Factory {
     /**
-     * Creates a new {@link RemoteBlockWriter}.
+     * Factory for {@link RemoteBlockWriter}.
      *
      * @param conf Tachyon configuration
      * @return a new instance of {@link RemoteBlockWriter}
      */
-    public static RemoteBlockWriter createRemoteBlockWriter(TachyonConf conf) {
+    public static RemoteBlockWriter create(TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<RemoteBlockWriter>getClass(Constants.USER_BLOCK_REMOTE_WRITER), null, null);

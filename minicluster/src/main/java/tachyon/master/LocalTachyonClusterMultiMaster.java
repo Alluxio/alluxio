@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.apache.curator.test.TestingServer;
 
-import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -42,20 +41,13 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
   private final List<LocalTachyonMaster> mMasters = new ArrayList<LocalTachyonMaster>();
 
-  private final Supplier<String> mClientSuppliers = new Supplier<String>() {
-    @Override
-    public String get() {
-      return getUri();
-    }
-  };
-  private final ClientPool mClientPool = new ClientPool(mClientSuppliers);
-
   public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters, int userBlockSize) {
     super(workerCapacityBytes, userBlockSize);
     mNumOfMasters = masters;
 
     try {
       mCuratorServer = new TestingServer();
+      LOG.info("Started testing zookeeper: {}", mCuratorServer.getConnectString());
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
@@ -63,7 +55,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
   @Override
   public synchronized TachyonFileSystem getClient() throws IOException {
-    return mClientPool.getClient(ClientContext.getConf());
+    return getMaster().getClient();
   }
 
   public String getUri() {
@@ -77,6 +69,12 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
   @Override
   public LocalTachyonMaster getMaster() {
+    for (LocalTachyonMaster master : mMasters) {
+      // Return the leader master, if possible.
+      if (master.isServing()) {
+        return master;
+      }
+    }
     return mMasters.get(0);
   }
 
@@ -102,7 +100,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
       if (!mMasters.get(k).isServing()) {
         try {
           LOG.info("master {} is a standby. killing it...", k);
-          mMasters.get(k).stop();
+          mMasters.get(k).kill();
           LOG.info("master {} killed.", k);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
@@ -119,7 +117,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
       if (mMasters.get(k).isServing()) {
         try {
           LOG.info("master {} is the leader. killing it...", k);
-          mMasters.get(k).stop();
+          mMasters.get(k).kill();
           LOG.info("master {} killed.", k);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
@@ -163,19 +161,13 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   }
 
   @Override
-  protected void setupTest(TachyonConf conf) throws IOException {}
-
-  @Override
   protected void startMaster(TachyonConf conf) throws IOException {
     mMasterConf = conf;
     mMasterConf.set(Constants.ZOOKEEPER_ENABLED, "true");
     mMasterConf.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
     mMasterConf.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
     mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
-
-    // re-build the dir to set permission to 777
-    deleteDir(mTachyonHome);
-    mkdir(mTachyonHome);
+    MasterContext.reset(mMasterConf);
 
     for (int k = 0; k < mNumOfMasters; k ++) {
       final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome);
@@ -210,13 +202,12 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
   @Override
   public void stopTFS() throws Exception {
-    mClientPool.close();
-
     mWorker.stop();
-    mFileSystemWorker.stop();
     for (int k = 0; k < mNumOfMasters; k ++) {
-      mMasters.get(k).stop();
+      // Use kill() instead of stop(), because stop() does not work well in multi-master mode.
+      mMasters.get(k).kill();
     }
+    LOG.info("Stopping testing zookeeper: {}", mCuratorServer.getConnectString());
     mCuratorServer.stop();
   }
 }

@@ -16,9 +16,7 @@
 package tachyon.client.block;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 
 import com.google.common.io.Closer;
 
@@ -29,6 +27,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.LockBlockResult;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.block.io.LocalFileBlockReader;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be directly read
@@ -38,12 +37,12 @@ import tachyon.util.network.NetworkAddressUtils;
 public final class LocalBlockInStream extends BufferedBlockInStream {
   /** Helper to manage closables. */
   private final Closer mCloser;
-  /** File channel providing access to the local data. */
-  private final FileChannel mLocalFileChannel;
   /** Client to communicate with the local worker. */
   private final BlockWorkerClient mBlockWorkerClient;
   /** The block store context which provides block worker clients. */
   private final BlockStoreContext mContext;
+  /** The file reader to read a local block */
+  private final LocalFileBlockReader mReader;
 
   /**
    * Creates a new local block input stream.
@@ -59,21 +58,17 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     mCloser = Closer.create();
     mBlockWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
-    FileChannel localFileChannel;
-
     try {
       LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
       if (result == null) {
         throw new IOException(ExceptionMessage.BLOCK_NOT_LOCALLY_AVAILABLE.getMessage(mBlockId));
       }
-      RandomAccessFile localFile = mCloser.register(new RandomAccessFile(result.blockPath, "r"));
-      localFileChannel = mCloser.register(localFile.getChannel());
+      mReader = new LocalFileBlockReader(result.blockPath);
+      mCloser.register(mReader);
     } catch (IOException e) {
       mContext.releaseWorkerClient(mBlockWorkerClient);
       throw e;
     }
-
-    mLocalFileChannel = localFileChannel;
   }
 
   @Override
@@ -105,12 +100,12 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     if (mBuffer.isDirect()) { // Buffer may not be direct on initialization
       BufferUtils.cleanDirectBuffer(mBuffer);
     }
-    mBuffer = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, getPosition(), len);
+    mBuffer = mReader.read(getPosition(), len);
   }
 
   @Override
   public int directRead(byte[] b, int off, int len) throws IOException {
-    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, getPosition(), len);
+    ByteBuffer buf = mReader.read(getPosition(), len);
     buf.get(b, off, len);
     BufferUtils.cleanDirectBuffer(buf);
     return len;

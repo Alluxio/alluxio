@@ -26,6 +26,13 @@ import tachyon.conf.TachyonConf;
  */
 public final class LsCommand extends AbstractLsCommand {
 
+  /**
+   * Constructs a new instance to display information for all directories and files directly under
+   * the path specified in args.
+   *
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public LsCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -43,5 +50,10 @@ public final class LsCommand extends AbstractLsCommand {
   @Override
   public String getUsage() {
     return "ls <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Displays information for all files and directories directly under the specified path.";
   }
 }

@@ -1,3 +1,5 @@
+syntax = "proto2";
+
 package tachyon.proto.journal;
 
 // Journal entry messages for the lineage master.
@@ -21,14 +23,4 @@ message LineageEntry {
 // next available id: 2
 message LineageIdGeneratorEntry {
   optional int64 sequence_number = 1;
-}
-
-// next available id: 2
-message PersistFilesEntry {
-  repeated int64 file_ids = 1;
-}
-
-// next available id: 2
-message PersistFilesRequestEntry {
-  repeated int64 file_ids = 1;
 }

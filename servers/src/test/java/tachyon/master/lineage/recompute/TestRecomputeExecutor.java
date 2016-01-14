@@ -31,7 +31,7 @@ import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.master.lineage.meta.Lineage;
 
 /**
- * Tests {@link RecomputeExecutor}.
+ * Unit tests for {@link RecomputeExecutor}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(FileSystemMaster.class)

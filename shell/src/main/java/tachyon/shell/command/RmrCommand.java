@@ -22,6 +22,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 
 /**
@@ -30,6 +31,10 @@ import tachyon.exception.TachyonException;
  */
 public final class RmrCommand extends WithWildCardPathCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public RmrCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -46,6 +51,8 @@ public final class RmrCommand extends WithWildCardPathCommand {
       TachyonFile fd = mTfs.open(path);
       mTfs.delete(fd, options);
       System.out.println(path + " has been removed");
+    } catch (InvalidPathException e) {
+      System.out.println(path + " does not exist");
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
@@ -54,5 +61,10 @@ public final class RmrCommand extends WithWildCardPathCommand {
   @Override
   public String getUsage() {
     return "rmr <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Removes the specified file or directory (works recursively for directories).";
   }
 }

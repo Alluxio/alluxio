@@ -23,6 +23,10 @@ import tachyon.thrift.FileInfo;
  * {@link Inode} is an abstract class, with information shared by all types of Inodes.
  */
 public abstract class Inode implements JournalEntryRepresentable {
+
+  /**
+   * Builder for {@link Inode}.
+   */
   public abstract static class Builder<T extends Builder<T>> {
     private long mCreationTimeMs;
     protected boolean mDirectory;
@@ -34,6 +38,9 @@ public abstract class Inode implements JournalEntryRepresentable {
     private PermissionStatus mPermissionStatus;
     private boolean mPinned;
 
+    /**
+     * Creates a new builder for {@link Inode}.
+     */
     public Builder() {
       mCreationTimeMs = System.currentTimeMillis();
       mDirectory = false;
@@ -46,41 +53,73 @@ public abstract class Inode implements JournalEntryRepresentable {
       mPermissionStatus = null;
     }
 
+    /**
+     * @param creationTimeMs the creation time to use
+     * @return the builder
+     */
     public T setCreationTimeMs(long creationTimeMs) {
       mCreationTimeMs = creationTimeMs;
       return getThis();
     }
 
+    /**
+     * @param id the inode id to use
+     * @return the builder
+     */
     public T setId(long id) {
       mId = id;
       return getThis();
     }
 
+    /**
+     * @param lastModificationTimeMs the last modification time to use
+     * @return the builder
+     */
     public T setLastModificationTimeMs(long lastModificationTimeMs) {
       mLastModificationTimeMs = lastModificationTimeMs;
       return getThis();
     }
 
+    /**
+     * @param name the name to use
+     * @return the builder
+     */
     public T setName(String name) {
       mName = name;
       return getThis();
     }
 
+    /**
+     * @param parentId the parent id to use
+     * @return the builder
+     */
     public T setParentId(long parentId) {
       mParentId = parentId;
       return getThis();
     }
 
-    public T setPersistenceState(PersistenceState filePersistenceState) {
-      mPersistenceState = filePersistenceState;
+    /**
+     * @param persistenceState the {@link PersistenceState} to use
+     * @return the builder
+     */
+    public T setPersistenceState(PersistenceState persistenceState) {
+      mPersistenceState = persistenceState;
       return getThis();
     }
 
+    /**
+     * @param ps the {@link PermissionStatus} to use
+     * @return the builder
+     */
     public T setPermissionStatus(PermissionStatus ps) {
       mPermissionStatus = ps;
       return getThis();
     }
 
+    /**
+     * @param pinned the pinned flag to use
+     * @return the builder
+     */
     public T setPinned(boolean pinned) {
       mPinned = pinned;
       return getThis();
@@ -197,7 +236,7 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the persistence state of the inode
+   * @return the {@link PersistenceState} of the inode
    */
   public synchronized PersistenceState getPersistenceState() {
     return mPersistenceState;
@@ -251,48 +290,52 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Marks the inode as deleted
+   * Sets the deleted flag of the inode.
+   *
+   * @param deleted the deleted flag to use
    */
   public synchronized void setDeleted(boolean deleted) {
     mDeleted = deleted;
   }
 
   /**
-   * Sets the last modification time of the inode
+   * Sets the last modification time of the inode.
    *
-   * @param lastModificationTimeMs The last modification time, in milliseconds
+   * @param lastModificationTimeMs the last modification time, in milliseconds
    */
   public synchronized void setLastModificationTimeMs(long lastModificationTimeMs) {
     mLastModificationTimeMs = lastModificationTimeMs;
   }
 
   /**
-   * Sets the name of the inode
+   * Sets the name of the inode.
    *
-   * @param name The new name of the inode
+   * @param name the new name of the inode
    */
   public synchronized void setName(String name) {
     mName = name;
   }
 
   /**
-   * Sets the parent folder of the inode
+   * Sets the parent folder of the inode.
    *
-   * @param parentId The new parent
+   * @param parentId the new parent
    */
   public synchronized void setParentId(long parentId) {
     mParentId = parentId;
   }
 
   /**
-   * Sets the persistence state of the file.
+   * Sets the {@link PersistenceState} of the file.
+   *
+   * @param persistenceState the {@link PersistenceState} to use
    */
-  public synchronized void setPersistenceState(PersistenceState filePersistenceState) {
-    mPersistenceState = filePersistenceState;
+  public synchronized void setPersistenceState(PersistenceState persistenceState) {
+    mPersistenceState = persistenceState;
   }
 
   /**
-   * Sets the pinned flag of the inode
+   * Sets the pinned flag of the inode.
    *
    * @param pinned If true, the inode need pinned, and a pinned file is never evicted from memory
    */

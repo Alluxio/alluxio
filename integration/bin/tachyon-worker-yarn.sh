@@ -8,17 +8,17 @@ TACHYON_WORKER_JAVA_OPTS="${TACHYON_WORKER_JAVA_OPTS:-${TACHYON_JAVA_OPTS}}"
 echo "Mounting ramdisk of ${TACHYON_WORKER_MEMORY_SIZE} MB on Worker"
 ${TACHYON_HOME}/bin/tachyon-mount.sh SudoMount
 
-mkdir -p "${TACHYON_LOGS_DIR}"
+# Yarn will set LOG_DIRS to point to the Yarn application log directory
+YARN_LOG_DIR="$LOG_DIRS"
 
 echo "Formatting Tachyon Worker"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_WORKER_JAVA_OPTS} \
-  -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" \
   -Dtachyon.home="${TACHYON_HOME}" \
   -Dtachyon.logger.type="WORKER_LOGGER" \
-  -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" \
-  tachyon.Format WORKER > "${TACHYON_LOGS_DIR}"/worker.out 2>&1
+  -Dtachyon.logs.dir="${YARN_LOG_DIR}" \
+  tachyon.Format WORKER > "${YARN_LOG_DIR}"/worker.out 2>&1
 
 echo "Starting Tachyon Worker"
 
@@ -27,6 +27,6 @@ echo "Starting Tachyon Worker"
   -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" \
   -Dtachyon.home="${TACHYON_HOME}" \
   -Dtachyon.logger.type="WORKER_LOGGER" \
-  -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" \
+  -Dtachyon.logs.dir="${YARN_LOG_DIR}" \
   -Dtachyon.master.hostname="${TACHYON_MASTER_ADDRESS}" \
-  tachyon.worker.TachyonWorker >> "${TACHYON_LOGS_DIR}"/worker.out 2>&1
+  tachyon.worker.TachyonWorker >> "${YARN_LOG_DIR}"/worker.out 2>&1

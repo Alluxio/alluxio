@@ -103,7 +103,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   /**
-   * Creates the lineage master.
+   * Creates a new instance of {@link LineageMaster}.
    *
    * @param fileSystemMaster the file system master
    * @param journal the journal
@@ -185,6 +185,7 @@ public final class LineageMaster extends MasterBase {
    * @throws InvalidPathException if the path to the input file is invalid
    * @throws FileAlreadyExistsException if the output file already exists
    * @throws BlockInfoException if fails to create the output file
+   * @throws IOException if the creation of a file fails
    */
   public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
       Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
@@ -349,7 +350,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   /**
-   * Reports a file as lost.
+   * Polls the files to send to the given worker for checkpoint.
    *
    * @param path the path to the file
    * @throws FileDoesNotExistException if the file does not exist
