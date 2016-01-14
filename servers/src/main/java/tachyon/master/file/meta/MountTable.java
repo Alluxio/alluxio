@@ -29,7 +29,9 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
 import tachyon.util.io.PathUtils;
 
-/** This class is used for keeping track of Tachyon mount points. */
+/**
+ * This class is used for keeping track of Tachyon mount points.
+ */
 @ThreadSafe
 public final class MountTable {
   public static final String ROOT = "/";
