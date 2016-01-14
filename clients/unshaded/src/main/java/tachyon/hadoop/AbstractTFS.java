@@ -48,6 +48,7 @@ import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
@@ -318,8 +319,63 @@ abstract class AbstractTFS extends FileSystem {
 
     FileStatus ret = new FileStatus(fileStatus.getLength(), fileStatus.isIsFolder(),
         BLOCK_REPLICATION_CONSTANT, fileStatus.getBlockSizeBytes(), fileStatus.getCreationTimeMs(),
-        fileStatus.getCreationTimeMs(), null, null, null, new Path(mTachyonHeader + tPath));
+            fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getPermission()),
+            fileStatus.getUserName(), fileStatus.getGroupName(), new Path(mTachyonHeader + tPath));
     return ret;
+  }
+
+  /**
+   * Changes owner or group of a path (i.e. a file or a directory). If username is null, the
+   * original username remains unchanged. Same as groupname.
+   *
+   * @param path path to set owner or group
+   * @param username username to be set
+   * @param groupname groupname to be set
+   * @throws IOException if the path failed to be changes owner or group
+   */
+  @Override
+  public void setOwner(Path path, final String username, final String groupname)
+      throws IOException {
+    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
+    Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
+    LOG.info("setOwner({},{},{}) HDFS Path: {} TPath: {}{}", path, username, groupname, hdfsPath,
+        mTachyonHeader, tPath);
+    try {
+      if (username != null && !username.isEmpty()) {
+        SetAclOptions options =
+            new SetAclOptions.Builder().setOwner(username).setRecursive(false).build();
+        mTFS.setAcl(tPath, options);
+      }
+      if (groupname != null && !groupname.isEmpty()) {
+        SetAclOptions options =
+            new SetAclOptions.Builder().setGroup(groupname).setRecursive(false).build();
+        mTFS.setAcl(tPath, options);
+      }
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
+  }
+
+  /**
+   * Changes permission of a path.
+   *
+   * @param path path to set permission
+   * @param permission permission set to path
+   * @throws IOException if the path failed to be changed permission
+   */
+  public void setPermission(Path path, FsPermission permission) throws IOException {
+    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
+    Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
+    LOG.info("setPermission({},{}) HDFS Path: {} TPath : {}{}", path, permission.toString(),
+        hdfsPath, mTachyonHeader, tPath);
+    try {
+      SetAclOptions options =
+          new SetAclOptions.Builder().setPermission(permission.toShort()).setRecursive(false)
+              .build();
+      mTFS.setAcl(tPath, options);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
