@@ -128,9 +128,9 @@ should have the final escaped parameters (cat /\\*).
   </tr>
   <tr>
     <td>mkdir</td>
-    <td>mkdir "path"</td>
-    <td>Create a directory under the given path, along with any necessary parent directories. This
-    command will fail if the given path already exists.</td>
+    <td>mkdir "path1" ... "pathn" </td>
+    <td>Create directory(ies) under the given paths, along with any necessary parent directories. Multiple paths separated by spaces or tabs. This
+    command will fail if any of the given paths already exist.</td>
   </tr>
   <tr>
     <td>mount</td>
