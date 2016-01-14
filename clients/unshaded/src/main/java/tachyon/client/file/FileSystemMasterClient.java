@@ -131,7 +131,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        // TODO(calvin): Look into changing the master side implementation
         mClient.completeFile(path.getPath(), options.toThrift());
         return null;
       }
@@ -151,7 +150,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        // TODO(calvin): Look into changing the master side implementation to take a uri
         mClient.remove(path.getPath(), options.isRecursive());
         return null;
       }
@@ -171,7 +169,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        // TODO(calvin): Look into changing the master side implementation to take a uri
         mClient.free(path.getPath(), options.isRecursive());
         return null;
       }
@@ -330,7 +327,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        // TODO(calvin): Look into changing the master side implementation to take a uri
         mClient.rename(src.getPath(), dst.getPath());
         return null;
       }
@@ -338,10 +334,10 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Sets the file attributes.
+   * Sets the file or directory attributes.
    *
-   * @param path the file path
-   * @param options the file attribute options to be set
+   * @param path the file or directory path
+   * @param options the file or directory attribute options to be set
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
@@ -350,7 +346,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        // TODO(calvin): Look into changing the master side implementation to take a uri
         mClient.setAttribute(path.getPath(), options.toThrift());
         return null;
       }
