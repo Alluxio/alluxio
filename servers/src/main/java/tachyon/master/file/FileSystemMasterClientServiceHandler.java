@@ -134,6 +134,15 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
+  public FileInfo getStatusInternal(long fileId) throws TachyonTException {
+    try {
+      return mFileSystemMaster.getFileInfo(fileId);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
+  }
+
+  @Override
   public String getUfsAddress() {
     return mFileSystemMaster.getUfsAddress();
   }
