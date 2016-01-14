@@ -62,8 +62,7 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public void completeFile(String path, CompleteFileTOptions options) throws TachyonTException {
     try {
-      long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
-      mFileSystemMaster.completeFile(fileId, new CompleteFileOptions(options));
+      mFileSystemMaster.completeFile(new TachyonURI(path), new CompleteFileOptions(options));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -96,8 +95,7 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public void free(String path, boolean recursive) throws TachyonTException {
     try {
-      long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
-      mFileSystemMaster.free(fileId, recursive);
+      mFileSystemMaster.free(new TachyonURI(path), recursive);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -106,8 +104,7 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public List<FileBlockInfo> getFileBlockInfoList(String path) throws TachyonTException {
     try {
-      long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
-      return mFileSystemMaster.getFileBlockInfoList(fileId);
+      return mFileSystemMaster.getFileBlockInfoList(new TachyonURI(path));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -116,8 +113,7 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public long getNewBlockIdForFile(String path) throws TachyonTException {
     try {
-      long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
-      return mFileSystemMaster.getNewBlockIdForFile(fileId);
+      return mFileSystemMaster.getNewBlockIdForFile(new TachyonURI(path));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -126,8 +122,7 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public FileInfo getStatus(String path) throws TachyonTException {
     try {
-      long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
-      return mFileSystemMaster.getFileInfo(fileId);
+      return mFileSystemMaster.getFileInfo(new TachyonURI(path));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }

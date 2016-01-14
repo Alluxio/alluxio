@@ -344,6 +344,22 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
+   * Returns the {@link FileInfo} for a given path. Called via RPC, as well as internal masters.
+   *
+   * @param uri the path to get the {@link FileInfo} for
+   * @return the {@link FileInfo} for the given file id
+   * @throws FileDoesNotExistException if the file does not exist
+   */
+  public FileInfo getFileInfo(TachyonURI uri)
+      throws FileDoesNotExistException, InvalidPathException {
+    MasterContext.getMasterSource().incGetFileInfoOps(1);
+    synchronized (mInodeTree) {
+      Inode inode = mInodeTree.getInodeByPath(uri);
+      return getFileInfoInternal(inode);
+    }
+  }
+
+  /**
    * Returns the persistence state of a given file.
    *
    * @param fileId the file id
@@ -414,7 +430,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Completes a file. After a file is completed, it cannot be written to. Called via RPC.
    *
-   * @param fileId the file id to complete
+   * @param uri the file uri to complete
    * @param options the method options
    * @throws BlockInfoException if a block information exception is encountered
    * @throws FileDoesNotExistException if the file does not exist
@@ -422,16 +438,16 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidFileSizeException if an invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
    */
-  public void completeFile(long fileId, CompleteFileOptions options)
+  public void completeFile(TachyonURI uri, CompleteFileOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException {
     MasterContext.getMasterSource().incCompleteFileOps(1);
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
-      Inode inode = mInodeTree.getInodeById(fileId);
+      Inode inode = mInodeTree.getInodeByPath(uri);
+      long fileId = inode.getId();
       if (!inode.isFile()) {
-        throw new FileDoesNotExistException(
-            ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
+        throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(uri));
       }
 
       InodeFile fileInode = (InodeFile) inode;
@@ -585,18 +601,19 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Returns the next block id for a given file id. Called via RPC.
    *
-   * @param fileId the file id to get the next block id for
+   * @param uri the uri of the file to get the next block id for
    * @return the next block id for the file
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public long getNewBlockIdForFile(long fileId) throws FileDoesNotExistException {
+  public long getNewBlockIdForFile(TachyonURI uri)
+      throws FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetNewBlockOps(1);
     Inode inode;
     synchronized (mInodeTree) {
-      inode = mInodeTree.getInodeById(fileId);
+      inode = mInodeTree.getInodeByPath(uri);
     }
     if (!inode.isFile()) {
-      throw new FileDoesNotExistException(ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(uri));
     }
     MasterContext.getMasterSource().incNewBlocksGot(1);
     return ((InodeFile) inode).getNewBlockId();
@@ -791,18 +808,17 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Returns all the {@link FileBlockInfo} of the given file. Called via RPC, and internal masters.
    *
-   * @param fileId the file id to get the info for
+   * @param uri the file id to get the info for
    * @return a list of {@link FileBlockInfo} for all the blocks of the file
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public List<FileBlockInfo> getFileBlockInfoList(long fileId)
+  public List<FileBlockInfo> getFileBlockInfoList(TachyonURI uri)
       throws FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileBlockInfoOps(1);
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeById(fileId);
+      Inode inode = mInodeTree.getInodeByPath(uri);
       if (inode.isDirectory()) {
-        throw new FileDoesNotExistException(
-            ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
+        throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(uri));
       }
       InodeFile file = (InodeFile) inode;
       List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
@@ -814,20 +830,6 @@ public final class FileSystemMaster extends MasterBase {
       MasterContext.getMasterSource().incFileBlockInfosGot(ret.size());
       return ret;
     }
-  }
-
-  /**
-   * Returns all the {@link FileBlockInfo} of the given file. Called by web UI.
-   *
-   * @param path the path to the file
-   * @return a list of {@link FileBlockInfo} for all the blocks of the file
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws InvalidPathException if the path is invalid
-   */
-  public List<FileBlockInfo> getFileBlockInfoList(TachyonURI path)
-      throws FileDoesNotExistException, InvalidPathException {
-    long fileId = getFileId(path);
-    return getFileBlockInfoList(fileId);
   }
 
   /**
@@ -1212,15 +1214,16 @@ public final class FileSystemMaster extends MasterBase {
    * directory, and the 'recursive' flag is enabled, all descendant files will also be freed. Called
    * via RPC.
    *
-   * @param fileId the file to free
+   * @param uri the path to free
    * @param recursive if true, and the file is a directory, all descendants will be freed
    * @return true if the file was freed
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException {
+  public boolean free(TachyonURI uri, boolean recursive)
+      throws FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incFreeFileOps(1);
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeById(fileId);
+      Inode inode = mInodeTree.getInodeByPath(uri);
 
       if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
         // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
