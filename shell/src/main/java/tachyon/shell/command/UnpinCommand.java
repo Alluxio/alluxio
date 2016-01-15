@@ -27,6 +27,10 @@ import tachyon.conf.TachyonConf;
  */
 public final class UnpinCommand extends WithWildCardPathCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public UnpinCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
