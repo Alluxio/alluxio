@@ -214,7 +214,7 @@ public class TfsShellUtils {
   private static final Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
 
   /**
-   * Escape the special characters in a given string.
+   * Escapes the special characters in a given string.
    *
    * @param str input string
    * @return the string with special characters escaped
@@ -224,14 +224,14 @@ public class TfsShellUtils {
   }
 
   /**
-   * Replace the wildcards with Java's regex semantics.
+   * Replaces the wildcards with Java's regex semantics.
    */
   private static String replaceWildcards(String text) {
     return escape(text).replace("\\*", ".*");
   }
 
   /**
-   * Return whether or not fileURI matches the patternURI.
+   * Returns whether or not fileURI matches the patternURI.
    *
    * @param fileURI the {@link TachyonURI} of a particular file
    * @param patternURI the URI that can contain wildcards
@@ -242,7 +242,7 @@ public class TfsShellUtils {
   }
 
   /**
-   * Return whether or not filePath matches patternPath.
+   * Returns whether or not filePath matches patternPath.
    *
    * @param filePath path of a given file
    * @param patternPath path that can contain wildcards
