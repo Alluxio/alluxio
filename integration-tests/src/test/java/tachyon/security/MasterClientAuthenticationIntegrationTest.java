@@ -19,6 +19,7 @@ import java.lang.reflect.Field;
 
 import javax.security.sasl.AuthenticationException;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -49,6 +50,11 @@ public class MasterClientAuthenticationIntegrationTest {
 
   @Before
   public void before() throws Exception {
+    clearLoginUser();
+  }
+
+  @After
+  public void after() throws Exception {
     clearLoginUser();
   }
 
