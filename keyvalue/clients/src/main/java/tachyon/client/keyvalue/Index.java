@@ -17,6 +17,7 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 
 /**
  * Interface of key-value Index.
@@ -57,5 +58,11 @@ public interface Index {
    * @return the number of keys inserted
    */
   int keyCount();
+
+  /**
+   * @param reader reader to access key-value payload
+   * @return an iterator of keys, the iterator does not support remove
+   */
+  Iterator<ByteBuffer> keyIterator(PayloadReader reader);
 
 }
