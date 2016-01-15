@@ -73,7 +73,7 @@ public final class CommandUtils {
    * @param isDir whether the path is a directory
    * @return formatted permission String
    */
-  public static String convertPermission(int permission, boolean isDir) {
+  public static String formatPermission(int permission, boolean isDir) {
     StringBuilder permString = new StringBuilder();
 
     for (int i = 0; i < 3; i ++) {
