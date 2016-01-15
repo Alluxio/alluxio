@@ -27,6 +27,10 @@ import tachyon.conf.TachyonConf;
  */
 public final class UnsetTtlCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public UnsetTtlCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
