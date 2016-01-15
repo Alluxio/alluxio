@@ -33,8 +33,7 @@ import tachyon.thrift.BlockWorkerClientService;
 import tachyon.worker.WorkerContext;
 
 /**
- * Handles all thrift RPC calls to the worker. This class is a thrift server implementation and is
- * thread safe.
+ * This class is a Thrift handler for block worker RPCs invoked by a Tachyon client.
  */
 public final class BlockWorkerClientServiceHandler implements BlockWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
