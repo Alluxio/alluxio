@@ -540,6 +540,7 @@ public class TfsShellTest {
     Assert.assertEquals(expected, mOutput.toString());
     // clear testing username
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+    MasterContext.reset();
   }
 
   @Test
@@ -574,6 +575,16 @@ public class TfsShellTest {
     Assert.assertEquals(expected, mOutput.toString());
     // clear testing username
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+    MasterContext.reset();
+  }
+
+  private void cleanAndLogin(String user) throws IOException {
+    // clear the loginUser and re-login with new user
+    synchronized (LoginUser.class) {
+      Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+      System.setProperty(Constants.SECURITY_LOGIN_USERNAME, user);
+      LoginUser.get(ClientContext.getConf());
+    }
   }
 
   @Test
@@ -596,6 +607,30 @@ public class TfsShellTest {
   @Test
   public void mkdirInvalidPathTest() throws IOException {
     Assert.assertEquals(-1, mFsShell.run("mkdir", "/test File Invalid Path"));
+  }
+
+  @Test
+  public void mkdirMultiPathTest() throws IOException, TachyonException {
+    String path1 = "/testDir1";
+    String path2 = "/testDir2";
+    String path3 = "/testDir2/testDir2.1";
+    Assert.assertEquals(0, mFsShell.run("mkdir", path1, path2, path3));
+
+    TachyonFile tFile = mTfs.open(new TachyonURI(path1));
+    FileInfo fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
+    Assert.assertTrue(fileInfo.isIsFolder());
+
+    tFile = mTfs.open(new TachyonURI(path2));
+    fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
+    Assert.assertTrue(fileInfo.isIsFolder());
+
+    tFile = mTfs.open(new TachyonURI(path3));
+    fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
+    Assert.assertTrue(fileInfo.isIsFolder());
+
   }
 
   @Test
@@ -898,6 +933,7 @@ public class TfsShellTest {
     Assert.assertEquals(expect, mOutput.toString());
     // clear testing username
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+    MasterContext.reset();
   }
 
   private String getLsResultStr(TachyonURI tUri, int size, String testUser, String testGroup)
@@ -1222,12 +1258,58 @@ public class TfsShellTest {
     ClientContext.reset();
   }
 
-  private void cleanAndLogin(String user) throws IOException {
-    // clear the loginUser and re-login with new user
-    synchronized (LoginUser.class) {
-      Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
-      System.setProperty(Constants.SECURITY_LOGIN_USERNAME, user);
-      LoginUser.get(ClientContext.getConf());
-    }
+  @Test
+  public void setIsPinnedTest() throws Exception {
+    String filePath = "/testFile";
+    TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, 1);
+
+    // Ensure that the file exists
+    Assert.assertTrue(fileExist(new TachyonURI(filePath)));
+
+    // Unpin an unpinned file
+    Assert.assertEquals(0, mFsShell.run("unpin", filePath));
+    Assert.assertFalse(mTfs.getInfo(file).isPinned);
+
+    // Pin the file
+    Assert.assertEquals(0, mFsShell.run("pin", filePath));
+    Assert.assertTrue(mTfs.getInfo(file).isPinned);
+
+    // Unpin the file
+    Assert.assertEquals(0, mFsShell.run("unpin", filePath));
+    Assert.assertFalse(mTfs.getInfo(file).isPinned);
+  }
+
+  /**
+   * Creates three files with initial size of 5MB to be added to Tachyon. Once the third file is
+   * added, Tachyon is forced to evict one file. Since fileA is pinned it will not be evicted only
+   * fileB.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void setPinTest() throws Exception {
+    String filePathA = "/testFileA";
+    String filePathB = "/testFileB";
+    String filePathC = "/testFileC";
+    int fileSize = 5 * 1024 * 1024 ;
+
+    TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, filePathA, TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, fileSize);
+    Assert.assertTrue(fileExist(new TachyonURI(filePathA)));
+    Assert.assertEquals(0, mFsShell.run("pin", filePathA));
+
+    TachyonFile fileB = TachyonFSTestUtils.createByteFile(mTfs, filePathB, TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, fileSize);
+    Assert.assertTrue(fileExist(new TachyonURI(filePathB)));
+    Assert.assertEquals(0, mFsShell.run("unpin", filePathB));
+
+    TachyonFile fileC = TachyonFSTestUtils.createByteFile(mTfs, filePathC, TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, fileSize);
+    Assert.assertTrue(fileExist(new TachyonURI(filePathC)));
+
+    // fileA is in memory because it is pinned, but not fileB
+    Assert.assertEquals(100, mTfs.getInfo(fileA).inMemoryPercentage);
+    Assert.assertEquals(0, mTfs.getInfo(fileB).inMemoryPercentage);
   }
 }

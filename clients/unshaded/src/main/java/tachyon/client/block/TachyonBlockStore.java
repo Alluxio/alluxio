@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,8 +42,9 @@ import tachyon.worker.NetAddress;
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
  * An instance of this class can be obtained via {@link TachyonBlockStore#get()}. The methods in
- * this class are completely opaque to user input. This class is thread safe.
+ * this class are completely opaque to user input.
  */
+@ThreadSafe
 public final class TachyonBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
