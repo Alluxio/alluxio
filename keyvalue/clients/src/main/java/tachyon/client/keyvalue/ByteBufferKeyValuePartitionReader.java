@@ -17,6 +17,7 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,5 +94,15 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
       return;
     }
     mClosed = true;
+  }
+
+  /**
+   * @return an {@link Iterator<KeyValuePair>} to iterate over all (key, value) pairs in the
+   *    partition without assumption of the iteration order
+   */
+  @Override
+  public Iterator<KeyValuePair> iterator() {
+    // TODO(cc): Implement this.
+    return null;
   }
 }
