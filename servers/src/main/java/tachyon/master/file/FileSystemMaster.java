@@ -406,6 +406,8 @@ public final class FileSystemMaster extends MasterBase {
       throws FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
+      // getFileInfoList should load from ufs if the file does not exist
+      getFileId(path);
       Inode inode = mInodeTree.getInodeByPath(path);
 
       List<FileInfo> ret = new ArrayList<FileInfo>();
