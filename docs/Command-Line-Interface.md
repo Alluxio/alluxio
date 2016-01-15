@@ -79,8 +79,8 @@ should have the final escaped parameters (cat /\\*).
     <td>Display the size of a file or a directory specified by the input path.</td>
   </tr>
   <tr>
-    <td>fileinfo</td>
-    <td>fileinfo "path"</td>
+    <td>fileInfo</td>
+    <td>fileInfo "path"</td>
     <td>Print the information of the blocks of a specified file.</td>
   </tr>
   <tr>
@@ -275,16 +275,16 @@ which folders are taking up the most space.
 $ ./bin/tachyon tfs du /\\*
 ```
 
-## fileinfo
-The `fileinfo` command dumps the FileInfo representation of a file to the console. It is primarily
+## fileInfo
+The `fileInfo` command dumps the FileInfo representation of a file to the console. It is primarily
 intended to assist powerusers in debugging their system. Generally viewing the file info in the UI
 will be much easier to understand.
 
-For example, `fileinfo` can be used to debug the block locations of a file. This is useful when
+For example, `fileInfo` can be used to debug the block locations of a file. This is useful when
 trying to achieve locality for compute workloads.
 
 ```bash
-$ ./bin/tachyon tfs fileinfo /data/2015/logs-1.txt
+$ ./bin/tachyon tfs fileInfo /data/2015/logs-1.txt
 ```
 
 ## free
