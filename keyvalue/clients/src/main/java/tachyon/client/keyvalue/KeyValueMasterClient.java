@@ -35,9 +35,7 @@ import tachyon.thrift.TachyonTException;
 
 /**
  * A wrapper for the thrift client to interact with the key-value master, used by Tachyon clients.
- *
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
- * to provide retries.
+ * This wrapper provides thread safety, and retry mechanism.
  */
 @ThreadSafe
 public final class KeyValueMasterClient extends MasterClientBase {

@@ -30,7 +30,7 @@ import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.ReadWriteJournal;
 
 /**
- * Factory to create a {@link KeyValueMaster} instance
+ * Factory to create a {@link KeyValueMaster} instance.
  */
 public final class KeyValueMasterFactory implements MasterFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
