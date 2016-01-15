@@ -33,7 +33,6 @@ import tachyon.client.file.options.CreateFileOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
-import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
@@ -112,7 +111,7 @@ public class FileSystemIntegrationTest {
       TachyonURI fileURI = new TachyonURI(uniqPath + k);
       mTfs.delete(fileURI);
       Assert.assertFalse(mTfs.exists(fileURI));
-      mThrown.expect(FileDoesNotExistException.class);
+      mThrown.expect(InvalidPathException.class);
       mTfs.getStatus(fileURI);
     }
   }
@@ -247,8 +246,8 @@ public class FileSystemIntegrationTest {
     try {
       mTfs.mount(new TachyonURI("/dir"), new TachyonURI(ufsSubdir));
       Assert.fail("Cannot remount primary ufs.");
-    } catch (IOException e) {
-      // Exception expected, continue
+    } catch (InvalidPathException e) {
+      // Exception expected
     }
 
     String alternateUfsRoot = createAlternateUfs();
@@ -261,14 +260,14 @@ public class FileSystemIntegrationTest {
       try {
         mTfs.mount(new TachyonURI("/inner"), new TachyonURI(innerDirPath));
         Assert.fail("Cannot mount suffix of already-mounted directory");
-      } catch (IOException e) {
+      } catch (InvalidPathException e) {
         // Exception expected, continue
       }
       // Cannot mount prefix of already-mounted directory
       try {
         mTfs.mount(new TachyonURI("/root"), new TachyonURI(alternateUfsRoot));
         Assert.fail("Cannot mount prefix of already-mounted directory");
-      } catch (IOException e) {
+      } catch (InvalidPathException e) {
         // Exception expected, continue
       }
     } finally {

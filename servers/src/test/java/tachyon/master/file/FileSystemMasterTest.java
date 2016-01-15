@@ -349,8 +349,7 @@ public final class FileSystemMasterTest {
 
     // move a nested file to a root file
     mFileSystemMaster.rename(NESTED_FILE_URI, TEST_URI);
-    Assert.assertEquals(mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPath(),
-        TEST_URI.getPath());
+    Assert.assertEquals(mFileSystemMaster.getFileInfo(TEST_URI).getPath(), TEST_URI.getPath());
   }
 
   @Test
@@ -370,7 +369,7 @@ public final class FileSystemMasterTest {
   @Test
   public void renameToSubpathTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Failed to rename: /nested/test is a prefix of /nested/test/file");
+    mThrown.expectMessage("/nested/test is a prefix of /nested/test/file");
 
     mFileSystemMaster.create(NESTED_URI, sNestedFileOptions);
     mFileSystemMaster.rename(NESTED_URI, NESTED_FILE_URI);
