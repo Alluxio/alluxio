@@ -23,7 +23,9 @@
             <th>File Path</th>
             <th>Size</th>
             <th>Block Size</th>
+            <th>Permission</th>
             <th>Owner</th>
+            <th>Group</th>
             <th>Pin</th>
             <th>Creation Time</th>
             <th>Modification Time</th>
@@ -35,7 +37,9 @@
                   <th><%= fileInfo.getAbsolutePath() %></th>
                   <th><%= fileInfo.getSize() %></th>
                   <th><%= fileInfo.getBlockSizeBytes() %></th>
+                  <th><%= fileInfo.getPermission() %></th>
                   <th><%= fileInfo.getUserName() %></th>
+                  <th><%= fileInfo.getGroupName() %></th>
                   <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
                   <th><%= fileInfo.getModificationTime() %></th>

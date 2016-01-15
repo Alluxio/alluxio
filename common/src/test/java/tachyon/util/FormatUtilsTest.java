@@ -232,4 +232,19 @@ public class FormatUtilsTest {
       Assert.assertEquals(k * Constants.PB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "pB"));
     }
   }
+
+  /**
+   * Tests the {@link FormatUtils#formatFilePermission(short, boolean)} method.
+   */
+  @Test
+  public void formatFilePermissionTest() {
+    Assert.assertEquals("drwxrwxrwx", FormatUtils.formatFilePermission((short)0777, true));
+    Assert.assertEquals("drwxr-xr-x", FormatUtils.formatFilePermission((short)0755, true));
+    Assert.assertEquals("drwx------", FormatUtils.formatFilePermission((short)0700, true));
+    Assert.assertEquals("drwxrw----", FormatUtils.formatFilePermission((short)0760, true));
+
+    Assert.assertEquals("-rwxrwxrwx", FormatUtils.formatFilePermission((short)0777, false));
+    Assert.assertEquals("-rw-r--r--", FormatUtils.formatFilePermission((short)0644, false));
+    Assert.assertEquals("-rwxr-xr-x", FormatUtils.formatFilePermission((short)0755, false));
+  }
 }
