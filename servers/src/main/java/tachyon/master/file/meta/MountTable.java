@@ -18,6 +18,8 @@ package tachyon.master.file.meta;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +29,10 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
 import tachyon.util.io.PathUtils;
 
-/** This class is used for keeping track of Tachyon mount points. It is thread safe. */
+/**
+ * This class is used for keeping track of Tachyon mount points.
+ */
+@ThreadSafe
 public final class MountTable {
   public static final String ROOT = "/";
 
