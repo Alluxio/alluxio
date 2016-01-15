@@ -13,30 +13,17 @@
  * the License.
  */
 
-package tachyon.underfs.glusterfs;
+package tachyon.worker;
 
-import com.google.common.base.Preconditions;
+import org.powermock.reflect.Whitebox;
 
-import tachyon.conf.TachyonConf;
-import tachyon.underfs.UnderFileSystem;
-import tachyon.underfs.UnderFileSystemFactory;
+import tachyon.worker.file.FileSystemWorker;
 
 /**
- * Factory for creating {@link GlusterFSUnderFileSystem}.
+ * Class which provides access to private state of {@link TachyonWorker}.
  */
-public class GlusterFSUnderFileSystemFactory implements UnderFileSystemFactory {
-
-  @Override
-  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
-    Preconditions.checkArgument(path != null, "path may not be null");
-    return new GlusterFSUnderFileSystem(path, tachyonConf, conf);
-  }
-
-  @Override
-  public boolean supportsPath(String path, TachyonConf conf) {
-    if (path == null) {
-      return false;
-    }
-    return path.startsWith(GlusterFSUnderFileSystem.SCHEME);
+public final class TachyonWorkerPrivateAccess {
+  public static FileSystemWorker getFileSystemWorker(TachyonWorker worker) {
+    return Whitebox.getInternalState(worker, "mFileSystemWorker");
   }
 }

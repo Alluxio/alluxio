@@ -30,6 +30,8 @@ import tachyon.Constants;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
+import tachyon.master.block.BlockMaster;
+import tachyon.master.block.BlockMasterPrivateAccess;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.CommonUtils;
 import tachyon.util.UnderFileSystemUtils;
@@ -187,7 +189,13 @@ public abstract class AbstractLocalTachyonCluster {
    * @return whether the worker has registered with the master
    */
   private boolean workerRegistered() {
-    return WorkerIdRegistry.getWorkerId() != WorkerIdRegistry.INVALID_WORKER_ID;
+    long workerId = WorkerIdRegistry.getWorkerId();
+    if (workerId == WorkerIdRegistry.INVALID_WORKER_ID) {
+      return false;
+    }
+    BlockMaster blockMaster =
+        TachyonMasterPrivateAccess.getBlockMaster(getMaster().getInternalMaster());
+    return BlockMasterPrivateAccess.isWorkerRegistered(blockMaster, workerId);
   }
 
   /**

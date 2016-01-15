@@ -57,7 +57,6 @@ public final class KeyValueStoreIntegrationTest {
     mStoreUri = new TachyonURI(PathUtils.uniqPath());
   }
 
-
   /**
    * Tests creating and opening an empty store.
    *
