@@ -22,15 +22,15 @@ public class CommandUtilsTest {
 
   @Test
   public void convertPermissionTest() {
-    Assert.assertEquals("-rw-rw-rw-", CommandUtils.convertPermission(0666, false));
-    Assert.assertEquals("drw-rw-rw-", CommandUtils.convertPermission(0666, true));
-    Assert.assertEquals("-rwxrwxrwx", CommandUtils.convertPermission(0777, false));
-    Assert.assertEquals("drwxrwxrwx", CommandUtils.convertPermission(0777, true));
-    Assert.assertEquals("-r--r--r--", CommandUtils.convertPermission(0444, false));
-    Assert.assertEquals("dr--r--r--", CommandUtils.convertPermission(0444, true));
-    Assert.assertEquals("-r-xr-xr-x", CommandUtils.convertPermission(0555, false));
-    Assert.assertEquals("dr-xr-xr-x", CommandUtils.convertPermission(0555, true));
-    Assert.assertEquals("-rwxr-xr--", CommandUtils.convertPermission(0754, false));
-    Assert.assertEquals("drwxr-xr--", CommandUtils.convertPermission(0754, true));
+    Assert.assertEquals("-rw-rw-rw-", CommandUtils.formatPermission(0666, false));
+    Assert.assertEquals("drw-rw-rw-", CommandUtils.formatPermission(0666, true));
+    Assert.assertEquals("-rwxrwxrwx", CommandUtils.formatPermission(0777, false));
+    Assert.assertEquals("drwxrwxrwx", CommandUtils.formatPermission(0777, true));
+    Assert.assertEquals("-r--r--r--", CommandUtils.formatPermission(0444, false));
+    Assert.assertEquals("dr--r--r--", CommandUtils.formatPermission(0444, true));
+    Assert.assertEquals("-r-xr-xr-x", CommandUtils.formatPermission(0555, false));
+    Assert.assertEquals("dr-xr-xr-x", CommandUtils.formatPermission(0555, true));
+    Assert.assertEquals("-rwxr-xr--", CommandUtils.formatPermission(0754, false));
+    Assert.assertEquals("drwxr-xr--", CommandUtils.formatPermission(0754, true));
   }
 }

@@ -915,7 +915,7 @@ public class TfsShellTest {
       String testUser, String testGroup, int permission, boolean isDir)
       throws IOException, TachyonException {
     return String.format(Constants.COMMAND_FORMAT_LS,
-        CommandUtils.convertPermission(permission, isDir),
+        CommandUtils.formatPermission(permission, isDir),
         testUser, testGroup, FormatUtils.getSizeFromBytes(size),
         CommandUtils.convertMsToDate(createTime), fileType, path);
   }
