@@ -199,7 +199,7 @@ public class TachyonMaster {
       mAdditionalMasters = Lists.newArrayList();
       List<? extends  Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
       // Discover and register the available factories
-      // NOTE, ClassLoader is explicitly specified so we don't need to set ContextClassLoader
+      // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader
       ServiceLoader<MasterFactory> discoveredMasterFactories =
           ServiceLoader.load(MasterFactory.class, MasterFactory.class.getClassLoader());
       for (MasterFactory factory : discoveredMasterFactories) {

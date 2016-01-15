@@ -4,7 +4,7 @@ include "common.thrift"
 include "exception.thrift"
 
 /**
- * Information of each key-value partition.
+ * Information about a key-value partition.
  */
 struct PartitionInfo {
   1: binary keyStart
@@ -21,7 +21,7 @@ service KeyValueMasterClientService extends common.TachyonService {
    * Marks a partition complete and adds it to the store.
    */
   void completePartition( /** the path of the store */  1: string path,
-      /** the path of the store */ 2: PartitionInfo info)
+      /** information about the partition to mark complete */ 2: PartitionInfo info)
     throws (1: exception.TachyonTException e)
 
   /**
@@ -37,7 +37,7 @@ service KeyValueMasterClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e)
 
   /**
-   * Gets a list of partition information given a filesystem path.
+   * Gets the partition information for the key-value store at the given filesystem path.
    */
   list<PartitionInfo> getPartitionInfo( /** the path of the store */ 1: string path)
     throws (1: exception.TachyonTException e)

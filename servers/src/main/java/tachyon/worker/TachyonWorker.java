@@ -97,7 +97,7 @@ public final class TachyonWorker {
       mAdditionalWorkers = Lists.newArrayList();
       List<? extends Worker> workers = Lists.newArrayList(mBlockWorker, mFileSystemWorker);
       // Discover and register the available factories
-      // NOTE, ClassLoader is explicitly specified so we don't need to set ContextClassLoader
+      // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader
       ServiceLoader<WorkerFactory> discoveredMasterFactories =
           ServiceLoader.load(WorkerFactory.class, WorkerFactory.class.getClassLoader());
       for (WorkerFactory factory : discoveredMasterFactories) {
