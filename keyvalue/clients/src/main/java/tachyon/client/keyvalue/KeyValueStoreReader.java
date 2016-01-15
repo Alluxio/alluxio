@@ -26,7 +26,7 @@ import tachyon.exception.TachyonException;
  * Interface for readers to access a key-value store in Tachyon.
  */
 @PublicApi
-public interface KeyValueStoreReader extends Closeable {
+public interface KeyValueStoreReader extends Closeable, Iterable<KeyValuePair> {
   /**
    * Gets the value associated with {@code key}, returns null if not found. When getting large
    * values (e.g., larger than 10KB), {@link #get(ByteBuffer)} might be more efficient by taking
