@@ -169,6 +169,8 @@ public final class UfsUtils {
         if (fs.exists(tfsPath)) {
           LOG.debug("File {} already exists in Tachyon.", tfsPath);
           continue;
+        } else {
+          fs.loadMetadata(tfsPath);
         }
         LOG.debug("Create tachyon file {} with checkpoint location {}", tfsPath, ufsPath);
       } else { // ufsPath is a directory
@@ -198,7 +200,7 @@ public final class UfsUtils {
         LOG.debug("Loading ufs. ufs path is a directory. tfsPath = {}.", tfsPath);
         if (!fs.exists(tfsPath)) {
           LOG.debug("Loading ufs. ufs path is a directory. make dir = {}.", tfsPath);
-          fs.createDirectory(tfsPath);
+          fs.loadMetadata(tfsPath);
           // TODO(hy): Add the following.
           // if (fs.mkdir(tfsPath)) {
           // LOG.info("Created mTachyonFS folder {} with checkpoint location {}", tfsPath, ufsPath);

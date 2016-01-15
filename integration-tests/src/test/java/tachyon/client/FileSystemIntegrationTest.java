@@ -33,6 +33,7 @@ import tachyon.client.file.options.CreateFileOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
@@ -111,7 +112,7 @@ public class FileSystemIntegrationTest {
       TachyonURI fileURI = new TachyonURI(uniqPath + k);
       mTfs.delete(fileURI);
       Assert.assertFalse(mTfs.exists(fileURI));
-      mThrown.expect(InvalidPathException.class);
+      mThrown.expect(FileDoesNotExistException.class);
       mTfs.getStatus(fileURI);
     }
   }
