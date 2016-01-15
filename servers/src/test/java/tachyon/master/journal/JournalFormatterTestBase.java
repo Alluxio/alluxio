@@ -36,7 +36,6 @@ import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
-import com.google.protobuf.ByteString;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -59,10 +58,7 @@ import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
-import tachyon.proto.journal.RawTable.RawTableEntry;
-import tachyon.proto.journal.RawTable.UpdateMetadataEntry;
 import tachyon.security.authorization.PermissionStatus;
-import tachyon.util.io.BufferUtils;
 
 /**
  * Base class for testing different {@link JournalFormatter}'s serialization/deserialization
@@ -191,17 +187,6 @@ public abstract class JournalFormatterTestBase {
             JournalEntry.newBuilder()
             .setDeleteMountPoint(DeleteMountPointEntry.newBuilder()
                 .setTachyonPath(TEST_TACHYON_PATH.toString()))
-            .build())
-        .add(JournalEntry.newBuilder()
-            .setRawTable(RawTableEntry.newBuilder()
-                .setId(TEST_BLOCK_ID)
-                .setColumns(100)
-                .setMetadata(ByteString.copyFrom(BufferUtils.getIncreasingByteBuffer(10))))
-            .build())
-        .add(JournalEntry.newBuilder()
-            .setUpdateMetadata(UpdateMetadataEntry.newBuilder()
-                .setId(TEST_BLOCK_ID)
-                .setMetadata(ByteString.copyFrom(new byte[10])))
             .build())
         .add(JournalEntry.newBuilder()
             .setReinitializeFile(ReinitializeFileEntry.newBuilder()
