@@ -25,7 +25,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 /**
- * Tests for the private helper methods in {@link OSSUnderFileSystem} that do not require an
+ * Unit tests for the private helper methods in {@link OSSUnderFileSystem} that do not require an
  * OSS backend.
  */
 @RunWith(PowerMockRunner.class)

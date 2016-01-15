@@ -22,7 +22,6 @@
 	DP: Method invoked that should be only be invoked inside a doPrivileged block
 	EI: May expose internal representation by returning reference to mutable object
 	Eq: Class defines compareTo(...) and uses Object.equals()
-	IS: Inconsistent synchronization
 	JLM: Synchronization performed on util.concurrent instance
 	LI: Incorrect lazy initialization of static field
 	Nm: Very confusing method names
@@ -39,7 +38,7 @@
 	UC: Useless non-empty void method
 	UPM: Private method is never called
       -->
-    <Bug code="DC,DE,DLS,Dm,DP,EI,Eq,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,UC,UPM"/>
+    <Bug code="DC,DE,DLS,Dm,DP,EI,Eq,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,UC,UPM"/>
   </Match>
 
   <Match>

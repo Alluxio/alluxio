@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockReader;
 import tachyon.client.worker.BlockWorkerClient;
@@ -27,9 +29,9 @@ import tachyon.exception.ExceptionMessage;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be transferred
- * through a Tachyon worker's dataserver to the client. The instances of this class should only be
- * used by one thread and are not thread safe.
+ * through a Tachyon worker's dataserver to the client.
  */
+@NotThreadSafe
 public final class RemoteBlockInStream extends BufferedBlockInStream {
   /** The address of the worker to read the data from. */
   private final InetSocketAddress mLocation;

@@ -74,7 +74,7 @@ public final class BufferUtils {
       final Object cleaner = sByteBufferCleanerMethod.invoke(buffer);
       if (cleaner == null) {
         if (buffer.capacity() > 0) {
-          LOG.error("Failed to get cleaner for ByteBuffer");
+          LOG.warn("Failed to get cleaner for ByteBuffer: {}", buffer.getClass().getName());
         }
         // The cleaner could be null when the buffer is initialized as zero capacity.
         return;
@@ -84,8 +84,9 @@ public final class BufferUtils {
       }
       sCleanerCleanMethod.invoke(cleaner);
     } catch (Exception e) {
-      LOG.warn("Fail to unmap direct buffer due to " + e.getMessage(), e);
+      LOG.warn("Failed to unmap direct ByteBuffer: {}", buffer.getClass().getName(), e);
     } finally {
+      // Force to drop reference to the buffer to clean
       buffer = null;
     }
   }

@@ -18,6 +18,8 @@ package tachyon.master.file.meta;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
@@ -35,6 +37,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Tachyon file system's file representation in the file system master.
  */
+@ThreadSafe
 public final class InodeFile extends Inode {
   /** This default umask is used to calculate file permission from directory permission. */
   private static final FileSystemPermission UMASK =
@@ -154,7 +157,7 @@ public final class InodeFile extends Inode {
   }
 
   @Override
-  public FileInfo generateClientFileInfo(String path) {
+  public synchronized FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
     // note: in-memory percentage is NOT calculated here, because it needs blocks info stored in
     // block master
@@ -182,7 +185,7 @@ public final class InodeFile extends Inode {
   /**
    * Resets the file inode.
    */
-  public void reset() {
+  public synchronized void reset() {
     mBlocks = Lists.newArrayList();
     mLength = 0;
     mCompleted = false;
@@ -192,7 +195,7 @@ public final class InodeFile extends Inode {
   /**
    * @param blockSizeBytes the block size to use
    */
-  public void setBlockSize(long blockSizeBytes) {
+  public synchronized void setBlockSize(long blockSizeBytes) {
     Preconditions.checkArgument(blockSizeBytes >= 0, "Block size cannot be negative");
     mBlockSizeBytes = blockSizeBytes;
   }
@@ -200,7 +203,7 @@ public final class InodeFile extends Inode {
   /**
    * @param ttl the TTL to use, in milliseconds
    */
-  public void setTtl(long ttl) {
+  public synchronized void setTtl(long ttl) {
     mTtl = ttl;
   }
 
@@ -214,7 +217,7 @@ public final class InodeFile extends Inode {
   /**
    * @return the block size in bytes
    */
-  public long getBlockSizeBytes() {
+  public synchronized long getBlockSizeBytes() {
     return mBlockSizeBytes;
   }
 
@@ -325,7 +328,7 @@ public final class InodeFile extends Inode {
   }
 
   @Override
-  public String toString() {
+  public synchronized String toString() {
     StringBuilder sb = new StringBuilder("InodeFile(");
     sb.append(super.toString()).append(", LENGTH: ").append(mLength);
     sb.append(", Cacheable: ").append(mCacheable);
