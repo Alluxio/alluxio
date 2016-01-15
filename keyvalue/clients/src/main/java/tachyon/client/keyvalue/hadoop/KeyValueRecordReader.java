@@ -18,11 +18,11 @@ package tachyon.client.keyvalue.hadoop;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.util.Iterator;
 
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.RecordReader;
 
+import tachyon.client.keyvalue.KeyValueIterator;
 import tachyon.client.keyvalue.KeyValuePair;
 import tachyon.client.keyvalue.KeyValuePartitionReader;
 import tachyon.exception.TachyonException;
@@ -35,7 +35,13 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
   /** The partition reader for reading the (key, value) pairs */
   private final KeyValuePartitionReader mReader;
   /** The iterator for iterating through all (key, value) pairs contained in the partition */
-  private final Iterator<KeyValuePair> mKeyValuePairIterator;
+  private final KeyValueIterator mKeyValuePairIterator;
+  /** Current position in the partition's byte array */
+  private int mPos;
+  /** Number of (key, value) pairs visited by the iterator */
+  private int mNumVisitedKeyValuePairs;
+  /** Number of (key, value) pairs */
+  private final int mNumKeyValuePairs;
 
   /**
    * Creates a {@link KeyValueRecordReader} for generating (key, value) pairs of a partition.
@@ -47,6 +53,9 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
   public KeyValueRecordReader(KeyValueInputSplit split) throws IOException, TachyonException {
     mReader = KeyValuePartitionReader.Factory.create(split.getPartitionId());
     mKeyValuePairIterator = mReader.iterator();
+    mPos = 0;
+    mNumVisitedKeyValuePairs = 0;
+    mNumKeyValuePairs = mReader.size();
   }
 
   @Override
@@ -55,7 +64,12 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
       return false;
     }
 
-    KeyValuePair pair = mKeyValuePairIterator.next();
+    KeyValuePair pair;
+    try {
+      pair = mKeyValuePairIterator.next();
+    } catch (TachyonException te) {
+      throw new IOException(te);
+    }
 
     DataInputStream key = new DataInputStream(new ByteArrayInputStream(pair.getKey().array()));
     keyWritable.readFields(key);
@@ -65,6 +79,8 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
     valueWritable.readFields(value);
     value.close();
 
+    mPos += keyWritable.getLength() + valueWritable.getLength();
+    mNumVisitedKeyValuePairs ++;
     return true;
   }
 
@@ -80,8 +96,7 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
 
   @Override
   public long getPos() throws IOException {
-    // TODO(cc): Implement this after enhancing KeyValuePartitionReader interface.
-    return 0;
+    return mPos;
   }
 
   @Override
@@ -91,7 +106,9 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
 
   @Override
   public float getProgress() throws IOException {
-    // TODO(cc): Implement this after enhancing KeyValuePartitionReader interface.
-    return 0;
+    if (mNumKeyValuePairs == 0) {
+      return 1.0f;
+    }
+    return ((float) mNumVisitedKeyValuePairs) / mNumKeyValuePairs;
   }
 }
