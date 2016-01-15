@@ -37,7 +37,7 @@ public final class KeyValueMasterFactory implements MasterFactory {
 
   @Override
   public KeyValueMaster create(List<? extends Master> masters, String journalDirectory) {
-    if (!MasterContext.getConf().getBoolean(Constants.KEYVALUE_ENABLED)) {
+    if (!MasterContext.getConf().getBoolean(Constants.KEY_VALUE_ENABLED)) {
       return null;
     }
     Preconditions.checkArgument(journalDirectory != null, "journal path may not be null");

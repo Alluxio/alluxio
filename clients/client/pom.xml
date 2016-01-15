@@ -89,7 +89,7 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-clients</artifactId>
+      <artifactId>tachyon-keyvalue-client</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

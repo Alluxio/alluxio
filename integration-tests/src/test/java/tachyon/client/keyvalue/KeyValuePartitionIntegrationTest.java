@@ -46,13 +46,21 @@ public final class KeyValuePartitionIntegrationTest {
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE,
           /* ensure key-value service is turned on */
-          Constants.KEYVALUE_ENABLED, "true");
+          Constants.KEY_VALUE_ENABLED, "true");
 
   @BeforeClass
   public static void beforeClass() throws Exception {
     sTfs = sLocalTachyonClusterResource.get().getClient();
   }
 
+  /**
+   * Tests a {@link KeyValuePartitionWriter} can create a partition, write key-value pairs and
+   * close. Meanwhile the {@link KeyValuePartitionReader} can open this saved partition and find
+   * keys store by the writer.
+   *
+   * @throws IOException if unexpected non-Tachyon error happens
+   * @throws TachyonException if unexpected Tachyon error happens
+   */
   @Test
   public void readerWriterTest() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
@@ -61,7 +69,7 @@ public final class KeyValuePartitionIntegrationTest {
     mKeyValuePartitionWriter.put(KEY1, VALUE1);
     mKeyValuePartitionWriter.put(KEY2, VALUE2);
     mKeyValuePartitionWriter.close();
-    // Expect the key-value file exists
+    // Expect the key-value partition exists as a Tachyon file
     Assert.assertNotNull(sTfs.openIfExists(uri));
     mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(uri);
     Assert.assertArrayEquals(VALUE1, mKeyValuePartitionReader.get(KEY1));

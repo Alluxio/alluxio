@@ -327,7 +327,8 @@ public final class BufferUtils {
   }
 
   /**
-   * Creates a byte array from the given ByteBuffer, respecting the position of buffer.
+   * Creates a byte array from the given ByteBuffer, the position property of input
+   * {@link ByteBuffer} remains unchanged.
    *
    * @param buf source ByteBuffer
    * @return a newly created byte array
@@ -348,7 +349,7 @@ public final class BufferUtils {
    * @param buffer source ByteBuffer to slice
    * @param position position in the source ByteBuffer to slice
    * @param length length of the sliced ByteBuffer
-   * @return sliced ByteBuffer
+   * @return the sliced ByteBuffer
    */
   public static ByteBuffer sliceByteBuffer(ByteBuffer buffer, int position, int length) {
     ByteBuffer slicedBuffer = ((ByteBuffer) buffer.duplicate().position(position)).slice();

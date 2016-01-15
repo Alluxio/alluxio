@@ -17,6 +17,8 @@ package tachyon.client.keyvalue;
 
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
@@ -24,12 +26,19 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.ByteIOUtils;
 
 /**
- * An implementation of {@link PayloadReader} with ability to random access the underline storage.
+ * An implementation of {@link PayloadReader} capable of randomly accessing the underlying
+ * payload storage.
  */
-public final class BasePayloadReader implements PayloadReader {
+@NotThreadSafe
+final class BasePayloadReader implements PayloadReader {
   private static final int KEY_DATA_OFFSET = 2 * Constants.BYTES_IN_INTEGER;
   private ByteBuffer mBuf;
 
+  /**
+   * Constructs an instance based on an input buffer.
+   *
+   * @param buf input buffer
+   */
   public BasePayloadReader(ByteBuffer buf) {
     mBuf = Preconditions.checkNotNull(buf).duplicate();
   }

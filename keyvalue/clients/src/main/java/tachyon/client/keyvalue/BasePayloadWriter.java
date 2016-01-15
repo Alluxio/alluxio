@@ -19,19 +19,23 @@ import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.client.OutStreamBase;
 import tachyon.util.io.ByteIOUtils;
 
 /**
- * An implementation of {@link PayloadWriter} using stream API to write to underline storage.
+ * An implementation of {@link PayloadWriter} using stream API to write to underlying payload
+ * storage.
  *
  * For each key-value pair, this writer appends the following 4 pieces of data in order: (1)
  * keyLength (4 bytes) (2) valueLength (4 bytes) (3) keyData (keyLength bytes) (4) valueData
- * (valueLength bytes)
+ * (valueLength bytes).
  */
-public final class BasePayloadWriter implements Closeable, Flushable, PayloadWriter {
+@NotThreadSafe
+final class BasePayloadWriter implements Closeable, Flushable, PayloadWriter {
   private OutStreamBase mOutStream;
 
   /**

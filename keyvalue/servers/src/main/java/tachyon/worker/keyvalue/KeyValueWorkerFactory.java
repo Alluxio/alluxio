@@ -35,7 +35,7 @@ public final class KeyValueWorkerFactory implements WorkerFactory {
 
   @Override
   public KeyValueWorker create(List<? extends Worker> workers) {
-    if (!WorkerContext.getConf().getBoolean(Constants.KEYVALUE_ENABLED)) {
+    if (!WorkerContext.getConf().getBoolean(Constants.KEY_VALUE_ENABLED)) {
       return null;
     }
     LOG.info("Creating {} ", KeyValueWorker.class.getName());

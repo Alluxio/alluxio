@@ -159,8 +159,8 @@ public final class Constants {
   public static final String ZOOKEEPER_LEADER_PATH = "tachyon.zookeeper.leader.path";
   public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
       "tachyon.zookeeper.leader.inquiry.retry";
-  public static final String KEYVALUE_ENABLED = "tachyon.keyvalue.enabled";
-  public static final String KEYVALUE_PARTITION_SIZE_BYTES_MAX =
+  public static final String KEY_VALUE_ENABLED = "tachyon.keyvalue.enabled";
+  public static final String KEY_VALUE_PARTITION_SIZE_BYTES_MAX =
       "tachyon.keyvalue.partition.size.bytes.max";
   public static final String MAX_TABLE_METADATA_BYTE = "tachyon.max.table.metadata.bytes";
   public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
