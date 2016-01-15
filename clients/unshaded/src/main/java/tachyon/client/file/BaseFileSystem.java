@@ -125,6 +125,8 @@ public class BaseFileSystem implements FileSystem {
       return true;
     } catch (FileDoesNotExistException e) {
       return false;
+    } catch (InvalidPathException e) {
+      return false;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

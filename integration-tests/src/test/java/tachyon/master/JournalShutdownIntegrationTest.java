@@ -132,8 +132,7 @@ public class JournalShutdownIntegrationTest {
       InvalidPathException, FileDoesNotExistException, TableDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
-    int actualFiles =
-        fsMaster.getFileInfoList(fsMaster.getFileId(new TachyonURI(TEST_FILE_DIR))).size();
+    int actualFiles = fsMaster.getFileInfoList(new TachyonURI(TEST_FILE_DIR)).size();
     Assert.assertTrue((successFiles == actualFiles) || (successFiles + 1 == actualFiles));
     for (int f = 0; f < successFiles; f ++) {
       Assert.assertTrue(

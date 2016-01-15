@@ -33,9 +33,11 @@ import com.google.common.collect.Maps;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetAttributeOptions;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
@@ -197,8 +199,9 @@ public final class MasterSourceTest {
     try {
       mFileSystemMaster.getFileBlockInfoList(new TachyonURI("/doesNotExist"));
       Assert.fail("get file block info for a non existing file must throw an exception");
-    } catch (FileDoesNotExistException e) {
-      // do nothing
+    } catch (InvalidPathException e) {
+      Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/doesNotExist"),
+          e.getMessage());
     }
 
     Assert.assertEquals(3, mCounters.get("GetFileBlockInfoOps").getCount());

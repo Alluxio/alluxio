@@ -139,7 +139,7 @@ public class FileSystemMasterIntegrationTest {
     }
 
     private void doDelete(TachyonURI path) throws Exception {
-      mFsMaster.deleteFile(mFsMaster.getFileId(path), true);
+      mFsMaster.deleteFile(path, true);
       Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
     }
 
@@ -218,7 +218,7 @@ public class FileSystemMasterIntegrationTest {
         } catch (InvalidPathException e) {
           // This could happen if we are renaming something that's a child of the root.
         }
-        mFsMaster.rename(fileId, dstPath);
+        mFsMaster.rename(srcPath, dstPath);
         Assert.assertEquals(fileId, mFsMaster.getFileId(dstPath));
       } else if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -338,7 +338,7 @@ public class FileSystemMasterIntegrationTest {
       concurrentCreator.call();
 
       FileSystemMaster fsMaster = createFileSystemMasterFromJournal();
-      for (FileInfo info : mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/")))) {
+      for (FileInfo info : mFsMaster.getFileInfoList(new TachyonURI("/"))) {
         TachyonURI path = new TachyonURI(info.getPath());
         Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
       }
@@ -365,7 +365,7 @@ public class FileSystemMasterIntegrationTest {
     concurrentDeleter.call();
 
     Assert.assertEquals(0,
-        mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/"))).size());
+        mFsMaster.getFileInfoList(new TachyonURI("/")).size());
   }
 
   @Test
@@ -374,14 +374,14 @@ public class FileSystemMasterIntegrationTest {
         new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
     concurrentCreator.call();
 
-    int numFiles = mFsMaster.getFileInfoList(mFsMaster.getFileId(ROOT_PATH)).size();
+    int numFiles = mFsMaster.getFileInfoList(ROOT_PATH).size();
 
     ConcurrentRenamer concurrentRenamer = new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH,
         ROOT_PATH2, TachyonURI.EMPTY_URI);
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles,
-        mFsMaster.getFileInfoList(mFsMaster.getFileId(ROOT_PATH2)).size());
+        mFsMaster.getFileInfoList(ROOT_PATH2).size());
   }
 
   @Test
@@ -456,7 +456,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
-    Assert.assertTrue(mFsMaster.deleteFile(1, true));
+    Assert.assertTrue(mFsMaster.deleteFile(new TachyonURI("/testFolder"), true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
   }
@@ -475,7 +475,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
     try {
-      mFsMaster.deleteFile(2, false);
+      mFsMaster.deleteFile(new TachyonURI("/testFolder/testFolder2"), false);
       Assert.fail("Deleting a nonempty directory nonrecursively should fail");
     } catch (DirectoryNotEmptyException e) {
       Assert.assertEquals(
@@ -496,7 +496,7 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.create(new TachyonURI("/testFolder/testFile"), CreateFileOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
-    Assert.assertTrue(mFsMaster.deleteFile(1, true));
+    Assert.assertTrue(mFsMaster.deleteFile(new TachyonURI("/testFolder"), true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new TachyonURI("/testFolder")));
   }
@@ -509,7 +509,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
     try {
-      mFsMaster.deleteFile(1, false);
+      mFsMaster.deleteFile(new TachyonURI("/testFolder"), false);
       Assert.fail("Deleting a nonempty directory nonrecursively should fail");
     } catch (DirectoryNotEmptyException e) {
       Assert.assertEquals(
@@ -524,7 +524,7 @@ public class FileSystemMasterIntegrationTest {
   public void deleteEmptyDirectoryTest() throws Exception {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), CreateDirectoryOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertTrue(mFsMaster.deleteFile(1, true));
+    Assert.assertTrue(mFsMaster.deleteFile(new TachyonURI("/testFolder"), true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new TachyonURI("/testFolder")));
   }
@@ -533,15 +533,15 @@ public class FileSystemMasterIntegrationTest {
   public void deleteFileTest() throws Exception {
     long fileId = mFsMaster.create(new TachyonURI("/testFile"), CreateFileOptions.defaults());
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFile")));
-    Assert.assertTrue(mFsMaster.deleteFile(fileId, true));
+    Assert.assertTrue(mFsMaster.deleteFile(new TachyonURI("/testFile"), true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(new TachyonURI("/testFile")));
   }
 
   @Test
   public void deleteRootTest() throws Exception {
     long rootId = mFsMaster.getFileId(new TachyonURI("/"));
-    Assert.assertFalse(mFsMaster.deleteFile(rootId, true));
-    Assert.assertFalse(mFsMaster.deleteFile(rootId, false));
+    Assert.assertFalse(mFsMaster.deleteFile(new TachyonURI("/"), true));
+    Assert.assertFalse(mFsMaster.deleteFile(new TachyonURI("/"), false));
   }
 
   @Test
@@ -613,11 +613,11 @@ public class FileSystemMasterIntegrationTest {
     }
     HashSet<Long> listedIds = Sets.newHashSet();
     HashSet<Long> listedDirIds = Sets.newHashSet();
-    List<FileInfo> infoList = mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/")));
+    List<FileInfo> infoList = mFsMaster.getFileInfoList(new TachyonURI("/"));
     for (FileInfo info : infoList) {
       long id = info.getFileId();
       listedDirIds.add(id);
-      for (FileInfo fileInfo : mFsMaster.getFileInfoList(id)) {
+      for (FileInfo fileInfo : mFsMaster.getFileInfoList(new TachyonURI(info.getPath()))) {
         listedIds.add(fileInfo.getFileId());
       }
     }
@@ -638,13 +638,13 @@ public class FileSystemMasterIntegrationTest {
     }
 
     Assert.assertEquals(1,
-        mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/i0/j0"))).size());
+        mFsMaster.getFileInfoList(new TachyonURI("/i0/j0")).size());
     for (int i = 0; i < 10; i ++) {
       Assert.assertEquals(10,
-          mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/i" + i))).size());
+          mFsMaster.getFileInfoList(new TachyonURI("/i" + i)).size());
     }
     Assert.assertEquals(10,
-        mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/"))).size());
+        mFsMaster.getFileInfoList(new TachyonURI("/")).size());
   }
 
   @Test
@@ -652,7 +652,7 @@ public class FileSystemMasterIntegrationTest {
     mThrown.expect(FileDoesNotExistException.class);
     mFsMaster.mkdir(new TachyonURI("/testFile"), CreateDirectoryOptions.defaults());
     CompleteFileOptions options = CompleteFileOptions.defaults();
-    mFsMaster.completeFile(mFsMaster.getFileId(new TachyonURI("/testFile")), options);
+    mFsMaster.completeFile(new TachyonURI("/testFile"), options);
   }
 
   @Test
@@ -660,8 +660,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.create(new TachyonURI("/testFile1"), CreateFileOptions.defaults());
     mFsMaster.create(new TachyonURI("/testFile2"), CreateFileOptions.defaults());
     try {
-      mFsMaster.rename(mFsMaster.getFileId(new TachyonURI("/testFile1")), new TachyonURI(
-          "/testFile2"));
+      mFsMaster.rename(new TachyonURI("/testFile1"), new TachyonURI("/testFile2"));
       Assert.fail("Should not be able to rename to an existing file");
     } catch (Exception e) {
       // expected
@@ -683,7 +682,7 @@ public class FileSystemMasterIntegrationTest {
     mThrown.expect(InvalidPathException.class);
     mFsMaster.mkdir(new TachyonURI("/testDir1/testDir2"), createDirectoryOptions);
     mFsMaster.create(new TachyonURI("/testDir1/testDir2/testDir3/testFile3"), createFileOptions);
-    mFsMaster.rename(mFsMaster.getFileId(new TachyonURI("/testDir1/testDir2")),
+    mFsMaster.rename(new TachyonURI("/testDir1/testDir2"),
         new TachyonURI("/testDir1/testDir2/testDir3/testDir4"));
   }
 

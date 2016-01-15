@@ -107,7 +107,7 @@ public class JournalIntegrationTest {
 
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(1, fsMaster.getFileInfoList(rootId).size());
+    Assert.assertEquals(1, fsMaster.getFileInfoList(mRootUri).size());
     long xyzId = fsMaster.getFileId(new TachyonURI("/xyz"));
     Assert.assertTrue(xyzId != IdUtils.INVALID_FILE_ID);
     FileInfo fsMasterInfo = fsMaster.getFileInfo(xyzId);
@@ -142,7 +142,7 @@ public class JournalIntegrationTest {
 
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(1, fsMaster.getFileInfoList(rootId).size());
+    Assert.assertEquals(1, fsMaster.getFileInfoList(mRootUri).size());
     Assert.assertTrue(fsMaster.getFileId(new TachyonURI("/xyz")) != IdUtils.INVALID_FILE_ID);
     FileInfo fsMasterInfo = fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI("/xyz")));
     Assert.assertEquals(status, new URIStatus(fsMasterInfo));
@@ -225,7 +225,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(5, fsMaster.getFileInfoList(rootId).size());
+    Assert.assertEquals(5, fsMaster.getFileInfoList(mRootUri).size());
     for (int i = 0; i < 5; i ++) {
       for (int j = 0; j < 5; j ++) {
         Assert.assertTrue(
@@ -241,7 +241,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(0, fsMaster.getFileInfoList(rootId).size());
+    Assert.assertEquals(0, fsMaster.getFileInfoList(mRootUri).size());
     fsMaster.stop();
   }
 
@@ -270,7 +270,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(10, fsMaster.getFileInfoList(rootId).size());
+    Assert.assertEquals(10, fsMaster.getFileInfoList(mRootUri).size());
     for (int i = 0; i < 10; i ++) {
       for (int j = 0; j < 10; j ++) {
         Assert.assertTrue(
@@ -302,7 +302,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(1, fsMaster.getFileInfoList(rootId).size());
+    Assert.assertEquals(1, fsMaster.getFileInfoList(mRootUri).size());
     long fileId = fsMaster.getFileId(new TachyonURI("/xyz"));
     Assert.assertTrue(fileId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(status, new URIStatus(fsMaster.getFileInfo(fileId)));
@@ -379,7 +379,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(1, fsMaster.getFileInfoList(rootId).size());
+    Assert.assertEquals(1, fsMaster.getFileInfoList(mRootUri).size());
     long fileId = fsMaster.getFileId(new TachyonURI("/xyz"));
     Assert.assertTrue(fileId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(status, new URIStatus(fsMaster.getFileInfo(fileId)));
@@ -447,7 +447,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(10, fsMaster.getFileInfoList(rootId).size());
+    Assert.assertEquals(10, fsMaster.getFileInfoList(mRootUri).size());
     for (int k = 0; k < 10; k ++) {
       Assert.assertTrue(fsMaster.getFileId(new TachyonURI("/a" + k)) != IdUtils.INVALID_FILE_ID);
     }
@@ -476,7 +476,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(124, fsMaster.getFileInfoList(rootId).size());
+    Assert.assertEquals(124, fsMaster.getFileInfoList(mRootUri).size());
     for (int k = 0; k < 124; k ++) {
       Assert.assertTrue(fsMaster.getFileId(new TachyonURI("/a" + k)) != IdUtils.INVALID_FILE_ID);
     }
@@ -565,7 +565,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(10, fsMaster.getFileInfoList(rootId).size());
+    Assert.assertEquals(10, fsMaster.getFileInfoList(mRootUri).size());
     for (int i = 0; i < 10; i ++) {
       for (int j = 0; j < 10; j ++) {
         Assert.assertTrue(
@@ -590,12 +590,12 @@ public class JournalIntegrationTest {
     rawTableTestUtil(status);
   }
 
-  private List<FileInfo> lsr(FileSystemMaster fsMaster, long fileId)
-      throws FileDoesNotExistException {
-    List<FileInfo> files = fsMaster.getFileInfoList(fileId);
+  private List<FileInfo> lsr(FileSystemMaster fsMaster, TachyonURI uri)
+      throws FileDoesNotExistException, InvalidPathException {
+    List<FileInfo> files = fsMaster.getFileInfoList(uri);
     List<FileInfo> ret = Lists.newArrayList(files);
     for (FileInfo file : files) {
-      ret.addAll(lsr(fsMaster, file.getFileId()));
+      ret.addAll(lsr(fsMaster, new TachyonURI(file.getPath())));
     }
     return ret;
   }
@@ -607,7 +607,7 @@ public class JournalIntegrationTest {
     long fileId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(fileId != -1);
     // "ls -r /" should return 11 FileInfos, one is table root "/xyz", the others are 10 columns.
-    Assert.assertEquals(11, lsr(fsMaster, fileId).size());
+    Assert.assertEquals(11, lsr(fsMaster, mRootUri).size());
 
     fileId = fsMaster.getFileId(new TachyonURI("/xyz"));
     Assert.assertTrue(fileId != -1);
