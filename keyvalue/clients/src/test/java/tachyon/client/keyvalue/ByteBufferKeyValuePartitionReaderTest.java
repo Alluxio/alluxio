@@ -57,6 +57,9 @@ public final class ByteBufferKeyValuePartitionReaderTest {
     mReader = new ByteBufferKeyValuePartitionReader(sBuffer);
   }
 
+  /**
+   * Tests {@link ByteBufferKeyValuePartitionReader#get} can retrieve values stored before.
+   */
   @Test
   public void getTest() throws Exception {
     Assert.assertArrayEquals(VALUE1, mReader.get(KEY1));
@@ -66,6 +69,9 @@ public final class ByteBufferKeyValuePartitionReaderTest {
     Assert.assertArrayEquals(VALUE2, mReader.get(KEY2));
   }
 
+  /**
+   * Tests {@link ByteBufferKeyValuePartitionReader#close} works.
+   */
   @Test
   public void closeTest() throws Exception {
     mReader.close();
@@ -73,6 +79,10 @@ public final class ByteBufferKeyValuePartitionReaderTest {
     mReader.close();
   }
 
+  /**
+   * Tests {@link ByteBufferKeyValuePartitionReader#get} after
+   * {@link ByteBufferKeyValuePartitionReader#close}, expect an exception thrown.
+   */
   @Test
   public void getAfterCloseTest() throws Exception {
     mReader.close();

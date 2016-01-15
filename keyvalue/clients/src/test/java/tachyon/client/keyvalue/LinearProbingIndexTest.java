@@ -40,6 +40,9 @@ public class LinearProbingIndexTest {
     mPayloadWriter = new BasePayloadWriter(mOutStream);
   }
 
+  /**
+   * Tests {@link LinearProbingIndex#put} to work.
+   */
   @Test
   public void putBasicTest() throws Exception {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
@@ -50,17 +53,9 @@ public class LinearProbingIndexTest {
     Assert.assertEquals(2, index.keyCount());
   }
 
-  @Test
-  public void putDuplicatedKeyTest() throws Exception {
-    LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
-    // TODO(binfan): change constant 50 to be LinearProbingIndex.MAX_PROBES
-    for (int i = 0; i < 50; i ++) {
-      Assert.assertEquals(i, index.keyCount());
-      Assert.assertTrue(index.put(KEY1, VALUE1, mPayloadWriter));
-    }
-    Assert.assertFalse(index.put(KEY1, VALUE1, mPayloadWriter));
-  }
-
+  /**
+   * Tests {@link LinearProbingIndex#get} to return correct values for inserted keys.
+   */
   @Test
   public void getInsertedKeysTest() throws Exception {
     // Initialize a batch of key-value pairs
@@ -75,7 +70,6 @@ public class LinearProbingIndexTest {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
 
     // Insert this batch of key-value pairs
-
     for (int i = 0; i < testKeys; i ++) {
       Assert.assertTrue(index.put(keys[i], values[i], mPayloadWriter));
       Assert.assertEquals(i + 1, index.keyCount());
@@ -91,6 +85,9 @@ public class LinearProbingIndexTest {
     }
   }
 
+  /**
+   * Tests {@link LinearProbingIndex#get} to return null for non-existent key.
+   */
   @Test
   public void getNonExistentKeyTest() throws Exception {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();

@@ -28,7 +28,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
 
 /**
- * Interface of the reader to access a Tachyon key-value partition.
+ * Interface for a reader which accesses a Tachyon key-value partition.
  */
 public interface KeyValuePartitionReader extends Closeable {
 
@@ -48,6 +48,8 @@ public interface KeyValuePartitionReader extends Closeable {
       TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
       TachyonFile tFile = tfs.open(uri);
       List<Long> blockIds = tfs.getInfo(tFile).getBlockIds();
+      // Each partition file should only contains one block.
+      // TODO(binfan): throw exception if a partition file has more than one blocks
       long blockId = blockIds.get(0);
       return new BaseKeyValuePartitionReader(blockId);
     }

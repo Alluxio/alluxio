@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
@@ -37,6 +39,7 @@ import tachyon.thrift.TachyonTException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
+@ThreadSafe
 public final class KeyValueMasterClient extends MasterClientBase {
   private KeyValueMasterClientService.Client mClient = null;
 
@@ -96,8 +99,8 @@ public final class KeyValueMasterClient extends MasterClientBase {
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void completeStore(final TachyonURI path) throws IOException,
-      TachyonException {
+  public synchronized void completeStore(final TachyonURI path)
+      throws IOException, TachyonException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {

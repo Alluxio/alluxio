@@ -18,6 +18,8 @@ package tachyon.client.keyvalue;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,18 +29,19 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.KeyValueWorkerClientService;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.NetAddress;
 
 /**
- * The client talks to a key-value worker server.
+ * Client for talking to a key-value worker server.
  *
  * Since {@link KeyValueWorkerClientService.Client} is not thread safe, this class has to guarantee
  * thread safety.
  */
+@ThreadSafe
 public final class KeyValueWorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -76,15 +79,15 @@ public final class KeyValueWorkerClient extends ClientBase {
   }
 
   /**
-   * Gets the value of a given {@code key}.
+   * Gets the value of a given {@code key} from a specific key-value block.
    *
    * @param blockId The id of the block
    * @return ByteBuffer of value, or null if not found
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized ByteBuffer get(final long blockId, final ByteBuffer key) throws IOException,
-      TachyonException {
+  public synchronized ByteBuffer get(final long blockId, final ByteBuffer key)
+      throws IOException, TachyonException {
     return retryRPC(new ClientBase.RpcCallableThrowsTachyonTException<ByteBuffer>() {
       @Override
       public ByteBuffer call() throws TachyonTException, TException {

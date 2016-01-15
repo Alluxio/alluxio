@@ -26,7 +26,7 @@ public interface PayloadReader {
    * Gets the key given the position of payload storage.
    *
    * @param pos position in the payload storage in bytes
-   * @return key in ByteBuffer
+   * @return key in {@code ByteBuffer}
    */
   ByteBuffer getKey(int pos);
 
@@ -34,7 +34,7 @@ public interface PayloadReader {
    * Gets the value given the position of payload storage.
    *
    * @param pos position in the payload storage in bytes
-   * @return value in ByteBuffer
+   * @return value in {@code ByteBuffer}
    */
   ByteBuffer getValue(int pos);
 }
