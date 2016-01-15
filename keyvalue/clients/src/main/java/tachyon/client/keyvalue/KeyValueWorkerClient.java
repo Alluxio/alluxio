@@ -17,6 +17,7 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -27,9 +28,9 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.KeyValueWorkerClientService;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.NetAddress;
 
@@ -89,6 +90,37 @@ public final class KeyValueWorkerClient extends ClientBase {
       @Override
       public ByteBuffer call() throws TachyonTException, TException {
         return mClient.get(blockId, key);
+      }
+    });
+  }
+
+  /**
+   * Gets a list of all keys in the partition.
+   *
+   * @param blockId The id of the partition
+   * @return A list of all keys
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized List<ByteBuffer> getAllKeys(final long blockId) throws IOException,
+      TachyonException {
+    return retryRPC(new ClientBase.RpcCallableThrowsTachyonTException<List<ByteBuffer>>() {
+      @Override
+      public List<ByteBuffer> call() throws TachyonTException, TException {
+        return mClient.getAllKeys(blockId);
+      }
+    });
+  }
+
+  /**
+   * @param blockId The id of the partition
+   * @return The number of (key, value) pairs in the partition
+   */
+  public synchronized int getSize(final long blockId) throws IOException, TachyonException {
+    return retryRPC(new ClientBase.RpcCallableThrowsTachyonTException<Integer>() {
+      @Override
+      public Integer call() throws TachyonTException, TException {
+        return mClient.getSize(blockId);
       }
     });
   }

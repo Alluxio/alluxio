@@ -106,5 +106,8 @@ public final class BaseKeyValuePartitionReader implements KeyValuePartitionReade
   public Iterator<KeyValuePair> iterator() {
     // TODO(cc): Implement this.
     return null;
+  @Override
+  public int size() throws IOException, TachyonException {
+    return mClient.getSize(mBlockId);
   }
 }

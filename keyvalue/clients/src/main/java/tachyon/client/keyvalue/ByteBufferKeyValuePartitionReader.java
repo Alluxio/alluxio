@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.exception.TachyonException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.ByteIOUtils;
 
@@ -104,5 +105,16 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
   public Iterator<KeyValuePair> iterator() {
     // TODO(cc): Implement this.
     return null;
+  @Override
+  public int size() throws IOException, TachyonException {
+    return mIndex.keyCount();
+  }
+
+  public Index getIndex() {
+    return mIndex;
+  }
+
+  public PayloadReader getPayloadReader() {
+    return mPayloadReader;
   }
 }
