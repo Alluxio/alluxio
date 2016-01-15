@@ -18,13 +18,14 @@ package tachyon.client.keyvalue;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.exception.TachyonException;
@@ -33,13 +34,11 @@ import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.io.BufferUtils;
 
 /**
- * Default implementation of {@link KeyValuePartitionReader} to talk to remote key-value worker to
- * get the value given a key.
- * <p>
- * This class is not thread-safe.
+ * Default implementation of {@link KeyValuePartitionReader} to talk to a remote key-value worker to
+ * get the value of a given key.
  */
-@PublicApi
-public final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
+@NotThreadSafe
+final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private KeyValueWorkerClient mClient;
@@ -49,10 +48,9 @@ public final class BaseKeyValuePartitionReader implements KeyValuePartitionReade
   // TODO(binfan): take parition id as input
   /**
    * Constructs {@link BaseKeyValuePartitionReader} given a block id.
-   * NOTE: this is not a public API
    *
    * @param blockId blockId of the key-value file to read from
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    * @throws IOException if a non-Tachyon exception occurs
    */
   BaseKeyValuePartitionReader(long blockId) throws TachyonException, IOException {
@@ -63,7 +61,7 @@ public final class BaseKeyValuePartitionReader implements KeyValuePartitionReade
     mClosed = false;
   }
 
-  // This could be slow when value size is large, use in cautious.
+  // This could be slow when value size is large, use with caution.
   @Override
   public byte[] get(byte[] key) throws IOException, TachyonException {
     ByteBuffer keyBuffer = ByteBuffer.wrap(key);
@@ -88,6 +86,14 @@ public final class BaseKeyValuePartitionReader implements KeyValuePartitionReade
     mClosed = true;
   }
 
+  /**
+   * Returns the value in {@link ByteBuffer} in this partition, or null if not found.
+   *
+   * @param key the key to lookup
+   * @return the value of this key
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
   private ByteBuffer getInternal(ByteBuffer key) throws IOException, TachyonException {
     Preconditions.checkState(!mClosed, "Can not query a reader closed");
     ByteBuffer value = mClient.get(mBlockId, key);

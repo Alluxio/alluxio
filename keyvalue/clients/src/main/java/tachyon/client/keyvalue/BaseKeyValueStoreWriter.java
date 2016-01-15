@@ -20,6 +20,8 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +29,6 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -39,11 +40,9 @@ import tachyon.util.io.BufferUtils;
 
 /**
  * Default implementation of {@link KeyValueStoreWriter} to create a Tachyon key-value store.
- * <p>
- * This class is not thread-safe.
  */
-@PublicApi
-public class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
+@NotThreadSafe
+class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonFileSystem mTfs = TachyonFileSystemFactory.get();

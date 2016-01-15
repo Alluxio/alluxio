@@ -19,7 +19,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Interface of key-value Index.
+ * Interface of key-value index. An implementation of this interface is supposed to index keys
+ * and capable of returning value of a given key from payload buffer.
  */
 public interface Index {
 

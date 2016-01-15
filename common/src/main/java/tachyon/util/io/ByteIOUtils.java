@@ -20,14 +20,14 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 /**
- * A collection of utility functions to read/write primitive value to byte array.
+ * A collection of utility functions to read/write primitive values from/to a byte array.
  */
 public final class ByteIOUtils {
 
   private ByteIOUtils() {} // prevent instantiation.
 
   /**
-   * Reads a specific byte value from the input byte array at given offset.
+   * Reads a specific byte value from the input byte array at the given offset.
    *
    * @param buf input byte array
    * @param pos offset into the byte buffer to read
@@ -39,7 +39,7 @@ public final class ByteIOUtils {
   }
 
   /**
-   * Reads a specific byte value from the input byte buffer at given offset.
+   * Reads a specific byte value from the input byte buffer at the given offset.
    *
    * @param buf input byte buffer
    * @param pos offset into the byte buffer to read
@@ -50,7 +50,7 @@ public final class ByteIOUtils {
   }
 
   /**
-   * Reads a specific short byte value (2 bytes) from the input byte array at given offset.
+   * Reads a specific short byte value (2 bytes) from the input byte array at the given offset.
    *
    * @param buf input byte buffer
    * @param pos offset into the byte buffer to read
@@ -62,7 +62,7 @@ public final class ByteIOUtils {
   }
 
   /**
-   * Reads a specific integer byte value (4 bytes) from the input byte array at given offset.
+   * Reads a specific integer byte value (4 bytes) from the input byte array at the given offset.
    *
    * @param buf input byte array
    * @param pos offset into the byte buffer to read
@@ -75,7 +75,7 @@ public final class ByteIOUtils {
   }
 
   /**
-   * Reads a specific integer byte value (4 bytes) from the input byte buffer at given offset.
+   * Reads a specific integer byte value (4 bytes) from the input byte buffer at the given offset.
    *
    * @param buf input byte buffer
    * @param pos offset into the byte buffer to read
@@ -102,7 +102,7 @@ public final class ByteIOUtils {
   }
 
   /**
-   * Writes a single byte value (1 byte) to the output byte array at given offset.
+   * Writes a single byte value (1 byte) to the output byte array at the given offset.
    *
    * @param buf output byte buffer
    * @param pos offset into the byte buffer to write
@@ -114,7 +114,7 @@ public final class ByteIOUtils {
   }
 
   /**
-   * Writes a single byte value (1 byte) to the output byte buffer at given offset.
+   * Writes a single byte value (1 byte) to the output byte buffer at the given offset.
    *
    * @param buf output byte buffer
    * @param pos offset into the byte buffer to write
@@ -130,7 +130,7 @@ public final class ByteIOUtils {
    *
    * @param out output stream
    * @param v byte value to write
-   * @throws IOException if an I/O error occurs. In particular, an <code>IOException</code> may be
+   * @throws IOException if an I/O error occurs; in particular, an {@code IOException} may be
    *         thrown if the output stream has been closed.
    */
   public static void writeByte(OutputStream out, byte v) throws IOException {
@@ -138,7 +138,7 @@ public final class ByteIOUtils {
   }
 
   /**
-   * Writes a specific short value (2 bytes) to the output byte buffer at given offset.
+   * Writes a specific short value (2 bytes) to the output byte buffer at the given offset.
    *
    * @param buf output byte buffer
    * @param pos offset into the byte buffer to write
@@ -155,7 +155,7 @@ public final class ByteIOUtils {
    *
    * @param out output stream
    * @param v short value to write
-   * @throws IOException if an I/O error occurs. In particular, an <code>IOException</code> may be
+   * @throws IOException if an I/O error occurs; in particular, an {@code IOException} may be
    *         thrown if the output stream has been closed.
    */
   public static void writeShort(OutputStream out, short v) throws IOException {
@@ -164,7 +164,7 @@ public final class ByteIOUtils {
   }
 
   /**
-   * Writes a specific integer value (4 bytes) to the output byte array at given offset.
+   * Writes a specific integer value (4 bytes) to the output byte array at the given offset.
    *
    * @param buf output byte array
    * @param pos offset into the byte buffer to write
@@ -179,7 +179,7 @@ public final class ByteIOUtils {
   }
 
   /**
-   * Writes a specific integer value (4 bytes) to the output byte buffer at given offset.
+   * Writes a specific integer value (4 bytes) to the output byte buffer at the given offset.
    *
    * @param buf output byte buffer
    * @param pos offset into the byte buffer to write
@@ -197,7 +197,7 @@ public final class ByteIOUtils {
    *
    * @param out output stream
    * @param v integer value to write
-   * @throws IOException if an I/O error occurs. In particular, an <code>IOException</code> may be
+   * @throws IOException if an I/O error occurs; in particular, an {@code IOException} may be
    *         thrown if the output stream has been closed.
    */
   public static void writeInt(OutputStream out, int v) throws IOException {
@@ -208,7 +208,7 @@ public final class ByteIOUtils {
   }
 
   /**
-   * Writes a specific long value (8 bytes) to the output byte array at given offset.
+   * Writes a specific long value (8 bytes) to the output byte array at the given offset.
    *
    * @param buf output byte array
    * @param pos offset into the byte buffer to write
@@ -231,7 +231,7 @@ public final class ByteIOUtils {
    *
    * @param out output stream
    * @param v long value to write
-   * @throws IOException if an I/O error occurs. In particular, an <code>IOException</code> may be
+   * @throws IOException if an I/O error occurs; in particular, an {@code IOException} may be
    *         thrown if the output stream has been closed.
    */
   public static void writeLong(OutputStream out, long v) throws IOException {
@@ -246,7 +246,12 @@ public final class ByteIOUtils {
   }
 
   /**
-   * Ensures there are len bytes from pos in buf.
+   * Ensures that the given buffer contains at least the given number of bytes after the given
+   * offset.
+   *
+   * @param buf input byte array
+   * @param pos position in the byte array to start writing
+   * @param len length of data to write from the given position
    */
   private static void checkBoundary(byte[] buf, int pos, int len) {
     if (pos + len > buf.length) {

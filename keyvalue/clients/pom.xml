@@ -5,7 +5,7 @@
     <artifactId>tachyon-keyvalue</artifactId>
     <version>0.9.0-SNAPSHOT</version>
   </parent>
-  <artifactId>tachyon-keyvalue-clients</artifactId>
+  <artifactId>tachyon-keyvalue-client</artifactId>
   <name>Tachyon Key Value Store - Clients</name>
   <description>Common utilities shared by Tachyon key-value store</description>
 
@@ -33,12 +33,10 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

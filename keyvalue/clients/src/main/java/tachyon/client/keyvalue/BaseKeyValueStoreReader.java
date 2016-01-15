@@ -20,6 +20,8 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +29,6 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -36,11 +37,9 @@ import tachyon.util.io.BufferUtils;
 
 /**
  * Default implementation of {@link KeyValueStoreReader} to access a Tachyon key-value store.
- * <p>
- * This class is not thread-safe.
  */
-@PublicApi
-public class BaseKeyValueStoreReader implements KeyValueStoreReader {
+@NotThreadSafe
+class BaseKeyValueStoreReader implements KeyValueStoreReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonConf mConf = ClientContext.getConf();
@@ -67,7 +66,6 @@ public class BaseKeyValueStoreReader implements KeyValueStoreReader {
 
   @Override
   public void close() {
-    // cleanup any opened clients.
   }
 
   @Override
@@ -84,7 +82,7 @@ public class BaseKeyValueStoreReader implements KeyValueStoreReader {
     Preconditions.checkNotNull(key);
     // TODO(binfan): improve the inefficient for-loop to binary search.
     for (PartitionInfo partition : mPartitions) {
-      // NOTE, keyStart and keyLimit are both inclusive
+      // NOTE: keyStart and keyLimit are both inclusive
       if (key.compareTo(partition.keyStart) >= 0 && key.compareTo(partition.keyLimit) <= 0) {
         long blockId = partition.blockId;
         KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId);

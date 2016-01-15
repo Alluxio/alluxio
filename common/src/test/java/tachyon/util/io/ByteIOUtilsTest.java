@@ -19,13 +19,16 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link ByteIOUtils}
+ * Unit tests for {@link ByteIOUtils}.
  */
-public class ByteIOUtilsTest {
+public final class ByteIOUtilsTest {
   private byte[] mBuf = new byte[1024];
 
+  /**
+   * Tests {@link ByteIOUtils#writeByte} and {@link ByteIOUtils#readByte}.
+   */
   @Test
-  public void readWriteByteTest() throws Exception {
+  public void readWriteByteTest() {
     long[] values = new long[] {0, 1, 2, 0x7f, 0xff};
     for (long i : values) {
       byte v = (byte) i;
@@ -34,8 +37,11 @@ public class ByteIOUtilsTest {
     }
   }
 
+  /**
+   * Tests {@link ByteIOUtils#writeShort} and {@link ByteIOUtils#readShort}.
+   */
   @Test
-  public void readWriteShortTest() throws Exception {
+  public void readWriteShortTest() {
     long[] values = new long[] {0, 1, 2, 0x7f, 0xff, 0xffff};
     for (long i : values) {
       short v = (short) i;
@@ -46,44 +52,34 @@ public class ByteIOUtilsTest {
     }
   }
 
+  /**
+   * Tests {@link ByteIOUtils#writeInt} and {@link ByteIOUtils#readInt}.
+   */
   @Test
-  public void readWriteIntTest() throws Exception {
+  public void readWriteIntTest() {
     long[] values = new long[] {0, 1, 2, 0x7f, 0xff, 0xffff, 0xffffff, 0xffffffff};
     for (long i : values) {
       int v = (int) i;
-      ByteIOUtils.writeInt(mBuf, 0, v);
-      Assert.assertEquals(v, ByteIOUtils.readInt(mBuf, 0));
-      ByteIOUtils.writeInt(mBuf, 1, v);
-      Assert.assertEquals(v, ByteIOUtils.readInt(mBuf, 1));
-      ByteIOUtils.writeInt(mBuf, 2, v);
-      Assert.assertEquals(v, ByteIOUtils.readInt(mBuf, 2));
-      ByteIOUtils.writeInt(mBuf, 3, v);
-      Assert.assertEquals(v, ByteIOUtils.readInt(mBuf, 3));
+      for (int pos = 0; pos < 4; pos ++) {
+        ByteIOUtils.writeInt(mBuf, pos, v);
+        Assert.assertEquals(v, ByteIOUtils.readInt(mBuf, pos));
+      }
     }
   }
 
+  /**
+   * Tests {@link ByteIOUtils#writeLong} and {@link ByteIOUtils#readLong}.
+   */
   @Test
-  public void readWriteLongTest() throws Exception {
+  public void readWriteLongTest() {
     long[] values =
         new long[] {0, 1, 2, 0x7f, 0xff, 0xffff, 0xffffff, 0xffffffff, 0xffffffffffL,
             0xffffffffffffL, 0xffffffffffffffL, 0xffffffffffffffffL};
     for (long v : values) {
-      ByteIOUtils.writeLong(mBuf, 0, v);
-      Assert.assertEquals(v, ByteIOUtils.readLong(mBuf, 0));
-      ByteIOUtils.writeLong(mBuf, 1, v);
-      Assert.assertEquals(v, ByteIOUtils.readLong(mBuf, 1));
-      ByteIOUtils.writeLong(mBuf, 2, v);
-      Assert.assertEquals(v, ByteIOUtils.readLong(mBuf, 2));
-      ByteIOUtils.writeLong(mBuf, 3, v);
-      Assert.assertEquals(v, ByteIOUtils.readLong(mBuf, 3));
-      ByteIOUtils.writeLong(mBuf, 4, v);
-      Assert.assertEquals(v, ByteIOUtils.readLong(mBuf, 4));
-      ByteIOUtils.writeLong(mBuf, 5, v);
-      Assert.assertEquals(v, ByteIOUtils.readLong(mBuf, 5));
-      ByteIOUtils.writeLong(mBuf, 6, v);
-      Assert.assertEquals(v, ByteIOUtils.readLong(mBuf, 6));
-      ByteIOUtils.writeLong(mBuf, 7, v);
-      Assert.assertEquals(v, ByteIOUtils.readLong(mBuf, 7));
+      for (int pos = 0; pos < 8; pos ++) {
+        ByteIOUtils.writeLong(mBuf, 0, v);
+        Assert.assertEquals(v, ByteIOUtils.readLong(mBuf, 0));
+      }
     }
   }
 }

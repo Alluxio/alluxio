@@ -18,6 +18,8 @@ package tachyon.client.keyvalue;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,7 @@ import tachyon.util.io.ByteIOUtils;
  * Reader that implements {@link KeyValuePartitionReader} to access a key-value file using random
  * access API.
  */
+@NotThreadSafe
 public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitionReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -42,7 +45,7 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
   private boolean mClosed;
 
   /**
-   * Constructs {@link ByteBufferKeyValuePartitionReader}
+   * Constructs {@link ByteBufferKeyValuePartitionReader}.
    *
    * @param fileBytes the byte buffer as underline storage to read from
    */

@@ -17,6 +17,8 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,13 +30,20 @@ import tachyon.client.OutStreamBase;
 import tachyon.util.io.ByteIOUtils;
 
 /**
- * Writer that implements {@link KeyValuePartitionWriter} using Tachyon file stream interface to
+ * Writer that implements {@link KeyValuePartitionWriter} using the Tachyon file stream interface to
  * generate a single-block key-value file.
  * <p>
- * This class is not thread-safe.
+ * A partition file consists of:
+ * <ul>
+ *   <li>A payload buffer which is an array of (key,value) pairs;</li>
+ *   <li>A index which is a hash table maps each key to the offset in bytes into the payload
+ *   buffer;</li>
+ *   <li>A 4-bytes pointer in the end indicating the offset of the index.</li>
+ * </ul>
+ *
  */
-// TODO(binfan): describe the key-value partition file format in javadoc
-public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
+@NotThreadSafe
+final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** handle to write to the underlying file */
@@ -54,8 +63,7 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
 
   /**
    * Constructs a {@link BaseKeyValuePartitionWriter} given an output stream.
-   * NOTE: this is not a public API
-
+   *
    * @param fileOutStream output stream to store the key-value file
    */
   BaseKeyValuePartitionWriter(OutStreamBase fileOutStream) {
@@ -63,11 +71,10 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
     // TODO(binfan): write a header in the file
 
     mPayloadWriter = new BasePayloadWriter(mFileOutStream);
-    // Use linear probing impl of index for now
     mIndex = LinearProbingIndex.createEmptyIndex();
     mClosed = false;
     mCanceled = false;
-    mMaxSizeBytes = ClientContext.getConf().getBytes(Constants.KEYVALUE_PARTITION_SIZE_BYTES_MAX);
+    mMaxSizeBytes = ClientContext.getConf().getBytes(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX);
   }
 
   @Override

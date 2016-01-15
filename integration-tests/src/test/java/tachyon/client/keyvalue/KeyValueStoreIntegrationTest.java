@@ -24,7 +24,6 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -36,8 +35,6 @@ public final class KeyValueStoreIntegrationTest {
   private static final byte[] KEY1 = "key1".getBytes();
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
-  private static final byte[] VALUE2 = "value2_bar".getBytes();
-  private static TachyonFileSystem sTfs;
   private static KeyValueStore sKVStore;
 
   private KeyValueStoreWriter mWriter;
@@ -48,11 +45,10 @@ public final class KeyValueStoreIntegrationTest {
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE,
           /* ensure key-value service is turned on */
-          Constants.KEYVALUE_ENABLED, "true");
+          Constants.KEY_VALUE_ENABLED, "true");
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sTfs = sLocalTachyonClusterResource.get().getClient();
     sKVStore = KeyValueStore.Factory.create();
   }
 
@@ -61,6 +57,12 @@ public final class KeyValueStoreIntegrationTest {
     mStoreUri = new TachyonURI(PathUtils.uniqPath());
   }
 
+
+  /**
+   * Tests creating and opening an empty store.
+   *
+   * @throws Exception if unexpected error happens
+   */
   @Test
   public void createAndOpenEmptyStoreTest() throws Exception {
     mWriter = sKVStore.create(mStoreUri);
@@ -72,6 +74,11 @@ public final class KeyValueStoreIntegrationTest {
     mReader.close();
   }
 
+  /**
+   * Tests creating and opening a store with one key.
+   *
+   * @throws Exception if unexpected error happens
+   */
   @Test
   public void createAndOpenStoreWithOneKeyTest() throws Exception {
     mWriter = sKVStore.create(mStoreUri);
@@ -84,6 +91,11 @@ public final class KeyValueStoreIntegrationTest {
     mReader.close();
   }
 
+  /**
+   * Tests creating and opening a store with a number of key.
+   *
+   * @throws Exception if unexpected error happens
+   */
   @Test
   public void createAndOpenStoreWithMultiKeysTest() throws Exception {
     final int numKeys = 100;
