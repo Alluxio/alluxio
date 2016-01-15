@@ -87,7 +87,7 @@ public final class ByteIOUtils {
   }
 
   /**
-   * Reads a specific long byte value (8 bytes) from the input byte array.
+   * Reads a specific long byte value (8 bytes) from the input byte array at the given offset.
    *
    * @param buf input byte buffer
    * @param pos offset into the byte buffer to read

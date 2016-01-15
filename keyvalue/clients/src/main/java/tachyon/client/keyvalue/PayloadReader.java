@@ -18,12 +18,12 @@ package tachyon.client.keyvalue;
 import java.nio.ByteBuffer;
 
 /**
- * Interface to access key and value from payload storage.
+ * Interface to access keys and values from the payload buffer.
  */
 public interface PayloadReader {
 
   /**
-   * Gets the key given the position of payload storage.
+   * Gets the key given the position of payload buffer.
    *
    * @param pos position in the payload storage in bytes
    * @return key in {@code ByteBuffer}
@@ -31,7 +31,7 @@ public interface PayloadReader {
   ByteBuffer getKey(int pos);
 
   /**
-   * Gets the value given the position of payload storage.
+   * Gets the value given the position of payload buffer.
    *
    * @param pos position in the payload storage in bytes
    * @return value in {@code ByteBuffer}

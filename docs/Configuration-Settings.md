@@ -63,8 +63,9 @@ The common configuration contains constants shared by different components.
 </tr>
 <tr>
   <td>tachyon.keyvalue.partition.size.bytes.max</td>
-  <td>1GB</td>
-  <td>Maximum allowable size (in bytes) of a single key-value partition in a store.</td>
+  <td>512MB</td>
+  <td>Maximum allowable size (in bytes) of a single key-value partition in a store. This value
+  should be no larger than the block size (tachyon.user.block.size.bytes.default)</td>
 </tr>
 <tr>
   <td>tachyon.max.columns</td>

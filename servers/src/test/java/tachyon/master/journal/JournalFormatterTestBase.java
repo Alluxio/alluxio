@@ -250,6 +250,7 @@ public abstract class JournalFormatterTestBase {
         .add(
             JournalEntry.newBuilder()
             .setCompletePartition(CompletePartitionEntry.newBuilder()
+                .setStoreId(TEST_FILE_ID)
                 .setBlockId(TEST_BLOCK_ID)
                 .setKeyLimit(TEST_KEY1)
                 .setKeyStart(TEST_KEY2))

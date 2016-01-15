@@ -28,7 +28,7 @@ import tachyon.worker.WorkerFactory;
 import tachyon.worker.block.BlockWorker;
 
 /**
- * Factory to create a {@link KeyValueWorker} instance
+ * Factory to create a {@link KeyValueWorker} instance.
  */
 public final class KeyValueWorkerFactory implements WorkerFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

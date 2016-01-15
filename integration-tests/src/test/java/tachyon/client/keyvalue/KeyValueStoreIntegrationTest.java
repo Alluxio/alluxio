@@ -28,14 +28,14 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for {@link KeyValueStore}.
+ * Integration tests for {@link KeyValueStores}.
  */
 public final class KeyValueStoreIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
   private static final byte[] KEY1 = "key1".getBytes();
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
-  private static KeyValueStore sKVStore;
+  private static KeyValueStores sKVStores;
 
   private KeyValueStoreWriter mWriter;
   private KeyValueStoreReader mReader;
@@ -49,7 +49,7 @@ public final class KeyValueStoreIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sKVStore = KeyValueStore.Factory.create();
+    sKVStores = KeyValueStores.Factory.create();
   }
 
   @Before
@@ -64,11 +64,11 @@ public final class KeyValueStoreIntegrationTest {
    */
   @Test
   public void createAndOpenEmptyStoreTest() throws Exception {
-    mWriter = sKVStore.create(mStoreUri);
+    mWriter = sKVStores.create(mStoreUri);
     Assert.assertNotNull(mWriter);
     mWriter.close();
 
-    mReader = sKVStore.open(mStoreUri);
+    mReader = sKVStores.open(mStoreUri);
     Assert.assertNotNull(mReader);
     mReader.close();
   }
@@ -80,11 +80,11 @@ public final class KeyValueStoreIntegrationTest {
    */
   @Test
   public void createAndOpenStoreWithOneKeyTest() throws Exception {
-    mWriter = sKVStore.create(mStoreUri);
+    mWriter = sKVStores.create(mStoreUri);
     mWriter.put(KEY1, VALUE1);
     mWriter.close();
 
-    mReader = sKVStore.open(mStoreUri);
+    mReader = sKVStores.open(mStoreUri);
     Assert.assertArrayEquals(VALUE1, mReader.get(KEY1));
     Assert.assertNull(mReader.get(KEY2));
     mReader.close();
@@ -100,7 +100,7 @@ public final class KeyValueStoreIntegrationTest {
     final int numKeys = 100;
     final int keyLength = 4; // 64 Byte key
     final int valueLength = 5 * Constants.KB; // 5KB value
-    mWriter = sKVStore.create(mStoreUri);
+    mWriter = sKVStores.create(mStoreUri);
     for (int i = 0; i < numKeys; i ++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = BufferUtils.getIncreasingByteArray(i, valueLength);
@@ -108,7 +108,7 @@ public final class KeyValueStoreIntegrationTest {
     }
     mWriter.close();
 
-    mReader = sKVStore.open(mStoreUri);
+    mReader = sKVStores.open(mStoreUri);
     for (int i = 0; i < numKeys; i ++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = mReader.get(key);
