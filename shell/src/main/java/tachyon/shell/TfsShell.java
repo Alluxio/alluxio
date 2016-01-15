@@ -93,7 +93,7 @@ public class TfsShell implements Closeable {
   /**
    * Method which prints the method to use all the commands.
    */
-  public void printUsage() {
+  private void printUsage() {
     System.out.println("Usage: java TfsShell");
     SortedSet<String> sortedCmds = new TreeSet<String>(mCommands.keySet());
     for (String cmd : sortedCmds) {
