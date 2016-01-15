@@ -190,8 +190,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         return;
       }
       setPathDirectories(currentPath, request);
-      fileId = mMaster.getFileSystemMaster().getFileId(currentPath);
-      filesInfo = mMaster.getFileSystemMaster().getFileInfoList(fileId);
+      filesInfo = mMaster.getFileSystemMaster().getFileInfoList(currentPath);
     } catch (FileDoesNotExistException fdne) {
       request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
@@ -213,7 +212,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       try {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
           FileBlockInfo blockInfo =
-              mMaster.getFileSystemMaster().getFileBlockInfoList(toAdd.getId()).get(0);
+              mMaster.getFileSystemMaster()
+                  .getFileBlockInfoList(new TachyonURI(toAdd.getAbsolutePath())).get(0);
           List<NetAddress> addrs = Lists.newArrayList();
           // add the in-memory block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {

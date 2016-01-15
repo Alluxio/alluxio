@@ -174,28 +174,28 @@ public final class MasterSourceTest {
 
   @Test
   public void getFileBlockInfoTest() throws Exception {
-    long multipleBlocksfileId = mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
-    writeBlockForFile(multipleBlocksfileId);
-    writeBlockForFile(multipleBlocksfileId);
-    completeFile(multipleBlocksfileId);
+    mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
+    writeBlockForFile(ROOT_FILE_URI);
+    writeBlockForFile(ROOT_FILE_URI);
+    completeFile(ROOT_FILE_URI);
 
-    mFileSystemMaster.getFileBlockInfoList(multipleBlocksfileId);
+    mFileSystemMaster.getFileBlockInfoList(ROOT_FILE_URI);
 
     Assert.assertEquals(1, mCounters.get("GetFileBlockInfoOps").getCount());
     Assert.assertEquals(2, mCounters.get("FileBlockInfosGot").getCount());
 
-    long singleBlocksfileId = mFileSystemMaster.create(TEST_URI, sNestedFileOptions);
-    writeBlockForFile(singleBlocksfileId);
-    completeFile(singleBlocksfileId);
+    mFileSystemMaster.create(TEST_URI, sNestedFileOptions);
+    writeBlockForFile(TEST_URI);
+    completeFile(TEST_URI);
 
-    mFileSystemMaster.getFileBlockInfoList(singleBlocksfileId);
+    mFileSystemMaster.getFileBlockInfoList(TEST_URI);
 
     Assert.assertEquals(2, mCounters.get("GetFileBlockInfoOps").getCount());
     Assert.assertEquals(3, mCounters.get("FileBlockInfosGot").getCount());
 
     // trying to get block info list for a non-existent file
     try {
-      mFileSystemMaster.getFileBlockInfoList(-1);
+      mFileSystemMaster.getFileBlockInfoList(new TachyonURI("/doesNotExist"));
       Assert.fail("get file block info for a non existing file must throw an exception");
     } catch (FileDoesNotExistException e) {
       // do nothing
@@ -207,9 +207,9 @@ public final class MasterSourceTest {
 
   @Test
   public void completeFileTest() throws Exception {
-    long singleBlocksfileId = mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
-    writeBlockForFile(singleBlocksfileId);
-    completeFile(singleBlocksfileId);
+    mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
+    writeBlockForFile(ROOT_FILE_URI);
+    completeFile(ROOT_FILE_URI);
 
     // mFileSystemMaster.completeFile(multipleBlocksfileId);
 
@@ -218,13 +218,13 @@ public final class MasterSourceTest {
 
     // trying to complete a completed file
     try {
-      completeFile(singleBlocksfileId);
+      completeFile(ROOT_FILE_URI);
       Assert.fail("complete an already completed file must throw an exception");
     } catch (FileAlreadyCompletedException e) {
       // do nothing
     }
 
-    mFileSystemMaster.getFileBlockInfoList(singleBlocksfileId);
+    mFileSystemMaster.getFileBlockInfoList(ROOT_FILE_URI);
 
     Assert.assertEquals(2, mCounters.get("CompleteFileOps").getCount());
     Assert.assertEquals(1, mCounters.get("FilesCompleted").getCount());
@@ -234,16 +234,15 @@ public final class MasterSourceTest {
   public void deletePathTest() throws Exception {
 
     // cannot delete root
-    long rootId = mFileSystemMaster.getFileId(ROOT_URI);
-    Assert.assertFalse(mFileSystemMaster.deleteFile(rootId, true));
+    Assert.assertFalse(mFileSystemMaster.deleteFile(ROOT_URI, true));
 
     Assert.assertEquals(1, mCounters.get("DeletePathOps").getCount());
     Assert.assertEquals(0, mCounters.get("PathsDeleted").getCount());
 
     // delete the file
-    long nestedId = createCompleteFileWithSingleBlock(NESTED_FILE_URI);
+    createCompleteFileWithSingleBlock(NESTED_FILE_URI);
 
-    mFileSystemMaster.deleteFile(nestedId, false);
+    mFileSystemMaster.deleteFile(NESTED_FILE_URI, false);
 
     Assert.assertEquals(2, mCounters.get("DeletePathOps").getCount());
     Assert.assertEquals(1, mCounters.get("PathsDeleted").getCount());
@@ -251,9 +250,9 @@ public final class MasterSourceTest {
 
   @Test
   public void getNewBlockIdForFileTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
-    long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
+    long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
 
     Assert.assertEquals(1, mCounters.get("GetNewBlockOps").getCount());
@@ -261,29 +260,29 @@ public final class MasterSourceTest {
 
   @Test
   public void setStateTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
 
-    mFileSystemMaster.setState(fileId, SetAttributeOptions.defaults());
+    mFileSystemMaster.setState(NESTED_FILE_URI, SetAttributeOptions.defaults());
 
     Assert.assertEquals(1, mCounters.get("SetStateOps").getCount());
   }
 
   @Test
   public void filePersistedTest() throws Exception {
-    long fileId = createCompleteFileWithSingleBlock(NESTED_FILE_URI);
+    createCompleteFileWithSingleBlock(NESTED_FILE_URI);
 
-    mFileSystemMaster.setState(fileId, SetAttributeOptions.defaults().setPersisted(true));
+    mFileSystemMaster.setState(NESTED_FILE_URI, SetAttributeOptions.defaults().setPersisted(true));
 
     Assert.assertEquals(1, mCounters.get("FilesPersisted").getCount());
   }
 
   @Test
   public void renameTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
 
     // try to rename a file to root
     try {
-      mFileSystemMaster.rename(fileId, ROOT_URI);
+      mFileSystemMaster.rename(NESTED_FILE_URI, ROOT_URI);
       Assert.fail("Renaming to root should fail.");
     } catch (Exception e) {
       // Expected
@@ -293,7 +292,7 @@ public final class MasterSourceTest {
     Assert.assertEquals(0, mCounters.get("PathsRenamed").getCount());
 
     // move a nested file to a root file
-    mFileSystemMaster.rename(fileId, TEST_URI);
+    mFileSystemMaster.rename(NESTED_FILE_URI, TEST_URI);
 
     Assert.assertEquals(2, mCounters.get("RenamePathOps").getCount());
     Assert.assertEquals(1, mCounters.get("PathsRenamed").getCount());
@@ -301,19 +300,18 @@ public final class MasterSourceTest {
 
   @Test
   public void freeTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
-    long blockId = writeBlockForFile(fileId);
+    mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
+    long blockId = writeBlockForFile(NESTED_FILE_URI);
     Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // cannot free directory with recursive argument to false
-    long dirId = mFileSystemMaster.getFileId(NESTED_FILE_URI.getParent());
-    Assert.assertFalse(mFileSystemMaster.free(dirId, false));
+    Assert.assertFalse(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), false));
 
     Assert.assertEquals(1, mCounters.get("FreeFileOps").getCount());
     Assert.assertEquals(0, mCounters.get("FilesFreed").getCount());
 
     // free the file
-    Assert.assertTrue(mFileSystemMaster.free(mFileSystemMaster.getFileId(NESTED_FILE_URI), false));
+    Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI, false));
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     Assert.assertEquals(2, mCounters.get("FreeFileOps").getCount());
@@ -347,26 +345,24 @@ public final class MasterSourceTest {
     Assert.assertEquals(1, mCounters.get("UnmountOps").getCount());
   }
 
-  private long createCompleteFileWithSingleBlock(TachyonURI uri) throws Exception {
-    long fileId = mFileSystemMaster.create(uri, sNestedFileOptions);
-    long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
+  private void createCompleteFileWithSingleBlock(TachyonURI path) throws Exception {
+    mFileSystemMaster.create(path, sNestedFileOptions);
+    long blockId = mFileSystemMaster.getNewBlockIdForFile(path);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, "MEM", blockId, Constants.KB);
     CompleteFileOptions options =
         new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(Constants.KB).build();
-    mFileSystemMaster.completeFile(fileId, options);
-    return fileId;
+    mFileSystemMaster.completeFile(path, options);
   }
 
-  private long writeBlockForFile(long fileId) throws Exception {
-    long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
+  private long writeBlockForFile(TachyonURI path) throws Exception {
+    long blockId = mFileSystemMaster.getNewBlockIdForFile(path);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, "MEM", blockId, Constants.KB);
     return blockId;
   }
 
-  private long completeFile(long fileId) throws Exception {
+  private void completeFile(TachyonURI path) throws Exception {
     CompleteFileOptions options =
         new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(Constants.KB).build();
-    mFileSystemMaster.completeFile(fileId, options);
-    return fileId;
+    mFileSystemMaster.completeFile(path, options);
   }
 }
