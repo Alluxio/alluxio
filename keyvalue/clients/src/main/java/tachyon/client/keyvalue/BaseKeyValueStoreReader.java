@@ -18,7 +18,6 @@ package tachyon.client.keyvalue;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.util.Iterator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -100,13 +99,8 @@ public class BaseKeyValueStoreReader implements KeyValueStoreReader {
     return null;
   }
 
-  /**
-   * @return an {@link Iterator<KeyValuePair>} to iterate over all (key, value) pairs in the store
-   * without assumption of the iteration order
-   */
   @Override
-  public Iterator<KeyValuePair> iterator() {
-    // TODO(cc): Implement this.
-    return null;
+  public KeyValueIterator iterator() throws IOException, TachyonException {
+    return new KeyValueStoreIterator(mPartitions);
   }
 }
