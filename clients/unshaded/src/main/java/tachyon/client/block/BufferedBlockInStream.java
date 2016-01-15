@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
@@ -29,13 +31,13 @@ import tachyon.util.io.BufferUtils;
 
 /**
  * Provides a stream API to read a block from Tachyon. An instance extending this class can be
- * obtained by calling {@link TachyonBlockStore#getInStream(long)}. The buffer size of the stream
- * can be set through configuration. Multiple {@link BufferedBlockInStream}s can be opened for a
- * block. This class is not thread safe and should only be used by one thread.
+ * obtained by calling {@link TachyonBlockStore#getInStream}. The buffer size of the stream can be
+ * set through configuration. Multiple {@link BufferedBlockInStream}s can be opened for a block.
  *
  * This class provides the same methods as a Java {@link InputStream} with additional methods from
  * Tachyon Stream interfaces.
  */
+@NotThreadSafe
 public abstract class BufferedBlockInStream extends BlockInStream {
   /** Current position of the stream, relative to the start of the block. */
   private long mPos;

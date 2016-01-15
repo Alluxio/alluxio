@@ -24,27 +24,34 @@ import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Object;
 
 /**
- * This class is a wrapper around the input stream returned by
- * {@link S3Object#getDataInputStream()}. The main purpose is to provide a faster skip method, as
+ * A stream for reading a file from S3. The main purpose is to provide a faster skip method, as
  * the underlying implementation will read and discard bytes until the number to skip has been
  * reached. This input stream returns 0 when calling read with an empty buffer.
  */
 public class S3InputStream extends InputStream {
 
-  /** Bucket name of the Tachyon S3 bucket */
+  /** Bucket name of the Tachyon S3 bucket. */
   private final String mBucketName;
-  /** Key of the file in S3 to read */
+  /** Key of the file in S3 to read. */
   private final String mKey;
-  /** The JetS3t client for S3 operations */
+  /** The JetS3t client for S3 operations. */
   private final S3Service mClient;
 
-  /** The storage object that will be updated on each large skip */
+  /** The storage object that will be updated on each large skip. */
   private S3Object mObject;
-  /** The underlying input stream */
+  /** The underlying input stream. */
   private BufferedInputStream mInputStream;
-  /** Position of the S3InputStream stream */
+  /** Position of the stream. */
   private long mPos;
 
+  /**
+   * Creates a new instance of {@link S3InputStream}.
+   *
+   * @param bucketName the name of the bucket
+   * @param key the name of the bucket
+   * @param client the client for S3
+   * @throws ServiceException if a service exception occurs
+   */
   S3InputStream(String bucketName, String key, S3Service client) throws ServiceException {
     mBucketName = bucketName;
     mKey = key;

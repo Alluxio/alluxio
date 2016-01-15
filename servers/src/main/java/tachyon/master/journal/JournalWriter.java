@@ -19,6 +19,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +46,7 @@ import tachyon.underfs.UnderFileSystem;
  * The latest state can be reconstructed by reading the checkpoint file, and applying all the
  * completed logs and then the remaining log in progress.
  */
+@ThreadSafe
 public final class JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -151,7 +154,7 @@ public final class JournalWriter {
    *
    * @throws IOException if an I/O error occurs
    */
-  public void close() throws IOException {
+  public synchronized void close() throws IOException {
     if (mCheckpointOutputStream != null) {
       mCheckpointOutputStream.close();
     }
@@ -168,7 +171,7 @@ public final class JournalWriter {
    * @return the output stream for the current log file
    * @throws IOException if an I/O error occurs
    */
-  private OutputStream openCurrentLog() throws IOException {
+  private synchronized OutputStream openCurrentLog() throws IOException {
     String currentLogFile = mJournal.getCurrentLogFilePath();
     OutputStream os = mUfs.create(currentLogFile);
     LOG.info("Opened current log file: {}", currentLogFile);
@@ -180,7 +183,7 @@ public final class JournalWriter {
    *
    * @throws IOException if an I/O error occurs
    */
-  private void deleteCompletedLogs() throws IOException {
+  private synchronized void deleteCompletedLogs() throws IOException {
     LOG.info("Deleting all completed log files...");
     // Loop over all complete logs starting from the beginning.
     // TODO(gpang): should the deletes start from the end?
@@ -205,7 +208,7 @@ public final class JournalWriter {
    *
    * @throws IOException if an I/O error occurs
    */
-  private void completeCurrentLog() throws IOException {
+  private synchronized void completeCurrentLog() throws IOException {
     String currentLog = mJournal.getCurrentLogFilePath();
     if (!mUfs.exists(currentLog)) {
       // All logs are already complete, so nothing to do.
