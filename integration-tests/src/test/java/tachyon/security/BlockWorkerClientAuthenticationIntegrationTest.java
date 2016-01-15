@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -50,6 +51,11 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
   @Before
   public void before() throws Exception {
     mExecutorService = Executors.newFixedThreadPool(2);
+    clearLoginUser();
+  }
+
+  @After
+  public void after() throws Exception {
     clearLoginUser();
   }
 
