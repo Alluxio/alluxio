@@ -42,7 +42,6 @@ public final class BaseKeyValuePartitionWriterTest {
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
-
   /**
    * Tests {@link BaseKeyValuePartitionWriter#put(byte[], byte[])}.
    */

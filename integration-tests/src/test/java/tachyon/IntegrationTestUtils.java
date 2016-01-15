@@ -15,11 +15,11 @@
 
 package tachyon;
 
-import org.powermock.reflect.Whitebox;
-
 import tachyon.util.CommonUtils;
+import tachyon.worker.TachyonWorkerPrivateAccess;
 import tachyon.worker.file.FileDataManager;
 import tachyon.worker.file.FileSystemWorker;
+import tachyon.worker.file.FileSystemWorkerPrivateAccess;
 
 /**
  * Util methods for writing integration tests.
@@ -49,10 +49,9 @@ public final class IntegrationTestUtils {
   public static void waitForPersist(LocalTachyonClusterResource localTachyonClusterResource,
       long fileId, int timeoutMs) {
     long start = System.currentTimeMillis();
-    FileSystemWorker fileSystemWorker = Whitebox
-        .getInternalState(localTachyonClusterResource.get().getWorker(), "mFileSystemWorker");
-    FileDataManager fileDataManager =
-        Whitebox.getInternalState(fileSystemWorker, "mFileDataManager");
+    FileSystemWorker worker = TachyonWorkerPrivateAccess
+        .getFileSystemWorker(localTachyonClusterResource.get().getWorker());
+    FileDataManager fileDataManager = FileSystemWorkerPrivateAccess.getFileDataManager(worker);
     while (!fileDataManager.isFilePersisted(fileId)) {
       if (System.currentTimeMillis() - start > timeoutMs) {
         throw new RuntimeException("Timed out waiting for " + fileId + " to be persisted");

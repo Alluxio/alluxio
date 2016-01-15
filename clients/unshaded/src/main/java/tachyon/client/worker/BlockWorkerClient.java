@@ -20,6 +20,8 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
@@ -55,6 +57,7 @@ import tachyon.worker.NetAddress;
  * Since {@link BlockWorkerClientService.Client} is not thread safe, this class has to guarantee
  * thread safety.
  */
+@ThreadSafe
 public final class BlockWorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
@@ -163,7 +166,7 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   @Override
-  protected void beforeDisconnect() {
+  protected synchronized void beforeDisconnect() {
     // Heartbeat to send the client metrics.
     if (mHeartbeatExecutor != null) {
       mHeartbeatExecutor.heartbeat();
@@ -171,14 +174,14 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   @Override
-  protected void afterDisconnect() {
+  protected synchronized void afterDisconnect() {
     if (mHeartbeat != null) {
       mHeartbeat.cancel(true);
     }
   }
 
   @Override
-  protected TachyonService.Client getClient() {
+  protected synchronized TachyonService.Client getClient() {
     return mClient;
   }
 
