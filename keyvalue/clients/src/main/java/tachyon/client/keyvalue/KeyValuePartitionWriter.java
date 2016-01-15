@@ -27,14 +27,14 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
 
 /**
- * Interface of the writer to create a Tachyon key-value partition.
+ * Interface for a writer which creates a Tachyon key-value partition.
  */
 public interface KeyValuePartitionWriter extends Closeable, Cancelable {
 
   class Factory {
     /**
-     * Factory method to create a {@link KeyValuePartitionWriter} instance that writes to a new the
-     * key-value data in a new partition file in Tachyon.
+     * Factory method to create a {@link KeyValuePartitionWriter} instance that writes key-value
+     * data to a new partition file in Tachyon.
      *
      * @param uri URI of the key-value partition file to write to
      * @return an instance of a {@link KeyValuePartitionWriter}
@@ -52,16 +52,16 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
 
   /**
    * Adds a key and the associated value to this writer.
-   * TODO(binfan): throw already exists exception if key is already inserted.
    *
    * @param key key to put, cannot be null
    * @param value value to put, cannot be null
    * @throws IOException if a non-Tachyon exception occurs
    */
+  // TODO(binfan): throw already exists exception if the key is already inserted.
   void put(byte[] key, byte[] value) throws IOException;
 
   /**
-   * @return whether this writer can take more key-value pairs
+   * @return whether this writer is full to take any more key-value pairs
    */
   boolean isFull();
 

@@ -28,7 +28,7 @@ import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
 /**
- * unit tests of {@link BaseKeyValuePartitionWriter}
+ * Unit test of {@link BaseKeyValuePartitionWriter}.
  */
 public final class BaseKeyValuePartitionWriterTest {
   private static final byte[] KEY1 = "key1".getBytes();
@@ -42,11 +42,19 @@ public final class BaseKeyValuePartitionWriterTest {
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
+
+  /**
+   * Tests {@link BaseKeyValuePartitionWriter#put(byte[], byte[])}.
+   */
   @Test
   public void putTest() throws Exception {
     mWriter.put(KEY1, VALUE1);
   }
 
+  /**
+   * Tests {@link BaseKeyValuePartitionWriter#put(byte[], byte[])}, expecting it failed when
+   * writing to a closed writer.
+   */
   @Test
   public void putAfterCloseTest() throws Exception {
     mWriter.close();
@@ -54,6 +62,10 @@ public final class BaseKeyValuePartitionWriterTest {
     mWriter.put(KEY1, VALUE1);
   }
 
+  /**
+   * Tests {@link BaseKeyValuePartitionWriter#put(byte[], byte[])}, expecting it failed when
+   * writing to a canceled writer.
+   */
   @Test
   public void putAfterCancelTest() throws Exception {
     mWriter.cancel();
@@ -61,6 +73,11 @@ public final class BaseKeyValuePartitionWriterTest {
     mWriter.put(KEY1, VALUE1);
   }
 
+  /**
+   * Tests {@link BaseKeyValuePartitionWriter#close()} after
+   * {@link BaseKeyValuePartitionWriter#cancel()}, expecting a close is a no-op after the
+   * previous cancel.
+   */
   @Test
   public void closeAfterCancelTest() throws Exception {
     mWriter.cancel();
@@ -73,6 +90,11 @@ public final class BaseKeyValuePartitionWriterTest {
     Assert.assertTrue(mOutStream.isCanceled());
   }
 
+  /**
+   * Tests {@link BaseKeyValuePartitionWriter#close()} after
+   * {@link BaseKeyValuePartitionWriter#close()}, expecting a close is a no-op after the
+   * previous close.
+   */
   @Test
   public void closeAfterCloseTest() throws Exception {
     // Expect the underline stream to be closed
@@ -86,6 +108,9 @@ public final class BaseKeyValuePartitionWriterTest {
     Assert.assertFalse(mOutStream.isCanceled());
   }
 
+  /**
+   * Tests {@link BaseKeyValuePartitionWriter#put} and then {@link BaseKeyValuePartitionReader#get}.
+   */
   @Test
   public void putAndGetTest() throws Exception {
     mWriter.put(KEY1, VALUE1);
@@ -100,6 +125,9 @@ public final class BaseKeyValuePartitionWriterTest {
     Assert.assertNull(reader.get("NoSuchKey".getBytes()));
   }
 
+  /**
+   * Tests {@link BaseKeyValuePartitionWriter#isFull()} works.
+   */
   @Test
   public void isFullTest() throws Exception {
     long size = mWriter.byteCount() + KEY1.length + VALUE1.length;
@@ -113,6 +141,9 @@ public final class BaseKeyValuePartitionWriterTest {
     ClientContext.reset(originalConf);
   }
 
+  /**
+   * Tests {@link BaseKeyValuePartitionWriter#keyCount()} works.
+   */
   @Test
   public void keyCountTest() throws Exception {
     Assert.assertEquals(0, mWriter.keyCount());
@@ -122,6 +153,9 @@ public final class BaseKeyValuePartitionWriterTest {
     Assert.assertEquals(2, mWriter.keyCount());
   }
 
+  /**
+   * Tests {@link BaseKeyValuePartitionWriter#byteCount()} works.
+   */
   @Test
   public void byteCountTest() throws Exception {
     mWriter.put(KEY1, VALUE1);

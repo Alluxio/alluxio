@@ -23,7 +23,7 @@ import tachyon.annotation.PublicApi;
 import tachyon.exception.TachyonException;
 
 /**
- * Interface for readers to access a key-value store in Tachyon.
+ * Interface for readers which accesses key-value stores in Tachyon.
  */
 @PublicApi
 public interface KeyValueStoreReader extends Closeable {

@@ -18,18 +18,18 @@ package tachyon.client.keyvalue;
 import java.io.IOException;
 
 /**
- * Interface to add key and value to payload storage.
+ * Interface to write to the payload buffer.
  */
 public interface PayloadWriter {
 
   /**
-   * Inserts key and value into payload, returns an offset indicating where the key and value
-   * data is stored in payload storage.
+   * Inserts a key and a value into the payload buffer, returns an offset indicating where the key
+   * and value data is stored in payload buffer.
    *
    * @param key bytes of key
-   * @param value offset of this key in payload
-   * @return the offset of this key-value pair in payload storage
-   * @throws IOException if error occurs writing the key and value to output stream
+   * @param value bytes of value
+   * @return the offset of this key-value pair in payload buffer
+   * @throws IOException if error occurs writing the key and value to payload buffer
    */
   int insert(byte[] key, byte[] value) throws IOException;
 }

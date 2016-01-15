@@ -18,6 +18,8 @@ package tachyon.client.keyvalue;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
@@ -27,16 +29,24 @@ import tachyon.util.io.ByteIOUtils;
 
 /**
  * Index structure using linear probing. It keeps a collection of buckets. Each bucket stores a
- * fingerprint (in byte) and an offset (in int) indicating where to find the key and value in
- * payload.
- *
+ * fingerprint (a byte) and an offset (an int) indicating where to find the key and the value in
+ * the payload.
+ * <p>
+ * The index hash table looks like:
+ * =====================================
  * | fingerprint (byte) | offset (int) |
+ * =====================================
+ * | fingerprint (byte) | offset (int) |
+ * =====================================
+ * |                ...                |
  *
  * If fingerprint is zero, it indicates the bucket is empty.
- *
- * This class is not thread-safe.
  */
+@NotThreadSafe
 public final class LinearProbingIndex implements Index {
+  /** Max number of probes for linear probing */
+  public static final int MAX_PROBES = 50;
+
   // TODO(binfan): pick better seeds
   private static final int INDEX_HASHER_SEED = 0x1311;
   private static final int FINGERPRINT_HASHER_SEED = 0x7a91;
@@ -45,8 +55,6 @@ public final class LinearProbingIndex implements Index {
   /** Hash function to calculate fingerprint */
   private static final HashFunction FINGERPRINT_HASHER =
       Hashing.murmur3_32(FINGERPRINT_HASHER_SEED);
-  /** Max number of probes for linear probing */
-  private static final int MAX_PROBES = 50;
   /** Size of each bucket in bytes */
   private static final int BUCKET_SIZE_BYTES = Constants.BYTES_IN_INTEGER + 1;
 
@@ -63,9 +71,16 @@ public final class LinearProbingIndex implements Index {
     return new LinearProbingIndex(ByteBuffer.wrap(buffer), numBuckets, 0);
   }
 
+  /**
+   * Creates an instance of linear probing index by loading its content from a buffer. The
+   * {@link ByteBuffer#position} must be at the beginning of index.
+   *
+   * @param buffer intput buffer storing the index
+   * @return an instance of linear probing index
+   */
   public static LinearProbingIndex loadFromByteArray(ByteBuffer buffer) {
     int numBuckets = buffer.limit() / BUCKET_SIZE_BYTES;
-    // TODO(binfan): fix the key count which is wrong now.
+    // TODO(binfan): fix the key count which is wrong now, see TACHYON-1555
     return new LinearProbingIndex(buffer, numBuckets, 0);
   }
 
@@ -133,7 +148,7 @@ public final class LinearProbingIndex implements Index {
   }
 
   /**
-   * Hashes the key to a bucket index in non-negative integer value.
+   * Hashes a key in byte array to a bucket index in non-negative integer value.
    *
    * @param key key in byte array
    * @return bucket index of key
@@ -144,13 +159,19 @@ public final class LinearProbingIndex implements Index {
     return (v >= 0) ? v : -v;
   }
 
+  /**
+   * Hashes a key in {@code ByteBuffer} to a bucket index in non-negative integer value.
+   *
+   * @param key key in byte array
+   * @return bucket index of key
+   */
   public int indexHash(ByteBuffer key) {
     byte[] keyBytes = BufferUtils.newByteArrayFromByteBuffer(key);
     return indexHash(keyBytes);
   }
 
   /**
-   * Hashes the key into a non-zero fingerprint in byte.
+   * Hashes a key in byte array into a non-zero, one byte fingerprint.
    *
    * @param key key in byte array
    * @return value of fingerprint in byte which is never zero
@@ -161,6 +182,12 @@ public final class LinearProbingIndex implements Index {
     return (byte) ((hash == 0) ? 1 : hash);
   }
 
+  /**
+   * Hashes a key in {@code ByteBuffer} into a non-zero, one byte fingerprint.
+   *
+   * @param key key in byte array
+   * @return value of fingerprint in byte which is never zero
+   */
   public byte fingerprintHash(ByteBuffer key) {
     byte[] keyBytes = BufferUtils.newByteArrayFromByteBuffer(key);
     return fingerprintHash(keyBytes);

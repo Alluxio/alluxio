@@ -25,7 +25,7 @@ import java.nio.ByteBuffer;
 public interface Index {
 
   /**
-   * Puts a key into the index and store key and value data into payload storage.
+   * Puts a key into the index and stores key and value data into payload storage.
    *
    * @param key bytes of key
    * @param value bytes of value
@@ -45,7 +45,7 @@ public interface Index {
   ByteBuffer get(ByteBuffer key, PayloadReader reader) throws IOException;
 
   /**
-   * @return byte array of this index
+   * @return byte array which contains raw bytes of this index
    */
   byte[] getBytes();
 
