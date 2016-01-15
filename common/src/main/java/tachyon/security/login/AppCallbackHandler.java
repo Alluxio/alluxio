@@ -31,7 +31,11 @@ public class AppCallbackHandler implements CallbackHandler {
   private String mUserName;
 
   public AppCallbackHandler(TachyonConf conf) {
-    mUserName = conf.get(Constants.SECURITY_LOGIN_USERNAME);
+    if (conf.containsKey(Constants.SECURITY_LOGIN_USERNAME)) {
+      mUserName = conf.get(Constants.SECURITY_LOGIN_USERNAME);
+    } else {
+      mUserName = "";
+    }
   }
 
   @Override
