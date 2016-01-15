@@ -21,7 +21,6 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
-import tachyon.util.OSUtils;
 
 /**
  * Factory for {@link LocalUnderFileSystem} instances
