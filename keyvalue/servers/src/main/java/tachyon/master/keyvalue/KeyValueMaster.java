@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,9 +58,8 @@ import tachyon.util.io.PathUtils;
 /**
  * The key-value master stores key-value store information in Tachyon, including the partitions of
  * each key-value store.
- *
- * This class is thread-safe and public methods accessing internal maps are synchronized.
  */
+@ThreadSafe
 public final class KeyValueMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final FileSystemMaster mFileSystemMaster;
@@ -80,8 +81,8 @@ public final class KeyValueMaster extends MasterBase {
   }
 
   /**
-   * @param fileSystemMaster handler to a {@link FileSystemMaster} instance
-   * @param journal the journal
+   * @param fileSystemMaster handler to a {@link FileSystemMaster} to use for filesystem operations
+   * @param journal a {@link Journal} to write journal entries to
    */
   public KeyValueMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal, 2);
@@ -123,8 +124,8 @@ public final class KeyValueMaster extends MasterBase {
   }
 
   @Override
-  public synchronized void streamToJournalCheckpoint(JournalOutputStream outputStream) throws
-      IOException {
+  public synchronized void streamToJournalCheckpoint(JournalOutputStream outputStream)
+      throws IOException {
     for (Map.Entry<Long, List<PartitionInfo>> entry : mCompleteStoreToPartitions.entrySet()) {
       long fileId = entry.getKey();
       List<PartitionInfo> partitions = entry.getValue();
@@ -286,24 +287,20 @@ public final class KeyValueMaster extends MasterBase {
   }
 
   private JournalEntry newCreateStoreEntry(long fileId) {
-    CreateStoreEntry createStore = CreateStoreEntry.newBuilder()
-        .setStoreId(fileId).build();
+    CreateStoreEntry createStore = CreateStoreEntry.newBuilder().setStoreId(fileId).build();
     return JournalEntry.newBuilder().setCreateStore(createStore).build();
   }
 
   private JournalEntry newCompletePartitionEntry(long fileId, PartitionInfo info) {
     CompletePartitionEntry completePartition =
-        CompletePartitionEntry.newBuilder()
-            .setStoreId(fileId)
-            .setBlockId(info.blockId)
+        CompletePartitionEntry.newBuilder().setStoreId(fileId).setBlockId(info.blockId)
             .setKeyStartBytes(ByteString.copyFrom(info.keyStart))
             .setKeyLimitBytes(ByteString.copyFrom(info.keyLimit)).build();
     return JournalEntry.newBuilder().setCompletePartition(completePartition).build();
   }
 
   private JournalEntry newCompleteStoreEntry(long fileId) {
-    CompleteStoreEntry completeStore = CompleteStoreEntry.newBuilder()
-        .setStoreId(fileId).build();
+    CompleteStoreEntry completeStore = CompleteStoreEntry.newBuilder().setStoreId(fileId).build();
     return JournalEntry.newBuilder().setCompleteStore(completeStore).build();
   }
 }

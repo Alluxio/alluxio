@@ -39,6 +39,7 @@ import com.google.common.collect.Range;
 import com.google.protobuf.ByteString;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import tachyon.proto.journal.Block.BlockInfoEntry;
 import tachyon.proto.journal.File.AddMountPointEntry;
@@ -64,7 +65,6 @@ import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
 import tachyon.proto.journal.RawTable.RawTableEntry;
 import tachyon.proto.journal.RawTable.UpdateMetadataEntry;
 import tachyon.security.authorization.PermissionStatus;
-import tachyon.TachyonURI;
 import tachyon.util.io.BufferUtils;
 
 /**

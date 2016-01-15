@@ -17,6 +17,8 @@ package tachyon.master.keyvalue;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.exception.TachyonException;
@@ -27,6 +29,7 @@ import tachyon.thrift.TachyonTException;
 /**
  * This class is a Thrift handler for key-value master RPCs invoked by a Tachyon client.
  */
+@ThreadSafe
 public final class KeyValueMasterClientServiceHandler implements KeyValueMasterClientService.Iface {
   private final KeyValueMaster mKeyValueMaster;
 

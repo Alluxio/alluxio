@@ -18,6 +18,8 @@ package tachyon.worker.keyvalue;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,10 +38,10 @@ import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
 
 /**
- * Class to read a KeyValue Block.
- *
- * TODO(binfan): move logic outside and make this a simple wrapper.
+ * RPC service handler on worker side to read a local key-value block.
  */
+// TODO(binfan): move logic outside and make this a simple wrapper.
+@ThreadSafe
 public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

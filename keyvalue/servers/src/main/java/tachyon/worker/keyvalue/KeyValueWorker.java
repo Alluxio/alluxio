@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TProcessor;
 
 import com.google.common.base.Preconditions;
@@ -33,8 +35,9 @@ import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockDataManager;
 
 /**
- * A worker serving KeyValue queries. This
+ * A worker serving key-value queries.
  */
+@ThreadSafe
 public class KeyValueWorker extends WorkerBase {
   /** Configuration object */
   private final TachyonConf mTachyonConf;
@@ -44,7 +47,7 @@ public class KeyValueWorker extends WorkerBase {
   private final KeyValueWorkerClientServiceHandler mKeyValueServiceHandler;
 
   /**
-   * Constructor of KeyValueWorker.
+   * Constructor of {@link KeyValueWorker}.
    *
    * @param blockDataManager handler to the {@link BlockDataManager}
    */
@@ -69,9 +72,13 @@ public class KeyValueWorker extends WorkerBase {
 
   @Override
   public void start() throws IOException {
+    // No heartbeat thread to start
+    // Thrift service is multiplexed with other services and will be started together with others
   }
 
   @Override
   public void stop() throws IOException {
+    // No heartbeat thread to stop
+    // Thrift service is multiplexed with other services and will be stopped together with others
   }
 }
