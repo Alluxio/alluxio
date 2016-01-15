@@ -17,6 +17,8 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
@@ -64,9 +66,16 @@ public final class LinearProbingIndex implements Index {
   }
 
   public static LinearProbingIndex loadFromByteArray(ByteBuffer buffer) {
-    int numBuckets = buffer.limit() / BUCKET_SIZE_BYTES;
-    // TODO(binfan): fix the key count which is wrong now.
-    return new LinearProbingIndex(buffer, numBuckets, 0);
+    int numBuckets = 0;
+    int keyCount = 0;
+    for (int offset = 0, limit = buffer.limit(); offset < limit; offset += BUCKET_SIZE_BYTES) {
+      byte fingerprint = ByteIOUtils.readByte(buffer, offset);
+      numBuckets ++;
+      if (fingerprint != 0) {
+        keyCount ++;
+      }
+    }
+    return new LinearProbingIndex(buffer, numBuckets, keyCount);
   }
 
   private LinearProbingIndex(ByteBuffer buf, int numBuckets, int keyCount) {
@@ -164,5 +173,42 @@ public final class LinearProbingIndex implements Index {
   public byte fingerprintHash(ByteBuffer key) {
     byte[] keyBytes = BufferUtils.newByteArrayFromByteBuffer(key);
     return fingerprintHash(keyBytes);
+  }
+
+  @Override
+  public Iterator<ByteBuffer> keyIterator(final PayloadReader reader) {
+    return new Iterator<ByteBuffer>() {
+      private final int mBufLimit = mBuf.limit();
+      private int mOffset = 0;
+      private int mKeyIndex = 0;
+
+      @Override
+      public boolean hasNext() {
+        return mKeyIndex < mKeyCount;
+      }
+
+      @Override
+      public ByteBuffer next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        while (mOffset < mBufLimit) {
+          byte fingerprint = ByteIOUtils.readByte(mBuf, mOffset);
+          if (fingerprint != 0) {
+            int offset = ByteIOUtils.readInt(mBuf, mOffset + 1);
+            ByteBuffer key = reader.getKey(offset);
+            mOffset += BUCKET_SIZE_BYTES;
+            mKeyIndex ++;
+            return key;
+          }
+        }
+        throw new NoSuchElementException();
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException();
+      }
+    };
   }
 }
