@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +41,7 @@ import tachyon.worker.NetAddress;
 /**
  * Metadata for a Tachyon worker.
  */
+@ThreadSafe
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Worker's address */
@@ -97,7 +100,7 @@ public final class MasterWorkerInfo {
    * @param blocks set of block ids on this worker
    * @return A Set of blocks removed (or lost) from this worker
    */
-  public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
+  public synchronized Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
       final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
       final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
     // If the storage aliases do not have strictly increasing ordinal value based on the total
@@ -190,7 +193,7 @@ public final class MasterWorkerInfo {
   /**
    * @return the worker's address
    */
-  public NetAddress getWorkerAddress() {
+  public synchronized NetAddress getWorkerAddress() {
     return mWorkerAddress;
   }
 
@@ -211,7 +214,7 @@ public final class MasterWorkerInfo {
   /**
    * @return the capacity of the worker in bytes
    */
-  public long getCapacityBytes() {
+  public synchronized long getCapacityBytes() {
     return mCapacityBytes;
   }
 
@@ -267,14 +270,14 @@ public final class MasterWorkerInfo {
   /**
    * @return the start time in milliseconds
    */
-  public long getStartTime() {
+  public synchronized long getStartTime() {
     return mStartTimeMs;
   }
 
   /**
    * @return whether the worker has been registered yet
    */
-  public boolean isRegistered() {
+  public synchronized boolean isRegistered() {
     return mIsRegistered;
   }
 

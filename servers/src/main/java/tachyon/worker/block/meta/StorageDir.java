@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +45,8 @@ import tachyon.worker.block.BlockStoreLocation;
 /**
  * Represents a directory in a storage tier. It has a fixed capacity allocated to it on
  * instantiation. It contains the set of blocks currently in the storage directory.
- * <p>
- * This class does not guarantee thread safety.
  */
+@NotThreadSafe
 public final class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mCapacityBytes;
