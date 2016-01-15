@@ -35,7 +35,8 @@ public class KeyValueStoreIterator implements KeyValueIterator {
   /** Iterator of the partition being visited */
   private KeyValueIterator mPartitionIterator;
 
-  public KeyValueStoreIterator(List<PartitionInfo> partitions) throws IOException, TachyonException {
+  public KeyValueStoreIterator(List<PartitionInfo> partitions)
+      throws IOException, TachyonException {
     mPartitions = Preconditions.checkNotNull(partitions);
     if (mPartitions.size() > 0) {
       mPartitionIndex = 0;

@@ -103,11 +103,11 @@ public final class BaseKeyValuePartitionReader implements KeyValuePartitionReade
   public KeyValueIterator iterator() throws IOException, TachyonException {
     return new KeyValueIterator() {
       private int mKeyIndex = 0;
-      private List<ByteBuffer> keys = mClient.getAllKeys(mBlockId);
+      private List<ByteBuffer> mKeys = mClient.getAllKeys(mBlockId);
 
       @Override
       public boolean hasNext() {
-        return mKeyIndex < keys.size();
+        return mKeyIndex < mKeys.size();
       }
 
       @Override
@@ -116,7 +116,7 @@ public final class BaseKeyValuePartitionReader implements KeyValuePartitionReade
           throw new NoSuchElementException();
         }
 
-        ByteBuffer key = keys.get(mKeyIndex);
+        ByteBuffer key = mKeys.get(mKeyIndex);
         mKeyIndex++;
         return new KeyValuePair(key, getInternal(key));
       }
