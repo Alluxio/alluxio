@@ -46,17 +46,26 @@ public class TtlBucketListTest {
 
   private TtlBucketList mBucketList;
 
+  /**
+   * Sets up the TTL interval before a single test runs.
+   */
   @BeforeClass
   public static void beforeClass() {
     sOldTtlIntervalMs = TtlBucket.getTtlIntervalMs();
     TtlBucketPrivateAccess.setTtlIntervalMs(BUCKET_INTERVAL);
   }
 
+  /**
+   * Resets the TTL interval after all test ran.
+   */
   @AfterClass
   public static void afterClass() {
     TtlBucketPrivateAccess.setTtlIntervalMs(sOldTtlIntervalMs);
   }
 
+  /**
+   * Sets up a new {@link TtlBucketList} before a test runs.
+   */
   @Before
   public void before() {
     mBucketList = new TtlBucketList();
@@ -74,6 +83,9 @@ public class TtlBucketListTest {
     Assert.assertTrue(bucket.getFiles().containsAll(Lists.newArrayList(files)));
   }
 
+  /**
+   * Tests the {@link TtlBucketList#insert(InodeFile)} method.
+   */
   @Test
   public void insertTest() {
     // No bucket should expire.
@@ -99,6 +111,9 @@ public class TtlBucketListTest {
     assertExpired(expired, 1, BUCKET2_FILE);
   }
 
+  /**
+   * Tests the {@link TtlBucketList#remove(InodeFile)} method.
+   */
   @Test
   public void removeTest() {
     mBucketList.insert(BUCKET1_FILE1);

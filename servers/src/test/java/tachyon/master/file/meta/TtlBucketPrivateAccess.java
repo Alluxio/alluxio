@@ -21,6 +21,12 @@ import org.powermock.reflect.Whitebox;
  * Class which provides access to private state of {@link TtlBucket}.
  */
 public final class TtlBucketPrivateAccess {
+
+  /**
+   * Sets the {@link TtlBucket#sTtlIntervalMs} variable for testing.
+   *
+   * @param intervalMs the interval in milliseconds
+   */
   public static void setTtlIntervalMs(long intervalMs) {
     Whitebox.setInternalState(TtlBucket.class, "sTtlIntervalMs", intervalMs);
   }
