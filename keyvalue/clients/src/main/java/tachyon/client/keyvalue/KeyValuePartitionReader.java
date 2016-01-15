@@ -30,7 +30,7 @@ import tachyon.exception.TachyonException;
 /**
  * Interface of the reader to access a Tachyon key-value partition.
  */
-public interface KeyValuePartitionReader extends Closeable, Iterable<KeyValuePair> {
+public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
 
   class Factory {
     /**
