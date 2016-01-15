@@ -511,12 +511,7 @@ public class TfsShellTest {
 
     FileInfo[] files = new FileInfo[4];
     String testUser = "test_user_lsr";
-    // clear the loginUser and re-login with new user
-    synchronized (LoginUser.class) {
-      Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
-      System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
-      LoginUser.get(ClientContext.getConf());
-    }
+    cleanAndLogin(testUser);
 
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA",
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
@@ -554,12 +549,7 @@ public class TfsShellTest {
 
     FileInfo[] files = new FileInfo[4];
     String testUser = "test_user_ls";
-    // clear the loginUser and re-login with new user
-    synchronized (LoginUser.class) {
-      Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
-      System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
-      LoginUser.get(ClientContext.getConf());
-    }
+    cleanAndLogin(testUser);
 
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA",
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
@@ -1230,5 +1220,14 @@ public class TfsShellTest {
     checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/bar/foobar3")), 30);
     checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/foobar4")), 40);
     ClientContext.reset();
+  }
+
+  private void cleanAndLogin(String user) throws IOException {
+    // clear the loginUser and re-login with new user
+    synchronized (LoginUser.class) {
+      Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+      System.setProperty(Constants.SECURITY_LOGIN_USERNAME, user);
+      LoginUser.get(ClientContext.getConf());
+    }
   }
 }
