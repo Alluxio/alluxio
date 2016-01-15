@@ -72,7 +72,6 @@ public abstract class AbstractLocalTachyonCluster {
       Constants.BLOCK_MASTER_NAME,
       Constants.FILE_SYSTEM_MASTER_NAME,
       Constants.LINEAGE_MASTER_NAME,
-      Constants.RAW_TABLE_MASTER_NAME,
   };
 
   public AbstractLocalTachyonCluster(long workerCapacityBytes, int userBlockSize) {

@@ -84,14 +84,11 @@ public final class Constants {
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_WORKER_SERVICE_VERSION = 1;
-  public static final long RAW_TABLE_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long RAW_TABLE_MASTER_WORKER_SERVICE_VERSION = 1;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String LINEAGE_MASTER_NAME = "LineageMaster";
-  public static final String RAW_TABLE_MASTER_NAME = "RawTableMaster";
 
   public static final String BLOCK_MASTER_CLIENT_SERVICE_NAME = "BlockMasterClient";
   public static final String BLOCK_MASTER_WORKER_SERVICE_NAME = "BlockMasterWorker";
@@ -99,8 +96,6 @@ public final class Constants {
   public static final String FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME = "FileSystemMasterWorker";
   public static final String LINEAGE_MASTER_CLIENT_SERVICE_NAME = "LineageMasterClient";
   public static final String LINEAGE_MASTER_WORKER_SERVICE_NAME = "LineageMasterWorker";
-  public static final String RAW_TABLE_MASTER_CLIENT_SERVICE_NAME = "RawTableMasterClient";
-  public static final String RAW_TABLE_MASTER_WORKER_SERVICE_NAME = "RawTableMasterWorker";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
 
   /**
