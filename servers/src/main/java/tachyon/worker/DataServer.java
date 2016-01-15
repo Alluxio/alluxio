@@ -30,6 +30,9 @@ import tachyon.worker.block.BlockDataManager;
  */
 public interface DataServer extends Closeable {
 
+  /**
+   * Factory for {@link DataServer}.
+   */
   class Factory {
     /**
      * Factory for {@link DataServer}.
