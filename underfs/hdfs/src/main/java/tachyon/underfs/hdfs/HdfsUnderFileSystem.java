@@ -100,8 +100,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    * configuration necessary for obtaining a usable {@linkplain FileSystem} instance.
    * </p>
    *
-   * @param path File system path
-   * @param config Hadoop Configuration
+   * @param path file system path
+   * @param config Hadoop configuration
    */
   protected void prepareConfiguration(String path, TachyonConf tachyonConf, Configuration config) {
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
@@ -144,11 +144,11 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * BlockSize should be a multiple of 512.
+   * Creates a new file.
    *
    * @param path the path
-   * @param blockSizeByte the size of the block in bytes
-   * @return A {@code FSDataOutputStream} object
+   * @param blockSizeByte the size of the block in bytes; should be a multiple of 512
+   * @return a {@code FSDataOutputStream} object
    * @throws IOException when a non-Tachyon related exception occurs
    */
   @Override
