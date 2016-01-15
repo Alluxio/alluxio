@@ -40,7 +40,7 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
 
   @Override
   public String getCommandName() {
-    return "fileinfo";
+    return "fileInfo";
   }
 
   @Override
@@ -67,7 +67,7 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "fileinfo <path>";
+    return "fileInfo <path>";
   }
 
   @Override

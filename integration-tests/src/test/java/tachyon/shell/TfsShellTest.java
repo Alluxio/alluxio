@@ -414,7 +414,7 @@ public class TfsShellTest {
 
   @Test
   public void fileinfoNotExistTest() throws IOException {
-    int ret = mFsShell.run("fileinfo", "/NotExistFile");
+    int ret = mFsShell.run("fileInfo", "/NotExistFile");
     Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
         mOutput.toString());
     Assert.assertEquals(-1, ret);
@@ -423,10 +423,10 @@ public class TfsShellTest {
   /*
    * @Test public void fileInfoTest() throws IOException { TachyonFile file =
    * TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.STORE,
-   * UnderStorageType.NO_PERSIST, 10); mFsShell.run(new String[] {"fileinfo", "/testFile"});
+   * UnderStorageType.NO_PERSIST, 10); mFsShell.run(new String[] {"fileInfo", "/testFile"});
    * FileInfo fileInfo = mTfs.getInfo(file); Assert.assertNotNull(fileInfo); List<FileBlockInfo>
    * blocks = mTfs.getFileBlocks(fileId); String[] commandParameters = new String[3 +
-   * blocks.size()]; commandParameters[0] = "fileinfo"; commandParameters[1] = "/testFile";
+   * blocks.size()]; commandParameters[0] = "fileInfo"; commandParameters[1] = "/testFile";
    * commandParameters[2] = String.valueOf(file.getFileId()); Iterator<FileBlockInfo> iter =
    * blocks.iterator(); int i = 3; while (iter.hasNext()) { commandParameters[i ++] =
    * iter.next().toString(); } Assert.assertEquals(getCommandOutput(commandParameters),
@@ -471,7 +471,7 @@ public class TfsShellTest {
           ret.append(command[i] + "\n");
         }
         return ret.toString();
-      } else if (cmd.equals("fileinfo")) {
+      } else if (cmd.equals("fileInfo")) {
         StringBuilder ret = new StringBuilder();
         ret.append(command[1] + " with file id " + command[2] + " has the following blocks: \n");
         for (int i = 3; i < command.length; i ++) {
@@ -1012,7 +1012,7 @@ public class TfsShellTest {
   public void fileinfoWildCardTest() throws IOException, TachyonException {
     TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
 
-    mFsShell.run("fileinfo", "/testWildCards/*");
+    mFsShell.run("fileInfo", "/testWildCards/*");
     String res1 = mOutput.toString();
     Assert.assertTrue(res1.contains("/testWildCards/foo"));
     Assert.assertTrue(res1.contains("/testWildCards/bar"));
@@ -1020,7 +1020,7 @@ public class TfsShellTest {
     Assert.assertFalse(res1.contains("/testWildCards/foo/foobar1"));
     Assert.assertFalse(res1.contains("/testWildCards/bar/foobar3"));
 
-    mFsShell.run("fileinfo", "/testWildCards/*/foo*");
+    mFsShell.run("fileInfo", "/testWildCards/*/foo*");
     String res2 = mOutput.toString();
     res2 = res2.replace(res1, "");
     Assert.assertTrue(res2.contains("/testWildCards/foo/foobar1"));
