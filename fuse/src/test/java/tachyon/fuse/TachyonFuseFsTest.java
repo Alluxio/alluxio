@@ -58,7 +58,7 @@ import static org.junit.Assert.assertArrayEquals;
 // TODO(andreareale): this test suit should be completed
 public class TachyonFuseFsTest {
 
-  private static final  String TEST_MASTER_ADDRESS = "tachyon://localhost:19998";
+  private static final String TEST_MASTER_ADDRESS = "tachyon://localhost:19998";
   private static final String TEST_ROOT_PATH = "/t/root";
   private static final TachyonURI BASE_EXPECTED_URI =
       new TachyonURI(TEST_MASTER_ADDRESS + TEST_ROOT_PATH);
@@ -83,7 +83,7 @@ public class TachyonFuseFsTest {
   }
 
   @Test
-  public void testCreate() throws Exception {
+  public void createTest() throws Exception {
     mFileInfo.flags.set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
     TachyonURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
@@ -91,7 +91,7 @@ public class TachyonFuseFsTest {
   }
 
   @Test
-  public void testCreateWrongFlags() throws Exception {
+  public void createWrongFlagsTest() throws Exception {
     mFileInfo.flags.set(O_RDONLY.intValue());
     int ret = mFuseFs.create("/foo/bar", 0, mFileInfo);
     verifyZeroInteractions(mTFS);
@@ -104,7 +104,7 @@ public class TachyonFuseFsTest {
   }
 
   @Test
-  public void testFlush() throws Exception {
+  public void flushTest() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     TachyonURI anyURI = any();
     when(mTFS.getOutStream(anyURI)).thenReturn(fos);
@@ -119,13 +119,13 @@ public class TachyonFuseFsTest {
   }
 
   @Test
-  public void testMkdir() throws Exception {
+  public void mkDirTest() throws Exception {
     mFuseFs.mkdir("/foo/bar", -1);
     verify(mTFS).mkdir(BASE_EXPECTED_URI.join("/foo/bar"));
   }
 
   @Test
-  public void testOpen() throws Exception {
+  public void openTest() throws Exception {
     // mocks set-up
     TachyonURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     TachyonFile fake = new TachyonFile(42L);
@@ -143,7 +143,7 @@ public class TachyonFuseFsTest {
   }
 
   @Test
-  public void testOpenWrongFlags() throws Exception {
+  public void openWrongFlagsTest() throws Exception {
     mFileInfo.flags.set(O_RDWR.intValue());
 
     // actual test
@@ -158,7 +158,7 @@ public class TachyonFuseFsTest {
   }
 
   @Test
-  public void testRead() throws Exception {
+  public void readTest() throws Exception {
     // mocks set-up
     TachyonURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     TachyonFile fake = new TachyonFile(42L);
@@ -199,7 +199,7 @@ public class TachyonFuseFsTest {
   }
 
   @Test
-  public void testWrite() throws Exception {
+  public void writeTest() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     TachyonURI anyURI = any();
     when(mTFS.getOutStream(anyURI)).thenReturn(fos);
@@ -220,7 +220,7 @@ public class TachyonFuseFsTest {
   }
 
   @Test
-  public void testPathTranslation() throws Exception {
+  public void pathTranslationTest() throws Exception {
     final LoadingCache<String, TachyonURI> resolver =
         mFuseFs.getPathResolverCache();
 
