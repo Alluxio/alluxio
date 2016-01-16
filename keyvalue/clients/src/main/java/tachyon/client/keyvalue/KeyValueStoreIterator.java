@@ -25,7 +25,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.PartitionInfo;
 
 /**
- * {@link KeyValueIterator} to iterate over (key, value) pairs in {@link KeyValueStore}.
+ * {@link KeyValueIterator} to iterate over key-value pairs in {@link KeyValueStore}.
  */
 public class KeyValueStoreIterator implements KeyValueIterator {
   /** All partitions */

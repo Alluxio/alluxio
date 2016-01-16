@@ -118,7 +118,7 @@ public final class KeyValueWorkerClient extends ClientBase {
 
   /**
    * @param blockId The id of the partition
-   * @return The number of (key, value) pairs in the partition
+   * @return The number of key-value pairs in the partition
    */
   public synchronized int getSize(final long blockId) throws IOException, TachyonException {
     return retryRPC(new ClientBase.RpcCallableThrowsTachyonTException<Integer>() {

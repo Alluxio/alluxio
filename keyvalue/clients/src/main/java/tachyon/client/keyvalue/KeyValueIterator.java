@@ -20,16 +20,16 @@ import java.io.IOException;
 import tachyon.exception.TachyonException;
 
 /**
- * Iterator to iterate over (key, value) pairs in {@link KeyValueStore} or its partitions.
+ * Iterator to iterate over key-value pairs in {@link KeyValueStore} or its partitions.
  */
 public interface KeyValueIterator {
   /**
-   * @return true if the iterator has more (key, value) pairs, otherwise false
+   * @return true if the iterator has more key-value pairs, otherwise false
    */
   boolean hasNext();
 
   /**
-   * @return the next (key, value) pair in the interation
+   * @return the next key-value pair in the iteration
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if an unexpected Tachyon exception is thrown
    * @throws java.util.NoSuchElementException if there are no more pairs

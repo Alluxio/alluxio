@@ -38,8 +38,8 @@ import tachyon.thrift.FileInfo;
  * Implementation of {@link org.apache.hadoop.mapred.InputFormat} for MapReduce programs to access
  * {@link tachyon.client.keyvalue.KeyValueStore}.
  * <p>
- * It takes a KeyValueStore URI, and emits (key, value) pairs stored in the KeyValueStore to
- * {@link org.apache.hadoop.mapred.Mapper}s.
+ * It takes a {@link tachyon.client.keyvalue.KeyValueStore} URI, and emits key-value pairs stored in
+ * the KeyValueStore to {@link org.apache.hadoop.mapred.Mapper}s.
  */
 @PublicApi
 public final class KeyValueInputFormat implements InputFormat {
