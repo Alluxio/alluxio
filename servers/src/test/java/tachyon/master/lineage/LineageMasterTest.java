@@ -184,7 +184,7 @@ public final class LineageMasterTest {
   }
 
   /**
-   *
+   * Tests that completing a file asynchronously works.
    *
    * @throws Exception if an operation on a master fails
    */
