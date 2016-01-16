@@ -12,9 +12,13 @@ service KeyValueWorkerClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Gets a list of all keys available in the partition.
+   * Gets a batch of keys next to the current key in the partition.
+   * If current key is null, it means get the initial batch of keys.
+   * If there are no more next keys, an empty list is returned.
    */
-  list<binary> getAllKeys(/** the id of the partition */ 1: i64 blockId)
+  list<binary> getNextKeys(/** the id of the partition */ 1: i64 blockId,
+      /** current key */ 2: binary key,
+      /** maximum number of next batch of keys to get */ 3: i32 numKeys)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**

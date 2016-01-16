@@ -60,6 +60,20 @@ public interface Index {
   int keyCount();
 
   /**
+   * Gets the next key regarding the current provided key.
+   * This could be more efficient when comparing to iterate over {@link #keyIterator(PayloadReader)}
+   * to find the next key.
+   *
+   * @param currentKey the current key, or null if there is no initial key known yet
+   * @param reader reader to access key-value payload
+   * @return the next key, or null if there are no remaining keys
+   */
+  ByteBuffer nextKey(ByteBuffer currentKey, PayloadReader reader);
+
+  /**
+   * Gets an iterator to iterate over all keys.
+   * This could be more efficient than keeping calling {@link #nextKey(ByteBuffer, PayloadReader)}.
+   *
    * @param reader reader to access key-value payload
    * @return an iterator of keys, the iterator does not support remove
    */

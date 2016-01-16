@@ -18,7 +18,6 @@ package tachyon.client.keyvalue;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,28 +98,37 @@ public final class BaseKeyValuePartitionReader implements KeyValuePartitionReade
     return value;
   }
 
+  private class Iterator implements KeyValueIterator {
+    private ByteBuffer mNextKey;
+
+    public Iterator() throws IOException, TachyonException {
+      mNextKey = nextKey(null);
+    }
+
+    @Override
+    public boolean hasNext() {
+      return mNextKey != null;
+    }
+
+    @Override
+    public KeyValuePair next() throws IOException, TachyonException {
+      KeyValuePair ret = new KeyValuePair(mNextKey, get(mNextKey));
+      mNextKey = nextKey(mNextKey);
+      return ret;
+    }
+
+    private ByteBuffer nextKey(ByteBuffer key) throws IOException, TachyonException {
+      List<ByteBuffer> nextKeys = mClient.getNextKeys(mBlockId, key, 1);
+      if (nextKeys.size() > 0) {
+        return nextKeys.get(0);
+      }
+      return null;
+    }
+  }
+
   @Override
   public KeyValueIterator iterator() throws IOException, TachyonException {
-    return new KeyValueIterator() {
-      private int mKeyIndex = 0;
-      private List<ByteBuffer> mKeys = mClient.getAllKeys(mBlockId);
-
-      @Override
-      public boolean hasNext() {
-        return mKeyIndex < mKeys.size();
-      }
-
-      @Override
-      public KeyValuePair next() throws IOException, TachyonException {
-        if (!hasNext()) {
-          throw new NoSuchElementException();
-        }
-
-        ByteBuffer key = mKeys.get(mKeyIndex);
-        mKeyIndex++;
-        return new KeyValuePair(key, getInternal(key));
-      }
-    };
+    return new Iterator();
   }
 
   @Override

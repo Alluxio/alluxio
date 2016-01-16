@@ -18,7 +18,6 @@ package tachyon.worker.keyvalue;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -31,6 +30,7 @@ import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.client.keyvalue.ByteBufferKeyValuePartitionReader;
 import tachyon.client.keyvalue.Index;
+import tachyon.client.keyvalue.PayloadReader;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
@@ -124,17 +124,24 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   }
 
   @Override
-  public List<ByteBuffer> getAllKeys(long blockId) throws TachyonTException, ThriftIOException {
+  public List<ByteBuffer> getNextKeys(long blockId, ByteBuffer currentKey, int numKeys)
+      throws TachyonTException, ThriftIOException {
     try {
       final long sessionId = Sessions.KEYVALUE_SESSION_ID;
       final long lockId = mBlockDataManager.lockBlock(sessionId, blockId);
       try {
         ByteBufferKeyValuePartitionReader reader = getReader(sessionId, lockId, blockId);
         Index index = reader.getIndex();
-        Iterator<ByteBuffer> keys = index.keyIterator(reader.getPayloadReader());
-        List<ByteBuffer> ret = Lists.newArrayListWithExpectedSize(index.keyCount());
-        while (keys.hasNext()) {
-          ret.add(copyAsNonDirectBuffer(keys.next()));
+        PayloadReader payloadReader = reader.getPayloadReader();
+
+        List<ByteBuffer> ret = Lists.newArrayListWithExpectedSize(numKeys);
+        for (int i = 0; i < numKeys; i ++) {
+          ByteBuffer nextKey = index.nextKey(currentKey, payloadReader);
+          if (nextKey == null) {
+            break;
+          }
+          ret.add(nextKey);
+          currentKey = nextKey;
         }
         return ret;
       } catch (InvalidWorkerStateException e) {
