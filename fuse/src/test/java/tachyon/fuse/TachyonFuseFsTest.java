@@ -58,7 +58,7 @@ import static org.junit.Assert.assertArrayEquals;
 // TODO(andreareale): this test suit should be completed
 public class TachyonFuseFsTest {
 
-  private static final String sTEST_MASTER_ADDRESS = "tachyon://localhost:19998";
+  private static final String TEST_MASTER_ADDRESS = "tachyon://localhost:19998";
   private static final String sTEST_ROOT_PATH = "/t/root";
   private static final TachyonURI sBASE_EXPECTED_URI =
       new TachyonURI(sTEST_MASTER_ADDRESS + sTEST_ROOT_PATH);
