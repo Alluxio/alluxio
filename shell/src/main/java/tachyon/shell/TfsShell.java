@@ -27,7 +27,6 @@ import org.reflections.Reflections;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
-import com.google.common.io.Closer;
 
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
@@ -56,20 +55,17 @@ public class TfsShell implements Closeable {
   }
 
   private final Map<String, TfsShellCommand> mCommands = Maps.newHashMap();
-  private final Closer mCloser;
   private final TachyonConf mTachyonConf;
   private final TachyonFileSystem mTfs;
 
   public TfsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mCloser = Closer.create();
     mTfs = TachyonFileSystemFactory.get();
     loadCommands();
   }
 
   @Override
   public void close() throws IOException {
-    mCloser.close();
   }
 
   /**
@@ -97,7 +93,7 @@ public class TfsShell implements Closeable {
   /**
    * Method which prints the method to use all the commands.
    */
-  public void printUsage() {
+  private void printUsage() {
     System.out.println("Usage: java TfsShell");
     SortedSet<String> sortedCmds = new TreeSet<String>(mCommands.keySet());
     for (String cmd : sortedCmds) {
