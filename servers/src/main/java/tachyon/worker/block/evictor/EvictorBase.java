@@ -36,12 +36,17 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
 
+/**
+ * Provides the basic implementation for every evictor.
+ */
 public abstract class EvictorBase extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   protected final Allocator mAllocator;
   protected BlockMetadataManagerView mManagerView;
 
   /**
+   * Creates a new instance of {@link EvictorBase}.
+   *
    * @param view a view of block metadata information
    * @param allocator an allocation policy
    */
@@ -183,21 +188,23 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
   }
 
   /**
-   * @return an iterator over the IDs of the blocks in the evictor cache. The evictor is responsible
-   * for specifying the iteration order using its own strategy. For example, {@link LRUEvictor}
-   * returns an iterator that iterates through the block IDs in LRU order.
+   * Returns an iterator for evictor cache blocks. The evictor is responsible for specifying the
+   * iteration order using its own strategy. For example, {@link LRUEvictor} returns an iterator
+   * that iterates through the block ids in LRU order.
+   *
+   * @return an iterator over the ids of the blocks in the evictor cache
    */
   protected abstract Iterator<Long> getBlockIterator();
 
   /**
-   * Perform additional cleanup when a block is removed from the iterator returned by
+   * Performs additional cleanup when a block is removed from the iterator returned by
    * {@link #getBlockIterator()}.
    */
   protected void onRemoveBlockFromIterator(long blockId) {}
 
   /**
-   * Update the block store location if the evictor wants to free space in a specific location.
-   * For example, {@link PartialLRUEvictor} always evicts blocks from a dir with max free space.
+   * Updates the block store location if the evictor wants to free space in a specific location. For
+   * example, {@link PartialLRUEvictor} always evicts blocks from a dir with max free space.
    *
    * @param bytesToBeAvailable bytes to be available after eviction
    * @param location the original block store location

@@ -30,7 +30,6 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockDataManager;
 
 /**
@@ -47,10 +46,15 @@ public final class FileSystemWorker extends WorkerBase {
   /** The service that persists files */
   private Future<?> mFilePersistenceService;
 
+  /**
+   * Creates a new instance of {@link FileSystemWorker}.
+   *
+   * @param blockDataManager a block data manager handle
+   * @throws IOException if an I/O error occurs
+   */
   public FileSystemWorker(BlockDataManager blockDataManager) throws IOException {
     super(Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
-    Preconditions.checkState(WorkerIdRegistry.getWorkerId() != 0, "Failed to register worker");
 
     mTachyonConf = WorkerContext.getConf();
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockDataManager));
@@ -60,6 +64,10 @@ public final class FileSystemWorker extends WorkerBase {
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
   }
 
+  /**
+   * Starts the filesystem worker service.
+   */
+  @Override
   public void start() {
     mFilePersistenceService = getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
@@ -67,6 +75,10 @@ public final class FileSystemWorker extends WorkerBase {
             mTachyonConf.getInt(Constants.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
   }
 
+  /**
+   * Stops the filesystem worker service.
+   */
+  @Override
   public void stop() {
     if (mFilePersistenceService != null) {
       mFilePersistenceService.cancel(true);

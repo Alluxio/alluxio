@@ -27,6 +27,13 @@ import tachyon.conf.TachyonConf;
  */
 public final class LsrCommand extends AbstractLsCommand {
 
+  /**
+   * Constructs a new instance to display information for all directories and files under the path
+   * specified in args recursively.
+   *
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public LsrCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -44,5 +51,11 @@ public final class LsrCommand extends AbstractLsCommand {
   @Override
   public String getUsage() {
     return "lsr <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Displays information for all files and directories under the specified "
+      + "path recursively.";
   }
 }

@@ -30,10 +30,18 @@ import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.BlockMasterClientService;
 
+/**
+ * Tests for the {@link BlockMasterClient} class.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMasterClient.class)
 public class BlockMasterClientTest {
 
+  /**
+   * Tests for an unsupported version.
+   *
+   * @throws Exception when the Whitebox fails
+   */
   @Test
   public void unsupportedVersionTest() throws Exception {
     // Client context needs to be initialized before the block store context can be used.

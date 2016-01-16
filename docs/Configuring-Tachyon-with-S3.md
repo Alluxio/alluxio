@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Configuring Tachyon with S3
+title: Configuring Tachyon with Amazon S3
 nickname: Tachyon with S3
 group: Under Stores
 priority: 0
@@ -166,5 +166,5 @@ and directories created by Tachyon exist. For this test, you should see files na
 To stop Tachyon, you can run:
 
 ```bash
-$ ./bin/tachyon-stop.sh
+$ ./bin/tachyon-stop.sh all
 ```

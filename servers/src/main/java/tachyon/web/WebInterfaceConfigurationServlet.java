@@ -47,6 +47,11 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private final transient FileSystemMaster mFsMaster;
   private final transient TachyonConf mTachyonConf;
 
+  /**
+   * Creates a new instance of {@link WebInterfaceConfigurationServlet}.
+   *
+   * @param fsMaster file system master
+   */
   public WebInterfaceConfigurationServlet(FileSystemMaster fsMaster) {
     mFsMaster = fsMaster;
     mTachyonConf = new TachyonConf();

@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -42,11 +43,10 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
    *
    * @param path The {@link TachyonURI} path as the input of the command
    * @param recursive Whether list the path recursively
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   protected void ls(TachyonURI path, boolean recursive) throws IOException {
     List<FileInfo> files = listStatusSortedByIncreasingCreationTime(path);
-    String format = "%-10s%-25s%-15s%-15s%-5s%n";
     for (FileInfo file : files) {
       String inMemory = "";
       if (!file.isFolder) {
@@ -56,9 +56,10 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
           inMemory = "Not In Memory";
         }
       }
-      System.out.format(format, FormatUtils.getSizeFromBytes(file.getLength()),
-          CommandUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getUserName(),
-          file.getPath());
+      System.out.format(Constants.COMMAND_FORMAT_LS,
+          CommandUtils.formatPermission(file.getPermission(),  file.isFolder), file.getUserName(),
+          file.getGroupName(), FormatUtils.getSizeFromBytes(file.getLength()),
+          CommandUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
       if (recursive && file.isFolder) {
         ls(new TachyonURI(path.getScheme(), path.getAuthority(), file.getPath()), true);
       }

@@ -33,14 +33,16 @@ import tachyon.conf.TachyonConf;
 import tachyon.worker.WorkerContext;
 
 /**
- * This is the class to test the "contact" of different kinds of allocators,
- * i.e., the general properties the allocators need to follow
+ * This is the class to test the "contract" of different kinds of allocators,
+ * i.e., the general properties the allocators need to follow.
  */
 public class AllocatorContractTest extends BaseAllocatorTest {
   protected List<String> mStrategies;
 
   /**
-   *  Try to find all implementation classes of {@link Allocator} in the same package
+   *  Try to find all implementation classes of {@link Allocator} in the same package.
+   *
+   *  @throws Exception if setting up the dependencies fails
    */
   @Before
   @Override
@@ -64,13 +66,18 @@ public class AllocatorContractTest extends BaseAllocatorTest {
     }
   }
 
+  /**
+   * Tests that no allocation happens when the RAM, SSD and HDD size is more than the default one.
+   *
+   * @throws Exception if a block cannot be allocated
+   */
   @Test
   public void shouldNotAllocateTest() throws Exception {
     TachyonConf conf = WorkerContext.getConf();
     for (String strategyName : mStrategies) {
       conf.set(Constants.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
-      Allocator allocator = Allocator.Factory.createAllocator(conf, mManagerView);
+      Allocator allocator = Allocator.Factory.create(conf, getManagerView());
       assertTempBlockMeta(allocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE + 1, false);
       assertTempBlockMeta(allocator, mAnyDirInTierLoc2, DEFAULT_SSD_SIZE + 1, false);
       assertTempBlockMeta(allocator, mAnyDirInTierLoc3, DEFAULT_HDD_SIZE + 1, false);
@@ -79,13 +86,18 @@ public class AllocatorContractTest extends BaseAllocatorTest {
     }
   }
 
+  /**
+   * Tests that allocation happens when the RAM, SSD and HDD size is lower than the default size.
+   *
+   * @throws Exception if a block cannot be allocated
+   */
   @Test
   public void shouldAllocateTest() throws Exception {
     TachyonConf conf = WorkerContext.getConf();
     for (String strategyName : mStrategies) {
       conf.set(Constants.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
-      Allocator tierAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
+      Allocator tierAllocator = Allocator.Factory.create(conf, getManagerView());
       for (int i = 0; i < DEFAULT_RAM_NUM; i ++) {
         assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE - 1, true);
       }
@@ -97,7 +109,7 @@ public class AllocatorContractTest extends BaseAllocatorTest {
       }
 
       resetManagerView();
-      Allocator anyAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
+      Allocator anyAllocator = Allocator.Factory.create(conf, getManagerView());
       for (int i = 0; i < DEFAULT_RAM_NUM; i ++) {
         assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_RAM_SIZE - 1, true);
       }

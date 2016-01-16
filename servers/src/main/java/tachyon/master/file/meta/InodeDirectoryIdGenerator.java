@@ -15,6 +15,8 @@
 
 package tachyon.master.file.meta;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.master.block.BlockId;
@@ -28,6 +30,7 @@ import tachyon.proto.journal.Journal.JournalEntry;
  * sequence number. If the block sequence number reaches the limit, a new block container id is
  * retrieved.
  */
+@ThreadSafe
 public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
   private final ContainerIdGenerable mContainerIdGenerator;
 
@@ -67,7 +70,12 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
         .build();
   }
 
-  public void initFromJournalEntry(InodeDirectoryIdGeneratorEntry entry) {
+  /**
+   * Initializes the object using a journal entry.
+   *
+   * @param entry {@link InodeDirectoryIdGeneratorEntry} to use for initialization
+   */
+  public synchronized void initFromJournalEntry(InodeDirectoryIdGeneratorEntry entry) {
     mContainerId = entry.getContainerId();
     mSequenceNumber = entry.getSequenceNumber();
     mInitialized = true;

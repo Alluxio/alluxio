@@ -20,6 +20,8 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,13 +42,14 @@ import tachyon.thrift.TachyonService;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
+@ThreadSafe
 public final class FileSystemMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private FileSystemMasterWorkerService.Client mClient = null;
 
   /**
-   * Creates a new file system master client for the worker.
+   * Creates a instance of {@link FileSystemMasterClient}.
    *
    * @param masterAddress the master address
    * @param tachyonConf the Tachyon configuration
@@ -76,7 +79,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * @param fileId the file id
+   * @param fileId the id of the file for which to get the {@link FileInfo}
    * @return the file info for the given file id
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs

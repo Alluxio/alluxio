@@ -30,8 +30,19 @@ import tachyon.worker.block.BlockDataManager;
  */
 public interface DataServer extends Closeable {
 
+  /**
+   * Factory for {@link DataServer}.
+   */
   class Factory {
-    public static DataServer createDataServer(final InetSocketAddress dataAddress,
+    /**
+     * Factory for {@link DataServer}.
+     *
+     * @param dataAddress the address of the data server
+     * @param blockDataManager block data manager to use
+     * @param conf Tachyon configuration
+     * @return the generated {@link DataServer}
+     */
+    public static DataServer create(final InetSocketAddress dataAddress,
         final BlockDataManager blockDataManager, TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
@@ -45,23 +56,23 @@ public interface DataServer extends Closeable {
   }
 
   /**
-   * Get the actual bind hostname on DataServer service.
+   * Gets the actual bind hostname on {@link DataServer} service.
    *
    * @return the bind host
    */
   String getBindHost();
 
   /**
-   * Gets the port the DataServer is listening on.
+   * Gets the port the {@link DataServer} is listening on.
    *
    * @return the port number
    */
   int getPort();
 
   /**
-   * Check if the DataServer is closed.
+   * Checks if the {@link DataServer} is closed.
    *
-   * @return true if the DataServer is closed, false otherwise
+   * @return true if the {@link DataServer} is closed, false otherwise
    */
   boolean isClosed();
 }

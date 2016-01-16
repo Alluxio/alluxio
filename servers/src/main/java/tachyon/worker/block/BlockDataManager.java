@@ -58,7 +58,7 @@ public final class BlockDataManager {
   private Sessions mSessions = new Sessions();
 
   /**
-   * Creates a BlockDataManager based on the configuration values.
+   * Creates a new instace of {@link BlockDataManager} based on the configuration values.
    *
    * @param workerSource object for collecting the worker metrics
    * @param blockMasterClient the block Tachyon master client for worker
@@ -84,8 +84,8 @@ public final class BlockDataManager {
   /**
    * Aborts the temporary block created by the session.
    *
-   * @param sessionId The id of the client
-   * @param blockId The id of the block to be aborted
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to be aborted
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block cannot be found
    * @throws InvalidWorkerStateException if blockId does not belong to sessionId
@@ -100,8 +100,8 @@ public final class BlockDataManager {
    * Access the block for a given session. This should be called to update the evictor when
    * necessary.
    *
-   * @param sessionId The id of the client
-   * @param blockId The id of the block to access
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to access
    * @throws BlockDoesNotExistException this exception is not thrown in the tiered block store
    *         implementation
    */
@@ -125,8 +125,8 @@ public final class BlockDataManager {
    * after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible until
    * {@link BlockMasterClient#commitBlock(long, long, String, long, long)} succeeds.
    *
-   * @param sessionId The id of the client
-   * @param blockId The id of the block to commit
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to commit
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block cannot be found
    * @throws InvalidWorkerStateException if blockId does not belong to sessionId
@@ -160,14 +160,14 @@ public final class BlockDataManager {
 
   /**
    * Creates a block in Tachyon managed space. The block will be temporary until it is committed.
+   * Throws an {@link IllegalArgumentException} if the location does not belong to tiered storage.
    *
-   * @param sessionId The id of the client
-   * @param blockId The id of the block to create
-   * @param tierAlias The alias of the tier to place the new block in,
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to create
+   * @param tierAlias the alias of the tier to place the new block in,
    *        {@link BlockStoreLocation#ANY_TIER} for any tier
-   * @param initialBytes The initial amount of bytes to be allocated
-   * @return A string representing the path to the local file
-   * @throws IllegalArgumentException if location does not belong to tiered storage
+   * @param initialBytes the initial amount of bytes to be allocated
+   * @return a string representing the path to the local file
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
@@ -182,14 +182,13 @@ public final class BlockDataManager {
 
   /**
    * Creates a block. This method is only called from a data server.
+   * Calls {@link #getTempBlockWriterRemote(long, long)} to get a writer for writing to the block.
+   * Throws an {@link IllegalArgumentException} if the location does not belong to tiered storage.
    *
-   * Call {@link #getTempBlockWriterRemote(long, long)} to get a writer for writing to the block.
-   *
-   * @param sessionId The id of the client
-   * @param blockId The id of the block to be created
-   * @param tierAlias The alias of the tier to place the new block in
-   * @param initialBytes The initial amount of bytes to be allocated
-   * @throws IllegalArgumentException if location does not belong to tiered storage
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to be created
+   * @param tierAlias the alias of the tier to place the new block in
+   * @param initialBytes the initial amount of bytes to be allocated
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
@@ -205,7 +204,7 @@ public final class BlockDataManager {
   /**
    * Frees space to make a specific amount of bytes available in the tier.
    *
-   * @param sessionId the session ID
+   * @param sessionId the session id
    * @param availableBytes the amount of free space in bytes
    * @param tierAlias the alias of the tier to free space
    * @throws WorkerOutOfSpaceException if there is not enough space
@@ -228,8 +227,8 @@ public final class BlockDataManager {
    * The temporary block must already exist with
    * {@link #createBlockRemote(long, long, String, long)}.
    *
-   * @param sessionId The id of the client
-   * @param blockId The id of the block to be opened for writing
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to be opened for writing
    * @return the block writer for the local block file
    * @throws BlockDoesNotExistException if the block cannot be found
    * @throws IOException if block cannot be created
@@ -261,11 +260,11 @@ public final class BlockDataManager {
 
   /**
    * Gets the metadata of a block given its blockId or throws IOException. This method does not
-   * require a lock ID so the block is possible to be moved or removed after it returns.
+   * require a lock id so the block is possible to be moved or removed after it returns.
    *
-   * @param blockId the block ID
+   * @param blockId the block id
    * @return metadata of the block
-   * @throws BlockDoesNotExistException if no BlockMeta for this blockId is found
+   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this blockId is found
    */
   public BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException {
     return mBlockStore.getVolatileBlockMeta(blockId);
@@ -274,7 +273,7 @@ public final class BlockDataManager {
   /**
    * Checks if the storage has a given block.
    *
-   * @param blockId the block ID
+   * @param blockId the block id
    * @return true if the block is contained, false otherwise
    */
   public boolean hasBlockMeta(long blockId) {
@@ -284,9 +283,9 @@ public final class BlockDataManager {
   /**
    * Obtains a read lock the block.
    *
-   * @param sessionId The id of the client
-   * @param blockId The id of the block to be locked
-   * @return the lockId that uniquely identifies the lock obtained
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to be locked
+   * @return the lock id that uniquely identifies the lock obtained
    * @throws BlockDoesNotExistException if blockId cannot be found, for example, evicted already
    */
   public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
@@ -295,12 +294,12 @@ public final class BlockDataManager {
 
   /**
    * Moves a block from its current location to a target location, currently only tier level moves
-   * are supported
+   * are supported. Throws an {@link IllegalArgumentException} if the tierAlias is out of range of
+   * tiered storage.
    *
-   * @param sessionId The id of the client
-   * @param blockId The id of the block to move
-   * @param tierAlias The alias of the tier to move the block to
-   * @throws IllegalArgumentException if tierAlias is out of range of tiered storage
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to move
+   * @param tierAlias the alias of the tier to move the block to
    * @throws BlockDoesNotExistException if blockId cannot be found
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
    *         newLocation
@@ -320,9 +319,9 @@ public final class BlockDataManager {
    * Gets the path to the block file in local storage. The block must be a permanent block, and the
    * caller must first obtain the lock on the block.
    *
-   * @param sessionId The id of the client
-   * @param blockId The id of the block to read
-   * @param lockId The id of the lock on this block
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to read
+   * @param lockId the id of the lock on this block
    * @return a string representing the path to this block in local storage
    * @throws BlockDoesNotExistException if the blockId cannot be found in committed blocks or lockId
    *         cannot be found
@@ -338,9 +337,9 @@ public final class BlockDataManager {
   /**
    * Gets the block reader for the block. This method is only called by a data server.
    *
-   * @param sessionId The id of the client
-   * @param blockId The id of the block to read
-   * @param lockId The id of the lock on this block
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to read
+   * @param lockId the id of the lock on this block
    * @return the block reader for the block
    * @throws BlockDoesNotExistException if lockId is not found
    * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
@@ -355,8 +354,8 @@ public final class BlockDataManager {
   /**
    * Frees a block from Tachyon managed space.
    *
-   * @param sessionId The id of the client
-   * @param blockId The id of the block to be freed
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to be freed
    * @throws InvalidWorkerStateException if blockId has not been committed
    * @throws BlockDoesNotExistException if block cannot be found
    * @throws IOException if block cannot be removed from current path
@@ -370,9 +369,9 @@ public final class BlockDataManager {
    * Request an amount of space for a block in its storage directory. The block must be a temporary
    * block.
    *
-   * @param sessionId The id of the client
-   * @param blockId The id of the block to allocate space to
-   * @param additionalBytes The amount of bytes to allocate
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to allocate space to
+   * @param additionalBytes the amount of bytes to allocate
    * @throws BlockDoesNotExistException if blockId can not be found, or some block in eviction plan
    *         cannot be found
    * @throws WorkerOutOfSpaceException if requested space can not be satisfied
@@ -385,20 +384,27 @@ public final class BlockDataManager {
   }
 
   /**
-   * Stop the block data manager. This method should only be called when terminating the worker.
+   * Stops the block data manager. This method should only be called when terminating the worker.
    */
   public void stop() {}
 
   /**
-   * Relinquishes the lock with the specified lock id.
+   * Releases the lock with the specified lock id.
    *
-   * @param lockId The id of the lock to relinquish
-   * @throws BlockDoesNotExistException if lockId cannot be found
+   * @param lockId the id of the lock to release
+   * @throws BlockDoesNotExistException if lock id cannot be found
    */
   public void unlockBlock(long lockId) throws BlockDoesNotExistException {
     mBlockStore.unlockBlock(lockId);
   }
 
+  /**
+   * Releases the lock with the specified session and block id.
+   *
+   * @param sessionId the session id
+   * @param blockId the block id
+   * @throws BlockDoesNotExistException if block id cannot be found
+   */
   // TODO(calvin): Remove when lock and reads are separate operations.
   public void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     mBlockStore.unlockBlock(sessionId, blockId);
@@ -407,8 +413,8 @@ public final class BlockDataManager {
   /**
    * Handles the heartbeat from a client.
    *
-   * @param sessionId The id of the client
-   * @param metrics The set of metrics the client has gathered since the last heartbeat
+   * @param sessionId the id of the client
+   * @param metrics the set of metrics the client has gathered since the last heartbeat
    */
   public void sessionHeartbeat(long sessionId, List<Long> metrics) {
     mSessions.sessionHeartbeat(sessionId);
@@ -416,7 +422,7 @@ public final class BlockDataManager {
   }
 
   /**
-   * Set the pinlist for the underlying blockstore. Typically called by PinListSync.
+   * Sets the pinlist for the underlying block store. Typically called by {@link PinListSync}.
    *
    * @param pinnedInodes a set of pinned inodes
    */

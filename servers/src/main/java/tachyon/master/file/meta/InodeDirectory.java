@@ -18,6 +18,8 @@ package tachyon.master.file.meta;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
@@ -30,9 +32,17 @@ import tachyon.thrift.FileInfo;
 /**
  * Tachyon file system's directory representation in the file system master.
  */
+@ThreadSafe
 public final class InodeDirectory extends Inode {
+
+  /**
+   * Builder for {@link InodeDirectory}.
+   */
   public static class Builder extends Inode.Builder<InodeDirectory.Builder> {
 
+    /**
+     * Creates a new builder for {@link InodeDirectory}.
+     */
     public Builder() {
       super();
       mDirectory = true;
@@ -88,10 +98,10 @@ public final class InodeDirectory extends Inode {
    * Generates client file info for the folder.
    *
    * @param path the path of the folder in the filesystem
-   * @return the generated FileInfo
+   * @return the generated {@link FileInfo}
    */
   @Override
-  public FileInfo generateClientFileInfo(String path) {
+  public synchronized FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
     ret.fileId = getId();
     ret.name = getName();
@@ -176,8 +186,8 @@ public final class InodeDirectory extends Inode {
   }
 
   @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder("InodeFolder(");
+  public synchronized String toString() {
+    StringBuilder sb = new StringBuilder("InodeDirectory(");
     sb.append(super.toString()).append(",").append(getChildren()).append(")");
     return sb.toString();
   }
@@ -185,6 +195,7 @@ public final class InodeDirectory extends Inode {
   /**
    * Converts the entry to an {@link InodeDirectory}.
    *
+   * @param entry the entry to convert
    * @return the {@link InodeDirectory} representation
    */
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {

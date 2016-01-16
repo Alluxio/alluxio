@@ -18,6 +18,8 @@ package tachyon.master.file.meta;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +29,10 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
 import tachyon.util.io.PathUtils;
 
-/** This class is used for keeping track of Tachyon mount points. It is thread safe. */
+/**
+ * This class is used for keeping track of Tachyon mount points.
+ */
+@ThreadSafe
 public final class MountTable {
   public static final String ROOT = "/";
 
@@ -36,7 +41,7 @@ public final class MountTable {
   private Map<String, TachyonURI> mMountTable;
 
   /**
-   * Creates a new instance of {@code MountTable}.
+   * Creates a new instance of {@link MountTable}.
    */
   public MountTable() {
     final int initialCapacity = 10;
@@ -50,7 +55,7 @@ public final class MountTable {
    * @param tachyonUri a Tachyon path URI
    * @param ufsUri a UFS path URI
    * @return true if the operation succeeded, false otherwise
-   * @throws InvalidPathException if the paths are ill-formed
+   * @throws InvalidPathException if an invalid path is encountered
    */
   public synchronized boolean add(TachyonURI tachyonUri, TachyonURI ufsUri)
       throws InvalidPathException {
@@ -98,7 +103,7 @@ public final class MountTable {
    * @param uri a Tachyon path URI
    * @return whether the operation succeeded or not
    */
-  public synchronized boolean delete(TachyonURI uri) throws InvalidPathException {
+  public synchronized boolean delete(TachyonURI uri) {
     String path = uri.getPath();
     LOG.info("Unmounting {}", path);
     if (path.equals(ROOT)) {
@@ -118,6 +123,7 @@ public final class MountTable {
    *
    * @param uri a Tachyon path URI
    * @return mount point the given Tachyon path is nested under
+   * @throws InvalidPathException if an invalid path is encountered
    */
   public synchronized String getMountPoint(TachyonURI uri) throws InvalidPathException {
     String path = uri.getPath();
@@ -149,6 +155,7 @@ public final class MountTable {
    *
    * @param uri a Tachyon path URI
    * @return the resolved path
+   * @throws InvalidPathException if an invalid path is encountered
    */
   public synchronized TachyonURI resolve(TachyonURI uri) throws InvalidPathException {
     String path = uri.getPath();

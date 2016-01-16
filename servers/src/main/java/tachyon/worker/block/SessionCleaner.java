@@ -38,9 +38,9 @@ public final class SessionCleaner implements Runnable {
   private volatile boolean mRunning;
 
   /**
-   * Constructor for SessionCleaner
+   * Creates a new instance of {@link SessionCleaner}.
    *
-   * @param blockDataManager the blockDataManager this checker is updating to
+   * @param blockDataManager a block data manager handle
    */
   public SessionCleaner(BlockDataManager blockDataManager) {
     mBlockDataManager = blockDataManager;
@@ -51,7 +51,7 @@ public final class SessionCleaner implements Runnable {
   }
 
   /**
-   * Main loop for the cleanup, continuously look for zombie sessions
+   * Main loop for the cleanup, continuously looks for zombie sessions.
    */
   @Override
   public void run() {

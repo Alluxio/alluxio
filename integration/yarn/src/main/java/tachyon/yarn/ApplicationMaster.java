@@ -101,13 +101,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private final int mRamdiskMemInMB;
   private final int mNumWorkers;
   private final String mMasterAddress;
-  private final boolean mOneWorkerPerHost;
+  private final int mMaxWorkersPerHost;
   private final String mResourcePath;
 
   /** Set of hostnames for launched workers. The implementation must be thread safe */
   private final Multiset<String> mWorkerHosts;
   private final YarnConfiguration mYarnConf = new YarnConfiguration();
-  private final TachyonConf mTachyonConf = new TachyonConf();
   /** The count starts at 1, then becomes 0 when we allocate a container for the Tachyon master */
   private final CountDownLatch mMasterContainerAllocatedLatch;
   /** The count starts at 1, then becomes 0 when the application is done */
@@ -129,17 +128,22 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private CountDownLatch mOutstandingWorkerContainerRequestsLatch = null;
 
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath) {
-    mMasterCpu = mTachyonConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
+    this(numWorkers, masterAddress, resourcePath, new TachyonConf());
+  }
+
+  public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath,
+      TachyonConf conf) {
+    mMasterCpu = conf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
     mMasterMemInMB =
-        (int) mTachyonConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
-    mWorkerCpu = mTachyonConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+        (int) (conf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
+    mWorkerCpu = conf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
     // TODO(binfan): request worker container and ramdisk container separately
     // memory for running worker
     mWorkerMemInMB =
-        (int) mTachyonConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
+        (int) (conf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     // memory for running ramdisk
-    mRamdiskMemInMB = (int) mTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
-    mOneWorkerPerHost = mTachyonConf.getBoolean(Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST);
+    mRamdiskMemInMB = (int) (conf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB);
+    mMaxWorkersPerHost = conf.getInt(Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
     mNumWorkers = numWorkers;
     mMasterAddress = masterAddress;
     mResourcePath = resourcePath;
@@ -317,15 +321,11 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     mOutstandingWorkerContainerRequestsLatch = new CountDownLatch(neededWorkers);
     String[] hosts;
-    boolean relaxLocality = !mOneWorkerPerHost;
-    if (mOneWorkerPerHost) {
-      hosts = getUnusedWorkerHosts();
-      if (hosts.length < neededWorkers) {
-        throw new RuntimeException(
-            ExceptionMessage.YARN_NOT_ENOUGH_HOSTS.getMessage(neededWorkers, hosts.length));
-      }
-    } else {
-      hosts = null;
+    boolean relaxLocality = false;
+    hosts = getUnfilledWorkerHosts();
+    if (hosts.length * mMaxWorkersPerHost < neededWorkers) {
+      throw new RuntimeException(
+          ExceptionMessage.YARN_NOT_ENOUGH_HOSTS.getMessage(neededWorkers, hosts.length));
     }
     // Make container requests for workers to ResourceManager
     for (int i = currentNumWorkers; i < mNumWorkers; i ++) {
@@ -339,13 +339,13 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   /**
-   * @return the hostnames in the cluster which are not being used by a Tachyon worker, returning an
-   *         empty array if there are none
+   * @return the hostnames in the cluster which are not being used by the maximum number of Tachyon
+   *         workers. If all workers are full, returns an empty array
    */
-  private String[] getUnusedWorkerHosts() throws Exception {
+  private String[] getUnfilledWorkerHosts() throws Exception {
     List<String> unusedHosts = Lists.newArrayList();
     for (String host : YarnUtils.getNodeHosts(mYarnClient)) {
-      if (!mWorkerHosts.contains(host)) {
+      if (mWorkerHosts.count(host) < mMaxWorkersPerHost) {
         unusedHosts.add(host);
       }
     }
@@ -408,10 +408,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     for (Container container : containers) {
       synchronized (mWorkerHosts) {
         if (mWorkerHosts.size() >= mNumWorkers
-            || (mOneWorkerPerHost && mWorkerHosts.contains(container.getNodeId().getHost()))) {
+            || mWorkerHosts.count(container.getNodeId().getHost()) >= mMaxWorkersPerHost) {
           // 1. Yarn will sometimes offer more containers than were requested, so we ignore offers
           // when mWorkerHosts.size() >= mNumWorkers
-          // 2. Avoid re-using nodes if mOneWorkerPerHost is true
+          // 2. Avoid re-using nodes if they already have the maximum number of workers
           LOG.info("Releasing assigned container on {}", container.getNodeId().getHost());
           mRMClient.releaseAssignedContainer(container.getId());
         } else {

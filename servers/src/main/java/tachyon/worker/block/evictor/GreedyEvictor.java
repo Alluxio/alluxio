@@ -36,13 +36,14 @@ import tachyon.worker.block.meta.StorageTierView;
 
 /**
  * A simple evictor that evicts arbitrary blocks until the required size is met. This class serves
- * as an example to implement an Evictor.
+ * as an example to implement an Evictor. It does not use the block metadata information or the
+ * allocation policy to determine which blocks should be evicted.
  */
 public final class GreedyEvictor implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * GreedyEvictor does not use the block metadata information or the allocation policy.
+   * Creates a new instance of {@link GreedyEvictor}.
    *
    * @param view a view of block metadata information
    * @param allocator an allocation policy
