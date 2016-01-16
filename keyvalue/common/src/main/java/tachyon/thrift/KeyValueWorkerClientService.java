@@ -62,7 +62,7 @@ public class KeyValueWorkerClientService {
     public List<ByteBuffer> getNextKeys(long blockId, ByteBuffer key, int numKeys) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
-     * Gets the number of (key, value) pairs in the partition.
+     * Gets the number of key-value pairs in the partition.
      * 
      * @param blockId the id of the partition
      */
