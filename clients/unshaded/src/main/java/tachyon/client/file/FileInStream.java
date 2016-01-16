@@ -70,7 +70,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   private final FileInfo mFileInfo;
   /** Constant error message for block ID not cached */
   private static final String BLOCK_ID_NOT_CACHED = "The block with ID {}"
-      + " could not be cached into Tachyon storage. {}";
+      + " could not be cached into Tachyon storage.";
 
   /** If the stream is closed, this can only go from false to true */
   private boolean mClosed;
