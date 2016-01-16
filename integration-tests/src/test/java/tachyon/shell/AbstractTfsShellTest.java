@@ -53,9 +53,9 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * The base class for all the TfsShellTest classes
+ * The base class for all the TfsShellTest classes.
  */
-public class AbstractTfsShellTest {
+public abstract class AbstractTfsShellTest {
   protected static final int SIZE_BYTES = Constants.MB * 10;
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
