@@ -140,7 +140,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
           if (nextKey == null) {
             break;
           }
-          ret.add(nextKey);
+          ret.add(copyAsNonDirectBuffer(nextKey));
           currentKey = nextKey;
         }
         return ret;

@@ -27,7 +27,7 @@ public interface PayloadWriter {
    * data is stored in payload storage.
    *
    * @param key bytes of key
-   * @param value offset of this key in payload
+   * @param value bytes of value
    * @return the offset of this key-value pair in payload storage
    * @throws IOException if error occurs writing the key and value to output stream
    */
