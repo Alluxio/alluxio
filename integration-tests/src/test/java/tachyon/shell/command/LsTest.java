@@ -19,7 +19,6 @@ import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -29,7 +28,6 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFile;
 import tachyon.exception.TachyonException;
 import tachyon.master.MasterContext;
-import tachyon.security.LoginUser;
 import tachyon.security.group.provider.IdentityUserGroupsMapping;
 import tachyon.shell.AbstractTfsShellTest;
 import tachyon.thrift.FileInfo;
@@ -40,14 +38,12 @@ import tachyon.thrift.FileInfo;
 public class LsTest extends AbstractTfsShellTest {
   @Test
   public void lsTest() throws IOException, TachyonException {
-    // clear the loginUser
-    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
     MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
 
     FileInfo[] files = new FileInfo[4];
     String testUser = "test_user_ls";
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
+    cleanAndLogin(testUser);
 
     TachyonFile fileA =
         TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", TachyonStorageType.STORE,

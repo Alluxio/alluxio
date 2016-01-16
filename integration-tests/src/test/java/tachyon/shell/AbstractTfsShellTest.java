@@ -28,10 +28,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
+import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
+import tachyon.client.ClientContext;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
@@ -42,6 +44,7 @@ import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.security.LoginUser;
 import tachyon.security.authentication.AuthType;
 import tachyon.shell.command.CommandUtils;
 import tachyon.thrift.FileInfo;
@@ -153,6 +156,15 @@ public class AbstractTfsShellTest {
       }
     }
     return null;
+  }
+
+  protected void cleanAndLogin(String user) throws IOException {
+    // clear the loginUser and re-login with new user
+    synchronized (LoginUser.class) {
+      Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+      System.setProperty(Constants.SECURITY_LOGIN_USERNAME, user);
+      LoginUser.get(ClientContext.getConf());
+    }
   }
 
   protected byte[] readContent(TachyonFile tFile, int length) throws IOException, TachyonException {
