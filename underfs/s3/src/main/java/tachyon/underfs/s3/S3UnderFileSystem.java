@@ -45,19 +45,19 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 
 /**
- * Under file system implementation for S3 using the Jets3t library.
+ * S3 FS {@link UnderFileSystem} implementation based on the jets3t library.
  */
 public class S3UnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Suffix for an empty file to flag it as a directory */
+  /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = "_$folder$";
-  /** Value used to indicate folder structure in S3 */
+  /** Value used to indicate folder structure in S3. */
   private static final String PATH_SEPARATOR = "/";
 
-  /** Jets3t S3 client */
+  /** Jets3t S3 client. */
   private final S3Service mClient;
-  /** Bucket name of user's configured Tachyon bucket */
+  /** Bucket name of user's configured Tachyon bucket. */
   private final String mBucketName;
   /** Prefix of the bucket, for example s3n://my-bucket-name/ */
   private final String mBucketPrefix;
@@ -73,7 +73,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Constructs a new S3 {@link UnderFileSystem}.
+   * Constructs a new instance of {@link S3UnderFileSystem}.
    *
    * @param bucketName the name of the bucket
    * @param tachyonConf the configuration for Tachyon
@@ -178,9 +178,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * There is no concept of a block in S3, however the maximum allowed size of one file is
-   * currently 5 TB.
-   * @param path The file name
+   * Gets the block size in bytes. There is no concept of a block in S3, however the maximum allowed
+   * size of one file is currently 5 TB.
+   *
+   * @param path the file name
    * @return 5 TB in bytes
    * @throws IOException this implementation will not throw this exception, but subclasses may
    */
@@ -243,6 +244,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] list(String path) throws IOException {
+    // if the path not exists, or it is a file, then should return null
+    if (!exists(path) || isFile(path)) {
+      return null;
+    }
     // Non recursive list
     path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
     return listInternal(path, false);
@@ -331,15 +336,22 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Appends the directory suffix to the key.
+   *
    * @param key the key to convert
    * @return key as a directory path
    */
   private String convertToFolderName(String key) {
+    // Strips the slash if it is the end of the key string. This is because the slash at
+    // the end of the string is not part of the Object key in S3.
+    if (key.endsWith(PATH_SEPARATOR)) {
+      key = key.substring(0, key.length() - PATH_SEPARATOR.length());
+    }
     return key + FOLDER_SUFFIX;
   }
 
   /**
    * Copies an object to another key.
+   *
    * @param src the source key to copy
    * @param dst the destination key to copy to
    * @return true if the operation was successful, false otherwise
@@ -359,7 +371,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Internal function to delete a key in S3
+   * Internal function to delete a key in S3.
+   *
    * @param key the key to delete
    * @return true if successful, false if an exception is thrown
    */
@@ -380,6 +393,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Gets the child name based on the parent name.
+   *
    * @param child the key of the child
    * @param parent the key of the parent
    * @return the child key with the parent prefix removed, null if the parent prefix is invalid
@@ -394,10 +408,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the {@link StorageObject} representing the metadata of a key. If the key does not exist as
-   * a file or folder, null is returned
    * @param key the key to get the object details of
-   * @return {@link StorageObject} of the key, or null if the key does not exist as a file or folder
+   * @return {@link StorageObject} of the key, or null if the key does not exist
    */
   private StorageObject getObjectDetails(String key) {
     try {
@@ -413,9 +425,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the parent key of the input key, or null if no parent exists
    * @param key the key to get the parent of
-   * @return the the parent key
+   * @return the parent key, or null if the parent does not exist
    */
   private String getParentKey(String key) {
     // Root does not have a parent.
@@ -432,11 +443,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
   /**
    * Determines if the key represents a folder. If false is returned, it is not guaranteed that the
    * path exists.
+   *
    * @param key the key to check
-   * @return {@link S3Object} containing metadata
+   * @return whether the given key identifies a folder
    */
   private boolean isFolder(String key) {
-    key = key.endsWith(PATH_SEPARATOR) ? key.substring(0, key.length() - 1) : key;
     // Root is always a folder
     if (isRoot(key)) {
       return true;
@@ -453,6 +464,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Checks if the key is the root.
+   *
    * @param key the key to check
    * @return true if the key is the root, false otherwise
    */
@@ -463,11 +475,12 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Lists the files in the given path, the paths will be their logical names and not contain the
-   * folder suffix
+   * folder suffix.
+   *
    * @param path the key to list
    * @param recursive if true will list children directories as well
    * @return an array of the file and folder names in this directory
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   private String[] listInternal(String path, boolean recursive) throws IOException {
     try {
@@ -510,6 +523,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Creates a directory flagged file with the key and folder suffix.
+   *
    * @param key the key to create a folder
    * @return true if the operation was successful, false otherwise
    */
@@ -531,6 +545,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Treating S3 as a file system, checks if the parent directory exists.
+   *
    * @param key the key to check
    * @return true if the parent exists or if the key is root, false otherwise
    */
@@ -544,9 +559,9 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strip the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder. This method will leave keys without a suffix
-   * unaltered.
+   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
+   * guarantee the existence of the folder. This method will leave keys without a suffix unaltered.
+   *
    * @param key the key to strip the suffix from
    * @return the key with the suffix removed, or the key unaltered if the suffix is not present
    */
@@ -558,10 +573,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the s3 bucket prefix or the preceding path separator from the key if it is present.
-   * For example, for input key s3n://my-bucket-name/my-path/file, the output would be my-path/file.
-   * If key is an absolute path like /my-path/file, the output would be my-path/file.
-   * This method will leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
+   * Strips the s3 bucket prefix or the preceding path separator from the key if it is present. For
+   * example, for input key s3n://my-bucket-name/my-path/file, the output would be my-path/file. If
+   * key is an absolute path like /my-path/file, the output would be my-path/file. This method will
+   * leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
+   *
    * @param key the key to strip
    * @return the key without the s3 bucket prefix
    */

@@ -29,6 +29,10 @@ import tachyon.exception.TachyonException;
  */
 public final class TouchCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public TouchCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -59,5 +63,10 @@ public final class TouchCommand extends AbstractTfsShellCommand {
   @Override
   public String getUsage() {
     return "touch <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Creates a 0 byte file. The file will be written to the under file system.";
   }
 }

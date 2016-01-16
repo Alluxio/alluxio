@@ -28,6 +28,11 @@ public final class CheckpointPlan {
   /** A list of lineage ids to checkpoint */
   private final List<Long> mToCheckPoint;
 
+  /**
+   * Creates a new instance of {@link CheckpointPlan}.
+   *
+   * @param toCheckPoint lineage ids to checkpoint
+   */
   public CheckpointPlan(List<Long> toCheckPoint) {
     mToCheckPoint = Preconditions.checkNotNull(toCheckPoint);
   }

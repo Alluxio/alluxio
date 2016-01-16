@@ -77,6 +77,13 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
 
+    <!-- Provides javax.annotation -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.0</version>
+    </dependency>
+
     <!-- Test Dependencies -->
     <dependency>
       <groupId>junit</groupId>

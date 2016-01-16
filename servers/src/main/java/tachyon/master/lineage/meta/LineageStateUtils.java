@@ -33,6 +33,8 @@ public final class LineageStateUtils {
   /**
    * Checks if all the output files of the given lineage are completed.
    *
+   * @param lineage the lineage to check
+   * @param fileSystemMasterView the view of the file system master where the output file lies
    * @return true if all the output files of the given lineage are completed, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    */
@@ -48,6 +50,8 @@ public final class LineageStateUtils {
   }
 
   /**
+   * @param lineage the lineage to check
+   * @param fileSystemMasterView the view of the file system master
    * @return true if the lineage needs recompute, false otherwise
    * @throws FileDoesNotExistException if any output file of the lineage does not exist
    */
@@ -63,6 +67,8 @@ public final class LineageStateUtils {
   }
 
   /**
+   * @param lineage the lineage to check
+   * @param fileSystemMasterView the view of the file system master
    * @return true if all the output files are persisted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    */
@@ -77,6 +83,8 @@ public final class LineageStateUtils {
   }
 
   /**
+   * @param lineage the lineage to check
+   * @param fileSystemMasterView the view of the file system master
    * @return true if at least one of the output files is being persisted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    */
@@ -92,6 +100,8 @@ public final class LineageStateUtils {
   }
 
   /**
+   * @param lineage the lineage to check
+   * @param fileSystemMasterView the view of the file system master
    * @return all the output files of the given lineage that are lost on the workers
    * @throws FileDoesNotExistException if any output file of the lineage does not exist
    */

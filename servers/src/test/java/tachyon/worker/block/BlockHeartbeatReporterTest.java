@@ -22,6 +22,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Unit tests for {@link BlockHeartbeatReporter}.
+ */
 public class BlockHeartbeatReporterTest {
   private static final int SESSION_ID = 1;
   private static final BlockStoreLocation MEM_LOC = new BlockStoreLocation("MEM", 0);
@@ -29,6 +32,9 @@ public class BlockHeartbeatReporterTest {
   private static final BlockStoreLocation HDD_LOC = new BlockStoreLocation("HDD", 0);
   BlockHeartbeatReporter mReporter;
 
+  /**
+   * Sets up all dependencies before a test runs.
+   */
   @Before
   public final void before() {
     mReporter = new BlockHeartbeatReporter();
@@ -43,7 +49,9 @@ public class BlockHeartbeatReporterTest {
     mReporter.onRemoveBlockByWorker(SESSION_ID, blockId);
   }
 
-  // Tests Empty Report
+  /**
+   * Tests the {@link BlockHeartbeatReporter#generateReport()} method for an empty report.
+   */
   @Test
   public void generateReportEmptyTest() {
     BlockHeartbeatReport report = mReporter.generateReport();
@@ -51,7 +59,10 @@ public class BlockHeartbeatReporterTest {
     Assert.assertTrue(report.getRemovedBlocks().isEmpty());
   }
 
-  // Tests a report is correctly generated after moving blocks
+  /**
+   * Tests the {@link BlockHeartbeatReporter#generateReport()} method to correctly generate a report
+   * after moving block.
+   */
   @Test
   public void generateReportMoveTest() {
     Long block1 = 1L;
@@ -79,7 +90,10 @@ public class BlockHeartbeatReporterTest {
     Assert.assertEquals(block3, addedBlocksHdd.get(0));
   }
 
-  // Tests generating a report clears the state of the reporter
+  /**
+   * Tests the {@link BlockHeartbeatReporter#generateReport()} method that generating a report
+   * clears the state of the reporter.
+   */
   @Test
   public void generateReportStateClearTest() {
     Long block1 = 1L;
@@ -95,7 +109,10 @@ public class BlockHeartbeatReporterTest {
     Assert.assertTrue(nextReport.getRemovedBlocks().isEmpty());
   }
 
-  // Tests a report is correctly generated after removing blocks
+  /**
+   * Tests the {@link BlockHeartbeatReporter#generateReport()} method to correctly generate a report
+   * after removing blocks.
+   */
   @Test
   public void generateReportRemoveTest() {
     Long block1 = 1L;
@@ -118,7 +135,10 @@ public class BlockHeartbeatReporterTest {
     Assert.assertTrue(addedBlocks.isEmpty());
   }
 
-  // Tests a report is correctly generated after moving and then removing a block
+  /**
+   * Tests the {@link BlockHeartbeatReporter#generateReport()} method to correctly generate a report
+   * after moving a block and the removing it.
+   */
   @Test
   public void generateReportMoveThenRemoveTest() {
     Long block1 = 1L;

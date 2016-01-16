@@ -58,6 +58,12 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
   private final ExecutorService mFixedExecutionService =
       Executors.newFixedThreadPool(DEFAULT_FILE_PERSISTER_POOL_SIZE);
 
+  /**
+   * Creates a new instance of {@link FileWorkerMasterSyncExecutor}.
+   *
+   * @param fileDataManager a {@link FileDataManager} handle
+   * @param masterClient a {@link FileSystemMasterClient}
+   */
   public FileWorkerMasterSyncExecutor(FileDataManager fileDataManager,
       FileSystemMasterClient masterClient) {
     mFileDataManager = Preconditions.checkNotNull(fileDataManager);
@@ -66,20 +72,24 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-    List<Long> persistedFiles = mFileDataManager.popPersistedFiles();
+    List<Long> persistedFiles = mFileDataManager.getPersistedFiles();
     if (!persistedFiles.isEmpty()) {
       LOG.info("files {} persisted", persistedFiles);
     }
 
     FileSystemCommand command = null;
     try {
-      command = mMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(),
-          persistedFiles);
+      command = mMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(), persistedFiles);
     } catch (IOException e) {
       LOG.error("Failed to heartbeat to master", e);
-    }  catch (ConnectionFailedException e) {
+      return;
+    } catch (ConnectionFailedException e) {
       LOG.error("Failed to heartbeat to master", e);
+      return;
     }
+
+    // removes the persisted files that are confirmed
+    mFileDataManager.clearPersistedFiles(persistedFiles);
 
     if (command == null) {
       LOG.error("The command sent from master is null");
@@ -91,8 +101,11 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     }
 
     for (PersistFile persistFile : command.getCommandOptions().getPersistOptions().persistFiles) {
-      mFixedExecutionService
-          .execute(new FilePersister(mFileDataManager, persistFile.fileId, persistFile.blockIds));
+      long fileId = persistFile.fileId;
+      if (mFileDataManager.needPersistence(fileId)) {
+        mFixedExecutionService
+            .execute(new FilePersister(mFileDataManager, fileId, persistFile.blockIds));
+      }
     }
   }
 
@@ -104,6 +117,13 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     private long mFileId;
     private List<Long> mBlockIds;
 
+    /**
+     * Creates a new instance of {@link FilePersister}.
+     *
+     * @param fileDataManager a {@link FileDataManager} handle
+     * @param fileId a file id
+     * @param blockIds a list of block ids
+     */
     public FilePersister(FileDataManager fileDataManager, long fileId, List<Long> blockIds) {
       mFileDataManager = fileDataManager;
       mFileId = fileId;

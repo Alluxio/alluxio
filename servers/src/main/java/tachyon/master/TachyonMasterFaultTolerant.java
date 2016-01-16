@@ -65,9 +65,6 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
     }
   }
 
-  /**
-   * Starts a Tachyon master server.
-   */
   @Override
   public void start() throws Exception {
     try {
@@ -121,9 +118,6 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
     }
   }
 
-  /**
-   * Stops a Tachyon master server. Should only be called by tests.
-   */
   @Override
   public void stop() throws Exception {
     super.stop();

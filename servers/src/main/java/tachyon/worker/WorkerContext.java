@@ -30,6 +30,14 @@ public final class WorkerContext {
   private static TachyonConf sTachyonConf = new TachyonConf();
 
   /**
+   * The {@link WorkerSource} for collecting worker metrics.
+   */
+  private static WorkerSource sWorkerSource = new WorkerSource();
+
+  /** Net address of this worker */
+  private static NetAddress sNetAddress;
+
+  /**
    * Returns the one and only static {@link TachyonConf} object which is shared among all classes
    * within the worker process.
    *
@@ -37,6 +45,32 @@ public final class WorkerContext {
    */
   public static TachyonConf getConf() {
     return sTachyonConf;
+  }
+
+  /**
+   * Returns the one and only static {@link WorkerSource} object which is shared among all classes
+   * within the worker process.
+   *
+   * @return the {@link WorkerSource} for the worker process
+   */
+  public static WorkerSource getWorkerSource() {
+    return sWorkerSource;
+  }
+
+  /**
+   * @return {@link NetAddress} object of this worker
+   */
+  public static NetAddress getNetAddress() {
+    return sNetAddress;
+  }
+
+  /**
+   * Sets {@link NetAddress} object of this worker.
+   *
+   * @param netAddress {@link NetAddress} object of this worker
+   */
+  public static void setWorkerNetAddress(NetAddress netAddress) {
+    sNetAddress = netAddress;
   }
 
   /**
@@ -48,8 +82,10 @@ public final class WorkerContext {
   }
 
   /**
-   * Resets the master context, for test only.
+   * Resets the worker context, for test only.
    * TODO(binfan): consider a better way to mock test TachyonConf
+   *
+   * @param conf the configuration for Tachyon
    */
   public static void reset(TachyonConf conf) {
     sTachyonConf = conf;

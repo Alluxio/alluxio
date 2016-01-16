@@ -43,11 +43,11 @@ import tachyon.util.io.PathUtils;
  * Tests for {@link tachyon.client.file.TachyonFileSystemUtils}.
  */
 public class TachyonFileSystemUtilsIntegrationTest {
-  private static final int WORKER_CAPACITY_BYTES = 20000;
+  private static final int WORKER_CAPACITY_BYTES = 2 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB,
+      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.MB,
           Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
   private static OutStreamOptions sWriteBoth;
   private static TachyonFileSystem sTfs = null;
@@ -163,6 +163,7 @@ public class TachyonFileSystemUtilsIntegrationTest {
           final TachyonFile file = sTfs.open(uri);
           completed = sTfs.getInfo(file, GetInfoOptions.defaults()).isCompleted;
           Assert.assertFalse(completed);
+          ClientContext.reset();
         } catch (Exception e) {
           e.printStackTrace();
           Assert.fail(e.getMessage());

@@ -46,8 +46,10 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.security.LoginUser;
 import tachyon.security.authentication.AuthType;
+import tachyon.security.group.provider.IdentityUserGroupsMapping;
 import tachyon.shell.command.CommandUtils;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
@@ -63,7 +65,7 @@ public class TfsShellTest {
   private static final int SIZE_BYTES = Constants.MB * 10;
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(SIZE_BYTES, 1000, Constants.GB,
+      new LocalTachyonClusterResource(SIZE_BYTES, 1000, Constants.MB,
           Constants.MASTER_TTLCHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE),
           Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
   private LocalTachyonCluster mLocalTachyonCluster = null;
@@ -412,7 +414,7 @@ public class TfsShellTest {
 
   @Test
   public void fileinfoNotExistTest() throws IOException {
-    int ret = mFsShell.run("fileinfo", "/NotExistFile");
+    int ret = mFsShell.run("fileInfo", "/NotExistFile");
     Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
         mOutput.toString());
     Assert.assertEquals(-1, ret);
@@ -421,10 +423,10 @@ public class TfsShellTest {
   /*
    * @Test public void fileInfoTest() throws IOException { TachyonFile file =
    * TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.STORE,
-   * UnderStorageType.NO_PERSIST, 10); mFsShell.run(new String[] {"fileinfo", "/testFile"});
+   * UnderStorageType.NO_PERSIST, 10); mFsShell.run(new String[] {"fileInfo", "/testFile"});
    * FileInfo fileInfo = mTfs.getInfo(file); Assert.assertNotNull(fileInfo); List<FileBlockInfo>
    * blocks = mTfs.getFileBlocks(fileId); String[] commandParameters = new String[3 +
-   * blocks.size()]; commandParameters[0] = "fileinfo"; commandParameters[1] = "/testFile";
+   * blocks.size()]; commandParameters[0] = "fileInfo"; commandParameters[1] = "/testFile";
    * commandParameters[2] = String.valueOf(file.getFileId()); Iterator<FileBlockInfo> iter =
    * blocks.iterator(); int i = 3; while (iter.hasNext()) { commandParameters[i ++] =
    * iter.next().toString(); } Assert.assertEquals(getCommandOutput(commandParameters),
@@ -469,7 +471,7 @@ public class TfsShellTest {
           ret.append(command[i] + "\n");
         }
         return ret.toString();
-      } else if (cmd.equals("fileinfo")) {
+      } else if (cmd.equals("fileInfo")) {
         StringBuilder ret = new StringBuilder();
         ret.append(command[1] + " with file id " + command[2] + " has the following blocks: \n");
         for (int i = 3; i < command.length; i ++) {
@@ -504,12 +506,12 @@ public class TfsShellTest {
 
   @Test
   public void lsrTest() throws IOException, TachyonException {
-    // clear the loginUser
-    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+    MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
+        IdentityUserGroupsMapping.class.getName());
 
     FileInfo[] files = new FileInfo[4];
     String testUser = "test_user_lsr";
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
+    cleanAndLogin(testUser);
 
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA",
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
@@ -523,32 +525,32 @@ public class TfsShellTest {
     files[3] = mTfs.getInfo(fileC);
     mFsShell.run("lsr", "/testRoot");
     String expected = "";
-    String format = "%-10s%-25s%-15s%-15s%-5s\n";
-    expected += String.format(format, FormatUtils.getSizeFromBytes(10),
-        CommandUtils.convertMsToDate(files[0].getCreationTimeMs()), "In Memory", testUser,
-        "/testRoot/testFileA");
-    expected += String.format(format, FormatUtils.getSizeFromBytes(0),
-        CommandUtils.convertMsToDate(files[1].getCreationTimeMs()), "", testUser,
-        "/testRoot/testDir");
-    expected += String.format(format, FormatUtils.getSizeFromBytes(20),
-        CommandUtils.convertMsToDate(files[2].getCreationTimeMs()), "In Memory", testUser,
-        "/testRoot/testDir/testFileB");
-    expected += String.format(format, FormatUtils.getSizeFromBytes(30),
-        CommandUtils.convertMsToDate(files[3].getCreationTimeMs()), "Not In Memory", testUser,
-        "/testRoot/testFileC");
+    expected +=
+        getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10, "In Memory",
+            testUser, testUser, files[0].getPermission(), files[0].isFolder);
+    expected +=
+        getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 0, "", testUser,
+            testUser, files[1].getPermission(), files[1].isFolder);
+    expected +=
+        getLsResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), 20,
+            "In Memory", testUser, testUser, files[2].getPermission(), files[2].isFolder);
+    expected +=
+        getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30, "Not In Memory",
+            testUser, testUser, files[3].getPermission(), files[3].isFolder);
     Assert.assertEquals(expected, mOutput.toString());
     // clear testing username
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+    MasterContext.reset();
   }
 
   @Test
   public void lsTest() throws IOException, TachyonException {
-    // clear the loginUser
-    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+    MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
+        IdentityUserGroupsMapping.class.getName());
 
     FileInfo[] files = new FileInfo[4];
     String testUser = "test_user_ls";
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
+    cleanAndLogin(testUser);
 
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA",
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
@@ -561,19 +563,28 @@ public class TfsShellTest {
     files[2] = mTfs.getInfo(fileC);
     mFsShell.run("ls", "/testRoot");
     String expected = "";
-    String format = "%-10s%-25s%-15s%-15s%-5s\n";
-    expected += String.format(format, FormatUtils.getSizeFromBytes(10),
-        CommandUtils.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
-        testUser, "/testRoot/testFileA");
-    expected += String.format(format, FormatUtils.getSizeFromBytes(0),
-        CommandUtils.convertMsToDate(files[1].getCreationTimeMs()), "",
-        testUser, "/testRoot/testDir");
-    expected += String.format(format, FormatUtils.getSizeFromBytes(30),
-        CommandUtils.convertMsToDate(files[2].getCreationTimeMs()), "Not In Memory",
-        testUser, "/testRoot/testFileC");
+    expected +=
+        getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10, "In Memory",
+            testUser, testUser, files[0].getPermission(), files[0].isFolder);
+    expected +=
+        getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 0, "", testUser,
+            testUser, files[1].getPermission(), files[1].isFolder);
+    expected +=
+        getLsResultStr("/testRoot/testFileC", files[2].getCreationTimeMs(), 30, "Not In Memory",
+            testUser, testUser, files[2].getPermission(), files[2].isFolder);
     Assert.assertEquals(expected, mOutput.toString());
     // clear testing username
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+    MasterContext.reset();
+  }
+
+  private void cleanAndLogin(String user) throws IOException {
+    // clear the loginUser and re-login with new user
+    synchronized (LoginUser.class) {
+      Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+      System.setProperty(Constants.SECURITY_LOGIN_USERNAME, user);
+      LoginUser.get(ClientContext.getConf());
+    }
   }
 
   @Test
@@ -596,6 +607,30 @@ public class TfsShellTest {
   @Test
   public void mkdirInvalidPathTest() throws IOException {
     Assert.assertEquals(-1, mFsShell.run("mkdir", "/test File Invalid Path"));
+  }
+
+  @Test
+  public void mkdirMultiPathTest() throws IOException, TachyonException {
+    String path1 = "/testDir1";
+    String path2 = "/testDir2";
+    String path3 = "/testDir2/testDir2.1";
+    Assert.assertEquals(0, mFsShell.run("mkdir", path1, path2, path3));
+
+    TachyonFile tFile = mTfs.open(new TachyonURI(path1));
+    FileInfo fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
+    Assert.assertTrue(fileInfo.isIsFolder());
+
+    tFile = mTfs.open(new TachyonURI(path2));
+    fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
+    Assert.assertTrue(fileInfo.isIsFolder());
+
+    tFile = mTfs.open(new TachyonURI(path3));
+    fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
+    Assert.assertTrue(fileInfo.isIsFolder());
+
   }
 
   @Test
@@ -876,35 +911,45 @@ public class TfsShellTest {
   public void lsWildcardTest() throws IOException, TachyonException {
     // clear the loginUser
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
-
+    MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
+        IdentityUserGroupsMapping.class.getName());
     String testUser = "test_user_lsWildcard";
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
 
     TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
 
     String expect = "";
-    expect += getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20, testUser);
+    expect += getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30, testUser, testUser);
+    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10, testUser, testUser);
+    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20, testUser, testUser);
     mFsShell.run("ls", "/testWildCards/*/foo*");
     Assert.assertEquals(expect, mOutput.toString());
 
-    expect += getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foobar4"), 40, testUser);
+    expect += getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30, testUser, testUser);
+    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10, testUser, testUser);
+    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20, testUser, testUser);
+    expect += getLsResultStr(new TachyonURI("/testWildCards/foobar4"), 40, testUser, testUser);
     mFsShell.run("ls", "/testWildCards/*");
     Assert.assertEquals(expect, mOutput.toString());
     // clear testing username
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+    MasterContext.reset();
   }
 
-  private String getLsResultStr(TachyonURI tUri, int size, String testUser) throws IOException,
-  TachyonException {
-    String format = "%-10s%-25s%-15s%-15s%-5s\n";
-    return String.format(format, FormatUtils.getSizeFromBytes(size),
-        CommandUtils.convertMsToDate(mTfs.getInfo(mTfs.open(tUri)).getCreationTimeMs()),
-        "In Memory", testUser, tUri.getPath());
+  private String getLsResultStr(TachyonURI tUri, int size, String testUser, String testGroup)
+      throws IOException, TachyonException {
+    FileInfo fileInfo = mTfs.getInfo(mTfs.open(tUri));
+    return getLsResultStr(tUri.getPath(), fileInfo.getCreationTimeMs(), size,
+        "In Memory", testUser, testGroup, fileInfo.getPermission(), fileInfo.isFolder);
+  }
+
+  private String getLsResultStr(String path, long createTime, int size, String fileType,
+      String testUser, String testGroup, int permission, boolean isDir)
+      throws IOException, TachyonException {
+    return String.format(Constants.COMMAND_FORMAT_LS,
+        CommandUtils.formatPermission(permission, isDir),
+        testUser, testGroup, FormatUtils.getSizeFromBytes(size),
+        CommandUtils.convertMsToDate(createTime), fileType, path);
   }
 
   @Test
@@ -976,7 +1021,7 @@ public class TfsShellTest {
   public void fileinfoWildCardTest() throws IOException, TachyonException {
     TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
 
-    mFsShell.run("fileinfo", "/testWildCards/*");
+    mFsShell.run("fileInfo", "/testWildCards/*");
     String res1 = mOutput.toString();
     Assert.assertTrue(res1.contains("/testWildCards/foo"));
     Assert.assertTrue(res1.contains("/testWildCards/bar"));
@@ -984,7 +1029,7 @@ public class TfsShellTest {
     Assert.assertFalse(res1.contains("/testWildCards/foo/foobar1"));
     Assert.assertFalse(res1.contains("/testWildCards/bar/foobar3"));
 
-    mFsShell.run("fileinfo", "/testWildCards/*/foo*");
+    mFsShell.run("fileInfo", "/testWildCards/*/foo*");
     String res2 = mOutput.toString();
     res2 = res2.replace(res1, "");
     Assert.assertTrue(res2.contains("/testWildCards/foo/foobar1"));
@@ -1115,42 +1160,42 @@ public class TfsShellTest {
   }
 
   @Test
-  public void setTTLNegativeTest() throws IOException {
+  public void setTtlNegativeTest() throws IOException {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile",
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 1);
     mException.expect(IllegalArgumentException.class);
     mException.expectMessage("TTL value must be >= 0");
-    mFsShell.run("setTTL", "/testFile", "-1");
+    mFsShell.run("setTtl", "/testFile", "-1");
   }
 
   @Test
-  public void setTTLTest() throws Exception {
+  public void setTtlTest() throws Exception {
     String filePath = "/testFile";
     TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 1);
     Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
     long[] ttls = new long[] { 0L, 1000L };
     for (long ttl : ttls) {
-      Assert.assertEquals(0, mFsShell.run("setTTL", filePath, String.valueOf(ttl)));
+      Assert.assertEquals(0, mFsShell.run("setTtl", filePath, String.valueOf(ttl)));
       Assert.assertEquals(ttl, mTfs.getInfo(file).getTtl());
     }
   }
 
   @Test
-  public void unsetTTLTest() throws Exception {
+  public void unsetTtlTest() throws Exception {
     String filePath = "/testFile";
     TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType
         .STORE, UnderStorageType.NO_PERSIST, 1);
     Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
 
-    // unsetTTL on a file originally with no TTL will leave the TTL unchanged.
-    Assert.assertEquals(0, mFsShell.run("unsetTTL", filePath));
+    // unsetTtl on a file originally with no TTL will leave the TTL unchanged.
+    Assert.assertEquals(0, mFsShell.run("unsetTtl", filePath));
     Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
 
     long ttl = 1000L;
-    Assert.assertEquals(0, mFsShell.run("setTTL", filePath, String.valueOf(ttl)));
+    Assert.assertEquals(0, mFsShell.run("setTtl", filePath, String.valueOf(ttl)));
     Assert.assertEquals(ttl, mTfs.getInfo(file).getTtl());
-    Assert.assertEquals(0, mFsShell.run("unsetTTL", filePath));
+    Assert.assertEquals(0, mFsShell.run("unsetTtl", filePath));
     Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
   }
 
@@ -1214,5 +1259,61 @@ public class TfsShellTest {
     checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/foo/foobar2")), 20);
     checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/bar/foobar3")), 30);
     checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/foobar4")), 40);
+    ClientContext.reset();
+  }
+
+  @Test
+  public void setIsPinnedTest() throws Exception {
+    String filePath = "/testFile";
+    TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, 1);
+
+    // Ensure that the file exists
+    Assert.assertTrue(fileExist(new TachyonURI(filePath)));
+
+    // Unpin an unpinned file
+    Assert.assertEquals(0, mFsShell.run("unpin", filePath));
+    Assert.assertFalse(mTfs.getInfo(file).isPinned);
+
+    // Pin the file
+    Assert.assertEquals(0, mFsShell.run("pin", filePath));
+    Assert.assertTrue(mTfs.getInfo(file).isPinned);
+
+    // Unpin the file
+    Assert.assertEquals(0, mFsShell.run("unpin", filePath));
+    Assert.assertFalse(mTfs.getInfo(file).isPinned);
+  }
+
+  /**
+   * Creates three files with initial size of 5MB to be added to Tachyon. Once the third file is
+   * added, Tachyon is forced to evict one file. Since fileA is pinned it will not be evicted only
+   * fileB.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void setPinTest() throws Exception {
+    String filePathA = "/testFileA";
+    String filePathB = "/testFileB";
+    String filePathC = "/testFileC";
+    int fileSize = 5 * 1024 * 1024 ;
+
+    TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, filePathA, TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, fileSize);
+    Assert.assertTrue(fileExist(new TachyonURI(filePathA)));
+    Assert.assertEquals(0, mFsShell.run("pin", filePathA));
+
+    TachyonFile fileB = TachyonFSTestUtils.createByteFile(mTfs, filePathB, TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, fileSize);
+    Assert.assertTrue(fileExist(new TachyonURI(filePathB)));
+    Assert.assertEquals(0, mFsShell.run("unpin", filePathB));
+
+    TachyonFile fileC = TachyonFSTestUtils.createByteFile(mTfs, filePathC, TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, fileSize);
+    Assert.assertTrue(fileExist(new TachyonURI(filePathC)));
+
+    // fileA is in memory because it is pinned, but not fileB
+    Assert.assertEquals(100, mTfs.getInfo(fileA).inMemoryPercentage);
+    Assert.assertEquals(0, mTfs.getInfo(fileB).inMemoryPercentage);
   }
 }

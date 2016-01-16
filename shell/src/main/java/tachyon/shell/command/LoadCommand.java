@@ -37,6 +37,12 @@ import tachyon.thrift.FileInfo;
  */
 public final class LoadCommand extends WithWildCardPathCommand {
 
+  /**
+   * Constructs a new instance to load a file or directory in Tachyon space.
+   *
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public LoadCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -52,10 +58,10 @@ public final class LoadCommand extends WithWildCardPathCommand {
   }
 
   /**
-   * Load a file or directory in Tachyon space, makes it resident in memory.
+   * Loads a file or directory in Tachyon space, makes it resident in memory.
    *
    * @param filePath The {@link TachyonURI} path to load into Tachyon memory
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   private void load(TachyonURI filePath) throws IOException {
     try {
@@ -96,5 +102,10 @@ public final class LoadCommand extends WithWildCardPathCommand {
   @Override
   public String getUsage() {
     return "load <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Loads a file or directory in Tachyon space, makes it resident in memory.";
   }
 }

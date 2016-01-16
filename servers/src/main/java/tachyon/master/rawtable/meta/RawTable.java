@@ -24,8 +24,11 @@ import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.RawTable.RawTableEntry;
 import tachyon.util.io.BufferUtils;
 
+/**
+ * A raw table is a directory with sub-directories representing columns.
+ */
 public class RawTable implements JournalEntryRepresentable {
-  /** Table ID */
+  /** Table id */
   private final long mId;
   /** Number of columns */
   private final int mColumns;
@@ -33,8 +36,8 @@ public class RawTable implements JournalEntryRepresentable {
   private ByteBuffer mMetadata;
 
   /**
-   * Create a new RawTable with metadata set to null. metadata can later be set via
-   * {@link #setMetadata(java.nio.ByteBuffer)}.
+   * Creates a new instance of {@link RawTable} with metadata set to null. Metadata can later be set
+   * via {@link #setMetadata(java.nio.ByteBuffer)}.
    *
    * @param id table id
    * @param columns number of columns
@@ -46,7 +49,7 @@ public class RawTable implements JournalEntryRepresentable {
   }
 
   /**
-   * Create a new RawTable with metadata set to a {@link ByteBuffer}.
+   * Creates a new instance of {@link RawTable} with metadata set to a {@link ByteBuffer}.
    *
    * @param id table id
    * @param columns number of columns
@@ -59,21 +62,31 @@ public class RawTable implements JournalEntryRepresentable {
     setMetadata(metadata);
   }
 
+  /**
+   * @return the id of the table
+   */
   public long getId() {
     return mId;
   }
 
+  /**
+   * @return the columns of the table
+   */
   public int getColumns() {
     return mColumns;
   }
 
+  /**
+   * @return the metadata for the table
+   */
   public ByteBuffer getMetadata() {
     return mMetadata;
   }
 
   /**
-   * Set the table metadata. If the specified metadata is null, the internal metadata will be set to
-   * an empty byte buffer, otherwise, the provided metadata will be copied into the internal buffer.
+   * Sets the table metadata. If the specified metadata is null, the internal metadata will be set
+   * to an empty byte buffer, otherwise, the provided metadata will be copied into the internal
+   * buffer.
    *
    * @param metadata the metadata to be set
    */

@@ -26,6 +26,13 @@ import tachyon.util.io.BufferUtils;
 public class TestBufferedBlockInStream extends BufferedBlockInStream {
   private final byte[] mData;
 
+  /**
+   * Constructs a new {@link TestBufferedBlockInStream} to be used in tests.
+   *
+   * @param blockId the id of the block
+   * @param start the position to start to read
+   * @param blockSize the size of the block in bytes
+   */
   public TestBufferedBlockInStream(long blockId, int start, long blockSize) {
     super(blockId, blockSize);
     mData = BufferUtils.getIncreasingByteArray(start, (int) blockSize);

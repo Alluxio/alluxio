@@ -26,9 +26,20 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.block.BlockDataManager;
 
 /**
- * A worker's UI web server
+ * A worker's UI web server.
  */
 public final class WorkerUIWebServer extends UIWebServer {
+
+  /**
+   * Creates a new instance of {@link WorkerUIWebServer}.
+   *
+   * @param serviceType the service type
+   * @param webAddress the service address
+   * @param blockdataManager block data manager
+   * @param workerAddress the worker address
+   * @param startTimeMs start time milliseconds
+   * @param conf Tachyon configuration
+   */
   public WorkerUIWebServer(ServiceType serviceType, InetSocketAddress webAddress,
       BlockDataManager blockdataManager, InetSocketAddress workerAddress, long startTimeMs,
       TachyonConf conf) {

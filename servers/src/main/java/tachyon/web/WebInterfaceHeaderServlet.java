@@ -35,17 +35,23 @@ public final class WebInterfaceHeaderServlet extends HttpServlet {
 
   private final transient TachyonConf mTachyonConf;
 
+  /**
+   * Creates a new instance of {@link WebInterfaceHeaderServlet}.
+   *
+   * @param conf Tachyon configuration
+   */
   public WebInterfaceHeaderServlet(TachyonConf conf) {
     mTachyonConf = conf;
   }
+
   /**
    * Populate the header with information about master. So we can return to
    * the master from any page.
    *
-   * @param request The {@link HttpServletRequest} object
-   * @param response The {@link HttpServletResponse} object
-   * @throws ServletException
-   * @throws IOException
+   * @param request the {@link HttpServletRequest} object
+   * @param response the {@link HttpServletResponse} object
+   * @throws ServletException if the target resource throws this exception
+   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
