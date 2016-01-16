@@ -18,14 +18,14 @@ package tachyon.client.keyvalue;
 import java.nio.ByteBuffer;
 
 /**
- * A (key, value) pair.
+ * A key-value pair.
  */
 public class KeyValuePair {
   private ByteBuffer mKey;
   private ByteBuffer mValue;
 
   /**
-   * Constructs a (key, value) pair.
+   * Constructs a key-value pair.
    *
    * @param key the key
    * @param value the value

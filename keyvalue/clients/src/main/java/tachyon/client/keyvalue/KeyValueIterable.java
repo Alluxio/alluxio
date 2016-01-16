@@ -20,11 +20,11 @@ import java.io.IOException;
 import tachyon.exception.TachyonException;
 
 /**
- * Interface to be implemented in classes that support iterating over (key, value) pairs.
+ * Interface to be implemented in classes that support iterating over key-value pairs.
  */
 public interface KeyValueIterable {
   /**
-   * @return a {@link KeyValueIterator} for iterating over (key, value) pairs in the store
+   * @return a {@link KeyValueIterator} for iterating over key-value pairs in the store
    * @throws IOException if non-Tachyon error occurs
    * @throws TachyonException if Tachyon error occurs
    */

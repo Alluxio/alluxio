@@ -28,23 +28,23 @@ import tachyon.client.keyvalue.KeyValuePartitionReader;
 import tachyon.exception.TachyonException;
 
 /**
- * Implements {@link RecordReader}, each record is a (key, value) pair stored in a partition of the
+ * Implements {@link RecordReader}, each record is a key-value pair stored in a partition of the
  * {@link tachyon.client.keyvalue.KeyValueStore}.
  */
 final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWritable> {
-  /** The partition reader for reading the (key, value) pairs */
+  /** The partition reader for reading the key-value pairs */
   private final KeyValuePartitionReader mReader;
-  /** The iterator for iterating through all (key, value) pairs contained in the partition */
+  /** The iterator for iterating through all key-value pairs contained in the partition */
   private final KeyValueIterator mKeyValuePairIterator;
   /** Current position in the partition's byte array */
   private int mPos;
-  /** Number of (key, value) pairs visited by the iterator */
+  /** Number of key-value pairs visited by the iterator */
   private int mNumVisitedKeyValuePairs;
-  /** Number of (key, value) pairs */
+  /** Number of key-value pairs */
   private final int mNumKeyValuePairs;
 
   /**
-   * Creates a {@link KeyValueRecordReader} for generating (key, value) pairs of a partition.
+   * Creates a {@link KeyValueRecordReader} for generating key-value pairs of a partition.
    *
    * @param split the split for a block
    * @throws IOException if non-Tachyon error occurs

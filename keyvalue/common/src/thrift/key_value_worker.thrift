@@ -22,7 +22,7 @@ service KeyValueWorkerClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Gets the number of (key, value) pairs in the partition.
+   * Gets the number of key-value pairs in the partition.
    */
   i32 getSize(/** the id of the partition */ 1: i64 blockId)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
