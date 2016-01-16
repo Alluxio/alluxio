@@ -59,9 +59,9 @@ import static org.junit.Assert.assertArrayEquals;
 public class TachyonFuseFsTest {
 
   private static final String TEST_MASTER_ADDRESS = "tachyon://localhost:19998";
-  private static final String sTEST_ROOT_PATH = "/t/root";
-  private static final TachyonURI sBASE_EXPECTED_URI =
-      new TachyonURI(sTEST_MASTER_ADDRESS + sTEST_ROOT_PATH);
+  private static final String TEST_ROOT_PATH = "/t/root";
+  private static final TachyonURI BASE_EXPECTED_URI =
+      new TachyonURI(TEST_MASTER_ADDRESS + TEST_ROOT_PATH);
 
   private TachyonFuseFs mFuseFs;
   private TachyonFileSystem mTFS;
@@ -70,12 +70,12 @@ public class TachyonFuseFsTest {
   @Before
   public void setUp() throws Exception {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.MASTER_ADDRESS, sTEST_MASTER_ADDRESS);
+    conf.set(Constants.MASTER_ADDRESS, TEST_MASTER_ADDRESS);
     conf.set(Constants.FUSE_PATHCACHE_SIZE, "0");
 
     final List<String> empty = Collections.emptyList();
     TachyonFuseOptions opts = new TachyonFuseOptions(
-        "/doesnt/matter", sTEST_ROOT_PATH, false, empty);
+        "/doesnt/matter", TEST_ROOT_PATH, false, empty);
 
     mTFS = mock(TachyonFileSystem.class);
     mFuseFs = new TachyonFuseFs(conf, mTFS, opts);
@@ -86,7 +86,7 @@ public class TachyonFuseFsTest {
   public void createTest() throws Exception {
     mFileInfo.flags.set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
-    TachyonURI expectedPath = sBASE_EXPECTED_URI.join("/foo/bar");
+    TachyonURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     verify(mTFS).getOutStream(expectedPath);
   }
 
@@ -121,13 +121,13 @@ public class TachyonFuseFsTest {
   @Test
   public void mkDirTest() throws Exception {
     mFuseFs.mkdir("/foo/bar", -1);
-    verify(mTFS).mkdir(sBASE_EXPECTED_URI.join("/foo/bar"));
+    verify(mTFS).mkdir(BASE_EXPECTED_URI.join("/foo/bar"));
   }
 
   @Test
   public void openTest() throws Exception {
     // mocks set-up
-    TachyonURI expectedPath = sBASE_EXPECTED_URI.join("/foo/bar");
+    TachyonURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     TachyonFile fake = new TachyonFile(42L);
     FileInfo fi = new FileInfo();
     fi.isFolder = false;
@@ -160,7 +160,7 @@ public class TachyonFuseFsTest {
   @Test
   public void readTest() throws Exception {
     // mocks set-up
-    TachyonURI expectedPath = sBASE_EXPECTED_URI.join("/foo/bar");
+    TachyonURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     TachyonFile fake = new TachyonFile(42L);
     FileInfo fi = new FileInfo();
     fi.isFolder = false;
@@ -224,11 +224,11 @@ public class TachyonFuseFsTest {
     final LoadingCache<String, TachyonURI> resolver =
         mFuseFs.getPathResolverCache();
 
-    TachyonURI expected = new TachyonURI(sTEST_MASTER_ADDRESS + sTEST_ROOT_PATH);
+    TachyonURI expected = new TachyonURI(TEST_MASTER_ADDRESS + TEST_ROOT_PATH);
     TachyonURI actual = resolver.apply("/");
     Assert.assertEquals("/ should resolve to " + expected, expected, actual);
 
-    expected = new TachyonURI(sTEST_MASTER_ADDRESS + sTEST_ROOT_PATH + "/home/foo");
+    expected = new TachyonURI(TEST_MASTER_ADDRESS + TEST_ROOT_PATH + "/home/foo");
     actual = resolver.apply("/home/foo");
     Assert.assertEquals("/home/foo should resolve to " + expected, expected, actual);
   }
