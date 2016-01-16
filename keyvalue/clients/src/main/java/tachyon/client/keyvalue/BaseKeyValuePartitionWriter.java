@@ -94,6 +94,8 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
   public void put(byte[] key, byte[] value) throws IOException {
     Preconditions.checkNotNull(key);
     Preconditions.checkNotNull(value);
+    Preconditions.checkState(key.length > 0, "Cannot put an empty key");
+    Preconditions.checkState(value.length > 0, "Cannot put an empty value");
     Preconditions.checkState(!mClosed);
     Preconditions.checkState(!isFull());
     mIndex.put(key, value, mPayloadWriter);

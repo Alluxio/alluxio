@@ -26,6 +26,7 @@ import tachyon.client.keyvalue.KeyValueIterator;
 import tachyon.client.keyvalue.KeyValuePair;
 import tachyon.client.keyvalue.KeyValuePartitionReader;
 import tachyon.exception.TachyonException;
+import tachyon.util.io.BufferUtils;
 
 /**
  * Implements {@link RecordReader}, each record is a key-value pair stored in a partition of the
@@ -71,11 +72,13 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
       throw new IOException(te);
     }
 
-    DataInputStream key = new DataInputStream(new ByteArrayInputStream(pair.getKey().array()));
+    DataInputStream key = new DataInputStream(new ByteArrayInputStream(
+        BufferUtils.newByteArrayFromByteBuffer(pair.getKey())));
     keyWritable.readFields(key);
     key.close();
 
-    DataInputStream value = new DataInputStream(new ByteArrayInputStream(pair.getValue().array()));
+    DataInputStream value = new DataInputStream(new ByteArrayInputStream(
+        BufferUtils.newByteArrayFromByteBuffer(pair.getValue())));
     valueWritable.readFields(value);
     value.close();
 

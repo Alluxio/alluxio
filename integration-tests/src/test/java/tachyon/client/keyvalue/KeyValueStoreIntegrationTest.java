@@ -15,6 +15,8 @@
 
 package tachyon.client.keyvalue;
 
+import java.nio.ByteBuffer;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -106,5 +108,32 @@ public final class KeyValueStoreIntegrationTest {
     Assert.assertNull(mReader.get(KEY1));
     Assert.assertNull(mReader.get(KEY2));
     mReader.close();
+  }
+
+  @Test
+  public void iteratorTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    TachyonURI uri = new TachyonURI(uniqPath);
+    mWriter = sKVStore.create(mStoreUri);
+    mWriter.put(KEY1, VALUE1);
+    mWriter.put(KEY2, VALUE2);
+    mWriter.close();
+
+    mReader = sKVStore.open(mStoreUri);
+    KeyValueIterator iterator = mReader.iterator();
+
+    KeyValuePair pair1 = iterator.next();
+    KeyValuePair pair2 = iterator.next();
+    Assert.assertFalse(iterator.hasNext());
+
+    if (pair1.getKey().equals(ByteBuffer.wrap(KEY2))) {
+      KeyValuePair tmp = pair1;
+      pair1 = pair2;
+      pair2 = tmp;
+    }
+    Assert.assertArrayEquals(KEY1, BufferUtils.newByteArrayFromByteBuffer(pair1.getKey()));
+    Assert.assertArrayEquals(VALUE1, BufferUtils.newByteArrayFromByteBuffer(pair1.getValue()));
+    Assert.assertArrayEquals(KEY2, BufferUtils.newByteArrayFromByteBuffer(pair2.getKey()));
+    Assert.assertArrayEquals(VALUE2, BufferUtils.newByteArrayFromByteBuffer(pair2.getValue()));
   }
 }
