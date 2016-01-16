@@ -129,7 +129,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       try {
         mCurrentCacheStream.write(data);
       } catch (IOException ioe) {
-        LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), ioe.getMessage());
+        LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), ioe);
         mShouldCacheCurrentBlock = false;
       }
     }
@@ -165,7 +165,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         try {
           mCurrentCacheStream.write(b, currentOffset, bytesRead);
         } catch (IOException ioe) {
-          LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), ioe.getMessage());
+          LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), ioe);
           mShouldCacheCurrentBlock = false;
         }
       }
@@ -240,10 +240,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, blockSize, address);
         } catch (IOException ioe) {
-          LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, ioe.getMessage());
+          LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, ioe);
           mShouldCacheCurrentBlock = false;
         } catch (TachyonException e) {
-          LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e.getMessage());
+          LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e);
           throw new IOException(e);
         }
       }
@@ -313,10 +313,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, blockSize, address);
         } catch (IOException ioe) {
-          LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), ioe.getMessage());
+          LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), ioe);
           mShouldCacheCurrentBlock = false;
         } catch (TachyonException e) {
-          LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e.getMessage());
+          LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e);
           throw new IOException(e);
         }
       } else {
@@ -351,7 +351,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           !(mCurrentBlockInStream instanceof LocalBlockInStream) && mTachyonStorageType.isStore();
     } catch (IOException ioe) {
       LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}",
-          blockId, ioe.getMessage());
+          blockId, ioe);
       if (!mFileInfo.isPersisted) {
         LOG.error("Could not obtain data for block with ID {} from Tachyon."
             + " The block will not be persisted in the under file storage.", blockId);
