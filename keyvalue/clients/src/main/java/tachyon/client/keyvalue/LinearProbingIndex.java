@@ -118,22 +118,34 @@ public final class LinearProbingIndex implements Index {
 
   @Override
   public ByteBuffer get(ByteBuffer key, PayloadReader reader) {
+    int bucketOffset = bucketOffset(key, reader);
+    if (bucketOffset == - 1) {
+      return null;
+    }
+    return reader.getValue(ByteIOUtils.readInt(mBuf, bucketOffset + 1));
+  }
+
+  /**
+   * @param key the key
+   * @return bucket offset in the Index of the key, -1 if no such is found
+   */
+  private int bucketOffset(ByteBuffer key, PayloadReader reader) {
     int bucketIndex = indexHash(key);
     byte fingerprint = fingerprintHash(key);
     int bucketOffset = bucketIndex * BUCKET_SIZE_BYTES;
-    // Linear probing until a bucket having the same fingerprint is found
+    // Linear probing until a bucket having the same key is found.
     for (int probe = 0; probe < MAX_PROBES; probe ++) {
       if (fingerprint == ByteIOUtils.readByte(mBuf, bucketOffset)) {
         int offset = ByteIOUtils.readInt(mBuf, bucketOffset + 1);
         ByteBuffer keyStored = reader.getKey(offset);
         if (key.equals(keyStored)) {
-          return reader.getValue(offset);
+          return bucketOffset;
         }
       }
       bucketIndex = (bucketIndex + 1) % mNumBuckets;
       bucketOffset = (bucketIndex == 0) ? 0 : bucketOffset + BUCKET_SIZE_BYTES;
     }
-    return null;
+    return - 1;
   }
 
   @Override
@@ -176,6 +188,21 @@ public final class LinearProbingIndex implements Index {
   }
 
   @Override
+  public ByteBuffer nextKey(ByteBuffer currentKey, PayloadReader reader) {
+    int nextBucketOffset =
+        currentKey == null ? 0 : bucketOffset(currentKey, reader) + BUCKET_SIZE_BYTES;
+    final int bufLimit = mBuf.limit();
+    while (nextBucketOffset < bufLimit) {
+      byte fingerprint = ByteIOUtils.readByte(mBuf, nextBucketOffset);
+      if (fingerprint != 0) {
+        return reader.getKey(ByteIOUtils.readInt(mBuf, nextBucketOffset + 1));
+      }
+      nextBucketOffset += BUCKET_SIZE_BYTES;
+    }
+    return null;
+  }
+
+  @Override
   public Iterator<ByteBuffer> keyIterator(final PayloadReader reader) {
     return new Iterator<ByteBuffer>() {
       private final int mBufLimit = mBuf.limit();
@@ -201,6 +228,7 @@ public final class LinearProbingIndex implements Index {
             mKeyIndex ++;
             return key;
           }
+          mOffset += BUCKET_SIZE_BYTES;
         }
         throw new NoSuchElementException();
       }

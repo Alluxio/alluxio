@@ -95,19 +95,23 @@ public final class KeyValueWorkerClient extends ClientBase {
   }
 
   /**
-   * Gets a list of all keys in the partition.
+   * Gets a batch of keys next to the current key in the partition.
+   * If current key is null, it means get the initial batch of keys.
+   * If there are no more next keys, an empty list is returned.
    *
-   * @param blockId The id of the partition
-   * @return A list of all keys
+   * @param blockId the id of the partition
+   * @param currentKey the current key
+   * @param numKeys maximum number of next keys to fetch
+   * @return next batch of keys
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized List<ByteBuffer> getAllKeys(final long blockId) throws IOException,
-      TachyonException {
+  public synchronized List<ByteBuffer> getNextKeys(final long blockId, final ByteBuffer currentKey,
+      final int numKeys) throws IOException, TachyonException {
     return retryRPC(new ClientBase.RpcCallableThrowsTachyonTException<List<ByteBuffer>>() {
       @Override
       public List<ByteBuffer> call() throws TachyonTException, TException {
-        return mClient.getAllKeys(blockId);
+        return mClient.getNextKeys(blockId, currentKey, numKeys);
       }
     });
   }
