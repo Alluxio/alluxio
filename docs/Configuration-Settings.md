@@ -57,16 +57,6 @@ The common configuration contains constants shared by different components.
   <td>The path to store log files.</td>
 </tr>
 <tr>
-  <td>tachyon.max.columns</td>
-  <td>1000</td>
-  <td>Maximum number of columns allowed in RawTable, must be set on the client and server side.</td>
-</tr>
-<tr>
-  <td>tachyon.max.table.metadata.bytes</td>
-  <td>5MB</td>
-  <td>Maximum allowable size (in bytes) of RawTable metadata, must be set on the server side.</td>
-</tr>
-<tr>
   <td>tachyon.metrics.conf.file</td>
   <td>${tachyon.home}/conf/metrics.properties</td>
   <td>The file path of the metrics system configuration file. By default it is `metrics.properties`
@@ -662,11 +652,6 @@ The user configuration specifies values regarding file system access.
   <td>tachyon.user.quota.unit.bytes</td>
   <td>8 MB</td>
   <td>The minimum number of bytes that will be requested from a client to a worker at a time.</td>
-</tr>
-<tr>
-  <td>tachyon.user.raw.table.master.client.threads</td>
-  <td>10</td>
-  <td>The number of threads used by a raw table master client to talk to the raw table master.</td>
 </tr>
 </table>
 
