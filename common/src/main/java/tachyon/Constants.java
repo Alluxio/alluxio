@@ -339,8 +339,6 @@ public final class Constants {
   public static final String USER_LINEAGE_MASTER_CLIENT_THREADS =
       "tachyon.user.lineage.master.client.threads";
   public static final String USER_LINEAGE_ENABLED = "tachyon.user.lineage.enabled";
-  public static final String USER_RAW_TABLE_MASTER_CLIENT_THREADS =
-      "tachyon.user.raw.table.master.client.threads";
 
   public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
       "tachyon.user.file.waitcompleted.poll.ms";
