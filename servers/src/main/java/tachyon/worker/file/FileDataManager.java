@@ -257,6 +257,8 @@ public final class FileDataManager {
 
   /**
    * Clears the given persisted files stored in {@link #mPersistedFiles}.
+   *
+   * @param persistedFiles the list of persisted files to clear
    */
   public void clearPersistedFiles(List<Long> persistedFiles) {
     synchronized (mLock) {

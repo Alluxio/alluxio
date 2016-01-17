@@ -29,11 +29,17 @@ import tachyon.Constants;
 public final class MasterBlockInfoTest {
   private MasterBlockInfo mInfo;
 
+  /**
+   * Sets up a new {@link MasterBlockInfo} before a test runs.
+   */
   @Before
-  public void before() throws Exception {
+  public void before() {
     mInfo = new MasterBlockInfo(0, Constants.KB);
   }
 
+  /**
+   * Tests the {@link MasterBlockInfo#addWorker(long, String)} method.
+   */
   @Test
   public void addWorkerTest() {
     Assert.assertEquals(0, mInfo.getWorkers().size());
@@ -43,6 +49,9 @@ public final class MasterBlockInfoTest {
     Assert.assertEquals(1, mInfo.getWorkers().size());
   }
 
+  /**
+   * Tests the {@link MasterBlockInfo#removeWorker(long)} method.
+   */
   @Test
   public void removeWorkerTest() {
     mInfo.addWorker(1, "MEM");
@@ -55,6 +64,9 @@ public final class MasterBlockInfoTest {
     Assert.assertEquals(0, mInfo.getWorkers().size());
   }
 
+  /**
+   * Tests the {@link MasterBlockInfo#getNumLocations()} method.
+   */
   @Test
   public void getNumLocationsTest() {
     mInfo.addWorker(1, "MEM");
@@ -63,6 +75,9 @@ public final class MasterBlockInfoTest {
     Assert.assertEquals(3, mInfo.getNumLocations());
   }
 
+  /**
+   * Tests the {@link MasterBlockInfo#getBlockLocations()} method.
+   */
   @Test
   public void getBlockLocationsTest() {
     mInfo.addWorker(3, "HDD");
@@ -77,6 +92,10 @@ public final class MasterBlockInfoTest {
     Assert.assertEquals(3, locations.get(2).getWorkerId());
   }
 
+  /**
+   * Tests that setting the tier alias via the {@link MasterBlockInfo#addWorker(long, String)}
+   * method works together with the {@link MasterBlockInfo#isInTier(String)} method.
+   */
   @Test
   public void isInMemoryTest() {
     mInfo.addWorker(3, "HDD");

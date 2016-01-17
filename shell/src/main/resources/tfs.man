@@ -21,7 +21,7 @@ tfs \- command line interface for Tachyon provides users with basic file system 
 [\fBdu\fR \fIpath\fR]
 
 .B tfs
-[\fBfileinfo\fR \fIpath\fR]
+[\fBfileInfo\fR \fIpath\fR]
 
 .B tfs
 [\fBfree\fR \fIpath\fR]
@@ -123,7 +123,7 @@ Display the number of folders and files matching the specified prefix in "path".
 Display the size of a file or a directory specified by the input path.
 
 .TP
-.BR fileinfo
+.BR fileInfo
 \fIpath\fR
 Print the information of the blocks of a specified file.
 
