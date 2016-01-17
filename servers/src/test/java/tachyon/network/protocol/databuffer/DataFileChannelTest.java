@@ -34,16 +34,25 @@ import io.netty.channel.FileRegion;
 
 import tachyon.util.io.BufferUtils;
 
+/**
+ * Tests for the {@link DataFileChannel} class.
+ */
 public class DataFileChannelTest {
   private static final int OFFSET = 1;
   private static final int LENGTH = 5;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   private FileInputStream mInputStream = null;
   private FileChannel mChannel = null;
 
+  /**
+   * Sets up the dependencies before a test runs.
+   *
+   * @throws IOException if setting up a dependency fails
+   */
   @Before
   public final void before() throws IOException {
     // Create a temporary file for the FileChannel.
@@ -58,11 +67,19 @@ public class DataFileChannelTest {
     mChannel = mInputStream.getChannel();
   }
 
+  /**
+   * Closes the stream after a test ran.
+   *
+   * @throws IOException if closing the stream fails
+   */
   @After
   public final void after() throws IOException {
     mInputStream.close();
   }
 
+  /**
+   * Tests the {@link DataFileChannel#getNettyOutput()} method.
+   */
   @Test
   public void nettyOutputTest() {
     DataFileChannel data = new DataFileChannel(mChannel, OFFSET, LENGTH);
@@ -70,12 +87,18 @@ public class DataFileChannelTest {
     Assert.assertTrue(output instanceof ByteBuf || output instanceof FileRegion);
   }
 
+  /**
+   * Tests the {@link DataFileChannel#getLength()} method.
+   */
   @Test
   public void lengthTest() {
     DataFileChannel data = new DataFileChannel(mChannel, OFFSET, LENGTH);
     Assert.assertEquals(LENGTH, data.getLength());
   }
 
+  /**
+   * Tests the {@link DataFileChannel#getReadOnlyByteBuffer()} method.
+   */
   @Test
   public void readOnlyByteBufferTest() {
     DataFileChannel data = new DataFileChannel(mChannel, OFFSET, LENGTH);

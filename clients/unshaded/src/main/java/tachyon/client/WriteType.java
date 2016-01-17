@@ -76,6 +76,8 @@ public enum WriteType {
   public UnderStorageType getUnderStorageType() {
     if (isThrough()) {
       return UnderStorageType.SYNC_PERSIST;
+    } else if (isAsync()) {
+      return UnderStorageType.ASYNC_PERSIST;
     }
     return UnderStorageType.NO_PERSIST;
   }
@@ -88,13 +90,8 @@ public enum WriteType {
   }
 
   /**
-   * This method is deprecated, it is not recommended to use {@link #ASYNC_THROUGH}.
-   *
    * @return true if the write type is {@link #ASYNC_THROUGH}, false otherwise
-   * @deprecated Use {@link tachyon.client.lineage.TachyonLineageFileSystem} for asynchronous data
-   *             persistence.
    */
-  @Deprecated
   public boolean isAsync() {
     return mValue == ASYNC_THROUGH.mValue;
   }

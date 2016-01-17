@@ -186,7 +186,8 @@ public final class UnderFileSystemRegistry {
 
     // Discover and register the available factories
     ServiceLoader<UnderFileSystemFactory> discoveredFactories =
-        ServiceLoader.load(UnderFileSystemFactory.class);
+        ServiceLoader.load(UnderFileSystemFactory.class,
+            UnderFileSystemFactory.class.getClassLoader());
     for (UnderFileSystemFactory factory : discoveredFactories) {
       LOG.debug("Discovered Under File System Factory implementation {} - {}", factory.getClass(),
           factory.toString());

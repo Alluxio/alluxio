@@ -20,7 +20,7 @@ of Tachyon without any code changes. The project is open source
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
 multiple companies. It is one of the fastest growing open source projects. With less than three
 years open source history, Tachyon has attracted more than
-[150 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
+[160 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
 including [Alibaba](http://www.alibaba.com), [Baidu](https://www.baidu.com),
 [CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com), [Intel](http://www.intel.com/),
 [Red Hat](https://www.redhat.com/), [Tachyon Nexus](http://www.tachyonnexus.com/),
