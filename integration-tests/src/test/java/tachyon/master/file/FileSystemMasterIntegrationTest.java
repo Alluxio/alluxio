@@ -51,6 +51,7 @@ import tachyon.master.file.meta.TtlBucketPrivateAccess;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
+import tachyon.security.User;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.PlainSaslServer.AuthorizedClientUser;
 import tachyon.thrift.FileInfo;
@@ -262,17 +263,20 @@ public class FileSystemMasterIntegrationTest {
           Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
   private TachyonConf mMasterTachyonConf;
   private FileSystemMaster mFsMaster;
+  private User mOldUser;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @After
   public final void after() throws Exception {
+    AuthorizedClientUser.set(mOldUser.getName());
   }
 
   @Before
   public final void before() throws Exception {
     // mock the authentication user
+    mOldUser = AuthorizedClientUser.get();
     AuthorizedClientUser.set(TEST_AUTHENTICATE_USER);
 
     mFsMaster =
