@@ -256,7 +256,6 @@ public class FileSystemMasterIntegrationTest {
    */
   private static final String TEST_AUTHENTICATE_USER = "test-user";
 
-  private ExecutorService mExecutorService = null;
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(1000, 1000, Constants.GB,
@@ -269,7 +268,6 @@ public class FileSystemMasterIntegrationTest {
 
   @After
   public final void after() throws Exception {
-    mExecutorService.shutdown();
   }
 
   @Before
@@ -277,7 +275,6 @@ public class FileSystemMasterIntegrationTest {
     // mock the authentication user
     AuthorizedClientUser.set(TEST_AUTHENTICATE_USER);
 
-    mExecutorService = Executors.newFixedThreadPool(2);
     mFsMaster =
         mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
     mMasterTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
