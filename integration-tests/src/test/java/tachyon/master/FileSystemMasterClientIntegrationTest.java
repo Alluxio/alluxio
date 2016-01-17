@@ -56,12 +56,12 @@ public class FileSystemMasterClientIntegrationTest {
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
     fsMasterClient.createFile(file, CreateFileOptions.defaults());
-    Assert.assertTrue(fsMasterClient.getStatus(file) != null);
+    Assert.assertNotNull(fsMasterClient.getStatus(file));
     fsMasterClient.disconnect();
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
-    Assert.assertTrue(fsMasterClient.getStatus(file) != null);
+    Assert.assertNotNull(fsMasterClient.getStatus(file));
     fsMasterClient.close();
   }
 

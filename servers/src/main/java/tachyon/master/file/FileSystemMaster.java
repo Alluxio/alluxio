@@ -1058,8 +1058,11 @@ public final class FileSystemMaster extends MasterBase {
         return;
       }
       // Renaming the root is not allowed.
-      if (srcPath.isRoot() || dstPath.isRoot()) {
+      if (srcPath.isRoot()) {
         throw new InvalidPathException(ExceptionMessage.ROOT_CANNOT_BE_RENAMED.getMessage());
+      }
+      if (dstPath.isRoot()) {
+        throw new InvalidPathException(ExceptionMessage.RENAME_CANNOT_BE_TO_ROOT.getMessage());
       }
       // Renaming across mount points is not allowed.
       String srcMount = mMountTable.getMountPoint(srcPath);
@@ -1077,7 +1080,7 @@ public final class FileSystemMaster extends MasterBase {
       // Renaming a path to one of its subpaths is not allowed. Check for that, by making sure
       // srcComponents isn't a prefix of dstComponents.
       if (PathUtils.hasPrefix(dstPath.getPath(), srcPath.getPath())) {
-        throw new InvalidPathException(ExceptionMessage.RENAME_CANNOT_BE_TO_SUBPATH.getMessage(
+        throw new InvalidPathException(ExceptionMessage.RENAME_CANNOT_BE_TO_SUBDIRECTORY.getMessage(
             srcPath, dstPath));
       }
 
@@ -1126,7 +1129,6 @@ public final class FileSystemMaster extends MasterBase {
    * @param dstPath the path to the rename destionation
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
-   * @return true if the operation was successful and false otherwise
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error is encountered
@@ -1475,7 +1477,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Unmounts a UFS path previously mounted path onto a Tachyon path.
    *
-   * @param tachyonPath the Tachyon path path to unmount, must be a mount point
+   * @param tachyonPath the Tachyon path to unmount, must be a mount point
    * @return true if the UFS path was successfully unmounted, false otherwise
    * @throws FileDoesNotExistException if the path to be mounted does not exist
    * @throws InvalidPathException if an invalid path is encountered
