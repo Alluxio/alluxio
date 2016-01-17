@@ -15,6 +15,7 @@
 
 package tachyon.client.file;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
@@ -235,6 +236,10 @@ public class BaseFileSystem implements FileSystem {
   public FileInStream openFile(TachyonURI path, OpenFileOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
     URIStatus status = getStatus(path);
+    if (status.isFolder()) {
+      throw new FileNotFoundException(
+          ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
+    }
     return new FileInStream(status.getInfo(), options.toInStreamOptions());
   }
 
