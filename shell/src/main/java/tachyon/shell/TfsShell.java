@@ -42,6 +42,7 @@ public class TfsShell implements Closeable {
    * Main method, starts a new TfsShell.
    *
    * @param argv [] Array of arguments given by the user's input from the terminal
+   * @throws IOException if closing the shell fails
    */
   public static void main(String[] argv) throws IOException {
     TfsShell shell = new TfsShell(new TachyonConf());
@@ -58,6 +59,9 @@ public class TfsShell implements Closeable {
   private final TachyonConf mTachyonConf;
   private final TachyonFileSystem mTfs;
 
+  /**
+   * @param tachyonConf the configuration for Tachyon
+   */
   public TfsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
     mTfs = TachyonFileSystemFactory.get();
