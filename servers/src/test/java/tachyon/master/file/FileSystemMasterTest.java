@@ -327,7 +327,7 @@ public final class FileSystemMasterTest {
       mFileSystemMaster.rename(NESTED_FILE_URI, ROOT_URI);
       Assert.fail("Renaming to root should fail.");
     } catch (InvalidPathException e) {
-      Assert.assertEquals(ExceptionMessage.ROOT_CANNOT_BE_RENAMED.getMessage(), e.getMessage());
+      Assert.assertEquals(ExceptionMessage.RENAME_CANNOT_BE_TO_ROOT.getMessage(), e.getMessage());
     }
 
     // move root to another path
