@@ -539,7 +539,6 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void deleteRootTest() throws Exception {
-    long rootId = mFsMaster.getFileId(new TachyonURI("/"));
     Assert.assertFalse(mFsMaster.deleteFile(new TachyonURI("/"), true));
     Assert.assertFalse(mFsMaster.deleteFile(new TachyonURI("/"), false));
   }

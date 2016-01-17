@@ -89,7 +89,7 @@ service FileSystemMasterClientService extends common.TachyonService {
    * Creates a file
    */
   void createFile( /** the path of the file */ 1: string path,
-      /** the options for completing the file */ 2: CreateFileTOptions options)
+      /** the options for creating the file */ 2: CreateFileTOptions options)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**

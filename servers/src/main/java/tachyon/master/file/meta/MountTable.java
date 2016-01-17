@@ -50,7 +50,7 @@ public final class MountTable {
    *
    * @param tachyonUri a Tachyon path URI
    * @param ufsUri a UFS path URI
-   * @throws FileAlreadyExistsException if the mount point is already exists
+   * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    */
   public synchronized void add(TachyonURI tachyonUri, TachyonURI ufsUri)
