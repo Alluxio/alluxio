@@ -269,7 +269,11 @@ public class FileSystemMasterIntegrationTest {
 
   @After
   public final void after() throws Exception {
-    AuthorizedClientUser.set(mOldUser.getName());
+    if (mOldUser == null) {
+      AuthorizedClientUser.remove();
+    } else {
+      AuthorizedClientUser.set(mOldUser.getName());
+    }
   }
 
   @Before
