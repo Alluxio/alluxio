@@ -594,20 +594,4 @@ public class JournalIntegrationTest {
     }
     return ret;
   }
-
-  private void rawTableTestUtil(FileInfo fileInfo) throws IOException, InvalidPathException,
-      FileDoesNotExistException {
-    FileSystemMaster fsMaster = createFsMasterFromJournal();
-
-    long fileId = fsMaster.getFileId(mRootUri);
-    Assert.assertTrue(fileId != -1);
-    // "ls -r /" should return 11 FileInfos, one is table root "/xyz", the others are 10 columns.
-    Assert.assertEquals(11, lsr(fsMaster, fileId).size());
-
-    fileId = fsMaster.getFileId(new TachyonURI("/xyz"));
-    Assert.assertTrue(fileId != -1);
-    Assert.assertEquals(fileInfo, fsMaster.getFileInfo(fileId));
-
-    fsMaster.stop();
-  }
 }
