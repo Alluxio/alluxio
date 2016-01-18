@@ -30,5 +30,4 @@ public interface MasterFactory {
    * @return a new {@link Master} instance or null if failed to launch the master
    */
   Master create(List<? extends Master> masters, String journalDirectory);
-
 }

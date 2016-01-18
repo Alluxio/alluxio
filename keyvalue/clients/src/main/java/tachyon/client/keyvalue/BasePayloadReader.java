@@ -26,8 +26,8 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.ByteIOUtils;
 
 /**
- * An implementation of {@link PayloadReader} capable of randomly accessing the underlying
- * payload storage.
+ * An implementation of {@link PayloadReader} capable of randomly accessing the underlying payload
+ * storage.
  */
 @NotThreadSafe
 final class BasePayloadReader implements PayloadReader {
@@ -53,7 +53,7 @@ final class BasePayloadReader implements PayloadReader {
   @Override
   public ByteBuffer getValue(int pos) {
     final int keyLength = ByteIOUtils.readInt(mBuf, pos);
-    final int valueLength = ByteIOUtils.readInt(mBuf, pos + 4);
+    final int valueLength = ByteIOUtils.readInt(mBuf, pos + Constants.BYTES_IN_INTEGER);
     final int valueFrom = pos + KEY_DATA_OFFSET + keyLength;
     return BufferUtils.sliceByteBuffer(mBuf, valueFrom, valueLength);
   }
