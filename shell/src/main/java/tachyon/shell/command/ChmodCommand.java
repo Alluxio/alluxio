@@ -22,7 +22,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Change the permission of a file or directory specified by args.
+ * Changes the permission of a file or directory specified by args.
  */
 public final class ChmodCommand extends AbstractAclCommand {
 
