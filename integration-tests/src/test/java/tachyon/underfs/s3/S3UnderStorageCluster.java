@@ -18,7 +18,10 @@ package tachyon.underfs.s3;
 import java.io.IOException;
 import java.util.UUID;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.conf.TachyonConf;
+import tachyon.exception.PreconditionMessage;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.io.PathUtils;
@@ -39,6 +42,8 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
   public S3UnderStorageCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
     mS3Bucket = System.getProperty(INTEGRATION_S3_BUCKET);
+    Preconditions.checkState(mS3Bucket != null && mS3Bucket != "",
+        PreconditionMessage.S3_BUCKET_MUST_BE_SET, INTEGRATION_S3_BUCKET);
     mBaseDir = PathUtils.concatPath(mS3Bucket, UUID.randomUUID());
   }
 

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,13 +34,14 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.StorageTierAssoc;
 import tachyon.WorkerStorageTierAssoc;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
+import tachyon.worker.NetAddress;
 
 /**
  * Metadata for a Tachyon worker.
  */
+@ThreadSafe
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Worker's address */
@@ -62,11 +65,17 @@ public final class MasterWorkerInfo {
   /** Mapping from storage tier alias to used bytes */
   private Map<String, Long> mUsedBytesOnTiers;
 
-  /** IDs of blocks the worker contains */
+  /** ids of blocks the worker contains */
   private Set<Long> mBlocks;
-  /** IDs of blocks the worker should remove */
+  /** ids of blocks the worker should remove */
   private Set<Long> mToRemoveBlocks;
 
+  /**
+   * Creates a new instance of {@link MasterWorkerInfo}.
+   *
+   * @param id the worker id to use
+   * @param address the worker address to use
+   */
   public MasterWorkerInfo(long id, NetAddress address) {
     mWorkerAddress = Preconditions.checkNotNull(address);
     mId = id;
@@ -91,7 +100,7 @@ public final class MasterWorkerInfo {
    * @param blocks set of block ids on this worker
    * @return A Set of blocks removed (or lost) from this worker
    */
-  public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
+  public synchronized Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
       final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
       final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
     // If the storage aliases do not have strictly increasing ordinal value based on the total
@@ -147,18 +156,18 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Adds a block to the worker
+   * Adds a block to the worker.
    *
-   * @param blockId the ID of the block to be added
+   * @param blockId the id of the block to be added
    */
   public synchronized void addBlock(long blockId) {
     mBlocks.add(blockId);
   }
 
   /**
-   * Removes a block from the worker
+   * Removes a block from the worker.
    *
-   * @param blockId the ID of the block to be removed
+   * @param blockId the id of the block to be removed
    */
   public synchronized void removeBlock(long blockId) {
     mBlocks.remove(blockId);
@@ -166,12 +175,12 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return Generated {@link WorkerInfo} for this worker
+   * @return generated {@link WorkerInfo} for this worker
    */
   public synchronized WorkerInfo generateClientWorkerInfo() {
     WorkerInfo ret = new WorkerInfo();
     ret.id = mId;
-    ret.address = mWorkerAddress;
+    ret.address = mWorkerAddress.toThrift();
     ret.lastContactSec =
         (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS);
     ret.state = "In Service";
@@ -184,7 +193,7 @@ public final class MasterWorkerInfo {
   /**
    * @return the worker's address
    */
-  public NetAddress getAddress() {
+  public synchronized NetAddress getWorkerAddress() {
     return mWorkerAddress;
   }
 
@@ -196,7 +205,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return IDs of all blocks the worker contains
+   * @return ids of all blocks the worker contains
    */
   public synchronized Set<Long> getBlocks() {
     return new HashSet<Long>(mBlocks);
@@ -205,12 +214,12 @@ public final class MasterWorkerInfo {
   /**
    * @return the capacity of the worker in bytes
    */
-  public long getCapacityBytes() {
+  public synchronized long getCapacityBytes() {
     return mCapacityBytes;
   }
 
   /**
-   * @return the ID of the worker
+   * @return the id of the worker
    */
   public synchronized long getId() {
     return mId;
@@ -224,7 +233,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return IDs of blocks the worker should remove
+   * @return ids of blocks the worker should remove
    */
   public synchronized List<Long> getToRemoveBlocks() {
     return new ArrayList<Long>(mToRemoveBlocks);
@@ -261,8 +270,15 @@ public final class MasterWorkerInfo {
   /**
    * @return the start time in milliseconds
    */
-  public long getStartTime() {
+  public synchronized long getStartTime() {
     return mStartTimeMs;
+  }
+
+  /**
+   * @return whether the worker has been registered yet
+   */
+  public synchronized boolean isRegistered() {
+    return mIsRegistered;
   }
 
   /**
@@ -295,7 +311,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Updates the last updated time of the worker in ms
+   * Updates the last updated time of the worker in ms.
    */
   public synchronized void updateLastUpdatedTimeMs() {
     mLastUpdatedTimeMs = System.currentTimeMillis();
@@ -305,7 +321,7 @@ public final class MasterWorkerInfo {
    * Adds or removes a block from the to-be-removed blocks set of the worker.
    *
    * @param add true if to add, to remove otherwise
-   * @param blockId the ID of the block to be added or removed
+   * @param blockId the id of the block to be added or removed
    */
   public synchronized void updateToRemovedBlock(boolean add, long blockId) {
     if (add) {
@@ -318,7 +334,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Set the used space of the worker in bytes.
+   * Sets the used space of the worker in bytes.
    *
    * @param usedBytesOnTiers used bytes on each storage tier
    */
@@ -331,7 +347,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Set the used space of the worker in bytes.
+   * Sets the used space of the worker in bytes.
    *
    * @param tierAlias alias of storage tier
    * @param usedBytesOnTier used bytes on certain storage tier

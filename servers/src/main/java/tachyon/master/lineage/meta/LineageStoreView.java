@@ -31,6 +31,11 @@ public final class LineageStoreView {
   /** The LineageStore this view is derived from */
   private final LineageStore mLineageStore;
 
+  /**
+   * Creates a new instance of {@link LineageStoreView}.
+   *
+   * @param lineageStore the underlying lineage store to construct the view for
+   */
   public LineageStoreView(LineageStore lineageStore) {
     mLineageStore = Preconditions.checkNotNull(lineageStore);
   }
@@ -43,6 +48,7 @@ public final class LineageStoreView {
   }
 
   /**
+   * @param lineage the lineage to get the childrens from
    * @return the children lineages of a given lineage in the store
    * @throws LineageDoesNotExistException if the lineage does not exist
    */

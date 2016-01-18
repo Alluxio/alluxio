@@ -15,7 +15,6 @@
 
 package tachyon.master.lineage.meta;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.junit.Assert;
@@ -34,19 +33,29 @@ import tachyon.job.Job;
 import tachyon.job.JobConf;
 import tachyon.master.journal.JournalOutputStream;
 
+/**
+ * Unit tests for {@link LineageStore}.
+ */
 public final class LineageStoreTest {
   private LineageStore mLineageStore;
   private Job mJob;
 
+  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up the dependencies before a test runs.
+   */
   @Before
   public void before() {
     mLineageStore = new LineageStore(new LineageIdGenerator());
     mJob = new CommandLineJob("test", new JobConf("output"));
   }
 
+  /**
+   * Tests the {@link LineageStore#createLineage(List, List, Job)} method.
+   */
   @Test
   public void createLineageTest() {
     long l1 = mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
@@ -59,8 +68,13 @@ public final class LineageStoreTest {
     Assert.assertEquals(1, mLineageStore.getRootLineages().size());
   }
 
+  /**
+   * Tests the {@link LineageStore#deleteLineage(long)} method.
+   *
+   * @throws Exception if deleting the lineage fails
+   */
   @Test
-  public void deleteLineageTest() throws LineageDoesNotExistException {
+  public void deleteLineageTest() throws Exception {
     long l1 = mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
     long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
     // delete the root
@@ -70,8 +84,14 @@ public final class LineageStoreTest {
     Assert.assertNull(mLineageStore.getLineage(l2));
   }
 
+  /**
+   * Tests that an exception is thrown when trying to delete a non-existing lineage via the
+   * {@link LineageStore#deleteLineage(long)} method.
+   *
+   * @throws Exception if deleting the lineage fails
+   */
   @Test
-  public void deleteNonexistingLineageTest() throws LineageDoesNotExistException {
+  public void deleteNonexistingLineageTest() throws Exception {
     long id = 1;
     mThrown.expect(LineageDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LINEAGE_DOES_NOT_EXIST.getMessage(id));
@@ -79,8 +99,13 @@ public final class LineageStoreTest {
     mLineageStore.deleteLineage(id);
   }
 
+  /**
+   * Tests the {@link LineageStore#streamToJournalCheckpoint(JournalOutputStream)} method.
+   *
+   * @throws Exception if a {@link LineageStore} operation fails
+   */
   @Test
-  public void journalEntrySerializationTest() throws IOException {
+  public void journalEntrySerializationTest() throws Exception {
     long l1 = mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
     long l2 =
         mLineageStore.createLineage(Lists.<Long>newArrayList(1L), Lists.newArrayList(2L), mJob);

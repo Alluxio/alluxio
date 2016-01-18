@@ -56,6 +56,9 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
+/**
+ * Represents the tree of Inode's.
+ */
 public final class InodeTree implements JournalCheckpointStreamable {
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
@@ -102,6 +105,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /**
    * @param containerIdGenerator the container id generator to use to get new container ids
    * @param directoryIdGenerator the directory id generator to use to get new directory ids
+   * @param mountTable the mount table to manage the file system mount points
    */
   public InodeTree(ContainerIdGenerable containerIdGenerator,
       InodeDirectoryIdGenerator directoryIdGenerator, MountTable mountTable) {
@@ -110,6 +114,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
     mMountTable = mountTable;
   }
 
+  /**
+   * Initializes the root of the inode tree.
+   *
+   * @param rootPermissionStatus the root {@link PermissionStatus}
+   */
   public void initializeRoot(PermissionStatus rootPermissionStatus) {
     if (mRoot == null) {
       mRoot =
@@ -126,8 +135,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
-   * Return the number of total inodes.
-   *
    * @return the number of total inodes
    */
   public int getSize() {
@@ -135,8 +142,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
-   * Return the number of pinned inodes.
-   *
    * @return the number of pinned inodes
    */
   public int getPinnedSize() {
@@ -215,6 +220,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @throws InvalidPathException when path is invalid, for example, (1) when there is nonexistent
    *         necessary parent directories and recursive is false, (2) when one of the necessary
    *         parent directories is actually a file
+   * @throws IOException if creating the path fails
    */
   public CreatePathResult createPath(TachyonURI path, CreatePathOptions options)
       throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException {
@@ -323,7 +329,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       } else {
         lastInode =
             new InodeFile.Builder().setBlockContainerId(mContainerIdGenerator.getNewContainerId())
-                .setBlockSizeBytes(options.getBlockSizeBytes()).setTTL(options.getTTL())
+                .setBlockSizeBytes(options.getBlockSizeBytes()).setTtl(options.getTtl())
                 .setName(name).setParentId(currentInodeDirectory.getId())
                 .setPersistenceState(options.isPersisted() ? PersistenceState.PERSISTED
                     : PersistenceState.NOT_PERSISTED)
@@ -367,13 +373,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param blockSizeBytes the new block size
    * @param ttl the ttl
    * @return the file id
-   * @throws InvalidPathException if the paht is invalid
+   * @throws InvalidPathException if the path is invalid
    */
   public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
       throws InvalidPathException {
     InodeFile file = (InodeFile) getInodeByPath(path);
     file.setBlockSize(blockSizeBytes);
-    file.setTTL(ttl);
+    file.setTtl(ttl);
     return file.getId();
   }
 
@@ -382,7 +388,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * precedes its descendants in the list.
    *
    * @param inodeDirectory the root {@link InodeDirectory} to retrieve all descendants from
-   * @return A list of all descendants
+   * @return a list of all descendants
    */
   public List<Inode> getInodeChildrenRecursive(InodeDirectory inodeDirectory) {
     List<Inode> ret = new ArrayList<Inode>();
@@ -400,6 +406,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *
    * @param inode The {@link Inode} to delete
    * @param opTimeMs The operation time
+   * @throws FileDoesNotExistException if the Inode cannot be retrieved
    */
   public void deleteInode(Inode inode, long opTimeMs) throws FileDoesNotExistException {
     InodeDirectory parent = (InodeDirectory) getInodeById(inode.getParentId());
@@ -415,6 +422,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * Deletes a single inode from the inode tree by removing it from the parent inode.
    *
    * @param inode The {@link Inode} to delete
+   * @throws FileDoesNotExistException if the Inode cannot be retrieved
    */
   public void deleteInode(Inode inode) throws FileDoesNotExistException {
     deleteInode(inode, System.currentTimeMillis());

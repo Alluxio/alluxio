@@ -20,6 +20,8 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TTransportException;
@@ -38,13 +40,13 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
+import tachyon.thrift.BlockWorkerClientService;
 import tachyon.thrift.LockBlockResult;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
-import tachyon.thrift.BlockWorkerClientService;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
+import tachyon.worker.NetAddress;
 
 /**
  * The client talks to a block worker server. It keeps sending keep alive message to the worker
@@ -53,6 +55,7 @@ import tachyon.worker.ClientMetrics;
  * Since {@link BlockWorkerClientService.Client} is not thread safe, this class has to guarantee
  * thread safety.
  */
+@ThreadSafe
 public final class BlockWorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
@@ -75,6 +78,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
    * @param conf Tachyon configuration
+   * @param sessionId the id of the session
+   * @param isLocal true if it is a local client, false otherwise
    * @param clientMetrics metrics of the client
    */
   public BlockWorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
@@ -159,7 +164,7 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   @Override
-  protected void beforeDisconnect() {
+  protected synchronized void beforeDisconnect() {
     // Heartbeat to send the client metrics.
     if (mHeartbeatExecutor != null) {
       mHeartbeatExecutor.heartbeat();
@@ -167,14 +172,14 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   @Override
-  protected void afterDisconnect() {
+  protected synchronized void afterDisconnect() {
     if (mHeartbeat != null) {
       mHeartbeat.cancel(true);
     }
   }
 
   @Override
-  protected TachyonService.Client getClient() {
+  protected synchronized TachyonService.Client getClient() {
     return mClient;
   }
 
@@ -191,7 +196,7 @@ public final class BlockWorkerClient extends ClientBase {
   /**
    * Opens the connection to the worker. And start the heartbeat thread.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   private synchronized void connectOperation() throws IOException {
     if (!mConnected) {
@@ -234,6 +239,7 @@ public final class BlockWorkerClient extends ClientBase {
   /**
    * @return the address of the worker
    */
+  @Override
   public synchronized InetSocketAddress getAddress() {
     return mAddress;
   }
@@ -245,6 +251,9 @@ public final class BlockWorkerClient extends ClientBase {
     return mWorkerDataServerAddress;
   }
 
+  /**
+   * @return the id of the session
+   */
   public synchronized long getSessionId() {
     return mSessionId;
   }
@@ -262,7 +271,7 @@ public final class BlockWorkerClient extends ClientBase {
    *
    * @param blockId The id of the block
    * @return the path of the block file locked
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   public synchronized LockBlockResult lockBlock(final long blockId) throws IOException {
     // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
@@ -285,7 +294,7 @@ public final class BlockWorkerClient extends ClientBase {
   /**
    * Connects to the worker.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   // TODO(jiezhou): Consider merging the connect logic in this method into the super class.
   @Override
@@ -324,7 +333,7 @@ public final class BlockWorkerClient extends ClientBase {
    * @param blockId The id of the block
    * @param initialBytes The initial size bytes allocated for the block
    * @return the temporary path of the block
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   public synchronized String requestBlockLocation(final long blockId, final long initialBytes)
       throws IOException {
@@ -350,7 +359,7 @@ public final class BlockWorkerClient extends ClientBase {
    * @param blockId The id of the block
    * @param requestBytes The requested space size, in bytes
    * @return true if success, false otherwise
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   public synchronized boolean requestSpace(final long blockId, final long requestBytes) throws
           IOException {

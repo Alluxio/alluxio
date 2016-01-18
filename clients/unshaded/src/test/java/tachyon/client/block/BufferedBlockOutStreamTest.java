@@ -26,7 +26,14 @@ import org.junit.rules.ExpectedException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.util.io.BufferUtils;
 
+/**
+ * Tests for the {@link BufferedBlockOutStream} class.
+ */
 public class BufferedBlockOutStreamTest {
+
+  /**
+   * The exception expected to be thrown.
+   */
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
@@ -36,11 +43,17 @@ public class BufferedBlockOutStreamTest {
 
   private TestBufferedBlockOutStream mTestStream;
 
+  /**
+   * Sets up the stream before a test runs.
+   */
   @Before
   public void before() {
     mTestStream = new TestBufferedBlockOutStream(1L, BLOCK_LENGTH);
   }
 
+  /**
+   * Tests for the {@link BufferedBlockOutStream#remaining()} method.
+   */
   @Test
   public void remainingTest() {
     mTestStream.setWrittenBytes(BLOCK_LENGTH);
@@ -53,9 +66,13 @@ public class BufferedBlockOutStreamTest {
     Assert.assertEquals(BLOCK_LENGTH, mTestStream.remaining());
   }
 
+  /**
+   * Tests writing an increasing byte array one byte at a time.
+   *
+   * @throws Exception when an operation on the stream fails
+   */
   @Test
   public void singleByteWriteTest() throws Exception {
-    // Test writing an increasing byte array one byte at a time
     for (int i = 0; i < BLOCK_LENGTH; i ++) {
       mTestStream.write(INCREASING_BYTES[i]);
       Assert.assertEquals(i + 1, mTestStream.getWrittenBytes());
@@ -64,24 +81,32 @@ public class BufferedBlockOutStreamTest {
         Arrays.copyOfRange(mTestStream.getBuffer().array(), 0, (int) BLOCK_LENGTH));
   }
 
+  /**
+   * Tests writing an increasing byte array.
+   *
+   * @throws Exception when an operation on the stream fails
+   */
   @Test
   public void byteArrayWriteTest() throws Exception {
-    // Test writing an increasing byte array
     mTestStream.write(INCREASING_BYTES);
     Assert.assertEquals(INCREASING_BYTES.length, mTestStream.getWrittenBytes());
     Assert.assertArrayEquals(INCREASING_BYTES,
         Arrays.copyOfRange(mTestStream.getBuffer().array(), 0, (int) BLOCK_LENGTH));
   }
 
+  /**
+   * Tests writing the middle half of an increasing byte array and test writing more than half the
+   * buffer limit. This causes an unbuffered write and flush.
+   *
+   * @throws Exception when an operation on the stream fails
+   */
   @Test
   public void byteArrayAtOffsetTest() throws Exception {
-    // Test writing the middle half of an increasing byte array
     mTestStream.write(INCREASING_BYTES, 25, 50);
     Assert.assertEquals(50, mTestStream.getWrittenBytes());
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(25, 50),
         Arrays.copyOfRange(mTestStream.getBuffer().array(), 0, 50));
 
-    // Test writing more than half the buffer limit. This causes an unbuffered write and flush
     Assert.assertFalse(mTestStream.mHasFlushed);
     int bytesToWrite = mTestStream.getBuffer().limit() / 2 + 1;
     mTestStream.write(INCREASING_BYTES, 30, bytesToWrite);
@@ -92,6 +117,11 @@ public class BufferedBlockOutStreamTest {
     Assert.assertEquals(50 + mTestStream.mLastBufferedWriteLen, mTestStream.getWrittenBytes());
   }
 
+  /**
+   * Tests that writing to a closed stream throws an exception.
+   *
+   * @throws Exception when an operation on the stream fails
+   */
   @Test
   public void writeToClosed() throws Exception {
     mTestStream.close();
@@ -100,6 +130,11 @@ public class BufferedBlockOutStreamTest {
     mTestStream.write(0);
   }
 
+  /**
+   * Tests that writing past a block throws an exception.
+   *
+   * @throws Exception when an operation on the stream fails
+   */
   @Test
   public void writePastBlock() throws Exception {
     mTestStream.setWrittenBytes(BLOCK_LENGTH);
@@ -108,6 +143,11 @@ public class BufferedBlockOutStreamTest {
     mTestStream.write(0);
   }
 
+  /**
+   * Tests that flushing twice works.
+   *
+   * @throws Exception when an operation on the stream fails
+   */
   @Test
   public void doubleFlush() throws Exception {
     mTestStream.write(INCREASING_BYTES, 1, 10);

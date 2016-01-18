@@ -52,6 +52,11 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   private static final long serialVersionUID = 4148506607369321012L;
   private final transient BlockDataManager mBlockDataManager;
 
+  /**
+   * Creates a new instance of {@link WebInterfaceWorkerBlockInfoServlet}.
+   *
+   * @param blockDataManager block data manager
+   */
   public WebInterfaceWorkerBlockInfoServlet(BlockDataManager blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
   }
@@ -59,10 +64,10 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   /**
    * Populates attributes before redirecting to a jsp.
    *
-   * @param request The {@link HttpServletRequest} object
-   * @param response The {@link HttpServletResponse} object
-   * @throws ServletException
-   * @throws IOException
+   * @param request the {@link HttpServletRequest} object
+   * @param response the {@link HttpServletResponse} object
+   * @throws ServletException if the target resource throws this exception
+   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -73,7 +78,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     if (!(filePath == null || filePath.isEmpty())) {
       // Display file block info
       try {
-        UiFileInfo uiFileInfo = getUiFileInfo(tFS, new TachyonURI(filePath));
+        UIFileInfo uiFileInfo = getUiFileInfo(tFS, new TachyonURI(filePath));
         request.setAttribute("fileBlocksOnTier", uiFileInfo.getBlocksOnTier());
         request.setAttribute("blockSizeBytes", uiFileInfo.getBlockSizeBytes());
         request.setAttribute("path", filePath);
@@ -120,7 +125,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       int offset = Integer.parseInt(request.getParameter("offset"));
       int limit = Integer.parseInt(request.getParameter("limit"));
       List<Long> subFileIds = fileIds.subList(offset, offset + limit);
-      List<UiFileInfo> uiFileInfos = new ArrayList<UiFileInfo>(subFileIds.size());
+      List<UIFileInfo> uiFileInfos = new ArrayList<UIFileInfo>(subFileIds.size());
       for (long fileId : subFileIds) {
         uiFileInfos.add(getUiFileInfo(tFS, fileId));
       }
@@ -157,9 +162,9 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   }
 
   /***
-   * Get sorted fileIds of the files cached in the worker.
+   * Gets sorted file ids of the files cached in the worker.
    *
-   * @return a sorted fileId list
+   * @return a sorted file id list
    */
   private List<Long> getSortedFileIds() {
     Set<Long> fileIds = new HashSet<Long>();
@@ -177,46 +182,47 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   }
 
   /***
-   * Get the {@link UiFileInfo} object based on fileId.
+   * Gets the {@link UIFileInfo} object based on file id.
    *
    * @param tachyonFileSystem the {@link TachyonFileSystem} client
    * @param fileId the file id of the file
-   * @return the UiFileInfo object of the file
-   * @throws FileDoesNotExistException
-   * @throws IOException
+   * @return the {@link UIFileInfo} object of the file
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws IOException if an I/O error occurs
    */
-  private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId)
+  private UIFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId)
       throws FileDoesNotExistException, BlockDoesNotExistException, IOException, TachyonException {
     return getUiFileInfo(tachyonFileSystem, fileId, TachyonURI.EMPTY_URI);
   }
 
   /***
-   * Get the {@link UiFileInfo} object based on filePath.
+   * Gets the {@link UIFileInfo} object based on file path.
    *
    * @param tachyonFileSystem the {@link TachyonFileSystem} client
    * @param filePath the path of the file
-   * @return the UiFileInfo object of the file
-   * @throws FileDoesNotExistException
-   * @throws IOException
+   * @return the {@link UIFileInfo} object of the file
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws IOException if an I/O error occurs
    */
-  private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, TachyonURI filePath)
+  private UIFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, TachyonURI filePath)
       throws FileDoesNotExistException, BlockDoesNotExistException, IOException, TachyonException {
     return getUiFileInfo(tachyonFileSystem, -1, filePath);
   }
 
   /**
-   * Gets the {@link UiFileInfo} object that represents the fileId, or the filePath if fileId is -1.
+   * Gets the {@link UIFileInfo} object that represents the file id, or the file path if file id is
+   * -1.
    *
    * @param tachyonFileSystem the {@link TachyonFileSystem} client
    * @param fileId the file id of the file
    * @param filePath the path of the file. valid iff fileId is -1
-   * @return the UiFileInfo object of the file
-   * @throws FileDoesNotExistException
-   * @throws IOException
+   * @return the {@link UIFileInfo} object of the file
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws IOException if an I/O error occurs
    */
-  private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId,
+  private UIFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId,
       TachyonURI filePath) throws BlockDoesNotExistException, FileDoesNotExistException,
-          InvalidPathException, IOException, TachyonException {
+      InvalidPathException, IOException, TachyonException {
     TachyonFile file = null;
     if (fileId != -1) {
       file = new TachyonFile(fileId);
@@ -233,7 +239,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     } catch (TachyonException e) {
       throw new FileDoesNotExistException(filePath.toString());
     }
-    UiFileInfo uiFileInfo = new UiFileInfo(fileInfo);
+    UIFileInfo uiFileInfo = new UIFileInfo(fileInfo);
     boolean blockExistOnWorker = false;
     for (long blockId : fileInfo.getBlockIds()) {
       if (mBlockDataManager.hasBlockMeta(blockId)) {

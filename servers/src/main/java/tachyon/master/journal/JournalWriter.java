@@ -19,6 +19,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +46,7 @@ import tachyon.underfs.UnderFileSystem;
  * The latest state can be reconstructed by reading the checkpoint file, and applying all the
  * completed logs and then the remaining log in progress.
  */
+@ThreadSafe
 public final class JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -69,6 +72,11 @@ public final class JournalWriter {
   /** The sequence number for the next entry in the log. */
   private long mNextEntrySequenceNumber = 1;
 
+  /**
+   * Creates a new instance of {@link JournalWriter}.
+   *
+   * @param journal the handle to the journal
+   */
   JournalWriter(Journal journal) {
     mJournal = Preconditions.checkNotNull(journal);
     mJournalDirectory = mJournal.getDirectory();
@@ -81,6 +89,8 @@ public final class JournalWriter {
 
   /**
    * Marks all logs as completed.
+   *
+   * @throws IOException if an I/O error occurs
    */
   public synchronized void completeAllLogs() throws IOException {
     LOG.info("Marking all logs as complete.");
@@ -103,7 +113,7 @@ public final class JournalWriter {
    *        number will be used to determine the next sequence numbers for the subsequent journal
    *        entries.
    * @return the output stream for the journal checkpoint
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized JournalOutputStream getCheckpointOutputStream(long latestSequenceNumber)
       throws IOException {
@@ -127,7 +137,7 @@ public final class JournalWriter {
    * this writer.
    *
    * @return the output stream for the journal entries
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized JournalOutputStream getEntryOutputStream() throws IOException {
     if (mCheckpointOutputStream == null || !mCheckpointOutputStream.isClosed()) {
@@ -139,7 +149,12 @@ public final class JournalWriter {
     return mEntryOutputStream;
   }
 
-  public void close() throws IOException {
+  /**
+   * Closes the journal.
+   *
+   * @throws IOException if an I/O error occurs
+   */
+  public synchronized void close() throws IOException {
     if (mCheckpointOutputStream != null) {
       mCheckpointOutputStream.close();
     }
@@ -151,12 +166,12 @@ public final class JournalWriter {
   }
 
   /**
-   * Returns the current log file output stream
+   * Returns the current log file output stream.
    *
    * @return the output stream for the current log file
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
-  private OutputStream openCurrentLog() throws IOException {
+  private synchronized OutputStream openCurrentLog() throws IOException {
     String currentLogFile = mJournal.getCurrentLogFilePath();
     OutputStream os = mUfs.create(currentLogFile);
     LOG.info("Opened current log file: {}", currentLogFile);
@@ -166,9 +181,9 @@ public final class JournalWriter {
   /**
    * Deletes all of the logs in the completed folder.
    *
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
-  private void deleteCompletedLogs() throws IOException {
+  private synchronized void deleteCompletedLogs() throws IOException {
     LOG.info("Deleting all completed log files...");
     // Loop over all complete logs starting from the beginning.
     // TODO(gpang): should the deletes start from the end?
@@ -191,9 +206,9 @@ public final class JournalWriter {
    * Moves the current log file to the completed folder, marking it as complete. If successful, the
    * current log file will no longer exist. The current log must already be closed before this call.
    *
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
-  private void completeCurrentLog() throws IOException {
+  private synchronized void completeCurrentLog() throws IOException {
     String currentLog = mJournal.getCurrentLogFilePath();
     if (!mUfs.exists(currentLog)) {
       // All logs are already complete, so nothing to do.
@@ -234,7 +249,7 @@ public final class JournalWriter {
      * number to the passed in entry.
      *
      * @param entry an entry to write to the journal checkpoint file
-     * @throws IOException
+     * @throws IOException if an I/O error occurs
      */
     @Override
     public synchronized void writeEntry(JournalEntry entry) throws IOException {
@@ -254,7 +269,7 @@ public final class JournalWriter {
      *
      * The current log file (if it exists) will be closed and marked as complete.
      *
-     * @throws IOException
+     * @throws IOException if an I/O error occurs
      */
     @Override
     public synchronized void close() throws IOException {
@@ -311,7 +326,7 @@ public final class JournalWriter {
      * sequence number to the passed in entry.
      *
      * @param entry an entry to write to the journal checkpoint file
-     * @throws IOException
+     * @throws IOException if an I/O error occurs
      */
     @Override
     public synchronized void writeEntry(JournalEntry entry) throws IOException {
@@ -350,10 +365,12 @@ public final class JournalWriter {
         ((FSDataOutputStream) mRawOutputStream).sync();
       }
       boolean overSize = mDataOutputStream.size() > mMaxLogSize;
-      if (overSize || mUfs.getUnderFSType() == UnderFileSystem.UnderFSType.S3) {
+      if (overSize || mUfs.getUnderFSType() == UnderFileSystem.UnderFSType.S3
+          || mUfs.getUnderFSType() == UnderFileSystem.UnderFSType.OSS) {
         // (1) The log file is oversize, needs to be rotated. Or
-        // (2) Underfs is S3, flush on S3OutputStream will only flush to local temporary file,
-        //     call close and complete the log to sync the journal entry to S3.
+        // (2) Underfs is S3 or OSS, flush on S3OutputStream/OSSOutputStream will only flush to
+        // local temporary file,
+        // call close and complete the log to sync the journal entry to S3/OSS.
         if (overSize) {
           LOG.info("Rotating log file. size: {} maxSize: {}", mDataOutputStream.size(),
               mMaxLogSize);

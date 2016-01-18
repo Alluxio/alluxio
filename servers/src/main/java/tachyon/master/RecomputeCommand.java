@@ -39,7 +39,7 @@ public class RecomputeCommand implements Runnable {
   private final String mFilePath;
 
   /**
-   * Create a new RecomputeCommand.
+   * Creates a new {@link RecomputeCommand}.
    *
    * @param cmd the command to execute
    * @param filePath the path of the output file, which records the output of the recompute process

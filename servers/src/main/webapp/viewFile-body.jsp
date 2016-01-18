@@ -62,7 +62,7 @@
             <th>In <%= request.getAttribute("highestTierAlias") %></th>
             <th>Locations</th>
           </tr>
-          <% for (UiBlockInfo masterBlockInfo : ((List<UiBlockInfo>) request.getAttribute("fileBlocks"))) { %>
+          <% for (UIFileBlockInfo masterBlockInfo : ((List<UIFileBlockInfo>) request.getAttribute("fileBlocks"))) { %>
             <tr>
               <td><%= masterBlockInfo.getID() %></td>
               <td><%= masterBlockInfo.getBlockLength() %></td>

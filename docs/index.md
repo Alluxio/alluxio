@@ -6,33 +6,34 @@ group: Home
 
 Tachyon is an open source memory-centric distributed storage system enabling reliable data sharing
 at memory-speed across cluster jobs, possibly written in different computation frameworks, such as
-Apache Spark, Apache MapReduce, and Apache Flink. In the big data ecosystem, Tachyon lies between computation
-frameworks or jobs, such as Apache Spark, Apache MapReduce, or Apache Flink, and various kinds of
-storage systems, such as Amazon S3, OpenStack Swift, GlusterFS, HDFS, or Ceph. Tachyon brings
-significant performance improvement to the stack; for example, [Baidu](https://www.baidu.com) uses
-Tachyon to improve their data analytics performance by 30 times. Beyond performance, Tachyon bridges
-new workloads with data stored in traditional storage systems. Users can run Tachyon using its
-standalone cluster mode, for example on Amazon EC2, or launch Tachyon with Apache Mesos or Apache
-Yarn.
+Apache Spark, Apache MapReduce, and Apache Flink. In the big data ecosystem, Tachyon lies between
+computation frameworks or jobs, such as Apache Spark, Apache MapReduce, or Apache Flink, and various
+kinds of storage systems, such as Amazon S3, OpenStack Swift, GlusterFS, HDFS, Ceph, or OSS. Tachyon
+brings significant performance improvement to the stack; for example, [Baidu](https://www.baidu.com)
+uses Tachyon to improve their data analytics performance by 30 times. Beyond performance, Tachyon
+bridges new workloads with data stored in traditional storage systems. Users can run Tachyon using
+its standalone cluster mode, for example on Amazon EC2, or launch Tachyon with Apache Mesos or
+Apache Yarn.
 
-Tachyon is Hadoop compatible. This means that existing Spark and MapReduce programs can run on top of 
-Tachyon without any code changes. The project is open source
+Tachyon is Hadoop compatible. This means that existing Spark and MapReduce programs can run on top
+of Tachyon without any code changes. The project is open source
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
-multiple companies. It is one of the fastest growing open source projects. With less than three years
-open source history, Tachyon has attracted more than
-[150 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
-including [Alibaba](http://www.alibaba.com), [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/),
-[IBM](https://www.ibm.com), [Intel](http://www.intel.com/), [Red Hat](https://www.redhat.com/),
-[Tachyon Nexus](http://www.tachyonnexus.com/),
+multiple companies. It is one of the fastest growing open source projects. With less than three
+years open source history, Tachyon has attracted more than
+[160 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
+including [Alibaba](http://www.alibaba.com), [Baidu](https://www.baidu.com),
+[CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com), [Intel](http://www.intel.com/),
+[Red Hat](https://www.redhat.com/), [Tachyon Nexus](http://www.tachyonnexus.com/),
 [UC Berkeley](https://amplab.cs.berkeley.edu/), and [Yahoo](https://www.yahoo.com/).
-The project is the storage layer of the Berkeley Data Analytics
-Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
+The project is the storage layer of the Berkeley Data Analytics Stack
+([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
 
-[Github Repository](https://github.com/amplab/tachyon/) |
-[Releases and Downloads](https://github.com/amplab/tachyon/releases) |
-[User Documentation](Getting-Started.html) |
-[Developer Documentation](Contributing-To-Tachyon.html) |
+[Github](https://github.com/amplab/tachyon/) |
+[Releases](http://tachyon-project.org/releases/) |
+[Downloads](http://tachyon-project.org/downloads/) |
+[User Document](Getting-Started.html) |
+[Developer Document](Contributing-to-Tachyon.html) |
 [Meetup Group](https://www.meetup.com/Tachyon/) |
 [JIRA](https://tachyon.atlassian.net/browse/TACHYON) |
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
@@ -55,6 +56,11 @@ and HDDs in addition to memory, allowing for larger datasets to be stored in Tac
 automatically be managed between the different tiers, keeping hot data in faster tiers. Custom
 policies are easily pluggable, and a pin concept allows for direct user control.
 
+* **[Unified Namespace](Unified-and-Transparent-Namespace.html)** Tachyon enables effective
+data management across different storage systems through the mount feature. Furthermore, 
+transparent naming ensures that file names and directory hierarchy for objects created in Tachyon 
+is preserved when persisting these objects to the underlying storage system.
+
 * **[Lineage](Lineage-API.html)** Tachyon can achieve high throughput writes without compromising
 fault-tolerance by using lineage, where lost output is recovered by re-executing the jobs that
 created the output. With lineage, applications write output into memory, and Tachyon periodically
@@ -65,11 +71,6 @@ Tachyon launches job recomputation to restore the lost files.
 the file system easily through the web UI. Under debug mode, administrators can view detailed
 information of each file, including locations, checkpoint path, etc. Users can also use
 ``./bin/tachyon tfs`` to interact with Tachyon, e.g. copy data in and out of the file system.
-
-* **[Unified Namespace](Unified-and-Transparent-Namespace.html)** Tachyon enables effective
-data management across different storage systems through the mount feature. Furthermore, 
-transparent naming ensures that file names and directory hierarchy for objects created in Tachyon 
-is preserved when persisting these objects to the underlying storage system.
 
 # Getting Started
 

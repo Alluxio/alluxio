@@ -38,7 +38,7 @@ import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 
 /**
- * Tests {@link CheckpointLatestPlanner}.
+ * Unit tests for {@link CheckpointLatestPlanner}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMaster.class})
@@ -48,6 +48,9 @@ public final class CheckpointLatestPlannerTest {
   private Job mJob;
   private CheckpointLatestPlanner mPlanner;
 
+  /**
+   * Sets up all dependencies before a test runs.
+   */
   @Before
   public void before() {
     mLineageStore = new LineageStore(new LineageIdGenerator());
@@ -57,6 +60,12 @@ public final class CheckpointLatestPlannerTest {
         new FileSystemMasterView(mFileSystemMaster));
   }
 
+  /**
+   * Tests the {@link CheckpointLatestPlanner#generatePlan(LineageStoreView, FileSystemMasterView)}
+   * method.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void scheduleTest() throws Exception {
     long fileId1 = 1L;

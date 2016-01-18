@@ -26,16 +26,25 @@ import io.netty.channel.FileRegion;
 
 import tachyon.util.io.BufferUtils;
 
+/**
+ * Tests for the {@link DataByteBuffer} class.
+ */
 public class DataByteBufferTest {
   private static final int LENGTH = 5;
 
   private ByteBuffer mBuffer = null;
 
+  /**
+   * Sets up a new {@link ByteBuffer} before a test runs.
+   */
   @Before
   public final void before() {
     mBuffer = BufferUtils.getIncreasingByteBuffer(LENGTH);
   }
 
+  /**
+   * Tests the {@link DataByteBuffer#getNettyOutput()} method.
+   */
   @Test
   public void nettyOutputTest() {
     DataByteBuffer data = new DataByteBuffer(mBuffer, LENGTH);
@@ -43,12 +52,18 @@ public class DataByteBufferTest {
     Assert.assertTrue(output instanceof ByteBuf || output instanceof FileRegion);
   }
 
+  /**
+   * Tests the {@link DataByteBuffer#getLength()} method.
+   */
   @Test
   public void lengthTest() {
     DataByteBuffer data = new DataByteBuffer(mBuffer, LENGTH);
     Assert.assertEquals(LENGTH, data.getLength());
   }
 
+  /**
+   * Tests the {@link DataByteBuffer#getReadOnlyByteBuffer()} method.
+   */
   @Test
   public void readOnlyByteBufferTest() {
     DataByteBuffer data = new DataByteBuffer(mBuffer, LENGTH);

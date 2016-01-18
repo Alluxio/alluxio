@@ -43,7 +43,7 @@ public final class MetricsConfig {
   private Map<String, Properties> mPropertyCategories;
 
   /**
-   * Creates a new instance of {@code MetricsConfig} using the given config file.
+   * Creates a new {@code MetricsConfig} using the given config file.
    *
    * @param configFile config file to use
    */
@@ -56,7 +56,7 @@ public final class MetricsConfig {
   }
 
   /**
-   * Creates a new instance of {@code MetricsConfig} using the given {@link Properties}.
+   * Creates a new {@code MetricsConfig} using the given {@link Properties}.
    *
    * @param properties properties to use
    */
@@ -94,9 +94,9 @@ public final class MetricsConfig {
   }
 
   /**
-   * Gets the propertyCategories, used by unit tests only.
+   * Gets the property categories, used by unit tests only.
    *
-   * @return a Map that maps from instance name to its properties
+   * @return a {@code Map} that maps from instance name to its properties
    */
   public Map<String, Properties> getPropertyCategories() {
     return mPropertyCategories;
@@ -159,7 +159,7 @@ public final class MetricsConfig {
    *
    * @param prop the original properties
    * @param regex specifies the prefix and suffix pattern
-   * @return a Map maps from the prefix to its properties
+   * @return a {@code Map} maps from the prefix to its properties
    */
   public Map<String, Properties> subProperties(Properties prop, String regex) {
     Map<String, Properties> subProperties = new HashMap<String, Properties>();

@@ -57,26 +57,44 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       mFreePercent = 100 - mUsedPercent;
     }
 
+    /**
+     * @return the storage alias
+     */
     public String getStorageTierAlias() {
       return mStorageTierAlias;
     }
 
+    /**
+     * @return the capacity
+     */
     public String getCapacity() {
       return FormatUtils.getSizeFromBytes(mCapacityBytes);
     }
 
+    /**
+     * @return the free capacity
+     */
     public String getFreeCapacity() {
       return FormatUtils.getSizeFromBytes(mFreeBytes);
     }
 
+    /**
+     * @return the free space as a percentage
+     */
     public int getFreeSpacePercent() {
       return mFreePercent;
     }
 
+    /**
+     * @return the used capacity
+     */
     public String getUsedCapacity() {
       return FormatUtils.getSizeFromBytes(mUsedBytes);
     }
 
+    /**
+     * @return the used space as a percentage
+     */
     public int getUsedSpacePercent() {
       return mUsedPercent;
     }
@@ -86,6 +104,11 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
 
   private final transient TachyonMaster mMaster;
 
+  /**
+   * Creates a new instance of {@link WebInterfaceGeneralServlet}.
+   *
+   * @param master Tachyon master
+   */
   public WebInterfaceGeneralServlet(TachyonMaster master) {
     mMaster = master;
   }
@@ -93,10 +116,10 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * Redirects the request to a JSP after populating attributes via populateValues.
    *
-   * @param request The {@link HttpServletRequest} object
-   * @param response The {@link HttpServletResponse} object
-   * @throws ServletException
-   * @throws IOException
+   * @param request the {@link HttpServletRequest} object
+   * @param response the {@link HttpServletResponse} object
+   * @throws ServletException if the target resource throws this exception
+   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -113,9 +136,9 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   }
 
   /**
-   * List the {@link StorageTierInfo} objects of each storage level(alias).
+   * Lists the {@link StorageTierInfo} objects of each storage level alias.
    *
-   * @return the list of StorageTierInfo objects, in order from highest tier to lowest
+   * @return the list of {@link StorageTierInfo} objects, in order from highest tier to lowest
    */
   private StorageTierInfo[] generateOrderedStorageTierInfo() {
     StorageTierAssoc globalStorageTierAssoc = mMaster.getBlockMaster().getGlobalStorageTierAssoc();
@@ -138,10 +161,10 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   }
 
   /**
-   * Populates key, value pairs for UI display
+   * Populates key, value pairs for UI display.
    *
    * @param request The {@link HttpServletRequest} object
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Constants.DEBUG);

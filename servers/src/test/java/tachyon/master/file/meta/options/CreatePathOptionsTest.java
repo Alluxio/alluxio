@@ -24,7 +24,14 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 
+/**
+ * Unit tests for {@link CreatePathOptions}.
+ */
 public class CreatePathOptionsTest {
+
+  /**
+   * Tests the {@link tachyon.master.file.meta.options.CreatePathOptions.Builder}.
+   */
   @Test
   public void builderTest() {
     Random random = new Random();
@@ -43,7 +50,7 @@ public class CreatePathOptionsTest {
         .setOperationTimeMs(operationTimeMs)
         .setPersisted(persisted)
         .setRecursive(recursive)
-        .setTTL(ttl)
+        .setTtl(ttl)
         .build();
 
     Assert.assertEquals(allowExists, options.isAllowExists());
@@ -52,9 +59,12 @@ public class CreatePathOptionsTest {
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
     Assert.assertEquals(persisted, options.isPersisted());
     Assert.assertEquals(recursive, options.isRecursive());
-    Assert.assertEquals(ttl, options.getTTL());
+    Assert.assertEquals(ttl, options.getTtl());
   }
 
+  /**
+   * Tests the {@link CreatePathOptions#defaults()} method.
+   */
   @Test
   public void defaultsTest() {
     TachyonConf conf = new TachyonConf();
@@ -68,7 +78,7 @@ public class CreatePathOptionsTest {
     Assert.assertFalse(options.isDirectory());
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
-    Assert.assertEquals(Constants.NO_TTL, options.getTTL());
+    Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     MasterContext.reset();
   }
 }

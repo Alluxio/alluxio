@@ -25,7 +25,7 @@ import org.junit.Test;
 import tachyon.conf.TachyonConf;
 
 /**
- * Unit test for {@link StorageTierAssoc}
+ * Unit tests for {@link StorageTierAssoc}.
  */
 public class StorageTierAssocTest {
   private void checkStorageTierAssoc(StorageTierAssoc assoc, TachyonConf conf,
@@ -45,6 +45,10 @@ public class StorageTierAssocTest {
     Assert.assertEquals(expectedOrderedAliases, assoc.getOrderedStorageAliases());
   }
 
+  /**
+   * Tests the constructors of the {@link MasterStorageTierAssoc} and {@link WorkerStorageTierAssoc}
+   * classes with a {@link TachyonConf}.
+   */
   @Test
   public void masterWorkerConfConstructorTest() {
     TachyonConf tachyonConf = new TachyonConf();
@@ -62,6 +66,10 @@ public class StorageTierAssocTest {
         Constants.WORKER_TIERED_STORE_LEVELS, Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
   }
 
+  /**
+   * Tests the constructors of the {@link MasterStorageTierAssoc} and {@link WorkerStorageTierAssoc}
+   * classes with different storage alias.
+   */
   @Test
   public void storageAliasListConstructorTest() {
     List<String> orderedAliases = Arrays.asList("MEM", "HDD", "SOMETHINGELSE", "SSD");

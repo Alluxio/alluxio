@@ -27,7 +27,7 @@ public class JmxSink implements Sink {
   private JmxReporter mReporter;
 
   /**
-   * Creates a JmxSink with a {@link Properties} and {@link MetricRegistry}.
+   * Creates a new {@link JmxSink} with a {@link Properties} and {@link MetricRegistry}.
    *
    * @param properties the properties
    * @param registry the metric registry to register

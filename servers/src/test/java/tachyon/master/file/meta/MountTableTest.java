@@ -20,18 +20,28 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.TachyonURI;
-import tachyon.exception.TachyonException;
 
+/**
+ * Unit tests for {@link MountTable}.
+ */
 public class MountTableTest {
   private MountTable mMountTable;
 
+  /**
+   * Sets up a new {@link MountTable} before a test runs.
+   */
   @Before
   public void before() {
     mMountTable = new MountTable();
   }
 
+  /**
+   * Tests the different methods of the {@link MountTable} class with a path.
+   *
+   * @throws Exception if a {@link MountTable} operation fails
+   */
   @Test
-  public void pathTest() throws TachyonException {
+  public void pathTest() throws Exception {
     // Test add()
     Assert.assertTrue(mMountTable.add(new TachyonURI("/mnt/foo"), new TachyonURI("/foo")));
     Assert.assertFalse(mMountTable.add(new TachyonURI("/mnt/foo"), new TachyonURI("/foo2")));
@@ -75,8 +85,13 @@ public class MountTableTest {
     Assert.assertFalse(mMountTable.delete(new TachyonURI("/")));
   }
 
+  /**
+   * Tests the different methods of the {@link MountTable} class with an URI.
+   *
+   * @throws Exception if a {@link MountTable} operation fails
+   */
   @Test
-  public void uriTest() throws TachyonException {
+  public void uriTest() throws Exception {
     // Test add()
     Assert.assertTrue(mMountTable.add(new TachyonURI("tachyon://localhost:1234/mnt/foo"),
         new TachyonURI("hdfs://localhost:5678/foo")));

@@ -22,7 +22,14 @@ import org.junit.Test;
 
 import tachyon.conf.TachyonConf;
 
+/**
+ * Unit tests for {@link MkdirOptions}.
+ */
 public class MkdirOptionsTest {
+
+  /**
+   * Tests the {@link tachyon.master.file.options.MkdirOptions.Builder}.
+   */
   @Test
   public void builderTest() {
     Random random = new Random();
@@ -44,6 +51,9 @@ public class MkdirOptionsTest {
     Assert.assertEquals(recursive, options.isRecursive());
   }
 
+  /**
+   * Tests the {@link MkdirOptions#defaults()} method.
+   */
   @Test
   public void defaultsTest() {
     MkdirOptions options = MkdirOptions.defaults();

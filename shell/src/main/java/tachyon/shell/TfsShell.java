@@ -27,7 +27,6 @@ import org.reflections.Reflections;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
-import com.google.common.io.Closer;
 
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
@@ -40,9 +39,10 @@ import tachyon.util.CommonUtils;
  */
 public class TfsShell implements Closeable {
   /**
-   * Main method, starts a new TfsShell
+   * Main method, starts a new TfsShell.
    *
    * @param argv [] Array of arguments given by the user's input from the terminal
+   * @throws IOException if closing the shell fails
    */
   public static void main(String[] argv) throws IOException {
     TfsShell shell = new TfsShell(new TachyonConf());
@@ -56,20 +56,20 @@ public class TfsShell implements Closeable {
   }
 
   private final Map<String, TfsShellCommand> mCommands = Maps.newHashMap();
-  private final Closer mCloser;
   private final TachyonConf mTachyonConf;
   private final TachyonFileSystem mTfs;
 
+  /**
+   * @param tachyonConf the configuration for Tachyon
+   */
   public TfsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mCloser = Closer.create();
     mTfs = TachyonFileSystemFactory.get();
     loadCommands();
   }
 
   @Override
   public void close() throws IOException {
-    mCloser.close();
   }
 
   /**
@@ -97,11 +97,12 @@ public class TfsShell implements Closeable {
   /**
    * Method which prints the method to use all the commands.
    */
-  public void printUsage() {
+  private void printUsage() {
     System.out.println("Usage: java TfsShell");
     SortedSet<String> sortedCmds = new TreeSet<String>(mCommands.keySet());
     for (String cmd : sortedCmds) {
-      System.out.println("       [" + mCommands.get(cmd).getUsage() + "]");
+      System.out.format("%-60s%-95s%n", "       [" + mCommands.get(cmd).getUsage() + "]   ",
+                      mCommands.get(cmd).getDescription());
     }
   }
 

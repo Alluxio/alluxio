@@ -28,21 +28,21 @@ public interface JournalOutputStream {
    * Writes a {@link JournalEntry} to the journal.
    *
    * @param entry the entry to write to the journal
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   void writeEntry(JournalEntry entry) throws IOException;
 
   /**
    * Closes the stream.
    *
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   void close() throws IOException;
 
   /**
    * Flushes the stream.
    *
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   void flush() throws IOException;
 }

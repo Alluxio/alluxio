@@ -33,7 +33,7 @@
           </thead>
           <tbody>
             <% if (request.getAttribute("fileInfos") != null) { %>
-              <% for (UiFileInfo fileInfo : ((List<UiFileInfo>) request.getAttribute("fileInfos"))) { %>
+              <% for (UIFileInfo fileInfo : ((List<UIFileInfo>) request.getAttribute("fileInfos"))) { %>
                 <tr>
                   <th><a href="<%= (request.getAttribute("baseUrl") == null) ? "./blockInfo" :
                   request.getAttribute("baseUrl").toString() %>?path=<%=encode(fileInfo.getAbsolutePath(), "UTF-8")%>"><%= fileInfo.getAbsolutePath() %></a></th>
