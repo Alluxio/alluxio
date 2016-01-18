@@ -51,4 +51,9 @@ public final class ChgrpRecursiveCommand extends AbstractAclCommand {
   public String getUsage() {
     return "chgrpr <group> <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Changes the group of a file or directory specified by args recursively.";
+  }
 }

@@ -51,4 +51,9 @@ public final class ChgrpCommand extends AbstractAclCommand {
   public String getUsage() {
     return "chgrp <group> <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Changes the group of a file or directory specified by args.";
+  }
 }
