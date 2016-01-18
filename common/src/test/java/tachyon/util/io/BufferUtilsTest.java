@@ -367,7 +367,7 @@ public class BufferUtilsTest {
   }
 
   /**
-   * Tests the {@link BufferUtils#sliceByteBuffer(ByteBuffer, int, int)} method
+   * Tests the {@link BufferUtils#sliceByteBuffer(ByteBuffer, int, int)} method.
    */
   @Test
   public void sliceByteBufferTest() {
