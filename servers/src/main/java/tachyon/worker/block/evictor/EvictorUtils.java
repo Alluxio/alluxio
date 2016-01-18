@@ -32,7 +32,7 @@ public final class EvictorUtils {
    * @param bytesToBeAvailable space size to be requested
    * @param location location that the space will be allocated in
    * @param mManagerView a view of block metadata information
-   * @return the StorageDirView selected
+   * @return the {@link StorageDirView} selected
    */
   public static StorageDirView getDirWithMaxFreeSpace(long bytesToBeAvailable,
       BlockStoreLocation location, BlockMetadataManagerView mManagerView) {

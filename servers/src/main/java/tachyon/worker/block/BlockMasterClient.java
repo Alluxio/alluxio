@@ -20,6 +20,8 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +33,9 @@ import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockMasterWorkerService;
 import tachyon.thrift.Command;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
+import tachyon.thrift.WorkerNetAddress;
 
 /**
  * A wrapper for the thrift client to interact with the block master, used by tachyon worker.
@@ -41,12 +43,13 @@ import tachyon.thrift.TachyonTException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
+@ThreadSafe
 public final class BlockMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private BlockMasterWorkerService.Client mClient = null;
 
   /**
-   * Creates a new block master client for the worker.
+   * Creates a new instance of {@link BlockMasterClient} for the worker.
    *
    * @param masterAddress the master address
    * @param tachyonConf the Tachyon configuration
@@ -106,7 +109,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getId(final NetAddress address)
+  public synchronized long getId(final WorkerNetAddress address)
       throws IOException, ConnectionFailedException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
@@ -146,6 +149,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * @param totalBytesOnTiers mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers mapping from storage tier alias to used bytes
    * @param currentBlocksOnTiers mapping from storage tier alias to the list of list of blocks
+   * @throws TachyonException if registering the worker fails
    * @throws IOException if an I/O error occurs or the workerId doesn't exist
    */
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?

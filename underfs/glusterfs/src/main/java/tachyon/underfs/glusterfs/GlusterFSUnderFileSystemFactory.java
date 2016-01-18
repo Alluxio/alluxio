@@ -22,14 +22,13 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
 
 /**
- * Factory for creating Gluster FS under file systems.
+ * Factory for creating {@link GlusterFSUnderFileSystem}.
  */
 public class GlusterFSUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
     Preconditions.checkArgument(path != null, "path may not be null");
-
     return new GlusterFSUnderFileSystem(path, tachyonConf, conf);
   }
 
@@ -38,7 +37,6 @@ public class GlusterFSUnderFileSystemFactory implements UnderFileSystemFactory {
     if (path == null) {
       return false;
     }
-
     return path.startsWith(GlusterFSUnderFileSystem.SCHEME);
   }
 }

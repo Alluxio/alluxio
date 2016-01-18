@@ -29,10 +29,18 @@ import com.google.common.base.Preconditions;
 
 import tachyon.master.TachyonMaster;
 
+/**
+ * Servlet for dependencies, such as parent and children file names in the web interface.
+ */
 public final class WebInterfaceDependencyServlet extends HttpServlet {
   private static final long serialVersionUID = 2071462168900313417L;
   private final transient TachyonMaster mMaster;
 
+  /**
+   * Creates a new instance of {@link WebInterfaceDependencyServlet}.
+   *
+   * @param master Tachyon master
+   */
   public WebInterfaceDependencyServlet(TachyonMaster master) {
     mMaster = Preconditions.checkNotNull(master);
   }

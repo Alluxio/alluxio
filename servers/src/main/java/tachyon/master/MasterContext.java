@@ -38,7 +38,7 @@ public final class MasterContext {
    * Returns the one and only static {@link TachyonConf} object which is shared among all classes
    * within the master process.
    *
-   * @return the tachyonConf for the master process
+   * @return the {@link TachyonConf} for the master process
    */
   public static TachyonConf getConf() {
     return sTachyonConf;
@@ -48,7 +48,7 @@ public final class MasterContext {
    * Returns the one and only static {@link MasterSource} object which is shared among all classes
    * within the master process.
    *
-   * @return the MasterSource for the master process
+   * @return the {@link MasterSource} for the master process
    */
   public static MasterSource getMasterSource() {
     return sMasterSource;
@@ -65,6 +65,8 @@ public final class MasterContext {
   /**
    * Resets the master context, for test only.
    * TODO(binfan): consider a better way to mock test TachyonConf
+   *
+   * @param conf the configuration for Tachyon
    */
   public static void reset(TachyonConf conf) {
     sTachyonConf = conf;

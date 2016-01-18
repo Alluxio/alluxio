@@ -25,12 +25,18 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.MasterSource;
 import tachyon.worker.WorkerSource;
 
+/**
+ * Unit tests for {@link MetricsSystem}.
+ */
 public class MetricsSystemTest {
   private MetricsConfig mMetricsConfig;
   private TachyonConf mTachyonConf;
 
+  /**
+   * Sets up the properties for the configuration of the metrics before a test runs.
+   */
   @Before
-  public final void Before() {
+  public final void before() {
     mTachyonConf = new TachyonConf();
     Properties metricsProps = new Properties();
     metricsProps.setProperty("*.sink.console.class", "tachyon.metrics.sink.ConsoleSink");
@@ -42,6 +48,9 @@ public class MetricsSystemTest {
     mMetricsConfig = new MetricsConfig(metricsProps);
   }
 
+  /**
+   * Tests the metrics for a master and a worker.
+   */
   @Test
   public void metricsSystemTest() {
     MetricsSystem masterMetricsSystem = new MetricsSystem("master", mMetricsConfig, mTachyonConf);

@@ -57,7 +57,7 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
 
 /**
@@ -268,14 +268,14 @@ abstract class AbstractTFS extends FileSystem {
       if (end >= start && offset <= start + len) {
         ArrayList<String> names = new ArrayList<String>();
         ArrayList<String> hosts = new ArrayList<String>();
-        List<NetAddress> addrs = Lists.newArrayList();
+        List<WorkerNetAddress> addrs = Lists.newArrayList();
         // add the existing in-memory block locations first
         for (tachyon.thrift.BlockLocation location : info.getBlockInfo().getLocations()) {
           addrs.add(location.getWorkerAddress());
         }
         // then add under file system location
         addrs.addAll(info.getUfsLocations());
-        for (NetAddress addr : addrs) {
+        for (WorkerNetAddress addr : addrs) {
           // Name format is "hostname:data transfer port"
           String name = addr.host + ":" + addr.dataPort;
           LOG.debug("getFileBlockLocations : adding name : {}", name);

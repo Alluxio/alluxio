@@ -15,6 +15,9 @@
 
 package tachyon.master.block;
 
+/**
+ * Provides generation of container IDs.
+ */
 public interface ContainerIdGenerable {
   /**
    * @return a unique block container id

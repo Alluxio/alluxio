@@ -29,6 +29,9 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
+/**
+ * Utility class for testing the Tachyon file system.
+ */
 public final class TachyonFSTestUtils {
   /**
    * Creates a simple file with {@code len} bytes.

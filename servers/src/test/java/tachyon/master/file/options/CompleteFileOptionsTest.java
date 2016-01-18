@@ -22,7 +22,14 @@ import org.junit.Test;
 
 import tachyon.conf.TachyonConf;
 
+/**
+ * Unit tests for {@link CompleteFileOptions}.
+ */
 public class CompleteFileOptionsTest {
+
+  /**
+   * Tests the {@link tachyon.master.file.options.CompleteFileOptions.Builder}.
+   */
   @Test
   public void builderTest() {
     Random random = new Random();
@@ -39,6 +46,9 @@ public class CompleteFileOptionsTest {
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
   }
 
+  /**
+   * Tests the {@link CompleteFileOptions#defaults()} method.
+   */
   @Test
   public void defaultsTest() {
     CompleteFileOptions options = CompleteFileOptions.defaults();

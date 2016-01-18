@@ -26,6 +26,12 @@ public class SessionInfo {
   private long mLastHeartbeatMs;
   private int mSessionTimeoutMs;
 
+  /**
+   * Creates a new instance of {@link SessionInfo}.
+   *
+   * @param sessionId the session id
+   * @param sessionTimeoutMs the session timeout in milliseconds
+   */
   public SessionInfo(long sessionId, int sessionTimeoutMs) {
     Preconditions.checkArgument(sessionId > 0, "Invalid session id " + sessionId);
     Preconditions.checkArgument(sessionTimeoutMs > 0, "Invalid session timeout");
@@ -34,14 +40,25 @@ public class SessionInfo {
     mSessionTimeoutMs = sessionTimeoutMs;
   }
 
+  /**
+   * @return the session id
+   */
   public long getSessionId() {
     return mSessionId;
   }
 
+  /**
+   * Performs a session heartbeat.
+   */
   public synchronized void heartbeat() {
     mLastHeartbeatMs = System.currentTimeMillis();
   }
 
+  /**
+   * Checks whether the session has timed out.
+   *
+   * @return true if the session has timed out and false otherwise
+   */
   public synchronized boolean timeout() {
     return (System.currentTimeMillis() - mLastHeartbeatMs > mSessionTimeoutMs);
   }

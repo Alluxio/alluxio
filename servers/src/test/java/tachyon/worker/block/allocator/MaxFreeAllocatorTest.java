@@ -20,12 +20,21 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Unit tests for {@link MaxFreeAllocator}.
+ */
 public class MaxFreeAllocatorTest extends BaseAllocatorTest {
+
+  /**
+   * Tests that blocks are allocated in the storage directory with the most available free space.
+   *
+   * @throws Exception if adding the metadata of the block fails
+   */
   @Test
   public void allocateBlockTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    mAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
+    mAllocator = Allocator.Factory.create(conf, getManagerView());
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000

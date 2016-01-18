@@ -42,11 +42,20 @@ public class RecomputePlanner {
   private final LineageStore mLineageStore;
   private final FileSystemMaster mFileSystemMaster;
 
+  /**
+   * Creates a new instance of {@link RecomputePlanner}.
+   *
+   * @param lineageStore the lineage store
+   * @param fileSystemMaster the file system master
+   */
   public RecomputePlanner(LineageStore lineageStore, FileSystemMaster fileSystemMaster) {
     mLineageStore = Preconditions.checkNotNull(lineageStore);
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
   }
 
+  /**
+   * @return a {@link RecomputePlan} that identifies the lineages to recompute
+   */
   public RecomputePlan plan() {
     List<Long> lostFiles = mFileSystemMaster.getLostFiles();
 

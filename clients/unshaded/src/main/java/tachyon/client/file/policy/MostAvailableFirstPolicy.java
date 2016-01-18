@@ -19,8 +19,8 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
+import tachyon.worker.NetAddress;
 
 /**
  * A policy that returns the worker with the most available bytes. The policy returns null if no
@@ -29,11 +29,11 @@ import tachyon.client.block.BlockWorkerInfo;
 public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
 
   @Override
-  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+  public NetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
     List<BlockWorkerInfo> inputList = Lists.newArrayList(workerInfoList);
     long mostAvailableBytes = -1;
-    WorkerNetAddress result = null;
+    NetAddress result = null;
     for (BlockWorkerInfo workerInfo : inputList) {
       if (workerInfo.getCapacityBytes() - workerInfo.getUsedBytes() > mostAvailableBytes) {
         mostAvailableBytes = workerInfo.getCapacityBytes() - workerInfo.getUsedBytes();

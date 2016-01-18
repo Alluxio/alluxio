@@ -70,7 +70,7 @@ Passed the test!
 You can also stop the system by using:
 
 ```bash
-$ ./bin/tachyon-stop.sh
+$ ./bin/tachyon-stop.sh all
 ```
 
 # Unit Tests
@@ -95,6 +95,7 @@ hdfs1Test     # Tests against HDFS 1.x minicluster
 hdfs2Test     # Tests against HDFS 2.x minicluster
 glusterfsTest # Tests against GlusterFS
 s3Test        # Tests against Amazon S3 (requires a real s3 bucket)
+ossTest       # Tests against Aliyun OSS (requires a real oss bucket)
 ```
 
 To have the logs output to STDOUT, append the following to the `mvn` command

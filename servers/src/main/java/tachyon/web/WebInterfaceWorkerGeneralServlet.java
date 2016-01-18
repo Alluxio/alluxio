@@ -38,55 +38,96 @@ import tachyon.worker.block.BlockStoreMeta;
  */
 public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
-  public static class UiStorageDir {
+  /**
+   * Displays information about a storage directory in the UI.
+   */
+  public static class UIStorageDir {
     private final String mTierAlias;
     private final String mDirPath;
     private final long mCapacityBytes;
     private final long mUsedBytes;
 
-    public UiStorageDir(String tierAlias, String dirPath, long capacityBytes, long usedBytes) {
+    /**
+     * Creates a new instance of {@link UIStorageDir}.
+     *
+     * @param tierAlias tier alias
+     * @param dirPath directory path
+     * @param capacityBytes capacity in bytes
+     * @param usedBytes used capacity in bytes
+     */
+    public UIStorageDir(String tierAlias, String dirPath, long capacityBytes, long usedBytes) {
       mTierAlias = tierAlias;
       mDirPath = dirPath;
       mCapacityBytes = capacityBytes;
       mUsedBytes = usedBytes;
     }
 
+    /**
+     * @return capacity in bytes
+     */
     public long getCapacityBytes() {
       return mCapacityBytes;
     }
 
+    /**
+     * @return directory path
+     */
     public String getDirPath() {
       return mDirPath;
     }
 
+    /**
+     * @return tier alias
+     */
     public String getTierAlias() {
       return mTierAlias;
     }
 
+    /**
+     * @return used capacity in bytes
+     */
     public long getUsedBytes() {
       return mUsedBytes;
     }
   }
 
-  public static class UiWorkerInfo {
+  /**
+   * Displays information about a worker in the UI.
+   */
+  public static class UIWorkerInfo {
     public static final boolean DEBUG = Constants.DEBUG;
     public static final String VERSION = Version.VERSION;
     private final String mWorkerAddress;
     private final long mStartTimeMs;
 
-    public UiWorkerInfo(String workerAddress, long startTimeMs) {
+    /**
+     * Creates a new instance of {@link UIWorkerInfo}.
+     *
+     * @param workerAddress worker address
+     * @param startTimeMs start time in milliseconds
+     */
+    public UIWorkerInfo(String workerAddress, long startTimeMs) {
       mWorkerAddress = workerAddress;
       mStartTimeMs = startTimeMs;
     }
 
+    /**
+     * @return the start time
+     */
     public String getStartTime() {
       return Utils.convertMsToDate(mStartTimeMs);
     }
 
+    /**
+     * @return the uptime
+     */
     public String getUptime() {
       return Utils.convertMsToClockTime(System.currentTimeMillis() - mStartTimeMs);
     }
 
+    /**
+     * @return the worker address
+     */
     public String getWorkerAddress() {
       return mWorkerAddress;
     }
@@ -95,12 +136,19 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
   private static final long serialVersionUID = 3735143768058466487L;
   private final transient BlockDataManager mBlockDataManager;
-  private final UiWorkerInfo mUiWorkerInfo;
+  private final UIWorkerInfo mUiWorkerInfo;
 
+  /**
+   * Creates a new instance of {@link WebInterfaceWorkerGeneralServlet}.
+   *
+   * @param blockDataManager block data manager
+   * @param workerAddress worker address
+   * @param startTimeMs start time in milliseconds
+   */
   public WebInterfaceWorkerGeneralServlet(BlockDataManager blockDataManager,
       InetSocketAddress workerAddress, long startTimeMs) {
     mBlockDataManager = blockDataManager;
-    mUiWorkerInfo = new UiWorkerInfo(workerAddress.toString(), startTimeMs);
+    mUiWorkerInfo = new UIWorkerInfo(workerAddress.toString(), startTimeMs);
   }
 
   @Override
@@ -111,10 +159,10 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   }
 
   /**
-   * Populates key, value pairs for UI display
+   * Populates key, value pairs for UI display.
    *
-   * @param request The {@link HttpServletRequest} object
-   * @throws IOException
+   * @param request the {@link HttpServletRequest} object
+   * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("workerInfo", mUiWorkerInfo);
@@ -139,10 +187,10 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
     request.setAttribute("usedBytesOnTiers", usedBytesOnTiers);
 
-    List<UiStorageDir> storageDirs =
-        new ArrayList<UiStorageDir>(storeMeta.getCapacityBytesOnDirs().size());
+    List<UIStorageDir> storageDirs =
+        new ArrayList<UIStorageDir>(storeMeta.getCapacityBytesOnDirs().size());
     for (Pair<String, String> tierAndDirPath : storeMeta.getCapacityBytesOnDirs().keySet()) {
-      storageDirs.add(new UiStorageDir(tierAndDirPath.getFirst(), tierAndDirPath.getSecond(),
+      storageDirs.add(new UIStorageDir(tierAndDirPath.getFirst(), tierAndDirPath.getSecond(),
           storeMeta.getCapacityBytesOnDirs().get(tierAndDirPath), storeMeta.getUsedBytesOnDirs()
               .get(tierAndDirPath)));
     }

@@ -20,25 +20,41 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Unit tests for {@link Utils}.
+ */
 public class UtilsTest {
+
+  /**
+   * Tests the {@link Utils#convertMsToClockTime(long)} method.
+   */
   @Test
   public void convertToClockTimeWithShortValue() {
     String out = Utils.convertMsToClockTime(10);
     Assert.assertEquals("0 day(s), 0 hour(s), 0 minute(s), and 0 second(s)", out);
   }
 
+  /**
+   * Tests the {@link Utils#convertMsToClockTime(long)} method with one second.
+   */
   @Test
   public void convertToClockTimeWithOneSecond() {
     String out = Utils.convertMsToClockTime(TimeUnit.SECONDS.toMillis(1));
     Assert.assertEquals("0 day(s), 0 hour(s), 0 minute(s), and 1 second(s)", out);
   }
 
+  /**
+   * Tests the {@link Utils#convertMsToClockTime(long)} method with one minute.
+   */
   @Test
   public void convertToClockTimeWithOneMinute() {
     String out = Utils.convertMsToClockTime(TimeUnit.MINUTES.toMillis(1));
     Assert.assertEquals("0 day(s), 0 hour(s), 1 minute(s), and 0 second(s)", out);
   }
 
+  /**
+   * Tests the {@link Utils#convertMsToClockTime(long)} method with one minute and thirty seconds.
+   */
   @Test
   public void convertToClockTimeWithOneMinute30Seconds() {
     String out =
@@ -47,12 +63,19 @@ public class UtilsTest {
     Assert.assertEquals("0 day(s), 0 hour(s), 1 minute(s), and 30 second(s)", out);
   }
 
+  /**
+   * Tests the {@link Utils#convertMsToClockTime(long)} method with one hour.
+   */
   @Test
   public void convertToClockTimeWithOneHour() {
     String out = Utils.convertMsToClockTime(TimeUnit.HOURS.toMillis(1));
     Assert.assertEquals("0 day(s), 1 hour(s), 0 minute(s), and 0 second(s)", out);
   }
 
+  /**
+   * Tests the {@link Utils#convertMsToClockTime(long)} method with one hour, ten minutes and
+   * forty-five seconds.
+   */
   @Test
   public void convertToClockTimeWithOneHour10Minutes45Seconds() {
     String out =
@@ -61,12 +84,19 @@ public class UtilsTest {
     Assert.assertEquals("0 day(s), 1 hour(s), 10 minute(s), and 45 second(s)", out);
   }
 
+  /**
+   * Tests the {@link Utils#convertMsToClockTime(long)} method with one day.
+   */
   @Test
   public void convertToClockTimeWithOneDay() {
     String out = Utils.convertMsToClockTime(TimeUnit.DAYS.toMillis(1));
     Assert.assertEquals("1 day(s), 0 hour(s), 0 minute(s), and 0 second(s)", out);
   }
 
+  /**
+   * Tests the {@link Utils#convertMsToClockTime(long)} method with one day, four hours, ten minutes
+   * and forty-five seconds.
+   */
   @Test
   public void convertToClockTimeWithOneDay4Hours10Minutes45Seconds() {
     long time =
@@ -76,6 +106,10 @@ public class UtilsTest {
     Assert.assertEquals("1 day(s), 4 hour(s), 10 minute(s), and 45 second(s)", out);
   }
 
+  /**
+   * Tests the {@link Utils#convertMsToClockTime(long)} method with one day, four hours, ten minutes
+   * and forty-five seconds with a stopwatch.
+   */
   @Test
   public void convertToClockTimeWithOneDay4Hours10Minutes45SecondsWithStopwatch() {
     long time =
@@ -85,6 +119,10 @@ public class UtilsTest {
     Assert.assertEquals("1 day(s), 4 hour(s), 10 minute(s), and 45 second(s)", out);
   }
 
+  /**
+   * Tests that an exception is thrown when using the {@link Utils#convertMsToClockTime(long)}
+   * method with a negative value.
+   */
   @Test(expected = IllegalArgumentException.class)
   public void convertToClockTimeWithNegativeValue() {
     Utils.convertMsToClockTime(1 - TimeUnit.DAYS.toMillis(1) + TimeUnit.HOURS.toMillis(4)

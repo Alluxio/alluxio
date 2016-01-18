@@ -24,6 +24,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 //TODO(dong): server side should use a separate SetStateOptions in tachyon.master.file.options
 import tachyon.client.file.options.SetStateOptions;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
@@ -47,6 +48,11 @@ public final class FileSystemMasterClientServiceHandler implements
     FileSystemMasterClientService.Iface {
   private final FileSystemMaster mFileSystemMaster;
 
+  /**
+   * Creates a new instance of {@link FileSystemMasterClientServiceHandler}.
+   *
+   * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
+   */
   public FileSystemMasterClientServiceHandler(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster);
     mFileSystemMaster = fileSystemMaster;
@@ -195,6 +201,7 @@ public final class FileSystemMasterClientServiceHandler implements
     }
   }
 
+  @Override
   public boolean rename(long fileId, String dstPath)
       throws TachyonTException, ThriftIOException {
     try {
@@ -232,6 +239,15 @@ public final class FileSystemMasterClientServiceHandler implements
       throw e.toTachyonTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
+    }
+  }
+
+  @Override
+  public void scheduleAsyncPersist(long fileId) throws TachyonTException {
+    try {
+      mFileSystemMaster.scheduleAsyncPersistence(fileId);
+    } catch (FileDoesNotExistException e) {
+      throw e.toTachyonTException();
     }
   }
 }

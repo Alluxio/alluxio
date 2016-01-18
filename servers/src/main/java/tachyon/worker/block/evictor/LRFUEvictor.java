@@ -66,6 +66,8 @@ public final class LRFUEvictor extends EvictorBase {
   private AtomicLong mLogicTimeCount = new AtomicLong(0L);
 
   /**
+   * Creates a new instance of {@link LRFUEvictor}.
+   *
    * @param view a view of block metadata information
    * @param allocator an allocation policy
    */
@@ -137,7 +139,7 @@ public final class LRFUEvictor extends EvictorBase {
   }
 
   /**
-   * Sorts all blocks in ascending order of CRF
+   * Sorts all blocks in ascending order of CRF.
    *
    * @return the sorted CRF of all blocks
    */

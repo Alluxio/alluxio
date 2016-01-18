@@ -28,6 +28,9 @@ import tachyon.util.CommonUtils;
  */
 public interface CheckpointPlanner {
 
+  /**
+   * Factory for {@link CheckpointPlanner}.
+   */
   class Factory {
     /**
      * @param conf TachyonConf to determine the planner type
@@ -35,7 +38,7 @@ public interface CheckpointPlanner {
      * @param fileSystemMasterView a view of the file system master
      * @return the generated planner
      */
-    public static CheckpointPlanner createPlanner(TachyonConf conf,
+    public static CheckpointPlanner create(TachyonConf conf,
         LineageStoreView lineageStoreView, FileSystemMasterView fileSystemMasterView) {
       try {
         return CommonUtils.createNewClassInstance(
