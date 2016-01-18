@@ -25,7 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.client.ClientContext;
-import tachyon.client.Utils;
+import tachyon.client.ClientUtils;
 import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
@@ -229,7 +229,7 @@ public enum BlockStoreContext {
     Preconditions.checkArgument(
         !address.getHost().equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),
         PreconditionMessage.REMOTE_CLIENT_BUT_LOCAL_HOSTNAME);
-    long clientId = Utils.getRandomNonNegativeLong();
+    long clientId = ClientUtils.getRandomNonNegativeLong();
     return new BlockWorkerClient(address, ClientContext.getExecutorService(),
         ClientContext.getConf(), clientId, false, new ClientMetrics());
   }

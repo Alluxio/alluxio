@@ -28,6 +28,10 @@ import tachyon.master.MasterContext;
  * Unit tests for {@link CreateOptions}.
  */
 public class CreateOptionsTest {
+
+  /**
+   * Tests the {@link tachyon.master.file.options.CreateOptions.Builder}.
+   */
   @Test
   public void builderTest() {
     Random random = new Random();
@@ -53,6 +57,9 @@ public class CreateOptionsTest {
     Assert.assertEquals(ttl, options.getTtl());
   }
 
+  /**
+   * Tests the {@link CreateOptions#defaults()} method.
+   */
   @Test
   public void defaultsTest() {
     TachyonConf conf = new TachyonConf();

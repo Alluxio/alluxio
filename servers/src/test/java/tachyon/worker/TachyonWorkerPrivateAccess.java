@@ -23,6 +23,13 @@ import tachyon.worker.file.FileSystemWorker;
  * Class which provides access to private state of {@link TachyonWorker}.
  */
 public final class TachyonWorkerPrivateAccess {
+
+  /**
+   * Gets the {@link FileSystemWorker}.
+   *
+   * @param worker the {@link TachyonWorker}
+   * @return the {@link FileSystemWorker}
+   */
   public static FileSystemWorker getFileSystemWorker(TachyonWorker worker) {
     return Whitebox.getInternalState(worker, "mFileSystemWorker");
   }

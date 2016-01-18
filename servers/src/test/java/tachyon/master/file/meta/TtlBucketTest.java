@@ -25,11 +25,17 @@ import org.junit.Test;
 public class TtlBucketTest {
   private TtlBucket mBucket;
 
+  /**
+   * Sets up a new {@link TtlBucket} before a test runs.
+   */
   @Before
   public void before() {
     mBucket = new TtlBucket(0);
   }
 
+  /**
+   * Tests the different interval methods.
+   */
   @Test
   public void intervalTest() {
     for (long i = 0; i < 10; i ++) {
@@ -39,6 +45,10 @@ public class TtlBucketTest {
     }
   }
 
+  /**
+   * Tests the {@link TtlBucket#compareTo(TtlBucket)} method with the
+   * {@link TtlBucket#getTtlIntervalStartTimeMs()} method.
+   */
   @Test
   public void compareIntervalStartTimeTest() {
     for (long i = 0; i < 10; i ++) {
@@ -60,6 +70,10 @@ public class TtlBucketTest {
     }
   }
 
+  /**
+   * Tests the {@link TtlBucket#addFile(InodeFile)} and {@link TtlBucket#removeFile(InodeFile)}
+   * methods.
+   */
   @Test
   public void addAndRemoveFileTest() {
     InodeFile mFileTtl1 = new InodeFile.Builder().setCreationTimeMs(0).setBlockContainerId(0)
@@ -87,6 +101,9 @@ public class TtlBucketTest {
     Assert.assertEquals(0, mBucket.getFiles().size());
   }
 
+  /**
+   * Tests the {@link TtlBucket#compareTo(TtlBucket)} method.
+   */
   @Test
   public void compareToTest() {
     TtlBucket firstBucket = new TtlBucket(0);
@@ -101,6 +118,9 @@ public class TtlBucketTest {
     Assert.assertEquals(1, fourthBucket.compareTo(firstBucket));
   }
 
+  /**
+   * Tests the {@link TtlBucket#equals(Object)} method.
+   */
   @Test
   public void equalsTest() {
     TtlBucket firstBucket = new TtlBucket(0);
@@ -114,6 +134,9 @@ public class TtlBucketTest {
     Assert.assertNotEquals(firstBucket, thirdBucket);
   }
 
+  /**
+   * Tests the {@link TtlBucket#hashCode()} method.
+   */
   @Test
   public void hashCodeTest() {
     TtlBucket firstBucket = new TtlBucket(0);
