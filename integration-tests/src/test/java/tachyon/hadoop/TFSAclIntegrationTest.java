@@ -24,6 +24,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -37,7 +38,7 @@ import tachyon.security.authentication.AuthType;
  * Integration tests for {@link TFS#setOwner(Path, String, String)} and
  * {@link TFS#setPermission(Path, org.apache.hadoop.fs.permission.FsPermission)}.
  */
-public class TFSAclIntegrationTest {
+public final class TFSAclIntegrationTest {
 
   private static final int BLOCK_SIZE = 1024;
   @ClassRule
@@ -70,6 +71,15 @@ public class TFSAclIntegrationTest {
     sTFS = FileSystem.get(uri, conf);
   }
 
+  @After
+  public void cleanupTFS() throws Exception {
+    cleanup(sTFS);
+  }
+
+  /**
+   * Test for {@link TFS#setPermission(Path, org.apache.hadoop.fs.permission.FsPermission)}. It
+   * will test changing the permission of file using TFS.
+   */
   @Test
   public void chmodTest() throws Exception {
     Path fileA = new Path("/chmodfileA");
@@ -82,11 +92,12 @@ public class TFSAclIntegrationTest {
 
     sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0755));
     Assert.assertEquals((short) 0755, sTFS.getFileStatus(fileA).getPermission().toShort());
-
-    cleanup(sTFS);
-
   }
 
+  /**
+   * Test for {@link TFS#setOwner(Path, String, String)}. It will test only changing the owner of
+   * file using TFS.
+   */
   @Test
   public void changeOwnerTest() throws Exception {
     Path fileA = new Path("/chownfileA");
@@ -107,10 +118,12 @@ public class TFSAclIntegrationTest {
     fs = sTFS.getFileStatus(fileA);
     Assert.assertEquals(newOwner, fs.getOwner());
     Assert.assertEquals(defaultGroup, fs.getGroup());
-
-    cleanup(sTFS);
   }
 
+  /**
+   * Test for {@link TFS#setOwner(Path, String, String)}. It will test only changing the group of
+   * file using TFS.
+   */
   @Test
   public void changeGroupTest() throws Exception {
     Path fileB = new Path("/chownfileB");
@@ -131,10 +144,12 @@ public class TFSAclIntegrationTest {
     fs = sTFS.getFileStatus(fileB);
     Assert.assertEquals(defaultOwner, fs.getOwner());
     Assert.assertEquals(newGroup, fs.getGroup());
-
-    cleanup(sTFS);
   }
 
+  /**
+   * Test for {@link TFS#setOwner(Path, String, String)}. It will test changing both owner and group
+   * of file using TFS.
+   */
   @Test
   public void changeOwnerAndGroupTest() throws Exception {
     Path fileC = new Path("/chownfileC");
@@ -155,7 +170,5 @@ public class TFSAclIntegrationTest {
     fs = sTFS.getFileStatus(fileC);
     Assert.assertEquals(newOwner, fs.getOwner());
     Assert.assertEquals(newGroup, fs.getGroup());
-
-    cleanup(sTFS);
   }
 }
