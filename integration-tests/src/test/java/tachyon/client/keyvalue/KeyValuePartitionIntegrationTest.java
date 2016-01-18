@@ -16,6 +16,7 @@
 package tachyon.client.keyvalue;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -27,6 +28,7 @@ import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
+import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -75,5 +77,53 @@ public final class KeyValuePartitionIntegrationTest {
     Assert.assertArrayEquals(VALUE1, mKeyValuePartitionReader.get(KEY1));
     Assert.assertArrayEquals(VALUE2, mKeyValuePartitionReader.get(KEY2));
     Assert.assertNull(mKeyValuePartitionReader.get("NoSuchKey".getBytes()));
+  }
+
+  @Test
+  public void sizeTest() throws Exception {
+    byte[][] keys = new byte[][]{KEY1, KEY2};
+    byte[][] values = new byte[][]{VALUE1, VALUE2};
+    for (int size = 0; size <= 2; size ++) {
+      String uniqPath = PathUtils.uniqPath();
+      TachyonURI uri = new TachyonURI(uniqPath);
+      mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(uri);
+      for (int i = 0; i < size; i ++) {
+        mKeyValuePartitionWriter.put(keys[i], values[i]);
+      }
+      mKeyValuePartitionWriter.close();
+
+      mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(uri);
+      Assert.assertEquals(size, mKeyValuePartitionReader.size());
+      mKeyValuePartitionReader.close();
+    }
+  }
+
+  @Test
+  public void iteratorTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    TachyonURI uri = new TachyonURI(uniqPath);
+    mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(uri);
+    mKeyValuePartitionWriter.put(KEY1, VALUE1);
+    mKeyValuePartitionWriter.put(KEY2, VALUE2);
+    mKeyValuePartitionWriter.close();
+
+    mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(uri);
+    KeyValueIterator iterator = mKeyValuePartitionReader.iterator();
+
+    Assert.assertTrue(iterator.hasNext());
+    KeyValuePair pair1 = iterator.next();
+    Assert.assertTrue(iterator.hasNext());
+    KeyValuePair pair2 = iterator.next();
+    Assert.assertFalse(iterator.hasNext());
+
+    if (pair1.getKey().equals(ByteBuffer.wrap(KEY2))) {
+      KeyValuePair tmp = pair1;
+      pair1 = pair2;
+      pair2 = tmp;
+    }
+    Assert.assertArrayEquals(KEY1, BufferUtils.newByteArrayFromByteBuffer(pair1.getKey()));
+    Assert.assertArrayEquals(VALUE1, BufferUtils.newByteArrayFromByteBuffer(pair1.getValue()));
+    Assert.assertArrayEquals(KEY2, BufferUtils.newByteArrayFromByteBuffer(pair2.getKey()));
+    Assert.assertArrayEquals(VALUE2, BufferUtils.newByteArrayFromByteBuffer(pair2.getValue()));
   }
 }

@@ -30,7 +30,7 @@ import tachyon.exception.TachyonException;
 /**
  * Interface for a reader which accesses a Tachyon key-value partition.
  */
-public interface KeyValuePartitionReader extends Closeable {
+public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
 
   class Factory {
     /**
@@ -92,4 +92,10 @@ public interface KeyValuePartitionReader extends Closeable {
    */
   ByteBuffer get(ByteBuffer key) throws IOException, TachyonException;
 
+  /**
+   * @return number of key-value pairs in the partition
+   * @throws IOException if non-Tachyon error occurs
+   * @throws TachyonException if Tachyon error occurs
+   */
+  int size() throws IOException, TachyonException;
 }

@@ -111,6 +111,8 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   public void put(byte[] key, byte[] value) throws IOException, TachyonException {
     Preconditions.checkNotNull(key, "Cannot put a null key");
     Preconditions.checkNotNull(value, "Cannot put a null value");
+    Preconditions.checkArgument(key.length > 0, "Cannot put an empty key");
+    Preconditions.checkArgument(value.length > 0, "Cannot put an empty value");
     if (mWriter == null || mWriter.isFull()) {
       // Need to create a new or switch to the next partition.
       if (mWriter != null) {
