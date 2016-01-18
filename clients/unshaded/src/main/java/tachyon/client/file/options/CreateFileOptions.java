@@ -25,7 +25,7 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.CreateTOptions;
+import tachyon.thrift.CreateFileTOptions;
 import tachyon.util.CommonUtils;
 
 @PublicApi
@@ -178,9 +178,8 @@ public final class CreateFileOptions {
   /**
    * @return Thrift representation of the options
    */
-  // TODO(calvin): Rename CreateTOptions to CreateFileTOptions
-  public CreateTOptions toThrift() {
-    CreateTOptions options = new CreateTOptions();
+  public CreateFileTOptions toThrift() {
+    CreateFileTOptions options = new CreateFileTOptions();
     options.setBlockSizeBytes(mBlockSizeBytes);
     options.setPersisted(mWriteType.getUnderStorageType().isSyncPersist());
     options.setRecursive(mRecursive);
