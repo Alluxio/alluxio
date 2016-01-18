@@ -125,7 +125,6 @@ public final class Constants {
   public static final String UNDERFS_HDFS_IMPL = "tachyon.underfs.hdfs.impl";
   public static final String UNDERFS_HDFS_CONFIGURATION = "tachyon.underfs.hdfs.configuration";
   public static final String UNDERFS_HDFS_PREFIXS = "tachyon.underfs.hdfs.prefixes";
-  public static final String MAX_COLUMNS = "tachyon.max.columns";
   public static final String IN_TEST_MODE = "tachyon.test.mode";
   public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       "tachyon.network.host.resolution.timeout.ms";
@@ -148,7 +147,6 @@ public final class Constants {
   public static final String ZOOKEEPER_LEADER_PATH = "tachyon.zookeeper.leader.path";
   public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
       "tachyon.zookeeper.leader.inquiry.retry";
-  public static final String MAX_TABLE_METADATA_BYTE = "tachyon.max.table.metadata.bytes";
   public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
   public static final String FORMAT_FILE_PREFIX = "_format_";
 
