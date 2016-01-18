@@ -63,6 +63,10 @@ public final class FileWorkerMasterSyncExecutorTest {
     Mockito.verify(mFileDataManager, Mockito.never()).clearPersistedFiles(persistedFiles);
   }
 
+  /**
+   * Verifies {@link FileDataManager.#clearPersistedFiles(java.util.List)} is called when the
+   * heartbeat is successful.
+   */
   @Test
   public void heartbeatTest() throws Exception {
     List<Long> persistedFiles = Lists.newArrayList(1L);
