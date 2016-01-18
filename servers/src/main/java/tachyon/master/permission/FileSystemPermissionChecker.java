@@ -130,6 +130,22 @@ public final class FileSystemPermissionChecker {
   }
 
   /**
+   * Checks whether the user is a super user or in super group.
+   *
+   * @param user who is verified to be the super user
+   * @param groups in which user belongs to
+   * @throws AccessControlException if the user is not a super user
+   */
+  public static void checkSuperuser(String user, List<String> groups) throws
+      AccessControlException {
+    if (sFileSystemOwner.equals(user) || groups.contains(sFileSystemSuperGroup)) {
+      return;
+    }
+    throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED.getMessage(user
+        + " is not a super user or in super group"));
+  }
+
+  /**
    * This method provides basic permission checking logic on a list of fileInfo.
    * The input is User and its Groups, requested Permission and fileInfo list (of inodes by
    * traversing the Path).

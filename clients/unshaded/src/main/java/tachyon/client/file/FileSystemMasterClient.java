@@ -29,6 +29,7 @@ import tachyon.TachyonURI;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
@@ -377,6 +378,26 @@ public final class FileSystemMasterClient extends MasterClientBase {
       @Override
       public Void call() throws TachyonTException, TException {
         mClient.scheduleAsyncPersist(fileId);
+        return null;
+      }
+    });
+  }
+
+  /**
+   * Sets the acl of a path.
+   *
+   * @param path the path of file or directory
+   * @param options the acl option to be set
+   * @return true if set successfully, false otherwise
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException an I/O error occurs
+   */
+  public synchronized void setAcl(final String path, final SetAclOptions options) throws
+      TachyonException, IOException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.setAcl(path, options.toThrift());
         return null;
       }
     });

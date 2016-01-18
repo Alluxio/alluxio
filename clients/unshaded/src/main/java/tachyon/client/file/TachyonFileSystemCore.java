@@ -30,6 +30,7 @@ import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.RenameOptions;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
 import tachyon.exception.FileAlreadyExistsException;
@@ -180,6 +181,17 @@ interface TachyonFileSystemCore {
    */
   boolean rename(TachyonFile src, TachyonURI dst, RenameOptions options) throws IOException,
       FileDoesNotExistException, TachyonException;
+
+  /**
+   * Sets the acl of a file or directory.
+   *
+   * @param path to be set acl on
+   * @param options the acl option to be set
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException an I/O error occurs
+   */
+  public void setAcl(TachyonURI path, SetAclOptions options) throws TachyonException,
+      IOException;
 
   /**
    * Sets the file state.
