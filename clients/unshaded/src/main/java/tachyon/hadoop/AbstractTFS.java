@@ -303,7 +303,8 @@ abstract class AbstractTFS extends FileSystem {
     TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
     Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
 
-    LOG.info("getFileStatus({}): HDFS Path: {} TPath: {}{}", path, hdfsPath, mTachyonHeader, tPath);
+    LOG.info("getFileStatus({}): HDFS Path: {} Tachyon Path: {}{}", path, hdfsPath, mTachyonHeader,
+        tPath);
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
     }
@@ -326,20 +327,21 @@ abstract class AbstractTFS extends FileSystem {
 
   /**
    * Changes owner or group of a path (i.e. a file or a directory). If username is null, the
-   * original username remains unchanged. Same as groupname.
+   * original username remains unchanged. Same as groupname. If username and groupname are non-null,
+   * both of them will be changed.
    *
    * @param path path to set owner or group
    * @param username username to be set
    * @param groupname groupname to be set
-   * @throws IOException if the path failed to be changes owner or group
+   * @throws IOException if changing owner or group of the path failed
    */
   @Override
   public void setOwner(Path path, final String username, final String groupname)
       throws IOException {
     TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
     Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
-    LOG.info("setOwner({},{},{}) HDFS Path: {} TPath: {}{}", path, username, groupname, hdfsPath,
-        mTachyonHeader, tPath);
+    LOG.info("setOwner({},{},{}) HDFS Path: {} Tachyon Path: {}{}", path, username, groupname,
+        hdfsPath, mTachyonHeader, tPath);
     try {
       if (username != null && !username.isEmpty()) {
         SetAclOptions options =
@@ -366,7 +368,7 @@ abstract class AbstractTFS extends FileSystem {
   public void setPermission(Path path, FsPermission permission) throws IOException {
     TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
     Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
-    LOG.info("setPermission({},{}) HDFS Path: {} TPath : {}{}", path, permission.toString(),
+    LOG.info("setPermission({},{}) HDFS Path: {} Tachyon Path: {}{}", path, permission.toString(),
         hdfsPath, mTachyonHeader, tPath);
     try {
       SetAclOptions options =
