@@ -145,7 +145,7 @@ public final class LinearProbingIndex implements Index {
       bucketIndex = (bucketIndex + 1) % mNumBuckets;
       bucketOffset = (bucketIndex == 0) ? 0 : bucketOffset + BUCKET_SIZE_BYTES;
     }
-    return - 1;
+    return -1;
   }
 
   @Override

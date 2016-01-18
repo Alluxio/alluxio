@@ -304,8 +304,8 @@ case ${COMMAND} in
   declare -a thriftSrcPaths=("${bin}/../common/src" "${bin}/../keyvalue/common/src")
   for thriftSrcPath in ${thriftSrcPaths[@]}; do
     rm -rf "${thriftSrcPath}/main/java/tachyon/thrift"
-    for src_file in $(ls "${thriftSrcPath}/thrift"); do
-      thrift -I "${bin}/../common/src/thrift" --gen java -out "${thriftSrcPath}/main/java/." "${thriftSrcPath}/thrift/${src_file}"
+    for srcFile in $(ls "${thriftSrcPath}/thrift"); do
+      thrift -I "${bin}/../common/src/thrift" --gen java -out "${thriftSrcPath}/main/java/." "${thriftSrcPath}/thrift/${srcFile}"
     done
   done
   exit 0

@@ -102,7 +102,9 @@ public final class KeyValuePartitionIntegrationTest {
     mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(uri);
     KeyValueIterator iterator = mKeyValuePartitionReader.iterator();
 
+    Assert.assertTrue(iterator.hasNext());
     KeyValuePair pair1 = iterator.next();
+    Assert.assertTrue(iterator.hasNext());
     KeyValuePair pair2 = iterator.next();
     Assert.assertFalse(iterator.hasNext());
 
