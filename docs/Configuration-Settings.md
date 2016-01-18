@@ -57,6 +57,17 @@ The common configuration contains constants shared by different components.
   <td>The path to store log files.</td>
 </tr>
 <tr>
+  <td>tachyon.keyvalue.enabled</td>
+  <td>false</td>
+  <td>Whether the key-value service is enabled.</td>
+</tr>
+<tr>
+  <td>tachyon.keyvalue.partition.size.bytes.max</td>
+  <td>512MB</td>
+  <td>Maximum allowable size (in bytes) of a single key-value partition in a store. This value
+  should be no larger than the block size (tachyon.user.block.size.bytes.default)</td>
+</tr>
+<tr>
   <td>tachyon.metrics.conf.file</td>
   <td>${tachyon.home}/conf/metrics.properties</td>
   <td>The file path of the metrics system configuration file. By default it is `metrics.properties`
