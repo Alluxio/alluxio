@@ -111,9 +111,17 @@ public final class KeyValueStoreIntegrationTest {
   }
 
   @Test
+  public void emptyStoreIteratorTest() throws Exception {
+    mWriter = sKVStore.create(mStoreUri);
+    mWriter.close();
+
+    mReader = sKVStore.open(mStoreUri);
+    KeyValueIterator iterator = mReader.iterator();
+    Assert.assertFalse(iterator.hasNext());
+  }
+
+  @Test
   public void iteratorTest() throws Exception {
-    String uniqPath = PathUtils.uniqPath();
-    TachyonURI uri = new TachyonURI(uniqPath);
     mWriter = sKVStore.create(mStoreUri);
     mWriter.put(KEY1, VALUE1);
     mWriter.put(KEY2, VALUE2);
@@ -122,7 +130,9 @@ public final class KeyValueStoreIntegrationTest {
     mReader = sKVStore.open(mStoreUri);
     KeyValueIterator iterator = mReader.iterator();
 
+    Assert.assertTrue(iterator.hasNext());
     KeyValuePair pair1 = iterator.next();
+    Assert.assertTrue(iterator.hasNext());
     KeyValuePair pair2 = iterator.next();
     Assert.assertFalse(iterator.hasNext());
 

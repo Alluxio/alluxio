@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.exception.TachyonException;
@@ -27,7 +29,8 @@ import tachyon.thrift.PartitionInfo;
 /**
  * {@link KeyValueIterator} to iterate over key-value pairs in {@link KeyValueStore}.
  */
-public class KeyValueStoreIterator implements KeyValueIterator {
+@NotThreadSafe
+public final class KeyValueStoreIterator implements KeyValueIterator {
   /** All partitions */
   private List<PartitionInfo> mPartitions;
   /** Index of the partition being visited */
