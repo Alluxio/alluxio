@@ -56,6 +56,8 @@ public final class Constants {
   public static final int HOUR_MS = MINUTE_MS * 60;
   public static final int DAY_MS = HOUR_MS * 24;
 
+  public static final int BYTES_IN_INTEGER = 4;
+
   public static final String SCHEME = "tachyon";
   public static final String HEADER = SCHEME + "://";
 
@@ -84,11 +86,14 @@ public final class Constants {
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_WORKER_SERVICE_VERSION = 1;
+  public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 1;
+  public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 1;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String LINEAGE_MASTER_NAME = "LineageMaster";
+  public static final String KEY_VALUE_MASTER_NAME = "KeyValueMaster";
 
   public static final String BLOCK_MASTER_CLIENT_SERVICE_NAME = "BlockMasterClient";
   public static final String BLOCK_MASTER_WORKER_SERVICE_NAME = "BlockMasterWorker";
@@ -97,6 +102,8 @@ public final class Constants {
   public static final String LINEAGE_MASTER_CLIENT_SERVICE_NAME = "LineageMasterClient";
   public static final String LINEAGE_MASTER_WORKER_SERVICE_NAME = "LineageMasterWorker";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
+  public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
+  public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>
@@ -147,6 +154,9 @@ public final class Constants {
   public static final String ZOOKEEPER_LEADER_PATH = "tachyon.zookeeper.leader.path";
   public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
       "tachyon.zookeeper.leader.inquiry.retry";
+  public static final String KEY_VALUE_ENABLED = "tachyon.keyvalue.enabled";
+  public static final String KEY_VALUE_PARTITION_SIZE_BYTES_MAX =
+      "tachyon.keyvalue.partition.size.bytes.max";
   public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
   public static final String FORMAT_FILE_PREFIX = "_format_";
 

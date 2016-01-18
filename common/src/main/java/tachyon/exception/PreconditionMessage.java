@@ -62,6 +62,7 @@ public final class PreconditionMessage {
       "Cannot set the state of a file to not-persisted";
   public static final String URI_HOST_NULL = "URI hostname must not be null";
   public static final String URI_PORT_NULL = "URI port must not be null";
+  public static final String URI_KEY_VALUE_STORE_NULL = "URI of key-value store must not be null";
 
   private PreconditionMessage() {} // to prevent initialization
 }

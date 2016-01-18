@@ -17,8 +17,11 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 
+import com.google.common.collect.Lists;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -95,6 +98,8 @@ public class TachyonMaster {
   protected FileSystemMaster mFileSystemMaster;
   /** The master managing all lineage related metadata */
   protected LineageMaster mLineageMaster;
+  /** A list of extra masters to launch based on service loader */
+  protected List<Master> mAdditionalMasters;
 
   // The read-write journals for the masters
   /** The journal for the block master */
@@ -181,6 +186,19 @@ public class TachyonMaster {
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
+      }
+
+      mAdditionalMasters = Lists.newArrayList();
+      List<? extends  Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
+      // Discover and register the available factories
+      // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader
+      ServiceLoader<MasterFactory> discoveredMasterFactories =
+          ServiceLoader.load(MasterFactory.class, MasterFactory.class.getClassLoader());
+      for (MasterFactory factory : discoveredMasterFactories) {
+        Master master = factory.create(masters, journalDirectory);
+        if (master != null) {
+          mAdditionalMasters.add(master);
+        }
       }
 
       MasterContext.getMasterSource().registerGauges(this);
@@ -297,6 +315,10 @@ public class TachyonMaster {
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster.start(isLeader);
       }
+      // start additional masters
+      for (Master master : mAdditionalMasters) {
+        master.start(isLeader);
+      }
 
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
@@ -308,6 +330,10 @@ public class TachyonMaster {
     try {
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster.stop();
+      }
+      // stop additional masters
+      for (Master master : mAdditionalMasters) {
+        master.stop();
       }
       mBlockMaster.stop();
       mFileSystemMaster.stop();
@@ -356,6 +382,10 @@ public class TachyonMaster {
     registerServices(processor, mFileSystemMaster.getServices());
     if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
       registerServices(processor, mLineageMaster.getServices());
+    }
+    // register additional masters for RPC service
+    for (Master master : mAdditionalMasters) {
+      registerServices(processor, master.getServices());
     }
 
     // Return a TTransportFactory based on the authentication type

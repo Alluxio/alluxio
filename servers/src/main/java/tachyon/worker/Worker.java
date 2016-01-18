@@ -16,11 +16,18 @@
 package tachyon.worker;
 
 import java.io.IOException;
+import java.util.Map;
+
+import org.apache.thrift.TProcessor;
 
 /**
  * Interface of a Tachyon worker.
  */
 public interface Worker {
+  /**
+   * @return a map from service names to {@link TProcessor}s that serve RPCs for this worker
+   */
+  Map<String, TProcessor> getServices();
 
   /**
    * Starts the worker. Here, the worker should initialize state and possibly start threads required
