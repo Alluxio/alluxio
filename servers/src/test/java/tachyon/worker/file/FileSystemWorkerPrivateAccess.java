@@ -21,6 +21,13 @@ import org.powermock.reflect.Whitebox;
  * Class which provides access to private state of {@link FileSystemWorker}.
  */
 public final class FileSystemWorkerPrivateAccess {
+
+  /**
+   * Gets the {@link FileDataManager}.
+   *
+   * @param worker the {@link FileSystemWorker}
+   * @return the {@link FileDataManager}
+   */
   public static FileDataManager getFileDataManager(FileSystemWorker worker) {
     return Whitebox.getInternalState(worker, "mFileDataManager");
   }

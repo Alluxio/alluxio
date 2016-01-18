@@ -66,12 +66,19 @@ public final class InodeTreeTest {
   private static CreatePathOptions sNestedDirectoryOptions;
   private InodeTree mTree;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the test fails
+   */
   @Before
   public void before() throws Exception {
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
@@ -91,6 +98,9 @@ public final class InodeTreeTest {
     verifyPermissionChecker(true, TEST_PERMISSION_STATUS.getUserName(), "test-supergroup");
   }
 
+  /**
+   * Sets up dependencies before a single test runs.
+   */
   @BeforeClass
   public static void beforeClass() {
     sFileOptions =
@@ -108,6 +118,11 @@ public final class InodeTreeTest {
             .build();
   }
 
+  /**
+   * Tests that initializing the root twice results in the same root.
+   *
+   * @throws Exception if getting the Inode by path fails
+   */
   @Test
   public void initializeRootTwiceTest() throws Exception {
     Inode root = mTree.getInodeByPath(new TachyonURI("/"));
@@ -118,6 +133,12 @@ public final class InodeTreeTest {
     Assert.assertEquals(root, newRoot);
   }
 
+  /**
+   * Tests the {@link InodeTree#createPath(TachyonURI, CreatePathOptions)} method for creating
+   * directories.
+   *
+   * @throws Exception if creating the directory fails
+   */
   @Test
   public void createDirectoryTest() throws Exception {
     // create directory
@@ -140,6 +161,12 @@ public final class InodeTreeTest {
     Assert.assertEquals((short)0755, test.getPermission());
   }
 
+  /**
+   * Tests that an exception is thrown when trying to create an already existing directory with the
+   * {@code allowExists} flag set to {@code false}.
+   *
+   * @throws Exception if creating the directory fails
+   */
   @Test
   public void createExistingDirectoryTest() throws Exception {
     // create directory
@@ -154,6 +181,11 @@ public final class InodeTreeTest {
     mTree.createPath(TEST_URI, new CreatePathOptions.Builder().setAllowExists(false).build());
   }
 
+  /**
+   * Tests that creating a file under a pinned directory works.
+   *
+   * @throws Exception if creating the directory fails
+   */
   @Test
   public void createFileUnderPinnedDirectoryTest() throws Exception {
     // create nested directory
@@ -171,6 +203,12 @@ public final class InodeTreeTest {
     Assert.assertEquals(1, mTree.getPinIdSet().size());
   }
 
+  /**
+   * Tests the {@link InodeTree#createPath(TachyonURI, CreatePathOptions)} method for creating a
+   * file.
+   *
+   * @throws Exception if creating the directory fails
+   */
   @Test
   public void createFileTest() throws Exception {
     // created nested file
@@ -184,6 +222,11 @@ public final class InodeTreeTest {
     Assert.assertEquals((short)0644, nestedFile.getPermission());
   }
 
+  /**
+   * Tests the {@link InodeTree#createPath(TachyonURI, CreatePathOptions)} method.
+   *
+   * @throws Exception if creating the path fails
+   */
   @Test
   public void createPathTest() throws Exception {
     // save the last mod time of the root
@@ -234,6 +277,11 @@ public final class InodeTreeTest {
     Assert.assertEquals("file", created.get(0).getName());
   }
 
+  /**
+   * Tests that an exception is thrown when trying to create the root path twice.
+   *
+   * @throws Exception if creating the path fails
+   */
   @Test
   public void createRootPathTest() throws Exception {
     mThrown.expect(FileAlreadyExistsException.class);
@@ -242,6 +290,11 @@ public final class InodeTreeTest {
     mTree.createPath(new TachyonURI("/"), sFileOptions);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to create a file with invalid block size.
+   *
+   * @throws Exception if creating the path fails
+   */
   @Test
   public void createFileWithInvalidBlockSizeTest() throws Exception {
     mThrown.expect(BlockInfoException.class);
@@ -252,6 +305,11 @@ public final class InodeTreeTest {
     mTree.createPath(TEST_URI, options);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to create a file with a negative block size.
+   *
+   * @throws Exception if creating the path fails
+   */
   @Test
   public void createFileWithNegativeBlockSizeTest() throws Exception {
     mThrown.expect(BlockInfoException.class);
@@ -262,6 +320,11 @@ public final class InodeTreeTest {
     mTree.createPath(TEST_URI, options);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to create a file under a non-existing directory.
+   *
+   * @throws Exception if creating the path fails
+   */
   @Test
   public void createFileUnderNonexistingDirTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
@@ -270,6 +333,11 @@ public final class InodeTreeTest {
     mTree.createPath(NESTED_URI, sFileOptions);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to create a file twice.
+   *
+   * @throws Exception if creating the path fails
+   */
   @Test
   public void createFileTwiceTest() throws Exception {
     mThrown.expect(FileAlreadyExistsException.class);
@@ -279,6 +347,11 @@ public final class InodeTreeTest {
     mTree.createPath(NESTED_URI, sNestedFileOptions);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to create a file under a file path.
+   *
+   * @throws Exception if creating the path fails
+   */
   @Test
   public void createFileUnderFileTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
@@ -289,6 +362,11 @@ public final class InodeTreeTest {
     mTree.createPath(new TachyonURI("/nested/test/test"), sNestedFileOptions);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to get an Inode by a non-existing path.
+   *
+   * @throws Exception if getting the Inode by path fails
+   */
   @Test
   public void getInodeByNonexistingPathTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
@@ -297,6 +375,11 @@ public final class InodeTreeTest {
     mTree.getInodeByPath(TEST_URI);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to get an Inode by a non-existing, nested path.
+   *
+   * @throws Exception if creating the path or getting the Inode by path fails
+   */
   @Test
   public void getInodeByNonexistingNestedPathTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
@@ -306,6 +389,11 @@ public final class InodeTreeTest {
     mTree.getInodeByPath(NESTED_FILE_URI);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to get an Inode with an invalid id.
+   *
+   * @throws Exception if getting the Inode by its id fails
+   */
   @Test
   public void getInodeByInvalidIdTest() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
@@ -314,12 +402,20 @@ public final class InodeTreeTest {
     mTree.getInodeById(1);
   }
 
+  /**
+   * Tests the {@link InodeTree#isRootId(long)} method.
+   */
   @Test
-  public void isRootIdTest() throws Exception {
+  public void isRootIdTest() {
     Assert.assertTrue(mTree.isRootId(0));
     Assert.assertFalse(mTree.isRootId(1));
   }
 
+  /**
+   * Tests the {@link InodeTree#getPath(Inode)} method.
+   *
+   * @throws Exception if creating the path or getting the Inode by its id fails
+   */
   @Test
   public void getPathTest() throws Exception {
     Inode root = mTree.getInodeById(0);
@@ -338,6 +434,11 @@ public final class InodeTreeTest {
         mTree.getPath(created.get(created.size() - 1)));
   }
 
+  /**
+   * Tests the {@link InodeTree#getInodeChildrenRecursive(InodeDirectory)} method.
+   *
+   * @throws Exception if creating the path fails
+   */
   @Test
   public void getInodeChildrenRecursiveTest() throws Exception {
     mTree.createPath(TEST_URI, sDirectoryOptions);
@@ -351,6 +452,11 @@ public final class InodeTreeTest {
     Assert.assertEquals(4, inodes.size());
   }
 
+  /**
+   * Tests the {@link InodeTree#deleteInode(Inode)} method.
+   *
+   * @throws Exception if an {@link InodeTree} operation fails
+   */
   @Test
   public void deleteInodeTest() throws Exception {
     InodeTree.CreatePathResult createResult =
@@ -368,6 +474,11 @@ public final class InodeTreeTest {
     Assert.assertEquals(1, inodes.size());
   }
 
+  /**
+   * Tests that an exception is thrown when trying to delete a non-existing Inode.
+   *
+   * @throws Exception if deleting the Inode fails
+   */
   @Test
   public void deleteNonexistingInodeTest() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
@@ -378,6 +489,11 @@ public final class InodeTreeTest {
     mTree.deleteInode(testFile);
   }
 
+  /**
+   * Tests the {@link InodeTree#setPinned(Inode, boolean)} method.
+   *
+   * @throws Exception if creating the path fails
+   */
   @Test
   public void setPinnedTest() throws Exception {
     InodeTree.CreatePathResult createResult =
@@ -399,6 +515,11 @@ public final class InodeTreeTest {
     Assert.assertEquals(0, mTree.getPinIdSet().size());
   }
 
+  /**
+   * Tests that streaming to a journal checkpoint works.
+   *
+   * @throws Exception if creating the path fails
+   */
   @Test
   public void streamToJournalCheckpointTest() throws Exception {
     InodeDirectory root = mTree.getRoot();
@@ -420,6 +541,12 @@ public final class InodeTreeTest {
     verifyJournal(mTree, Lists.newArrayList(root, nested, test, test1, file, file1));
   }
 
+  /**
+   * Tests the {@link InodeTree#addInodeFromJournal(tachyon.proto.journal.Journal.JournalEntry)}
+   * method.
+   *
+   * @throws Exception if creating a path fails
+   */
   @Test
   public void addInodeFromJournalTest() throws Exception {
     mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
