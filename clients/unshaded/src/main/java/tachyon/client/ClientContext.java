@@ -70,7 +70,7 @@ public final class ClientContext {
     sClientMetrics = new ClientMetrics();
 
     if (sExecutorService != null) {
-      sExecutorService.shutdown();
+      sExecutorService.shutdownNow();
     }
     sExecutorService = Executors.newFixedThreadPool(
         sTachyonConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
