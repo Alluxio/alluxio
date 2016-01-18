@@ -19,7 +19,6 @@ import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -29,7 +28,6 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFile;
 import tachyon.exception.TachyonException;
 import tachyon.master.MasterContext;
-import tachyon.security.LoginUser;
 import tachyon.security.group.provider.IdentityUserGroupsMapping;
 import tachyon.shell.AbstractTfsShellTest;
 import tachyon.thrift.FileInfo;
