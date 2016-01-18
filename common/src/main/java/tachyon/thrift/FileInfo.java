@@ -65,26 +65,26 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     schemes.put(TupleScheme.class, new FileInfoTupleSchemeFactory());
   }
 
-  public long fileId; // required
-  public String name; // required
-  public String path; // required
-  public String ufsPath; // required
-  public long length; // required
-  public long blockSizeBytes; // required
-  public long creationTimeMs; // required
-  public boolean isCompleted; // required
-  public boolean isFolder; // required
-  public boolean isPinned; // required
-  public boolean isCacheable; // required
-  public boolean isPersisted; // required
-  public List<Long> blockIds; // required
-  public int inMemoryPercentage; // required
-  public long lastModificationTimeMs; // required
-  public long ttl; // required
-  public String userName; // required
-  public String groupName; // required
-  public int permission; // required
-  public String persistenceState; // required
+  private long fileId; // required
+  private String name; // required
+  private String path; // required
+  private String ufsPath; // required
+  private long length; // required
+  private long blockSizeBytes; // required
+  private long creationTimeMs; // required
+  private boolean isCompleted; // required
+  private boolean isFolder; // required
+  private boolean isPinned; // required
+  private boolean isCacheable; // required
+  private boolean isPersisted; // required
+  private List<Long> blockIds; // required
+  private int inMemoryPercentage; // required
+  private long lastModificationTimeMs; // required
+  private long ttl; // required
+  private String userName; // required
+  private String groupName; // required
+  private int permission; // required
+  private String persistenceState; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
