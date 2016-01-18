@@ -27,7 +27,7 @@ import tachyon.conf.TachyonConf;
 /**
  * A callback handler for {@link AppLoginModule}
  */
-public class AppCallbackHandler implements CallbackHandler {
+public final class AppCallbackHandler implements CallbackHandler {
   private String mUserName;
 
   public AppCallbackHandler(TachyonConf conf) {
