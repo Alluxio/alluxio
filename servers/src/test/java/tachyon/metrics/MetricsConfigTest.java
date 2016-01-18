@@ -28,8 +28,11 @@ import org.junit.Test;
 public class MetricsConfigTest {
   private Properties mMetricsProps;
 
+  /**
+   * Sets up the properties for the configuration of the metrics before a test runs.
+   */
   @Before
-  public final void Before() {
+  public final void before() {
     mMetricsProps = new Properties();
     mMetricsProps.setProperty("*.sink.console.class", "tachyon.metrics.sink.ConsoleSink");
     mMetricsProps.setProperty("*.sink.console.period", "15");
@@ -39,6 +42,10 @@ public class MetricsConfigTest {
     mMetricsProps.setProperty("master.sink.jmx.class", "tachyon.metrics.sink.JmxSink");
   }
 
+  /**
+   * Tests that the {@link MetricsConfig#MetricsConfig(Properties)} constructor sets the properties
+   * correctly.
+   */
   @Test
   public void setPropertiesTest() {
     MetricsConfig config = new MetricsConfig(mMetricsProps);
@@ -68,6 +75,9 @@ public class MetricsConfigTest {
     Assert.assertEquals("/metrics/json", workerProp.getProperty("sink.servlet.path"));
   }
 
+  /**
+   * Tests the {@link MetricsConfig#subProperties(Properties, String)} method.
+   */
   @Test
   public void subPropertiesTest() {
     MetricsConfig config = new MetricsConfig(mMetricsProps);

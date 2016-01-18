@@ -78,12 +78,17 @@ public final class FileSystemMasterTest {
   private long mWorkerId1;
   private long mWorkerId2;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up the dependencies before a single test runs.
+   */
   @BeforeClass
   public static void beforeClass() {
     sNestedFileOptions =
@@ -93,16 +98,28 @@ public final class FileSystemMasterTest {
     TtlBucketPrivateAccess.setTtlIntervalMs(TTLCHECKER_INTERVAL_MS);
   }
 
+  /**
+   * Resets the TTL interval after all test ran.
+   */
   @AfterClass
   public static void afterClass() {
     TtlBucketPrivateAccess.setTtlIntervalMs(sOldTtlIntervalMs);
   }
 
+  /**
+   * Resets the {@link MasterContext} after a test ran.
+   */
   @After
   public void after() {
     MasterContext.reset();
   }
 
+  /**
+   * Sets up the dependencies before a test runs.
+   *
+   * @throws Exception if creating the temporary folder, starting the masters or register the
+   *                   workers fails.
+   */
   @Before
   public void before() throws Exception {
     MasterContext.getConf().set(Constants.MASTER_TTLCHECKER_INTERVAL_MS,
@@ -133,6 +150,11 @@ public final class FileSystemMasterTest {
         Maps.<String, List<Long>>newHashMap());
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#deleteFile(long, boolean)} method.
+   *
+   * @throws Exception if deleting a file fails
+   */
   @Test
   public void deleteFileTest() throws Exception {
     // cannot delete root
@@ -149,6 +171,11 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#deleteFile(long, boolean)} method with a non-empty directory.
+   *
+   * @throws Exception if deleting a directory fails
+   */
   @Test
   public void deleteNonemptyDirectoryTest() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
@@ -167,6 +194,11 @@ public final class FileSystemMasterTest {
     Assert.assertTrue(mFileSystemMaster.deleteFile(dirId, true));
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#deleteFile(long, boolean)} method for a directory.
+   *
+   * @throws Exception if deleting the directory fails
+   */
   @Test
   public void deleteDirTest() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
@@ -178,6 +210,11 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(-1, mFileSystemMaster.getFileId(NESTED_URI));
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#getNewBlockIdForFile(long)} method.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void getNewBlockIdForFileTest() throws Exception {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
@@ -198,6 +235,12 @@ public final class FileSystemMasterTest {
         TimeUnit.SECONDS));
   }
 
+  /**
+   * Tests  that an exception is in the {@link FileSystemMaster#create(TachyonURI, CreateOptions)}
+   * with a TTL set in the {@link CreateOptions} after the TTL check was done once.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void createFileWithTtlTest() throws Exception {
     CreateOptions options =
@@ -212,6 +255,12 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.getFileInfo(fileId);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to get information about a file after it has been
+   * deleted because of a TTL of 0.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void setTtlForFileWithNoTtlTest() throws Exception {
     CreateOptions options =
@@ -229,6 +278,12 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.getFileInfo(fileId);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to get information about a file after it has been
+   * deleted after the TTL has been set to 0.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void setSmallerTtlForFileWithTtlTest() throws Exception {
     CreateOptions options =
@@ -246,6 +301,11 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.getFileInfo(fileId);
   }
 
+  /**
+   * Tests that a file has not been deleted after the TTL has been reset to a valid value.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void setLargerTtlForFileWithTtlTest() throws Exception {
     CreateOptions options =
@@ -261,6 +321,11 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
   }
 
+  /**
+   * Tests that the original TTL is removed after setting it to {@link Constants#NO_TTL} for a file.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void setNoTtlForFileWithTtlTest() throws Exception {
     CreateOptions options =
@@ -275,6 +340,12 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#setState(long, SetStateOptions)} method and that an exception
+   * is thrown when trying to set a TTL for a directory.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void setStateTest() throws Exception {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
@@ -307,6 +378,11 @@ public final class FileSystemMasterTest {
         new SetStateOptions.Builder().setTtl(1).build());
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#isDirectory(long)} method.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void isDirectoryTest() throws Exception {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
@@ -314,6 +390,11 @@ public final class FileSystemMasterTest {
     Assert.assertTrue(mFileSystemMaster.isDirectory(mFileSystemMaster.getFileId(NESTED_URI)));
   }
 
+  /**
+   * Tests that a file is fully written to memory.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void isFullyInMemoryTest() throws Exception {
     // add nested file
@@ -330,6 +411,11 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(Lists.newArrayList(ROOT_FILE_URI), mFileSystemMaster.getInMemoryFiles());
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#rename(long, TachyonURI)} method.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void renameTest() throws Exception {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
@@ -348,6 +434,12 @@ public final class FileSystemMasterTest {
     Assert.assertTrue(mFileSystemMaster.rename(fileId, TEST_URI));
   }
 
+  /**
+   * Tests that an exception is thrown when trying to create a file in a non-existing directory
+   * without setting the {@code recursive} flag.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void renameUnderNonexistingDir() throws Exception {
     mThrown.expect(InvalidPathException.class);
@@ -361,6 +453,12 @@ public final class FileSystemMasterTest {
     Assert.assertFalse(mFileSystemMaster.rename(fileId, NESTED_FILE_URI));
   }
 
+  /**
+   * Tests that an exception is thrown when trying to rename a file to a prefix of the original
+   * file.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void renameToSubpathTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
@@ -370,6 +468,11 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.rename(fileId, NESTED_FILE_URI);
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#free(long, boolean)} method.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void freeTest() throws Exception {
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
@@ -384,6 +487,11 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#free(long, boolean)} method with a directory.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void freeDirTest() throws Exception {
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
@@ -395,6 +503,11 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#stop()} method.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void stopTest() throws Exception {
     ExecutorService service =
@@ -408,6 +521,11 @@ public final class FileSystemMasterTest {
     Assert.assertTrue(service.isShutdown());
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#workerHeartbeat(long, List)} method.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void workerHeartbeatTest() throws Exception {
     long blockId = createFileWithSingleBlock(ROOT_FILE_URI);
@@ -425,6 +543,11 @@ public final class FileSystemMasterTest {
         (long) command.getCommandOptions().getPersistOptions().persistFiles.get(0).blockIds.get(0));
   }
 
+  /**
+   * Tests the persistence of file with block on multiple workers.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void persistenceFileWithBlocksOnMultipleWorkers() throws Exception {
     long fileId = mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
@@ -440,6 +563,11 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(IdUtils.INVALID_WORKER_ID, workerId);
   }
 
+  /**
+   * Tests that lost files can successfully be detected.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void lostFilesDetectionTest() throws Exception {
     HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5, TimeUnit.SECONDS);

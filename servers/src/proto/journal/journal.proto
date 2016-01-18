@@ -7,10 +7,9 @@ import "block.proto";
 import "file.proto";
 import "key_value.proto";
 import "lineage.proto";
-import "raw_table.proto";
 
 // Wraps around all types of Tachyon journal messages.
-// next available id: 25
+// next available id: 24
 message JournalEntry {
   optional int64 sequence_number = 1;
   oneof entry {
@@ -18,9 +17,9 @@ message JournalEntry {
     BlockContainerIdGeneratorEntry block_container_id_generator = 3;
     BlockInfoEntry block_info = 4;
     CompleteFileEntry complete_file = 5;
-    CompletePartitionEntry complete_partition = 22;
-    CompleteStoreEntry complete_store = 23;
-    CreateStoreEntry create_store = 24;
+    CompletePartitionEntry complete_partition = 21;
+    CompleteStoreEntry complete_store = 22;
+    CreateStoreEntry create_store = 23;
     DeleteFileEntry delete_file = 6;
     DeleteLineageEntry delete_lineage = 7;
     DeleteMountPointEntry delete_mount_point = 8;
@@ -32,10 +31,8 @@ message JournalEntry {
     LineageIdGeneratorEntry lineage_id_generator = 14;
     PersistDirectoryEntry persist_directory = 15;
     AsyncPersistRequestEntry async_persist_request = 16;
-    RawTableEntry raw_table = 17;
     ReinitializeFileEntry reinitialize_file = 18;
     RenameEntry rename = 19;
     SetStateEntry set_state = 20;
-    UpdateMetadataEntry update_metadata = 21;
   }
 }

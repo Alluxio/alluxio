@@ -45,6 +45,9 @@ import tachyon.util.network.NetworkAddressUtils;
     BlockWorkerClient.class, BlockWorkerClientPool.class})
 public final class BlockStoreContextTest {
 
+  /**
+   * Re-initializes the {@link BlockStoreContext} before a test runs.
+   */
   @Before
   public void before() {
     BlockStoreContext.INSTANCE.reset();

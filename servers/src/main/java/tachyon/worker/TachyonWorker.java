@@ -222,6 +222,8 @@ public final class TachyonWorker {
 
   /**
    * Starts the Tachyon worker server.
+   *
+   * @throws Exception if the workers fail to start
    */
   public void start() throws Exception {
     // NOTE: the order to start different services is sensitive. If you change it, do it cautiously.
@@ -260,6 +262,8 @@ public final class TachyonWorker {
 
   /**
    * Stops the Tachyon worker server.
+   *
+   * @throws Exception if the workers fail to stop
    */
   public void stop() throws Exception {
     if (mIsServingRPC) {

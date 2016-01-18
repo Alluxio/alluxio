@@ -20,10 +20,11 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import com.google.common.base.Preconditions;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
@@ -174,8 +175,11 @@ public class LocalTachyonClusterResource implements TestRule {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        statement.evaluate();
-        mLocalTachyonCluster.stop();
+        try {
+          statement.evaluate();
+        } finally {
+          mLocalTachyonCluster.stop();
+        }
       }
     };
   }

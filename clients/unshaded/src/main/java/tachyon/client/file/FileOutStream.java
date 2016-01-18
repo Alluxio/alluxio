@@ -28,10 +28,10 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
+import tachyon.client.ClientUtils;
 import tachyon.client.OutStreamBase;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
-import tachyon.client.Utils;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
@@ -81,7 +81,7 @@ public class FileOutStream extends OutStreamBase {
    */
   public FileOutStream(long fileId, OutStreamOptions options) throws IOException {
     mFileId = fileId;
-    mNonce = Utils.getRandomNonNegativeLong();
+    mNonce = ClientUtils.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();
     mUnderStorageType = options.getUnderStorageType();

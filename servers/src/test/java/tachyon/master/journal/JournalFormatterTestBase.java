@@ -36,7 +36,6 @@ import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
-import com.google.protobuf.ByteString;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -62,10 +61,7 @@ import tachyon.proto.journal.KeyValue.CreateStoreEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
-import tachyon.proto.journal.RawTable.RawTableEntry;
-import tachyon.proto.journal.RawTable.UpdateMetadataEntry;
 import tachyon.security.authorization.PermissionStatus;
-import tachyon.util.io.BufferUtils;
 
 /**
  * Base class for testing different {@link JournalFormatter}'s serialization/deserialization
@@ -198,17 +194,6 @@ public abstract class JournalFormatterTestBase {
                 .setTachyonPath(TEST_TACHYON_PATH.toString()))
             .build())
         .add(JournalEntry.newBuilder()
-            .setRawTable(RawTableEntry.newBuilder()
-                .setId(TEST_BLOCK_ID)
-                .setColumns(100)
-                .setMetadata(ByteString.copyFrom(BufferUtils.getIncreasingByteBuffer(10))))
-            .build())
-        .add(JournalEntry.newBuilder()
-            .setUpdateMetadata(UpdateMetadataEntry.newBuilder()
-                .setId(TEST_BLOCK_ID)
-                .setMetadata(ByteString.copyFrom(new byte[10])))
-            .build())
-        .add(JournalEntry.newBuilder()
             .setReinitializeFile(ReinitializeFileEntry.newBuilder()
                 .setPath(TEST_FILE_NAME)
                 .setBlockSizeBytes(TEST_BLOCK_SIZE_BYTES)
@@ -280,9 +265,15 @@ public abstract class JournalFormatterTestBase {
    */
   protected abstract JournalFormatter getFormatter();
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the test fails
+   */
   @Before
   public void before() throws Exception {
     String path = mTestFolder.newFile().getAbsolutePath();
@@ -290,6 +281,11 @@ public abstract class JournalFormatterTestBase {
     mIs = new FileInputStream(path);
   }
 
+  /**
+   * Closes all streams after a test ran.
+   *
+   * @throws Exception if closing the streams fails
+   */
   @After
   public final void after() throws Exception {
     mOs.close();
@@ -317,13 +313,21 @@ public abstract class JournalFormatterTestBase {
     assertSameEntry(entry, readEntry);
   }
 
-  // check if every entry is covered by this test
+  /**
+   * Tests the number of entries written.
+   */
   @Test
   public void checkEntriesNumberTest() {
     // Subtract one to exclude ENTRY_NOT_SET
     Assert.assertEquals(JournalEntry.EntryCase.values().length - 1, ENTRIES_LIST.size());
   }
 
+  /**
+   * Tests the {@link JournalFormatter#deserialize(InputStream)} and
+   * {@link JournalFormatter#serialize(JournalEntry, OutputStream)} methods.
+   *
+   * @throws IOException if reading or writing an entry fails
+   */
   @Test
   public void entriesTest() throws IOException {
     for (JournalEntry entry : ENTRIES_LIST) {
