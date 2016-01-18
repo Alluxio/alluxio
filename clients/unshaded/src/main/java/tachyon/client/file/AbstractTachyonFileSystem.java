@@ -34,6 +34,7 @@ import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.RenameOptions;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
 import tachyon.exception.ExceptionMessage;
@@ -232,6 +233,17 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
         LOG.info("Renamed file {} to {}", src.getFileId(), dst.getPath());
       }
       return result;
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  @Override
+  public void setAcl(TachyonURI path, SetAclOptions options) throws TachyonException,
+      IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      masterClient.setAcl(path.getPath(), options);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
