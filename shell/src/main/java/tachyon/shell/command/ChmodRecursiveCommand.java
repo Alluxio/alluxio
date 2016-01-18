@@ -22,7 +22,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Change the permission of a file or directory specified by args recursively.
+ * Changes the permission of a file or directory specified by args recursively.
  */
 public final class ChmodRecursiveCommand extends AbstractAclCommand {
 
