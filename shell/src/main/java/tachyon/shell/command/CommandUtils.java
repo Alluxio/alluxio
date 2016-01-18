@@ -39,6 +39,7 @@ public final class CommandUtils {
   /**
    * Sets a new TTL value or unsets an existing TTL value for file at path.
    *
+   * @param tfs the file system for Tachyon
    * @param path the file path
    * @param ttlMs the TTL (time to live) value to use; it identifies duration (in milliseconds) the
    *        created file should be kept around before it is automatically deleted, irrespective of
@@ -64,6 +65,42 @@ public final class CommandUtils {
   public static String convertMsToDate(long millis) {
     DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
     return formatter.format(new Date(millis));
+  }
+
+  /**
+   * Converts an int permission value to a formatted String.
+   *
+   * @param permission value of permission for the path
+   * @param isDir whether the path is a directory
+   * @return formatted permission String
+   */
+  public static String formatPermission(int permission, boolean isDir) {
+    StringBuilder permString = new StringBuilder();
+
+    for (int i = 0; i < 3; i ++) {
+      if ((permission & 0x01) == 0x01) {
+        permString.append("x");
+      } else {
+        permString.append("-");
+      }
+      if ((permission & 0x02) == 0x02) {
+        permString.append("w");
+      } else {
+        permString.append("-");
+      }
+      if ((permission & 0x04) == 0x04) {
+        permString.append("r");
+      } else {
+        permString.append("-");
+      }
+      permission >>= 3;
+    }
+    if (isDir) {
+      permString.append("d");
+    } else {
+      permString.append("-");
+    }
+    return permString.reverse().toString();
   }
 
   /**

@@ -84,6 +84,8 @@ public final class WorkerContext {
   /**
    * Resets the worker context, for test only.
    * TODO(binfan): consider a better way to mock test TachyonConf
+   *
+   * @param conf the configuration for Tachyon
    */
   public static void reset(TachyonConf conf) {
     sTachyonConf = conf;

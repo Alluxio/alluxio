@@ -23,6 +23,13 @@ import tachyon.master.block.BlockMaster;
  * Class which provides access to private state of {@link TachyonMaster}.
  */
 public final class TachyonMasterPrivateAccess {
+
+  /**
+   * Gets the {@link BlockMaster}.
+   *
+   * @param master the {@link TachyonMaster}
+   * @return the {@link BlockMaster}
+   */
   public static BlockMaster getBlockMaster(TachyonMaster master) {
     return Whitebox.getInternalState(master, "mBlockMaster");
   }
