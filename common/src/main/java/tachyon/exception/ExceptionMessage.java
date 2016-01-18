@@ -99,7 +99,17 @@ public enum ExceptionMessage {
   HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
 
   // file system master
+  FILE_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
+  RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),
+  RENAME_CANNOT_BE_ACROSS_MOUNTS("Renaming {0} to {1} is a cross mount operation"),
+  RENAME_CANNOT_BE_TO_ROOT("Cannot rename a path to the root directory"),
+  RENAME_CANNOT_BE_TO_SUBDIRECTORY("Cannot rename because {0} is a prefix of {1}"),
+  ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
+
+  // file system master ufs
+  FAILED_UFS_CREATE("Failed to create {0} in the under file system"),
+  FAILED_UFS_RENAME("Failed to rename {0} to {1} in the under file system"),
 
   // raw table master
   RAW_TABLE_COLUMN_OVERRANGE("Number of column: {0} should range from 0 to {1} non-inclusive"),

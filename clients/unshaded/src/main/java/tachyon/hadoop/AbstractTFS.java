@@ -240,7 +240,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     } catch (TachyonException e) {
       throw new IOException(e);
     }
-    List<FileBlockInfo> blocks = getFileBlocks(status.getFileId());
+    List<FileBlockInfo> blocks = getFileBlocks(path);
 
     List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
     for (int k = 0; k < blocks.size(); k ++) {
@@ -502,10 +502,10 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     }
   }
 
-  private List<FileBlockInfo> getFileBlocks(long fileId) throws IOException {
+  private List<FileBlockInfo> getFileBlocks(TachyonURI path) throws IOException {
     FileSystemMasterClient master = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
-      return master.getFileBlockInfoList(fileId);
+      return master.getFileBlockInfoList(path);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {

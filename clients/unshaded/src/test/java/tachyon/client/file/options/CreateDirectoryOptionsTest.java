@@ -23,7 +23,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.WriteType;
-import tachyon.thrift.MkdirTOptions;
+import tachyon.thrift.CreateDirectoryTOptions;
 
 /**
  * Tests for the {@link CreateDirectoryOptions} class.
@@ -63,7 +63,7 @@ public class CreateDirectoryOptionsTest {
   @Test
   public void toThriftTest() {
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
-    MkdirTOptions thriftOptions = options.toThrift();
+    CreateDirectoryTOptions thriftOptions = options.toThrift();
     Assert.assertFalse(thriftOptions.isAllowExists());
     Assert.assertFalse(thriftOptions.isRecursive());
     Assert.assertTrue(thriftOptions.isSetPersisted());

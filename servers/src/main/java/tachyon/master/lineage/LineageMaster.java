@@ -46,7 +46,7 @@ import tachyon.job.Job;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.master.file.options.CreateOptions;
+import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
@@ -204,8 +204,9 @@ public final class LineageMaster extends MasterBase {
       long fileId;
       // TODO(yupeng): delete the placeholder files if the creation fails.
       // Create the file initialized with block size 1KB as placeholder.
-      CreateOptions options = new CreateOptions.Builder(MasterContext.getConf()).setRecursive(true)
-          .setBlockSizeBytes(Constants.KB).build();
+      CreateFileOptions options =
+          new CreateFileOptions.Builder(MasterContext.getConf()).setRecursive(true)
+              .setBlockSizeBytes(Constants.KB).build();
       fileId = mFileSystemMaster.create(outputFile, options);
       outputTachyonFiles.add(fileId);
     }

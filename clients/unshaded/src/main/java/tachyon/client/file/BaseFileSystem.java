@@ -15,8 +15,8 @@
 
 package tachyon.client.file;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.TachyonURI;
@@ -40,7 +40,6 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 
 /**
 * Default implementation of the {@link FileSystem} interface. Developers can extend this class
@@ -49,12 +48,14 @@ import tachyon.thrift.FileInfo;
 */
 @PublicApi
 public class BaseFileSystem implements FileSystem {
+  private FileSystemContext mContext;
+
   public static BaseFileSystem get() {
     return new BaseFileSystem();
   }
 
   protected BaseFileSystem() {
-    // BaseFileSystem currently has no state
+    mContext = FileSystemContext.INSTANCE;
   }
 
   @Override
@@ -66,11 +67,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void createDirectory(TachyonURI path, CreateDirectoryOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException {
-    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.createDirectory(path, options);
     } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+      mContext.releaseMasterClient(masterClient);
     }
   }
 
@@ -83,11 +84,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public FileOutStream createFile(TachyonURI path, CreateFileOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException {
-    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      path = masterClient.createFile(path, options);
+      masterClient.createFile(path, options);
     } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+      mContext.releaseMasterClient(masterClient);
     }
     return new FileOutStream(path, options.toOutStreamOptions());
   }
@@ -101,11 +102,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void delete(TachyonURI path, DeleteOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, TachyonException {
-    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.delete(path, options);
     } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+      mContext.releaseMasterClient(masterClient);
     }
   }
 
@@ -118,15 +119,17 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public boolean exists(TachyonURI path, ExistsOptions options)
       throws InvalidPathException, IOException, TachyonException {
-    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this more efficient
-      masterClient.getFileInfo(path);
+      masterClient.getStatus(path);
       return true;
     } catch (FileDoesNotExistException e) {
       return false;
+    } catch (InvalidPathException e) {
+      return false;
     } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+      mContext.releaseMasterClient(masterClient);
     }
   }
 
@@ -139,11 +142,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void free(TachyonURI path, FreeOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
-    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.free(path, options);
     } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+      mContext.releaseMasterClient(masterClient);
     }
   }
 
@@ -156,14 +159,16 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(TachyonURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
-    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     // TODO(calvin): Fix the exception handling in the master
     try {
-      return new URIStatus(masterClient.getFileInfo(path));
+      return masterClient.getStatus(path);
     } catch (FileDoesNotExistException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+    } catch (InvalidPathException e) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+      mContext.releaseMasterClient(masterClient);
     }
   }
 
@@ -176,21 +181,15 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public List<URIStatus> listStatus(TachyonURI path, ListStatusOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
-    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
-    List<FileInfo> fileInfos;
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     // TODO(calvin): Fix the exception handling in the master
     try {
-      fileInfos = masterClient.getFileInfoList(path);
+      return masterClient.listStatus(path);
     } catch (FileDoesNotExistException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+      mContext.releaseMasterClient(masterClient);
     }
-    List<URIStatus> uriStatuses = new ArrayList<URIStatus>(fileInfos.size());
-    for (FileInfo info : fileInfos) {
-      uriStatuses.add(new URIStatus(info));
-    }
-    return uriStatuses;
   }
 
   @Override
@@ -202,11 +201,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void loadMetadata(TachyonURI path, LoadMetadataOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
-    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.loadMetadata(path, options);
     } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+      mContext.releaseMasterClient(masterClient);
     }
   }
 
@@ -218,14 +217,12 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void mount(TachyonURI src, TachyonURI dst, MountOptions options)
       throws IOException, TachyonException {
-    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this fail on the master side
-      if (!masterClient.mount(src, dst)) {
-        throw new IOException("Unable to mount");
-      }
+      masterClient.mount(src, dst);
     } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+      mContext.releaseMasterClient(masterClient);
     }
   }
 
@@ -239,6 +236,10 @@ public class BaseFileSystem implements FileSystem {
   public FileInStream openFile(TachyonURI path, OpenFileOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
     URIStatus status = getStatus(path);
+    if (status.isFolder()) {
+      throw new FileNotFoundException(
+          ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
+    }
     return new FileInStream(status.getInfo(), options.toInStreamOptions());
   }
 
@@ -251,14 +252,12 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void rename(TachyonURI src, TachyonURI dst, RenameOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
-    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO(calvin): Update this code on the master side.
-      if (!masterClient.rename(src, dst)) {
-        throw new IOException("mv: Failed to rename " + src + " to " + dst);
-      }
+      masterClient.rename(src, dst);
     } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+      mContext.releaseMasterClient(masterClient);
     }
   }
 
@@ -271,11 +270,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void setAttribute(TachyonURI path, SetAttributeOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
-    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.setAttribute(path, options);
     } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+      mContext.releaseMasterClient(masterClient);
     }
   }
 
@@ -287,11 +286,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void unmount(TachyonURI path, UnmountOptions options)
       throws IOException, TachyonException {
-    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.unmount(path);
     } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+      mContext.releaseMasterClient(masterClient);
     }
   }
 }

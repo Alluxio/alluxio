@@ -41,7 +41,6 @@ import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 
@@ -296,8 +295,8 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private void updateUfsPath() throws IOException {
     FileSystemMasterClient client = mContext.acquireMasterClient();
     try {
-      FileInfo fileInfo = client.getFileInfo(mUri);
-      mUfsPath = fileInfo.getUfsPath();
+      URIStatus status = client.getStatus(mUri);
+      mUfsPath = status.getUfsPath();
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
