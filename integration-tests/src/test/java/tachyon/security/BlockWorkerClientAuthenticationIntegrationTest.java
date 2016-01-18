@@ -29,6 +29,7 @@ import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
+import tachyon.client.ClientContext;
 import tachyon.client.worker.BlockWorkerClient;
 import tachyon.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
 import tachyon.worker.ClientMetrics;
@@ -55,7 +56,7 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
 
   @After
   public void after() throws Exception {
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+    clearLoginUser();
   }
 
   @Test
@@ -76,43 +77,32 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
   @LocalTachyonClusterResource.Config(
       tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
           Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-          NameMatchAuthenticationProvider.FULL_CLASS_NAME},
-      startCluster = false)
+          NameMatchAuthenticationProvider.FULL_CLASS_NAME,
+          Constants.SECURITY_LOGIN_USERNAME, "tachyon"})
   public void customAuthenticationOpenCloseTest() throws Exception {
-    /**
-     * Using tachyon as loginUser for unit testing, only tachyon user is allowed to connect to
-     * Tachyon Worker.
-     */
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
-    mLocalTachyonClusterResource.start();
     authenticationOperationTest();
   }
 
   @Test(timeout = 10000)
   @LocalTachyonClusterResource.Config(tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
       "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-      NameMatchAuthenticationProvider.FULL_CLASS_NAME}, startCluster = false)
+      NameMatchAuthenticationProvider.FULL_CLASS_NAME,
+      Constants.SECURITY_LOGIN_USERNAME, "tachyon"})
   public void customAuthenticationDenyConnectTest() throws Exception {
-    /**
-     * Using tachyon as loginUser for unit testing, only tachyon user is allowed to connect to
-     * Tachyon Master during starting cluster.
-     */
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
-    mLocalTachyonClusterResource.start();
-
     // Using no-tachyon as loginUser to connect to Worker, the IOException will be thrown
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
-    // Clear the login user so that it will be reloaded and pick up our no-tachyon change
-    clearLoginUser();
+    ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
+
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Failed to connect to the worker");
 
     BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
         mLocalTachyonClusterResource.get().getWorkerAddress(),
-        mExecutorService, mLocalTachyonClusterResource.get().getWorkerTachyonConf(),
+        mExecutorService, ClientContext.getConf(),
         1 /* fake session id */, true, new ClientMetrics());
     try {
       Assert.assertFalse(blockWorkerClient.isConnected());
+      // Clear the login user so that it will be reloaded and pick up our no-tachyon change
+      clearLoginUser();
       blockWorkerClient.connect();
     } finally {
       blockWorkerClient.close();
