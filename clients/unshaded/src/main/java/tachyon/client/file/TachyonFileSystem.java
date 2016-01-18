@@ -89,7 +89,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @param path the path of the file to create in Tachyon space
    * @return the {@link TachyonFile} instance that identifies the newly created file
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
    */
@@ -103,7 +103,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    *
    * @param file the handler of the file to delete
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    * @throws FileDoesNotExistException if the given file does not exist
    */
   public void delete(TachyonFile file)
@@ -116,7 +116,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    *
    * @param file the handler for the file
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    * @throws FileDoesNotExistException if the given file does not exist
    */
   public void free(TachyonFile file)
@@ -132,7 +132,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @return the {@link FileInfo} of the file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   public FileInfo getInfo(TachyonFile file)
       throws FileDoesNotExistException, IOException, TachyonException {
@@ -252,7 +252,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @param file the handler for the file
    * @return a list of {@link FileInfo}s representing the files which are children of the given file
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    * @throws FileDoesNotExistException if the given file does not exist
    */
   public List<FileInfo> listStatus(TachyonFile file)
@@ -267,7 +267,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @param path the path for which to load metadata from UFS
    * @return the {@link TachyonFile} instance identifying the resulting file in Tachyon
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    * @throws FileDoesNotExistException if the given file does not exist
    */
   public TachyonFile loadMetadata(TachyonURI path)
@@ -281,7 +281,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @param path the handler for the file
    * @return true if the directory is created successfully or already existing, false otherwise
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException  if an unexpected tachyon exception is thrown
+   * @throws TachyonException  if an unexpected Tachyon exception is thrown
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
    */
@@ -312,7 +312,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @return a {@link TachyonFile} which acts as a file handler for the path
    * @throws IOException if a non-Tachyon exception occurs
    * @throws InvalidPathException if there is no file at the given path
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   public TachyonFile open(TachyonURI path)
       throws IOException, InvalidPathException, TachyonException {
@@ -326,7 +326,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @return a {@link TachyonFile} which acts as a file handler for the path or null if there is no
    *         file at the given path
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   public TachyonFile openIfExists(TachyonURI path) throws IOException, TachyonException {
     return openIfExists(path, OpenOptions.defaults());
@@ -340,7 +340,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @param dst the path of the destination file, this path should not exist
    * @return true if successful, false otherwise
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    * @throws FileDoesNotExistException if the given file does not exist
    */
   public boolean rename(TachyonFile src, TachyonURI dst)
@@ -353,7 +353,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    *
    * @param file the file handler for the file
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   public void setState(TachyonFile file) throws IOException, TachyonException {
     setState(file, SetStateOptions.defaults());
