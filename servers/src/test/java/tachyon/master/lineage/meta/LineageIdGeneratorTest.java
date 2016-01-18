@@ -25,6 +25,10 @@ import tachyon.proto.journal.Journal.JournalEntry;
  */
 public final class LineageIdGeneratorTest {
 
+  /**
+   * Tests the {@link LineageIdGenerator#initFromJournalEntry(
+   * tachyon.proto.journal.Lineage.LineageIdGeneratorEntry)} method.
+   */
   @Test
   public void journalEntrySerializationTest() {
     LineageIdGenerator generator = new LineageIdGenerator();

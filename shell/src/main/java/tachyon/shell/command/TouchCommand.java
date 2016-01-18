@@ -29,6 +29,10 @@ import tachyon.exception.TachyonException;
  */
 public final class TouchCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public TouchCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

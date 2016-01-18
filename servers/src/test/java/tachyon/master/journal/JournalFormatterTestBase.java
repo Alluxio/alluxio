@@ -257,9 +257,15 @@ public abstract class JournalFormatterTestBase {
    */
   protected abstract JournalFormatter getFormatter();
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the test fails
+   */
   @Before
   public void before() throws Exception {
     String path = mTestFolder.newFile().getAbsolutePath();
@@ -267,6 +273,11 @@ public abstract class JournalFormatterTestBase {
     mIs = new FileInputStream(path);
   }
 
+  /**
+   * Closes all streams after a test ran.
+   *
+   * @throws Exception if closing the streams fails
+   */
   @After
   public final void after() throws Exception {
     mOs.close();
@@ -294,13 +305,21 @@ public abstract class JournalFormatterTestBase {
     assertSameEntry(entry, readEntry);
   }
 
-  // check if every entry is covered by this test
+  /**
+   * Tests the number of entries written.
+   */
   @Test
   public void checkEntriesNumberTest() {
     // Subtract one to exclude ENTRY_NOT_SET
     Assert.assertEquals(JournalEntry.EntryCase.values().length - 1, ENTRIES_LIST.size());
   }
 
+  /**
+   * Tests the {@link JournalFormatter#deserialize(InputStream)} and
+   * {@link JournalFormatter#serialize(JournalEntry, OutputStream)} methods.
+   *
+   * @throws IOException if reading or writing an entry fails
+   */
   @Test
   public void entriesTest() throws IOException {
     for (JournalEntry entry : ENTRIES_LIST) {
