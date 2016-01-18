@@ -51,4 +51,9 @@ public final class ChmodCommand extends AbstractAclCommand {
   public String getUsage() {
     return "chmod <mode> <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Changes the permission of a file or directory specified by args.";
+  }
 }

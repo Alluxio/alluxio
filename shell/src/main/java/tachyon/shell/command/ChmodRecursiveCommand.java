@@ -51,4 +51,9 @@ public final class ChmodRecursiveCommand extends AbstractAclCommand {
   public String getUsage() {
     return "chmodr <mode> <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Changes the permission of a file or directory specified by args recursively.";
+  }
 }

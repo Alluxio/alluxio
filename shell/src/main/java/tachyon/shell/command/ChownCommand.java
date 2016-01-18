@@ -51,4 +51,9 @@ public final class ChownCommand extends AbstractAclCommand {
   public String getUsage() {
     return "chown <owner> <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Changes the owner of a file or directory specified by args.";
+  }
 }

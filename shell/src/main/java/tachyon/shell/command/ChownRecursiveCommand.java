@@ -51,4 +51,9 @@ public final class ChownRecursiveCommand extends AbstractAclCommand {
   public String getUsage() {
     return "chownr <owner> <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Changes the owner of a file or directory specified by args recursively.";
+  }
 }
