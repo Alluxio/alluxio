@@ -13,24 +13,25 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.shell.command;
 
-import java.util.Random;
+import java.io.IOException;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import tachyon.exception.ExceptionMessage;
+import tachyon.shell.AbstractTfsShellTest;
 
 /**
- * Utilities class for Tachyon Client. All methods and variables are static. This class is thread
- * safe.
+ * Test for location command.
  */
-public final class Utils {
-  private static Random sRandom = new Random();
-
-  /**
-   * @return a random long which is guaranteed to be non negative (zero is allowed)
-   */
-  public static synchronized long getRandomNonNegativeLong() {
-    return Math.abs(sRandom.nextLong());
+public class LocationCommandTest extends AbstractTfsShellTest {
+  @Test
+  public void locationNotExistTest() throws IOException {
+    int ret = mFsShell.run("location", "/NotExistFile");
+    Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
+        mOutput.toString());
+    Assert.assertEquals(-1, ret);
   }
-
-  // Prevent instantiation
-  private Utils() {}
 }

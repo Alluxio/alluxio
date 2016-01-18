@@ -175,6 +175,9 @@ public final class StorageDir {
     return mCommittedBytes.get();
   }
 
+  /**
+   * @return the path of the directory
+   */
   public String getDirPath() {
     return mDirPath;
   }

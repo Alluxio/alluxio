@@ -41,6 +41,8 @@ public class AllocatorContractTest extends BaseAllocatorTest {
 
   /**
    *  Try to find all implementation classes of {@link Allocator} in the same package.
+   *
+   *  @throws Exception if setting up the dependencies fails
    */
   @Before
   @Override
@@ -64,6 +66,11 @@ public class AllocatorContractTest extends BaseAllocatorTest {
     }
   }
 
+  /**
+   * Tests that no allocation happens when the RAM, SSD and HDD size is more than the default one.
+   *
+   * @throws Exception if a block cannot be allocated
+   */
   @Test
   public void shouldNotAllocateTest() throws Exception {
     TachyonConf conf = WorkerContext.getConf();
@@ -79,6 +86,11 @@ public class AllocatorContractTest extends BaseAllocatorTest {
     }
   }
 
+  /**
+   * Tests that allocation happens when the RAM, SSD and HDD size is lower than the default size.
+   *
+   * @throws Exception if a block cannot be allocated
+   */
   @Test
   public void shouldAllocateTest() throws Exception {
     TachyonConf conf = WorkerContext.getConf();

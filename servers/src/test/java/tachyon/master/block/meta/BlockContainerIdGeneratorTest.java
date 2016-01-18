@@ -31,11 +31,17 @@ public final class BlockContainerIdGeneratorTest {
   private static final long TEST_ID = 1234;
   private BlockContainerIdGenerator mGenerator;
 
+  /**
+   * Sets up a new {@link BlockContainerIdGenerator} before a test runs.
+   */
   @Before
-  public void before() throws Exception {
+  public void before() {
     mGenerator = new BlockContainerIdGenerator();
   }
 
+  /**
+   * Tests the {@link BlockContainerIdGenerator#getNewContainerId()} method.
+   */
   @Test
   public void getNewContainerIdTest() {
     // The default container id is 0.
@@ -44,6 +50,9 @@ public final class BlockContainerIdGeneratorTest {
     Assert.assertEquals(2, mGenerator.getNewContainerId());
   }
 
+  /**
+   * Tests the {@link BlockContainerIdGenerator#setNextContainerId(long)} method.
+   */
   @Test
   public void setNextContainerIdTest() {
     mGenerator.setNextContainerId(TEST_ID);
@@ -52,6 +61,9 @@ public final class BlockContainerIdGeneratorTest {
     Assert.assertEquals(TEST_ID + 2, mGenerator.getNewContainerId());
   }
 
+  /**
+   * Tests the {@link BlockContainerIdGenerator#toJournalEntry()} method.
+   */
   @Test
   public void toJournalEntryTest() {
     mGenerator.setNextContainerId(TEST_ID);
