@@ -21,7 +21,7 @@ import java.util.Random;
  * Utilities class for Tachyon Client. All methods and variables are static. This class is thread
  * safe.
  */
-public final class Utils {
+public final class ClientUtils {
   private static Random sRandom = new Random();
 
   /**
@@ -32,5 +32,5 @@ public final class Utils {
   }
 
   // Prevent instantiation
-  private Utils() {}
+  private ClientUtils() {}
 }
