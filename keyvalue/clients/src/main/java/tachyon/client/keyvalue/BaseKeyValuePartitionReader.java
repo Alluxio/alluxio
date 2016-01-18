@@ -17,6 +17,7 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -101,5 +102,43 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
       return null;
     }
     return value;
+  }
+
+  private class Iterator implements KeyValueIterator {
+    private ByteBuffer mNextKey;
+
+    public Iterator() throws IOException, TachyonException {
+      mNextKey = nextKey(null);
+    }
+
+    @Override
+    public boolean hasNext() {
+      return mNextKey != null;
+    }
+
+    @Override
+    public KeyValuePair next() throws IOException, TachyonException {
+      KeyValuePair ret = new KeyValuePair(mNextKey, get(mNextKey));
+      mNextKey = nextKey(mNextKey);
+      return ret;
+    }
+
+    private ByteBuffer nextKey(ByteBuffer key) throws IOException, TachyonException {
+      List<ByteBuffer> nextKeys = mClient.getNextKeys(mBlockId, key, 1);
+      if (nextKeys.size() > 0) {
+        return nextKeys.get(0);
+      }
+      return null;
+    }
+  }
+
+  @Override
+  public KeyValueIterator iterator() throws IOException, TachyonException {
+    return new Iterator();
+  }
+
+  @Override
+  public int size() throws IOException, TachyonException {
+    return mClient.getSize(mBlockId);
   }
 }

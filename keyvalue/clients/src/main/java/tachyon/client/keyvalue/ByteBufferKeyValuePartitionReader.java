@@ -17,6 +17,8 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -26,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.exception.TachyonException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.ByteIOUtils;
 
@@ -96,5 +99,40 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
       return;
     }
     mClosed = true;
+  }
+
+  @Override
+  public KeyValueIterator iterator() {
+    return new KeyValueIterator() {
+      private Iterator<ByteBuffer> mKeyIterator = mIndex.keyIterator(mPayloadReader);
+
+      @Override
+      public boolean hasNext() {
+        return mKeyIterator.hasNext();
+      }
+
+      @Override
+      public KeyValuePair next() throws IOException, TachyonException {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        ByteBuffer key = mKeyIterator.next();
+        ByteBuffer value = get(key);
+        return new KeyValuePair(key, value);
+      }
+    };
+  }
+
+  @Override
+  public int size() throws IOException, TachyonException {
+    return mIndex.keyCount();
+  }
+
+  public Index getIndex() {
+    return mIndex;
+  }
+
+  public PayloadReader getPayloadReader() {
+    return mPayloadReader;
   }
 }

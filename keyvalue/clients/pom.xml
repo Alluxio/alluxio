@@ -28,6 +28,12 @@
       <artifactId>tachyon-keyvalue-common</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <!-- Provides javax.annotation -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.0</version>
+    </dependency>
 
     <!-- Test Dependencies -->
     <dependency>

@@ -96,4 +96,9 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
     }
     return null;
   }
+
+  @Override
+  public KeyValueIterator iterator() throws IOException, TachyonException {
+    return new KeyValueStoreIterator(mPartitions);
+  }
 }
