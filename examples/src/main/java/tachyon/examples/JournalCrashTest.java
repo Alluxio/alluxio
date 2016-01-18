@@ -35,8 +35,6 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.OutStreamOptions;
-import tachyon.client.table.TachyonRawTables;
-import tachyon.client.table.TachyonRawTables.TachyonRawTablesFactory;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
@@ -64,10 +62,6 @@ public class JournalCrashTest {
      * Keep creating and renaming file.
      */
     CREATE_RENAME_FILE,
-    /**
-     * Keep creating empty raw table.
-     */
-    CREATE_TABLE,
   }
 
   /**
@@ -142,12 +136,6 @@ public class JournalCrashTest {
               throw e;
             }
             sTfs.rename(sTfs.open(testURI), new TachyonURI(testURI + "-rename"));
-          } else if (ClientOpType.CREATE_TABLE == mOpType) {
-            try {
-              sTachyonRawTables.create(new TachyonURI(mWorkDir + mSuccessNum), 1, null);
-            } catch (Exception e) {
-              break;
-            }
           }
         } catch (Exception e) {
           // Since master may crash/restart for several times, so this exception is expected.
@@ -179,8 +167,6 @@ public class JournalCrashTest {
   private static String sTestDir;
   /** The Tachyon Client. This can be shared by all the threads. */
   private static TachyonFileSystem sTfs = null;
-  /** Old Tachyon client, only be used for raw table functionality */
-  private static TachyonRawTables sTachyonRawTables = null;
   /** The total time to run this test. */
   private static long sTotalTimeMs;
 
@@ -221,12 +207,6 @@ public class JournalCrashTest {
             return false;
           }
         }
-        //else if (ClientOpType.CREATE_TABLE == opType) {
-        //  if (tfs.getRawTable(new TachyonURI(workDir + s)).getId() == -1) {
-        //    tfs.close();
-        //    return false;
-        //  }
-        //}
       }
     }
     return true;
@@ -279,7 +259,6 @@ public class JournalCrashTest {
 
       System.out.println("Round " + rounds + " : Launch Clients...");
       sTfs = TachyonFileSystemFactory.get();
-      sTachyonRawTables = TachyonRawTablesFactory.get();
       try {
         sTfs.delete(sTfs.open(new TachyonURI(sTestDir)));
       } catch (Exception ioe) {

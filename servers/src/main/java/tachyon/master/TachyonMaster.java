@@ -41,7 +41,6 @@ import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.master.lineage.LineageMaster;
-import tachyon.master.rawtable.RawTableMaster;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.underfs.UnderFileSystem;
@@ -94,8 +93,6 @@ public class TachyonMaster {
   protected BlockMaster mBlockMaster;
   /** The master managing all file system related metadata */
   protected FileSystemMaster mFileSystemMaster;
-  /** The master managing all raw table related metadata */
-  protected RawTableMaster mRawTableMaster;
   /** The master managing all lineage related metadata */
   protected LineageMaster mLineageMaster;
 
@@ -104,8 +101,6 @@ public class TachyonMaster {
   protected final ReadWriteJournal mBlockMasterJournal;
   /** The journal for the file system master */
   protected final ReadWriteJournal mFileSystemMasterJournal;
-  /** The journal for the raw table master */
-  protected final ReadWriteJournal mRawTableMasterJournal;
   /** The journal for the lineage master */
   protected final ReadWriteJournal mLineageMasterJournal;
 
@@ -179,14 +174,11 @@ public class TachyonMaster {
       mBlockMasterJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(journalDirectory));
       mFileSystemMasterJournal =
           new ReadWriteJournal(FileSystemMaster.getJournalDirectory(journalDirectory));
-      mRawTableMasterJournal =
-          new ReadWriteJournal(RawTableMaster.getJournalDirectory(journalDirectory));
       mLineageMasterJournal =
           new ReadWriteJournal(LineageMaster.getJournalDirectory(journalDirectory));
 
       mBlockMaster = new BlockMaster(mBlockMasterJournal);
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
-      mRawTableMaster = new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal);
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
       }
@@ -249,13 +241,6 @@ public class TachyonMaster {
   }
 
   /**
-   * @return internal {@link RawTableMaster}, for unit test only
-   */
-  public RawTableMaster getRawTableMaster() {
-    return mRawTableMaster;
-  }
-
-  /**
    * @return internal {@link BlockMaster}, for unit test only
    */
   public BlockMaster getBlockMaster() {
@@ -309,7 +294,6 @@ public class TachyonMaster {
 
       mBlockMaster.start(isLeader);
       mFileSystemMaster.start(isLeader);
-      mRawTableMaster.start(isLeader);
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster.start(isLeader);
       }
@@ -327,7 +311,6 @@ public class TachyonMaster {
       }
       mBlockMaster.stop();
       mFileSystemMaster.stop();
-      mRawTableMaster.stop();
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -374,7 +357,6 @@ public class TachyonMaster {
     if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
       registerServices(processor, mLineageMaster.getServices());
     }
-    registerServices(processor, mRawTableMaster.getServices());
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;
