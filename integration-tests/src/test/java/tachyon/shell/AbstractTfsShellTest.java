@@ -185,7 +185,7 @@ public abstract class AbstractTfsShellTest {
       throws IOException, TachyonException {
     FileInfo fileInfo = mTfs.getInfo(mTfs.open(tUri));
     return getLsResultStr(tUri.getPath(), fileInfo.getCreationTimeMs(), size, "In Memory",
-        testUser, testGroup, fileInfo.getPermission(), fileInfo.isFolder);
+        testUser, testGroup, fileInfo.getPermission(), fileInfo.isIsFolder());
   }
 
   protected String getLsResultStr(String path, long createTime, int size, String fileType,

@@ -56,7 +56,7 @@ public class RawTableMasterIntegrationTest {
   public void createRawTableTest() throws Exception {
     mRawTableMaster.createRawTable(new TachyonURI("/testTable"), 1, ByteBuffer.allocate(0));
     Assert.assertTrue(
-        mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testTable"))).isFolder);
+        mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testTable"))).isIsFolder());
   }
 
   @Test

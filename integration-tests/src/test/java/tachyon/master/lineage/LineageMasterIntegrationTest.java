@@ -94,7 +94,7 @@ public final class LineageMasterIntegrationTest {
       FileInfo fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
       Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
           fileInfo.getPersistenceState());
-      Assert.assertFalse(fileInfo.isCompleted);
+      Assert.assertFalse(fileInfo.isIsCompleted());
     } finally {
       lineageMasterClient.close();
     }
@@ -127,7 +127,7 @@ public final class LineageMasterIntegrationTest {
       FileInfo fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
       Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
           fileInfo.getPersistenceState());
-      Assert.assertTrue(fileInfo.isCompleted);
+      Assert.assertTrue(fileInfo.isIsCompleted());
 
       // Execute the checkpoint scheduler for async checkpoint
       HeartbeatScheduler.schedule(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING);

@@ -49,18 +49,18 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
     List<FileInfo> files = listStatusSortedByIncreasingCreationTime(path);
     for (FileInfo file : files) {
       String inMemory = "";
-      if (!file.isFolder) {
-        if (100 == file.inMemoryPercentage) {
+      if (!file.isIsFolder()) {
+        if (100 == file.getInMemoryPercentage()) {
           inMemory = "In Memory";
         } else {
           inMemory = "Not In Memory";
         }
       }
       System.out.format(Constants.COMMAND_FORMAT_LS,
-          CommandUtils.formatPermission(file.getPermission(),  file.isFolder), file.getUserName(),
-          file.getGroupName(), FormatUtils.getSizeFromBytes(file.getLength()),
+          CommandUtils.formatPermission(file.getPermission(),  file.isIsFolder()),
+          file.getUserName(), file.getGroupName(), FormatUtils.getSizeFromBytes(file.getLength()),
           CommandUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
-      if (recursive && file.isFolder) {
+      if (recursive && file.isIsFolder()) {
         ls(new TachyonURI(path.getScheme(), path.getAuthority(), file.getPath()), true);
       }
     }
@@ -78,8 +78,8 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
     Collections.sort(files, new Comparator<FileInfo>() {
       @Override
       public int compare(FileInfo fileInfo, FileInfo fileInfo2) {
-        long t1 = fileInfo.creationTimeMs;
-        long t2 = fileInfo2.creationTimeMs;
+        long t1 = fileInfo.getCreationTimeMs();
+        long t2 = fileInfo2.getCreationTimeMs();
         if (t1 < t2) {
           return -1;
         }

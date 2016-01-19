@@ -68,7 +68,7 @@ public final class DuCommand extends WithWildCardPathCommand {
       throw new IOException(e.getMessage());
     }
     for (FileInfo file : files) {
-      if (file.isFolder) {
+      if (file.isIsFolder()) {
         TachyonURI subFolder = new TachyonURI(file.getPath());
         sizeInBytes += getFileOrFolderSize(tachyonFS, subFolder);
       } else {

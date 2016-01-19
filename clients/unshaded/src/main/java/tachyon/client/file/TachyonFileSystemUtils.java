@@ -125,7 +125,7 @@ public final class TachyonFileSystemUtils {
       }
 
       if (file != null) {
-        completed = tfs.getInfo(file, GetInfoOptions.defaults()).isCompleted;
+        completed = tfs.getInfo(file, GetInfoOptions.defaults()).isIsCompleted();
       }
 
       if (timeout == 0) {

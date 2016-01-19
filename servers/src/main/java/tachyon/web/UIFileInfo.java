@@ -113,14 +113,14 @@ public final class UIFileInfo {
     mSize = fileInfo.getLength();
     mCreationTimeMs = fileInfo.getCreationTimeMs();
     mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
-    mInMemory = (100 == fileInfo.inMemoryPercentage);
+    mInMemory = (100 == fileInfo.getInMemoryPercentage());
     mInMemoryPercent = fileInfo.getInMemoryPercentage();
-    mIsDirectory = fileInfo.isFolder;
-    mPinned = fileInfo.isPinned;
+    mIsDirectory = fileInfo.isIsFolder();
+    mPinned = fileInfo.isIsPinned();
     mUserName = fileInfo.getUserName();
     mGroupName = fileInfo.getGroupName();
     mPermission = fileInfo.getPermission();
-    mPersistenceState = fileInfo.persistenceState;
+    mPersistenceState = fileInfo.getPersistenceState();
     mFileLocations = new ArrayList<String>();
   }
 

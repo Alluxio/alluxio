@@ -201,7 +201,7 @@ public class DataServerIntegrationTest {
             + 10);
 
     FileInfo fileInfo = mTFS.getInfo(mTFS.open(new TachyonURI("/readFile1")));
-    Assert.assertEquals(0, fileInfo.inMemoryPercentage);
+    Assert.assertEquals(0, fileInfo.getInMemoryPercentage());
   }
 
   @Test
@@ -280,7 +280,7 @@ public class DataServerIntegrationTest {
     // Get the maximum block id, for use in determining a non-existent block id.
     FileInfo fileInfo = mTFS.getInfo(file);
     long maxBlockId = block.getBlockId();
-    for (long blockId : fileInfo.blockIds) {
+    for (long blockId : fileInfo.getBlockIds()) {
       if (blockId > maxBlockId) {
         maxBlockId = blockId;
       }
@@ -372,6 +372,6 @@ public class DataServerIntegrationTest {
   private BlockInfo getFirstBlockInfo(TachyonFile tachyonFile)
       throws IOException, TachyonException {
     FileInfo fileInfo = mTFS.getInfo(tachyonFile);
-    return mBlockMasterClient.getBlockInfo(fileInfo.blockIds.get(0));
+    return mBlockMasterClient.getBlockInfo(fileInfo.getBlockIds().get(0));
   }
 }

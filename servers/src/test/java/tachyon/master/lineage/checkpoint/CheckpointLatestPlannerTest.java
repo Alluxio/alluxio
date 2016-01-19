@@ -82,10 +82,10 @@ public final class CheckpointLatestPlannerTest {
     Mockito.when(mFileSystemMaster.getPersistenceState(fileId2))
         .thenReturn(PersistenceState.NOT_PERSISTED);
     FileInfo fileInfo1 = new FileInfo();
-    fileInfo1.isCompleted = true;
+    fileInfo1.setIsCompleted(true);
     Mockito.when(mFileSystemMaster.getFileInfo(fileId1)).thenReturn(fileInfo1);
     FileInfo fileInfo2 = new FileInfo();
-    fileInfo2.isCompleted = false;
+    fileInfo2.setIsCompleted(false);
     Mockito.when(mFileSystemMaster.getFileInfo(fileId2)).thenReturn(fileInfo2);
 
     CheckpointPlan plan = mPlanner.generatePlan(new LineageStoreView(mLineageStore),
@@ -93,7 +93,7 @@ public final class CheckpointLatestPlannerTest {
     Assert.assertEquals((Long) l1, plan.getLineagesToCheckpoint().get(0));
 
     // complete file 2 and it's ready for checkpoint
-    fileInfo2.isCompleted = true;
+    fileInfo2.setIsCompleted(true);
     plan = mPlanner.generatePlan(new LineageStoreView(mLineageStore),
         new FileSystemMasterView(mFileSystemMaster));
     Assert.assertEquals((Long) l2, plan.getLineagesToCheckpoint().get(0));

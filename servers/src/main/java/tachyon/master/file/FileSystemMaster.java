@@ -365,7 +365,7 @@ public final class FileSystemMaster extends MasterBase {
 
   private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
-    fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
+    fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     TachyonURI path = mInodeTree.getPath(inode);
     TachyonURI resolvedPath;
     try {
@@ -1124,7 +1124,7 @@ public final class FileSystemMaster extends MasterBase {
 
     // If the source file is persisted, rename it in the UFS.
     FileInfo fileInfo = getFileInfoInternal(srcInode);
-    if (!replayed && fileInfo.isPersisted) {
+    if (!replayed && fileInfo.isIsPersisted()) {
       String ufsSrcPath = mMountTable.resolve(srcPath).toString();
       String ufsDstPath = mMountTable.resolve(dstPath).toString();
       UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath, MasterContext.getConf());
