@@ -112,7 +112,7 @@ public class JournalIntegrationTest {
     Assert.assertEquals(1, fsMaster.getFileInfoList(rootId).size());
     long xyzId = fsMaster.getFileId(new TachyonURI("/xyz"));
     Assert.assertTrue(xyzId != IdUtils.INVALID_FILE_ID);
-    int temp = fileInfo.inMemoryPercentage;
+    int temp = fileInfo.getInMemoryPercentage();
     fileInfo.setInMemoryPercentage(0);
     Assert.assertEquals(fileInfo, fsMaster.getFileInfo(xyzId));
     fileInfo.setInMemoryPercentage(temp);
@@ -356,15 +356,15 @@ public class JournalIntegrationTest {
 
     FileInfo info = fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI("/myFolder")));
     Assert.assertEquals(directory, info);
-    Assert.assertTrue(info.isPinned);
+    Assert.assertTrue(info.isIsPinned());
 
     info = fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI("/myFolder/file0")));
     Assert.assertEquals(file0, info);
-    Assert.assertFalse(info.isPinned);
+    Assert.assertFalse(info.isIsPinned());
 
     info = fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI("/myFolder/file1")));
     Assert.assertEquals(file1, info);
-    Assert.assertTrue(info.isPinned);
+    Assert.assertTrue(info.isIsPinned());
 
     fsMaster.stop();
   }

@@ -262,7 +262,7 @@ public class RawTableMaster extends MasterBase {
 
     try {
       FileInfo fileInfo = mFileSystemMaster.getFileInfo(id);
-      if (!fileInfo.isFolder) {
+      if (!fileInfo.isIsFolder()) {
         throw new TableDoesNotExistException(
             ExceptionMessage.RAW_TABLE_ID_DOES_NOT_EXIST.getMessage(id));
       }

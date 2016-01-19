@@ -127,7 +127,7 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
       throw new IOException(e.getMessage());
     }
 
-    if (srcFileInfo.isFolder) {
+    if (srcFileInfo.isIsFolder()) {
       // make a local directory
       if (!dstFile.exists()) {
         if (!dstFile.mkdirs()) {

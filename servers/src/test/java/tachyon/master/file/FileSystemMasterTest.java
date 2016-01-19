@@ -248,7 +248,7 @@ public final class FileSystemMasterTest {
             .setRecursive(true).setTtl(1).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertEquals(fileInfo.fileId, fileId);
+    Assert.assertEquals(fileInfo.getFileId(), fileId);
 
     executeTtlCheckOnce();
     mThrown.expect(FileDoesNotExistException.class);
@@ -269,7 +269,7 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     executeTtlCheckOnce();
     // Since no valid TTL is set, the file should not be deleted.
-    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
 
     mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTtl(0).build());
     executeTtlCheckOnce();
@@ -292,7 +292,7 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     executeTtlCheckOnce();
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
-    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
 
     mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTtl(0).build());
     executeTtlCheckOnce();
@@ -312,13 +312,13 @@ public final class FileSystemMasterTest {
         new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).setTtl(0).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
-    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
 
     mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTtl(Constants.HOUR_MS)
         .build());
     executeTtlCheckOnce();
     // TTL is reset to 1 hour, the file should not be deleted during last TTL check.
-    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
   }
 
   /**
@@ -337,7 +337,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTtl(Constants.NO_TTL)
         .build());
     executeTtlCheckOnce();
-    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
   }
 
   /**
@@ -350,26 +350,26 @@ public final class FileSystemMasterTest {
   public void setStateTest() throws Exception {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertFalse(fileInfo.isPinned);
+    Assert.assertFalse(fileInfo.isIsPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // No State.
     mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().build());
     fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertFalse(fileInfo.isPinned);
+    Assert.assertFalse(fileInfo.isIsPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // Just set pinned flag.
     mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPinned(true).build());
     fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertTrue(fileInfo.isPinned);
+    Assert.assertTrue(fileInfo.isIsPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // Both pinned flag and ttl value.
     mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPinned(false).setTtl(1)
         .build());
     fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertFalse(fileInfo.isPinned);
+    Assert.assertFalse(fileInfo.isIsPinned());
     Assert.assertEquals(1, fileInfo.getTtl());
 
     // Set ttl for a directory, raise IllegalArgumentException.

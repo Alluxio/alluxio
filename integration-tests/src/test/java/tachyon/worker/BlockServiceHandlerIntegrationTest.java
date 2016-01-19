@@ -212,7 +212,7 @@ public class BlockServiceHandlerIntegrationTest {
 
     // File should be in memory after it is written with MUST_CACHE
     FileInfo fileInfo1 = mTfs.getInfo(file1);
-    Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
+    Assert.assertEquals(100, fileInfo1.getInMemoryPercentage());
 
     TachyonFile file2 = TachyonFSTestUtils.createByteFile(mTfs, "/file2", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, blockSize);
@@ -220,8 +220,8 @@ public class BlockServiceHandlerIntegrationTest {
     // Both file 1 and 2 should be in memory since the combined size is not larger than worker space
     fileInfo1 = mTfs.getInfo(file1);
     FileInfo fileInfo2 = mTfs.getInfo(file2);
-    Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
-    Assert.assertEquals(100, fileInfo2.inMemoryPercentage);
+    Assert.assertEquals(100, fileInfo1.getInMemoryPercentage());
+    Assert.assertEquals(100, fileInfo2.getInMemoryPercentage());
 
     TachyonFile file3 = TachyonFSTestUtils.createByteFile(mTfs, "/file3", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, blockSize);
@@ -233,9 +233,9 @@ public class BlockServiceHandlerIntegrationTest {
     FileInfo fileInfo3 = mTfs.getInfo(file3);
 
     // File 3 should be in memory and one of file 1 or 2 should be in memory
-    Assert.assertEquals(100, fileInfo3.inMemoryPercentage);
+    Assert.assertEquals(100, fileInfo3.getInMemoryPercentage());
     Assert.assertTrue("Exactly one of file1 and file2 should be 100% in memory",
-        fileInfo1.inMemoryPercentage == 100 ^ fileInfo2.inMemoryPercentage == 100);
+        fileInfo1.getInMemoryPercentage() == 100 ^ fileInfo2.getInMemoryPercentage() == 100);
   }
 
   // Tests that space will be allocated when possible

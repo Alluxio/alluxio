@@ -276,9 +276,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return -1;
     }
     int index = (int) (mPos / mBlockSize);
-    Preconditions.checkState(index < mFileInfo.blockIds.size(),
+    Preconditions.checkState(index < mFileInfo.getBlockIds().size(),
         PreconditionMessage.ERR_BLOCK_INDEX);
-    return mFileInfo.blockIds.get(index);
+    return mFileInfo.getBlockIds().get(index);
   }
 
   /**
@@ -352,7 +352,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     } catch (IOException ioe) {
       LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}",
           blockId, ioe);
-      if (!mFileInfo.isPersisted) {
+      if (!mFileInfo.isIsPersisted()) {
         LOG.error("Could not obtain data for block with ID {} from Tachyon."
             + " The block will not be persisted in the under file storage.", blockId);
         throw ioe;

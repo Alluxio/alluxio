@@ -112,7 +112,7 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
     TachyonFile tFile = mTfs.open(new TachyonURI("/testFile"));
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
-    Assert.assertEquals(SIZE_BYTES, fileInfo.length);
+    Assert.assertEquals(SIZE_BYTES, fileInfo.getLength());
 
     InStreamOptions options =
         new InStreamOptions.Builder(new TachyonConf()).setTachyonStorageType(
@@ -168,8 +168,8 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
     FileInfo fileInfo2 = mTfs.getInfo(file2);
     Assert.assertNotNull(fileInfo1);
     Assert.assertNotNull(fileInfo2);
-    Assert.assertEquals(10, fileInfo1.length);
-    Assert.assertEquals(20, fileInfo2.length);
+    Assert.assertEquals(10, fileInfo1.getLength());
+    Assert.assertEquals(20, fileInfo2.getLength());
     byte[] read = readContent(file1, 10);
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, read));
     read = readContent(file2, 20);
@@ -190,7 +190,7 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
     Assert.assertEquals(cmdOut, mOutput.toString());
     TachyonFile file = mTfs.open(new TachyonURI("/destFileURI"));
     FileInfo fileInfo = mTfs.getInfo(file);
-    Assert.assertEquals(10L, fileInfo.length);
+    Assert.assertEquals(10L, fileInfo.getLength());
     byte[] read = readContent(file, 10);
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, read));
   }

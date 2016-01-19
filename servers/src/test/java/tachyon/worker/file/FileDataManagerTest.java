@@ -66,7 +66,7 @@ public final class FileDataManagerTest {
     // mock block data manager
     BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
     FileInfo fileInfo = new FileInfo();
-    fileInfo.path = "test";
+    fileInfo.setPath("test");
     Mockito.when(blockDataManager.getFileInfo(fileId)).thenReturn(fileInfo);
     BlockReader reader = Mockito.mock(BlockReader.class);
     for (long blockId : blockIds) {
@@ -141,7 +141,7 @@ public final class FileDataManagerTest {
     // mock block data manager
     BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
     FileInfo fileInfo = new FileInfo();
-    fileInfo.path = "test";
+    fileInfo.setPath("test");
     Mockito.when(blockDataManager.getFileInfo(fileId)).thenReturn(fileInfo);
     for (long blockId : blockIds) {
       Mockito.when(blockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId))

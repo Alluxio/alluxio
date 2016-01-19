@@ -54,7 +54,7 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
       throw new IOException(e.getMessage());
     }
 
-    if (fInfo.isFolder) {
+    if (fInfo.isIsFolder()) {
       throw new IOException(path + " is a directory path so does not have file blocks.");
     }
 

@@ -68,7 +68,7 @@ public final class PersistCommand extends AbstractTfsShellCommand {
     try {
       TachyonFile fd = mTfs.open(filePath);
       FileInfo fInfo = mTfs.getInfo(fd);
-      if (fInfo.isFolder) {
+      if (fInfo.isIsFolder()) {
         List<FileInfo> files = mTfs.listStatus(fd);
         List<String> errorMessages = new ArrayList<String>();
         for (FileInfo file : files) {

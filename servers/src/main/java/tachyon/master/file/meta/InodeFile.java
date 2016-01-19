@@ -161,24 +161,24 @@ public final class InodeFile extends Inode {
     FileInfo ret = new FileInfo();
     // note: in-memory percentage is NOT calculated here, because it needs blocks info stored in
     // block master
-    ret.fileId = getId();
-    ret.name = getName();
-    ret.path = path;
-    ret.length = getLength();
-    ret.blockSizeBytes = getBlockSizeBytes();
-    ret.creationTimeMs = getCreationTimeMs();
-    ret.isCacheable = isCacheable();
-    ret.isFolder = false;
-    ret.isPinned = isPinned();
-    ret.isCompleted = isCompleted();
-    ret.isPersisted = isPersisted();
-    ret.blockIds = getBlockIds();
-    ret.lastModificationTimeMs = getLastModificationTimeMs();
-    ret.ttl = mTtl;
-    ret.userName = getUserName();
-    ret.groupName = getGroupName();
-    ret.permission = getPermission();
-    ret.persistenceState = getPersistenceState().toString();
+    ret.setFileId(getId());
+    ret.setName(getName());
+    ret.setPath(path);
+    ret.setLength(getLength());
+    ret.setBlockSizeBytes(getBlockSizeBytes());
+    ret.setCreationTimeMs(getCreationTimeMs());
+    ret.setIsCacheable(isCacheable());
+    ret.setIsFolder(false);
+    ret.setIsPinned(isPinned());
+    ret.setIsCompleted(isCompleted());
+    ret.setIsPersisted(isPersisted());
+    ret.setBlockIds(getBlockIds());
+    ret.setLastModificationTimeMs(getLastModificationTimeMs());
+    ret.setTtl(mTtl);
+    ret.setUserName(getUserName());
+    ret.setGroupName(getGroupName());
+    ret.setPermission(getPermission());
+    ret.setPersistenceState(getPersistenceState().toString());
     return ret;
   }
 

@@ -82,12 +82,12 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     TachyonFile tFile = tFS.open(path);
     String fileData = null;
     FileInfo fileInfo = tFS.getInfo(tFile);
-    if (fileInfo.isCompleted) {
+    if (fileInfo.isIsCompleted()) {
       InStreamOptions readNoCache = new InStreamOptions.Builder(mTachyonConf)
           .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
       FileInStream is = tFS.getInStream(tFile, readNoCache);
       try {
-        int len = (int) Math.min(5 * Constants.KB, fileInfo.length - offset);
+        int len = (int) Math.min(5 * Constants.KB, fileInfo.getLength() - offset);
         byte[] data = new byte[len];
         long skipped = is.skip(offset);
         if (skipped < 0) {

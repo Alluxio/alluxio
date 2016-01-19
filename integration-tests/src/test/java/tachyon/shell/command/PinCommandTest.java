@@ -45,15 +45,15 @@ public class PinCommandTest extends AbstractTfsShellTest {
 
     // Unpin an unpinned file
     Assert.assertEquals(0, mFsShell.run("unpin", filePath));
-    Assert.assertFalse(mTfs.getInfo(file).isPinned);
+    Assert.assertFalse(mTfs.getInfo(file).isIsPinned());
 
     // Pin the file
     Assert.assertEquals(0, mFsShell.run("pin", filePath));
-    Assert.assertTrue(mTfs.getInfo(file).isPinned);
+    Assert.assertTrue(mTfs.getInfo(file).isIsPinned());
 
     // Unpin the file
     Assert.assertEquals(0, mFsShell.run("unpin", filePath));
-    Assert.assertFalse(mTfs.getInfo(file).isPinned);
+    Assert.assertFalse(mTfs.getInfo(file).isIsPinned());
   }
 
   /**
@@ -85,7 +85,7 @@ public class PinCommandTest extends AbstractTfsShellTest {
     Assert.assertTrue(fileExist(new TachyonURI(filePathC)));
 
     // fileA is in memory because it is pinned, but not fileB
-    Assert.assertEquals(100, mTfs.getInfo(fileA).inMemoryPercentage);
-    Assert.assertEquals(0, mTfs.getInfo(fileB).inMemoryPercentage);
+    Assert.assertEquals(100, mTfs.getInfo(fileA).getInMemoryPercentage());
+    Assert.assertEquals(0, mTfs.getInfo(fileB).getInMemoryPercentage());
   }
 }

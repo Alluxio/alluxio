@@ -95,7 +95,7 @@ abstract class AbstractTFS extends FileSystem {
     TachyonFile file;
     try {
       file = mTFS.open(path);
-      if (mTFS.getInfo(file).length > 0) {
+      if (mTFS.getInfo(file).getLength() > 0) {
         LOG.warn("Appending to nonempty file. This may be an error.");
       }
     } catch (TachyonException e) {
@@ -408,7 +408,7 @@ abstract class AbstractTFS extends FileSystem {
     for (int k = 0; k < files.size(); k ++) {
       FileInfo info = files.get(k);
       // TODO(hy): Replicate 3 with the number of disk replications.
-      ret[k] = new FileStatus(info.getLength(), info.isFolder, 3, info.getBlockSizeBytes(),
+      ret[k] = new FileStatus(info.getLength(), info.isIsFolder(), 3, info.getBlockSizeBytes(),
           info.getCreationTimeMs(), info.getCreationTimeMs(), null, null, null,
           new Path(mTachyonHeader + info.getPath()));
     }
@@ -482,7 +482,7 @@ abstract class AbstractTFS extends FileSystem {
       info = null;
     }
     // If the destination is an existing folder, try to move the src into the folder
-    if (info != null && info.isFolder) {
+    if (info != null && info.isIsFolder()) {
       dstPath = dstPath.join(srcPath.getName());
     }
     try {
