@@ -30,11 +30,19 @@ import tachyon.exception.InvalidPathException;
 public class MountTableTest {
   private MountTable mMountTable;
 
+  /**
+   * Sets up a new {@link MountTable} before a test runs.
+   */
   @Before
   public void before() {
     mMountTable = new MountTable();
   }
 
+  /**
+   * Tests the different methods of the {@link MountTable} class with a path.
+   *
+   * @throws Exception if a {@link MountTable} operation fails
+   */
   @Test
   public void pathTest() throws Exception {
     // Test add()
@@ -95,6 +103,11 @@ public class MountTableTest {
     Assert.assertFalse(mMountTable.delete(new TachyonURI("/")));
   }
 
+  /**
+   * Tests the different methods of the {@link MountTable} class with an URI.
+   *
+   * @throws Exception if a {@link MountTable} operation fails
+   */
   @Test
   public void uriTest() throws Exception {
     // Test add()

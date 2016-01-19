@@ -400,7 +400,7 @@ public class JournalCrashTest {
    */
   private static void stopCluster() {
     String stopClusterCommand = new TachyonConf().get(Constants.TACHYON_HOME)
-        + "/bin/tachyon-stop.sh";
+        + "/bin/tachyon-stop.sh all";
     try {
       Runtime.getRuntime().exec(stopClusterCommand).waitFor();
       CommonUtils.sleepMs(LOG, 1000);

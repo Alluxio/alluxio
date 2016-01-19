@@ -13,24 +13,21 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.master.file.meta;
 
-import java.util.Random;
+import org.powermock.reflect.Whitebox;
 
 /**
- * Utilities class for Tachyon Client. All methods and variables are static. This class is thread
- * safe.
+ * Class which provides access to private state of {@link TtlBucket}.
  */
-public final class Utils {
-  private static Random sRandom = new Random();
+public final class TtlBucketPrivateAccess {
 
   /**
-   * @return a random long which is guaranteed to be non negative (zero is allowed)
+   * Sets the {@link TtlBucket#sTtlIntervalMs} variable for testing.
+   *
+   * @param intervalMs the interval in milliseconds
    */
-  public static synchronized long getRandomNonNegativeLong() {
-    return Math.abs(sRandom.nextLong());
+  public static void setTtlIntervalMs(long intervalMs) {
+    Whitebox.setInternalState(TtlBucket.class, "sTtlIntervalMs", intervalMs);
   }
-
-  // Prevent instantiation
-  private Utils() {}
 }

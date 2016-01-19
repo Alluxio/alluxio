@@ -62,7 +62,7 @@ public class LineageFileSystem extends BaseFileSystem {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.reinitializeFile(path.getPath(), options.getBlockSizeBytes(),
-          options.getTTL());
+          options.getTtl());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

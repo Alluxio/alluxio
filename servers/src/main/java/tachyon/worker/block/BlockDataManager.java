@@ -160,6 +160,7 @@ public final class BlockDataManager {
 
   /**
    * Creates a block in Tachyon managed space. The block will be temporary until it is committed.
+   * Throws an {@link IllegalArgumentException} if the location does not belong to tiered storage.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to create
@@ -167,7 +168,6 @@ public final class BlockDataManager {
    *        {@link BlockStoreLocation#ANY_TIER} for any tier
    * @param initialBytes the initial amount of bytes to be allocated
    * @return a string representing the path to the local file
-   * @throws IllegalArgumentException if location does not belong to tiered storage
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
@@ -182,14 +182,13 @@ public final class BlockDataManager {
 
   /**
    * Creates a block. This method is only called from a data server.
-   *
    * Calls {@link #getTempBlockWriterRemote(long, long)} to get a writer for writing to the block.
+   * Throws an {@link IllegalArgumentException} if the location does not belong to tiered storage.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be created
    * @param tierAlias the alias of the tier to place the new block in
    * @param initialBytes the initial amount of bytes to be allocated
-   * @throws IllegalArgumentException if location does not belong to tiered storage
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
@@ -295,12 +294,12 @@ public final class BlockDataManager {
 
   /**
    * Moves a block from its current location to a target location, currently only tier level moves
-   * are supported
+   * are supported. Throws an {@link IllegalArgumentException} if the tierAlias is out of range of
+   * tiered storage.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to move
    * @param tierAlias the alias of the tier to move the block to
-   * @throws IllegalArgumentException if tierAlias is out of range of tiered storage
    * @throws BlockDoesNotExistException if blockId cannot be found
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
    *         newLocation

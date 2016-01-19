@@ -19,7 +19,13 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 import tachyon.thrift.CreateDirectoryTOptions;
 
+/**
+ * Method option for creating a directory.
+ */
 public final class CreateDirectoryOptions {
+  /**
+   * Builder for {@link CreateDirectoryOptions}.
+   */
   public static class Builder {
     private boolean mAllowExists;
     private long mOperationTimeMs;

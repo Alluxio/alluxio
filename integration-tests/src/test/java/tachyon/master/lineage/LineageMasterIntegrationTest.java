@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
+import tachyon.IntegrationTestUtils;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.WriteType;
@@ -44,7 +45,6 @@ import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
 import tachyon.master.file.meta.PersistenceState;
 import tachyon.thrift.LineageInfo;
-import tachyon.util.CommonUtils;
 
 /**
  * Integration tests for the lineage module.
@@ -137,8 +137,7 @@ public final class LineageMasterIntegrationTest {
       status = getFileSystemMasterClient().getStatus(uri);
       Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(), status.getPersistenceState());
 
-      // sleep and wait for worker to persist the file
-      CommonUtils.sleepMs(5);
+      IntegrationTestUtils.waitForPersist(mLocalTachyonClusterResource, fileId);
 
       // worker notifies the master
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);

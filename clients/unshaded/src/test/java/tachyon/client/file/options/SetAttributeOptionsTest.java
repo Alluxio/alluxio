@@ -29,7 +29,7 @@ public class SetAttributeOptionsTest {
     SetAttributeOptions options = SetAttributeOptions.defaults();
     Assert.assertFalse(options.hasPersisted());
     Assert.assertFalse(options.hasPinned());
-    Assert.assertFalse(options.hasTTL());
+    Assert.assertFalse(options.hasTtl());
   }
 
   /**
@@ -45,13 +45,13 @@ public class SetAttributeOptionsTest {
     SetAttributeOptions options = SetAttributeOptions.defaults();
     options.setPersisted(persisted);
     options.setPinned(pinned);
-    options.setTTL(ttl);
+    options.setTtl(ttl);
 
     Assert.assertTrue(options.hasPersisted());
     Assert.assertEquals(persisted, options.getPersisted());
     Assert.assertTrue(options.hasPinned());
     Assert.assertEquals(pinned, options.getPinned());
-    Assert.assertTrue(options.hasTTL());
-    Assert.assertEquals(ttl, options.getTTL());
+    Assert.assertTrue(options.hasTtl());
+    Assert.assertEquals(ttl, options.getTtl());
   }
 }

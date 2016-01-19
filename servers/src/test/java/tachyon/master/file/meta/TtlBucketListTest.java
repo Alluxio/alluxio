@@ -28,56 +28,68 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for {@link TTLBucketList}.
+ * Unit tests for {@link TtlBucketList}.
  */
-public class TTLBucketListTest {
+public class TtlBucketListTest {
   private static final long BUCKET_INTERVAL = 10;
   private static final long BUCKET1_START = 0;
   private static final long BUCKET1_END = BUCKET1_START + BUCKET_INTERVAL;
   private static final long BUCKET2_START = BUCKET1_END;
   private static final long BUCKET2_END =  BUCKET2_START + BUCKET_INTERVAL;
   private static final InodeFile BUCKET1_FILE1 = new InodeFile.Builder().setCreationTimeMs(0)
-      .setBlockContainerId(0).setTTL(BUCKET1_START).build();
+      .setBlockContainerId(0).setTtl(BUCKET1_START).build();
   private static final InodeFile BUCKET1_FILE2 = new InodeFile.Builder().setCreationTimeMs(0)
-      .setBlockContainerId(1).setTTL(BUCKET1_END - 1).build();
+      .setBlockContainerId(1).setTtl(BUCKET1_END - 1).build();
   private static final InodeFile BUCKET2_FILE = new InodeFile.Builder().setCreationTimeMs(0)
-      .setBlockContainerId(2).setTTL(BUCKET2_START).build();
+      .setBlockContainerId(2).setTtl(BUCKET2_START).build();
   private static long sOldTtlIntervalMs;
 
-  private TTLBucketList mBucketList;
+  private TtlBucketList mBucketList;
 
+  /**
+   * Sets up the TTL interval before a single test runs.
+   */
   @BeforeClass
   public static void beforeClass() {
-    sOldTtlIntervalMs = TTLBucket.getTTLIntervalMs();
-    TTLBucketPrivateAccess.setTTLIntervalMs(BUCKET_INTERVAL);
+    sOldTtlIntervalMs = TtlBucket.getTtlIntervalMs();
+    TtlBucketPrivateAccess.setTtlIntervalMs(BUCKET_INTERVAL);
   }
 
+  /**
+   * Resets the TTL interval after all test ran.
+   */
   @AfterClass
   public static void afterClass() {
-    TTLBucketPrivateAccess.setTTLIntervalMs(sOldTtlIntervalMs);
+    TtlBucketPrivateAccess.setTtlIntervalMs(sOldTtlIntervalMs);
   }
 
+  /**
+   * Sets up a new {@link TtlBucketList} before a test runs.
+   */
   @Before
   public void before() {
-    mBucketList = new TTLBucketList();
+    mBucketList = new TtlBucketList();
   }
 
-  private List<TTLBucket> getSortedExpiredBuckets(long expireTime) {
-    List<TTLBucket> buckets = Lists.newArrayList(mBucketList.getExpiredBuckets(expireTime));
+  private List<TtlBucket> getSortedExpiredBuckets(long expireTime) {
+    List<TtlBucket> buckets = Lists.newArrayList(mBucketList.getExpiredBuckets(expireTime));
     Collections.sort(buckets);
     return buckets;
   }
 
-  private void assertExpired(List<TTLBucket> expiredBuckets, int bucketIndex, InodeFile... files) {
-    TTLBucket bucket = expiredBuckets.get(bucketIndex);
+  private void assertExpired(List<TtlBucket> expiredBuckets, int bucketIndex, InodeFile... files) {
+    TtlBucket bucket = expiredBuckets.get(bucketIndex);
     Assert.assertEquals(files.length, bucket.getFiles().size());
     Assert.assertTrue(bucket.getFiles().containsAll(Lists.newArrayList(files)));
   }
 
+  /**
+   * Tests the {@link TtlBucketList#insert(InodeFile)} method.
+   */
   @Test
   public void insertTest() {
     // No bucket should expire.
-    List<TTLBucket> expired = getSortedExpiredBuckets(BUCKET1_START);
+    List<TtlBucket> expired = getSortedExpiredBuckets(BUCKET1_START);
     Assert.assertTrue(expired.isEmpty());
 
     mBucketList.insert(BUCKET1_FILE1);
@@ -99,13 +111,16 @@ public class TTLBucketListTest {
     assertExpired(expired, 1, BUCKET2_FILE);
   }
 
+  /**
+   * Tests the {@link TtlBucketList#remove(InodeFile)} method.
+   */
   @Test
   public void removeTest() {
     mBucketList.insert(BUCKET1_FILE1);
     mBucketList.insert(BUCKET1_FILE2);
     mBucketList.insert(BUCKET2_FILE);
 
-    List<TTLBucket> expired = getSortedExpiredBuckets(BUCKET1_END);
+    List<TtlBucket> expired = getSortedExpiredBuckets(BUCKET1_END);
     assertExpired(expired, 0, BUCKET1_FILE1, BUCKET1_FILE2);
 
     mBucketList.remove(BUCKET1_FILE1);

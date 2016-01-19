@@ -43,27 +43,27 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 
 /**
- * Under file system implementation for Aliyun OSS using the oss SDK library.
+ * Aliyun OSS {@link UnderFileSystem} implementation.
  */
 public final class OSSUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Suffix for an empty file to flag it as a directory */
+  /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = "_$folder$";
-  /** Value used to indicate folder structure in OSS */
+  /** Value used to indicate folder structure in OSS. */
   private static final String PATH_SEPARATOR = "/";
 
-  /** Aliyun OSS client */
+  /** Aliyun OSS client. */
   private OSSClient mOssClient;
-  /** the accessId to connect OSS */
+  /** the accessId to connect OSS. */
   private final String mAccessId;
-  /** the accessKey to connect OSS */
+  /** the accessKey to connect OSS. */
   private final String mAccessKey;
-  /** Bucket name of user's configured Tachyon bucket */
+  /** Bucket name of user's configured Tachyon bucket. */
   private final String mBucketName;
   /** Prefix of the bucket, for example oss://bucket-name/ */
   private final String mBucketPrefix;
-  /** The oss endpoint */
+  /** The OSS endpoint. */
   private String mEndPoint;
 
   protected OSSUnderFileSystem(String bucketName, TachyonConf tachyonConf) throws Exception {
@@ -153,9 +153,10 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * There is no concept of a block in OSS, however the maximum allowed size of one file is
-   * currently 5 GB.
-   * @param path The file name
+   * Gets the block size in bytes. There is no concept of a block in OSS, however the maximum
+   * allowed size of one file is currently 5 GB.
+   *
+   * @param path the file name
    * @return 5 GB in bytes
    * @throws IOException this implementation will not throw this exception, but subclasses may
    */
@@ -218,6 +219,10 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] list(String path) throws IOException {
+    // if the path not exists, or it is a file, then should return null
+    if (!exists(path) || isFile(path)) {
+      return null;
+    }
     // Non recursive list
     path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
     return listInternal(path, false);
@@ -306,15 +311,22 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   /**
    * Appends the directory suffix to the key.
+   *
    * @param key the key to convert
    * @return key as a directory path
    */
   private String convertToFolderName(String key) {
+    // Strips the slash if it is the end of the key string. This is because the slash at
+    // the end of the string is not part of the Object key in OSS.
+    if (key.endsWith(PATH_SEPARATOR)) {
+      key = key.substring(0, key.length() - PATH_SEPARATOR.length());
+    }
     return key + FOLDER_SUFFIX;
   }
 
   /**
    * Copies an object to another key.
+   *
    * @param src the source key to copy
    * @param dst the destination key to copy to
    * @return true if the operation was successful, false otherwise
@@ -333,7 +345,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Internal function to delete a key in OSS
+   * Internal function to delete a key in OSS.
+   *
    * @param key the key to delete
    * @return true if successful, false if an exception is thrown
    */
@@ -353,10 +366,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the {@link StorageObject} representing the metadata of a key. If the key does not exist as
-   * a file or folder, null is returned
    * @param key the key to get the object details of
-   * @return {@link StorageObject} of the key, or null if the key does not exist as a file or folder
+   * @return {@link ObjectMetadata} of the key, or null if the key does not exist
    */
   private ObjectMetadata getObjectDetails(String key) {
     try {
@@ -373,9 +384,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the parent key of the input key, or null if no parent exists
    * @param key the key to get the parent of
-   * @return the the parent key
+   * @return the parent key, or null if the parent does not exist
    */
   private String getParentKey(String key) {
     // Root does not have a parent.
@@ -390,9 +400,10 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Sets the OSS Client Configuration
-   * @param tachyonConf The TachyonConf
-   * @return The {@link ClientConfiguration} hold the OSS Client config
+   * Creates an OSS {@code ClientConfiguration} using a Tachyon configuration.
+   *
+   * @param tachyonConf Tachyon configuration
+   * @return the OSS {@link ClientConfiguration}
    */
   private ClientConfiguration initializeOSSClientConfig(TachyonConf tachyonConf) {
     ClientConfiguration ossClientConf = new ClientConfiguration();
@@ -408,11 +419,11 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /**
    * Determines if the key represents a folder. If false is returned, it is not guaranteed that the
    * path exists.
+   *
    * @param key the key to check
    * @return true if the key exists and is a directory
    */
   private boolean isFolder(String key) {
-    key = key.endsWith(PATH_SEPARATOR) ? key.substring(0, key.length() - 1) : key;
     // Root is a folder
     if (isRoot(key)) {
       return true;
@@ -429,6 +440,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   /**
    * Checks if the key is the root.
+   *
    * @param key the key to check
    * @return true if the key is the root, false otherwise
    */
@@ -439,11 +451,12 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   /**
    * Lists the files in the given path, the paths will be their logical names and not contain the
-   * folder suffix
+   * folder suffix.
+   *
    * @param path the key to list
    * @param recursive if true will list children directories as well
    * @return an array of the file and folder names in this directory
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   private String[] listInternal(String path, boolean recursive) throws IOException {
     try {
@@ -495,6 +508,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   /**
    * Gets the child name based on the parent name.
+   *
    * @param child the key of the child
    * @param parent the key of the parent
    * @return the child key with the parent prefix removed, null if the parent prefix is invalid
@@ -510,6 +524,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   /**
    * Creates a directory flagged file with the key and folder suffix.
+   *
    * @param key the key to create a folder
    * @return true if the operation was successful, false otherwise
    */
@@ -532,6 +547,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   /**
    * Treating OSS as a file system, checks if the parent directory exists.
+   *
    * @param key the key to check
    * @return true if the parent exists or if the key is root, false otherwise
    */
@@ -545,7 +561,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * If the path passed to this filesystem is not an URI path, then add oss prefix
+   * If the path passed to this filesystem is not an URI path, then add oss prefix.
+   *
    * @param path the path to process
    * @return the path with oss prefix
    */
@@ -557,9 +574,9 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strip the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder. This method will leave keys without a suffix
-   * unaltered.
+   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
+   * guarantee the existence of the folder. This method will leave keys without a suffix unaltered.
+   *
    * @param key the key to strip the suffix from
    * @return the key with the suffix removed, or the key unaltered if the suffix is not present
    */
@@ -571,10 +588,11 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the OSS bucket prefix or the preceding path separator from the key if it is present.
-   * For example, for input key oss://my-bucket-name/my-path/file, the output would be my-path/file.
-   * If key is an absolute path like /my-path/file, the output would be my-path/file.
-   * This method will leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
+   * Strips the OSS bucket prefix or the preceding path separator from the key if it is present. For
+   * example, for input key oss://my-bucket-name/my-path/file, the output would be my-path/file. If
+   * key is an absolute path like /my-path/file, the output would be my-path/file. This method will
+   * leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
+   *
    * @param key the key to strip
    * @return the key without the oss bucket prefix
    */

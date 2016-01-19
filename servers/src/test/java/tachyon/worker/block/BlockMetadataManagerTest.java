@@ -20,7 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,11 +28,13 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.WorkerOutOfSpaceException;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
@@ -55,12 +57,19 @@ public final class BlockMetadataManagerTest {
 
   private BlockMetadataManager mMetaManager;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
+  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the test fails
+   */
   @Before
   public void before() throws Exception {
     String baseDir = mFolder.newFolder().getAbsolutePath();
@@ -70,8 +79,19 @@ public final class BlockMetadataManagerTest {
     mMetaManager = BlockMetadataManager.newBlockMetadataManager();
   }
 
+  /**
+   * Resets the context of the worker after a test ran.
+   */
+  @After
+  public void after() {
+    WorkerContext.reset();
+  }
+
+  /**
+   * Tests the {@link BlockMetadataManager#getTier(String)} method.
+   */
   @Test
-  public void getTierTest() throws Exception {
+  public void getTierTest() {
     StorageTier tier;
     tier = mMetaManager.getTier("MEM"); // MEM
     Assert.assertEquals("MEM", tier.getTierAlias());
@@ -81,8 +101,11 @@ public final class BlockMetadataManagerTest {
     Assert.assertEquals(1, tier.getTierOrdinal());
   }
 
+  /**
+   * Tests the {@link BlockMetadataManager#getDir(BlockStoreLocation)} method.
+   */
   @Test
-  public void getDirTest() throws Exception {
+  public void getDirTest() {
     BlockStoreLocation loc;
     StorageDir dir;
 
@@ -97,16 +120,23 @@ public final class BlockMetadataManagerTest {
     Assert.assertEquals(loc.dir(), dir.getDirIndex());
   }
 
+  /**
+   * Tests that an exception is thrown in the {@link BlockMetadataManager#getTier(String)} method
+   * when trying to retrieve a tier which does not exist.
+   */
   @Test
-  public void getTierNotExistingTest() throws Exception {
+  public void getTierNotExistingTest() {
     String badTierAlias = "SSD";
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.TIER_ALIAS_NOT_FOUND.getMessage(badTierAlias));
     mMetaManager.getTier(badTierAlias);
   }
 
+  /**
+   * Tests the {@link BlockMetadataManager#getTiers()} method.
+   */
   @Test
-  public void getTiersTest() throws Exception {
+  public void getTiersTest() {
     List<StorageTier> tiers = mMetaManager.getTiers();
     Assert.assertEquals(2, tiers.size());
     Assert.assertEquals("MEM", tiers.get(0).getTierAlias());
@@ -115,8 +145,11 @@ public final class BlockMetadataManagerTest {
     Assert.assertEquals(1, tiers.get(1).getTierOrdinal());
   }
 
+  /**
+   * Tests the {@link BlockMetadataManager#getTiersBelow(String)} method.
+   */
   @Test
-  public void getTiersBelowTest() throws Exception {
+  public void getTiersBelowTest() {
     List<StorageTier> tiersBelow = mMetaManager.getTiersBelow("MEM");
     Assert.assertEquals(1, tiersBelow.size());
     Assert.assertEquals("HDD", tiersBelow.get(0).getTierAlias());
@@ -126,8 +159,11 @@ public final class BlockMetadataManagerTest {
     Assert.assertEquals(0, tiersBelow.size());
   }
 
+  /**
+   * Tests the {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)} method.
+   */
   @Test
-  public void getAvailableBytesTest() throws Exception {
+  public void getAvailableBytesTest() {
     Assert.assertEquals(9000, mMetaManager.getAvailableBytes(BlockStoreLocation.anyTier()));
     Assert.assertEquals(1000,
         mMetaManager.getAvailableBytes(BlockStoreLocation.anyDirInTier("MEM")));
@@ -138,6 +174,12 @@ public final class BlockMetadataManagerTest {
     Assert.assertEquals(5000, mMetaManager.getAvailableBytes(new BlockStoreLocation("HDD", 1)));
   }
 
+  /**
+   * Tests the different operations for metadata of a block, such as adding a temporary block or
+   * committing a block.
+   *
+   * @throws Exception if a metadata operation fails
+   */
   @Test
   public void blockMetaTest() throws Exception {
     StorageDir dir = mMetaManager.getTier("HDD").getDir(0);
@@ -174,6 +216,12 @@ public final class BlockMetadataManagerTest {
     Assert.assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
   }
 
+  /**
+   * Tests that an exception is thrown in the {@link BlockMetadataManager#getBlockMeta(long)} method
+   * when trying to retrieve metadata of a block which does not exist.
+   *
+   * @throws Exception if retrieving the metadata of the block fails
+   */
   @Test
   public void getBlockMetaNotExistingTest() throws Exception {
     mThrown.expect(BlockDoesNotExistException.class);
@@ -181,6 +229,12 @@ public final class BlockMetadataManagerTest {
     mMetaManager.getBlockMeta(TEST_BLOCK_ID);
   }
 
+  /**
+   * Tests that an exception is thrown in the {@link BlockMetadataManager#getTempBlockMeta(long)}
+   * method when trying to retrieve metadata of a temporary block which does not exist.
+   *
+   * @throws Exception if retrieving the metadata of the temporary block fails
+   */
   @Test
   public void getTempBlockMetaNotExistingTest() throws Exception {
     mThrown.expect(BlockDoesNotExistException.class);
@@ -190,7 +244,9 @@ public final class BlockMetadataManagerTest {
   }
 
   /**
-   * Dummy unit test, actually the case of move block meta to same dir should never happen
+   * Dummy unit test, actually the case of move block meta to same dir should never happen.
+   *
+   * @throws Exception if a metadata operation fails
    */
   @Test
   public void moveBlockMetaSameDirTest() throws Exception {
@@ -216,6 +272,13 @@ public final class BlockMetadataManagerTest {
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2);
   }
 
+  /**
+   * Tests that an exception is thrown in the
+   * {@link BlockMetadataManager#moveBlockMeta(BlockMeta, TempBlockMeta)} method when trying to move
+   * a block to a not committed block meta.
+   *
+   * @throws Exception if a metadata operation fails
+   */
   @Test
   public void moveBlockMetaDiffDirTest() throws Exception {
     // create and add two temp block metas with different dirs in the same HDD tier
@@ -241,6 +304,13 @@ public final class BlockMetadataManagerTest {
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2);
   }
 
+  /**
+   * Tests that an exception is thrown in the
+   * {@link BlockMetadataManager#moveBlockMeta(BlockMeta, TempBlockMeta)} method when the worker is
+   * out of space.
+   *
+   * @throws Exception if adding or moving the metadata of a block fails
+   */
   @Test
   public void moveBlockMetaOutOfSpaceExceptionTest() throws Exception {
     // Create a committed block under dir2 with larger size than the capacity of dir1,
@@ -262,6 +332,11 @@ public final class BlockMetadataManagerTest {
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
   }
 
+  /**
+   * Tests the {@link BlockMetadataManager#moveBlockMeta(BlockMeta, BlockStoreLocation)} method.
+   *
+   * @throws Exception if a metadata operation fails
+   */
   @Test
   public void moveBlockMetaDeprecatedTest() throws Exception {
     StorageDir dir = mMetaManager.getTier("MEM").getDir(0);
@@ -284,6 +359,13 @@ public final class BlockMetadataManagerTest {
     Assert.assertEquals(0, blockMeta.getBlockLocation().dir());
   }
 
+  /**
+   * Tests that an exception is thrown in the
+   * {@link BlockMetadataManager#moveBlockMeta(BlockMeta, BlockStoreLocation)} method when the
+   * capacity is exceeded.
+   *
+   * @throws Exception if adding or moving the metadata of a block fails
+   */
   @Test
   public void moveBlockMetaDeprecatedExceedCapacityTest() throws Exception {
     StorageDir dir = mMetaManager.getTier("HDD").getDir(0);
@@ -295,6 +377,11 @@ public final class BlockMetadataManagerTest {
     mMetaManager.moveBlockMeta(blockMeta, new BlockStoreLocation("MEM", 0));
   }
 
+  /**
+   * Tests the {@link BlockMetadataManager#resizeTempBlockMeta(TempBlockMeta, long)} method.
+   *
+   * @throws Exception if resizing the metadata of the block fails
+   */
   @Test
   public void resizeTempBlockMetaTest() throws Exception {
     StorageDir dir = mMetaManager.getTier("MEM").getDir(0);
@@ -304,6 +391,11 @@ public final class BlockMetadataManagerTest {
     Assert.assertEquals(TEST_BLOCK_SIZE + 1, tempBlockMeta.getBlockSize());
   }
 
+  /**
+   * Tests the {@link BlockMetadataManager#cleanupSessionTempBlocks(long, List)} method.
+   *
+   * @throws Exception if adding metadata to a block or a temporary block fails
+   */
   @Test
   public void cleanupSessionTest() throws Exception {
     StorageDir dir = mMetaManager.getTier("MEM").getDir(0);
@@ -374,8 +466,11 @@ public final class BlockMetadataManagerTest {
     Assert.assertTrue(dir.hasBlockMeta(TEST_BLOCK_ID));
   }
 
+  /**
+   * Tests the {@link BlockMetadataManager#getBlockMeta(long)} method.
+   */
   @Test
-  public void getBlockStoreMetaTest() throws Exception {
+  public void getBlockStoreMetaTest() {
     BlockStoreMeta meta = mMetaManager.getBlockStoreMeta();
     Assert.assertNotNull(meta);
 

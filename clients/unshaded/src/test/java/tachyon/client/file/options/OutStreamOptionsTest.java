@@ -50,7 +50,7 @@ public class OutStreamOptionsTest {
 
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
-    Assert.assertEquals(Constants.NO_TTL, options.getTTL());
+    Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
     ClientContext.reset();
@@ -70,12 +70,12 @@ public class OutStreamOptionsTest {
     OutStreamOptions options = OutStreamOptions.defaults();
     options.setBlockSizeBytes(blockSize);
     options.setLocationPolicy(policy);
-    options.setTTL(ttl);
+    options.setTtl(ttl);
     options.setWriteType(writeType);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(policy, options.getLocationPolicy());
-    Assert.assertEquals(ttl, options.getTTL());
+    Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(writeType.getTachyonStorageType(), options.getTachyonStorageType());
     Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
   }

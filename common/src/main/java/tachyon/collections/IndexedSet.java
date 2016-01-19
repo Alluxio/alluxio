@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -33,9 +35,6 @@ import com.google.common.collect.Sets;
  * Different {@link IndexedSet} instances may specify different fields to index. The field type
  * must be comparable. The field value must not be changed after an object is added to the set,
  * otherwise, behavior for all operations is not specified.
- *
- * <p>
- * This class is thread safe.
  *
  * <p>
  * Example usage:
@@ -100,6 +99,7 @@ import com.google.common.collect.Sets;
  *
  * @param <T> the type of object
  */
+@ThreadSafe
 public class IndexedSet<T> implements Iterable<T> {
   /** All objects in the set */
   private final Set<T> mObjects = new HashSet<T>();

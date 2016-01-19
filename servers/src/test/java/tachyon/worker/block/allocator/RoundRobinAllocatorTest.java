@@ -24,11 +24,17 @@ import tachyon.conf.TachyonConf;
  * Unit tests for {@link RoundRobinAllocator}.
  */
 public class RoundRobinAllocatorTest extends BaseAllocatorTest {
+
+  /**
+   * Tests that blocks are allocated in a round robin fashion.
+   *
+   * @throws Exception if adding the metadata of the block fails
+   */
   @Test
   public void allocateBlockTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(conf, mManagerView);
+    mAllocator = Allocator.Factory.create(conf, getManagerView());
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000

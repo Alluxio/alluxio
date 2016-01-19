@@ -44,7 +44,7 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(mDefaultBlockSizeBytes, options.getBlockSizeBytes());
     Assert.assertEquals(mDefaultWriteType.getTachyonStorageType(), options.getTachyonStorageType());
     Assert.assertEquals(mDefaultWriteType.getUnderStorageType(), options.getUnderStorageType());
-    Assert.assertEquals(Constants.NO_TTL, options.getTTL());
+    Assert.assertEquals(Constants.NO_TTL, options.getTtl());
   }
 
   /**
@@ -63,13 +63,13 @@ public class CreateFileOptionsTest {
     options.setBlockSizeBytes(blockSize);
     options.setLocationPolicy(policy);
     options.setRecursive(recursive);
-    options.setTTL(ttl);
+    options.setTtl(ttl);
     options.setWriteType(writeType);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(policy, options.getLocationPolicy());
     Assert.assertEquals(recursive, options.isRecursive());
-    Assert.assertEquals(ttl, options.getTTL());
+    Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(writeType.getTachyonStorageType(), options.getTachyonStorageType());
     Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
   }

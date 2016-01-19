@@ -21,7 +21,7 @@ tfs \- command line interface for Tachyon provides users with basic file system 
 [\fBdu\fR \fIpath\fR]
 
 .B tfs
-[\fBfileinfo\fR \fIpath\fR]
+[\fBfileInfo\fR \fIpath\fR]
 
 .B tfs
 [\fBfree\fR \fIpath\fR]
@@ -72,7 +72,7 @@ tfs \- command line interface for Tachyon provides users with basic file system 
 [\fBrmr\fR \fIpath\fR]
 
 .B tfs
-[\fBsetTTL\fR \fItime\fR]
+[\fBsetTtl\fR \fItime\fR]
 
 .B tfs
 [\fBtail\fR \fIpath\fR]
@@ -87,7 +87,7 @@ tfs \- command line interface for Tachyon provides users with basic file system 
 [\fBunpin\fR \fIpath\fR]
 
 .B tfs
-[\fBunsetTTL\fR]
+[\fBunsetTtl\fR]
 
 .SH DESCRIPTION
 
@@ -123,7 +123,7 @@ Display the number of folders and files matching the specified prefix in "path".
 Display the size of a file or a directory specified by the input path.
 
 .TP
-.BR fileinfo
+.BR fileInfo
 \fIpath\fR
 Print the information of the blocks of a specified file.
 
@@ -213,7 +213,7 @@ Remove a file. This command will fail if the given path is a directory rather th
 Remove a file, or a directory with all the files and sub-directories that this directory contains.
 
 .TP
-.BR setTTL
+.BR setTtl
 \fItime\fR
 Set the TTL (time to live) in milliseconds to a file.
 
@@ -240,5 +240,5 @@ Unpin the given file to allow Tachyon to evict this file again. If the given pat
 recursively unpins all files contained and any new files created within this directory.
 
 .TP
-.BR unsetTTL
+.BR unsetTtl
 Remove the TTL (time to live) setting from a file.
