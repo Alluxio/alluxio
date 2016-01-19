@@ -73,10 +73,14 @@ public final class KeyValueInputFormat implements InputFormat {
   @Override
   public RecordReader getRecordReader(InputSplit inputSplit, JobConf jobConf, Reporter reporter)
       throws IOException {
-    try {
-      return new KeyValueRecordReader((KeyValueInputSplit) inputSplit);
-    } catch (TachyonException te) {
-      throw new IOException(te);
+    if (inputSplit instanceof KeyValueInputSplit) {
+      try {
+        return new KeyValueRecordReader((KeyValueInputSplit) inputSplit);
+      } catch (TachyonException te) {
+        throw new IOException(te);
+      }
+    } else {
+      throw new IOException("Expected InputSplit to be instance of KeyValueInputSplit.");
     }
   }
 }
