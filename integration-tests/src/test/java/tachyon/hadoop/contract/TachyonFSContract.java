@@ -39,7 +39,7 @@ public class TachyonFSContract extends AbstractFSContract {
   public static final String CONTRACT_XML = "contract/tachyonfs.xml";
   public static final String SYSPROP_TEST_BUILD_DATA = "test.build.data";
   public static final String DEFAULT_TEST_BUILD_DATA_DIR = "test/build/data";
-  private LocalTachyonCluster mLocalTachyonCluster;
+  private final LocalTachyonCluster mLocalTachyonCluster;
   private FileSystem mFS;
 
   /**
