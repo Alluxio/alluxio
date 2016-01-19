@@ -109,6 +109,11 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     }
   }
 
+  @Override
+  public void close() {
+    mFixedExecutionService.shutdown();
+  }
+
   /**
    * Thread to persist a file into under file system.
    */
