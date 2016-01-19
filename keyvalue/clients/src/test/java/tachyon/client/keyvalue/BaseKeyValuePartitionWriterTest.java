@@ -125,7 +125,7 @@ public final class BaseKeyValuePartitionWriterTest {
   }
 
   /**
-   * Tests {@link BaseKeyValuePartitionWriter#canPutKeyValue} works.
+   * Tests {@link BaseKeyValuePartitionWriter#canPut} works.
    */
   @Test
   public void canPutKeyValueTest() throws Exception {
@@ -135,9 +135,9 @@ public final class BaseKeyValuePartitionWriterTest {
     conf.set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(size));
     ClientContext.reset(conf);
     mWriter = new BaseKeyValuePartitionWriter(mOutStream);
-    Assert.assertTrue(mWriter.canPutKeyValue(KEY1, VALUE1));
+    Assert.assertTrue(mWriter.canPut(KEY1, VALUE1));
     mWriter.put(KEY1, VALUE1);
-    Assert.assertFalse(mWriter.canPutKeyValue(KEY1, VALUE1));
+    Assert.assertFalse(mWriter.canPut(KEY1, VALUE1));
     ClientContext.reset(originalConf);
   }
 
