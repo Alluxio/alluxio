@@ -358,7 +358,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-<<<<<<< HEAD
    * Returns the {@link FileInfo} for a given path. Called via RPC, as well as internal masters.
    *
    * @param path the path to get the {@link FileInfo} for
@@ -375,10 +374,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the persistence state of a given file.
-   *
-=======
->>>>>>> master
    * @param fileId the file id
    * @return the persistence state for the given file
    * @throws FileDoesNotExistException if the file does not exist
@@ -654,11 +649,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-<<<<<<< HEAD
-   * Deletes a given path. Called via RPC.
-=======
-   * Deletes a given file id.
->>>>>>> master
+   * Deletes a given path.
    *
    * @param path the path to delete
    * @param recursive if true, will delete all its children
@@ -1667,7 +1658,7 @@ public final class FileSystemMaster extends MasterBase {
       LOG.error("The file {} to persist does not exist", path);
       return IdUtils.INVALID_WORKER_ID;
     } catch (InvalidPathException e) {
-      LOG.error("The file {} to persist does not exist", path);
+      LOG.error("The file {} to persist is invalid", path);
       return IdUtils.INVALID_WORKER_ID;
     }
 

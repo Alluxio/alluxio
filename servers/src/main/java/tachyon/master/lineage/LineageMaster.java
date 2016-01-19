@@ -343,7 +343,13 @@ public final class LineageMaster extends MasterBase {
       Lineage lineage = mLineageStore.getLineage(lineageId);
       // schedule the lineage file for persistence
       for (long file : lineage.getOutputFiles()) {
-        mFileSystemMaster.scheduleAsyncPersistence(file);
+        try {
+          mFileSystemMaster.scheduleAsyncPersistence(mFileSystemMaster.getPath(file));
+        } catch (InvalidPathException e) {
+          // Shouldn't hit this case, since we are querying directly from the master
+          LOG.error("The file {} to persist had an invalid path associated with it.", file, e);
+          throw new FileDoesNotExistException(e.getMessage());
+        }
       }
     }
   }

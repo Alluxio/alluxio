@@ -24,6 +24,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateFileOptions;
@@ -203,8 +204,10 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public void scheduleAsyncPersist(String path) throws TachyonTException {
     try {
-      mFileSystemMaster.scheduleAsyncPersistence(path);
+      mFileSystemMaster.scheduleAsyncPersistence(new TachyonURI(path));
     } catch (FileDoesNotExistException e) {
+      throw e.toTachyonTException();
+    } catch (InvalidPathException e) {
       throw e.toTachyonTException();
     }
   }
