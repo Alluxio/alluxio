@@ -125,10 +125,10 @@ public final class KeyValueStoresIntegrationTest {
    */
   @Test
   public void createMultiPartitionsTest() throws Exception {
-    final long maxPartitionSize = Constants.MB;
+    final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
     final int numKeys = 10;
     final int keyLength = 4; // 64 Byte key
-    final int valueLength = 500 * Constants.KB; // 800KB value
+    final int valueLength = 500 * Constants.KB; // 500KB value
 
     TachyonFileSystem tfs = TachyonFileSystemFactory.get();
 
