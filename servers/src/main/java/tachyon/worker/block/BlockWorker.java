@@ -16,9 +16,12 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 import com.google.common.base.Throwables;
+import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +30,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatThread;
+import tachyon.thrift.BlockWorkerClientService;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -129,6 +133,16 @@ public final class BlockWorker extends WorkerBase {
 
     // Setup RPC ServerHandler
     mServiceHandler = new BlockWorkerClientServiceHandler(mBlockDataManager);
+  }
+
+  @Override
+  public Map<String, TProcessor> getServices() {
+    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    services.put(
+        Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
+        new BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler>(
+            getWorkerServiceHandler()));
+    return services;
   }
 
   /**

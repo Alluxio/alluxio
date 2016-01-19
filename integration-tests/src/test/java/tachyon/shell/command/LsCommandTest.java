@@ -19,7 +19,6 @@ import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -29,7 +28,6 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFile;
 import tachyon.exception.TachyonException;
 import tachyon.master.MasterContext;
-import tachyon.security.LoginUser;
 import tachyon.security.group.provider.IdentityUserGroupsMapping;
 import tachyon.shell.AbstractTfsShellTest;
 import tachyon.shell.TfsShellUtilsTest;
@@ -71,19 +69,15 @@ public class LsCommandTest extends AbstractTfsShellTest {
         getLsResultStr("/testRoot/testFileC", files[2].getCreationTimeMs(), 30, "Not In Memory",
             testUser, testUser, files[2].getPermission(), files[2].isIsFolder());
     Assert.assertEquals(expected, mOutput.toString());
-    // clear testing username
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
     MasterContext.reset();
   }
 
   @Test
   public void lsWildcardTest() throws IOException, TachyonException {
-    // clear the loginUser
-    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
     MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
     String testUser = "test_user_lsWildcard";
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
+    cleanAndLogin(testUser);
 
     TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
 
@@ -100,8 +94,6 @@ public class LsCommandTest extends AbstractTfsShellTest {
     expect += getLsResultStr(new TachyonURI("/testWildCards/foobar4"), 40, testUser, testUser);
     mFsShell.run("ls", "/testWildCards/*");
     Assert.assertEquals(expect, mOutput.toString());
-    // clear testing username
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
     MasterContext.reset();
   }
 }

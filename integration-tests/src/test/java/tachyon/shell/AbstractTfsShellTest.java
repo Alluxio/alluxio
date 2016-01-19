@@ -162,7 +162,7 @@ public abstract class AbstractTfsShellTest {
     // clear the loginUser and re-login with new user
     synchronized (LoginUser.class) {
       Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
-      System.setProperty(Constants.SECURITY_LOGIN_USERNAME, user);
+      ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, user);
       LoginUser.get(ClientContext.getConf());
     }
   }

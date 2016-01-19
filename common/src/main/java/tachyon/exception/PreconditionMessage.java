@@ -40,7 +40,6 @@ public final class PreconditionMessage {
   public static final String ERR_SEEK_PAST_END_OF_BLOCK = "Seek position past end of block: %s";
   public static final String ERR_SEEK_PAST_END_OF_FILE = "Seek position past end of file: %s";
   public static final String ERR_WRITE_BUFFER_NULL = "Cannot write a null input buffer";
-  public static final String RAW_TABLE_METADATA_NULL = "Raw table metadata cannot be null";
   public static final String FILE_WRITE_LOCATION_POLICY_UNSPECIFIED =
       "The location policy is not specified";
   public static final String INODE_TREE_UNINITIALIZED_IS_ROOT_ID =
@@ -63,6 +62,7 @@ public final class PreconditionMessage {
       "Cannot set the state of a file to not-persisted";
   public static final String URI_HOST_NULL = "URI hostname must not be null";
   public static final String URI_PORT_NULL = "URI port must not be null";
+  public static final String URI_KEY_VALUE_STORE_NULL = "URI of key-value store must not be null";
 
   private PreconditionMessage() {} // to prevent initialization
 }
