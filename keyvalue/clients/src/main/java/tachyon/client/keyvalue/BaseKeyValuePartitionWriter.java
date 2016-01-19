@@ -113,9 +113,6 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
         + Constants.BYTES_IN_INTEGER * 2 <= mMaxSizeBytes;
   }
 
-  /**
-   * @return number of keys
-   */
   public long keyCount() {
     return mKeyCount;
   }

@@ -15,6 +15,8 @@
 
 package tachyon.client.keyvalue;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -24,6 +26,10 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
+import tachyon.client.ClientContext;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.thrift.FileInfo;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -59,8 +65,6 @@ public final class KeyValueStoresIntegrationTest {
 
   /**
    * Tests creating and opening an empty store.
-   *
-   * @throws Exception if unexpected error happens
    */
   @Test
   public void createAndOpenEmptyStoreTest() throws Exception {
@@ -75,8 +79,6 @@ public final class KeyValueStoresIntegrationTest {
 
   /**
    * Tests creating and opening a store with one key.
-   *
-   * @throws Exception if unexpected error happens
    */
   @Test
   public void createAndOpenStoreWithOneKeyTest() throws Exception {
@@ -92,8 +94,6 @@ public final class KeyValueStoresIntegrationTest {
 
   /**
    * Tests creating and opening a store with a number of key.
-   *
-   * @throws Exception if unexpected error happens
    */
   @Test
   public void createAndOpenStoreWithMultiKeysTest() throws Exception {
@@ -107,6 +107,46 @@ public final class KeyValueStoresIntegrationTest {
       mWriter.put(key, value);
     }
     mWriter.close();
+
+    mReader = sKVStores.open(mStoreUri);
+    for (int i = 0; i < numKeys; i ++) {
+      byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
+      byte[] value = mReader.get(key);
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(i, valueLength, value));
+    }
+    Assert.assertNull(mReader.get(KEY1));
+    Assert.assertNull(mReader.get(KEY2));
+    mReader.close();
+  }
+
+  /**
+   * Tests creating and opening a store with a number of keys, while each key-value pair is large
+   * enough to take a separate key-value partition.
+   */
+  @Test
+  public void createMultiPartitionsTest() throws Exception {
+    final long maxPartitionSize = Constants.MB;
+    final int numKeys = 10;
+    final int keyLength = 4; // 64 Byte key
+    final int valueLength = 500 * Constants.KB; // 800KB value
+
+    TachyonFileSystem tfs = TachyonFileSystemFactory.get();
+
+    ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
+        String.valueOf(maxPartitionSize));
+    mWriter = sKVStores.create(mStoreUri);
+    for (int i = 0; i < numKeys; i ++) {
+      byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
+      byte[] value = BufferUtils.getIncreasingByteArray(i, valueLength);
+      mWriter.put(key, value);
+    }
+    mWriter.close();
+
+    List<FileInfo> files = tfs.listStatus(tfs.open(mStoreUri));
+    Assert.assertEquals(numKeys, files.size());
+    for (FileInfo info : files) {
+      Assert.assertTrue(info.getLength() < maxPartitionSize);
+    }
 
     mReader = sKVStores.open(mStoreUri);
     for (int i = 0; i < numKeys; i ++) {
