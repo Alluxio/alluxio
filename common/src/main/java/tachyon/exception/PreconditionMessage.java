@@ -63,6 +63,8 @@ public final class PreconditionMessage {
   public static final String URI_HOST_NULL = "URI hostname must not be null";
   public static final String URI_PORT_NULL = "URI port must not be null";
   public static final String URI_KEY_VALUE_STORE_NULL = "URI of key-value store must not be null";
+  public static final String ERR_PUT_NULL_KEY = "Cannot put a null key";
+  public static final String ERR_PUT_NULL_VALUE = "Cannot put a null value";
 
   private PreconditionMessage() {} // to prevent initialization
 }
