@@ -56,8 +56,6 @@ public final class HeartbeatThread implements Runnable {
       String msg = "timer class could not be instantiated";
       LOG.error("{} : {} , {}", msg, threadName, e);
       mTimer = new SleepingTimer(threadName, intervalMs);
-    } finally {
-      executor.close();
     }
   }
 
