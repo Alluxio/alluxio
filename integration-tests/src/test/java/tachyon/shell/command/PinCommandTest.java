@@ -86,8 +86,8 @@ public class PinCommandTest extends AbstractTfsShellTest {
     Assert.assertTrue(fileExist(new TachyonURI(filePathC)));
 
     // fileA is in memory because it is pinned, but not fileB
-    int fileAInMemoryPercentage = mTfs.getInfo(fileA).inMemoryPercentage;
-    int fileBInMemoryPercentage = mTfs.getInfo(fileB).inMemoryPercentage;
+    int fileAInMemoryPercentage = mTfs.getInfo(fileA).getInMemoryPercentage();
+    int fileBInMemoryPercentage = mTfs.getInfo(fileB).getInMemoryPercentage();
     Assert.assertEquals(100, fileAInMemoryPercentage);
     Assert.assertTrue("inMemoryPercentage for fileB  should be less than (" + fileBSize + ")",
          fileBInMemoryPercentage < 100);
