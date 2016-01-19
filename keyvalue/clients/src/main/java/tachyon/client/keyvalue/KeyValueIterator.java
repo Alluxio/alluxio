@@ -20,7 +20,7 @@ import java.io.IOException;
 import tachyon.exception.TachyonException;
 
 /**
- * Iterator to iterate over key-value pairs in {@link KeyValueStore} or its partitions.
+ * Iterator to iterate over key-value pairs in {@link KeyValueStores} or its partitions.
  */
 public interface KeyValueIterator {
   /**
