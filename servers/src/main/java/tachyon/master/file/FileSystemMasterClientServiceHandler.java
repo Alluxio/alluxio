@@ -200,6 +200,15 @@ public final class FileSystemMasterClientServiceHandler implements
     }
   }
 
+  @Override
+  public void scheduleAsyncPersist(String path) throws TachyonTException {
+    try {
+      mFileSystemMaster.scheduleAsyncPersistence(path);
+    } catch (FileDoesNotExistException e) {
+      throw e.toTachyonTException();
+    }
+  }
+
   // TODO(calvin): Do not rely on client side options
   @Override
   public void setAttribute(String path, SetAttributeTOptions options) throws TachyonTException {
@@ -219,15 +228,6 @@ public final class FileSystemMasterClientServiceHandler implements
       throw e.toTachyonTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
-    }
-  }
-
-  @Override
-  public void scheduleAsyncPersist(long fileId) throws TachyonTException {
-    try {
-      mFileSystemMaster.scheduleAsyncPersistence(fileId);
-    } catch (FileDoesNotExistException e) {
-      throw e.toTachyonTException();
     }
   }
 }
