@@ -22,6 +22,7 @@ import tachyon.Constants;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.client.file.TachyonFile;
 import tachyon.shell.AbstractTfsShellTest;
 import tachyon.TachyonURI;
@@ -36,24 +37,23 @@ public class PinCommandTest extends AbstractTfsShellTest {
    */
   @Test
   public void setIsPinnedTest() throws Exception {
-    String filePath = "/testFile";
-    TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType.STORE,
-        UnderStorageType.NO_PERSIST, 1);
+    TachyonURI filePath = new TachyonURI("/testFile");
+    TachyonFSTestUtils.createByteFile(mTfs, filePath, WriteType.MUST_CACHE, 1);
 
     // Ensure that the file exists
-    Assert.assertTrue(fileExist(new TachyonURI(filePath)));
+    Assert.assertTrue(fileExist(filePath));
 
     // Unpin an unpinned file
-    Assert.assertEquals(0, mFsShell.run("unpin", filePath));
-    Assert.assertFalse(mTfs.getInfo(file).isPinned);
+    Assert.assertEquals(0, mFsShell.run("unpin", filePath.toString()));
+    Assert.assertFalse(mTfs.getStatus(filePath).isPinned());
 
     // Pin the file
-    Assert.assertEquals(0, mFsShell.run("pin", filePath));
-    Assert.assertTrue(mTfs.getInfo(file).isPinned);
+    Assert.assertEquals(0, mFsShell.run("pin", filePath.toString()));
+    Assert.assertTrue(mTfs.getStatus(filePath).isPinned());
 
     // Unpin the file
-    Assert.assertEquals(0, mFsShell.run("unpin", filePath));
-    Assert.assertFalse(mTfs.getInfo(file).isPinned);
+    Assert.assertEquals(0, mFsShell.run("unpin", filePath.toString()));
+    Assert.assertFalse(mTfs.getStatus(filePath).isPinned());
   }
 
   /**
@@ -65,27 +65,25 @@ public class PinCommandTest extends AbstractTfsShellTest {
    */
   @Test
   public void setPinTest() throws Exception {
-    String filePathA = "/testFileA";
-    String filePathB = "/testFileB";
-    String filePathC = "/testFileC";
+    TachyonURI filePathA = new TachyonURI("/testFileA");
+    TachyonURI filePathB = new TachyonURI("/testFileB");
+    TachyonURI filePathC = new TachyonURI("/testFileC");
     int fileSize = 5 * Constants.MB;
 
-    TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, filePathA, TachyonStorageType.STORE,
-         UnderStorageType.NO_PERSIST, fileSize);
-    Assert.assertTrue(fileExist(new TachyonURI(filePathA)));
-    Assert.assertEquals(0, mFsShell.run("pin", filePathA));
+    TachyonFSTestUtils.createByteFile(mTfs, filePathA, WriteType.MUST_CACHE, fileSize);
+    Assert.assertTrue(fileExist(filePathA));
+    Assert.assertEquals(0, mFsShell.run("pin", filePathA.toString()));
 
-    TachyonFile fileB = TachyonFSTestUtils.createByteFile(mTfs, filePathB, TachyonStorageType.STORE,
-         UnderStorageType.NO_PERSIST, fileSize);
-    Assert.assertTrue(fileExist(new TachyonURI(filePathB)));
-    Assert.assertEquals(0, mFsShell.run("unpin", filePathB));
+    TachyonFSTestUtils.createByteFile(mTfs, filePathB, WriteType.MUST_CACHE,
+        fileSize);
+    Assert.assertTrue(fileExist(filePathB));
+    Assert.assertEquals(0, mFsShell.run("unpin", filePathB.toString()));
 
-    TachyonFile fileC = TachyonFSTestUtils.createByteFile(mTfs, filePathC, TachyonStorageType.STORE,
-         UnderStorageType.NO_PERSIST, fileSize);
-    Assert.assertTrue(fileExist(new TachyonURI(filePathC)));
+    TachyonFSTestUtils.createByteFile(mTfs, filePathC, WriteType.MUST_CACHE, fileSize);
+    Assert.assertTrue(fileExist(new TachyonURI(filePathC.toString())));
 
     // fileA is in memory because it is pinned, but not fileB
-    Assert.assertEquals(100, mTfs.getInfo(fileA).inMemoryPercentage);
-    Assert.assertEquals(0, mTfs.getInfo(fileB).inMemoryPercentage);
+    Assert.assertEquals(100, mTfs.getStatus(filePathA).getInMemoryPercentage());
+    Assert.assertEquals(0, mTfs.getStatus(filePathB).getInMemoryPercentage());
   }
 }
