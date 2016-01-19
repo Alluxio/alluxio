@@ -30,5 +30,6 @@ public interface HeartbeatExecutor extends Closeable {
   /**
    * Cleans up any resources used by the heartbeat executor.
    */
+  @Override
   void close();
 }
