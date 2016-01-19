@@ -255,8 +255,11 @@ public final class FileSystemMaster extends MasterBase {
       }
     } else if (innerEntry instanceof AsyncPersistRequestEntry) {
       try {
-        scheduleAsyncPersistenceInternal(((AsyncPersistRequestEntry) innerEntry).getFileId());
+        long fileId = ((AsyncPersistRequestEntry) innerEntry).getFileId();
+        scheduleAsyncPersistenceInternal(getPath(fileId));
       } catch (FileDoesNotExistException e) {
+        throw new RuntimeException(e);
+      } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
     } else {
@@ -1602,7 +1605,8 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private long scheduleAsyncPersistenceInternal(TachyonURI path) throws FileDoesNotExistException {
+  private long scheduleAsyncPersistenceInternal(TachyonURI path) throws
+      FileDoesNotExistException, InvalidPathException {
     // find the worker
     long workerId = getWorkerStoringFile(path);
 
@@ -1612,10 +1616,12 @@ public final class FileSystemMaster extends MasterBase {
       return workerId;
     }
 
+    long fileId;
     // update the state
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeByPath(path);
       inode.setPersistenceState(PersistenceState.IN_PROGRESS);
+      fileId = inode.getId();
     }
 
     synchronized (mWorkerToAsyncPersistFiles) {
@@ -1634,6 +1640,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return the id of the storing worker
    * @throws FileDoesNotExistException when the file does not exist on any worker
    */
+  // TODO(calvin): Propagate the exceptions in certain cases
   private long getWorkerStoringFile(TachyonURI path) throws FileDoesNotExistException {
     Map<Long, Integer> workerBlockCounts = Maps.newHashMap();
     List<FileBlockInfo> blockInfoList;
@@ -1657,19 +1664,19 @@ public final class FileSystemMaster extends MasterBase {
         }
       }
     } catch (FileDoesNotExistException e) {
-      LOG.error("The file {} to persist does not exist", fileId);
+      LOG.error("The file {} to persist does not exist", path);
       return IdUtils.INVALID_WORKER_ID;
     } catch (InvalidPathException e) {
-      LOG.error("The file {} to persist does not exist", fileId);
+      LOG.error("The file {} to persist does not exist", path);
       return IdUtils.INVALID_WORKER_ID;
     }
 
     if (workerBlockCounts.size() == 0) {
-      LOG.error("The file " + fileId + " does not exist on any worker");
+      LOG.error("The file " + path + " does not exist on any worker");
       return IdUtils.INVALID_WORKER_ID;
     }
 
-    LOG.error("Not all the blocks of file {} stored on the same worker", fileId);
+    LOG.error("Not all the blocks of file {} stored on the same worker", path);
     return IdUtils.INVALID_WORKER_ID;
   }
 
