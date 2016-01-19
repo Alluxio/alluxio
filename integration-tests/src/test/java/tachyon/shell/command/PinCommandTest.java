@@ -16,15 +16,16 @@
 package tachyon.shell.command;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFile;
 import tachyon.shell.AbstractTfsShellTest;
-import tachyon.TachyonURI;
 
 /**
  * Tests the "pin" and "unpin" commands.
@@ -64,6 +65,7 @@ public class PinCommandTest extends AbstractTfsShellTest {
    * evicted only the second file will be evicted
    */
   @Test
+  @Ignore("See TACHYON-1579")
   public void setPinTest() throws Exception {
     String filePathA = "/testFileA";
     String filePathB = "/testFileB";
