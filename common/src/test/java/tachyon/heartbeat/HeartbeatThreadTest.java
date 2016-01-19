@@ -146,6 +146,11 @@ public final class HeartbeatThreadTest {
       mCounter ++;
     }
 
+    @Override
+    public void close() {
+      // Nothing to clean up
+    }
+
     public int getCounter() {
       return mCounter;
     }

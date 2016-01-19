@@ -149,6 +149,11 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     }
   }
 
+  @Override
+  public void close() {
+    mFixedExecutionService.shutdown();
+  }
+
   /**
    * Handles a master command. The command is one of Unknown, Nothing, Register, Free, or Delete.
    * This call will block until the command is complete.
