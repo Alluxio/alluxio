@@ -94,14 +94,11 @@ public class JournalShutdownIntegrationTest {
   private ClientThread mCreateFileThread = null;
   /** Executor for running client threads */
   private final ExecutorService mExecutorsForClient = Executors.newFixedThreadPool(2);
-  /** Executor for constructing MasterInfo */
-  private final ExecutorService mExecutorsForMasterInfo = Executors.newFixedThreadPool(2);
   private TachyonConf mMasterTachyonConf = null;
 
   @After
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
-    mExecutorsForMasterInfo.shutdown();
     System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
