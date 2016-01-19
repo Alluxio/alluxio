@@ -78,7 +78,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private boolean isCacheable; // required
   private boolean isPersisted; // required
   private List<Long> blockIds; // required
-  public int inMemoryPercentage; // required
+  private int inMemoryPercentage; // required
   private long lastModificationTimeMs; // required
   private long ttl; // required
   private String userName; // required
