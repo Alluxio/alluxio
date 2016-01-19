@@ -47,8 +47,8 @@ import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.worker.NetAddress;
 
 /**
  * Unit tests for {@link MasterSource}.
@@ -76,9 +76,15 @@ public final class MasterSourceTest {
 
   Map<String, Counter> mCounters;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /**
+   * Sets up the dependencies before a test runs.
+   *
+   * @throws Exception if setting up the dependencies fails
+   */
   @Before
   public void before() throws Exception {
     MasterContext.getConf().set(Constants.MASTER_TTLCHECKER_INTERVAL_MS,
@@ -107,6 +113,12 @@ public final class MasterSourceTest {
     mUfs = UnderFileSystem.get(TachyonURI.SEPARATOR, MasterContext.getConf());
   }
 
+  /**
+   * Tests the {@code CreateFileOps}, {@code FilesCreated}, {@code CreateDirectoryOps} and the
+   * {@code DirectoriesCreated} counters when creating a file.
+   *
+   * @throws Exception if creating a file fails
+   */
   @Test
   public void createFileTest() throws Exception {
     mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
@@ -134,6 +146,12 @@ public final class MasterSourceTest {
     Assert.assertEquals(2, mCounters.get("DirectoriesCreated").getCount());
   }
 
+  /**
+   * Tests the {@code CreateDirectoryOps} and the {@code DirectoryCreated} counters when creating a
+   * directory.
+   *
+   * @throws Exception if creating a directory fails
+   */
   @Test
   public void mkdirTest() throws Exception {
     mFileSystemMaster.mkdir(DIRECTORY_URI, CreateDirectoryOptions.defaults());
@@ -153,6 +171,12 @@ public final class MasterSourceTest {
     Assert.assertEquals(1, mCounters.get("DirectoriesCreated").getCount());
   }
 
+  /**
+   * Tests the {@code GetFileInfoOps} and {@code FileInfosGot} counters when retrieving information
+   * about a file.
+   *
+   * @throws Exception if creating a file or retrieving its information fails
+   */
   @Test
   public void getFileInfoTest() throws Exception {
     long fileId = mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
@@ -174,6 +198,12 @@ public final class MasterSourceTest {
     Assert.assertEquals(1, mCounters.get("FileInfosGot").getCount());
   }
 
+  /**
+   * Tests the {@code GetFileBlockInfoOps} and {@code FileBlockInfosGot} counters when retrieving
+   * information about a block of a file.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void getFileBlockInfoTest() throws Exception {
     mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
@@ -208,6 +238,11 @@ public final class MasterSourceTest {
     Assert.assertEquals(3, mCounters.get("FileBlockInfosGot").getCount());
   }
 
+  /**
+   * Tests the {@code CompleteFileOps} and {@code FilesCompleted} counters when completing a file.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void completeFileTest() throws Exception {
     mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
@@ -233,6 +268,11 @@ public final class MasterSourceTest {
     Assert.assertEquals(1, mCounters.get("FilesCompleted").getCount());
   }
 
+  /**
+   * Tests the {@code DeletePathOps} and {@code PathsDeleted} counters when deleting a path.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void deletePathTest() throws Exception {
 
@@ -251,6 +291,11 @@ public final class MasterSourceTest {
     Assert.assertEquals(1, mCounters.get("PathsDeleted").getCount());
   }
 
+  /**
+   * Tests the {@code GetNewBlockOps} counter when retrieving a new block id for a file.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void getNewBlockIdForFileTest() throws Exception {
     mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
@@ -261,6 +306,11 @@ public final class MasterSourceTest {
     Assert.assertEquals(1, mCounters.get("GetNewBlockOps").getCount());
   }
 
+  /**
+   * Tests the {@code SetStateOps} counter when setting the state of a file.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void setStateTest() throws Exception {
     mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
@@ -270,6 +320,11 @@ public final class MasterSourceTest {
     Assert.assertEquals(1, mCounters.get("SetStateOps").getCount());
   }
 
+  /**
+   * Tests the {@code FilesPersisted} counter when setting a file to persisted.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void filePersistedTest() throws Exception {
     createCompleteFileWithSingleBlock(NESTED_FILE_URI);
@@ -279,6 +334,11 @@ public final class MasterSourceTest {
     Assert.assertEquals(1, mCounters.get("FilesPersisted").getCount());
   }
 
+  /**
+   * Tests the {@code RenamePathOps} and {@code PathsRenamed} counters when renaming a file.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void renameTest() throws Exception {
     mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
@@ -301,6 +361,11 @@ public final class MasterSourceTest {
     Assert.assertEquals(1, mCounters.get("PathsRenamed").getCount());
   }
 
+  /**
+   * Tests the {@code FreeFileOps} and {@code FielsFreed} counters when freeing a file.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void freeTest() throws Exception {
     mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
@@ -321,6 +386,12 @@ public final class MasterSourceTest {
     Assert.assertEquals(1, mCounters.get("FilesFreed").getCount());
   }
 
+  /**
+   * Tests the {@code PathsMounted} and the {@code MountOps} counters when mounting or unmounting a
+   * path.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void mountUnmountTest() throws Exception {
 

@@ -30,6 +30,8 @@ import tachyon.exception.TachyonException;
 public final class MkdirCommand extends AbstractTfsShellCommand {
 
   /**
+   * Constructs a new instance to create a new directory.
+   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
@@ -49,19 +51,35 @@ public final class MkdirCommand extends AbstractTfsShellCommand {
 
   @Override
   public void run(String... args) throws IOException {
-    TachyonURI inputPath = new TachyonURI(args[0]);
+    for (String path : args) {
+      TachyonURI inputPath = new TachyonURI(path);
 
-    try {
-      CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
-      mTfs.createDirectory(inputPath, options);
-      System.out.println("Successfully created directory " + inputPath);
-    } catch (TachyonException e) {
-      throw new IOException(e.getMessage());
+      try {
+        CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
+        mTfs.createDirectory(inputPath, options);
+        System.out.println("Successfully created directory " + inputPath);
+      } catch (TachyonException e) {
+        throw new IOException(e.getMessage());
+      }
     }
   }
 
   @Override
   public String getUsage() {
-    return "mkdir <path>";
+    return "mkdir <path1> [path2] ... [pathn]";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Creates the specified directories, including any parent directories that are required.";
+  }
+
+  @Override
+  public boolean validateArgs(String... args) {
+    boolean valid = args.length >= getNumOfArgs();
+    if (!valid) {
+      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " argument at least\n");
+    }
+    return valid;
   }
 }

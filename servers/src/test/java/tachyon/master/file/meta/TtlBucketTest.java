@@ -20,79 +20,96 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link TTLBucket}.
+ * Unit tests for {@link TtlBucket}.
  */
-public class TTLBucketTest {
-  private TTLBucket mBucket;
+public class TtlBucketTest {
+  private TtlBucket mBucket;
 
+  /**
+   * Sets up a new {@link TtlBucket} before a test runs.
+   */
   @Before
   public void before() {
-    mBucket = new TTLBucket(0);
+    mBucket = new TtlBucket(0);
   }
 
+  /**
+   * Tests the different interval methods.
+   */
   @Test
   public void intervalTest() {
     for (long i = 0; i < 10; i ++) {
-      mBucket = new TTLBucket(i);
-      Assert.assertEquals(mBucket.getTTLIntervalEndTimeMs(), mBucket.getTTLIntervalStartTimeMs()
-          + TTLBucket.getTTLIntervalMs());
+      mBucket = new TtlBucket(i);
+      Assert.assertEquals(mBucket.getTtlIntervalEndTimeMs(), mBucket.getTtlIntervalStartTimeMs()
+          + TtlBucket.getTtlIntervalMs());
     }
   }
 
+  /**
+   * Tests the {@link TtlBucket#compareTo(TtlBucket)} method with the
+   * {@link TtlBucket#getTtlIntervalStartTimeMs()} method.
+   */
   @Test
   public void compareIntervalStartTimeTest() {
     for (long i = 0; i < 10; i ++) {
       for (long j = i + 1; j < 10; j ++) {
-        TTLBucket bucket1 = new TTLBucket(i);
-        Assert.assertEquals(i, bucket1.getTTLIntervalStartTimeMs());
+        TtlBucket bucket1 = new TtlBucket(i);
+        Assert.assertEquals(i, bucket1.getTtlIntervalStartTimeMs());
 
-        TTLBucket bucket2 = new TTLBucket(j);
-        Assert.assertEquals(j, bucket2.getTTLIntervalStartTimeMs());
+        TtlBucket bucket2 = new TtlBucket(j);
+        Assert.assertEquals(j, bucket2.getTtlIntervalStartTimeMs());
 
         Assert.assertEquals(-1, bucket1.compareTo(bucket2));
         Assert.assertEquals(1, bucket2.compareTo(bucket1));
 
-        TTLBucket bucket3 = new TTLBucket(i);
-        Assert.assertEquals(i, bucket3.getTTLIntervalStartTimeMs());
+        TtlBucket bucket3 = new TtlBucket(i);
+        Assert.assertEquals(i, bucket3.getTtlIntervalStartTimeMs());
 
         Assert.assertEquals(0, bucket1.compareTo(bucket3));
       }
     }
   }
 
+  /**
+   * Tests the {@link TtlBucket#addFile(InodeFile)} and {@link TtlBucket#removeFile(InodeFile)}
+   * methods.
+   */
   @Test
   public void addAndRemoveFileTest() {
-    InodeFile mFileTTL1 = new InodeFile.Builder().setCreationTimeMs(0).setBlockContainerId(0)
-        .setTTL(1).build();
-    InodeFile mFileTTL2 = new InodeFile.Builder().setCreationTimeMs(0).setBlockContainerId(1)
-        .setTTL(2).build();
+    InodeFile mFileTtl1 = new InodeFile.Builder().setCreationTimeMs(0).setBlockContainerId(0)
+        .setTtl(1).build();
+    InodeFile mFileTtl2 = new InodeFile.Builder().setCreationTimeMs(0).setBlockContainerId(1)
+        .setTtl(2).build();
     Assert.assertTrue(mBucket.getFiles().isEmpty());
 
-    mBucket.addFile(mFileTTL1);
+    mBucket.addFile(mFileTtl1);
     Assert.assertEquals(1, mBucket.getFiles().size());
 
     // The same file, won't be added.
-    mBucket.addFile(mFileTTL1);
+    mBucket.addFile(mFileTtl1);
     Assert.assertEquals(1, mBucket.getFiles().size());
 
     // Different file, will be added.
-    mBucket.addFile(mFileTTL2);
+    mBucket.addFile(mFileTtl2);
     Assert.assertEquals(2, mBucket.getFiles().size());
 
     // Remove files;
-    mBucket.removeFile(mFileTTL1);
+    mBucket.removeFile(mFileTtl1);
     Assert.assertEquals(1, mBucket.getFiles().size());
-    Assert.assertTrue(mBucket.getFiles().contains(mFileTTL2));
-    mBucket.removeFile(mFileTTL2);
+    Assert.assertTrue(mBucket.getFiles().contains(mFileTtl2));
+    mBucket.removeFile(mFileTtl2);
     Assert.assertEquals(0, mBucket.getFiles().size());
   }
 
+  /**
+   * Tests the {@link TtlBucket#compareTo(TtlBucket)} method.
+   */
   @Test
   public void compareToTest() {
-    TTLBucket firstBucket = new TTLBucket(0);
-    TTLBucket secondBucket = new TTLBucket(0);
-    TTLBucket thirdBucket = new TTLBucket(1);
-    TTLBucket fourthBucket = new TTLBucket(2);
+    TtlBucket firstBucket = new TtlBucket(0);
+    TtlBucket secondBucket = new TtlBucket(0);
+    TtlBucket thirdBucket = new TtlBucket(1);
+    TtlBucket fourthBucket = new TtlBucket(2);
 
     Assert.assertEquals(0, firstBucket.compareTo(firstBucket));
     Assert.assertEquals(0, firstBucket.compareTo(secondBucket));
@@ -101,11 +118,14 @@ public class TTLBucketTest {
     Assert.assertEquals(1, fourthBucket.compareTo(firstBucket));
   }
 
+  /**
+   * Tests the {@link TtlBucket#equals(Object)} method.
+   */
   @Test
   public void equalsTest() {
-    TTLBucket firstBucket = new TTLBucket(0);
-    TTLBucket secondBucket = new TTLBucket(0);
-    TTLBucket thirdBucket = new TTLBucket(1);
+    TtlBucket firstBucket = new TtlBucket(0);
+    TtlBucket secondBucket = new TtlBucket(0);
+    TtlBucket thirdBucket = new TtlBucket(1);
 
     Assert.assertNotEquals(firstBucket, null);
     Assert.assertEquals(firstBucket, firstBucket);
@@ -114,11 +134,14 @@ public class TTLBucketTest {
     Assert.assertNotEquals(firstBucket, thirdBucket);
   }
 
+  /**
+   * Tests the {@link TtlBucket#hashCode()} method.
+   */
   @Test
   public void hashCodeTest() {
-    TTLBucket firstBucket = new TTLBucket(0);
-    TTLBucket secondBucket = new TTLBucket(0);
-    TTLBucket thirdBucket = new TTLBucket(1);
+    TtlBucket firstBucket = new TtlBucket(0);
+    TtlBucket secondBucket = new TtlBucket(0);
+    TtlBucket thirdBucket = new TtlBucket(1);
 
     Assert.assertEquals(firstBucket.hashCode(), firstBucket.hashCode());
     Assert.assertEquals(firstBucket.hashCode(), secondBucket.hashCode());

@@ -18,6 +18,7 @@ package tachyon.worker.block.io;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
 
@@ -74,7 +75,7 @@ public final class LocalFileBlockWriter implements BlockWriter {
    */
   private long write(long offset, ByteBuffer inputBuf) throws IOException {
     int inputBufLength = inputBuf.limit() - inputBuf.position();
-    ByteBuffer outputBuf =
+    MappedByteBuffer outputBuf =
         mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, offset, inputBufLength);
     outputBuf.put(inputBuf);
     int bytesWritten = outputBuf.limit();

@@ -41,12 +41,19 @@ public class BlockLockManagerTest {
 
   private BlockLockManager mLockManager;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
+  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the test fails
+   */
   @Before
   public void before() throws Exception {
     BlockMetadataManager mockMetaManager = PowerMockito.mock(BlockMetadataManager.class);
@@ -54,14 +61,23 @@ public class BlockLockManagerTest {
     mLockManager = new BlockLockManager();
   }
 
+  /**
+   * Tests the {@link BlockLockManager#lockBlock(long, long, BlockLockType)} method.
+   */
   @Test
-  public void lockBlockTest() throws Exception {
+  public void lockBlockTest() {
     // Read-lock on can both get through
     long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     Assert.assertNotEquals(lockId1, lockId2);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to unlock a block via
+   * {@link BlockLockManager#unlockBlock(long)} which is not locked.
+   *
+   * @throws Exception if unlocking the block fails
+   */
   @Test
   public void unlockNonExistingLockTest() throws Exception {
     long badLockId = 1;
@@ -71,6 +87,12 @@ public class BlockLockManagerTest {
     mLockManager.unlockBlock(badLockId);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to validate a lock of a block via
+   * {@link BlockLockManager#validateLock(long, long, long)} which is not locked.
+   *
+   * @throws Exception if the validation of the lock fails
+   */
   @Test
   public void validateLockIdWithNoRecordTest() throws Exception {
     long badLockId = 1;
@@ -80,6 +102,12 @@ public class BlockLockManagerTest {
     mLockManager.validateLock(TEST_SESSION_ID, TEST_BLOCK_ID, badLockId);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to validate a lock of a block via
+   * {@link BlockLockManager#validateLock(long, long, long)} with an incorrect session ID.
+   *
+   * @throws Exception if the validation of the lock fails
+   */
   @Test
   public void validateLockIdWithWrongSessionIdTest() throws Exception {
     long lockId = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
@@ -91,6 +119,12 @@ public class BlockLockManagerTest {
     mLockManager.validateLock(wrongSessionId, TEST_BLOCK_ID, lockId);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to validate a lock of a block via
+   * {@link BlockLockManager#validateLock(long, long, long)} with an incorrect block ID.
+   *
+   * @throws Exception if the validation of the lock fails
+   */
   @Test
   public void validateLockIdWithWrongBlockIdTest() throws Exception {
     long lockId = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
@@ -102,6 +136,12 @@ public class BlockLockManagerTest {
     mLockManager.validateLock(TEST_SESSION_ID, wrongBlockId, lockId);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to validate a lock of a block via
+   * {@link BlockLockManager#validateLock(long, long, long)} after the session was cleaned up.
+   *
+   * @throws Exception if the validation of the lock fails
+   */
   @Test
   public void cleanupSessionTest() throws Exception {
     long sessionId1 = TEST_SESSION_ID;

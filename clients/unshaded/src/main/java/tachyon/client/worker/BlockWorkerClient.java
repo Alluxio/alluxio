@@ -20,6 +20,8 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TTransportException;
@@ -38,13 +40,13 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
+import tachyon.thrift.BlockWorkerClientService;
 import tachyon.thrift.LockBlockResult;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
-import tachyon.thrift.BlockWorkerClientService;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
+import tachyon.worker.NetAddress;
 
 /**
  * The client talks to a block worker server. It keeps sending keep alive message to the worker
@@ -53,6 +55,7 @@ import tachyon.worker.ClientMetrics;
  * Since {@link BlockWorkerClientService.Client} is not thread safe, this class has to guarantee
  * thread safety.
  */
+@ThreadSafe
 public final class BlockWorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
@@ -161,7 +164,7 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   @Override
-  protected void beforeDisconnect() {
+  protected synchronized void beforeDisconnect() {
     // Heartbeat to send the client metrics.
     if (mHeartbeatExecutor != null) {
       mHeartbeatExecutor.heartbeat();
@@ -169,14 +172,14 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   @Override
-  protected void afterDisconnect() {
+  protected synchronized void afterDisconnect() {
     if (mHeartbeat != null) {
       mHeartbeat.cancel(true);
     }
   }
 
   @Override
-  protected TachyonService.Client getClient() {
+  protected synchronized TachyonService.Client getClient() {
     return mClient;
   }
 
@@ -236,6 +239,7 @@ public final class BlockWorkerClient extends ClientBase {
   /**
    * @return the address of the worker
    */
+  @Override
   public synchronized InetSocketAddress getAddress() {
     return mAddress;
   }
@@ -247,6 +251,9 @@ public final class BlockWorkerClient extends ClientBase {
     return mWorkerDataServerAddress;
   }
 
+  /**
+   * @return the id of the session
+   */
   public synchronized long getSessionId() {
     return mSessionId;
   }

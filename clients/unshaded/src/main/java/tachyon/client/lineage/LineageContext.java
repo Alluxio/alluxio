@@ -15,13 +15,15 @@
 
 package tachyon.client.lineage;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.client.ClientContext;
 
 /**
  * A shared context in each client JVM for common lineage master client functionality such as a pool
  * of lineage master clients. Any remote clients will be created and destroyed on a per use basis.
- * This class is thread safe.
  */
+@ThreadSafe
 public enum LineageContext {
   INSTANCE;
 

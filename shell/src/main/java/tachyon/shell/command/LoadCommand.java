@@ -36,6 +36,8 @@ import tachyon.exception.TachyonException;
 public final class LoadCommand extends WithWildCardPathCommand {
 
   /**
+   * Constructs a new instance to load a file or directory in Tachyon space.
+   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
@@ -95,5 +97,10 @@ public final class LoadCommand extends WithWildCardPathCommand {
   @Override
   public String getUsage() {
     return "load <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Loads a file or directory in Tachyon space, makes it resident in memory.";
   }
 }

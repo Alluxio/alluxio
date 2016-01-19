@@ -23,8 +23,11 @@ import org.junit.Test;
  */
 public class BlockStoreLocationTest {
 
+  /**
+   * Tests that a new location can be created with the constructor.
+   */
   @Test
-  public void newLocationTest() throws Exception {
+  public void newLocationTest() {
     String tierAlias = "SSD";
     int dirIndex = 3;
     BlockStoreLocation loc = new BlockStoreLocation(tierAlias, dirIndex);
@@ -33,8 +36,11 @@ public class BlockStoreLocationTest {
     Assert.assertEquals(dirIndex, loc.dir());
   }
 
+  /**
+   * Tests the {@link BlockStoreLocation#belongTo(BlockStoreLocation)} method.
+   */
   @Test
-  public void testBelongTo() throws Exception {
+  public void testBelongTo() {
     BlockStoreLocation anyTier = BlockStoreLocation.anyTier();
     BlockStoreLocation anyDirInTierMEM =
         BlockStoreLocation.anyDirInTier("MEM");
@@ -74,8 +80,11 @@ public class BlockStoreLocationTest {
     Assert.assertTrue(dirInHDD.belongTo(dirInHDD));
   }
 
+  /**
+   * Tests the {@link BlockStoreLocation#equals(Object)} method.
+   */
   @Test
-  public void equalsTest() throws Exception {
+  public void equalsTest() {
     BlockStoreLocation anyTier = BlockStoreLocation.anyTier();
     BlockStoreLocation anyDirInTierMEM =
         BlockStoreLocation.anyDirInTier("MEM");

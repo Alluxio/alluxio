@@ -67,8 +67,8 @@ import tachyon.master.file.meta.InodeFile;
 import tachyon.master.file.meta.InodeTree;
 import tachyon.master.file.meta.MountTable;
 import tachyon.master.file.meta.PersistenceState;
-import tachyon.master.file.meta.TTLBucket;
-import tachyon.master.file.meta.TTLBucketList;
+import tachyon.master.file.meta.TtlBucket;
+import tachyon.master.file.meta.TtlBucketList;
 import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateFileOptions;
@@ -77,6 +77,7 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
 import tachyon.proto.journal.File.AddMountPointEntry;
+import tachyon.proto.journal.File.AsyncPersistRequestEntry;
 import tachyon.proto.journal.File.CompleteFileEntry;
 import tachyon.proto.journal.File.DeleteFileEntry;
 import tachyon.proto.journal.File.DeleteMountPointEntry;
@@ -89,7 +90,6 @@ import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
-import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
@@ -100,9 +100,9 @@ import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.FileSystemCommandOptions;
 import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.FileSystemMasterWorkerService;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.PersistCommandOptions;
 import tachyon.thrift.PersistFile;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
 import tachyon.util.io.PathUtils;
@@ -132,9 +132,19 @@ public final class FileSystemMaster extends MasterBase {
    * accessed from tests.
    */
   @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private Future<?> mTTLCheckerService;
+  private Future<?> mTtlCheckerService;
 
-  private final TTLBucketList mTTLBuckets = new TTLBucketList();
+  /**
+   * The service that detects lost files. We store it here so that it can be accessed from tests.
+   */
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
+  private Future<?> mLostFilesDetectionService;
+
+  /**
+   * This maintains inodes with ttl set in the corresponding ttlbucket, for the
+   * mTtlCheckerService to use
+   */
+  private final TtlBucketList mTtlBuckets = new TtlBucketList();
 
   /**
    * @param baseDirectory the base journal directory
@@ -243,9 +253,9 @@ public final class FileSystemMaster extends MasterBase {
       } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
-    } else if (innerEntry instanceof PersistFilesRequestEntry) {
+    } else if (innerEntry instanceof AsyncPersistRequestEntry) {
       try {
-        setPersistingState(((PersistFilesRequestEntry) innerEntry).getFileIdsList());
+        scheduleAsyncPersistenceInternal(((AsyncPersistRequestEntry) innerEntry).getFileId());
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
@@ -281,14 +291,17 @@ public final class FileSystemMaster extends MasterBase {
     // getExecutorService() because the super.start initializes the executor service.
     super.start(isLeader);
     if (isLeader) {
-      mTTLCheckerService = getExecutorService().submit(
-          new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK, new MasterInodeTTLCheckExecutor(),
+      mTtlCheckerService = getExecutorService().submit(
+          new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK, new MasterInodeTtlCheckExecutor(),
               MasterContext.getConf().getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
+      mLostFilesDetectionService = getExecutorService().submit(new HeartbeatThread(
+          HeartbeatContext.MASTER_LOST_FILES_DETECTION, new LostFilesDetectionHeartbeatExecutor(),
+          MasterContext.getConf().getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 
   /**
-   * Whether the filesystem contains a directory with the id. Called by internal masters.
+   * Whether the filesystem contains a directory with the id.
    *
    * @param id id of the directory
    * @return true if there is a directory with the id, false otherwise
@@ -306,8 +319,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the file id for a given path. Called via RPC, as well as internal masters. If the given
-   * path does not exist in Tachyon, the method attempts to load it from UFS.
+   * Returns the file id for a given path. If the given path does not exist in Tachyon, the method
+   * attempts to load it from UFS.
    *
    * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
@@ -329,10 +342,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the {@link FileInfo} for a given path. Called via RPC, as well as internal masters.
-   *
    * @param fileId the file id to get the {@link FileInfo} for
-   * @return the {@link FileInfo} for the given file id
+   * @return the {@link FileInfo} for the given file
    * @throws FileDoesNotExistException if the file does not exist
    */
   public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
@@ -344,6 +355,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
+<<<<<<< HEAD
    * Returns the {@link FileInfo} for a given path. Called via RPC, as well as internal masters.
    *
    * @param path the path to get the {@link FileInfo} for
@@ -362,8 +374,10 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Returns the persistence state of a given file.
    *
+=======
+>>>>>>> master
    * @param fileId the file id
-   * @return the persistence state
+   * @return the persistence state for the given file
    * @throws FileDoesNotExistException if the file does not exist
    */
   public PersistenceState getPersistenceState(long fileId)
@@ -375,7 +389,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
-    // This function should only be called from within synchronized (mInodeTree) blocks.
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
     TachyonURI path = mInodeTree.getPath(inode);
@@ -396,7 +409,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Returns a list {@link FileInfo} for a given file id. If the given file id is a file, the list
    * only contains a single object. If it is a directory, the resulting list contains all direct
-   * children of the directory. Called via RPC, as well as internal masters.
+   * children of the directory.
    *
    * @param path the path to get the {@link FileInfo} list for
    * @return the list of {@link FileInfo}s
@@ -431,7 +444,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Completes a file. After a file is completed, it cannot be written to. Called via RPC.
+   * Completes a file. After a file is completed, it cannot be written to.
    *
    * @param path the file path to complete
    * @param options the method options
@@ -493,7 +506,6 @@ public final class FileSystemMaster extends MasterBase {
   void completeFileInternal(List<Long> blockIds, long fileId, long length, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
       FileAlreadyCompletedException {
-    // This function should only be called from within synchronized (mInodeTree) blocks.
     InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
     inode.setBlockIds(blockIds);
     inode.setLastModificationTimeMs(opTimeMs);
@@ -522,7 +534,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Creates a file (not a directory) for a given path. Called via RPC.
+   * Creates a file (not a directory) for a given path.
    *
    * @param path the file to create
    * @param options method options
@@ -530,6 +542,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileAlreadyExistsException if the file already exists
    * @throws BlockInfoException if an invalid block information in encountered
+   * @throws IOException if the creation fails
    */
   public long create(TachyonURI path, CreateFileOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
@@ -547,11 +560,10 @@ public final class FileSystemMaster extends MasterBase {
 
   InodeTree.CreatePathResult createInternal(TachyonURI path, CreateFileOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
-    // This function should only be called from within synchronized (mInodeTree) blocks.
     CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
         .setBlockSizeBytes(options.getBlockSizeBytes()).setDirectory(false)
         .setOperationTimeMs(options.getOperationTimeMs()).setPersisted(options.isPersisted())
-        .setRecursive(options.isRecursive()).setTTL(options.getTTL())
+        .setRecursive(options.isRecursive()).setTtl(options.getTtl())
         .setPermissionStatus(PermissionStatus.get(MasterContext.getConf(), true)).build();
     InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
     // If the create succeeded, the list of created inodes will not be empty.
@@ -561,7 +573,7 @@ public final class FileSystemMaster extends MasterBase {
       inode.setCacheable(true);
     }
 
-    mTTLBuckets.insert(inode);
+    mTtlBuckets.insert(inode);
 
     MasterContext.getMasterSource().incFilesCreated(1);
     MasterContext.getMasterSource().incDirectoriesCreated(created.size() - 1);
@@ -602,10 +614,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the next block id for a given file id. Called via RPC.
-   *
    * @param path the path of the file to get the next block id for
-   * @return the next block id for the file
+   * @return the next block id for the given file
    * @throws FileDoesNotExistException if the file does not exist
    */
   public long getNewBlockIdForFile(TachyonURI path)
@@ -623,8 +633,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Get the total number of files and directories.
-   *
    * @return the number of files and directories
    */
   public int getNumberOfPaths() {
@@ -634,8 +642,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Get the number of pinned files and directories.
-   *
    * @return the number of pinned files and directories
    */
   public int getNumberOfPinnedFiles() {
@@ -645,7 +651,11 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
+<<<<<<< HEAD
    * Deletes a given path. Called via RPC.
+=======
+   * Deletes a given file id.
+>>>>>>> master
    *
    * @param path the path to delete
    * @param recursive if true, will delete all its children
@@ -719,8 +729,6 @@ public final class FileSystemMaster extends MasterBase {
    */
   boolean deleteFileInternal(long fileId, boolean recursive, boolean replayed, long opTimeMs)
       throws FileDoesNotExistException, IOException, DirectoryNotEmptyException {
-    // This function should only be called from within synchronized (mInodeTree) blocks.
-    //
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Tachyon and UFS.
     Inode inode = mInodeTree.getInodeById(fileId);
@@ -779,13 +787,14 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the {@link FileBlockInfo} for given file and block index. Called via RPC.
+   * Returns the {@link FileBlockInfo} for given file and block index.
    *
    * @param fileId the file id to get the info for
    * @param fileBlockIndex the block index of the file to get the block info for
    * @return the {@link FileBlockInfo} for the file and block index
    * @throws FileDoesNotExistException if the file does not exist
    * @throws BlockInfoException if the block size is invalid
+   * @throws InvalidPathException if the mount table is not able to resolve the file
    */
   public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException {
@@ -811,11 +820,10 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns all the {@link FileBlockInfo} of the given file. Called via RPC, and internal masters.
-   *
    * @param path the path to get the info for
-   * @return a list of {@link FileBlockInfo} for all the blocks of the file
+   * @return a list of {@link FileBlockInfo} for all the blocks of the given file
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the path of the given file is invalid
    */
   public List<FileBlockInfo> getFileBlockInfoList(TachyonURI path)
       throws FileDoesNotExistException, InvalidPathException {
@@ -844,13 +852,13 @@ public final class FileSystemMaster extends MasterBase {
    * @param file the file the block is a part of
    * @param blockInfo the {@link BlockInfo} to generate the {@link FileBlockInfo} from
    * @return a new {@link FileBlockInfo} for the block
+   * @throws InvalidPathException if the mount table is not able to resolve the file
    */
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo)
       throws InvalidPathException {
-    // This function should only be called from within synchronized (mInodeTree) blocks.
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.blockInfo = blockInfo;
-    fileBlockInfo.ufsLocations = new ArrayList<NetAddress>();
+    fileBlockInfo.ufsLocations = new ArrayList<WorkerNetAddress>();
 
     // The sequence number part of the block id is the block index.
     fileBlockInfo.offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.blockId);
@@ -880,7 +888,7 @@ public final class FileSystemMaster extends MasterBase {
             continue;
           }
           // The resolved port is the data transfer port not the rpc port
-          fileBlockInfo.ufsLocations.add(new NetAddress(resolvedHost, -1, resolvedPort, -1));
+          fileBlockInfo.ufsLocations.add(new WorkerNetAddress(resolvedHost, -1, resolvedPort, -1));
         }
       }
     }
@@ -898,8 +906,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Gets absolute paths of all in memory files. Called by the web ui.
-   *
    * @return absolute paths of all in memory files
    */
   public List<TachyonURI> getInMemoryFiles() {
@@ -930,7 +936,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Get the in-memory percentage of an Inode. For a file that has all blocks in memory, it returns
+   * Gets the in-memory percentage of an Inode. For a file that has all blocks in memory, it returns
    * 100; for a file that has no block in memory, it returns 0. Returns 0 for a directory.
    *
    * @param inode the inode
@@ -969,7 +975,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Creates a directory for a given path. Called via RPC, and internal masters.
+   * Creates a directory for a given path.
    *
    * @param path the path of the directory
    * @param options method options
@@ -978,7 +984,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException when the path is invalid, please see documentation on
    *         {@link InodeTree#createPath(TachyonURI, CreatePathOptions)} for more details
    * @throws FileAlreadyExistsException when there is already a file at path
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   public InodeTree.CreatePathResult mkdir(TachyonURI path, CreateDirectoryOptions options)
       throws InvalidPathException, FileAlreadyExistsException, IOException {
@@ -1040,7 +1046,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Renames a file to a destination. Called via RPC.
+   * Renames a file to a destination.
    *
    * @param srcPath the source path to rename
    * @param dstPath the destination path to rename the file to
@@ -1135,7 +1141,6 @@ public final class FileSystemMaster extends MasterBase {
    */
   void renameInternal(long fileId, TachyonURI dstPath, boolean replayed, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException, IOException {
-    // This function should only be called from within synchronized (mInodeTree) blocks.
     Inode srcInode = mInodeTree.getInodeById(fileId);
     TachyonURI srcPath = mInodeTree.getPath(srcInode);
     LOG.debug("Renaming {} to {}", srcPath, dstPath);
@@ -1217,8 +1222,7 @@ public final class FileSystemMaster extends MasterBase {
 
   /**
    * Frees or evicts all of the blocks of the file from tachyon storage. If the given file is a
-   * directory, and the 'recursive' flag is enabled, all descendant files will also be freed. Called
-   * via RPC.
+   * directory, and the 'recursive' flag is enabled, all descendant files will also be freed.
    *
    * @param path the path to free
    * @param recursive if true, and the file is a directory, all descendants will be freed
@@ -1244,7 +1248,7 @@ public final class FileSystemMaster extends MasterBase {
       }
 
       // We go through each inode.
-      for (int i = freeInodes.size() - 1; i >= 0; i --) {
+      for (int i = freeInodes.size() - 1; i >= 0; i--) {
         Inode freeInode = freeInodes.get(i);
 
         if (freeInode.isFile()) {
@@ -1258,9 +1262,9 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Gets the path of a file with the given id. Called by the internal web ui.
+   * Gets the path of a file with the given id.
    *
-   * @param fileId The id of the file to look up
+   * @param fileId the id of the file to look up
    * @return the path of the file
    * @throws FileDoesNotExistException raise if the file does not exist
    */
@@ -1271,7 +1275,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * @return the set of inode ids which are pinned. Called via RPC
+   * @return the set of inode ids which are pinned
    */
   public Set<Long> getPinIdList() {
     synchronized (mInodeTree) {
@@ -1287,7 +1291,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * @return the white list. Called by the internal web ui
+   * @return the white list
    */
   public List<String> getWhiteList() {
     return mWhitelist.getList();
@@ -1307,6 +1311,12 @@ public final class FileSystemMaster extends MasterBase {
     return new ArrayList<Long>(lostFiles);
   }
 
+  /**
+   * Reports a file as lost.
+   *
+   * @param fileId the id of the file
+   * @throws FileDoesNotExistException if the file does not exist
+   */
   public void reportLostFile(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -1558,8 +1568,8 @@ public final class FileSystemMaster extends MasterBase {
       if (options.hasPinned()) {
         setState.setPinned(options.getPinned());
       }
-      if (options.hasTTL()) {
-        setState.setTtl(options.getTTL());
+      if (options.hasTtl()) {
+        setState.setTtl(options.getTtl());
       }
       if (options.hasPersisted()) {
         setState.setPersisted(options.getPersisted());
@@ -1577,6 +1587,20 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException when the file does not exist
    */
   public long scheduleAsyncPersistence(long fileId) throws FileDoesNotExistException {
+    long workerId = scheduleAsyncPersistenceInternal(fileId);
+
+    synchronized (mInodeTree) {
+      // write to journal
+      AsyncPersistRequestEntry asyncPersistRequestEntry =
+          AsyncPersistRequestEntry.newBuilder().setFileId(fileId).build();
+      writeJournalEntry(
+          JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
+      flushJournal();
+      return workerId;
+    }
+  }
+
+  private long scheduleAsyncPersistenceInternal(long fileId) throws FileDoesNotExistException {
     // find the worker
     long workerId = getWorkerStoringFile(fileId);
 
@@ -1598,9 +1622,6 @@ public final class FileSystemMaster extends MasterBase {
       }
       mWorkerToAsyncPersistFiles.get(workerId).add(fileId);
     }
-
-    // TODO(yupeng) TACHYON-1456 add fault tolerance and flush journal
-
     return workerId;
   }
 
@@ -1689,27 +1710,7 @@ public final class FileSystemMaster extends MasterBase {
       }
     }
     mWorkerToAsyncPersistFiles.get(workerId).removeAll(fileIdsToPersist);
-
-    // write to journal
-    PersistFilesRequestEntry persistFilesRequest =
-        PersistFilesRequestEntry.newBuilder().addAllFileIds(fileIdsToPersist).build();
-    writeJournalEntry(
-        JournalEntry.newBuilder().setPersistFilesRequest(persistFilesRequest).build());
-    flushJournal();
     return filesToPersist;
-  }
-
-  /**
-   * Updates a list of files as being persisted.
-   *
-   * @param fileIds the id of the files
-   * @throws FileDoesNotExistException when a file does not exist
-   */
-  private void setPersistingState(List<Long> fileIds) throws FileDoesNotExistException {
-    for (long fileId : fileIds) {
-      InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
-      inode.setPersistenceState(PersistenceState.IN_PROGRESS);
-    }
   }
 
   /**
@@ -1744,14 +1745,14 @@ public final class FileSystemMaster extends MasterBase {
       mInodeTree.setPinned(inode, options.getPinned(), opTimeMs);
       inode.setLastModificationTimeMs(opTimeMs);
     }
-    if (options.hasTTL()) {
+    if (options.hasTtl()) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.TTL_ONLY_FOR_FILE);
-      long ttl = options.getTTL();
+      long ttl = options.getTtl();
       InodeFile file = (InodeFile) inode;
-      if (file.getTTL() != ttl) {
-        mTTLBuckets.remove(file);
-        file.setTTL(ttl);
-        mTTLBuckets.insert(file);
+      if (file.getTtl() != ttl) {
+        mTtlBuckets.remove(file);
+        file.setTtl(ttl);
+        mTtlBuckets.insert(file);
         file.setLastModificationTimeMs(opTimeMs);
       }
     }
@@ -1779,7 +1780,7 @@ public final class FileSystemMaster extends MasterBase {
       options.setPinned(entry.getPinned());
     }
     if (entry.hasTtl()) {
-      options.setTTL(entry.getTtl());
+      options.setTtl(entry.getTtl());
     }
     if (entry.hasPersisted()) {
       options.setPersisted(entry.getPersisted());
@@ -1790,12 +1791,12 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * This class represents the executor for periodic inode TTL check.
    */
-  private final class MasterInodeTTLCheckExecutor implements HeartbeatExecutor {
+  private final class MasterInodeTtlCheckExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat() {
       synchronized (mInodeTree) {
-        Set<TTLBucket> expiredBuckets = mTTLBuckets.getExpiredBuckets(System.currentTimeMillis());
-        for (TTLBucket bucket : expiredBuckets) {
+        Set<TtlBucket> expiredBuckets = mTtlBuckets.getExpiredBuckets(System.currentTimeMillis());
+        for (TtlBucket bucket : expiredBuckets) {
           for (InodeFile file : bucket.getFiles()) {
             if (!file.isDeleted()) {
               // file.isPinned() is deliberately not checked because ttl will have effect no matter
@@ -1810,7 +1811,30 @@ public final class FileSystemMaster extends MasterBase {
           }
         }
 
-        mTTLBuckets.removeBuckets(expiredBuckets);
+        mTtlBuckets.removeBuckets(expiredBuckets);
+      }
+    }
+  }
+
+  /**
+   * Lost files periodic check.
+   */
+  private final class LostFilesDetectionHeartbeatExecutor implements HeartbeatExecutor {
+    @Override
+    public void heartbeat() {
+      for (long fileId : getLostFiles()) {
+        // update the state
+        synchronized (mInodeTree) {
+          Inode inode;
+          try {
+            inode = mInodeTree.getInodeById(fileId);
+            if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
+              inode.setPersistenceState(PersistenceState.LOST);
+            }
+          } catch (FileDoesNotExistException e) {
+            LOG.error("Exception trying to get inode from inode tree: {}", e.toString());
+          }
+        }
       }
     }
   }

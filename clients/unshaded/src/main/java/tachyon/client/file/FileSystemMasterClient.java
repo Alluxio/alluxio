@@ -20,6 +20,8 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
@@ -47,6 +49,7 @@ import tachyon.thrift.TachyonTException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
+@ThreadSafe
 public final class FileSystemMasterClient extends MasterClientBase {
   private FileSystemMasterClientService.Client mClient = null;
 
@@ -347,6 +350,24 @@ public final class FileSystemMasterClient extends MasterClientBase {
       @Override
       public Void call() throws TachyonTException, TException {
         mClient.setAttribute(path.getPath(), options.toThrift());
+        return null;
+      }
+    });
+  }
+
+  /**
+   * Schedules the async persistence of the given file.
+   *
+   * @param fileId the file id
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException if an I/O error occurs
+   */
+  public synchronized void scheduleAsyncPersist(final long fileId)
+      throws TachyonException, IOException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.scheduleAsyncPersist(fileId);
         return null;
       }
     });

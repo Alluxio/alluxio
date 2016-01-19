@@ -95,4 +95,9 @@ public final class PersistCommand extends AbstractTfsShellCommand {
   public String getUsage() {
     return "persist <tachyonPath>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Persists a file or directory currently stored only in Tachyon to the UnderFileSystem.";
+  }
 }

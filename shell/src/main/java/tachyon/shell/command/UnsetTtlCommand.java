@@ -25,15 +25,18 @@ import tachyon.conf.TachyonConf;
 /**
  * Unsets the TTL value for the given path.
  */
-public final class UnsetTTLCommand extends AbstractTfsShellCommand {
-
-  public UnsetTTLCommand(TachyonConf conf, FileSystem tfs) {
+public final class UnsetTtlCommand extends AbstractTfsShellCommand {
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
+  public UnsetTtlCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 
   @Override
   public String getCommandName() {
-    return "unsetTTL";
+    return "unsetTtl";
   }
 
   @Override
@@ -44,12 +47,17 @@ public final class UnsetTTLCommand extends AbstractTfsShellCommand {
   @Override
   public void run(String... args) throws IOException {
     TachyonURI inputPath = new TachyonURI(args[0]);
-    CommandUtils.setTTL(mTfs, inputPath, Constants.NO_TTL);
+    CommandUtils.setTtl(mTfs, inputPath, Constants.NO_TTL);
     System.out.println("TTL of file '" + inputPath + "' was successfully removed.");
   }
 
   @Override
   public String getUsage() {
-    return "unsetTTL <path>";
+    return "unsetTtl <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Unsets the TTL value for the given path.";
   }
 }
