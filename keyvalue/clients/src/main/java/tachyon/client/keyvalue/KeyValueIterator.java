@@ -17,11 +17,13 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 
+import tachyon.annotation.PublicApi;
 import tachyon.exception.TachyonException;
 
 /**
  * Iterator to iterate over key-value pairs in {@link KeyValueStores} or its partitions.
  */
+@PublicApi
 public interface KeyValueIterator {
   /**
    * @return true if the iterator has more key-value pairs, otherwise false

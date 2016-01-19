@@ -107,6 +107,12 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
   private class Iterator implements KeyValueIterator {
     private ByteBuffer mNextKey;
 
+    /**
+     * Gets the first key-value pair and constructs a new key-value partition iterator.
+     *
+     * @throws IOException if a non-Tachyon error happens when getting the first key-value pair
+     * @throws TachyonException if a Tachyon error happens when getting the first key-value pair
+     */
     public Iterator() throws IOException, TachyonException {
       mNextKey = nextKey(null);
     }

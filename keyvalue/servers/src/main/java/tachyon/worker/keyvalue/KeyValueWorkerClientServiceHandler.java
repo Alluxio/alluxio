@@ -160,6 +160,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
     }
   }
 
+  // TODO(cc): Try to remove the duplicated try-catch logic in other methods like getNextKeys.
   @Override
   public int getSize(long blockId) throws TachyonTException, ThriftIOException {
     try {

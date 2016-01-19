@@ -93,9 +93,9 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
   ByteBuffer get(ByteBuffer key) throws IOException, TachyonException;
 
   /**
-   * @return number of key-value pairs in the partition
-   * @throws IOException if non-Tachyon error occurs
-   * @throws TachyonException if Tachyon error occurs
+   * @return the number of key-value pairs in the partition
+   * @throws IOException if a non-Tachyon error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
   int size() throws IOException, TachyonException;
 }

@@ -122,6 +122,11 @@ public final class KeyValueStoreIntegrationTest {
     mReader.close();
   }
 
+  /**
+   * Tests that an iterator for an empty store has no next elements.
+   *
+   * @throws Exception when any exception happens
+   */
   @Test
   public void emptyStoreIteratorTest() throws Exception {
     mWriter = sKVStores.create(mStoreUri);
@@ -132,6 +137,11 @@ public final class KeyValueStoreIntegrationTest {
     Assert.assertFalse(iterator.hasNext());
   }
 
+  /**
+   * Tests that an iterator can correctly iterate over a store.
+   *
+   * @throws Exception when any exception happens
+   */
   @Test
   public void iteratorTest() throws Exception {
     mWriter = sKVStores.create(mStoreUri);
