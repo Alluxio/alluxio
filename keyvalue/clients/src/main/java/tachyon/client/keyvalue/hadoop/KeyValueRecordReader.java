@@ -30,7 +30,7 @@ import tachyon.util.io.BufferUtils;
 
 /**
  * Implements {@link RecordReader}, each record is a key-value pair stored in a partition of the
- * {@link tachyon.client.keyvalue.KeyValueStore}.
+ * {@link tachyon.client.keyvalue.KeyValueStores}.
  */
 final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWritable> {
   /** The partition reader for reading the key-value pairs */

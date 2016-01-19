@@ -28,7 +28,7 @@ import tachyon.exception.TachyonException;
 
 /**
  * Implements {@link InputSplit}, each split contains one partition of the
- * {@link tachyon.client.keyvalue.KeyValueStore}.
+ * {@link tachyon.client.keyvalue.KeyValueStores}.
  */
 final class KeyValueInputSplit implements InputSplit {
   /** The block store client */
