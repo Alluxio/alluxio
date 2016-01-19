@@ -15,13 +15,20 @@
 
 package tachyon.heartbeat;
 
+import java.io.Closeable;
+
 /**
  * An interface for a heartbeat execution. The {@link HeartbeatThread} calls the
  * {@link #heartbeat()} method.
  */
-public interface HeartbeatExecutor {
+public interface HeartbeatExecutor extends Closeable {
   /**
    * Implements the heartbeat logic.
    */
   void heartbeat();
+
+  /**
+   * Cleans up any resources used by the heartbeat executor.
+   */
+  void close();
 }
