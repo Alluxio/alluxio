@@ -61,16 +61,16 @@ public final class HeartbeatThreadTest {
 
   private static final int NUMBER_OF_THREADS = 10;
 
-  private static ExecutorService mExecutorService;
+  private static ExecutorService sExecutorService;
 
   @BeforeClass
   public static void beforeClass() {
-    mExecutorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+    sExecutorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
   }
 
   @AfterClass
   public static void afterClass() {
-    mExecutorService.shutdownNow();
+    sExecutorService.shutdownNow();
   }
 
   /**
@@ -129,7 +129,7 @@ public final class HeartbeatThreadTest {
         HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1);
 
         // Run the HeartbeatThread.
-        mExecutorService.submit(ht);
+        sExecutorService.submit(ht);
 
         // Wait for the DummyHeartbeatExecutor executor to be ready to execute its heartbeat.
         Assert.assertTrue("Initial wait failed.",
