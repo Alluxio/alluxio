@@ -108,6 +108,11 @@ public class LocalTachyonClusterResource implements TestRule {
     mConfParams = confParams;
   }
 
+
+  /**
+   * Create a new {@link LocalTachyonClusterResource} with default configuration.
+   */
+  // TODO(andrew) Go through our integration tests and see how many can use this constructor.
   public LocalTachyonClusterResource() {
     this(DEFAULT_WORKER_CAPACITY_BYTES, DEFAULT_QUOTA_UNIT_BYTES, DEFAULT_USER_BLOCK_SIZE);
   }
