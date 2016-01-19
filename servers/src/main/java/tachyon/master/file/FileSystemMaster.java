@@ -1582,14 +1582,16 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Schedules a file for async persistence.
    *
-   * @param fileId the id of the file for persistence
+   * @param path the id of the file for persistence
    * @return the id of the worker that persistence is scheduled on
    * @throws FileDoesNotExistException when the file does not exist
    */
-  public long scheduleAsyncPersistence(long fileId) throws FileDoesNotExistException {
-    long workerId = scheduleAsyncPersistenceInternal(fileId);
+  public long scheduleAsyncPersistence(TachyonURI path)
+      throws FileDoesNotExistException, InvalidPathException {
+    long workerId = scheduleAsyncPersistenceInternal(path);
 
     synchronized (mInodeTree) {
+      long fileId = mInodeTree.getInodeByPath(path).getId();
       // write to journal
       AsyncPersistRequestEntry asyncPersistRequestEntry =
           AsyncPersistRequestEntry.newBuilder().setFileId(fileId).build();
@@ -1600,19 +1602,19 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private long scheduleAsyncPersistenceInternal(long fileId) throws FileDoesNotExistException {
+  private long scheduleAsyncPersistenceInternal(TachyonURI path) throws FileDoesNotExistException {
     // find the worker
-    long workerId = getWorkerStoringFile(fileId);
+    long workerId = getWorkerStoringFile(path);
 
     if (workerId == IdUtils.INVALID_WORKER_ID) {
-      LOG.warn("No worker found to schedule async persistence for file {}", fileId);
+      LOG.warn("No worker found to schedule async persistence for file {}", path);
       // no worker found, do nothing
       return workerId;
     }
 
     // update the state
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeById(fileId);
+      Inode inode = mInodeTree.getInodeByPath(path);
       inode.setPersistenceState(PersistenceState.IN_PROGRESS);
     }
 
@@ -1628,15 +1630,15 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Gets a worker where the given file is stored.
    *
-   * @param fileId the file id, -1 if no worker can be found
-   * @return the storing worker
+   * @param path the path to the file
+   * @return the id of the storing worker
    * @throws FileDoesNotExistException when the file does not exist on any worker
    */
-  private long getWorkerStoringFile(long fileId) throws FileDoesNotExistException {
+  private long getWorkerStoringFile(TachyonURI path) throws FileDoesNotExistException {
     Map<Long, Integer> workerBlockCounts = Maps.newHashMap();
     List<FileBlockInfo> blockInfoList;
     try {
-      blockInfoList = getFileBlockInfoList(getPath(fileId));
+      blockInfoList = getFileBlockInfoList(path);
 
       for (FileBlockInfo fileBlockInfo : blockInfoList) {
         for (BlockLocation blockLocation : fileBlockInfo.blockInfo.locations) {

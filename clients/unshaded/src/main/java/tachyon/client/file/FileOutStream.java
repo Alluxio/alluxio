@@ -317,7 +317,7 @@ public class FileOutStream extends OutStreamBase {
   protected void scheduleAsyncPersist() throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      masterClient.scheduleAsyncPersist(mFileId);
+      masterClient.scheduleAsyncPersist(mUri);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
