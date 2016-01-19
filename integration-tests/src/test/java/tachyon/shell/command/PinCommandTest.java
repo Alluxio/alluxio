@@ -18,10 +18,10 @@ package tachyon.shell.command;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.Constants;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
+import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.TachyonFile;
 import tachyon.shell.AbstractTfsShellTest;
 import tachyon.TachyonURI;
@@ -58,34 +58,38 @@ public class PinCommandTest extends AbstractTfsShellTest {
 
   /**
    * Tests pinned files are not evicted when Tachyon reaches memory limit. This use cases
-   * creates three files of size 5MB for each to be added to Tachyon. The first file is pinned
-   * and is not expected to be evected.Tachyon capacity is 10MB, hence once the third file is
-   * added, Tachyon is forced to evict one file. Since the first file is pinned it will not be
-   * evicted only the second file will be evicted
+   * creates three files of sizes 20% ,30% and 80% of the available Tachyon memory and adds
+   * them to Tachyon. The first file is pinned and is not expected to be evected.
    */
   @Test
   public void setPinTest() throws Exception {
     String filePathA = "/testFileA";
     String filePathB = "/testFileB";
     String filePathC = "/testFileC";
-    int fileSize = 5 * Constants.MB;
+    long tachyonCapacity = TachyonBlockStore.get().getCapacityBytes();
+    int fileASize = (int)(0.2 * (double)tachyonCapacity);
+    int fileBSize = (int)(0.3 * (double)tachyonCapacity);
+    int fileCSize = (int)(0.8 * (double)tachyonCapacity);
 
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, filePathA, TachyonStorageType.STORE,
-         UnderStorageType.NO_PERSIST, fileSize);
+         UnderStorageType.NO_PERSIST, fileASize);
     Assert.assertTrue(fileExist(new TachyonURI(filePathA)));
     Assert.assertEquals(0, mFsShell.run("pin", filePathA));
 
     TachyonFile fileB = TachyonFSTestUtils.createByteFile(mTfs, filePathB, TachyonStorageType.STORE,
-         UnderStorageType.NO_PERSIST, fileSize);
+         UnderStorageType.NO_PERSIST, fileBSize);
     Assert.assertTrue(fileExist(new TachyonURI(filePathB)));
     Assert.assertEquals(0, mFsShell.run("unpin", filePathB));
 
     TachyonFile fileC = TachyonFSTestUtils.createByteFile(mTfs, filePathC, TachyonStorageType.STORE,
-         UnderStorageType.NO_PERSIST, fileSize);
+         UnderStorageType.NO_PERSIST, fileCSize);
     Assert.assertTrue(fileExist(new TachyonURI(filePathC)));
 
     // fileA is in memory because it is pinned, but not fileB
-    Assert.assertEquals(100, mTfs.getInfo(fileA).getInMemoryPercentage());
-    Assert.assertEquals(0, mTfs.getInfo(fileB).getInMemoryPercentage());
+    int fileAInMemoryPercentage = mTfs.getInfo(fileA).inMemoryPercentage;
+    int fileBInMemoryPercentage = mTfs.getInfo(fileB).inMemoryPercentage;
+    Assert.assertEquals(100, fileAInMemoryPercentage);
+    Assert.assertTrue("inMemoryPercentage for fileB  should be less than (" + fileBSize + ")",
+         fileBInMemoryPercentage < 100);
   }
 }

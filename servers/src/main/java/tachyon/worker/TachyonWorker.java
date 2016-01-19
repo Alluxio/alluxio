@@ -17,7 +17,12 @@ package tachyon.worker;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
 
+import org.apache.thrift.TMultiplexedProcessor;
+import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
@@ -27,13 +32,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
-import tachyon.thrift.BlockWorkerClientService;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.UIWebServer;
@@ -57,7 +62,8 @@ public final class TachyonWorker {
   private BlockWorker mBlockWorker;
   /** The worker serving file system operations */
   private FileSystemWorker mFileSystemWorker;
-
+  /** A list of extra workers to launch based on service loader */
+  private List<Worker> mAdditionalWorkers;
   /** is true if the worker is serving the RPC server */
   private boolean mIsServingRPC = false;
   /** Worker metrics system */
@@ -87,6 +93,19 @@ public final class TachyonWorker {
 
       mBlockWorker = new BlockWorker();
       mFileSystemWorker = new FileSystemWorker(mBlockWorker.getBlockDataManager());
+
+      mAdditionalWorkers = Lists.newArrayList();
+      List<? extends Worker> workers = Lists.newArrayList(mBlockWorker, mFileSystemWorker);
+      // Discover and register the available factories
+      // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader
+      ServiceLoader<WorkerFactory> discoveredMasterFactories =
+          ServiceLoader.load(WorkerFactory.class, WorkerFactory.class.getClassLoader());
+      for (WorkerFactory factory : discoveredMasterFactories) {
+        Worker worker = factory.create(workers);
+        if (worker != null) {
+          mAdditionalWorkers.add(worker);
+        }
+      }
 
       // Setup metrics collection system
       mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
@@ -260,9 +279,17 @@ public final class TachyonWorker {
   private void startWorkers() throws Exception {
     mBlockWorker.start();
     mFileSystemWorker.start();
+    // start additional workers
+    for (Worker master : mAdditionalWorkers) {
+      master.start();
+    }
   }
 
   private void stopWorkers() throws Exception {
+    // stop additional workers
+    for (Worker master : mAdditionalWorkers) {
+      master.stop();
+    }
     mFileSystemWorker.stop();
     mBlockWorker.stop();
   }
@@ -279,6 +306,12 @@ public final class TachyonWorker {
     mWorkerMetricsSystem.stop();
   }
 
+  private void registerServices(TMultiplexedProcessor processor, Map<String, TProcessor> services) {
+    for (Map.Entry<String, TProcessor> service : services.entrySet()) {
+      processor.registerProcessor(service.getKey(), service.getValue());
+    }
+  }
+
   /**
    * Helper method to create a {@link org.apache.thrift.server.TThreadPoolServer} for handling
    * incoming RPC requests.
@@ -288,9 +321,16 @@ public final class TachyonWorker {
   private TThreadPoolServer createThriftServer() {
     int minWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MIN);
     int maxWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MAX);
-    BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler> processor =
-        new BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler>(
-            mBlockWorker.getWorkerServiceHandler());
+    TMultiplexedProcessor processor = new TMultiplexedProcessor();
+
+    registerServices(processor, mBlockWorker.getServices());
+    registerServices(processor, mFileSystemWorker.getServices());
+    // register additional workers for RPC service
+    for (Worker worker: mAdditionalWorkers) {
+      registerServices(processor, worker.getServices());
+    }
+
+    // Return a TTransportFactory based on the authentication type
     TTransportFactory tTransportFactory;
     try {
       tTransportFactory = AuthenticationUtils.getServerTransportFactory(mTachyonConf);

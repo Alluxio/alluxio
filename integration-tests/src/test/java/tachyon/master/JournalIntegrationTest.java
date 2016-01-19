@@ -18,10 +18,7 @@ package tachyon.master;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,7 +39,6 @@ import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
-import tachyon.client.table.TachyonRawTables;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
@@ -66,9 +62,7 @@ public class JournalIntegrationTest {
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFileSystem mTfs = null;
-  private TachyonRawTables mTachyonRawTables = null;
   private TachyonURI mRootUri = new TachyonURI(TachyonURI.SEPARATOR);
-  private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
   private TachyonConf mMasterTachyonConf = null;
 
   /**
@@ -149,19 +143,10 @@ public class JournalIntegrationTest {
     fsMaster.stop();
   }
 
-  /**
-   * @throws Exception
-   */
-  @After
-  public final void after() throws Exception {
-    mExecutorService.shutdown();
-  }
-
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = mLocalTachyonClusterResource.get();
     mTfs = mLocalTachyonCluster.getClient();
-    mTachyonRawTables = TachyonRawTables.TachyonRawTablesFactory.get();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
@@ -588,21 +573,6 @@ public class JournalIntegrationTest {
     fsMaster.stop();
   }
 
-  /**
-   * Test raw table creation.
-   *
-   * @throws Exception
-   */
-  @Test
-  public void rawTableTest() throws Exception {
-    mTachyonRawTables.create(new TachyonURI("/xyz"), 10);
-    FileInfo fInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
-    mLocalTachyonCluster.stopTFS();
-    rawTableTestUtil(fInfo);
-    deleteFsMasterJournalLogs();
-    rawTableTestUtil(fInfo);
-  }
-
   private List<FileInfo> lsr(FileSystemMaster fsMaster, long fileId)
       throws FileDoesNotExistException {
     List<FileInfo> files = fsMaster.getFileInfoList(fileId);
@@ -611,21 +581,5 @@ public class JournalIntegrationTest {
       ret.addAll(lsr(fsMaster, file.getFileId()));
     }
     return ret;
-  }
-
-  private void rawTableTestUtil(FileInfo fileInfo) throws IOException, InvalidPathException,
-      FileDoesNotExistException {
-    FileSystemMaster fsMaster = createFsMasterFromJournal();
-
-    long fileId = fsMaster.getFileId(mRootUri);
-    Assert.assertTrue(fileId != -1);
-    // "ls -r /" should return 11 FileInfos, one is table root "/xyz", the others are 10 columns.
-    Assert.assertEquals(11, lsr(fsMaster, fileId).size());
-
-    fileId = fsMaster.getFileId(new TachyonURI("/xyz"));
-    Assert.assertTrue(fileId != -1);
-    Assert.assertEquals(fileInfo, fsMaster.getFileInfo(fileId));
-
-    fsMaster.stop();
   }
 }
