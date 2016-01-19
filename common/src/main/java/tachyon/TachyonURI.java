@@ -331,7 +331,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Check if the path is a windows path.
+   * Check if the path is a windows path. This should be platform independent.
    *
    * @param path the path to check
    * @param slashed if the path starts with a slash.
