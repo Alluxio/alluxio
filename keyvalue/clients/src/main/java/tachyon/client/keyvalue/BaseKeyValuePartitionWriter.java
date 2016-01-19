@@ -107,8 +107,9 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
   }
 
   @Override
-  public boolean canPutKeyValue(byte[] key, byte[] value) {
+  public boolean canPut(byte[] key, byte[] value) {
     // See BasePayloadWriter.insert()
+    // TODO(binfan): also take into account the potential index size change
     return byteCount() + key.length + value.length
         + Constants.BYTES_IN_INTEGER * 2 <= mMaxSizeBytes;
   }

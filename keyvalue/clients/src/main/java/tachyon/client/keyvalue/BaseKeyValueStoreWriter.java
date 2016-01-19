@@ -117,7 +117,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     // If this is the first put to the first partition in this store, create a new partition; or
     // if this is a put to an existing but full partition, create a new partition and switch to
     // this one.
-    if (mWriter == null || !mWriter.canPutKeyValue(key, value)) {
+    if (mWriter == null || !mWriter.canPut(key, value)) {
       // Need to save the existing partition before switching to the next partition.
       if (mWriter != null) {
         completePartition();
@@ -128,7 +128,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     }
 
     // If we are still unable to put this key-value pair after switching partition, throw exception.
-    if (!mWriter.canPutKeyValue(key, value)) {
+    if (!mWriter.canPut(key, value)) {
       throw new IOException(ExceptionMessage.KEY_VALUE_TOO_LARGE
           .getMessage(key.length, value.length));
     }

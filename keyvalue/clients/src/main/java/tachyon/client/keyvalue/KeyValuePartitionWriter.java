@@ -67,5 +67,5 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
    * @param value value to put, cannot be null
    * @return whether this writer is full to take any more key-value pairs
    */
-  boolean canPutKeyValue(byte[] key, byte[] value);
+  boolean canPut(byte[] key, byte[] value);
 }
