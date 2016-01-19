@@ -112,7 +112,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
   @Override
   public void close() {
-    mFixedExecutionService.shutdown();
+    mPersistFileService.shutdown();
   }
 
   /**
