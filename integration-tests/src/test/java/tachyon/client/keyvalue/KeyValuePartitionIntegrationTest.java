@@ -79,6 +79,11 @@ public final class KeyValuePartitionIntegrationTest {
     Assert.assertNull(mKeyValuePartitionReader.get("NoSuchKey".getBytes()));
   }
 
+  /**
+   * Tests that {@link KeyValuePartitionReader#size()} is correct when a new reader is created.
+   *
+   * @throws Exception when any exception happens
+   */
   @Test
   public void sizeTest() throws Exception {
     byte[][] keys = new byte[][]{KEY1, KEY2};
@@ -98,6 +103,11 @@ public final class KeyValuePartitionIntegrationTest {
     }
   }
 
+  /**
+   * Tests that {@link KeyValuePartitionReader#iterator()} can iterate over a partition correctly.
+   *
+   * @throws Exception when any exception happens
+   */
   @Test
   public void iteratorTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();

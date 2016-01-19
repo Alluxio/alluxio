@@ -17,16 +17,18 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 
+import tachyon.annotation.PublicApi;
 import tachyon.exception.TachyonException;
 
 /**
  * Interface to be implemented in classes that support iterating over key-value pairs.
  */
+@PublicApi
 public interface KeyValueIterable {
   /**
    * @return a {@link KeyValueIterator} for iterating over key-value pairs in the store
-   * @throws IOException if non-Tachyon error occurs
-   * @throws TachyonException if Tachyon error occurs
+   * @throws IOException if a non-Tachyon error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
   KeyValueIterator iterator() throws IOException, TachyonException;
 }

@@ -101,6 +101,10 @@ public class LinearProbingIndexTest {
     Assert.assertNull(index.get(nonExistentKey, payloadReaderNotUsed));
   }
 
+  /**
+   * Tests that {@link LinearProbingIndex#keyCount()} changes while key-value pairs are inserted,
+   * and can be correctly recovered after recovering {@link LinearProbingIndex} from an byte array.
+   */
   @Test
   public void keyCountTest() throws Exception {
     // keyCount should increase while inserting key-value pairs.
@@ -119,10 +123,12 @@ public class LinearProbingIndexTest {
     Assert.assertEquals(2, index.keyCount());
   }
 
+  /**
+   * Tests that {@link LinearProbingIndex#byteCount()} should be correctly recovered after
+   * recovering {@link LinearProbingIndex} from byte array.
+   */
   @Test
   public void byteCountTest() throws Exception {
-    // byteCount should be correctly recovered after recovering Index from byte array.
-
     // Empty Index.
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
     int count = index.byteCount();
@@ -148,6 +154,10 @@ public class LinearProbingIndexTest {
     return ret == null ? null : BufferUtils.newByteArrayFromByteBuffer(ret);
   }
 
+  /**
+   * Tests that {@link LinearProbingIndex#nextKey(ByteBuffer, PayloadReader)} works correctly for
+   * both empty and non-empty index.
+   */
   @Test
   public void nextKeyTest() throws Exception {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
@@ -170,6 +180,10 @@ public class LinearProbingIndexTest {
     Assert.assertNull(nextKey(index, secondKey));
   }
 
+  /**
+   * Tests that {@link LinearProbingIndex#keyIterator(PayloadReader)} works correctly for both empty
+   * and non-empty index.
+   */
   @Test
   public void keyIteratorTest() throws Exception {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();

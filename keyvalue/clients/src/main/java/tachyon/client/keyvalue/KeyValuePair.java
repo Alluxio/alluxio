@@ -17,6 +17,8 @@ package tachyon.client.keyvalue;
 
 import java.nio.ByteBuffer;
 
+import com.google.common.base.Preconditions;
+
 /**
  * A key-value pair.
  */
@@ -31,6 +33,9 @@ public class KeyValuePair {
    * @param value the value
    */
   public KeyValuePair(ByteBuffer key, ByteBuffer value) {
+    Preconditions.checkNotNull(key, "key in KeyValuePair cannot be null");
+    Preconditions.checkNotNull(value, "value in KeyValuePair cannot be null");
+
     mKey = key;
     mValue = value;
   }

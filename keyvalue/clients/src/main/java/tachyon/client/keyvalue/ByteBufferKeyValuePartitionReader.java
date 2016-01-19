@@ -128,10 +128,16 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
     return mIndex.keyCount();
   }
 
+  /**
+   * @return the {@link Index} reconstructed from the byte buffer
+   */
   public Index getIndex() {
     return mIndex;
   }
 
+  /**
+   * @return the {@link PayloadReader} for reading payloads from the byte buffer
+   */
   public PayloadReader getPayloadReader() {
     return mPayloadReader;
   }

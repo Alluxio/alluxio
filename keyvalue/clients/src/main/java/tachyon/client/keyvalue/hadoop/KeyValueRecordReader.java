@@ -68,19 +68,25 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
     KeyValuePair pair;
     try {
       pair = mKeyValuePairIterator.next();
-    } catch (TachyonException te) {
-      throw new IOException(te);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     }
 
     DataInputStream key = new DataInputStream(new ByteArrayInputStream(
         BufferUtils.newByteArrayFromByteBuffer(pair.getKey())));
-    keyWritable.readFields(key);
-    key.close();
+    try {
+      keyWritable.readFields(key);
+    } finally {
+      key.close();
+    }
 
     DataInputStream value = new DataInputStream(new ByteArrayInputStream(
         BufferUtils.newByteArrayFromByteBuffer(pair.getValue())));
-    valueWritable.readFields(value);
-    value.close();
+    try {
+      valueWritable.readFields(value);
+    } finally {
+      value.close();
+    }
 
     mPos += keyWritable.getLength() + valueWritable.getLength();
     mNumVisitedKeyValuePairs ++;
