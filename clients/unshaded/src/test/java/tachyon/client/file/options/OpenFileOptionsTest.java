@@ -21,6 +21,8 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
+import tachyon.client.file.policy.RoundRobinPolicy;
 
 /**
  * Tests for the {@link OpenFileOptions} class.
@@ -40,19 +42,23 @@ public class OpenFileOptionsTest {
    */
   @Test
   public void fieldsTest() {
+    FileWriteLocationPolicy policy = new RoundRobinPolicy();
     ReadType readType = ReadType.NO_CACHE;
 
     OpenFileOptions options = OpenFileOptions.defaults();
     options.setReadType(readType);
+    options.setLocationPolicy(policy);
 
     Assert.assertEquals(readType.getTachyonStorageType(), options.getTachyonStorageType());
+    Assert.assertEquals(policy, options.getLocationPolicy());
   }
 
   @Test
   public void toInStreamOptionsTest() {
     OpenFileOptions options = OpenFileOptions.defaults();
     InStreamOptions inStreamOptions = options.toInStreamOptions();
-    Assert.assertEquals(mDefaultReadType.getTachyonStorageType(),
+    Assert.assertEquals(options.getTachyonStorageType(),
         inStreamOptions.getTachyonStorageType());
+    Assert.assertEquals(options.getLocationPolicy(), inStreamOptions.getLocationPolicy());
   }
 }

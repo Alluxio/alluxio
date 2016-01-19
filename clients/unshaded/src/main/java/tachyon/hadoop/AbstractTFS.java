@@ -54,7 +54,6 @@ import tachyon.exception.InvalidPathException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
 
