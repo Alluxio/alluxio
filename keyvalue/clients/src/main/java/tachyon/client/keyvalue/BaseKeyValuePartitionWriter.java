@@ -102,14 +102,15 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
     Preconditions.checkNotNull(key);
     Preconditions.checkNotNull(value);
     Preconditions.checkState(!mClosed);
-    Preconditions.checkState(!isFull());
     mIndex.put(key, value, mPayloadWriter);
     mKeyCount ++;
   }
 
   @Override
-  public boolean isFull() {
-    return byteCount() >= mMaxSizeBytes;
+  public boolean canPutKeyValue(byte[] key, byte[] value) {
+    // See BasePayloadWriter.insert()
+    return byteCount() + key.length + value.length
+        + Constants.BYTES_IN_INTEGER * 2 <= mMaxSizeBytes;
   }
 
   /**
