@@ -108,7 +108,6 @@ public class LocalTachyonClusterResource implements TestRule {
     mConfParams = confParams;
   }
 
-
   /**
    * Create a new {@link LocalTachyonClusterResource} with default configuration.
    */
