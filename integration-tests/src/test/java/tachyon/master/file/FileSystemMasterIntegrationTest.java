@@ -103,16 +103,19 @@ public class FileSystemMasterIntegrationTest {
 
       if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
-        ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
-        for (int i = 0; i < FILES_PER_NODE; i ++) {
-          Callable<Void> call = (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
-              path.join(Integer.toString(i))));
-          futures.add(executor.submit(call));
+        try {
+          ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+          for (int i = 0; i < FILES_PER_NODE; i ++) {
+            Callable<Void> call = (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
+                path.join(Integer.toString(i))));
+            futures.add(executor.submit(call));
+          }
+          for (Future<Void> f : futures) {
+            f.get();
+          }
+        } finally {
+          executor.shutdown();
         }
-        for (Future<Void> f : futures) {
-          f.get();
-        }
-        executor.shutdown();
       } else {
         for (int i = 0; i < FILES_PER_NODE; i ++) {
           exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
@@ -153,16 +156,19 @@ public class FileSystemMasterIntegrationTest {
       } else {
         if (concurrencyDepth > 0) {
           ExecutorService executor = Executors.newCachedThreadPool();
-          ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
-          for (int i = 0; i < FILES_PER_NODE; i ++) {
-            Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
-                path.join(Integer.toString(i))));
-            futures.add(executor.submit(call));
+          try {
+            ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+            for (int i = 0; i < FILES_PER_NODE; i ++) {
+              Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
+                  path.join(Integer.toString(i))));
+              futures.add(executor.submit(call));
+            }
+            for (Future<Void> f : futures) {
+              f.get();
+            }
+          } finally {
+            executor.shutdown();
           }
-          for (Future<Void> f : futures) {
-            f.get();
-          }
-          executor.shutdown();
         } else {
           for (int i = 0; i < FILES_PER_NODE; i ++) {
             exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
@@ -221,16 +227,19 @@ public class FileSystemMasterIntegrationTest {
         Assert.assertEquals(fileId, mFsMaster.getFileId(dstPath));
       } else if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
-        ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
-        for (int i = 0; i < FILES_PER_NODE; i ++) {
-          Callable<Void> call = (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, mRootPath,
-              mRootPath2, path.join(Integer.toString(i))));
-          futures.add(executor.submit(call));
+        try {
+          ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+          for (int i = 0; i < FILES_PER_NODE; i ++) {
+            Callable<Void> call = (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, mRootPath,
+                mRootPath2, path.join(Integer.toString(i))));
+            futures.add(executor.submit(call));
+          }
+          for (Future<Void> f : futures) {
+            f.get();
+          }
+        } finally {
+          executor.shutdown();
         }
-        for (Future<Void> f : futures) {
-          f.get();
-        }
-        executor.shutdown();
       } else {
         for (int i = 0; i < FILES_PER_NODE; i ++) {
           exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
