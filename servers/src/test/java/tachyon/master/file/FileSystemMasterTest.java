@@ -152,7 +152,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#deleteFile(long, boolean)} method.
+   * Tests the {@link FileSystemMaster#deleteFile(TachyonURI, boolean)} method.
    *
    * @throws Exception if deleting a file fails
    */
@@ -172,7 +172,8 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#deleteFile(long, boolean)} method with a non-empty directory.
+   * Tests the {@link FileSystemMaster#deleteFile(TachyonURI, boolean)} method with a non-empty
+   * directory.
    *
    * @throws Exception if deleting a directory fails
    */
@@ -194,7 +195,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#deleteFile(long, boolean)} method for a directory.
+   * Tests the {@link FileSystemMaster#deleteFile(TachyonURI, boolean)} method for a directory.
    *
    * @throws Exception if deleting the directory fails
    */
@@ -209,7 +210,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#getNewBlockIdForFile(long)} method.
+   * Tests the {@link FileSystemMaster#getNewBlockIdForFile(TachyonURI)} method.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -234,8 +235,9 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests  that an exception is in the {@link FileSystemMaster#create(TachyonURI, CreateOptions)}
-   * with a TTL set in the {@link CreateOptions} after the TTL check was done once.
+   * Tests that an exception is in the
+   * {@link FileSystemMaster#create(TachyonURI, CreateFileOptions)} with a TTL set in the
+   * {@link CreateFileOptions} after the TTL check was done once.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -339,8 +341,8 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#setState(long, SetStateOptions)} method and that an exception
-   * is thrown when trying to set a TTL for a directory.
+   * Tests the {@link FileSystemMaster#setState(TachyonURI, SetAttributeOptions)} method and that an
+   * exception is thrown when trying to set a TTL for a directory.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -409,7 +411,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#rename(long, TachyonURI)} method.
+   * Tests the {@link FileSystemMaster#rename(TachyonURI, TachyonURI)} method.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -483,7 +485,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#free(long, boolean)} method.
+   * Tests the {@link FileSystemMaster#free(TachyonURI, boolean)} method.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -501,7 +503,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#free(long, boolean)} method with a directory.
+   * Tests the {@link FileSystemMaster#free(TachyonURI, boolean)} method with a directory.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -543,7 +545,7 @@ public final class FileSystemMasterTest {
     long blockId = createFileWithSingleBlock(ROOT_FILE_URI);
 
     long fileId = mFileSystemMaster.getFileId(ROOT_FILE_URI);
-    mFileSystemMaster.scheduleAsyncPersistence(fileId);
+    mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI);
 
     FileSystemCommand command =
         mFileSystemMaster.workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId));
@@ -571,7 +573,7 @@ public final class FileSystemMasterTest {
         new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(Constants.KB).build();
     mFileSystemMaster.completeFile(ROOT_FILE_URI, options);
 
-    long workerId = mFileSystemMaster.scheduleAsyncPersistence(fileId);
+    long workerId = mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI);
     Assert.assertEquals(IdUtils.INVALID_WORKER_ID, workerId);
   }
 
