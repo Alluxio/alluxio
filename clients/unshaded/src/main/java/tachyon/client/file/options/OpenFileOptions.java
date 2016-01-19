@@ -15,17 +15,22 @@
 
 package tachyon.client.file.options;
 
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonStorageType;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
+import tachyon.util.CommonUtils;
 
 /**
  * Method options for opening a file for reading.
  */
 @PublicApi
 public final class OpenFileOptions {
+  private FileWriteLocationPolicy mLocationPolicy;
   private ReadType mReadType;
 
   /**
@@ -41,6 +46,37 @@ public final class OpenFileOptions {
   private OpenFileOptions() {
     mReadType =
         ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
+    try {
+      mLocationPolicy =
+          CommonUtils.createNewClassInstance(ClientContext.getConf()
+                  .<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY),
+              new Class[]{}, new Object[]{});
+    } catch (Exception e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * @return the location policy to use when storing data to Tachyon
+   */
+  public FileWriteLocationPolicy getLocationPolicy() {
+    return mLocationPolicy;
+  }
+
+  /**
+   * @return the Tachyon storage type
+   */
+  public TachyonStorageType getTachyonStorageType() {
+    return mReadType.getTachyonStorageType();
+  }
+
+  /**
+   * @param policy the location policy to use when storing data to Tachyon
+   * @return the updated options object
+   */
+  public OpenFileOptions setLocationPolicy(FileWriteLocationPolicy policy) {
+    mLocationPolicy = policy;
+    return this;
   }
 
   /**
@@ -54,17 +90,10 @@ public final class OpenFileOptions {
   }
 
   /**
-   * @return the Tachyon storage type
-   */
-  public TachyonStorageType getTachyonStorageType() {
-    return mReadType.getTachyonStorageType();
-  }
-
-  /**
    * @return the {@link OutStreamOptions} representation of this object
    */
   public InStreamOptions toInStreamOptions() {
-    return InStreamOptions.defaults().setReadType(mReadType);
+    return InStreamOptions.defaults().setReadType(mReadType).setLocationPolicy(mLocationPolicy);
   }
 
   /**
