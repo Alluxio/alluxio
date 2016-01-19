@@ -20,13 +20,12 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFile;
+import tachyon.client.WriteType;
+import tachyon.client.file.URIStatus;
 import tachyon.exception.TachyonException;
 import tachyon.shell.AbstractTfsShellTest;
-import tachyon.thrift.FileInfo;
 
 /**
  * Tests for load command.
@@ -34,34 +33,33 @@ import tachyon.thrift.FileInfo;
 public class LoadCommandTest extends AbstractTfsShellTest {
   @Test
   public void loadDirTest() throws IOException, TachyonException {
-    TachyonFile fileA =
-        TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", TachyonStorageType.NO_STORE,
-            UnderStorageType.SYNC_PERSIST, 10);
-    TachyonFile fileB =
-        TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileB", TachyonStorageType.STORE,
-            UnderStorageType.NO_PERSIST, 10);
-    FileInfo fileInfoA = mTfs.getInfo(fileA);
-    FileInfo fileInfoB = mTfs.getInfo(fileB);
-    Assert.assertFalse(fileInfoA.getInMemoryPercentage() == 100);
-    Assert.assertTrue(fileInfoB.getInMemoryPercentage() == 100);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.THROUGH, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileB", WriteType.MUST_CACHE, 10);
+    TachyonURI uriA = new TachyonURI("/testRoot/testFileA");
+    TachyonURI uriB = new TachyonURI("/testRoot/testFileB");
+
+    URIStatus statusA = mTfs.getStatus(uriA);
+    URIStatus statusB = mTfs.getStatus(uriB);
+    Assert.assertFalse(statusA.getInMemoryPercentage() == 100);
+    Assert.assertTrue(statusB.getInMemoryPercentage() == 100);
     // Testing loading of a directory
     mFsShell.run("load", "/testRoot");
-    fileInfoA = mTfs.getInfo(fileA);
-    fileInfoB = mTfs.getInfo(fileB);
-    Assert.assertTrue(fileInfoA.getInMemoryPercentage() == 100);
-    Assert.assertTrue(fileInfoB.getInMemoryPercentage() == 100);
+    statusA = mTfs.getStatus(uriA);
+    statusB = mTfs.getStatus(uriB);
+    Assert.assertTrue(statusA.getInMemoryPercentage() == 100);
+    Assert.assertTrue(statusB.getInMemoryPercentage() == 100);
   }
+
 
   @Test
   public void loadFileTest() throws IOException, TachyonException {
-    TachyonFile file =
-        TachyonFSTestUtils.createByteFile(mTfs, "/testFile", TachyonStorageType.NO_STORE,
-            UnderStorageType.SYNC_PERSIST, 10);
-    FileInfo fileInfo = mTfs.getInfo(file);
-    Assert.assertFalse(fileInfo.getInMemoryPercentage() == 100);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.THROUGH, 10);
+    TachyonURI uri = new TachyonURI("/testFile");
+    URIStatus status = mTfs.getStatus(uri);
+    Assert.assertFalse(status.getInMemoryPercentage() == 100);
     // Testing loading of a single file
     mFsShell.run("load", "/testFile");
-    fileInfo = mTfs.getInfo(file);
-    Assert.assertTrue(fileInfo.getInMemoryPercentage() == 100);
+    status = mTfs.getStatus(uri);
+    Assert.assertTrue(status.getInMemoryPercentage() == 100);
   }
 }

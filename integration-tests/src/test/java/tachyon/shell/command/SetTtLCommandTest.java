@@ -21,34 +21,33 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.client.file.TachyonFile;
 import tachyon.shell.AbstractTfsShellTest;
 
 /**
  * Tests for setTtl command.
  */
-public class SetTtLCommandTest extends AbstractTfsShellTest {
+public class SetTtlCommandTest extends AbstractTfsShellTest {
   @Test
   public void setTtlTest() throws Exception {
     String filePath = "/testFile";
-    TachyonFile file =
-        TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType.STORE,
-            UnderStorageType.NO_PERSIST, 1);
-    Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
-    long[] ttls = new long[] {0L, 1000L};
+    TachyonFSTestUtils.createByteFile(mTfs, filePath, WriteType.MUST_CACHE, 1);
+    Assert.assertEquals(Constants.NO_TTL, mTfs.getStatus(new TachyonURI("/testFile")).getTtl());
+    long[] ttls = new long[] { 0L, 1000L };
     for (long ttl : ttls) {
       Assert.assertEquals(0, mFsShell.run("setTtl", filePath, String.valueOf(ttl)));
-      Assert.assertEquals(ttl, mTfs.getInfo(file).getTtl());
+      Assert.assertEquals(ttl, mTfs.getStatus(new TachyonURI("/testFile")).getTtl());
     }
   }
 
   @Test
-  public void setTtlNegativeTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", TachyonStorageType.STORE,
-        UnderStorageType.NO_PERSIST, 1);
+  public void setTTLNegativeTest() throws IOException {
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 1);
     mException.expect(IllegalArgumentException.class);
     mException.expectMessage("TTL value must be >= 0");
     mFsShell.run("setTtl", "/testFile", "-1");
