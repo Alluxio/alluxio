@@ -65,7 +65,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
 
   @Override
   public void close() {
-    mFixedExecutionService.shutdown();
+    mRecomputeLauncherService.shutdown();
   }
 
   /**

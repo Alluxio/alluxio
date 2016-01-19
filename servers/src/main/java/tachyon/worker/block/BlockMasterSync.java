@@ -153,7 +153,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
   @Override
   public void close() {
-    mFixedExecutionService.shutdown();
+    mBlockRemovalService.shutdown();
   }
 
   /**
