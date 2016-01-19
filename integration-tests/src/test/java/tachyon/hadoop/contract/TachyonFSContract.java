@@ -42,6 +42,12 @@ public class TachyonFSContract extends AbstractFSContract {
   private LocalTachyonCluster mLocalTachyonCluster;
   private FileSystem mFS;
 
+  /**
+   * Creates a new {@link TachyonFSContract}.
+   *
+   * @param conf configuration for hdfs
+   * @param cluster the Tachyon cluster to test in this contract
+   */
   public TachyonFSContract(Configuration conf, LocalTachyonCluster cluster) {
     super(conf);
     mLocalTachyonCluster = cluster;
