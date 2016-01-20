@@ -51,7 +51,7 @@ public final class HdfsUnderFileSystemTest {
    * Tests the
    * {@link HdfsUnderFileSystem#prepareConfiguration(String, TachyonConf, Configuration)} method.
    *
-   * Check the hdfs implements class and tachyon underfs config setting
+   * Checks the hdfs implements class and tachyon underfs config setting
    *
    * @throws Exception
    */
