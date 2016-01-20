@@ -37,8 +37,8 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
   private final KeyValuePartitionReader mReader;
   /** The iterator for iterating through all key-value pairs contained in the partition */
   private final KeyValueIterator mKeyValuePairIterator;
-  /** Current position in the partition's byte array */
-  private int mPos;
+  /** Accumulated bytes of key-value pairs read so far */
+  private int mKeyValuePairsBytesRead;
   /** Number of key-value pairs visited by the iterator */
   private int mNumVisitedKeyValuePairs;
   /** Number of key-value pairs */
@@ -54,7 +54,7 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
   public KeyValueRecordReader(KeyValueInputSplit split) throws IOException, TachyonException {
     mReader = KeyValuePartitionReader.Factory.create(split.getPartitionId());
     mKeyValuePairIterator = mReader.iterator();
-    mPos = 0;
+    mKeyValuePairsBytesRead = 0;
     mNumVisitedKeyValuePairs = 0;
     mNumKeyValuePairs = mReader.size();
   }
@@ -72,6 +72,8 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
       throw new IOException(e);
     }
 
+    // TODO(cc): Implement a ByteBufferInputStream which is backed by a ByteBuffer so we could
+    // benefit from zero-copy.
     DataInputStream key = new DataInputStream(new ByteArrayInputStream(
         BufferUtils.newByteArrayFromByteBuffer(pair.getKey())));
     try {
@@ -88,24 +90,29 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
       value.close();
     }
 
-    mPos += keyWritable.getLength() + valueWritable.getLength();
+    mKeyValuePairsBytesRead += keyWritable.getLength() + valueWritable.getLength();
     mNumVisitedKeyValuePairs ++;
     return true;
   }
 
   @Override
   public BytesWritable createKey() {
-    return new BytesWritable(new byte[0]);
+    return new BytesWritable();
   }
 
   @Override
   public BytesWritable createValue() {
-    return new BytesWritable(new byte[0]);
+    return new BytesWritable();
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * @return total bytes of key-value pairs read so far, as an approximation for all read bytes
+   */
   @Override
   public long getPos() throws IOException {
-    return mPos;
+    return mKeyValuePairsBytesRead;
   }
 
   @Override
