@@ -24,6 +24,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TMultiplexedProtocol;
+import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -202,8 +204,9 @@ public final class BlockWorkerClient extends ClientBase {
     if (!mConnected) {
       LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mAddress);
 
-      mProtocol = new TBinaryProtocol(AuthenticationUtils.getClientTransport(
-          mTachyonConf, mAddress));
+      TProtocol binaryProtocol =
+          new TBinaryProtocol(AuthenticationUtils.getClientTransport(mTachyonConf, mAddress));
+      mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       mClient = new BlockWorkerClientService.Client(mProtocol);
 
       try {
@@ -227,8 +230,8 @@ public final class BlockWorkerClient extends ClientBase {
 
   /**
    * Updates the session id of the client, starting a new session. The previous session's held
-   * resources should have already been freed, and will be automatically freed after the timeout
-   * is exceeded.
+   * resources should have already been freed, and will be automatically freed after the timeout is
+   * exceeded.
    *
    * @param newSessionId the new id that represents the new session
    */
@@ -361,8 +364,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @return true if success, false otherwise
    * @throws IOException if a non-Tachyon exception occurs
    */
-  public synchronized boolean requestSpace(final long blockId, final long requestBytes) throws
-          IOException {
+  public synchronized boolean requestSpace(final long blockId, final long requestBytes)
+      throws IOException {
     try {
       return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
         @Override

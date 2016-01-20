@@ -75,17 +75,12 @@ public final class LoginUserTest {
   public void getSimpleLoginUserProvidedByAppTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
-    //TODO(qifan): after TachyonConf is refactored into Singleton, we will use TachyonConf
-    //instead of System.getProperty for retrieving user name.
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon-user");
+    conf.set(Constants.SECURITY_LOGIN_USERNAME, "tachyon-user");
 
     User loginUser = LoginUser.get(conf);
 
     Assert.assertNotNull(loginUser);
     Assert.assertEquals(loginUser.getName(), "tachyon-user");
-
-    // clean up
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "");
   }
 
   /**
@@ -99,9 +94,7 @@ public final class LoginUserTest {
   public void getSimpleLoginUserWhenNotProvidedByAppTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
-    //TODO(qifan): after TachyonConf is refactored into Singleton, we will use TachyonConf
-    //instead of System.getProperty for retrieving user name.
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "");
+    conf.set(Constants.SECURITY_LOGIN_USERNAME, "");
 
     User loginUser = LoginUser.get(conf);
 
@@ -135,17 +128,12 @@ public final class LoginUserTest {
   public void getCustomLoginUserProvidedByAppTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
-    //TODO(dong): after TachyonConf is refactored into Singleton, we will use TachyonConf
-    //instead of System.getProperty for retrieving user name.
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon-user");
+    conf.set(Constants.SECURITY_LOGIN_USERNAME, "tachyon-user");
 
     User loginUser = LoginUser.get(conf);
 
     Assert.assertNotNull(loginUser);
     Assert.assertEquals(loginUser.getName(), "tachyon-user");
-
-    // clean up
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "");
   }
 
   /**
@@ -159,9 +147,7 @@ public final class LoginUserTest {
   public void getCustomLoginUserWhenNotProvidedByAppTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
-    //TODO(dong): after TachyonConf is refactored into Singleton, we will use TachyonConf
-    //instead of System.getProperty for retrieving user name.
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "");
+    conf.set(Constants.SECURITY_LOGIN_USERNAME, "");
 
     User loginUser = LoginUser.get(conf);
 

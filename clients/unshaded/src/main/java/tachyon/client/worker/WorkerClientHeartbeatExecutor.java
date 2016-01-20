@@ -34,4 +34,9 @@ final class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
   public void heartbeat() {
     mBlockWorkerClient.periodicHeartbeat();
   }
+
+  @Override
+  public void close() {
+    // Not responsible for cleaning up blockWorkerClient
+  }
 }
