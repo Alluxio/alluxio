@@ -28,6 +28,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.CreateFileTOptions;
 import tachyon.util.CommonUtils;
 
+/**
+ * Method options for creating a file.
+ */
 @PublicApi
 public final class CreateFileOptions {
   private boolean mRecursive;
@@ -70,7 +73,7 @@ public final class CreateFileOptions {
   }
 
   /**
-   * @return the hostname
+   * @return the location policy for writes to Tachyon storage
    */
   public FileWriteLocationPolicy getLocationPolicy() {
     return mLocationPolicy;

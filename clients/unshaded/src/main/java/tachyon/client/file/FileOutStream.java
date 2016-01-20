@@ -80,7 +80,7 @@ public class FileOutStream extends OutStreamBase {
    * @throws IOException if an I/O error occurs
    */
   public FileOutStream(TachyonURI path, OutStreamOptions options) throws IOException {
-    mUri = path;
+    mUri = Preconditions.checkNotNull(path);
     mNonce = ClientUtils.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();

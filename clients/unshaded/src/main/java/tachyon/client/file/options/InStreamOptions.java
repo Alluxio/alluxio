@@ -95,6 +95,7 @@ public final class InStreamOptions {
   public String toString() {
     StringBuilder sb = new StringBuilder("InStreamOptions(");
     sb.append(super.toString()).append(", ReadType: ").append(mReadType.toString());
+    sb.append(", LocationPolicy: ").append(mLocationPolicy.toString());
     sb.append(")");
     return sb.toString();
   }

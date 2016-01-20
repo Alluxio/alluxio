@@ -85,7 +85,21 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
   public FSDataOutputStream append(Path cPath, int bufferSize, Progressable progress)
       throws IOException {
     LOG.info("append({}, {}, {})", cPath, bufferSize, progress);
-    throw new UnsupportedOperationException("Append is not supported in Tachyon.");
+    if (mStatistics != null) {
+      mStatistics.incrementWriteOps(1);
+    }
+    TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
+    try {
+      if (!mTFS.exists(path)) {
+        return new FSDataOutputStream(mTFS.createFile(path), mStatistics);
+      } else {
+        throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
+      }
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
@@ -403,7 +417,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
    *
    * @param cPath path to create
    * @param permission permissions to grant the created folder
-   * @return true if the indicated folder is created successfully or already exists, false otherwise
+   * @return true if the indicated folder is created successfully or already exists
    * @throws IOException if the folder cannot be created
    */
   @Override
