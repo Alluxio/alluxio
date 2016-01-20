@@ -24,7 +24,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 
 import tachyon.Constants;
-import tachyon.exception.ConnectionFailedException;
 import tachyon.hadoop.TFS;
 import tachyon.master.LocalTachyonCluster;
 
@@ -40,10 +39,18 @@ public class TachyonFSContract extends AbstractFSContract {
   public static final String CONTRACT_XML = "contract/tachyonfs.xml";
   public static final String SYSPROP_TEST_BUILD_DATA = "test.build.data";
   public static final String DEFAULT_TEST_BUILD_DATA_DIR = "test/build/data";
+  private final LocalTachyonCluster mLocalTachyonCluster;
   private FileSystem mFS;
 
-  public TachyonFSContract(Configuration conf) {
+  /**
+   * Creates a new {@link TachyonFSContract}.
+   *
+   * @param conf configuration for hdfs
+   * @param cluster the Tachyon cluster to test in this contract
+   */
+  public TachyonFSContract(Configuration conf, LocalTachyonCluster cluster) {
     super(conf);
+    mLocalTachyonCluster = cluster;
     //insert the base features
     addConfResource(getContractXml());
   }
@@ -62,14 +69,7 @@ public class TachyonFSContract extends AbstractFSContract {
     Configuration conf = new Configuration();
     conf.set("fs.tachyon.impl", TFS.class.getName());
 
-    // Start local Tachyon cluster
-    LocalTachyonCluster localcluster = new LocalTachyonCluster(100000000, 100000, 1024);
-    try {
-      localcluster.start();
-    } catch (ConnectionFailedException e) {
-      throw new IOException(e);
-    }
-    URI uri = URI.create(localcluster.getMasterUri());
+    URI uri = URI.create(mLocalTachyonCluster.getMasterUri());
 
     mFS = FileSystem.get(uri, conf);
   }
