@@ -69,7 +69,7 @@ public final class CountCommand extends AbstractTfsShellCommand {
       throw new IOException(e.getMessage());
     }
 
-    if (!fInfo.isIsFolder()) {
+    if (!fInfo.isFolder()) {
       return new long[] { 1L, 0L, fInfo.getLength()};
     }
 

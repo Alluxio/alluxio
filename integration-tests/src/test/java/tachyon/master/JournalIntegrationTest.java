@@ -341,15 +341,15 @@ public class JournalIntegrationTest {
 
     FileInfo info = fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI("/myFolder")));
     Assert.assertEquals(directory, info);
-    Assert.assertTrue(info.isIsPinned());
+    Assert.assertTrue(info.isPinned());
 
     info = fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI("/myFolder/file0")));
     Assert.assertEquals(file0, info);
-    Assert.assertFalse(info.isIsPinned());
+    Assert.assertFalse(info.isPinned());
 
     info = fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI("/myFolder/file1")));
     Assert.assertEquals(file1, info);
-    Assert.assertTrue(info.isIsPinned());
+    Assert.assertTrue(info.isPinned());
 
     fsMaster.stop();
   }

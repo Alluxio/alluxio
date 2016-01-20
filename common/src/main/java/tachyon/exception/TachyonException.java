@@ -35,7 +35,7 @@ public abstract class TachyonException extends Exception {
    */
   public TachyonException(TachyonTException te) {
     super(te.getMessage());
-    mType = TachyonExceptionType.valueOf(te.type);
+    mType = TachyonExceptionType.valueOf(te.getType());
   }
 
   protected TachyonException(TachyonExceptionType type, Throwable cause) {
@@ -78,7 +78,7 @@ public abstract class TachyonException extends Exception {
    * @return a {@link TachyonException} of the type specified in e, with the message specified in e
    */
   public static TachyonException from(TachyonTException e) {
-    TachyonExceptionType exceptionType = TachyonExceptionType.valueOf(e.type);
+    TachyonExceptionType exceptionType = TachyonExceptionType.valueOf(e.getType());
     Class<? extends TachyonException> throwClass = exceptionType.getExceptionClass();
     Exception reflectError;
     try {

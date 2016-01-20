@@ -42,15 +42,15 @@ public class ComplexCommandTest extends AbstractTfsShellTest {
     // marked as persisted.
     TachyonFSTestUtils.createByteFile(mTfs, "/testDir/testFileA", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 10);
-    Assert.assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isIsPersisted());
+    Assert.assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isPersisted());
     TachyonConf conf = mLocalTachyonCluster.getMasterTachyonConf();
     String ufsRoot = conf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(ufsRoot, "testDir"), conf);
-    Assert.assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isIsPersisted());
+    Assert.assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isPersisted());
     // Load metadata, which should mark the testDir as persisted
     mFsShell.run("loadMetadata", "/testDir");
     Assert.assertEquals("", mOutput.toString());
-    Assert.assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isIsPersisted());
+    Assert.assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isPersisted());
   }
 
   @Test
@@ -60,7 +60,7 @@ public class ComplexCommandTest extends AbstractTfsShellTest {
     UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(ufsRoot, "dir1"), conf);
     // First run ls to create the data
     mFsShell.run("ls", "/dir1");
-    Assert.assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/dir1"))).isIsPersisted());
+    Assert.assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/dir1"))).isPersisted());
     // Load metadata
     mFsShell.run("loadMetadata", "/dir1");
     Assert.assertEquals(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage("/dir1") + "\n",

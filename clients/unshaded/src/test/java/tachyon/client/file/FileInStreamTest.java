@@ -332,7 +332,7 @@ public class FileInStreamTest {
    */
   @Test
   public void failToUnderFsTest() throws IOException {
-    mInfo.setIsPersisted(true).setUfsPath("testUfsPath");
+    mInfo.setPersisted(true).setUfsPath("testUfsPath");
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
     mTestStream = new FileInStream(mInfo, InStreamOptions.defaults());
 

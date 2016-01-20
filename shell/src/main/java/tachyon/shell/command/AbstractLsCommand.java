@@ -49,7 +49,7 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
     List<FileInfo> files = listStatusSortedByIncreasingCreationTime(path);
     for (FileInfo file : files) {
       String inMemory = "";
-      if (!file.isIsFolder()) {
+      if (!file.isFolder()) {
         if (100 == file.getInMemoryPercentage()) {
           inMemory = "In Memory";
         } else {
@@ -57,10 +57,10 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
         }
       }
       System.out.format(Constants.COMMAND_FORMAT_LS,
-          CommandUtils.formatPermission(file.getPermission(),  file.isIsFolder()),
+          CommandUtils.formatPermission(file.getPermission(),  file.isFolder()),
           file.getUserName(), file.getGroupName(), FormatUtils.getSizeFromBytes(file.getLength()),
           CommandUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
-      if (recursive && file.isIsFolder()) {
+      if (recursive && file.isFolder()) {
         ls(new TachyonURI(path.getScheme(), path.getAuthority(), file.getPath()), true);
       }
     }

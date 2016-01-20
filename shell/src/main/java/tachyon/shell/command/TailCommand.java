@@ -58,7 +58,7 @@ public final class TailCommand extends WithWildCardPathCommand {
       throw new IOException(e.getMessage());
     }
 
-    if (!fInfo.isIsFolder()) {
+    if (!fInfo.isFolder()) {
       InStreamOptions op = new InStreamOptions.Builder(mTachyonConf)
           .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
       FileInStream is = null;

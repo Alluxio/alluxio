@@ -67,7 +67,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
     try {
       TachyonFile fd = mTfs.open(filePath);
       FileInfo fInfo = mTfs.getInfo(fd);
-      if (fInfo.isIsFolder()) {
+      if (fInfo.isFolder()) {
         List<FileInfo> files = mTfs.listStatus(fd);
         Collections.sort(files);
         for (FileInfo file : files) {

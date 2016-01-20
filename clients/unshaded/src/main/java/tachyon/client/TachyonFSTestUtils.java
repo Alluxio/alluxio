@@ -151,7 +151,7 @@ public final class TachyonFSTestUtils {
       for (FileInfo info : infos) {
         res.add(info.getPath());
 
-        if (info.isIsFolder()) {
+        if (info.isFolder()) {
           res.addAll(listFiles(tfs, info.getPath()));
         }
       }

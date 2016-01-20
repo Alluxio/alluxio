@@ -143,7 +143,7 @@ abstract class AbstractTFS extends FileSystem {
           throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(cPath.toString()));
         }
         FileInfo info = mTFS.getInfo(file);
-        if (info.isIsFolder()) {
+        if (info.isFolder()) {
           throw new IOException(
               ExceptionMessage.FILE_CREATE_IS_DIRECTORY.getMessage(cPath.toString()));
         }
@@ -263,7 +263,7 @@ abstract class AbstractTFS extends FileSystem {
     for (int k = 0; k < blocks.size(); k ++) {
       FileBlockInfo info = blocks.get(k);
       long offset = info.getOffset();
-      long end = offset + info.blockInfo.getLength();
+      long end = offset + info.getBlockInfo().getLength();
       // Check if there is any overlapping between [start, start+len] and [offset, end]
       if (end >= start && offset <= start + len) {
         ArrayList<String> names = new ArrayList<String>();
@@ -277,13 +277,13 @@ abstract class AbstractTFS extends FileSystem {
         addrs.addAll(info.getUfsLocations());
         for (WorkerNetAddress addr : addrs) {
           // Name format is "hostname:data transfer port"
-          String name = addr.host + ":" + addr.dataPort;
+          String name = addr.getHost() + ":" + addr.getDataPort();
           LOG.debug("getFileBlockLocations : adding name : {}", name);
           names.add(name);
-          hosts.add(addr.host);
+          hosts.add(addr.getHost());
         }
         blockLocations.add(new BlockLocation(CommonUtils.toStringArray(names),
-            CommonUtils.toStringArray(hosts), offset, info.blockInfo.getLength()));
+            CommonUtils.toStringArray(hosts), offset, info.getBlockInfo().getLength()));
       }
     }
 
@@ -316,7 +316,7 @@ abstract class AbstractTFS extends FileSystem {
       throw new IOException(e);
     }
 
-    FileStatus ret = new FileStatus(fileStatus.getLength(), fileStatus.isIsFolder(),
+    FileStatus ret = new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
         BLOCK_REPLICATION_CONSTANT, fileStatus.getBlockSizeBytes(), fileStatus.getCreationTimeMs(),
         fileStatus.getCreationTimeMs(), null, null, null, new Path(mTachyonHeader + tPath));
     return ret;
@@ -408,7 +408,7 @@ abstract class AbstractTFS extends FileSystem {
     for (int k = 0; k < files.size(); k ++) {
       FileInfo info = files.get(k);
       // TODO(hy): Replicate 3 with the number of disk replications.
-      ret[k] = new FileStatus(info.getLength(), info.isIsFolder(), 3, info.getBlockSizeBytes(),
+      ret[k] = new FileStatus(info.getLength(), info.isFolder(), 3, info.getBlockSizeBytes(),
           info.getCreationTimeMs(), info.getCreationTimeMs(), null, null, null,
           new Path(mTachyonHeader + info.getPath()));
     }
@@ -482,7 +482,7 @@ abstract class AbstractTFS extends FileSystem {
       info = null;
     }
     // If the destination is an existing folder, try to move the src into the folder
-    if (info != null && info.isIsFolder()) {
+    if (info != null && info.isFolder()) {
       dstPath = dstPath.join(srcPath.getName());
     }
     try {
