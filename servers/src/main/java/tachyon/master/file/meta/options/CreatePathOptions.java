@@ -139,7 +139,7 @@ public final class CreatePathOptions {
     }
 
     /**
-     * Builds a new instance of {@link tachyon.master.file.options.CreateFileOptions}.
+     * Builds a new instance of {@link CreatePathOptions}.
      *
      * @return a {@code CreateOptions} instance
      */
@@ -149,7 +149,7 @@ public final class CreatePathOptions {
   }
 
   /**
-   * @return the default {@link tachyon.master.file.options.CreateFileOptions}
+   * @return the default {@link CreatePathOptions}
    */
   public static CreatePathOptions defaults() {
     return new Builder(MasterContext.getConf()).build();

@@ -363,6 +363,7 @@ public final class FileSystemMaster extends MasterBase {
    * @param path the path to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file id
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the file path is not valid
    */
   public FileInfo getFileInfo(TachyonURI path)
       throws FileDoesNotExistException, InvalidPathException {
@@ -378,8 +379,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return the persistence state for the given file
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public PersistenceState getPersistenceState(long fileId)
-      throws FileDoesNotExistException {
+  public PersistenceState getPersistenceState(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       return inode.getPersistenceState();
@@ -405,13 +405,14 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns a list {@link FileInfo} for a given file id. If the given file id is a file, the list
-   * only contains a single object. If it is a directory, the resulting list contains all direct
-   * children of the directory.
+   * Returns a list {@link FileInfo} for a given path. If the given path is a file, the list only
+   * contains a single object. If it is a directory, the resulting list contains all direct children
+   * of the directory.
    *
    * @param path the path to get the {@link FileInfo} list for
    * @return the list of {@link FileInfo}s
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the path is invalid
    */
   public List<FileInfo> getFileInfoList(TachyonURI path)
       throws FileDoesNotExistException, InvalidPathException {

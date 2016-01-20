@@ -21,7 +21,7 @@ import tachyon.client.file.policy.LocalFirstPolicy;
 import tachyon.conf.TachyonConf;
 
 /**
- * A util class to obtain common In/OutStreamOptions for tests
+ * A util class to obtain common CreateFile/OpenFile options for tests
  */
 // TODO(calvin): We can make these methods into constants
 public final class StreamOptionUtils {
@@ -74,7 +74,7 @@ public final class StreamOptionUtils {
    * Gets ReadCache {@link OpenFileOptions}
    *
    * @param conf the Tachyon config
-   * @return the InStreamOptions
+   * @return the {@link OpenFileOptions}
    */
   public static OpenFileOptions getOpenFileOptionsCache(TachyonConf conf) {
     return OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);

@@ -81,13 +81,13 @@ public abstract class AbstractFileOutStreamIntegrationTest {
    * Checks that we wrote the file correctly by reading it every possible way
    *
    * @param filePath path of the tmp file
-   * @param underStorageType type of understorage write
+   * @param underStorageType type of under storage write
    * @param fileLen length of the file
    * @param increasingByteArrayLen expected length of increasing bytes written in the file
-   * @throws IOException
+   * @throws IOException if an I/O exception occurs
    */
   protected void checkWrite(TachyonURI filePath, UnderStorageType underStorageType, int fileLen,
-                          int increasingByteArrayLen) throws IOException, TachyonException {
+      int increasingByteArrayLen) throws IOException, TachyonException {
     for (CreateFileOptions op : getOptionSet()) {
       URIStatus status = mTfs.getStatus(filePath);
       Assert.assertEquals(fileLen, status.getLength());
