@@ -48,8 +48,8 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   /** Block data manager for access block info */
   private final BlockWorker mBlockDataManager;
 
-  public KeyValueWorkerClientServiceHandler(BlockWorker blockDataManager) {
-    mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
+  public KeyValueWorkerClientServiceHandler(BlockWorker blockWorker) {
+    mBlockDataManager = Preconditions.checkNotNull(blockWorker);
   }
 
   @Override

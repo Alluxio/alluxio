@@ -77,12 +77,12 @@ public final class NIODataServer implements Runnable, DataServer {
    * @param dataManager the lock system for lock blocks
    * @param tachyonConf Tachyon configuration
    */
-  public NIODataServer(final InetSocketAddress address, final BlockWorker dataManager,
+  public NIODataServer(final InetSocketAddress address, final BlockWorker blockWorker,
       TachyonConf tachyonConf) {
     LOG.info("Starting DataServer @ {}", address);
     NetworkAddressUtils.assertValidPort(Preconditions.checkNotNull(address));
     mAddress = address;
-    mDataManager = Preconditions.checkNotNull(dataManager);
+    mDataManager = Preconditions.checkNotNull(blockWorker);
     try {
       mSelector = initSelector();
       mListenerThread = new Thread(this);

@@ -41,16 +41,16 @@ public final class WorkerUIWebServer extends UIWebServer {
    * @param conf Tachyon configuration
    */
   public WorkerUIWebServer(ServiceType serviceType, InetSocketAddress webAddress,
-      BlockWorker blockdataManager, InetSocketAddress workerAddress, long startTimeMs,
+      BlockWorker blockWorker, InetSocketAddress workerAddress, long startTimeMs,
       TachyonConf conf) {
     super(serviceType, webAddress, conf);
-    Preconditions.checkNotNull(blockdataManager, "Block data manager cannot be null");
+    Preconditions.checkNotNull(blockWorker, "Block data manager cannot be null");
     Preconditions.checkNotNull(workerAddress, "Worker address cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerGeneralServlet(
-        blockdataManager, workerAddress, startTimeMs)), "/home");
+        blockWorker, workerAddress, startTimeMs)), "/home");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerBlockInfoServlet(
-        blockdataManager)), "/blockInfo");
+        blockWorker)), "/blockInfo");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDownloadLocalServlet()),
         "/downloadLocal");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(false)),
