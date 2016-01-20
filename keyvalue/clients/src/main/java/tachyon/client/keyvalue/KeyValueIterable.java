@@ -22,6 +22,9 @@ import tachyon.exception.TachyonException;
 
 /**
  * Interface to be implemented in classes that support iterating over key-value pairs.
+ *
+ * TODO(cc): Try to get rid of KeyValueIterable and KeyValueIterator when TachyonException becomes
+ * a subclass of IOException.
  */
 @PublicApi
 public interface KeyValueIterable {
