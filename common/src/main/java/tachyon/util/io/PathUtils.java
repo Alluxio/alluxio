@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import tachyon.TachyonURI;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
+import tachyon.util.OSUtils;
 
 /**
  * Utilities related to both Tachyon paths like {@link tachyon.TachyonURI} and local file paths.
@@ -169,8 +170,12 @@ public final class PathUtils {
    * @throws InvalidPathException If the path is not properly formed
    */
   public static void validatePath(String path) throws InvalidPathException {
-    if (path == null || path.isEmpty() || !path.startsWith(TachyonURI.SEPARATOR)
-        || path.contains(" ")) {
+    boolean invalid = (path == null || path.isEmpty() || path.contains(" "));
+    if (!OSUtils.isWindows()) {
+      invalid = (invalid || !path.startsWith(TachyonURI.SEPARATOR));
+    }
+
+    if (invalid) {
       throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path));
     }
   }

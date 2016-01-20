@@ -88,8 +88,8 @@ the syntax of each command.
 <tr>
   <td>runTest</td>
   <td>&lt;Example&gt; &lt;ReadType&gt; &lt;WriteType&gt;</td>
-  <td>Run an end-to-end test on a Tachyon cluster. <code>Example</code> should be "Basic",
-  "BasicNonByteBuffer" or "BasicRawTable". <code>ReadType</code> should be "CACHE_PROMOTE", "CACHE",
+  <td>Run an end-to-end test on a Tachyon cluster. <code>Example</code> should be "Basic" or
+  "BasicNonByteBuffer". <code>ReadType</code> should be "CACHE_PROMOTE", "CACHE",
   or "NO_CACHE". <code>WriteType</code> should be "MUST_CACHE", "CACHE_THROUGH" or "THROUGH".</td>
 </tr>
 <tr>

@@ -89,6 +89,11 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-keyvalue-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-underfs-hdfs</artifactId>
       <version>${project.version}</version>
       <exclusions>
@@ -175,6 +180,7 @@
                 <includes>
                   <include>org.tachyonproject:tachyon-common</include>
                   <include>org.tachyonproject:tachyon-client-unshaded</include>
+                  <include>org.tachyonproject:tachyon-keyvalue-client</include>
                   <include>org.apache.thrift:libthrift</include>
                 </includes>
               </artifactSet>

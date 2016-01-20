@@ -66,4 +66,9 @@ public final class CheckpointSchedulingExcecutor implements HeartbeatExecutor {
       LOG.error("Checkpoint scheduling failed: {}", e);
     }
   }
+
+  @Override
+  public void close() {
+    // Nothing to clean up
+  }
 }

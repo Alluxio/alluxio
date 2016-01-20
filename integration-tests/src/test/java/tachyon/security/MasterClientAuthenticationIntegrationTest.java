@@ -28,6 +28,7 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
+import tachyon.client.ClientContext;
 import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.exception.ConnectionFailedException;
@@ -54,7 +55,7 @@ public class MasterClientAuthenticationIntegrationTest {
 
   @After
   public void after() throws Exception {
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+    clearLoginUser();
   }
 
   @Test
@@ -74,37 +75,28 @@ public class MasterClientAuthenticationIntegrationTest {
   @Test
   @LocalTachyonClusterResource.Config(tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
       "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-      NameMatchAuthenticationProvider.FULL_CLASS_NAME}, startCluster = false)
+      NameMatchAuthenticationProvider.FULL_CLASS_NAME,
+      Constants.SECURITY_LOGIN_USERNAME, "tachyon"})
   public void customAuthenticationOpenCloseTest() throws Exception {
-    /**
-     * Using tachyon as loginUser for unit testing, only tachyon user is allowed to connect to
-     * Tachyon Master.
-     */
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
-    mLocalTachyonClusterResource.start();
     authenticationOperationTest("/file-custom");
   }
 
   @Test
   @LocalTachyonClusterResource.Config(tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
       "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-      NameMatchAuthenticationProvider.FULL_CLASS_NAME}, startCluster = false)
+      NameMatchAuthenticationProvider.FULL_CLASS_NAME,
+      Constants.SECURITY_LOGIN_USERNAME, "tachyon"})
   public void customAuthenticationDenyConnectTest() throws Exception {
-    /**
-     * Using tachyon as loginUser for unit testing, only tachyon user is allowed to connect to
-     * Tachyon Master.
-     */
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
-    mLocalTachyonClusterResource.start();
-    // Using no-tachyon as loginUser to connect to Master, the IOException will be thrown
-    clearLoginUser();
     mThrown.expect(ConnectionFailedException.class);
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
+    // Using no-tachyon as loginUser to connect to Master, the IOException will be thrown
+    ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
     FileSystemMasterClient masterClient =
         new FileSystemMasterClient(mLocalTachyonClusterResource.get().getMaster().getAddress(),
-            mLocalTachyonClusterResource.get().getMasterTachyonConf());
+            ClientContext.getConf());
     try {
       Assert.assertFalse(masterClient.isConnected());
+      // Clear the login user so that it will be reloaded and pick up our no-tachyon change
+      clearLoginUser();
       masterClient.connect();
     } finally {
       masterClient.close();
