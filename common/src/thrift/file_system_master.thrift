@@ -181,6 +181,12 @@ service FileSystemMasterClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e)
 
   /**
+   * Schedules async persistence.
+   */
+  void scheduleAsyncPersist(/** the id of the file */ 1: i64 fileId)
+    throws (1: exception.TachyonTException e)
+    
+  /**
    * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
    * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
    * will be persisted before they are removed from the Tachyon namespace.

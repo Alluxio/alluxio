@@ -37,6 +37,9 @@ public class LocalUnderFileSystemFactoryTest {
     UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/local/test/path", conf);
     UnderFileSystemFactory factory2 = UnderFileSystemRegistry.find("file://local/test/path", conf);
     UnderFileSystemFactory factory3 = UnderFileSystemRegistry.find("hdfs://test-bucket/path", conf);
+    UnderFileSystemFactory factory4 = UnderFileSystemRegistry.find("R:\\ramfs\\", conf);
+    UnderFileSystemFactory factory5 = UnderFileSystemRegistry.find("file://R:/famfs", conf);
+    UnderFileSystemFactory factory6 = UnderFileSystemRegistry.find("R:/ramfs/", conf);
 
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for local paths when using this module", factory);
@@ -45,5 +48,11 @@ public class LocalUnderFileSystemFactoryTest {
     Assert.assertNull(
         "A UnderFileSystemFactory should not exist for non local paths when using this module",
         factory3);
+    Assert.assertNotNull(
+        "A UnderFileSystemFactory should exist for local paths when using this module", factory4);
+    Assert.assertNotNull(
+        "A UnderFileSystemFactory should exist for local paths when using this module", factory5);
+    Assert.assertNotNull(
+        "A UnderFileSystemFactory should exist for local paths when using this module", factory6);
   }
 }

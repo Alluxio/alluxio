@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.Locale;
 
 import tachyon.Constants;
+import tachyon.security.authorization.FileSystemPermission;
 
 /**
  * Utility methods to parse specific formats, print according to specific formats or transform among
@@ -164,6 +165,24 @@ public final class FormatUtils {
     } else {
       throw new IllegalArgumentException("Fail to parse " + ori + " to bytes");
     }
+  }
+
+  /**
+   * Formats file permission to human-readable version.
+   *
+   * @param permission file permission
+   * @param isDirectory if the path is a directory
+   * @return human-readable version of permission
+   */
+  public static String formatPermission(short permission, boolean isDirectory) {
+    StringBuffer permissionStr = new StringBuffer();
+    if (isDirectory) {
+      permissionStr.append("d");
+    } else {
+      permissionStr.append("-");
+    }
+    permissionStr.append(new FileSystemPermission(permission).toString());
+    return permissionStr.toString();
   }
 
   private FormatUtils() {} // prevent instantiation
