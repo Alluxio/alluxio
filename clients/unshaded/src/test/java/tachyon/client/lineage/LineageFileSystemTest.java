@@ -67,17 +67,6 @@ public final class LineageFileSystemTest {
   }
 
   /**
-   * Tests that the same instance is returned when using the {@link LineageFileSystem#get()}
-   * method.
-   */
-  @Test
-  public void getInstanceTest() {
-    LineageFileSystem lfs = LineageFileSystem.get();
-    // same as the second get
-    Assert.assertEquals(lfs, LineageFileSystem.get());
-  }
-
-  /**
    * Tests that a {@link LineageFileOutStream} is returned.
    *
    * @throws Exception if reinitializing the file from the client or getting the stream fails

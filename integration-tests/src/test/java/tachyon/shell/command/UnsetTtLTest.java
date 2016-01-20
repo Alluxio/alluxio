@@ -40,10 +40,9 @@ public class UnsetTtlTest extends AbstractTfsShellTest {
     Assert.assertEquals(Constants.NO_TTL, mTfs.getStatus(uri).getTtl());
 
     long ttl = 1000L;
-    Assert.assertEquals(0, mFsShell.run("setTTL", filePath, String.valueOf(ttl)));
+    Assert.assertEquals(0, mFsShell.run("setTtl", filePath, String.valueOf(ttl)));
     Assert.assertEquals(ttl, mTfs.getStatus(uri).getTtl());
     Assert.assertEquals(0, mFsShell.run("unsetTtl", filePath));
     Assert.assertEquals(Constants.NO_TTL, mTfs.getStatus(uri).getTtl());
   }
-
 }
