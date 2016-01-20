@@ -21,8 +21,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.exception.ExceptionMessage;
 import tachyon.shell.AbstractTfsShellTest;
