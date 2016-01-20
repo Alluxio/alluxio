@@ -17,38 +17,22 @@ package tachyon.client.lineage.options;
 
 import tachyon.annotation.PublicApi;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * The method option for retrieving a list of lineage information.
  */
 @PublicApi
 public final class GetLineageInfoListOptions {
-  /** Whether or not to list the lineage info recursively, currently not supported */
-  private boolean mRecursive;
-
   /**
    * @return the default options
    */
+  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static GetLineageInfoListOptions defaults() {
     return new GetLineageInfoListOptions();
   }
 
   private GetLineageInfoListOptions() {
-    mRecursive = false;
-  }
-
-  /**
-   * @return the recursive flag
-   */
-  public boolean isRecursive() {
-    return mRecursive;
-  }
-
-  /**
-   * @param recursive the recursive flag to set
-   * @return the updated options object
-   */
-  public GetLineageInfoListOptions setRecursive(boolean recursive) {
-    mRecursive = recursive;
-    return this;
+    // No options currently
   }
 }

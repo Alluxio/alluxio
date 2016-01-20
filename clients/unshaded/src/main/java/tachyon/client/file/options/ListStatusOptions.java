@@ -33,7 +33,7 @@ public final class ListStatusOptions {
   }
 
   private ListStatusOptions() {
-    mCheckUfs = false;
+    mCheckUfs = true;
   }
 
   /**
