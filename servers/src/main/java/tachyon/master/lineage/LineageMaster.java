@@ -283,7 +283,7 @@ public final class LineageMaster extends MasterBase {
       throws InvalidPathException, FileDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    if (!fileInfo.isIsCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
+    if (!fileInfo.isCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
       LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
       return mFileSystemMaster.reinitializeFile(new TachyonURI(path), blockSizeBytes, ttl);
     }
@@ -305,25 +305,25 @@ public final class LineageMaster extends MasterBase {
       for (Lineage parent : mLineageStore.getParents(lineage)) {
         parents.add(parent.getId());
       }
-      info.parents = parents;
+      info.setParents(parents);
       List<Long> children = Lists.newArrayList();
       for (Lineage child : mLineageStore.getChildren(lineage)) {
         children.add(child.getId());
       }
-      info.children = children;
-      info.id = lineage.getId();
+      info.setChildren(children);
+      info.setId(lineage.getId());
       List<String> inputFiles = Lists.newArrayList();
       for (long inputFileId : lineage.getInputFiles()) {
         inputFiles.add(mFileSystemMaster.getPath(inputFileId).toString());
       }
-      info.inputFiles = inputFiles;
+      info.setInputFiles(inputFiles);
       List<String> outputFiles = Lists.newArrayList();
       for (long outputFileId : lineage.getOutputFiles()) {
         outputFiles.add(mFileSystemMaster.getPath(outputFileId).toString());
       }
-      info.outputFiles = outputFiles;
-      info.creationTimeMs = lineage.getCreationTime();
-      info.job = ((CommandLineJob) lineage.getJob()).generateCommandLineJobInfo();
+      info.setOutputFiles(outputFiles);
+      info.setCreationTimeMs(lineage.getCreationTime());
+      info.setJob(((CommandLineJob) lineage.getJob()).generateCommandLineJobInfo());
 
       lineages.add(info);
     }

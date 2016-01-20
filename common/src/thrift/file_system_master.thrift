@@ -22,11 +22,11 @@ struct FileInfo {
   5: i64 length
   6: i64 blockSizeBytes
   7: i64 creationTimeMs
-  8: bool isCompleted
-  9: bool isFolder
-  10: bool isPinned
-  11: bool isCacheable
-  12: bool isPersisted
+  8: bool completed
+  9: bool folder
+  10: bool pinned
+  11: bool cacheable
+  12: bool persisted
   13: list<i64> blockIds
   15: i32 inMemoryPercentage
   16: i64 lastModificationTimeMs

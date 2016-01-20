@@ -152,7 +152,7 @@ public class DataServerIntegrationTest {
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block = getFirstBlockInfo(file);
     DataServerMessage recvMsg = request(block, 0, length * -2);
-    assertError(recvMsg, block.blockId);
+    assertError(recvMsg, block.getBlockId());
   }
 
   @Test
@@ -176,7 +176,7 @@ public class DataServerIntegrationTest {
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block = getFirstBlockInfo(file);
     DataServerMessage recvMsg = request(block, length * -2, 1);
-    assertError(recvMsg, block.blockId);
+    assertError(recvMsg, block.getBlockId());
   }
 
   @Test
@@ -242,14 +242,14 @@ public class DataServerIntegrationTest {
 
   private ByteBuffer readRemotely(RemoteBlockReader client, BlockInfo block, int length)
       throws IOException, ConnectionFailedException {
-    long lockId = mBlockWorkerClient.lockBlock(block.blockId).lockId;
+    long lockId = mBlockWorkerClient.lockBlock(block.getBlockId()).getLockId();
     try {
       return client.readRemoteBlock(
           new InetSocketAddress(block.getLocations().get(0).getWorkerAddress().getHost(),
               block.getLocations().get(0).getWorkerAddress().getDataPort()),
           block.getBlockId(), 0, length, lockId, mBlockWorkerClient.getSessionId());
     } finally {
-      mBlockWorkerClient.unlockBlock(block.blockId);
+      mBlockWorkerClient.unlockBlock(block.getBlockId());
     }
   }
 
@@ -288,7 +288,7 @@ public class DataServerIntegrationTest {
 
     RemoteBlockReader client =
         RemoteBlockReader.Factory.create(mWorkerTachyonConf);
-    block.blockId = maxBlockId + 1;
+    block.setBlockId(maxBlockId + 1);
     ByteBuffer result = readRemotely(client, block, length);
 
     Assert.assertNull(result);
@@ -302,7 +302,7 @@ public class DataServerIntegrationTest {
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block = getFirstBlockInfo(file);
     DataServerMessage recvMsg = request(block, 0, length * 2);
-    assertError(recvMsg, block.blockId);
+    assertError(recvMsg, block.getBlockId());
   }
 
   @Test
@@ -313,7 +313,7 @@ public class DataServerIntegrationTest {
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block = getFirstBlockInfo(file);
     DataServerMessage recvMsg = request(block, length * 2, 1);
-    assertError(recvMsg, block.blockId);
+    assertError(recvMsg, block.getBlockId());
   }
 
   /**
@@ -329,13 +329,13 @@ public class DataServerIntegrationTest {
    */
   private DataServerMessage request(final BlockInfo block, final long offset, final long length)
       throws IOException, TachyonException {
-    long lockId = mBlockWorkerClient.lockBlock(block.blockId).lockId;
+    long lockId = mBlockWorkerClient.lockBlock(block.getBlockId()).getLockId();
 
     SocketChannel socketChannel = null;
 
     try {
       DataServerMessage sendMsg =
-          DataServerMessage.createBlockRequestMessage(block.blockId, offset, length, lockId,
+          DataServerMessage.createBlockRequestMessage(block.getBlockId(), offset, length, lockId,
               mBlockWorkerClient.getSessionId());
       socketChannel = SocketChannel
         .open(new InetSocketAddress(block.getLocations().get(0).getWorkerAddress().getHost(),
@@ -345,7 +345,8 @@ public class DataServerIntegrationTest {
         sendMsg.send(socketChannel);
       }
       DataServerMessage recvMsg =
-          DataServerMessage.createBlockResponseMessage(false, block.blockId, offset, length, null);
+          DataServerMessage.createBlockResponseMessage(false, block.getBlockId(), offset, length,
+                  null);
       while (!recvMsg.isMessageReady()) {
         int numRead = recvMsg.recv(socketChannel);
         if (numRead == -1) {
@@ -354,7 +355,7 @@ public class DataServerIntegrationTest {
       }
       return recvMsg;
     } finally {
-      mBlockWorkerClient.unlockBlock(block.blockId);
+      mBlockWorkerClient.unlockBlock(block.getBlockId());
       if (socketChannel != null) {
         socketChannel.close();
       }

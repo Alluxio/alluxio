@@ -350,26 +350,26 @@ public final class FileSystemMasterTest {
   public void setStateTest() throws Exception {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertFalse(fileInfo.isIsPinned());
+    Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // No State.
     mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().build());
     fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertFalse(fileInfo.isIsPinned());
+    Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // Just set pinned flag.
     mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPinned(true).build());
     fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertTrue(fileInfo.isIsPinned());
+    Assert.assertTrue(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // Both pinned flag and ttl value.
     mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPinned(false).setTtl(1)
         .build());
     fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertFalse(fileInfo.isIsPinned());
+    Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(1, fileInfo.getTtl());
 
     // Set ttl for a directory, raise IllegalArgumentException.
@@ -535,12 +535,14 @@ public final class FileSystemMasterTest {
 
     FileSystemCommand command =
         mFileSystemMaster.workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId));
-    Assert.assertEquals(CommandType.Persist, command.commandType);
-    Assert.assertEquals(1, command.getCommandOptions().getPersistOptions().persistFiles.size());
+    Assert.assertEquals(CommandType.Persist, command.getCommandType());
+    Assert.assertEquals(1, command.getCommandOptions().getPersistOptions().getPersistFiles()
+            .size());
     Assert.assertEquals(fileId,
-        command.getCommandOptions().getPersistOptions().persistFiles.get(0).fileId);
+        command.getCommandOptions().getPersistOptions().getPersistFiles().get(0).getFileId());
     Assert.assertEquals(blockId,
-        (long) command.getCommandOptions().getPersistOptions().persistFiles.get(0).blockIds.get(0));
+        (long) command.getCommandOptions().getPersistOptions().getPersistFiles().get(0)
+                .getBlockIds().get(0));
   }
 
   /**

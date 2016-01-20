@@ -299,7 +299,7 @@ case ${COMMAND} in
 "thriftGen")
   rm -rf ${bin}/../common/src/main/java/tachyon/thrift
   for src_file in $(ls ${bin}/../common/src/thrift); do
-    thrift --gen java -out ${bin}/../common/src/main/java/. ${bin}/../common/src/thrift/${src_file}
+    thrift --gen java:private-members -out ${bin}/../common/src/main/java/. ${bin}/../common/src/thrift/${src_file}
   done
   exit 0
 ;;

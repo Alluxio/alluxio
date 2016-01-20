@@ -167,11 +167,11 @@ public final class InodeFile extends Inode {
     ret.setLength(getLength());
     ret.setBlockSizeBytes(getBlockSizeBytes());
     ret.setCreationTimeMs(getCreationTimeMs());
-    ret.setIsCacheable(isCacheable());
-    ret.setIsFolder(false);
-    ret.setIsPinned(isPinned());
-    ret.setIsCompleted(isCompleted());
-    ret.setIsPersisted(isPersisted());
+    ret.setCacheable(isCacheable());
+    ret.setFolder(false);
+    ret.setPinned(isPinned());
+    ret.setCompleted(isCompleted());
+    ret.setPersisted(isPersisted());
     ret.setBlockIds(getBlockIds());
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
     ret.setTtl(mTtl);

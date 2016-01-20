@@ -89,12 +89,12 @@ public final class LineageMasterIntegrationTest {
 
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
       Assert.assertEquals(1, infos.size());
-      String uri = infos.get(0).outputFiles.get(0);
+      String uri = infos.get(0).getOutputFiles().get(0);
       long fileId = getFileSystemMasterClient().getFileId(uri);
       FileInfo fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
       Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
           fileInfo.getPersistenceState());
-      Assert.assertFalse(fileInfo.isIsCompleted());
+      Assert.assertFalse(fileInfo.isCompleted());
     } finally {
       lineageMasterClient.close();
     }
@@ -122,12 +122,12 @@ public final class LineageMasterIntegrationTest {
       outputStream.close();
 
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
-      String uri = infos.get(0).outputFiles.get(0);
+      String uri = infos.get(0).getOutputFiles().get(0);
       long fileId = getFileSystemMasterClient().getFileId(uri);
       FileInfo fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
       Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
           fileInfo.getPersistenceState());
-      Assert.assertTrue(fileInfo.isIsCompleted());
+      Assert.assertTrue(fileInfo.isCompleted());
 
       // Execute the checkpoint scheduler for async checkpoint
       HeartbeatScheduler.schedule(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING);

@@ -41,7 +41,7 @@ public class MkdirCommandTest extends AbstractTfsShellTest {
     Assert.assertNotNull(fileInfo);
     Assert
         .assertEquals(getCommandOutput(new String[] {"mkdir", qualifiedPath}), mOutput.toString());
-    Assert.assertTrue(fileInfo.isIsFolder());
+    Assert.assertTrue(fileInfo.isFolder());
   }
 
   @Test
@@ -52,7 +52,7 @@ public class MkdirCommandTest extends AbstractTfsShellTest {
     Assert.assertNotNull(fileInfo);
     Assert.assertEquals(getCommandOutput(new String[] {"mkdir",
         "/Complex!@#$%^&*()-_=+[]{};\"'<>," + ".?/File"}), mOutput.toString());
-    Assert.assertTrue(fileInfo.isIsFolder());
+    Assert.assertTrue(fileInfo.isFolder());
   }
 
   @Test
@@ -76,17 +76,17 @@ public class MkdirCommandTest extends AbstractTfsShellTest {
     TachyonFile tFile = mTfs.open(new TachyonURI(path1));
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
-    Assert.assertTrue(fileInfo.isIsFolder());
+    Assert.assertTrue(fileInfo.isFolder());
 
     tFile = mTfs.open(new TachyonURI(path2));
     fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
-    Assert.assertTrue(fileInfo.isIsFolder());
+    Assert.assertTrue(fileInfo.isFolder());
 
     tFile = mTfs.open(new TachyonURI(path3));
     fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
-    Assert.assertTrue(fileInfo.isIsFolder());
+    Assert.assertTrue(fileInfo.isFolder());
 
   }
 
@@ -98,6 +98,6 @@ public class MkdirCommandTest extends AbstractTfsShellTest {
     Assert.assertNotNull(fileInfo);
     Assert.assertEquals(getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
         mOutput.toString());
-    Assert.assertTrue(fileInfo.isIsFolder());
+    Assert.assertTrue(fileInfo.isFolder());
   }
 }

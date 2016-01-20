@@ -105,7 +105,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
-    if (!dstFileInfo.isIsFolder()) {
+    if (!dstFileInfo.isFolder()) {
       throw new IOException(
           ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
     }
@@ -146,7 +146,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
         TachyonFile fd = mTfs.openIfExists(dstPath);
         if (fd != null) {
           FileInfo tFile = mTfs.getInfo(fd);
-          if (tFile.isIsFolder()) {
+          if (tFile.isFolder()) {
             dstPath = dstPath.join(src.getName());
           }
         }

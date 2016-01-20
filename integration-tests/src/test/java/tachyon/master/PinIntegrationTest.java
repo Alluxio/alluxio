@@ -75,31 +75,31 @@ public class PinIntegrationTest {
     TachyonFile dir = mTfs.open(folderURI);
 
     TachyonFile file = createEmptyFile(fileURI);
-    Assert.assertFalse(mTfs.getInfo(file).isIsPinned());
+    Assert.assertFalse(mTfs.getInfo(file).isPinned());
 
     mTfs.setState(file, mSetPinned);
-    Assert.assertTrue(mTfs.getInfo(file).isIsPinned());
+    Assert.assertTrue(mTfs.getInfo(file).isPinned());
     Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
         Sets.newHashSet(file.getFileId()));
 
     mTfs.setState(file, mUnsetPinned);
-    Assert.assertFalse(mTfs.getInfo(file).isIsPinned());
+    Assert.assertFalse(mTfs.getInfo(file).isPinned());
     Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()), Sets.<Long>newHashSet());
 
     // Pinning a folder should recursively pin subfolders.
     mTfs.setState(dir, mSetPinned);
-    Assert.assertTrue(mTfs.getInfo(file).isIsPinned());
+    Assert.assertTrue(mTfs.getInfo(file).isPinned());
     Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
         Sets.newHashSet(file.getFileId()));
 
     // Same with unpinning.
     mTfs.setState(dir0, mUnsetPinned);
-    Assert.assertFalse(mTfs.getInfo(file).isIsPinned());
+    Assert.assertFalse(mTfs.getInfo(file).isPinned());
     Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()), Sets.<Long>newHashSet());
 
     // The last pin command always wins.
     mTfs.setState(file, mSetPinned);
-    Assert.assertTrue(mTfs.getInfo(file).isIsPinned());
+    Assert.assertTrue(mTfs.getInfo(file).isPinned());
     Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
         Sets.newHashSet(file.getFileId()));
   }
@@ -114,37 +114,37 @@ public class PinIntegrationTest {
 
     // Child file should be pinned
     TachyonFile file0 = createEmptyFile(new TachyonURI("/file0"));
-    Assert.assertTrue(mTfs.getInfo(file0).isIsPinned());
+    Assert.assertTrue(mTfs.getInfo(file0).isPinned());
     Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
         Sets.newHashSet(file0.getFileId()));
 
     // Child folder should be pinned
     mTfs.mkdir(new TachyonURI("/folder"));
     TachyonFile folder = mTfs.open(new TachyonURI("/folder"));
-    Assert.assertTrue(mTfs.getInfo(folder).isIsPinned());
+    Assert.assertTrue(mTfs.getInfo(folder).isPinned());
 
     // Grandchild file also pinned
     TachyonFile file1 = createEmptyFile(new TachyonURI("/folder/file1"));
-    Assert.assertTrue(mTfs.getInfo(file1).isIsPinned());
+    Assert.assertTrue(mTfs.getInfo(file1).isPinned());
     Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
         Sets.newHashSet(file0.getFileId(), file1.getFileId()));
 
     // Unpinning child folder should cause its children to be unpinned as well
     mTfs.setState(folder, mUnsetPinned);
-    Assert.assertFalse(mTfs.getInfo(folder).isIsPinned());
-    Assert.assertFalse(mTfs.getInfo(file1).isIsPinned());
+    Assert.assertFalse(mTfs.getInfo(folder).isPinned());
+    Assert.assertFalse(mTfs.getInfo(file1).isPinned());
     Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
         Sets.newHashSet(file0.getFileId()));
 
     // And new grandchildren should be unpinned too.
     TachyonFile file2 = createEmptyFile(new TachyonURI("/folder/file2"));
-    Assert.assertFalse(mTfs.getInfo(file2).isIsPinned());
+    Assert.assertFalse(mTfs.getInfo(file2).isPinned());
     Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
         Sets.newHashSet(file0.getFileId()));
 
     // But toplevel children still should be pinned!
     TachyonFile file3 = createEmptyFile(new TachyonURI("/file3"));
-    Assert.assertTrue(mTfs.getInfo(file3).isIsPinned());
+    Assert.assertTrue(mTfs.getInfo(file3).isPinned());
     Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
         Sets.newHashSet(file0.getFileId(), file3.getFileId()));
   }

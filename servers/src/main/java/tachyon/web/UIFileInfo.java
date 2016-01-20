@@ -115,8 +115,8 @@ public final class UIFileInfo {
     mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
     mInMemory = (100 == fileInfo.getInMemoryPercentage());
     mInMemoryPercent = fileInfo.getInMemoryPercentage();
-    mIsDirectory = fileInfo.isIsFolder();
-    mPinned = fileInfo.isIsPinned();
+    mIsDirectory = fileInfo.isFolder();
+    mPinned = fileInfo.isPinned();
     mUserName = fileInfo.getUserName();
     mGroupName = fileInfo.getGroupName();
     mPermission = fileInfo.getPermission();

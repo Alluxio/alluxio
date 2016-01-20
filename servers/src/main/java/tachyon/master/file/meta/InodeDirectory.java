@@ -109,11 +109,11 @@ public final class InodeDirectory extends Inode {
     ret.setLength(0);
     ret.setBlockSizeBytes(0);
     ret.setCreationTimeMs(getCreationTimeMs());
-    ret.setIsCompleted(true);
-    ret.setIsFolder(true);
-    ret.setIsPinned(isPinned());
-    ret.setIsCacheable(false);
-    ret.setIsPersisted(isPersisted());
+    ret.setCompleted(true);
+    ret.setFolder(true);
+    ret.setPinned(isPinned());
+    ret.setCacheable(false);
+    ret.setPersisted(isPersisted());
     ret.setBlockIds(null);
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
     ret.setTtl(Constants.NO_TTL);

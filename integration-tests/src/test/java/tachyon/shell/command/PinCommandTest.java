@@ -45,15 +45,15 @@ public class PinCommandTest extends AbstractTfsShellTest {
 
     // Unpin an unpinned file
     Assert.assertEquals(0, mFsShell.run("unpin", filePath));
-    Assert.assertFalse(mTfs.getInfo(file).isIsPinned());
+    Assert.assertFalse(mTfs.getInfo(file).isPinned());
 
     // Pin the file
     Assert.assertEquals(0, mFsShell.run("pin", filePath));
-    Assert.assertTrue(mTfs.getInfo(file).isIsPinned());
+    Assert.assertTrue(mTfs.getInfo(file).isPinned());
 
     // Unpin the file
     Assert.assertEquals(0, mFsShell.run("unpin", filePath));
-    Assert.assertFalse(mTfs.getInfo(file).isIsPinned());
+    Assert.assertFalse(mTfs.getInfo(file).isPinned());
   }
 
   /**

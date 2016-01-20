@@ -63,7 +63,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     TachyonFile file = mTfs.open(filePath);
     FileInfo fileInfo = mTfs.getInfo(file);
     Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(), fileInfo.getPersistenceState());
-    Assert.assertTrue(fileInfo.isIsCompleted());
+    Assert.assertTrue(fileInfo.isCompleted());
 
     // execute the async persist, which needs two heartbeats
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);

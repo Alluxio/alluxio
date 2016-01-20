@@ -68,7 +68,7 @@ public final class PersistCommand extends AbstractTfsShellCommand {
     try {
       TachyonFile fd = mTfs.open(filePath);
       FileInfo fInfo = mTfs.getInfo(fd);
-      if (fInfo.isIsFolder()) {
+      if (fInfo.isFolder()) {
         List<FileInfo> files = mTfs.listStatus(fd);
         List<String> errorMessages = new ArrayList<String>();
         for (FileInfo file : files) {
@@ -82,7 +82,7 @@ public final class PersistCommand extends AbstractTfsShellCommand {
         if (errorMessages.size() != 0) {
           throw new IOException(Joiner.on('\n').join(errorMessages));
         }
-      } else if (fInfo.isIsPersisted()) {
+      } else if (fInfo.isPersisted()) {
         System.out.println(filePath + " is already persisted");
       } else {
         long size = TachyonFileSystemUtils.persistFile(mTfs, fd, fInfo, mTachyonConf);

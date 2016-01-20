@@ -312,11 +312,11 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals("testFolder", fileInfo.getName());
     Assert.assertEquals(1, fileInfo.getFileId());
     Assert.assertEquals(0, fileInfo.getLength());
-    Assert.assertFalse(fileInfo.isIsCacheable());
-    Assert.assertTrue(fileInfo.isIsCompleted());
-    Assert.assertTrue(fileInfo.isIsFolder());
-    Assert.assertFalse(fileInfo.isIsPersisted());
-    Assert.assertFalse(fileInfo.isIsPinned());
+    Assert.assertFalse(fileInfo.isCacheable());
+    Assert.assertTrue(fileInfo.isCompleted());
+    Assert.assertTrue(fileInfo.isFolder());
+    Assert.assertFalse(fileInfo.isPersisted());
+    Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
     Assert.assertEquals(0755, (short) fileInfo.getPermission());
   }
@@ -328,11 +328,11 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals("testFile", fileInfo.getName());
     Assert.assertEquals(fileId, fileInfo.getFileId());
     Assert.assertEquals(0, fileInfo.getLength());
-    Assert.assertTrue(fileInfo.isIsCacheable());
-    Assert.assertFalse(fileInfo.isIsCompleted());
-    Assert.assertFalse(fileInfo.isIsFolder());
-    Assert.assertFalse(fileInfo.isIsPersisted());
-    Assert.assertFalse(fileInfo.isIsPinned());
+    Assert.assertTrue(fileInfo.isCacheable());
+    Assert.assertFalse(fileInfo.isCompleted());
+    Assert.assertFalse(fileInfo.isFolder());
+    Assert.assertFalse(fileInfo.isPersisted());
+    Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
     Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
     Assert.assertEquals(0644, (short)fileInfo.getPermission());
@@ -411,7 +411,7 @@ public class FileSystemMasterIntegrationTest {
   public void createDirectoryTest() throws Exception {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), MkdirOptions.defaults());
     FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertTrue(fileInfo.isIsFolder());
+    Assert.assertTrue(fileInfo.isFolder());
     Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
     Assert.assertEquals(0755, (short) fileInfo.getPermission());
   }
@@ -454,7 +454,7 @@ public class FileSystemMasterIntegrationTest {
   public void createFileTest() throws Exception {
     mFsMaster.create(new TachyonURI("/testFile"), CreateOptions.defaults());
     FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFile")));
-    Assert.assertFalse(fileInfo.isIsFolder());
+    Assert.assertFalse(fileInfo.isFolder());
     Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
     Assert.assertEquals(0644, (short) fileInfo.getPermission());
   }

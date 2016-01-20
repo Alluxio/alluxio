@@ -140,7 +140,7 @@ public class TfsShellUtils {
       if (match(fileURI, inputURI)) { // if it matches
         res.add(fileURI);
       } else {
-        if (file.isIsFolder()) { // if it is a folder, we do it recursively
+        if (file.isFolder()) { // if it is a folder, we do it recursively
           TachyonURI dirURI =
               new TachyonURI(inputURI.getScheme(), inputURI.getAuthority(), file.getPath());
           String prefix = inputURI.getLeadingPath(dirURI.getDepth());

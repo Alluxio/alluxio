@@ -52,7 +52,7 @@ public final class CatCommand extends WithWildCardPathCommand {
       TachyonFile fd = mTfs.open(path);
       FileInfo tFile = mTfs.getInfo(fd);
 
-      if (!tFile.isIsFolder()) {
+      if (!tFile.isFolder()) {
         InStreamOptions op = new InStreamOptions.Builder(mTachyonConf)
             .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
         FileInStream is = mTfs.getInStream(fd, op);

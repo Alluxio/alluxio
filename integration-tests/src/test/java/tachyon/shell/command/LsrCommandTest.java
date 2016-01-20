@@ -61,16 +61,16 @@ public class LsrCommandTest extends AbstractTfsShellTest {
     String expected = "";
     expected +=
         getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10, "In Memory",
-            testUser, testUser, files[0].getPermission(), files[0].isIsFolder());
+            testUser, testUser, files[0].getPermission(), files[0].isFolder());
     expected +=
         getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 0, "", testUser,
-            testUser, files[1].getPermission(), files[1].isIsFolder());
+            testUser, files[1].getPermission(), files[1].isFolder());
     expected +=
         getLsResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), 20,
-            "In Memory", testUser, testUser, files[2].getPermission(), files[2].isIsFolder());
+            "In Memory", testUser, testUser, files[2].getPermission(), files[2].isFolder());
     expected +=
         getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30, "Not In Memory",
-            testUser, testUser, files[3].getPermission(), files[3].isIsFolder());
+            testUser, testUser, files[3].getPermission(), files[3].isFolder());
     Assert.assertEquals(expected, mOutput.toString());
     MasterContext.reset();
   }

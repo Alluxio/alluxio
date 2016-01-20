@@ -168,7 +168,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   public FileInStream getInStream(TachyonFile file, InStreamOptions options)
       throws IOException, TachyonException, FileDoesNotExistException {
     FileInfo info = getInfo(file, GetInfoOptions.defaults());
-    if (info.isIsFolder()) {
+    if (info.isFolder()) {
       throw new FileNotFoundException(
           ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(info.getName()));
     }

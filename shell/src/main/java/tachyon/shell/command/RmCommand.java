@@ -53,7 +53,7 @@ public final class RmCommand extends WithWildCardPathCommand {
       throw new IOException(e.getMessage());
     }
 
-    if (fInfo.isIsFolder()) {
+    if (fInfo.isFolder()) {
       throw new IOException("rm: cannot remove a directory, please try rmr <path>");
     }
 

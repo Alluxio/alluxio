@@ -38,7 +38,7 @@ public class TouchCommandTest extends AbstractTfsShellTest {
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
     Assert.assertEquals(getCommandOutput(argv), mOutput.toString());
-    Assert.assertFalse(fileInfo.isIsFolder());
+    Assert.assertFalse(fileInfo.isFolder());
   }
 
   @Test
@@ -54,6 +54,6 @@ public class TouchCommandTest extends AbstractTfsShellTest {
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
     Assert.assertEquals(getCommandOutput(argv), mOutput.toString());
-    Assert.assertFalse(fileInfo.isIsFolder());
+    Assert.assertFalse(fileInfo.isFolder());
   }
 }

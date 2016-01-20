@@ -137,7 +137,7 @@ public class TieredStoreIntegrationTest {
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // Confirm the pin with master
-    Assert.assertTrue(mTFS.getInfo(file).isIsPinned());
+    Assert.assertTrue(mTFS.getInfo(file).isPinned());
 
     // Try to create a file that cannot be stored unless the previous file is evicted, expect an
     // exception since worker cannot serve the request
@@ -163,14 +163,14 @@ public class TieredStoreIntegrationTest {
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // Confirm the pin with master
-    Assert.assertTrue(mTFS.getInfo(file1).isIsPinned());
+    Assert.assertTrue(mTFS.getInfo(file1).isPinned());
 
     // Unpin the file
     mTFS.setState(file1, mSetUnpinned);
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // Confirm the unpin
-    Assert.assertFalse(mTFS.getInfo(file1).isIsPinned());
+    Assert.assertFalse(mTFS.getInfo(file1).isPinned());
 
     // Try to create a file that cannot be stored unless the previous file is evicted, this
     // should succeed

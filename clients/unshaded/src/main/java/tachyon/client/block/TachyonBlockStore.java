@@ -127,7 +127,7 @@ public final class TachyonBlockStore {
       mContext.releaseMasterClient(masterClient);
     }
 
-    if (blockInfo.locations.isEmpty()) {
+    if (blockInfo.getLocations().isEmpty()) {
       throw new IOException("Block " + blockId + " is not available in Tachyon");
     }
     // TODO(calvin): Get location via a policy.
@@ -138,7 +138,7 @@ public final class TachyonBlockStore {
     // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
     // for hasLocalWorker is fixed.
     String localHostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
-    for (BlockLocation location : blockInfo.locations) {
+    for (BlockLocation location : blockInfo.getLocations()) {
       WorkerNetAddress workerNetAddress = location.getWorkerAddress();
       if (workerNetAddress.getHost().equals(localHostName)) {
         // There is a local worker and the block is local.
@@ -152,7 +152,7 @@ public final class TachyonBlockStore {
       }
     }
     // No local worker/block, get the first location since it's nearest to memory tier.
-    WorkerNetAddress workerNetAddress = blockInfo.locations.get(0).getWorkerAddress();
+    WorkerNetAddress workerNetAddress = blockInfo.getLocations().get(0).getWorkerAddress();
     return new RemoteBlockInStream(blockId, blockInfo.getLength(),
         new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort()));
   }

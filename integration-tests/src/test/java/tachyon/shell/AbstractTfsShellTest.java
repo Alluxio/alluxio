@@ -185,7 +185,7 @@ public abstract class AbstractTfsShellTest {
       throws IOException, TachyonException {
     FileInfo fileInfo = mTfs.getInfo(mTfs.open(tUri));
     return getLsResultStr(tUri.getPath(), fileInfo.getCreationTimeMs(), size, "In Memory",
-        testUser, testGroup, fileInfo.getPermission(), fileInfo.isIsFolder());
+        testUser, testGroup, fileInfo.getPermission(), fileInfo.isFolder());
   }
 
   protected String getLsResultStr(String path, long createTime, int size, String fileType,
@@ -218,7 +218,7 @@ public abstract class AbstractTfsShellTest {
    */
   protected void checkFilePersisted(TachyonFile file, int size) throws TachyonException,
       IOException {
-    Assert.assertTrue(mTfs.getInfo(file).isIsPersisted());
+    Assert.assertTrue(mTfs.getInfo(file).isPersisted());
     mTfs.free(file);
     FileInStream tfis = mTfs.getInStream(file);
     byte[] actual = new byte[size];
