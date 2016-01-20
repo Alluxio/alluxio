@@ -103,13 +103,6 @@ public enum ExceptionMessage {
   // file system master
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
 
-  // raw table master
-  RAW_TABLE_COLUMN_OVERRANGE("Number of column: {0} should range from 0 to {1} non-inclusive"),
-  RAW_TABLE_ID_DOES_NOT_EXIST("Raw table with id {0} does not exist"),
-  RAW_TABLE_ID_DUPLICATED("There is already a raw table with id {0}"),
-  RAW_TABLE_METADATA_OVERSIZED("Size of raw table metadata {0} should be smaller than {1}"),
-  RAW_TABLE_PATH_DOES_NOT_EXIST("Raw table with path {0} does not exist"),
-
   // shell
   DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE(
       "The destination cannot be an existent file when the src contains wildcards."),

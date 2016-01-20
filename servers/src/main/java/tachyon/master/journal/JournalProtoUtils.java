@@ -62,8 +62,6 @@ public final class JournalProtoUtils {
         return entry.getPersistDirectory();
       case ASYNC_PERSIST_REQUEST:
         return entry.getAsyncPersistRequest();
-      case RAW_TABLE:
-        return entry.getRawTable();
       case REINITIALIZE_FILE:
         return entry.getReinitializeFile();
       case RENAME:
@@ -72,8 +70,6 @@ public final class JournalProtoUtils {
         return entry.getSetAcl();
       case SET_STATE:
         return entry.getSetState();
-      case UPDATE_METADATA:
-        return entry.getUpdateMetadata();
       case ENTRY_NOT_SET:
         // This could mean that the field was never set, or it was set with a different version of
         // this message. Given the history of the JournalEntry protobuf message, the keys of the

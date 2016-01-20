@@ -32,6 +32,7 @@ import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageStateUtils;
+import tachyon.util.ThreadFactoryUtils;
 
 /**
  * A periodical executor that detects lost files and launches recompute jobs.
@@ -43,8 +44,9 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
   private final RecomputePlanner mPlanner;
   private final FileSystemMaster mFileSystemMaster;
   /** The thread pool to launch recompute jobs */
-  private final ExecutorService mFixedExecutionService =
-      Executors.newFixedThreadPool(DEFAULT_RECOMPUTE_LAUNCHER_POOL_SIZE);
+  private final ExecutorService mRecomputeLauncherService =
+      Executors.newFixedThreadPool(DEFAULT_RECOMPUTE_LAUNCHER_POOL_SIZE,
+          ThreadFactoryUtils.build("recompute-launcher-%d", true));
 
   /**
    * Creates a new instance of {@link RecomputeExecutor}.
@@ -62,6 +64,11 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
     heartbeatWithFuture();
   }
 
+  @Override
+  public void close() {
+    mRecomputeLauncherService.shutdown();
+  }
+
   /**
    * A version of {@code heartbeat} which returns a {@link Future} representing completion of the
    * recompute plan. This is especially useful for tests.
@@ -71,7 +78,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
   Future<?> heartbeatWithFuture() {
     RecomputePlan plan = mPlanner.plan();
     if (plan != null && !plan.isEmpty()) {
-      return mFixedExecutionService.submit(new RecomputeLauncher(plan));
+      return mRecomputeLauncherService.submit(new RecomputeLauncher(plan));
     }
     return Futures.<Void>immediateFuture(null);
   }

@@ -51,6 +51,7 @@ import tachyon.master.file.meta.TtlBucketPrivateAccess;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
+import tachyon.security.User;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.PlainSaslServer.AuthorizedClientUser;
 import tachyon.thrift.FileInfo;
@@ -103,16 +104,19 @@ public class FileSystemMasterIntegrationTest {
 
       if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
-        ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
-        for (int i = 0; i < FILES_PER_NODE; i ++) {
-          Callable<Void> call = (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
-              path.join(Integer.toString(i))));
-          futures.add(executor.submit(call));
+        try {
+          ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+          for (int i = 0; i < FILES_PER_NODE; i ++) {
+            Callable<Void> call = (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
+                path.join(Integer.toString(i))));
+            futures.add(executor.submit(call));
+          }
+          for (Future<Void> f : futures) {
+            f.get();
+          }
+        } finally {
+          executor.shutdown();
         }
-        for (Future<Void> f : futures) {
-          f.get();
-        }
-        executor.shutdown();
       } else {
         for (int i = 0; i < FILES_PER_NODE; i ++) {
           exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
@@ -153,16 +157,19 @@ public class FileSystemMasterIntegrationTest {
       } else {
         if (concurrencyDepth > 0) {
           ExecutorService executor = Executors.newCachedThreadPool();
-          ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
-          for (int i = 0; i < FILES_PER_NODE; i ++) {
-            Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
-                path.join(Integer.toString(i))));
-            futures.add(executor.submit(call));
+          try {
+            ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+            for (int i = 0; i < FILES_PER_NODE; i ++) {
+              Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
+                  path.join(Integer.toString(i))));
+              futures.add(executor.submit(call));
+            }
+            for (Future<Void> f : futures) {
+              f.get();
+            }
+          } finally {
+            executor.shutdown();
           }
-          for (Future<Void> f : futures) {
-            f.get();
-          }
-          executor.shutdown();
         } else {
           for (int i = 0; i < FILES_PER_NODE; i ++) {
             exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
@@ -221,16 +228,19 @@ public class FileSystemMasterIntegrationTest {
         Assert.assertEquals(fileId, mFsMaster.getFileId(dstPath));
       } else if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
-        ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
-        for (int i = 0; i < FILES_PER_NODE; i ++) {
-          Callable<Void> call = (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, mRootPath,
-              mRootPath2, path.join(Integer.toString(i))));
-          futures.add(executor.submit(call));
+        try {
+          ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+          for (int i = 0; i < FILES_PER_NODE; i ++) {
+            Callable<Void> call = (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, mRootPath,
+                mRootPath2, path.join(Integer.toString(i))));
+            futures.add(executor.submit(call));
+          }
+          for (Future<Void> f : futures) {
+            f.get();
+          }
+        } finally {
+          executor.shutdown();
         }
-        for (Future<Void> f : futures) {
-          f.get();
-        }
-        executor.shutdown();
       } else {
         for (int i = 0; i < FILES_PER_NODE; i ++) {
           exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
@@ -256,32 +266,39 @@ public class FileSystemMasterIntegrationTest {
    */
   private static final String TEST_AUTHENTICATE_USER = "test-user";
 
-  private ExecutorService mExecutorService = null;
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(1000, 1000, Constants.GB,
           Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
   private TachyonConf mMasterTachyonConf;
   private FileSystemMaster mFsMaster;
+  private User mOldUser;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @After
   public final void after() throws Exception {
-    mExecutorService.shutdown();
+    if (mOldUser == null) {
+      AuthorizedClientUser.remove();
+    } else {
+      AuthorizedClientUser.set(mOldUser.getName());
+    }
   }
 
   @Before
   public final void before() throws Exception {
     // mock the authentication user
+    mOldUser = AuthorizedClientUser.get();
     AuthorizedClientUser.set(TEST_AUTHENTICATE_USER);
 
-    mExecutorService = Executors.newFixedThreadPool(2);
     mFsMaster =
         mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
     mMasterTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
 
+    // restore the ttl interval to the correct value in case it was set to a different value when
+    // the TtlBucket class was statically initialized
+    // TODO(andrew): prevent tests from interfering with each other through this value
     TtlBucketPrivateAccess
         .setTtlIntervalMs(mMasterTachyonConf.getLong(Constants.MASTER_TTLCHECKER_INTERVAL_MS));
   }
