@@ -34,6 +34,8 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.PartitionInfo;
 import tachyon.util.io.BufferUtils;
@@ -109,12 +111,16 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
 
   @Override
   public void put(byte[] key, byte[] value) throws IOException, TachyonException {
-    Preconditions.checkNotNull(key, "Cannot put a null key");
-    Preconditions.checkNotNull(value, "Cannot put a null value");
-    Preconditions.checkArgument(key.length > 0, "Cannot put an empty key");
-    Preconditions.checkArgument(value.length > 0, "Cannot put an empty value");
-    if (mWriter == null || mWriter.isFull()) {
-      // Need to create a new or switch to the next partition.
+    Preconditions.checkNotNull(key, PreconditionMessage.ERR_PUT_NULL_KEY);
+    Preconditions.checkNotNull(value, PreconditionMessage.ERR_PUT_NULL_KEY);
+    Preconditions.checkArgument(key.length > 0, PreconditionMessage.ERR_PUT_EMPTY_KEY);
+    Preconditions.checkArgument(value.length > 0, PreconditionMessage.ERR_PUT_EMPTY_VALUE);
+
+    // If this is the first put to the first partition in this store, create a new partition; or
+    // if this is a put to an existing but full partition, create a new partition and switch to
+    // this one.
+    if (mWriter == null || !mWriter.canPut(key, value)) {
+      // Need to save the existing partition before switching to the next partition.
       if (mWriter != null) {
         completePartition();
       }
@@ -122,6 +128,13 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
       mKeyStart = null;
       mKeyLimit = null;
     }
+
+    // If we are still unable to put this key-value pair after switching partition, throw exception.
+    if (!mWriter.canPut(key, value)) {
+      throw new IOException(ExceptionMessage.KEY_VALUE_TOO_LARGE
+          .getMessage(key.length, value.length));
+    }
+
     mWriter.put(key, value);
     ByteBuffer keyBuf = ByteBuffer.wrap(key);
     // Update the min key in the current partition.
@@ -140,8 +153,8 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
 
   @Override
   public void put(ByteBuffer key, ByteBuffer value) throws IOException, TachyonException {
-    Preconditions.checkNotNull(key, "Cannot put a null key");
-    Preconditions.checkNotNull(value, "Cannot put a null value");
+    Preconditions.checkNotNull(key, PreconditionMessage.ERR_PUT_NULL_KEY);
+    Preconditions.checkNotNull(value, PreconditionMessage.ERR_PUT_NULL_VALUE);
     // TODO(binfan): make efficient implementation
     byte[] keyArray = BufferUtils.newByteArrayFromByteBuffer(key);
     byte[] valueArray = BufferUtils.newByteArrayFromByteBuffer(value);
