@@ -66,42 +66,6 @@ public final class CommandUtils {
   }
 
   /**
-   * Converts an int permission value to a formatted String.
-   *
-   * @param permission value of permission for the path
-   * @param isDir whether the path is a directory
-   * @return formatted permission String
-   */
-  public static String formatPermission(int permission, boolean isDir) {
-    StringBuilder permString = new StringBuilder();
-
-    for (int i = 0; i < 3; i ++) {
-      if ((permission & 0x01) == 0x01) {
-        permString.append("x");
-      } else {
-        permString.append("-");
-      }
-      if ((permission & 0x02) == 0x02) {
-        permString.append("w");
-      } else {
-        permString.append("-");
-      }
-      if ((permission & 0x04) == 0x04) {
-        permString.append("r");
-      } else {
-        permString.append("-");
-      }
-      permission >>= 3;
-    }
-    if (isDir) {
-      permString.append("d");
-    } else {
-      permString.append("-");
-    }
-    return permString.reverse().toString();
-  }
-
-  /**
    * Sets pin state for the input path
    *
    * @param tfs The {@link FileSystem} client

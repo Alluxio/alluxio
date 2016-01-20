@@ -189,7 +189,7 @@ public abstract class AbstractTfsShellTest {
       String testUser, String testGroup, int permission, boolean isDir) throws IOException,
       TachyonException {
     return String.format(Constants.COMMAND_FORMAT_LS,
-        CommandUtils.formatPermission(permission, isDir), testUser, testGroup,
+        FormatUtils.formatPermission((short) permission, isDir), testUser, testGroup,
         FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTime), fileType,
         path);
   }
