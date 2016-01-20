@@ -73,7 +73,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     } else {
       tConf = new Configuration();
     }
-    prepareConfiguration(tachyonConf, tConf);
+    prepareConfiguration(fsDefaultName, tachyonConf, tConf);
     tConf.addResource(new Path(tConf.get(Constants.UNDERFS_HDFS_CONFIGURATION)));
     HdfsUnderFileSystemUtils.addS3Credentials(tConf);
 
@@ -103,7 +103,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    * @param tachyonConf Tachyon Configuration
    * @param config Hadoop configuration
    */
-  protected void prepareConfiguration(TachyonConf tachyonConf, Configuration config) {
+  protected void prepareConfiguration(String path, TachyonConf tachyonConf, Configuration config) {
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
     // discover available file system implementations. However this configuration setting is
     // required for earlier Hadoop versions plus it is still honoured as an override even in 2.x so
