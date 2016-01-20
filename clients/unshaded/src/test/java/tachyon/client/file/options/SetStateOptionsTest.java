@@ -21,37 +21,41 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for the {@link SetAttributeOptions} class.
+ * Tests for the {@link SetStateOptions} class.
  */
-public class SetAttributeOptionsTest {
+public class SetStateOptionsTest {
+
+  /**
+   * Tests that building a {@link SetStateOptions} works.
+   */
   @Test
-  public void defaultsTest() {
-    SetAttributeOptions options = SetAttributeOptions.defaults();
-    Assert.assertFalse(options.hasPersisted());
-    Assert.assertFalse(options.hasPinned());
-    Assert.assertFalse(options.hasTtl());
+  public void builderTest() {
+    Random random = new Random();
+    boolean recursive = random.nextBoolean();
+    long ttl = random.nextLong();
+    boolean persist = random.nextBoolean();
+
+    SetStateOptions options =
+        new SetStateOptions.Builder()
+            .setPinned(recursive)
+            .setTtl(ttl)
+            .setPersisted(persist)
+            .build();
+
+    Assert.assertEquals(recursive, options.getPinned());
+    Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertEquals(persist, options.getPersisted());
   }
 
   /**
-   * Tests getting and setting fields.
+   * Tests that building a {@link SetStateOptions} with the defaults works.
    */
   @Test
-  public void fieldsTest() {
-    Random random = new Random();
-    boolean persisted = random.nextBoolean();
-    boolean pinned = random.nextBoolean();
-    long ttl = random.nextLong();
+  public void defaultsTest() {
+    SetStateOptions options = SetStateOptions.defaults();
 
-    SetAttributeOptions options = SetAttributeOptions.defaults();
-    options.setPersisted(persisted);
-    options.setPinned(pinned);
-    options.setTtl(ttl);
-
-    Assert.assertTrue(options.hasPersisted());
-    Assert.assertEquals(persisted, options.getPersisted());
-    Assert.assertTrue(options.hasPinned());
-    Assert.assertEquals(pinned, options.getPinned());
-    Assert.assertTrue(options.hasTtl());
-    Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertFalse(options.hasPinned());
+    Assert.assertFalse(options.hasTtl());
+    Assert.assertFalse(options.hasPersisted());
   }
 }

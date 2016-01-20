@@ -13,30 +13,49 @@
  * the License.
  */
 
-package tachyon.hadoop;
-
-import tachyon.Constants;
+package tachyon.client.file;
 
 /**
- * A Tachyon client API compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
- * interface. Any program working with Hadoop HDFS can work with Tachyon transparently. Note that
- * the performance of using this TFSFT API may not be as efficient as the performance of using the
- * Tachyon native API defined in {@link tachyon.client.file.TachyonFileSystem}, which TFS is built
- * on top of.
- *
- * <p>
- * Unlike {@link TFS}, this class enables Zookeeper.
- * </p>
+ * A file handler for a file in Tachyon. It is a wrapper around the file ID for now.
  */
-public final class TFSFT extends AbstractTFS {
+public class TachyonFile {
+  private final long mFileId;
 
-  @Override
-  public String getScheme() {
-    return Constants.SCHEME_FT;
+  /**
+   * Creates a new Tachyon file.
+   *
+   * @param fileId the file id
+   */
+  public TachyonFile(long fileId) {
+    mFileId = fileId;
   }
 
   @Override
-  protected boolean isZookeeperMode() {
-    return true;
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof TachyonFile)) {
+      return false;
+    }
+    TachyonFile that = (TachyonFile) o;
+    return mFileId == that.mFileId;
+  }
+
+  /**
+   * @return the file id
+   */
+  public long getFileId() {
+    return mFileId;
+  }
+
+  @Override
+  public int hashCode() {
+    return Long.valueOf(mFileId).hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "TachyonFile(" + mFileId + ")";
   }
 }

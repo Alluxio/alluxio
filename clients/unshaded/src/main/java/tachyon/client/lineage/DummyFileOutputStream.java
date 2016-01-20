@@ -17,7 +17,6 @@ package tachyon.client.lineage;
 
 import java.io.IOException;
 
-import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.options.OutStreamOptions;
 
@@ -30,12 +29,12 @@ public final class DummyFileOutputStream extends FileOutStream {
   /**
    * Constructs a new dummy file output stream.
    *
-   * @param path the path of the file
+   * @param fileId the id of the file
    * @param options the set of options specific to this operation
    * @throws IOException if an I/O error occurs
    */
-  public DummyFileOutputStream(TachyonURI path, OutStreamOptions options) throws IOException {
-    super(path, options);
+  public DummyFileOutputStream(long fileId, OutStreamOptions options) throws IOException {
+    super(fileId, options);
   }
 
   @Override

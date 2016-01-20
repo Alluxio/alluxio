@@ -22,66 +22,57 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
-import tachyon.client.file.policy.FileWriteLocationPolicy;
-import tachyon.client.file.policy.LocalFirstPolicy;
-import tachyon.client.file.policy.RoundRobinPolicy;
 import tachyon.conf.TachyonConf;
 
 /**
- * Tests for the {@link OutStreamOptions} class.
+ * Tests for the {@link CreateOptions} class.
  */
-public class OutStreamOptionsTest {
+public class CreateOptionsTest {
 
   /**
-   * Tests that building an {@link OutStreamOptions} works.
+   * Tests that building a {@link CreateOptions} works.
    */
   @Test
   public void builderTest() {
     Random random = new Random();
     long blockSize = random.nextLong();
-    TachyonStorageType tachyonType = TachyonStorageType.STORE;
+    boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
-    FileWriteLocationPolicy policy = new RoundRobinPolicy();
 
-    OutStreamOptions options =
-        new OutStreamOptions.Builder(new TachyonConf())
+    CreateOptions options =
+        new CreateOptions.Builder(new TachyonConf())
             .setBlockSizeBytes(blockSize)
-            .setTachyonStorageType(tachyonType)
+            .setRecursive(recursive)
             .setTtl(ttl)
             .setUnderStorageType(ufsType)
-            .setLocationPolicy(policy)
             .build();
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
-    Assert.assertEquals(tachyonType, options.getTachyonStorageType());
+    Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
-    Assert.assertEquals(policy, options.getLocationPolicy());
   }
 
   /**
-   * Tests that building an {@link OutStreamOptions} with the defaults works.
+   * Tests that building a {@link CreateOptions} with the defaults works.
    */
   @Test
   public void defaultsTest() {
-    TachyonStorageType tachyonType = TachyonStorageType.STORE;
-    UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     TachyonConf conf = new TachyonConf();
+    UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     conf.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
     ClientContext.reset(conf);
 
-    OutStreamOptions options = OutStreamOptions.defaults();
+    CreateOptions options = CreateOptions.defaults();
 
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
-    Assert.assertEquals(tachyonType, options.getTachyonStorageType());
+    Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
-    Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
     ClientContext.reset();
   }
 }

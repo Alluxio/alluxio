@@ -19,9 +19,9 @@ import java.io.IOException;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.file.BaseFileSystem;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.options.CreateFileOptions;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.TachyonException;
@@ -31,17 +31,21 @@ import tachyon.exception.TachyonException;
  * operations.
  */
 @PublicApi
-public class LineageFileSystem extends BaseFileSystem {
+public class TachyonLineageFileSystem extends TachyonFileSystem {
+  private static TachyonLineageFileSystem sTachyonFileSystem;
   private LineageContext mLineageContext;
 
   /**
    * @return the current lineage file system for Tachyon
    */
-  public static synchronized LineageFileSystem get() {
-    return new LineageFileSystem();
+  public static synchronized TachyonLineageFileSystem get() {
+    if (sTachyonFileSystem == null) {
+      sTachyonFileSystem = new TachyonLineageFileSystem();
+    }
+    return sTachyonFileSystem;
   }
 
-  protected LineageFileSystem() {
+  protected TachyonLineageFileSystem() {
     super();
     mLineageContext = LineageContext.INSTANCE;
   }
@@ -57,12 +61,13 @@ public class LineageFileSystem extends BaseFileSystem {
    * @throws IOException if the recreation fails
    * @throws TachyonException if an unexpected TachyonException occurs
    */
-  private long reinitializeFile(TachyonURI path, CreateFileOptions options)
+  private long reinitializeFile(TachyonURI path, OutStreamOptions options)
       throws LineageDoesNotExistException, IOException, TachyonException {
     LineageMasterClient masterClient = mLineageContext.acquireMasterClient();
     try {
-      return masterClient.reinitializeFile(path.getPath(), options.getBlockSizeBytes(),
+      long fileId = masterClient.reinitializeFile(path.getPath(), options.getBlockSizeBytes(),
           options.getTtl());
+      return fileId;
     } finally {
       mLineageContext.releaseMasterClient(masterClient);
     }
@@ -79,19 +84,19 @@ public class LineageFileSystem extends BaseFileSystem {
    * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   @Override
-  public FileOutStream createFile(TachyonURI path, CreateFileOptions options)
+  public FileOutStream getOutStream(TachyonURI path, OutStreamOptions options)
       throws IOException, TachyonException {
     long fileId;
     try {
       fileId = reinitializeFile(path, options);
     } catch (LineageDoesNotExistException e) {
       // not a lineage file
-      return super.createFile(path, options);
+      return super.getOutStream(path, options);
     }
     if (fileId == -1) {
-      return new DummyFileOutputStream(path, options.toOutStreamOptions());
+      return new DummyFileOutputStream(fileId, options);
     }
-    return new LineageFileOutStream(path, options.toOutStreamOptions());
+    return new LineageFileOutStream(fileId, options);
   }
 
   /**

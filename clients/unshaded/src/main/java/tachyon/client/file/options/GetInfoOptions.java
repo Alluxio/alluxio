@@ -19,44 +19,44 @@ import tachyon.annotation.PublicApi;
 import tachyon.conf.TachyonConf;
 
 /**
- * Method option for unmounting a path.
+ * Method option for getting information.
  */
 @PublicApi
-public final class UnmountOptions {
+public final class GetInfoOptions {
 
   /**
-   * Builder for {@link UnmountOptions}.
+   * Builder for {@link GetInfoOptions}.
    */
-  public static class Builder implements OptionsBuilder<UnmountOptions> {
+  public static class Builder implements OptionsBuilder<GetInfoOptions> {
     /**
-     * Creates a new builder for {@link UnmountOptions}.
+     * Creates a new builder for {@link GetInfoOptions}.
      */
     public Builder() {}
 
     /**
-     * Creates a new builder for {@link UnmountOptions}.
+     * Creates a new builder for {@link GetInfoOptions}.
      *
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {}
 
     /**
-     * Builds a new instance of {@link UnmountOptions}.
+     * Builds a new instance of {@link GetInfoOptions}.
      *
-     * @return a {@link UnmountOptions} instance
+     * @return a {@link GetInfoOptions} instance
      */
     @Override
-    public UnmountOptions build() {
-      return new UnmountOptions(this);
+    public GetInfoOptions build() {
+      return new GetInfoOptions(this);
     }
   }
 
   /**
-   * @return the default {@link UnmountOptions}
+   * @return the default {@link GetInfoOptions}
    */
-  public static UnmountOptions defaults() {
+  public static GetInfoOptions defaults() {
     return new Builder().build();
   }
 
-  private UnmountOptions(UnmountOptions.Builder builder) {}
+  private GetInfoOptions(GetInfoOptions.Builder builder) {}
 }
