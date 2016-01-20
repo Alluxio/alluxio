@@ -33,8 +33,6 @@ import tachyon.Version;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.CreateFileOptions;
-import tachyon.client.table.TachyonRawTables;
-import tachyon.client.table.TachyonRawTables.TachyonRawTablesFactory;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
@@ -140,12 +138,6 @@ public class JournalCrashTest {
               throw e;
             }
             sTfs.rename(testURI, new TachyonURI(testURI + "-rename"));
-          } else if (ClientOpType.CREATE_TABLE == mOpType) {
-            try {
-              sTachyonRawTables.create(new TachyonURI(mWorkDir + mSuccessNum), 1, null);
-            } catch (Exception e) {
-              break;
-            }
           }
         } catch (Exception e) {
           // Since master may crash/restart for several times, so this exception is expected.
@@ -177,8 +169,6 @@ public class JournalCrashTest {
   private static String sTestDir;
   /** The Tachyon Client. This can be shared by all the threads. */
   private static FileSystem sTfs = null;
-  /** Old Tachyon client, only be used for raw table functionality */
-  private static TachyonRawTables sTachyonRawTables = null;
   /** The total time to run this test. */
   private static long sTotalTimeMs;
 
@@ -266,7 +256,6 @@ public class JournalCrashTest {
 
       System.out.println("Round " + rounds + " : Launch Clients...");
       sTfs = FileSystem.Factory.get();
-      sTachyonRawTables = TachyonRawTablesFactory.get();
       try {
         sTfs.delete(new TachyonURI(sTestDir));
       } catch (Exception ioe) {
