@@ -60,10 +60,6 @@ public class JournalCrashTest {
      * Keep creating and renaming file.
      */
     CREATE_RENAME_FILE,
-    /**
-     * Keep creating empty raw table.
-     */
-    CREATE_TABLE,
   }
 
   /**
@@ -201,12 +197,6 @@ public class JournalCrashTest {
             return false;
           }
         }
-        //else if (ClientOpType.CREATE_TABLE == opType) {
-        //  if (tfs.getRawTable(new TachyonURI(workDir + s)).getId() == -1) {
-        //    tfs.close();
-        //    return false;
-        //  }
-        //}
       }
     }
     return true;

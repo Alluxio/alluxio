@@ -22,6 +22,9 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.thrift.CreateDirectoryTOptions;
 
+/**
+ * Method options for creating a directory.
+ */
 @PublicApi
 public final class CreateDirectoryOptions {
   private boolean mAllowExists;
@@ -102,7 +105,7 @@ public final class CreateDirectoryOptions {
   public String toString() {
     StringBuilder sb = new StringBuilder("CreateDirectoryOptions(");
     sb.append(super.toString()).append(", AllowExists: ").append(mAllowExists);
-    sb.append(super.toString()).append(", Recursive: ").append(mRecursive);
+    sb.append(", Recursive: ").append(mRecursive);
     sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
     sb.append(")");
     return sb.toString();

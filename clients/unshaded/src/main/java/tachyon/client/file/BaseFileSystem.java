@@ -19,6 +19,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.file.options.CreateDirectoryOptions;
@@ -44,11 +46,12 @@ import tachyon.exception.TachyonException;
 /**
 * Default implementation of the {@link FileSystem} interface. Developers can extend this class
 * instead of implementing the interface. This implementation reads and writes data through
-* {@link FileOutStream} and {@link FileInStream}. This class is thread safe.
+* {@link FileInStream} and {@link FileOutStream}. This class is thread safe.
 */
+@ThreadSafe
 @PublicApi
 public class BaseFileSystem implements FileSystem {
-  private FileSystemContext mContext;
+  private final FileSystemContext mContext;
 
   public static BaseFileSystem get() {
     return new BaseFileSystem();
@@ -160,7 +163,6 @@ public class BaseFileSystem implements FileSystem {
   public URIStatus getStatus(TachyonURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-    // TODO(calvin): Fix the exception handling in the master
     try {
       return masterClient.getStatus(path);
     } catch (FileDoesNotExistException e) {
