@@ -140,6 +140,10 @@ public enum ExceptionMessage {
   UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
   MOUNT_PATH_SHADOWS_DEFAULT_UFS(
       "Mount path {0} shadows an existing path in the default underlying filesystem"),
+
+  // key-value
+  KEY_VALUE_TOO_LARGE("Unable to put key-value pair: key {0} bytes, value {1} bytes"),
+
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 

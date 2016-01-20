@@ -16,26 +16,34 @@
 package tachyon.client.keyvalue;
 
 import java.util.Collections;
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
+import tachyon.client.ClientContext;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.exception.ExceptionMessage;
+import tachyon.thrift.FileInfo;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
  * Integration tests for {@link KeyValueStores}.
  */
-public final class KeyValueStoreIntegrationTest {
+public final class KeyValueStoresIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
   private static final String BASE_KEY = "base_key";
   private static final String BASE_VALUE = "base_value";
@@ -49,6 +57,9 @@ public final class KeyValueStoreIntegrationTest {
   private KeyValueStoreWriter mWriter;
   private KeyValueStoreReader mReader;
   private TachyonURI mStoreUri;
+
+  @Rule
+  public final ExpectedException mThrown = ExpectedException.none();
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
@@ -68,8 +79,6 @@ public final class KeyValueStoreIntegrationTest {
 
   /**
    * Tests creating and opening an empty store.
-   *
-   * @throws Exception if unexpected error happens
    */
   @Test
   public void createAndOpenEmptyStoreTest() throws Exception {
@@ -84,8 +93,6 @@ public final class KeyValueStoreIntegrationTest {
 
   /**
    * Tests creating and opening a store with one key.
-   *
-   * @throws Exception if unexpected error happens
    */
   @Test
   public void createAndOpenStoreWithOneKeyTest() throws Exception {
@@ -101,13 +108,11 @@ public final class KeyValueStoreIntegrationTest {
 
   /**
    * Tests creating and opening a store with a number of key.
-   *
-   * @throws Exception if unexpected error happens
    */
   @Test
   public void createAndOpenStoreWithMultiKeysTest() throws Exception {
     final int numKeys = 100;
-    final int keyLength = 4; // 64 Byte key
+    final int keyLength = 4; // 4Byte key
     final int valueLength = 5 * Constants.KB; // 5KB value
     mWriter = sKVStores.create(mStoreUri);
     for (int i = 0; i < numKeys; i ++) {
@@ -168,11 +173,11 @@ public final class KeyValueStoreIntegrationTest {
    * iterated.
    */
   @Test
-  public void iteratorTest() throws Exception {
+  public void noOrderIteratorTest() throws Exception {
     List<KeyValuePair> pairs = Lists.newArrayListWithExpectedSize(BASE_KEY_VALUE_NUMBER);
     // TODO(cc): Assure multiple partitions are created by creating larger pairs, after fixing the
     // way of detecting whether the current partition is full.
-    for (int i = 0; i < BASE_KEY_VALUE_NUMBER; i ++) {
+    for (int i = 0; i < BASE_KEY_VALUE_NUMBER; i++) {
       pairs.add(new KeyValuePair(genBaseKey(i).getBytes(), genBaseValue(i).getBytes()));
     }
     List<KeyValuePair> iteratedPairs = Lists.newArrayListWithExpectedSize(pairs.size());
@@ -195,5 +200,66 @@ public final class KeyValueStoreIntegrationTest {
     Collections.sort(pairs);
     Collections.sort(iteratedPairs);
     Assert.assertEquals(pairs, iteratedPairs);
+  }
+
+  /*
+   * Tests creating and opening a store with a number of keys, while each key-value pair is large
+   * enough to take a separate key-value partition.
+   */
+  @Test
+  public void createMultiPartitionsTest() throws Exception {
+    final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
+    final int numKeys = 10;
+    final int keyLength = 4; // 4Byte key
+    final int valueLength = 500 * Constants.KB; // 500KB value
+
+    TachyonFileSystem tfs = TachyonFileSystemFactory.get();
+
+    ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
+        String.valueOf(maxPartitionSize));
+    mWriter = sKVStores.create(mStoreUri);
+    for (int i = 0; i < numKeys; i ++) {
+      byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
+      byte[] value = BufferUtils.getIncreasingByteArray(i, valueLength);
+      mWriter.put(key, value);
+    }
+    mWriter.close();
+
+    List<FileInfo> files = tfs.listStatus(tfs.open(mStoreUri));
+    Assert.assertEquals(numKeys, files.size());
+    for (FileInfo info : files) {
+      Assert.assertTrue(info.getLength() <= maxPartitionSize);
+    }
+
+    mReader = sKVStores.open(mStoreUri);
+    for (int i = 0; i < numKeys; i ++) {
+      byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
+      byte[] value = mReader.get(key);
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(i, valueLength, value));
+    }
+    Assert.assertNull(mReader.get(KEY1));
+    Assert.assertNull(mReader.get(KEY2));
+    mReader.close();
+  }
+
+  /**
+   * Tests putting a key-value pair that is larger than the max key-value partition size,
+   * expecting exception thrown.
+   */
+  @Test
+  public void putKeyValueTooLargeTest() throws Exception {
+    final long maxPartitionSize = 500 * Constants.KB; // Each partition is at most 500 KB
+    final int keyLength = 4; // 4Byte key
+    final int valueLength = 500 * Constants.KB; // 500KB value
+
+    ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
+        String.valueOf(maxPartitionSize));
+    mWriter = sKVStores.create(mStoreUri);
+    byte[] key = BufferUtils.getIncreasingByteArray(0, keyLength);
+    byte[] value = BufferUtils.getIncreasingByteArray(0, valueLength);
+
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage(ExceptionMessage.KEY_VALUE_TOO_LARGE.getMessage(keyLength, valueLength));
+    mWriter.put(key, value);
   }
 }
