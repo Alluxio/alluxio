@@ -61,8 +61,11 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
   void put(byte[] key, byte[] value) throws IOException;
 
   /**
+   * Returns whether this writer will be full after inserting the given key-value pair.
+   *
+   * @param key key to put, cannot be null
+   * @param value value to put, cannot be null
    * @return whether this writer is full to take any more key-value pairs
    */
-  boolean isFull();
-
+  boolean canPut(byte[] key, byte[] value);
 }
