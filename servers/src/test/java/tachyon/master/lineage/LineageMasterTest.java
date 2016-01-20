@@ -190,10 +190,11 @@ public final class LineageMasterTest {
    */
   @Test
   public void asyncCompleteFileTest() throws Exception {
-    TachyonURI file = new TachyonURI("/test1");
-    mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(), Lists.newArrayList(file), mJob);
-    mFileSystemMaster.completeFile(file, CompleteFileOptions.defaults());
-    Mockito.verify(mFileSystemMaster).completeFile(Mockito.eq(file),
+    long fileId = 0;
+    mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
+        Lists.newArrayList(new TachyonURI("/test1")), mJob);
+    mFileSystemMaster.completeFile(fileId, CompleteFileOptions.defaults());
+    Mockito.verify(mFileSystemMaster).completeFile(Mockito.eq(fileId),
         Mockito.any(CompleteFileOptions.class));
   }
 

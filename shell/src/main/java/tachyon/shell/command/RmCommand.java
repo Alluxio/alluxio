@@ -18,9 +18,11 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.FileSystem;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.FileInfo;
 
 /**
  * Removes the file specified by argv.
@@ -31,7 +33,7 @@ public final class RmCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public RmCommand(TachyonConf conf, FileSystem tfs) {
+  public RmCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -42,18 +44,24 @@ public final class RmCommand extends WithWildCardPathCommand {
 
   @Override
   void runCommand(TachyonURI path) throws IOException {
-    // TODO(calvin): Remove explicit state checking.
+    TachyonFile fd;
+    FileInfo fInfo;
     try {
-      if (!mTfs.exists(path)) {
-        throw new IOException("Path " + path + " does not exist");
-      }
-      if (mTfs.getStatus(path).isFolder()) {
-        throw new IOException("rm: cannot remove a directory, please try rmr <path>");
-      }
-      mTfs.delete(path);
+      fd = mTfs.open(path);
+      fInfo = mTfs.getInfo(fd);
+    } catch (TachyonException e) {
+      throw new IOException(e.getMessage());
+    }
+
+    if (fInfo.isFolder) {
+      throw new IOException("rm: cannot remove a directory, please try rmr <path>");
+    }
+
+    try {
+      mTfs.delete(fd);
       System.out.println(path + " has been removed");
     } catch (TachyonException e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
   }
 

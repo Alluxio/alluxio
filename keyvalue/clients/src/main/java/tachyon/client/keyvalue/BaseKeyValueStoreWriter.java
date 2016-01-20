@@ -30,7 +30,9 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.file.FileSystem;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
@@ -45,7 +47,7 @@ import tachyon.util.io.BufferUtils;
 class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final FileSystem mTfs = FileSystem.Factory.get();
+  private final TachyonFileSystem mTfs = TachyonFileSystemFactory.get();
   private final TachyonConf mConf = ClientContext.getConf();
   private final InetSocketAddress mMasterAddress = ClientContext.getMasterAddress();
   private final KeyValueMasterClient mMasterClient;
@@ -175,7 +177,8 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
       return;
     }
     mWriter.close();
-    List<Long> blockIds = mTfs.getStatus(getPartitionName()).getBlockIds();
+    TachyonFile tFile = mTfs.open(getPartitionName());
+    List<Long> blockIds = mTfs.getInfo(tFile).getBlockIds();
     long blockId = blockIds.get(0);
     PartitionInfo info = new PartitionInfo(mKeyStart, mKeyLimit, blockId);
     mMasterClient.completePartition(mStoreUri, info);

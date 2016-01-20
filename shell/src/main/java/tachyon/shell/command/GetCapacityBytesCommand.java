@@ -18,21 +18,21 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 import tachyon.client.block.TachyonBlockStore;
-import tachyon.client.file.FileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Gets the capacity of the {@link FileSystem}.
+ * Gets the capacity of the {@link TachyonFileSystem}.
  */
 public final class GetCapacityBytesCommand extends AbstractTfsShellCommand {
 
   /**
-   * Constructs a new instance to get the capacity of the {@link FileSystem}.
+   * Constructs a new instance to get the capacity of the {@link TachyonFileSystem}.
    *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public GetCapacityBytesCommand(TachyonConf conf, FileSystem tfs) {
+  public GetCapacityBytesCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 

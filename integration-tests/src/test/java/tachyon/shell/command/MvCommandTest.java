@@ -64,7 +64,6 @@ public class MvCommandTest extends AbstractTfsShellTest {
 
     Assert.assertEquals(-1, ret);
     String output = mOutput.toString();
-    System.out.println(output);
-    Assert.assertTrue(output.contains("/testFolder already exists"));
+    Assert.assertTrue(output.contains("mv: Failed to rename /testFolder1 to /testFolder"));
   }
 }

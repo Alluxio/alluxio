@@ -24,10 +24,11 @@ import org.junit.Test;
 import tachyon.IntegrationTestUtils;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.URIStatus;
+import tachyon.client.file.TachyonFile;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.file.meta.PersistenceState;
+import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
@@ -52,30 +53,31 @@ public final class FileOutStreamAsyncWriteIntegrationTest
 
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
     final int length = 2;
-    FileOutStream os = mTfs.createFile(filePath, mWriteAsync);
+    FileOutStream os = mTfs.getOutStream(filePath, mWriteAsync);
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
 
     CommonUtils.sleepMs(1);
     // check the file is completed but not persisted
-    URIStatus status = mTfs.getStatus(filePath);
-    Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(), status.getPersistenceState());
-    Assert.assertTrue(status.isCompleted());
+    TachyonFile file = mTfs.open(filePath);
+    FileInfo fileInfo = mTfs.getInfo(file);
+    Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(), fileInfo.getPersistenceState());
+    Assert.assertTrue(fileInfo.isCompleted);
 
     // execute the async persist, which needs two heartbeats
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
         TimeUnit.SECONDS));
 
-    IntegrationTestUtils.waitForPersist(mLocalTachyonClusterResource, status.getFileId());
+    IntegrationTestUtils.waitForPersist(mLocalTachyonClusterResource, file.getFileId());
 
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
         TimeUnit.SECONDS));
 
-    status = mTfs.getStatus(filePath);
-    Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
+    fileInfo = mTfs.getInfo(file);
+    Assert.assertEquals(PersistenceState.PERSISTED.toString(), fileInfo.getPersistenceState());
 
     checkWrite(filePath, mWriteAsync.getUnderStorageType(), length, length);
   }

@@ -21,7 +21,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.WriteType;
+import tachyon.client.TachyonStorageType;
+import tachyon.client.UnderStorageType;
 import tachyon.exception.ExceptionMessage;
 import tachyon.shell.AbstractTfsShellTest;
 
@@ -39,10 +40,12 @@ public class CountCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void countTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
-    TachyonFSTestUtils
-        .createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileB", WriteType.MUST_CACHE, 30);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB",
+        TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 20);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileB", TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, 30);
     mFsShell.run("count", "/testRoot");
     String expected = "";
     String format = "%-25s%-25s%-15s\n";

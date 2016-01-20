@@ -21,7 +21,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.WriteType;
+import tachyon.client.TachyonStorageType;
+import tachyon.client.UnderStorageType;
 import tachyon.exception.TachyonException;
 import tachyon.shell.AbstractTfsShellTest;
 import tachyon.shell.TfsShellUtilsTest;
@@ -50,7 +51,8 @@ public class CatCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void catTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, 10);
     mFsShell.run("cat", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(10);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());

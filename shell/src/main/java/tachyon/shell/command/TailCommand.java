@@ -19,14 +19,15 @@ import java.io.IOException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ReadType;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.FileSystem;
-import tachyon.client.file.URIStatus;
-import tachyon.client.file.options.OpenFileOptions;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.FileInfo;
 
 /**
  * Prints the file's last 1KB of contents to the console.
@@ -37,7 +38,7 @@ public final class TailCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public TailCommand(TachyonConf conf, FileSystem tfs) {
+  public TailCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -48,26 +49,29 @@ public final class TailCommand extends WithWildCardPathCommand {
 
   @Override
   void runCommand(TachyonURI path) throws IOException {
-    URIStatus status;
+    TachyonFile fd;
+    FileInfo fInfo;
     try {
-      status = mTfs.getStatus(path);
+      fd = mTfs.open(path);
+      fInfo = mTfs.getInfo(fd);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
 
-    if (!status.isFolder()) {
-      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    if (!fInfo.isFolder) {
+      InStreamOptions op = new InStreamOptions.Builder(mTachyonConf)
+          .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
       FileInStream is = null;
       try {
-        is = mTfs.openFile(path, options);
+        is = mTfs.getInStream(fd, op);
         byte[] buf = new byte[Constants.KB];
         long bytesToRead = 0L;
-        if (status.getLength() > Constants.KB) {
+        if (fInfo.getLength() > Constants.KB) {
           bytesToRead = Constants.KB;
         } else {
-          bytesToRead = status.getLength();
+          bytesToRead = fInfo.getLength();
         }
-        is.skip(status.getLength() - bytesToRead);
+        is.skip(fInfo.getLength() - bytesToRead);
         int read = is.read(buf);
         if (read != -1) {
           System.out.write(buf, 0, read);

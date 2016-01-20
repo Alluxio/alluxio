@@ -22,10 +22,11 @@ import java.util.List;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.FileSystem;
-import tachyon.client.file.URIStatus;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.FileInfo;
 import tachyon.util.FormatUtils;
 
 /**
@@ -33,7 +34,7 @@ import tachyon.util.FormatUtils;
  */
 public abstract class AbstractLsCommand extends WithWildCardPathCommand {
 
-  protected AbstractLsCommand(TachyonConf conf, FileSystem tfs) {
+  protected AbstractLsCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -45,40 +46,40 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
    * @throws IOException if a non-Tachyon related exception occurs
    */
   protected void ls(TachyonURI path, boolean recursive) throws IOException {
-    List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path);
-    for (URIStatus status : statuses) {
+    List<FileInfo> files = listStatusSortedByIncreasingCreationTime(path);
+    for (FileInfo file : files) {
       String inMemory = "";
-      if (!status.isFolder()) {
-        if (100 == status.getInMemoryPercentage()) {
+      if (!file.isFolder) {
+        if (100 == file.inMemoryPercentage) {
           inMemory = "In Memory";
         } else {
           inMemory = "Not In Memory";
         }
       }
       System.out.format(Constants.COMMAND_FORMAT_LS,
-          CommandUtils.formatPermission(status.getPermission(), status.isFolder()),
-          status.getUserName(), status.getGroupName(),
-          FormatUtils.getSizeFromBytes(status.getLength()),
-          CommandUtils.convertMsToDate(status.getCreationTimeMs()), inMemory, status.getPath());
-      if (recursive && status.isFolder()) {
-        ls(new TachyonURI(path.getScheme(), path.getAuthority(), status.getPath()), true);
+          FormatUtils.formatPermission((short) file.getPermission(), file.isFolder),
+          file.getUserName(), file.getGroupName(), FormatUtils.getSizeFromBytes(file.getLength()),
+          CommandUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
+      if (recursive && file.isFolder) {
+        ls(new TachyonURI(path.getScheme(), path.getAuthority(), file.getPath()), true);
       }
     }
   }
 
-  private List<URIStatus> listStatusSortedByIncreasingCreationTime(TachyonURI path)
+  private List<FileInfo> listStatusSortedByIncreasingCreationTime(TachyonURI path)
       throws IOException {
-    List<URIStatus> statuses;
+    List<FileInfo> files = null;
     try {
-      statuses = mTfs.listStatus(path);
+      TachyonFile fd = mTfs.open(path);
+      files = mTfs.listStatus(fd);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
-    Collections.sort(statuses, new Comparator<URIStatus>() {
+    Collections.sort(files, new Comparator<FileInfo>() {
       @Override
-      public int compare(URIStatus status1, URIStatus status2) {
-        long t1 = status1.getCreationTimeMs();
-        long t2 = status2.getCreationTimeMs();
+      public int compare(FileInfo fileInfo, FileInfo fileInfo2) {
+        long t1 = fileInfo.creationTimeMs;
+        long t2 = fileInfo2.creationTimeMs;
         if (t1 < t2) {
           return -1;
         }
@@ -88,6 +89,6 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
         return 1;
       }
     });
-    return statuses;
+    return files;
   }
 }

@@ -22,7 +22,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.options.CreateFileOptions;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.exception.TachyonException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
@@ -30,7 +30,6 @@ import tachyon.util.io.PathUtils;
 /**
  * Integration tests for {@link tachyon.client.file.FileOutStream}.
  */
-
 public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamIntegrationTest {
   // TODO(binfan): Run tests with local writes enabled and disabled.
   /**
@@ -40,15 +39,15 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   public void writeTest1() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (OutStreamOptions op : getOptionSet()) {
         writeTest1Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
       }
     }
   }
 
-  private void writeTest1Util(TachyonURI filePath, int len, CreateFileOptions op)
+  private void writeTest1Util(TachyonURI filePath, int len, OutStreamOptions op)
       throws IOException, TachyonException {
-    FileOutStream os = mTfs.createFile(filePath, op);
+    FileOutStream os = mTfs.getOutStream(filePath, op);
     for (int k = 0; k < len; k ++) {
       os.write((byte) k);
     }
@@ -63,15 +62,15 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   public void writeTest2() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (OutStreamOptions op : getOptionSet()) {
         writeTest2Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
       }
     }
   }
 
-  private void writeTest2Util(TachyonURI filePath, int len, CreateFileOptions op)
+  private void writeTest2Util(TachyonURI filePath, int len, OutStreamOptions op)
       throws IOException, TachyonException {
-    FileOutStream os = mTfs.createFile(filePath, op);
+    FileOutStream os = mTfs.getOutStream(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(len));
     os.close();
     checkWrite(filePath, op.getUnderStorageType(), len, len);
@@ -84,15 +83,15 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   public void writeTest3() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (OutStreamOptions op : getOptionSet()) {
         writeTest3Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
       }
     }
   }
 
-  private void writeTest3Util(TachyonURI filePath, int len, CreateFileOptions op)
+  private void writeTest3Util(TachyonURI filePath, int len, OutStreamOptions op)
       throws IOException, TachyonException {
-    FileOutStream os = mTfs.createFile(filePath, op);
+    FileOutStream os = mTfs.getOutStream(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(0, len / 2), 0, len / 2);
     os.write(BufferUtils.getIncreasingByteArray(len / 2, len / 2), 0, len / 2);
     os.close();
@@ -108,7 +107,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   public void writeSpecifyLocalTest() throws IOException, TachyonException {
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
     final int length = 2;
-    FileOutStream os = mTfs.createFile(filePath, mWriteLocal);
+    FileOutStream os = mTfs.getOutStream(filePath, mWriteLocal);
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -126,7 +125,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   public void longWriteTest() throws IOException, InterruptedException, TachyonException {
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
     final int length = 2;
-    FileOutStream os = mTfs.createFile(filePath, mWriteUnderStore);
+    FileOutStream os = mTfs.getOutStream(filePath, mWriteUnderStore);
     os.write((byte) 0);
     Thread.sleep(mTestConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS) * 2);
     os.write((byte) 1);
@@ -144,7 +143,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   @Test
   public void outOfOrderWriteTest() throws IOException, TachyonException {
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
-    FileOutStream os = mTfs.createFile(filePath, mWriteTachyon);
+    FileOutStream os = mTfs.getOutStream(filePath, mWriteTachyon);
 
     // Write something small, so it is written into the buffer, and not directly to the file.
     os.write((byte) 0);

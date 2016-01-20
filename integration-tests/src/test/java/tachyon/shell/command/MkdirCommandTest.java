@@ -21,9 +21,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.URIStatus;
+import tachyon.client.file.TachyonFile;
 import tachyon.exception.TachyonException;
 import tachyon.shell.AbstractTfsShellTest;
+import tachyon.thrift.FileInfo;
 
 /**
  * Tests for mkdir command.
@@ -31,24 +32,27 @@ import tachyon.shell.AbstractTfsShellTest;
 public class MkdirCommandTest extends AbstractTfsShellTest {
   @Test
   public void mkdirTest() throws IOException, TachyonException {
-    String qualifiedPath = "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
-        + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
+    String qualifiedPath =
+        "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
+            + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
     mFsShell.run("mkdir", qualifiedPath);
-    URIStatus status = mTfs.getStatus(new TachyonURI("/root/testFile1"));
-    Assert.assertNotNull(status);
+    TachyonFile tFile = mTfs.open(new TachyonURI("/root/testFile1"));
+    FileInfo fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
     Assert
         .assertEquals(getCommandOutput(new String[] {"mkdir", qualifiedPath}), mOutput.toString());
-    Assert.assertTrue(status.isFolder());
+    Assert.assertTrue(fileInfo.isIsFolder());
   }
 
   @Test
   public void mkdirComplexPathTest() throws IOException, TachyonException {
     mFsShell.run("mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File");
-    URIStatus status = mTfs.getStatus(new TachyonURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
-    Assert.assertNotNull(status);
-    Assert.assertEquals(getCommandOutput(new String[]{"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,"
-        + ".?/File"}), mOutput.toString());
-    Assert.assertTrue(status.isFolder());
+    TachyonFile tFile = mTfs.open(new TachyonURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
+    FileInfo fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
+    Assert.assertEquals(getCommandOutput(new String[] {"mkdir",
+        "/Complex!@#$%^&*()-_=+[]{};\"'<>," + ".?/File"}), mOutput.toString());
+    Assert.assertTrue(fileInfo.isIsFolder());
   }
 
   @Test
@@ -69,27 +73,31 @@ public class MkdirCommandTest extends AbstractTfsShellTest {
     String path3 = "/testDir2/testDir2.1";
     Assert.assertEquals(0, mFsShell.run("mkdir", path1, path2, path3));
 
-    URIStatus status = mTfs.getStatus(new TachyonURI(path1));
-    Assert.assertNotNull(status);
-    Assert.assertTrue(status.isFolder());
+    TachyonFile tFile = mTfs.open(new TachyonURI(path1));
+    FileInfo fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
+    Assert.assertTrue(fileInfo.isIsFolder());
 
-    status = mTfs.getStatus(new TachyonURI(path2));
-    Assert.assertNotNull(status);
-    Assert.assertTrue(status.isFolder());
+    tFile = mTfs.open(new TachyonURI(path2));
+    fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
+    Assert.assertTrue(fileInfo.isIsFolder());
 
-    status = mTfs.getStatus(new TachyonURI(path3));
-    Assert.assertNotNull(status);
-    Assert.assertTrue(status.isFolder());
+    tFile = mTfs.open(new TachyonURI(path3));
+    fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
+    Assert.assertTrue(fileInfo.isIsFolder());
 
   }
 
   @Test
   public void mkdirShortPathTest() throws IOException, TachyonException {
     mFsShell.run("mkdir", "/root/testFile1");
-    URIStatus status = mTfs.getStatus(new TachyonURI("/root/testFile1"));
-    Assert.assertNotNull(status);
-    Assert.assertEquals(getCommandOutput(new String[]{"mkdir", "/root/testFile1"}),
+    TachyonFile tFile = mTfs.open(new TachyonURI("/root/testFile1"));
+    FileInfo fileInfo = mTfs.getInfo(tFile);
+    Assert.assertNotNull(fileInfo);
+    Assert.assertEquals(getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
         mOutput.toString());
-    Assert.assertTrue(status.isFolder());
+    Assert.assertTrue(fileInfo.isIsFolder());
   }
 }

@@ -19,10 +19,11 @@ import java.io.IOException;
 import java.util.List;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.FileSystem;
-import tachyon.client.file.URIStatus;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.FileInfo;
 
 /**
  * Displays the size of a file or a directory specified by argv.
@@ -33,7 +34,7 @@ public final class DuCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public DuCommand(TachyonConf conf, FileSystem tfs) {
+  public DuCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -51,26 +52,27 @@ public final class DuCommand extends WithWildCardPathCommand {
   /**
    * Calculates the size of a path (file or folder) specified by a {@link TachyonURI}.
    *
-   * @param tachyonFS A {@link FileSystem}
+   * @param tachyonFS A {@link TachyonFileSystem}
    * @param path A {@link TachyonURI} denoting the path
    * @return total size of the specified path in byte
    * @throws IOException if a non-Tachyon related exception occurs
    */
-  private long getFileOrFolderSize(FileSystem tachyonFS, TachyonURI path)
+  private long getFileOrFolderSize(TachyonFileSystem tachyonFS, TachyonURI path)
       throws IOException {
     long sizeInBytes = 0;
-    List<URIStatus> statuses;
+    List<FileInfo> files;
     try {
-      statuses = tachyonFS.listStatus(path);
+      TachyonFile inputFile = tachyonFS.open(path);
+      files = tachyonFS.listStatus(inputFile);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
-    for (URIStatus status : statuses) {
-      if (status.isFolder()) {
-        TachyonURI subFolder = new TachyonURI(status.getPath());
+    for (FileInfo file : files) {
+      if (file.isFolder) {
+        TachyonURI subFolder = new TachyonURI(file.getPath());
         sizeInBytes += getFileOrFolderSize(tachyonFS, subFolder);
       } else {
-        sizeInBytes += status.getLength();
+        sizeInBytes += file.getLength();
       }
     }
     return sizeInBytes;

@@ -23,7 +23,8 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.WriteType;
+import tachyon.client.TachyonStorageType;
+import tachyon.client.UnderStorageType;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
@@ -39,16 +40,17 @@ public class ComplexCommandTest extends AbstractTfsShellTest {
   public void createCacheInsertInUfsThenloadMetadataTest() throws IOException, TachyonException {
     // Construct a situation where the directory exists in the inode tree and the UFS, but is not
     // marked as persisted.
-    TachyonFSTestUtils.createByteFile(mTfs, "/testDir/testFileA", WriteType.MUST_CACHE, 10);
-    Assert.assertFalse(mTfs.getStatus(new TachyonURI("/testDir")).isPersisted());
+    TachyonFSTestUtils.createByteFile(mTfs, "/testDir/testFileA", TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, 10);
+    Assert.assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isIsPersisted());
     TachyonConf conf = mLocalTachyonCluster.getMasterTachyonConf();
     String ufsRoot = conf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(ufsRoot, "testDir"), conf);
-    Assert.assertFalse(mTfs.getStatus(new TachyonURI("/testDir")).isPersisted());
+    Assert.assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isIsPersisted());
     // Load metadata, which should mark the testDir as persisted
     mFsShell.run("loadMetadata", "/testDir");
     Assert.assertEquals("", mOutput.toString());
-    Assert.assertTrue(mTfs.getStatus(new TachyonURI("/testDir")).isPersisted());
+    Assert.assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isIsPersisted());
   }
 
   @Test
@@ -58,7 +60,7 @@ public class ComplexCommandTest extends AbstractTfsShellTest {
     UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(ufsRoot, "dir1"), conf);
     // First run ls to create the data
     mFsShell.run("ls", "/dir1");
-    Assert.assertTrue(mTfs.getStatus(new TachyonURI("/dir1")).isPersisted());
+    Assert.assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/dir1"))).isIsPersisted());
     // Load metadata
     mFsShell.run("loadMetadata", "/dir1");
     Assert.assertEquals(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage("/dir1") + "\n",

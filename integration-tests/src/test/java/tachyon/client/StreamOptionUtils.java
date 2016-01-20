@@ -15,88 +15,95 @@
 
 package tachyon.client;
 
-import tachyon.client.file.options.CreateFileOptions;
-import tachyon.client.file.options.OpenFileOptions;
+import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.policy.LocalFirstPolicy;
 import tachyon.conf.TachyonConf;
 
 /**
  * A util class to obtain common In/OutStreamOptions for tests
+ *
  */
-// TODO(calvin): We can make these methods into constants
 public final class StreamOptionUtils {
   private StreamOptionUtils() {
     // not intended for instantiation
   }
 
   /**
-   * Gets WriteBoth {@link CreateFileOptions}
+   * Gets WriteBoth {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the {@link CreateFileOptions}
+   * @return the {@link OutStreamOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsCacheThrough(TachyonConf conf) {
-    return CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+  public static OutStreamOptions getOutStreamOptionsWriteBoth(TachyonConf conf) {
+    return new OutStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.STORE)
+               .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
   }
 
   /**
-   * Gets WriteTachyon {@link CreateFileOptions}
+   * Gets WriteTachyon {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the {@link CreateFileOptions}
+   * @return the {@link OutStreamOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsMustCache(TachyonConf conf) {
-    return CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
+  public static OutStreamOptions getOutStreamOptionsWriteTachyon(TachyonConf conf) {
+    return new OutStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.STORE)
+               .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
   }
 
   /**
-   * Gets WriteUnderStore {@link CreateFileOptions}
+   * Gets WriteUnderStore {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the {@link CreateFileOptions}
+   * @return the {@link OutStreamOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsThrough(TachyonConf conf) {
-    return CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
+  public static OutStreamOptions getOutStreamOptionsWriteUnderStore(TachyonConf conf) {
+    return new OutStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.NO_STORE)
+               .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
   }
 
   /**
-   * Gets WriteLocal {@link CreateFileOptions}
+   * Gets WriteLocal {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the {@link CreateFileOptions}
+   * @return the {@link OutStreamOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsWriteLocal(TachyonConf conf) {
-    return CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)
-        .setLocationPolicy(new LocalFirstPolicy());
+  public static OutStreamOptions getOutStreamOptionsWriteLocal(TachyonConf conf) {
+    return new OutStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.STORE)
+        .setUnderStorageType(UnderStorageType.SYNC_PERSIST)
+        .setLocationPolicy(new LocalFirstPolicy()).build();
   }
 
   /**
-   * Gets ReadCache {@link OpenFileOptions}
+   * Gets ReadCache {@link InStreamOptions}
    *
    * @param conf the Tachyon config
    * @return the InStreamOptions
    */
-  public static OpenFileOptions getOpenFileOptionsCache(TachyonConf conf) {
-    return OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+  public static InStreamOptions getInStreamOptionsReadCache(TachyonConf conf) {
+    return new InStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.STORE)
+        .build();
   }
 
   /**
-   * Gets ReadNoCache {@link OpenFileOptions}
+   * Gets ReadNoCache {@link InStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the {@link OpenFileOptions}
+   * @return the {@link InStreamOptions}
    */
-  public static OpenFileOptions getOpenFileOptionsNoCache(TachyonConf conf) {
-    return OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+  public static InStreamOptions getInStreamOptionsReadNoCache(TachyonConf conf) {
+    return new InStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.NO_STORE)
+        .build();
   }
 
   /**
-   * Gets AsyncWrite {@link CreateFileOptions}.
+   * Gets AsyncWrite {@link OutStreamOptions}.
    *
    * @param conf the Tachyon config
-   * @return the {@link CreateFileOptions}
+   * @return the {@link OutStreamOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsAsync(TachyonConf conf) {
-    return CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH);
+  public static OutStreamOptions getOutStreamOptionsWriteAsync(TachyonConf conf) {
+    return new OutStreamOptions.Builder().setTachyonStorageType(TachyonStorageType.STORE)
+        .setUnderStorageType(UnderStorageType.ASYNC_PERSIST).build();
   }
 }

@@ -18,7 +18,8 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.FileSystem;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -35,7 +36,7 @@ public final class FreeCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public FreeCommand(TachyonConf conf, FileSystem tfs) {
+  public FreeCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -47,8 +48,9 @@ public final class FreeCommand extends WithWildCardPathCommand {
   @Override
   void runCommand(TachyonURI path) throws IOException {
     try {
-      FreeOptions options = FreeOptions.defaults().setRecursive(true);
-      mTfs.free(path, options);
+      FreeOptions options = new FreeOptions.Builder().setRecursive(true).build();
+      TachyonFile fd = mTfs.open(path);
+      mTfs.free(fd, options);
       System.out.println(path + " was successfully freed from memory.");
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());

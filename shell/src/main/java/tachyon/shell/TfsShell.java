@@ -28,7 +28,8 @@ import org.reflections.Reflections;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
-import tachyon.client.file.FileSystem;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.conf.TachyonConf;
 import tachyon.shell.command.TfsShellCommand;
 import tachyon.util.CommonUtils;
@@ -56,14 +57,14 @@ public class TfsShell implements Closeable {
 
   private final Map<String, TfsShellCommand> mCommands = Maps.newHashMap();
   private final TachyonConf mTachyonConf;
-  private final FileSystem mTfs;
+  private final TachyonFileSystem mTfs;
 
   /**
    * @param tachyonConf the configuration for Tachyon
    */
   public TfsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mTfs = FileSystem.Factory.get();
+    mTfs = TachyonFileSystemFactory.get();
     loadCommands();
   }
 
@@ -83,7 +84,7 @@ public class TfsShell implements Closeable {
         TfsShellCommand cmd;
         try {
           cmd = CommonUtils.createNewClassInstance(cls,
-              new Class[] { TachyonConf.class, FileSystem.class },
+              new Class[] { TachyonConf.class, TachyonFileSystem.class },
               new Object[] { mTachyonConf, mTfs });
         } catch (Exception e) {
           throw Throwables.propagate(e);

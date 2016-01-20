@@ -27,7 +27,6 @@ import com.google.common.util.concurrent.Futures;
 
 import tachyon.Constants;
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.InvalidPathException;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
@@ -108,8 +107,6 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
             try {
               mFileSystemMaster.resetFile(fileId);
             } catch (FileDoesNotExistException e) {
-              LOG.error("the lost file {} does not exist", fileId, e);
-            } catch (InvalidPathException e) {
               LOG.error("the lost file {} is invalid", fileId, e);
             }
           }

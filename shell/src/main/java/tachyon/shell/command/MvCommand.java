@@ -18,7 +18,8 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.FileSystem;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
@@ -31,7 +32,7 @@ public final class MvCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public MvCommand(TachyonConf conf, FileSystem tfs) {
+  public MvCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -50,8 +51,12 @@ public final class MvCommand extends AbstractTfsShellCommand {
     TachyonURI srcPath = new TachyonURI(args[0]);
     TachyonURI dstPath = new TachyonURI(args[1]);
     try {
-      mTfs.rename(srcPath, dstPath);
-      System.out.println("Renamed " + srcPath + " to " + dstPath);
+      TachyonFile fd = mTfs.open(srcPath);
+      if (mTfs.rename(fd, dstPath)) {
+        System.out.println("Renamed " + srcPath + " to " + dstPath);
+      } else {
+        throw new IOException("mv: Failed to rename " + srcPath + " to " + dstPath);
+      }
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }

@@ -21,9 +21,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.WriteType;
+import tachyon.client.TachyonStorageType;
+import tachyon.client.UnderStorageType;
+import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.shell.AbstractTfsShellTest;
@@ -36,11 +37,13 @@ import tachyon.util.CommonUtils;
 public class FreeCommandTest extends AbstractTfsShellTest {
   @Test
   public void freeTest() throws IOException, TachyonException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    TachyonFile file =
+        TachyonFSTestUtils.createByteFile(mTfs, "/testFile", TachyonStorageType.STORE,
+            UnderStorageType.NO_PERSIST, 10);
     mFsShell.run("free", "/testFile");
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     CommonUtils.sleepMs(tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
-    Assert.assertFalse(mTfs.getStatus(new TachyonURI("/testFile")).getInMemoryPercentage() == 100);
+    Assert.assertFalse(mTfs.getInfo(file).getInMemoryPercentage() == 100);
   }
 
   @Test
