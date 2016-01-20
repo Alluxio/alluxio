@@ -45,7 +45,7 @@ public final class HdfsUnderFileSystemTest {
   public void prepareConfigurationTest() throws Exception {
     TachyonConf tConf = new TachyonConf();
     Configuration hConf = new Configuration();
-    mMockHdfsUnderFileSystem.prepareConfiguration(tConf, hConf);
+    mMockHdfsUnderFileSystem.prepareConfiguration("", tConf, hConf);
     Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", hConf.get("fs.hdfs.impl"));
     Assert.assertFalse(hConf.getBoolean("fs.hdfs.impl.disable.cache", false));
     Assert.assertNotNull(hConf.get(Constants.UNDERFS_HDFS_CONFIGURATION));
