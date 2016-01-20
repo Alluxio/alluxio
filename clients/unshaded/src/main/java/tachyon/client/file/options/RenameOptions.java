@@ -17,38 +17,22 @@ package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * Method option for renaming a file or a directory.
  */
 @PublicApi
 public final class RenameOptions {
-  /** Flag to overwrite the destination if it exists, currently unsupported */
-  private boolean mOverwrite;
-
   /**
    * @return the default {@link RenameOptions}
    */
+  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static RenameOptions defaults() {
     return new RenameOptions();
   }
 
   private RenameOptions() {
-    mOverwrite = false;
-  }
-
-  /**
-   * @return whether to overwrite if the destination exists
-   */
-  public boolean isOverwrite() {
-    return mOverwrite;
-  }
-
-  /**
-   * @param overwrite the overwrite flag to set
-   * @return the updated options object
-   */
-  public RenameOptions setOverwrite(boolean overwrite) {
-    mOverwrite = overwrite;
-    return this;
+    // No options currently
   }
 }
