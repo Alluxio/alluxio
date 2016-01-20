@@ -80,7 +80,7 @@ final class KeyValueInputSplit implements InputSplit {
   }
 
   /**
-   * @return ID of the partition, currently is the block ID of the partition
+   * @return id of the partition, currently is the block ID of the partition
    */
   public long getPartitionId() {
     return mBlockId;

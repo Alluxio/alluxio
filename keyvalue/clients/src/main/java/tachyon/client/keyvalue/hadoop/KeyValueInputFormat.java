@@ -49,6 +49,7 @@ import tachyon.thrift.PartitionInfo;
 public final class KeyValueInputFormat implements InputFormat {
   private final KeyValueMasterClient mKeyValueMasterClient =
       new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
+
   /**
    * Returns each partition as a {@link KeyValueInputSplit}.
    *
