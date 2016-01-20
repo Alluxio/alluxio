@@ -61,6 +61,7 @@ public abstract class AbstractTfsShellTest {
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(SIZE_BYTES, 1000, Constants.MB,
           Constants.MASTER_TTLCHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE),
+          Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
           Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
   protected LocalTachyonCluster mLocalTachyonCluster = null;
   protected TachyonFileSystem mTfs = null;
@@ -80,6 +81,7 @@ public abstract class AbstractTfsShellTest {
 
   @Before
   public final void before() throws Exception {
+    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
     mLocalTachyonCluster = mLocalTachyonClusterResource.get();
     mTfs = mLocalTachyonCluster.getClient();
     mFsShell = new TfsShell(new TachyonConf());
