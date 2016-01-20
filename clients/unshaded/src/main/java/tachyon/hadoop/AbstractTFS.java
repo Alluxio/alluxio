@@ -68,9 +68,6 @@ import tachyon.util.CommonUtils;
  * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
  */
 abstract class AbstractTFS extends FileSystem {
-  public static final String FIRST_COM_PATH = "tachyon_dep/";
-  public static final String RECOMPUTE_PATH = "tachyon_recompute/";
-
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // Always tell Hadoop that we have 3x replication.
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
