@@ -171,12 +171,12 @@ public final class FormatUtils {
    * Formats file permission to human-readable version.
    *
    * @param permission file permission
-   * @param isFolder if the Path is folder
+   * @param isDirectory if the path is folder
    * @return human-readable version of permission
    */
-  public static String formatPermission(short permission, boolean isFolder) {
+  public static String formatPermission(short permission, boolean isDirectory) {
     StringBuffer permissionStr = new StringBuffer();
-    if (isFolder) {
+    if (isDirectory) {
       permissionStr.append("d");
     } else {
       permissionStr.append("-");
