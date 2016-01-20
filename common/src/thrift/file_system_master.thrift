@@ -79,21 +79,21 @@ service FileSystemMasterClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e)
 
   /**
-   * Creates a directory
+   * Creates a directory.
    */
   void createDirectory( /** the path of the directory */ 1: string path,
       /** the method options */ 2: CreateDirectoryTOptions options)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Creates a file
+   * Creates a file.
    */
   void createFile( /** the path of the file */ 1: string path,
       /** the options for creating the file */ 2: CreateFileTOptions options)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Frees the given file or directory from Tachyon
+   * Frees the given file or directory from Tachyon.
    */
   void free( /** the path of the file or directory */ 1: string path,
       /** whether to free recursively */ 2: bool recursive)
@@ -106,13 +106,13 @@ service FileSystemMasterClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e)
 
   /**
-   * Returns the status of the file or directory
+   * Returns the status of the file or directory.
    */
   FileInfo getStatus( /** the path of the file or directory */ 1: string path)
     throws (1: exception.TachyonTException e)
 
   /**
-   * Returns the status of the file or directory, only used internally by servers
+   * Returns the status of the file or directory, only used internally by servers.
    */
   FileInfo getStatusInternal( /** the id of the file or directory */ 1: i64 fileId)
     throws (1: exception.TachyonTException e)
@@ -162,14 +162,14 @@ service FileSystemMasterClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e)
 
   /**
-   * Renames a file or a directory
+   * Renames a file or a directory.
    */
   void rename( /** the path of the file or directory */ 1: string path,
       /** the desinationpath of the file */ 2: string dstPath)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Sets file or directory attributes
+   * Sets file or directory attributes.
    */
   void setAttribute( /** the path of the file or directory */ 1: string path,
        /** the method options */ 2: SetAttributeTOptions options)

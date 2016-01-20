@@ -147,12 +147,6 @@ public final class UfsUtils {
         LOG.debug("Loading ufs. Make dir if needed for '{}'.", directoryName);
         fs.createDirectory(directoryName);
       }
-      // TODO(hy): Add the following.
-      // if (fs.mkdir(tfsRootPath)) {
-      // LOG.info("directory " + tfsRootPath + " does not exist in Tachyon: created");
-      // } else {
-      // throw new IOException("Failed to create folder in Tachyon: " + tfsRootPath);
-      // }
     }
 
     Queue<TachyonURI> ufsPathQueue = new LinkedList<TachyonURI>();

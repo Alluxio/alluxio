@@ -103,6 +103,7 @@ public final class OpenFileOptions {
   public String toString() {
     StringBuilder sb = new StringBuilder("OpenFileOptions(");
     sb.append(super.toString()).append(", ReadType: ").append(mReadType.toString());
+    sb.append(", LocationPolicy: ").append(mLocationPolicy.toString());
     sb.append(")");
     return sb.toString();
   }

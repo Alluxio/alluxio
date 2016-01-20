@@ -67,7 +67,7 @@ public final class OutStreamOptions {
   }
 
   /**
-   * @return the location policy
+   * @return the file write location policy
    */
   public FileWriteLocationPolicy getLocationPolicy() {
     return mLocationPolicy;
@@ -120,7 +120,7 @@ public final class OutStreamOptions {
   }
 
   /**
-   * @param locationPolicy the location policy for file write
+   * @param locationPolicy the file write location policy
    * @return the updated options object
    */
   public OutStreamOptions setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
