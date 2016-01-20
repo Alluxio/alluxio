@@ -26,6 +26,12 @@ import tachyon.conf.TachyonConf;
  */
 public final class ChownCommand extends AbstractAclCommand {
 
+  /**
+   * Creates a new instance of {@link ChownCommand}.
+   *
+   * @param conf a Tachyon configuration
+   * @param tfs a Tachyon file system handle
+   */
   public ChownCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

@@ -26,6 +26,12 @@ import tachyon.conf.TachyonConf;
  */
 public final class ChmodRecursiveCommand extends AbstractAclCommand {
 
+  /**
+   * Creates a new instance of {@link ChmodRecursiveCommand}.
+   *
+   * @param conf a Tachyon configuration
+   * @param tfs a Tachyon file system handle
+   */
   public ChmodRecursiveCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

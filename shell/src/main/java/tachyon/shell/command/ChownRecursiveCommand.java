@@ -26,6 +26,12 @@ import tachyon.conf.TachyonConf;
  */
 public final class ChownRecursiveCommand extends AbstractAclCommand {
 
+  /**
+   * Creates a new instance of {@link ChownRecursiveCommand}.
+   *
+   * @param conf a Tachyon configuration
+   * @param tfs a Tachyon file system handle
+   */
   public ChownRecursiveCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

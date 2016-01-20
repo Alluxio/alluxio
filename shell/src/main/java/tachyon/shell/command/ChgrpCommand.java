@@ -26,6 +26,12 @@ import tachyon.conf.TachyonConf;
  */
 public final class ChgrpCommand extends AbstractAclCommand {
 
+  /**
+   * Creates a new instance of {@link ChgrpCommand}.
+   *
+   * @param conf a Tachyon configuration
+   * @param tfs a Tachyon file system handle
+   */
   public ChgrpCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

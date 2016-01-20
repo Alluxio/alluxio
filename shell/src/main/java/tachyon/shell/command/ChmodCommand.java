@@ -26,6 +26,12 @@ import tachyon.conf.TachyonConf;
  */
 public final class ChmodCommand extends AbstractAclCommand {
 
+  /**
+   * Creates a new instance of {@link ChmodCommand}.
+   *
+   * @param conf a Tachyon configuration
+   * @param tfs a Tachyon file system handle
+   */
   public ChmodCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
