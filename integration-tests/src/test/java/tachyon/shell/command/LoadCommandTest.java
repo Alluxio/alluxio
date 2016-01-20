@@ -50,7 +50,6 @@ public class LoadCommandTest extends AbstractTfsShellTest {
     Assert.assertTrue(statusB.getInMemoryPercentage() == 100);
   }
 
-
   @Test
   public void loadFileTest() throws IOException, TachyonException {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.THROUGH, 10);

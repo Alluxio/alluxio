@@ -137,7 +137,7 @@ public final class LineageMasterIntegrationTest {
       status = getFileSystemMasterClient().getStatus(uri);
       Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(), status.getPersistenceState());
 
-      IntegrationTestUtils.waitForPersist(mLocalTachyonClusterResource, fileId);
+      IntegrationTestUtils.waitForPersist(mLocalTachyonClusterResource, status.getFileId());
 
       // worker notifies the master
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);

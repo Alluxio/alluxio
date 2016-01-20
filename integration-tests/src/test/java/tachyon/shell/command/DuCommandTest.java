@@ -21,8 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.exception.ExceptionMessage;
 import tachyon.shell.AbstractTfsShellTest;
 
@@ -32,12 +31,11 @@ import tachyon.shell.AbstractTfsShellTest;
 public class DuCommandTest extends AbstractTfsShellTest {
   @Test
   public void duTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", TachyonStorageType.STORE,
-        UnderStorageType.NO_PERSIST, 10);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB",
-        TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 20);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    TachyonFSTestUtils
+        .createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
     TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testDir/testFileC",
-        TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 30);
+        WriteType.MUST_CACHE, 30);
 
     String expected = "";
     // du a non-existing file
@@ -49,6 +47,6 @@ public class DuCommandTest extends AbstractTfsShellTest {
     // du a folder
     mFsShell.run("du", "/testRoot/testDir");
     expected += "/testRoot/testDir is 50 bytes\n";
-    Assert.assertEquals(expected.toString(), mOutput.toString());
+    Assert.assertEquals(expected, mOutput.toString());
   }
 }
