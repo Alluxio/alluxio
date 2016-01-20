@@ -23,6 +23,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem.UnderFSType;
+import tachyon.underfs.s3.S3UnderFileSystem;
 
 /**
  * Tests {@link HdfsUnderFileSystem}.
@@ -36,11 +37,25 @@ public final class HdfsUnderFileSystemTest {
     mMockHdfsUnderFileSystem = new HdfsUnderFileSystem("file:///", new TachyonConf(), null);
   }
 
+  /**
+   * Tests the {@link HdfsUnderFileSystem#getUnderFSType()} method.
+   * Confirm the UnderFSType for HdfsUnderFileSystem
+   *
+   * @throws Exception
+   */
   @Test
   public void getUnderFSTypeTest() throws Exception {
     Assert.assertEquals(UnderFSType.HDFS, mMockHdfsUnderFileSystem.getUnderFSType());
   }
 
+  /**
+   * Tests the
+   * {@link HdfsUnderFileSystem#prepareConfiguration(String, TachyonConf, Configuration)} method.
+   *
+   * Check the hdfs implements class and tachyon underfs config setting
+   *
+   * @throws Exception
+   */
   @Test
   public void prepareConfigurationTest() throws Exception {
     TachyonConf tConf = new TachyonConf();
