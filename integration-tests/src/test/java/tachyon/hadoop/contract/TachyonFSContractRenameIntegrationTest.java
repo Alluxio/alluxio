@@ -18,10 +18,16 @@ package tachyon.hadoop.contract;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractContractRenameTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
+import org.junit.Rule;
+
+import tachyon.LocalTachyonClusterResource;
 
 public class TachyonFSContractRenameIntegrationTest extends AbstractContractRenameTest {
+  @Rule
+  public LocalTachyonClusterResource mClusterResource = new LocalTachyonClusterResource();
+
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
-    return new TachyonFSContract(conf);
+    return new TachyonFSContract(conf, mClusterResource.get());
   }
 }

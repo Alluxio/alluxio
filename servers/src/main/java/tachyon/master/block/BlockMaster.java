@@ -726,5 +726,10 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         }
       }
     }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
+    }
   }
 }
