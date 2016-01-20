@@ -39,7 +39,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.DataServer;
 import tachyon.worker.DataServerMessage;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.io.BlockReader;
 
 /**
@@ -64,7 +64,7 @@ public final class NIODataServer implements Runnable, DataServer {
       Collections.synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
   // The block data manager.
-  private final BlockDataManager mDataManager;
+  private final BlockWorker mDataManager;
   private final Thread mListenerThread;
 
   private volatile boolean mShutdown = false;
@@ -77,7 +77,7 @@ public final class NIODataServer implements Runnable, DataServer {
    * @param dataManager the lock system for lock blocks
    * @param tachyonConf Tachyon configuration
    */
-  public NIODataServer(final InetSocketAddress address, final BlockDataManager dataManager,
+  public NIODataServer(final InetSocketAddress address, final BlockWorker dataManager,
       TachyonConf tachyonConf) {
     LOG.info("Starting DataServer @ {}", address);
     NetworkAddressUtils.assertValidPort(Preconditions.checkNotNull(address));

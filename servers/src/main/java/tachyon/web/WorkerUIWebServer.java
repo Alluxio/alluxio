@@ -23,7 +23,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * A worker's UI web server.
@@ -41,7 +41,7 @@ public final class WorkerUIWebServer extends UIWebServer {
    * @param conf Tachyon configuration
    */
   public WorkerUIWebServer(ServiceType serviceType, InetSocketAddress webAddress,
-      BlockDataManager blockdataManager, InetSocketAddress workerAddress, long startTimeMs,
+      BlockWorker blockdataManager, InetSocketAddress workerAddress, long startTimeMs,
       TachyonConf conf) {
     super(serviceType, webAddress, conf);
     Preconditions.checkNotNull(blockdataManager, "Block data manager cannot be null");

@@ -34,7 +34,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.KeyValueWorkerClientService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.io.BlockReader;
 
 /**
@@ -46,9 +46,9 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block data manager for access block info */
-  private final BlockDataManager mBlockDataManager;
+  private final BlockWorker mBlockDataManager;
 
-  public KeyValueWorkerClientServiceHandler(BlockDataManager blockDataManager) {
+  public KeyValueWorkerClientServiceHandler(BlockWorker blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
   }
 

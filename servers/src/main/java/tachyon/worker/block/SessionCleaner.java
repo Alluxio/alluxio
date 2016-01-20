@@ -30,7 +30,7 @@ import tachyon.worker.WorkerContext;
 public final class SessionCleaner implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
-  private final BlockDataManager mBlockDataManager;
+  private final BlockWorker mBlockDataManager;
   /** Milliseconds between each check */
   private final int mCheckIntervalMs;
 
@@ -42,7 +42,7 @@ public final class SessionCleaner implements Runnable {
    *
    * @param blockDataManager a block data manager handle
    */
-  public SessionCleaner(BlockDataManager blockDataManager) {
+  public SessionCleaner(BlockWorker blockDataManager) {
     mBlockDataManager = blockDataManager;
     mCheckIntervalMs =
         WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);

@@ -42,14 +42,14 @@ import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.io.BlockReader;
 
 /**
  * Tests {@link FileDataManager}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockDataManager.class, BufferUtils.class})
+@PrepareForTest({BlockWorker.class, BufferUtils.class})
 public final class FileDataManagerTest {
 
   /**
@@ -64,7 +64,7 @@ public final class FileDataManagerTest {
     List<Long> blockIds = Lists.newArrayList(1L, 2L);
 
     // mock block data manager
-    BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
+    BlockWorker blockDataManager = Mockito.mock(BlockWorker.class);
     FileInfo fileInfo = new FileInfo();
     fileInfo.path = "test";
     Mockito.when(blockDataManager.getFileInfo(fileId)).thenReturn(fileInfo);
@@ -113,7 +113,7 @@ public final class FileDataManagerTest {
   @Test
   @SuppressWarnings("unchecked")
   public void clearPersistedFilesTest() {
-    BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
+    BlockWorker blockDataManager = Mockito.mock(BlockWorker.class);
     FileDataManager manager = new FileDataManager(blockDataManager);
     Set<Long> persistedFiles = Sets.newHashSet(1L, 2L);
 
@@ -139,7 +139,7 @@ public final class FileDataManagerTest {
     List<Long> blockIds = Lists.newArrayList(1L, 2L);
 
     // mock block data manager
-    BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
+    BlockWorker blockDataManager = Mockito.mock(BlockWorker.class);
     FileInfo fileInfo = new FileInfo();
     fileInfo.path = "test";
     Mockito.when(blockDataManager.getFileInfo(fileId)).thenReturn(fileInfo);

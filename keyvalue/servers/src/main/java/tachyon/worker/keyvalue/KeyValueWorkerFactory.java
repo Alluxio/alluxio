@@ -43,7 +43,7 @@ public final class KeyValueWorkerFactory implements WorkerFactory {
     for (Worker worker : workers) {
       if (worker instanceof BlockWorker) {
         LOG.info("{} is created", KeyValueMaster.class.getName());
-        return new KeyValueWorker(((BlockWorker) worker).getBlockDataManager());
+        return new KeyValueWorker(((BlockWorker) worker));
       }
     }
     LOG.error("Fail to create {} due to missing {}", KeyValueMaster.class.getName(),

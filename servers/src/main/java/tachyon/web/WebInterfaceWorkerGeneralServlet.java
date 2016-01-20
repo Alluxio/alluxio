@@ -30,8 +30,8 @@ import tachyon.Constants;
 import tachyon.Version;
 import tachyon.collections.Pair;
 import tachyon.util.FormatUtils;
-import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.BlockStoreMeta;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * Servlets that shows a worker's general information, including tiered storage details.
@@ -135,7 +135,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   }
 
   private static final long serialVersionUID = 3735143768058466487L;
-  private final transient BlockDataManager mBlockDataManager;
+  private final transient BlockWorker mBlockDataManager;
   private final UIWorkerInfo mUiWorkerInfo;
 
   /**
@@ -145,7 +145,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
    * @param workerAddress worker address
    * @param startTimeMs start time in milliseconds
    */
-  public WebInterfaceWorkerGeneralServlet(BlockDataManager blockDataManager,
+  public WebInterfaceWorkerGeneralServlet(BlockWorker blockDataManager,
       InetSocketAddress workerAddress, long startTimeMs) {
     mBlockDataManager = blockDataManager;
     mUiWorkerInfo = new UIWorkerInfo(workerAddress.toString(), startTimeMs);

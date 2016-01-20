@@ -55,7 +55,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
-  private final BlockDataManager mBlockDataManager;
+  private final BlockWorker mBlockDataManager;
   /** The net address of the worker */
   private final NetAddress mWorkerAddress;
   /** Milliseconds between heartbeats before a timeout */
@@ -77,7 +77,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @param workerAddress the net address of the worker
    * @param masterClient the Tachyon master client
    */
-  BlockMasterSync(BlockDataManager blockDataManager, NetAddress workerAddress,
+  BlockMasterSync(BlockWorker blockDataManager, NetAddress workerAddress,
       BlockMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mWorkerAddress = workerAddress;
@@ -200,7 +200,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * Thread to remove block from master.
    */
   private class BlockRemover implements Runnable {
-    private BlockDataManager mBlockDataManager;
+    private BlockWorker mBlockDataManager;
     private long mSessionId;
     private long mBlockId;
 
@@ -211,7 +211,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
      * @param sessionId the session id
      * @param blockId the block id
      */
-    public BlockRemover(BlockDataManager blockDataManager, long sessionId, long blockId) {
+    public BlockRemover(BlockWorker blockDataManager, long sessionId, long blockId) {
       mBlockDataManager = blockDataManager;
       mSessionId = sessionId;
       mBlockId = blockId;

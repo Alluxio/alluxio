@@ -39,7 +39,7 @@ import tachyon.worker.WorkerContext;
  */
 public class SpaceReserver implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final BlockDataManager mBlockManager;
+  private final BlockWorker mBlockManager;
   /** Association between storage tier aliases and ordinals for the worker */
   private final StorageTierAssoc mStorageTierAssoc;
   /** Mapping from tier alias to space size to be reserved on the tier */
@@ -54,7 +54,7 @@ public class SpaceReserver implements Runnable {
    *
    * @param blockManager a block manager handle
    */
-  public SpaceReserver(BlockDataManager blockManager) {
+  public SpaceReserver(BlockWorker blockManager) {
     mBlockManager = blockManager;
     mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
     Map<String, Long> capOnTiers = blockManager.getStoreMeta().getCapacityBytesOnTiers();

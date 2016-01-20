@@ -20,7 +20,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 
 import tachyon.metrics.source.Source;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * A WorkerSource collects a Worker's internal state.
@@ -212,7 +212,7 @@ public class WorkerSource implements Source {
    *
     * @param blockDataManager a block data manager handle
    */
-  public void registerGauges(final BlockDataManager blockDataManager) {
+  public void registerGauges(final BlockWorker blockDataManager) {
     if (mGaugesRegistered) {
       return;
     }

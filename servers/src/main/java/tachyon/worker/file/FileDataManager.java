@@ -44,7 +44,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.io.BlockReader;
 
 /**
@@ -55,7 +55,7 @@ public final class FileDataManager {
 
   private final UnderFileSystem mUfs;
   /** Block data manager for access block info */
-  private final BlockDataManager mBlockDataManager;
+  private final BlockWorker mBlockDataManager;
 
   // the file being persisted
   private final Set<Long> mPersistingInProgressFiles;
@@ -69,7 +69,7 @@ public final class FileDataManager {
    *
    * @param blockDataManager a block data manager handle
    */
-  public FileDataManager(BlockDataManager blockDataManager) {
+  public FileDataManager(BlockWorker blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
     mPersistingInProgressFiles = Sets.newHashSet();
     mPersistedFiles = Sets.newHashSet();

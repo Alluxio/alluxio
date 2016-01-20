@@ -32,7 +32,7 @@ import tachyon.thrift.KeyValueWorkerClientService;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * A worker serving key-value queries.
@@ -42,7 +42,7 @@ public class KeyValueWorker extends WorkerBase {
   /** Configuration object */
   private final TachyonConf mTachyonConf;
   /** Block data manager for access block info */
-  private final BlockDataManager mBlockDataManager;
+  private final BlockWorker mBlockDataManager;
   /** Logic for handling key-value RPC requests. */
   private final KeyValueWorkerClientServiceHandler mKeyValueServiceHandler;
 
@@ -51,7 +51,7 @@ public class KeyValueWorker extends WorkerBase {
    *
    * @param blockDataManager handler to the {@link BlockDataManager}
    */
-  public KeyValueWorker(BlockDataManager blockDataManager) {
+  public KeyValueWorker(BlockWorker blockDataManager) {
     // TODO(binfan): figure out do we really need thread pool for key-value worker (and for what)
     super(Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("keyvalue-worker-heartbeat-%d", true)));

@@ -41,8 +41,8 @@ import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.BlockStoreMeta;
+import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.meta.BlockMeta;
 
 /**
@@ -50,14 +50,14 @@ import tachyon.worker.block.meta.BlockMeta;
  */
 public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   private static final long serialVersionUID = 4148506607369321012L;
-  private final transient BlockDataManager mBlockDataManager;
+  private final transient BlockWorker mBlockDataManager;
 
   /**
    * Creates a new instance of {@link WebInterfaceWorkerBlockInfoServlet}.
    *
    * @param blockDataManager block data manager
    */
-  public WebInterfaceWorkerBlockInfoServlet(BlockDataManager blockDataManager) {
+  public WebInterfaceWorkerBlockInfoServlet(BlockWorker blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
   }
 

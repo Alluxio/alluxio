@@ -92,7 +92,7 @@ public final class TachyonWorker {
       mTachyonConf = WorkerContext.getConf();
 
       mBlockWorker = new BlockWorker();
-      mFileSystemWorker = new FileSystemWorker(mBlockWorker.getBlockDataManager());
+      mFileSystemWorker = new FileSystemWorker(mBlockWorker);
 
       mAdditionalWorkers = Lists.newArrayList();
       List<? extends Worker> workers = Lists.newArrayList(mBlockWorker, mFileSystemWorker);
@@ -110,13 +110,13 @@ public final class TachyonWorker {
       // Setup metrics collection system
       mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
       WorkerSource workerSource = WorkerContext.getWorkerSource();
-      workerSource.registerGauges(mBlockWorker.getBlockDataManager());
+      workerSource.registerGauges(mBlockWorker);
       mWorkerMetricsSystem.registerSource(workerSource);
 
       // Setup web server
       mWebServer =
           new WorkerUIWebServer(ServiceType.WORKER_WEB, NetworkAddressUtils.getBindAddress(
-              ServiceType.WORKER_WEB, mTachyonConf), mBlockWorker.getBlockDataManager(),
+              ServiceType.WORKER_WEB, mTachyonConf), mBlockWorker,
               NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mTachyonConf),
               mStartTimeMs, mTachyonConf);
 

@@ -47,7 +47,7 @@ import tachyon.network.protocol.RPCResponse;
 import tachyon.network.protocol.databuffer.DataBuffer;
 import tachyon.network.protocol.databuffer.DataByteBuffer;
 import tachyon.network.protocol.databuffer.DataFileChannel;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 
@@ -59,7 +59,7 @@ import tachyon.worker.block.io.BlockWriter;
 public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final BlockDataManager mDataManager;
+  private final BlockWorker mDataManager;
   private final TachyonConf mTachyonConf;
   private final StorageTierAssoc mStorageTierAssoc;
   private final FileTransferType mTransferType;
@@ -70,7 +70,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
    * @param dataManager a block data manager handle
    * @param tachyonConf Tachyon configuration
    */
-  public DataServerHandler(final BlockDataManager dataManager, TachyonConf tachyonConf) {
+  public DataServerHandler(final BlockWorker dataManager, TachyonConf tachyonConf) {
     mDataManager = Preconditions.checkNotNull(dataManager);
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mStorageTierAssoc = new WorkerStorageTierAssoc(mTachyonConf);
