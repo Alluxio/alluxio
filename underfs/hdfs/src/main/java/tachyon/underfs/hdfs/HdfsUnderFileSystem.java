@@ -100,6 +100,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    * configuration necessary for obtaining a usable {@linkplain FileSystem} instance.
    * </p>
    *
+   * @param path file system path
    * @param tachyonConf Tachyon Configuration
    * @param config Hadoop configuration
    */
