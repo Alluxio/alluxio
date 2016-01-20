@@ -23,7 +23,6 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem.UnderFSType;
-import tachyon.underfs.s3.S3UnderFileSystem;
 
 /**
  * Tests {@link HdfsUnderFileSystem}.
