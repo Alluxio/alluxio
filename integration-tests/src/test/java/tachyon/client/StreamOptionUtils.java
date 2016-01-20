@@ -53,7 +53,7 @@ public final class StreamOptionUtils {
    * Gets WriteUnderStore {@link CreateFileOptions}
    *
    * @param conf the Tachyon config
-   * @return the {@link OutStreamOptions}
+   * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsThrough(TachyonConf conf) {
     return CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
