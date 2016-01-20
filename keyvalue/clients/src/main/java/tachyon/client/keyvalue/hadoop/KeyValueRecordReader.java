@@ -63,7 +63,8 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
   }
 
   @Override
-  public synchronized boolean next(BytesWritable keyWritable, BytesWritable valueWritable) throws IOException {
+  public synchronized boolean next(BytesWritable keyWritable, BytesWritable valueWritable)
+      throws IOException {
     if (!mKeyValuePairIterator.hasNext()) {
       return false;
     }

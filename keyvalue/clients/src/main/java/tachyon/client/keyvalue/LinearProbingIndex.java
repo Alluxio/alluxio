@@ -83,7 +83,8 @@ public final class LinearProbingIndex implements Index {
   public static LinearProbingIndex loadFromByteArray(ByteBuffer buffer) {
     int numBuckets = 0;
     int keyCount = 0;
-    for (int offset = 0, limit = buffer.limit(); offset < limit; offset += BUCKET_SIZE_BYTES) {
+    int limit = buffer.limit();
+    for (int offset = 0; offset < limit; offset += BUCKET_SIZE_BYTES) {
       byte fingerprint = ByteIOUtils.readByte(buffer, offset);
       numBuckets ++;
       if (fingerprint != 0) {
