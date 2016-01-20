@@ -18,7 +18,7 @@ package tachyon.shell.command;
 import java.io.IOException;
 import java.util.List;
 
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.lineage.TachyonLineage;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.LineageInfo;
@@ -34,7 +34,7 @@ public final class ListLineagesCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public ListLineagesCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public ListLineagesCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

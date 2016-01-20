@@ -15,19 +15,19 @@
 
 package tachyon.shell.command;
 
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
  * The base class for all the {@link TfsShellCommand} classes. It provides a default argument
- * validation method and a place to hold the {@link TachyonFileSystem} client.
+ * validation method and a place to hold the {@link FileSystem} client.
  */
 public abstract class AbstractTfsShellCommand implements TfsShellCommand {
 
   protected TachyonConf mTachyonConf;
-  protected TachyonFileSystem mTfs;
+  protected FileSystem mTfs;
 
-  protected AbstractTfsShellCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  protected AbstractTfsShellCommand(TachyonConf conf, FileSystem tfs) {
     mTachyonConf = conf;
     mTfs = tfs;
   }
