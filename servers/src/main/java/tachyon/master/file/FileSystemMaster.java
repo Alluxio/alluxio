@@ -1798,6 +1798,11 @@ public final class FileSystemMaster extends MasterBase {
         mTtlBuckets.removeBuckets(expiredBuckets);
       }
     }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
+    }
   }
 
   /**
@@ -1820,6 +1825,11 @@ public final class FileSystemMaster extends MasterBase {
           }
         }
       }
+    }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
     }
   }
 }
