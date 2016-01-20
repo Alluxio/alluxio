@@ -25,6 +25,7 @@ import org.apache.hadoop.mapred.InputSplit;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.PartitionInfo;
 
 /**
  * Implements {@link InputSplit}, each split contains one partition of the
@@ -40,11 +41,11 @@ final class KeyValueInputSplit implements InputSplit {
   /**
    * Creates an {@link InputSplit} for a partition.
    *
-   * @param blockId ID of the partition, currently a partition is a file with only one block
+   * @param partitionInfo the partition info
    */
-  public KeyValueInputSplit(long blockId) {
+  public KeyValueInputSplit(PartitionInfo partitionInfo) {
     mBlockStore = TachyonBlockStore.get();
-    mBlockId = blockId;
+    mBlockId = partitionInfo.getBlockId();
   }
 
   @Override
@@ -56,9 +57,9 @@ final class KeyValueInputSplit implements InputSplit {
   public String[] getLocations() throws IOException {
     try {
       List<BlockWorkerInfo> workersInfo = mBlockStore.getWorkerInfoList();
-      int n = workersInfo.size();
-      String[] locations = new String[n];
-      for (int i = 0; i < n; i++) {
+      int workersInfoSize = workersInfo.size();
+      String[] locations = new String[workersInfoSize];
+      for (int i = 0; i < workersInfoSize; i ++) {
         locations[i] = workersInfo.get(i).getNetAddress().getHost();
       }
       return locations;

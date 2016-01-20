@@ -15,13 +15,16 @@
 
 package tachyon.client.keyvalue;
 
-import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
@@ -34,6 +37,9 @@ import tachyon.util.io.PathUtils;
  */
 public final class KeyValueStoreIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
+  private static final String BASE_KEY = "base_key";
+  private static final String BASE_VALUE = "base_value";
+  private static final int BASE_KEY_VALUE_NUMBER = 100;
   private static final byte[] KEY1 = "key1".getBytes();
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
@@ -124,8 +130,6 @@ public final class KeyValueStoreIntegrationTest {
 
   /**
    * Tests that an iterator for an empty store has no next elements.
-   *
-   * @throws Exception when any exception happens
    */
   @Test
   public void emptyStoreIteratorTest() throws Exception {
@@ -138,34 +142,58 @@ public final class KeyValueStoreIntegrationTest {
   }
 
   /**
-   * Tests that an iterator can correctly iterate over a store.
+   * Generates a key in the format {@link #BASE_KEY}_{@code id}.
    *
-   * @throws Exception when any exception happens
+   * @param id the id of the key
+   * @return the generated key
+   */
+  private String genBaseKey(int id) {
+    return String.format("%s_%d", BASE_KEY, id);
+  }
+
+  /**
+   * Generates a value in the format {@link #BASE_VALUE}_{@code id}.
+   *
+   * @param id the id of the value
+   * @return the generated value
+   */
+  private String genBaseValue(int id) {
+    return String.format("%s_%d", BASE_VALUE, id);
+  }
+
+  /**
+   * Tests that an iterator can correctly iterate over a store.
+   * <p>
+   * There is no assumption about the order of iteration, it just makes sure all key-value pairs are
+   * iterated.
    */
   @Test
   public void iteratorTest() throws Exception {
+    List<KeyValuePair> pairs = Lists.newArrayListWithExpectedSize(BASE_KEY_VALUE_NUMBER);
+    // TODO(cc): Assure multiple partitions are created by creating larger pairs, after fixing the
+    // way of detecting whether the current partition is full.
+    for (int i = 0; i < BASE_KEY_VALUE_NUMBER; i ++) {
+      pairs.add(new KeyValuePair(genBaseKey(i).getBytes(), genBaseValue(i).getBytes()));
+    }
+    List<KeyValuePair> iteratedPairs = Lists.newArrayListWithExpectedSize(pairs.size());
+
     mWriter = sKVStores.create(mStoreUri);
-    mWriter.put(KEY1, VALUE1);
-    mWriter.put(KEY2, VALUE2);
+    for (KeyValuePair pair : pairs) {
+      mWriter.put(pair.getKey().array(), pair.getValue().array());
+    }
     mWriter.close();
 
     mReader = sKVStores.open(mStoreUri);
     KeyValueIterator iterator = mReader.iterator();
-
     Assert.assertTrue(iterator.hasNext());
-    KeyValuePair pair1 = iterator.next();
-    Assert.assertTrue(iterator.hasNext());
-    KeyValuePair pair2 = iterator.next();
-    Assert.assertFalse(iterator.hasNext());
-
-    if (pair1.getKey().equals(ByteBuffer.wrap(KEY2))) {
-      KeyValuePair tmp = pair1;
-      pair1 = pair2;
-      pair2 = tmp;
+    while (iterator.hasNext()) {
+      iteratedPairs.add(iterator.next());
     }
-    Assert.assertArrayEquals(KEY1, BufferUtils.newByteArrayFromByteBuffer(pair1.getKey()));
-    Assert.assertArrayEquals(VALUE1, BufferUtils.newByteArrayFromByteBuffer(pair1.getValue()));
-    Assert.assertArrayEquals(KEY2, BufferUtils.newByteArrayFromByteBuffer(pair2.getKey()));
-    Assert.assertArrayEquals(VALUE2, BufferUtils.newByteArrayFromByteBuffer(pair2.getValue()));
+    Assert.assertEquals(pairs.size(), iteratedPairs.size());
+
+    // Sorts and then compares pairs and iteratedPairs.
+    Collections.sort(pairs);
+    Collections.sort(iteratedPairs);
+    Assert.assertEquals(pairs, iteratedPairs);
   }
 }

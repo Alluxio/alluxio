@@ -39,6 +39,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.KeyValueWorkerClientService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
+import tachyon.util.io.BufferUtils;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
 
@@ -87,9 +88,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   private ByteBuffer copyAsNonDirectBuffer(ByteBuffer directBuffer) {
     // Thrift assumes the ByteBuffer returned has array() method, which is not true if the
     // ByteBuffer is direct. We make a non-direct copy of the ByteBuffer to return.
-    ByteBuffer result = ByteBuffer.allocate(directBuffer.remaining());
-    result.put(directBuffer).flip();
-    return result;
+    return BufferUtils.cloneByteBuffer(directBuffer);
   }
 
   /**

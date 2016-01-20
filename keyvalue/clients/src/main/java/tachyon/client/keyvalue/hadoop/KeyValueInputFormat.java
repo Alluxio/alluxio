@@ -18,6 +18,8 @@ package tachyon.client.keyvalue.hadoop;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileInputFormat;
 import org.apache.hadoop.mapred.InputFormat;
@@ -30,9 +32,10 @@ import com.google.common.collect.Lists;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.ClientContext;
+import tachyon.client.keyvalue.KeyValueMasterClient;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
+import tachyon.thrift.PartitionInfo;
 
 /**
  * Implementation of {@link org.apache.hadoop.mapred.InputFormat} for MapReduce programs to access
@@ -42,7 +45,10 @@ import tachyon.thrift.FileInfo;
  * in the KeyValueStore to {@link org.apache.hadoop.mapred.Mapper}s.
  */
 @PublicApi
+@NotThreadSafe
 public final class KeyValueInputFormat implements InputFormat {
+  private final KeyValueMasterClient mKeyValueMasterClient =
+      new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
   /**
    * Returns each partition as a {@link KeyValueInputSplit}.
    *
@@ -52,15 +58,16 @@ public final class KeyValueInputFormat implements InputFormat {
    */
   @Override
   public InputSplit[] getSplits(JobConf conf, int numSplits) throws IOException {
+    // The paths are MapReduce program's inputs specified in
+    // {@code mapreduce.input.fileinputformat.inputdir}, each path should be a key-value store.
     Path[] paths = FileInputFormat.getInputPaths(conf);
     List<InputSplit> splits = Lists.newArrayList();
-    TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
     try {
       for (Path path : paths) {
-        FileInfo info = tfs.getInfo(tfs.open(new TachyonURI(path.toString())));
-        List<Long> blockIds = info.getBlockIds();
-        for (long blockId : blockIds) {
-          splits.add(new KeyValueInputSplit(blockId));
+        List<PartitionInfo> partitionInfos =
+            mKeyValueMasterClient.getPartitionInfo(new TachyonURI(path.toString()));
+        for (PartitionInfo partitionInfo : partitionInfos) {
+          splits.add(new KeyValueInputSplit(partitionInfo));
         }
       }
     } catch (TachyonException te) {
