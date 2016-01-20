@@ -55,7 +55,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
-  private final BlockWorker mBlockDataManager;
+  private final BlockWorker mBlockWorker;
   /** The net address of the worker */
   private final NetAddress mWorkerAddress;
   /** Milliseconds between heartbeats before a timeout */
@@ -77,9 +77,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @param workerAddress the net address of the worker
    * @param masterClient the Tachyon master client
    */
-  BlockMasterSync(BlockWorker blockDataManager, NetAddress workerAddress,
+  BlockMasterSync(BlockWorker blockWorker, NetAddress workerAddress,
       BlockMasterClient masterClient) {
-    mBlockDataManager = blockDataManager;
+    mBlockWorker = blockWorker;
     mWorkerAddress = workerAddress;
     TachyonConf conf = WorkerContext.getConf();
     mMasterClient = masterClient;
@@ -104,7 +104,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @throws ConnectionFailedException if network connection failed
    */
   private void registerWithMaster() throws IOException, ConnectionFailedException {
-    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
     try {
       StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
       mMasterClient.register(WorkerIdRegistry.getWorkerId(),
@@ -125,8 +125,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   @Override
   public void heartbeat() {
     // Prepare metadata for the next heartbeat
-    BlockHeartbeatReport blockReport = mBlockDataManager.getReport();
-    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+    BlockHeartbeatReport blockReport = mBlockWorker.getReport();
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
 
     // Send the heartbeat and execute the response
     Command cmdFromMaster = null;
@@ -175,7 +175,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.data) {
-          mBlockRemovalService.execute(new BlockRemover(mBlockDataManager,
+          mBlockRemovalService.execute(new BlockRemover(mBlockWorker,
               Sessions.MASTER_COMMAND_SESSION_ID, block));
         }
         break;

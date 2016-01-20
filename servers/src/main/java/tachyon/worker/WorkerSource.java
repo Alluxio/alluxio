@@ -212,36 +212,36 @@ public class WorkerSource implements Source {
    *
     * @param blockDataManager a block data manager handle
    */
-  public void registerGauges(final BlockWorker blockDataManager) {
+  public void registerGauges(final BlockWorker blockWorker) {
     if (mGaugesRegistered) {
       return;
     }
     mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
       @Override
       public Long getValue() {
-        return blockDataManager.getStoreMeta().getCapacityBytes();
+        return blockWorker.getStoreMeta().getCapacityBytes();
       }
     });
 
     mMetricRegistry.register(MetricRegistry.name("CapacityUsed"), new Gauge<Long>() {
       @Override
       public Long getValue() {
-        return blockDataManager.getStoreMeta().getUsedBytes();
+        return blockWorker.getStoreMeta().getUsedBytes();
       }
     });
 
     mMetricRegistry.register(MetricRegistry.name("CapacityFree"), new Gauge<Long>() {
       @Override
       public Long getValue() {
-        return blockDataManager.getStoreMeta().getCapacityBytes()
-                - blockDataManager.getStoreMeta().getUsedBytes();
+        return blockWorker.getStoreMeta().getCapacityBytes()
+                - blockWorker.getStoreMeta().getUsedBytes();
       }
     });
 
     mMetricRegistry.register(MetricRegistry.name("BlocksCached"), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
-        return blockDataManager.getStoreMeta().getNumberOfBlocks();
+        return blockWorker.getStoreMeta().getNumberOfBlocks();
       }
     });
     mGaugesRegistered = true;

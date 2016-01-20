@@ -43,12 +43,12 @@ public interface DataServer extends Closeable {
      * @return the generated {@link DataServer}
      */
     public static DataServer create(final InetSocketAddress dataAddress,
-        final BlockWorker blockDataManager, TachyonConf conf) {
+        final BlockWorker blockWorker, TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<DataServer>getClass(Constants.WORKER_DATA_SERVER),
             new Class[] { InetSocketAddress.class, BlockWorker.class, TachyonConf.class },
-            new Object[] { dataAddress, blockDataManager, conf });
+            new Object[] { dataAddress, blockWorker, conf });
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

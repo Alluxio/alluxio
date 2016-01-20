@@ -64,20 +64,20 @@ public final class FileDataManagerTest {
     List<Long> blockIds = Lists.newArrayList(1L, 2L);
 
     // mock block data manager
-    BlockWorker blockDataManager = Mockito.mock(BlockWorker.class);
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
     FileInfo fileInfo = new FileInfo();
     fileInfo.path = "test";
-    Mockito.when(blockDataManager.getFileInfo(fileId)).thenReturn(fileInfo);
+    Mockito.when(blockWorker.getFileInfo(fileId)).thenReturn(fileInfo);
     BlockReader reader = Mockito.mock(BlockReader.class);
     for (long blockId : blockIds) {
-      Mockito.when(blockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId))
+      Mockito.when(blockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId))
           .thenReturn(blockId);
       Mockito
-          .when(blockDataManager.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId))
+          .when(blockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId))
           .thenReturn(reader);
     }
 
-    FileDataManager manager = new FileDataManager(blockDataManager);
+    FileDataManager manager = new FileDataManager(blockWorker);
 
     // mock ufs
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);

@@ -56,12 +56,12 @@ public final class FileSystemWorker extends WorkerBase {
    * @param blockDataManager a block data manager handle
    * @throws IOException if an I/O error occurs
    */
-  public FileSystemWorker(BlockWorker blockDataManager) throws IOException {
+  public FileSystemWorker(BlockWorker blockWorker) throws IOException {
     super(Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
 
     mTachyonConf = WorkerContext.getConf();
-    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockDataManager));
+    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker));
 
     // Setup MasterClientBase
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(

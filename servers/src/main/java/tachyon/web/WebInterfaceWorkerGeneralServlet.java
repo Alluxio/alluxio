@@ -135,7 +135,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   }
 
   private static final long serialVersionUID = 3735143768058466487L;
-  private final transient BlockWorker mBlockDataManager;
+  private final transient BlockWorker mBlockWorker;
   private final UIWorkerInfo mUiWorkerInfo;
 
   /**
@@ -145,9 +145,9 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
    * @param workerAddress worker address
    * @param startTimeMs start time in milliseconds
    */
-  public WebInterfaceWorkerGeneralServlet(BlockWorker blockDataManager,
+  public WebInterfaceWorkerGeneralServlet(BlockWorker blockWorker,
       InetSocketAddress workerAddress, long startTimeMs) {
-    mBlockDataManager = blockDataManager;
+    mBlockWorker = blockWorker;
     mUiWorkerInfo = new UIWorkerInfo(workerAddress.toString(), startTimeMs);
   }
 
@@ -167,7 +167,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("workerInfo", mUiWorkerInfo);
 
-    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
     long capacityBytes = 0L;
     long usedBytes = 0L;
     Map<String, Long> capacityBytesOnTiers = storeMeta.getCapacityBytesOnTiers();

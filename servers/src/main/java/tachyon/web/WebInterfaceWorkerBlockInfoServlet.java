@@ -57,8 +57,8 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    *
    * @param blockDataManager block data manager
    */
-  public WebInterfaceWorkerBlockInfoServlet(BlockWorker blockDataManager) {
-    mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
+  public WebInterfaceWorkerBlockInfoServlet(BlockWorker blockWorker) {
+    mBlockDataManager = Preconditions.checkNotNull(blockWorker);
   }
 
   /**

@@ -53,11 +53,11 @@ public final class NettyDataServer implements DataServer {
    * @param dataManager a block data manager handle
    * @param tachyonConf Tachyon configuration
    */
-  public NettyDataServer(final InetSocketAddress address, final BlockWorker dataManager,
+  public NettyDataServer(final InetSocketAddress address, final BlockWorker blockWorker,
       final TachyonConf tachyonConf) {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mDataServerHandler =
-        new DataServerHandler(Preconditions.checkNotNull(dataManager), mTachyonConf);
+        new DataServerHandler(Preconditions.checkNotNull(blockWorker), mTachyonConf);
     mBootstrap = createBootstrap().childHandler(new PipelineHandler(mDataServerHandler));
 
     try {

@@ -42,7 +42,7 @@ public class KeyValueWorker extends WorkerBase {
   /** Configuration object */
   private final TachyonConf mTachyonConf;
   /** Block data manager for access block info */
-  private final BlockWorker mBlockDataManager;
+  private final BlockWorker mBlockWorker;
   /** Logic for handling key-value RPC requests. */
   private final KeyValueWorkerClientServiceHandler mKeyValueServiceHandler;
 
@@ -56,8 +56,8 @@ public class KeyValueWorker extends WorkerBase {
     super(Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("keyvalue-worker-heartbeat-%d", true)));
     mTachyonConf = WorkerContext.getConf();
-    mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
-    mKeyValueServiceHandler = new KeyValueWorkerClientServiceHandler(mBlockDataManager);
+    mBlockWorker = Preconditions.checkNotNull(blockDataManager);
+    mKeyValueServiceHandler = new KeyValueWorkerClientServiceHandler(mBlockWorker);
   }
 
   @Override
