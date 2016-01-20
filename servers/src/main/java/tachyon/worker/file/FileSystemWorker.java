@@ -16,8 +16,12 @@
 package tachyon.worker.file;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import org.apache.thrift.TProcessor;
 
 import com.google.common.base.Preconditions;
 
@@ -30,7 +34,6 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockDataManager;
 
 /**
@@ -56,7 +59,6 @@ public final class FileSystemWorker extends WorkerBase {
   public FileSystemWorker(BlockDataManager blockDataManager) throws IOException {
     super(Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
-    Preconditions.checkState(WorkerIdRegistry.getWorkerId() != 0, "Failed to register worker");
 
     mTachyonConf = WorkerContext.getConf();
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockDataManager));
@@ -67,8 +69,19 @@ public final class FileSystemWorker extends WorkerBase {
   }
 
   /**
-   * Starts the lineage worker service.
+   * {@inheritDoc}
+   * <p>
+   * {@link FileSystemWorker} exposes no RPC service.
    */
+  @Override
+  public Map<String, TProcessor> getServices() {
+    return new HashMap<String, TProcessor>();
+  }
+
+  /**
+   * Starts the filesystem worker service.
+   */
+  @Override
   public void start() {
     mFilePersistenceService = getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
@@ -77,8 +90,9 @@ public final class FileSystemWorker extends WorkerBase {
   }
 
   /**
-   * Stops the lineage worker service.
+   * Stops the filesystem worker service.
    */
+  @Override
   public void stop() {
     if (mFilePersistenceService != null) {
       mFilePersistenceService.cancel(true);

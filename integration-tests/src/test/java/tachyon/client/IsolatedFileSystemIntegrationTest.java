@@ -41,7 +41,7 @@ import tachyon.util.io.PathUtils;
  * Integration tests on TachyonClient (Do not reuse the LocalTachyonCluster).
  */
 public class IsolatedFileSystemIntegrationTest {
-  private static final int WORKER_CAPACITY_BYTES = 20000;
+  private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource = new LocalTachyonClusterResource(

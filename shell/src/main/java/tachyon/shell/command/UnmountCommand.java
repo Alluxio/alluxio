@@ -26,7 +26,10 @@ import tachyon.exception.TachyonException;
  * Unmounts a Tachyon path.
  */
 public final class UnmountCommand extends AbstractTfsShellCommand {
-
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public UnmountCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
@@ -56,5 +59,10 @@ public final class UnmountCommand extends AbstractTfsShellCommand {
   @Override
   public String getUsage() {
     return "unmount <tachyonPath>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Unmounts a Tachyon path.";
   }
 }

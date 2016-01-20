@@ -59,7 +59,7 @@ public class TieredStoreIntegrationTest {
   public ExpectedException mThrown = ExpectedException.none();
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB,
+      new LocalTachyonClusterResource(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, 1000,
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
 
   @Before

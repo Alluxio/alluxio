@@ -35,6 +35,10 @@ public final class HeartbeatThread implements Runnable {
   private HeartbeatTimer mTimer;
 
   /**
+   * Creates a {@code Runnable} to execute heartbeats for the given {@link HeartbeatExecutor}.
+   *
+   * This class is responsible for closing the given {@link HeartbeatExecutor} when it finishes.
+   *
    * @param threadName identifies the heartbeat thread name
    * @param executor identifies the heartbeat thread executor; an instance of a class that
    *        implements the HeartbeatExecutor interface
@@ -69,6 +73,8 @@ public final class HeartbeatThread implements Runnable {
       Thread.currentThread().interrupt();
     } catch (Exception e) {
       LOG.error("Uncaught exception in heartbeat executor, Heartbeat Thread shutting down", e);
+    } finally {
+      mExecutor.close();
     }
   }
 }

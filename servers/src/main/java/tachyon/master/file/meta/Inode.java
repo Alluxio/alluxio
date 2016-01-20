@@ -15,6 +15,8 @@
 
 package tachyon.master.file.meta;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.master.journal.JournalEntryRepresentable;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
@@ -22,7 +24,12 @@ import tachyon.thrift.FileInfo;
 /**
  * {@link Inode} is an abstract class, with information shared by all types of Inodes.
  */
+@ThreadSafe
 public abstract class Inode implements JournalEntryRepresentable {
+
+  /**
+   * Builder for {@link Inode}.
+   */
   public abstract static class Builder<T extends Builder<T>> {
     private long mCreationTimeMs;
     protected boolean mDirectory;
@@ -206,7 +213,7 @@ public abstract class Inode implements JournalEntryRepresentable {
   /**
    * @return the create time, in milliseconds
    */
-  public long getCreationTimeMs() {
+  public synchronized long getCreationTimeMs() {
     return mCreationTimeMs;
   }
 
@@ -253,21 +260,21 @@ public abstract class Inode implements JournalEntryRepresentable {
   /**
    * @return true if the inode is deleted, false otherwise
    */
-  public boolean isDeleted() {
+  public synchronized boolean isDeleted() {
     return mDeleted;
   }
 
   /**
    * @return true if the inode is a directory, false otherwise
    */
-  public boolean isDirectory() {
+  public synchronized boolean isDirectory() {
     return mDirectory;
   }
 
   /**
    * @return true if the inode is a file, false otherwise
    */
-  public boolean isFile() {
+  public synchronized boolean isFile() {
     return !mDirectory;
   }
 

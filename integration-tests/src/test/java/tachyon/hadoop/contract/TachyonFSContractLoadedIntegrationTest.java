@@ -20,13 +20,18 @@ import java.net.URL;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.apache.hadoop.fs.contract.AbstractFSContractTestBase;
+import org.junit.Rule;
 import org.junit.Test;
 
+import tachyon.LocalTachyonClusterResource;
+
 public class TachyonFSContractLoadedIntegrationTest extends AbstractFSContractTestBase {
+  @Rule
+  public LocalTachyonClusterResource mClusterResource = new LocalTachyonClusterResource();
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
-    return new TachyonFSContract(conf);
+    return new TachyonFSContract(conf, mClusterResource.get());
   }
 
   @Test

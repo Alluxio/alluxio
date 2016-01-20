@@ -57,9 +57,15 @@ public final class LineageMasterTest {
   private FileSystemMaster mFileSystemMaster;
   private Job mJob;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the test fails
+   */
   @Before
   public void before() throws Exception {
     Journal journal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
@@ -69,6 +75,11 @@ public final class LineageMasterTest {
     mJob = new CommandLineJob("test", new JobConf("output"));
   }
 
+  /**
+   * Tests the {@link LineageMaster#getLineageInfoList()} method.
+   *
+   * @throws Exception if an operation on a master fails
+   */
   @Test
   public void listLineagesTest() throws Exception {
     mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
@@ -80,6 +91,12 @@ public final class LineageMasterTest {
     Assert.assertEquals(2, info.size());
   }
 
+  /**
+   * Tests that an exception is thrown when trying to create a lineage for a non-existing file via
+   * the {@link LineageMaster#createLineage(List, List, Job)} method.
+   *
+   * @throws Exception if an operation on a master fails
+   */
   @Test
   public void createLineageWithNonExistingFileTest() throws Exception {
     TachyonURI missingInput = new TachyonURI("/test1");
@@ -95,6 +112,11 @@ public final class LineageMasterTest {
     }
   }
 
+  /**
+   * Tests the {@link LineageMaster#deleteLineage(long, boolean)} method.
+   *
+   * @throws Exception if an operation on a master fails
+   */
   @Test
   public void deleteLineageTest() throws Exception {
     long l1 = mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
@@ -106,6 +128,12 @@ public final class LineageMasterTest {
     Assert.assertEquals(0, info.size());
   }
 
+  /**
+   * Tests that an exception is thrown when trying to delete a non-existing lineage via the
+   * {@link LineageMaster#deleteLineage(long, boolean)} method.
+   *
+   * @throws Exception if an operation on a master fails
+   */
   @Test
   public void deleteNonexistingLineageTest() throws Exception {
     long id = 1L;
@@ -117,6 +145,13 @@ public final class LineageMasterTest {
     }
   }
 
+  /**
+   * Tests that an exception is thrown when trying to delete a lineage with children via the
+   * {@link LineageMaster#deleteLineage(long, boolean)} without setting the {@code cascade} flag to
+   * {@code true}.
+   *
+   * @throws Exception if an operation on a master fails
+   */
   @Test
   public void deleteLineageWithChildrenTest() throws Exception {
     long l1 = mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
@@ -132,6 +167,11 @@ public final class LineageMasterTest {
     }
   }
 
+  /**
+   * Tests the {@link LineageMaster#reinitializeFile(String, long, long)} method.
+   *
+   * @throws Exception if an operation on a master fails
+   */
   @Test
   public void reinitializeFileTest() throws Exception {
     mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
@@ -143,6 +183,11 @@ public final class LineageMasterTest {
     Mockito.verify(mFileSystemMaster).reinitializeFile(new TachyonURI("/test1"), 500L, 10L);
   }
 
+  /**
+   * Tests that completing a file asynchronously works.
+   *
+   * @throws Exception if an operation on a master fails
+   */
   @Test
   public void asyncCompleteFileTest() throws Exception {
     TachyonURI file = new TachyonURI("/test1");
@@ -152,6 +197,11 @@ public final class LineageMasterTest {
         Mockito.any(CompleteFileOptions.class));
   }
 
+  /**
+   * Tests the {@link LineageMaster#stop()} method.
+   *
+   * @throws Exception if stopping the master fails
+   */
   @Test
   public void stopTest() throws Exception {
     ExecutorService service =

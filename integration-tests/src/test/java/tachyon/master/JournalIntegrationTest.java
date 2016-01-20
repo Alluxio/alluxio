@@ -41,7 +41,6 @@ import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.SetAttributeOptions;
-import tachyon.client.table.TachyonRawTables;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
@@ -65,7 +64,6 @@ public class JournalIntegrationTest {
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private FileSystem mTfs = null;
-  private TachyonRawTables mTachyonRawTables = null;
   private TachyonURI mRootUri = new TachyonURI(TachyonURI.SEPARATOR);
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
   private TachyonConf mMasterTachyonConf = null;
@@ -162,7 +160,6 @@ public class JournalIntegrationTest {
   public final void before() throws Exception {
     mLocalTachyonCluster = mLocalTachyonClusterResource.get();
     mTfs = mLocalTachyonCluster.getClient();
-    mTachyonRawTables = TachyonRawTables.TachyonRawTablesFactory.get();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
@@ -574,21 +571,6 @@ public class JournalIntegrationTest {
       }
     }
     fsMaster.stop();
-  }
-
-  /**
-   * Test raw table creation.
-   *
-   * @throws Exception
-   */
-  @Test
-  public void rawTableTest() throws Exception {
-    mTachyonRawTables.create(new TachyonURI("/xyz"), 10);
-    URIStatus status = mTfs.getStatus(new TachyonURI("/xyz"));
-    mLocalTachyonCluster.stopTFS();
-    rawTableTestUtil(status);
-    deleteFsMasterJournalLogs();
-    rawTableTestUtil(status);
   }
 
   private List<FileInfo> lsr(FileSystemMaster fsMaster, TachyonURI uri)

@@ -18,11 +18,13 @@ package tachyon.worker.block.allocator;
 import java.io.IOException;
 import java.util.HashSet;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
@@ -58,7 +60,7 @@ public class BaseAllocatorTest {
   public static final int DEFAULT_SSD_NUM  = TIER_PATH[1].length;
   public static final int DEFAULT_HDD_NUM  = TIER_PATH[2].length;
 
-  protected BlockMetadataManagerView mManagerView = null;
+  protected BlockMetadataManager mManager = null;
   protected Allocator mAllocator = null;
 
   protected BlockStoreLocation mAnyTierLoc = BlockStoreLocation.anyTier();
@@ -66,21 +68,33 @@ public class BaseAllocatorTest {
   protected BlockStoreLocation mAnyDirInTierLoc2 = BlockStoreLocation.anyDirInTier("SSD");
   protected BlockStoreLocation mAnyDirInTierLoc3 = BlockStoreLocation.anyDirInTier("HDD");
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the dependencies fails
+   */
   @Before
   public void before() throws Exception {
     resetManagerView();
+  }
+
+  /**
+   * Resets the context of the worker after a test ran.
+   */
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   protected void resetManagerView() throws Exception {
     String tachyonHome = mTestFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(tachyonHome, TIER_LEVEL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);
-    BlockMetadataManager metaManager = BlockMetadataManager.newBlockMetadataManager();
-    mManagerView = new BlockMetadataManagerView(metaManager, new HashSet<Long>(),
-        new HashSet<Long>());
+    mManager = BlockMetadataManager.newBlockMetadataManager();
   }
 
   /**
@@ -91,9 +105,8 @@ public class BaseAllocatorTest {
       long blockSize, boolean avail) throws IOException {
 
     mTestBlockId ++;
-
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, mManagerView);
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -117,7 +130,7 @@ public class BaseAllocatorTest {
     mTestBlockId ++;
 
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, mManagerView);
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -135,5 +148,9 @@ public class BaseAllocatorTest {
       //update the dir meta info
       pDir.addBlockMeta(new BlockMeta(mTestBlockId, blockSize, pDir));
     }
+  }
+
+  protected BlockMetadataManagerView getManagerView() {
+    return new BlockMetadataManagerView(mManager, new HashSet<Long>(), new HashSet<Long>());
   }
 }

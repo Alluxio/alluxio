@@ -36,13 +36,13 @@ import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
-import com.google.protobuf.ByteString;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import tachyon.proto.journal.Block.BlockInfoEntry;
 import tachyon.proto.journal.File.AddMountPointEntry;
+import tachyon.proto.journal.File.AsyncPersistRequestEntry;
 import tachyon.proto.journal.File.CompleteFileEntry;
 import tachyon.proto.journal.File.DeleteFileEntry;
 import tachyon.proto.journal.File.DeleteMountPointEntry;
@@ -51,19 +51,17 @@ import tachyon.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import tachyon.proto.journal.File.InodeFileEntry;
 import tachyon.proto.journal.File.InodeLastModificationTimeEntry;
 import tachyon.proto.journal.File.PersistDirectoryEntry;
-import tachyon.proto.journal.File.PersistFileEntry;
 import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.KeyValue.CompletePartitionEntry;
+import tachyon.proto.journal.KeyValue.CompleteStoreEntry;
+import tachyon.proto.journal.KeyValue.CreateStoreEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
-import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
-import tachyon.proto.journal.RawTable.RawTableEntry;
-import tachyon.proto.journal.RawTable.UpdateMetadataEntry;
 import tachyon.security.authorization.PermissionStatus;
-import tachyon.util.io.BufferUtils;
 
 /**
  * Base class for testing different {@link JournalFormatter}'s serialization/deserialization
@@ -93,6 +91,8 @@ public abstract class JournalFormatterTestBase {
   protected static final PermissionStatus TEST_PERMISSION_STATUS =
       new PermissionStatus("user1", "group1", (short)0777);
   protected static final String TEST_PERSISTED_STATE = "PERSISTED";
+  protected static final String TEST_KEY1 = "test_key1";
+  protected static final String TEST_KEY2 = "test_key2";
 
   protected JournalFormatter mFormatter = getFormatter();
   protected OutputStream mOs;
@@ -105,16 +105,16 @@ public abstract class JournalFormatterTestBase {
     List<JournalEntry> entries = ImmutableList.<JournalEntry>builder()
         .add(
             JournalEntry.newBuilder()
-            .setBlockContainerIdGenerator(
-                BlockContainerIdGeneratorEntry.newBuilder()
-                .setNextContainerId(TEST_CONTAINER_ID))
-            .build())
+                .setBlockContainerIdGenerator(
+                    BlockContainerIdGeneratorEntry.newBuilder()
+                        .setNextContainerId(TEST_CONTAINER_ID))
+                .build())
         .add(
             JournalEntry.newBuilder()
-            .setBlockInfo(BlockInfoEntry.newBuilder()
-                .setBlockId(TEST_BLOCK_ID)
-                .setLength(TEST_LENGTH_BYTES))
-            .build())
+                .setBlockInfo(BlockInfoEntry.newBuilder()
+                    .setBlockId(TEST_BLOCK_ID)
+                    .setLength(TEST_LENGTH_BYTES))
+                .build())
         .add(JournalEntry.newBuilder()
             .setInodeFile(InodeFileEntry.newBuilder()
                 .setCreationTimeMs(TEST_OP_TIME_MS)
@@ -158,20 +158,14 @@ public abstract class JournalFormatterTestBase {
             .setPersistDirectory(PersistDirectoryEntry.newBuilder()
                 .setId(TEST_FILE_ID))
             .build())
-        .add(JournalEntry.newBuilder()
-            .setPersistFile(PersistFileEntry.newBuilder()
-                .setId(TEST_FILE_ID)
-                .setLength(TEST_LENGTH_BYTES)
-                .setOpTimeMs(TEST_OP_TIME_MS))
-            .build())
         .add(
             JournalEntry.newBuilder()
-            .setCompleteFile(CompleteFileEntry.newBuilder()
-                .addAllBlockIds(Arrays.asList(1L, 2L, 3L))
-                .setId(TEST_FILE_ID)
-                .setLength(TEST_LENGTH_BYTES)
-                .setOpTimeMs(TEST_OP_TIME_MS))
-            .build())
+                .setCompleteFile(CompleteFileEntry.newBuilder()
+                    .addAllBlockIds(Arrays.asList(1L, 2L, 3L))
+                    .setId(TEST_FILE_ID)
+                    .setLength(TEST_LENGTH_BYTES)
+                    .setOpTimeMs(TEST_OP_TIME_MS))
+                .build())
         .add(JournalEntry.newBuilder()
             .setDeleteFile(DeleteFileEntry.newBuilder()
                 .setId(TEST_FILE_ID)
@@ -196,20 +190,9 @@ public abstract class JournalFormatterTestBase {
             .build())
         .add(
             JournalEntry.newBuilder()
-            .setDeleteMountPoint(DeleteMountPointEntry.newBuilder()
-                .setTachyonPath(TEST_TACHYON_PATH.toString()))
-            .build())
-        .add(JournalEntry.newBuilder()
-            .setRawTable(RawTableEntry.newBuilder()
-                .setId(TEST_BLOCK_ID)
-                .setColumns(100)
-                .setMetadata(ByteString.copyFrom(BufferUtils.getIncreasingByteBuffer(10))))
-            .build())
-        .add(JournalEntry.newBuilder()
-            .setUpdateMetadata(UpdateMetadataEntry.newBuilder()
-                .setId(TEST_BLOCK_ID)
-                .setMetadata(ByteString.copyFrom(new byte[10])))
-            .build())
+                .setDeleteMountPoint(DeleteMountPointEntry.newBuilder()
+                    .setTachyonPath(TEST_TACHYON_PATH.toString()))
+                .build())
         .add(JournalEntry.newBuilder()
             .setReinitializeFile(ReinitializeFileEntry.newBuilder()
                 .setPath(TEST_FILE_NAME)
@@ -218,10 +201,10 @@ public abstract class JournalFormatterTestBase {
             .build())
         .add(
             JournalEntry.newBuilder()
-            .setDeleteLineage(DeleteLineageEntry.newBuilder()
-                .setLineageId(TEST_LINEAGE_ID)
-                .setCascade(false))
-            .build())
+                .setDeleteLineage(DeleteLineageEntry.newBuilder()
+                    .setLineageId(TEST_LINEAGE_ID)
+                    .setCascade(false))
+                .build())
         .add(JournalEntry.newBuilder()
             .setLineage(LineageEntry.newBuilder()
                 .setId(TEST_LINEAGE_ID)
@@ -233,22 +216,40 @@ public abstract class JournalFormatterTestBase {
             .build())
         .add(
             JournalEntry.newBuilder()
-            .setLineageIdGenerator(LineageIdGeneratorEntry.newBuilder()
-                .setSequenceNumber(TEST_SEQUENCE_NUMBER))
-            .build())
+                .setLineageIdGenerator(LineageIdGeneratorEntry.newBuilder()
+                    .setSequenceNumber(TEST_SEQUENCE_NUMBER))
+                .build())
         .add(JournalEntry.newBuilder()
-            .setPersistFilesRequest(PersistFilesRequestEntry.newBuilder()
-                .addAllFileIds(Arrays.asList(1L, 2L)))
+            .setAsyncPersistRequest(AsyncPersistRequestEntry.newBuilder()
+                .setFileId(1L))
             .build())
         .add(
             JournalEntry.newBuilder()
-            .setSetState(SetStateEntry.newBuilder()
-                .setId(TEST_FILE_ID)
-                .setOpTimeMs(TEST_OP_TIME_MS)
-                .setPinned(true)
-                .setPersisted(true)
-                .setTtl(TEST_TTL))
-            .build())
+                .setSetState(SetStateEntry.newBuilder()
+                    .setId(TEST_FILE_ID)
+                    .setOpTimeMs(TEST_OP_TIME_MS)
+                    .setPinned(true)
+                    .setPersisted(true)
+                    .setTtl(TEST_TTL))
+                .build())
+        .add(
+            JournalEntry.newBuilder()
+                .setCompletePartition(CompletePartitionEntry.newBuilder()
+                    .setStoreId(TEST_FILE_ID)
+                    .setBlockId(TEST_BLOCK_ID)
+                    .setKeyLimit(TEST_KEY1)
+                    .setKeyStart(TEST_KEY2))
+                .build())
+        .add(
+            JournalEntry.newBuilder()
+                .setCreateStore(CreateStoreEntry.newBuilder()
+                    .setStoreId(TEST_FILE_ID))
+                .build())
+        .add(
+            JournalEntry.newBuilder()
+                .setCompleteStore(CompleteStoreEntry.newBuilder()
+                    .setStoreId(TEST_FILE_ID))
+                .build())
         .build();
     // Add the test sequence number to every journal entry
     ENTRIES_LIST = Lists.transform(entries, new Function<JournalEntry, JournalEntry>() {
@@ -264,9 +265,15 @@ public abstract class JournalFormatterTestBase {
    */
   protected abstract JournalFormatter getFormatter();
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the test fails
+   */
   @Before
   public void before() throws Exception {
     String path = mTestFolder.newFile().getAbsolutePath();
@@ -274,6 +281,11 @@ public abstract class JournalFormatterTestBase {
     mIs = new FileInputStream(path);
   }
 
+  /**
+   * Closes all streams after a test ran.
+   *
+   * @throws Exception if closing the streams fails
+   */
   @After
   public final void after() throws Exception {
     mOs.close();
@@ -301,13 +313,21 @@ public abstract class JournalFormatterTestBase {
     assertSameEntry(entry, readEntry);
   }
 
-  // check if every entry is covered by this test
+  /**
+   * Tests the number of entries written.
+   */
   @Test
   public void checkEntriesNumberTest() {
     // Subtract one to exclude ENTRY_NOT_SET
     Assert.assertEquals(JournalEntry.EntryCase.values().length - 1, ENTRIES_LIST.size());
   }
 
+  /**
+   * Tests the {@link JournalFormatter#deserialize(InputStream)} and
+   * {@link JournalFormatter#serialize(JournalEntry, OutputStream)} methods.
+   *
+   * @throws IOException if reading or writing an entry fails
+   */
   @Test
   public void entriesTest() throws IOException {
     for (JournalEntry entry : ENTRIES_LIST) {

@@ -117,6 +117,7 @@ public class TFSTest {
 
     PowerMockito.verifyStatic();
     FileSystem.Factory.get();
+    ClientContext.reset();
   }
 
   /**
@@ -146,6 +147,7 @@ public class TFSTest {
 
     PowerMockito.verifyStatic();
     FileSystem.Factory.get();
+    ClientContext.reset();
   }
 
   private boolean isHadoop1x() {

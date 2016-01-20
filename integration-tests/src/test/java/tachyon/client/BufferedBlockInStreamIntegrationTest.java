@@ -45,7 +45,7 @@ public class BufferedBlockInStreamIntegrationTest {
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(Constants.MB, Constants.KB, Constants.GB);
+      new LocalTachyonClusterResource(Constants.GB, Constants.KB, Constants.GB);
   private static FileSystem sTfs;
   private static TachyonConf sTachyonConf;
   private static CreateFileOptions sWriteBoth;

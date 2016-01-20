@@ -75,4 +75,9 @@ public final class CatCommand extends WithWildCardPathCommand {
   public String getUsage() {
     return "cat <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Prints the file's contents to the console.";
+  }
 }

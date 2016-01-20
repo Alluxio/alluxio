@@ -26,6 +26,9 @@ import tachyon.conf.TachyonConf;
  * Unit tests for {@link CreateDirectoryOptions}.
  */
 public class CreateDirectoryOptionsTest {
+  /**
+   * Tests the {@link tachyon.master.file.options.CreateDirectoryOptions.Builder}.
+   */
   @Test
   public void builderTest() {
     Random random = new Random();
@@ -47,6 +50,9 @@ public class CreateDirectoryOptionsTest {
     Assert.assertEquals(recursive, options.isRecursive());
   }
 
+  /**
+   * Tests the {@link CreateDirectoryOptions#defaults()} method.
+   */
   @Test
   public void defaultsTest() {
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();

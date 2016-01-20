@@ -33,7 +33,8 @@ import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.Command;
-import tachyon.thrift.NetAddress;
+import tachyon.util.ThreadFactoryUtils;
+import tachyon.worker.NetAddress;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 
@@ -62,8 +63,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Client for all master communication */
   private final BlockMasterClient mMasterClient;
   /** The thread pool to remove block */
-  private final ExecutorService mFixedExecutionService =
-      Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
+  private final ExecutorService mBlockRemovalService = Executors.newFixedThreadPool(
+      DEFAULT_BLOCK_REMOVER_POOL_SIZE, ThreadFactoryUtils.build("block-removal-service-%d", true));
 
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed */
   private long mLastSuccessfulHeartbeatMs;
@@ -149,6 +150,11 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     }
   }
 
+  @Override
+  public void close() {
+    mBlockRemovalService.shutdown();
+  }
+
   /**
    * Handles a master command. The command is one of Unknown, Nothing, Register, Free, or Delete.
    * This call will block until the command is complete.
@@ -168,7 +174,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.data) {
-          mFixedExecutionService.execute(new BlockRemover(mBlockDataManager,
+          mBlockRemovalService.execute(new BlockRemover(mBlockDataManager,
               Sessions.MASTER_COMMAND_SESSION_ID, block));
         }
         break;

@@ -23,24 +23,31 @@ import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.model.OSSObject;
 
 /**
- * This class is a buffered wrapper around the input stream returned by
- * {@link OSSObject#getObjectContent()}.
- * This input stream return 0 when calling read with an empty buffer.
+ * A stream for reading a file from OSS. This input stream returns 0 when calling read with an empty
+ * buffer.
  */
 public class OSSInputStream extends InputStream {
 
-  /** Bucket name of the Tachyon OSS bucket */
+  /** Bucket name of the Tachyon OSS bucket. */
   private final String mBucketName;
-  /** Key of the file in OSS to read */
+  /** Key of the file in OSS to read. */
   private final String mKey;
-  /** The OSS client for OSS operations */
+  /** The OSS client for OSS operations. */
   private final OSSClient mOssClient;
 
-  /** The storage object that will be updated on each large skip */
+  /** The storage object that will be updated on each large skip. */
   private OSSObject mObject;
-  /** The underlying input stream */
+  /** The underlying input stream. */
   private BufferedInputStream mInputStream;
 
+  /**
+   * Creates a new instance of {@link OSSInputStream}.
+   *
+   * @param bucketName the name of the bucket
+   * @param key c
+   * @param client the client for OSS
+   * @throws IOException if an I/O error occurs
+   */
   OSSInputStream(String bucketName, String key, OSSClient client) throws IOException {
     mBucketName = bucketName;
     mKey = key;
@@ -68,6 +75,9 @@ public class OSSInputStream extends InputStream {
 
   @Override
   public long skip(long n) throws IOException {
-    throw new IOException("unsupported skip in OSSInputStream currently.");
+    // TODO(luoli523) currently, the oss sdk doesn't support get the oss Object in a
+    // special position of the stream. It will support this feature in the future.
+    // Now we just read n bytes and discard to skip.
+    return super.skip(n);
   }
 }
