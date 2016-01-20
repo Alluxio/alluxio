@@ -22,7 +22,6 @@ import java.util.Set;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 import tachyon.collections.DirectedAcyclicGraph;
 import tachyon.exception.ExceptionMessage;
@@ -110,15 +109,6 @@ public final class LineageStore implements JournalCheckpointStreamable {
     LineageDoesNotExistException.check(mIdIndex.containsKey(lineageId),
         ExceptionMessage.LINEAGE_DOES_NOT_EXIST, lineageId);
 
-    deleteLineage(lineageId, Sets.<Long>newHashSet());
-  }
-
-  private void deleteLineage(long lineageId, Set<Long> deleted)
-      throws LineageDoesNotExistException {
-    if (deleted.contains(lineageId)) {
-      return;
-    }
-
     Lineage toDelete = mIdIndex.get(lineageId);
     // delete children first
     for (Lineage childLineage : mLineageDAG.getChildren(toDelete)) {
@@ -128,7 +118,6 @@ public final class LineageStore implements JournalCheckpointStreamable {
     // delete the given node
     mLineageDAG.deleteLeaf(toDelete);
     mIdIndex.remove(lineageId);
-    deleted.add(lineageId);
     for (long outputFile : toDelete.getOutputFiles()) {
       mOutputFileIndex.remove(outputFile);
     }
