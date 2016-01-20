@@ -57,7 +57,6 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
   @After
   public void after() throws Exception {
     clearLoginUser();
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
     mExecutorService.shutdownNow();
   }
 
