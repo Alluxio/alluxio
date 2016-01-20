@@ -17,38 +17,22 @@ package tachyon.client.lineage.options;
 
 import tachyon.annotation.PublicApi;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * Method option for creating lineage.
  */
 @PublicApi
 public final class CreateLineageOptions {
-  /** Flag indicating whether or not to overwrite, currently unsupported */
-  private boolean mOverwrite;
-
   /**
    * @return the default options
    */
+  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static CreateLineageOptions defaults() {
     return new CreateLineageOptions();
   }
 
   private CreateLineageOptions() {
-    mOverwrite = false;
-  }
-
-  /**
-   * @return whether the overwrite flag is set
-   */
-  public boolean isOverwrite() {
-    return mOverwrite;
-  }
-
-  /**
-   * @param overwrite the overwrite flag to set
-   * @return the updated options object
-   */
-  public CreateLineageOptions setOverwrite(boolean overwrite) {
-    mOverwrite = overwrite;
-    return this;
+    // No options currently
   }
 }

@@ -17,38 +17,22 @@ package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * Method option for mounting a path.
  */
 @PublicApi
 public final class MountOptions {
-  /** Flag for if the mount should be a read-only mount, currently unsupported */
-  private boolean mReadOnly;
-
   /**
    * @return the default {@link MountOptions}
    */
+  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static MountOptions defaults() {
     return new MountOptions();
   }
 
   private MountOptions() {
-    mReadOnly = false;
-  }
-
-  /**
-   * @return whether the read-only flag is set
-   */
-  public boolean isReadOnly() {
-    return mReadOnly;
-  }
-
-  /**
-   * @param readOnly the read only flag for this option
-   * @return the updated options object
-   */
-  public MountOptions setReadOnly(boolean readOnly) {
-    mReadOnly = readOnly;
-    return this;
+    // No options currently
   }
 }

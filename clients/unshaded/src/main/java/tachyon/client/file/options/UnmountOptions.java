@@ -17,39 +17,22 @@ package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * Method option for unmounting a path.
  */
 @PublicApi
 public final class UnmountOptions {
-  /** Whether the data under the mount should be synchronously freed from Tachyon, currently
-   * unsupported */
-  private boolean mFreeData;
-
   /**
    * @return the default {@link UnmountOptions}
    */
+  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static UnmountOptions defaults() {
     return new UnmountOptions();
   }
 
   private UnmountOptions() {
-    mFreeData = false;
-  }
-
-  /**
-   * @return whether to free the data from the mount
-   */
-  public boolean isFreeData() {
-    return mFreeData;
-  }
-
-  /**
-   * @param freeData the free data flag to set
-   * @return the updated options object
-   */
-  public UnmountOptions setFreeData(boolean freeData) {
-    mFreeData = freeData;
-    return this;
+    // No options currently
   }
 }
