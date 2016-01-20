@@ -33,7 +33,7 @@ public final class PinListSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
-  private final BlockDataManager mBlockDataManager;
+  private final BlockWorker mBlockDataManager;
 
   /** Client for all master communication */
   private FileSystemMasterClient mMasterClient;
@@ -44,7 +44,7 @@ public final class PinListSync implements HeartbeatExecutor {
    * @param blockDataManager a block data manager handle
    * @param masterClient the Tachyon master client
    */
-  public PinListSync(BlockDataManager blockDataManager, FileSystemMasterClient masterClient) {
+  public PinListSync(BlockWorker blockDataManager, FileSystemMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
 
     mMasterClient = masterClient;

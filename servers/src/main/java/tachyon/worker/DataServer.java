@@ -23,7 +23,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * Defines how to interact with a server running the data protocol.
@@ -43,11 +43,11 @@ public interface DataServer extends Closeable {
      * @return the generated {@link DataServer}
      */
     public static DataServer create(final InetSocketAddress dataAddress,
-        final BlockDataManager blockDataManager, TachyonConf conf) {
+        final BlockWorker blockDataManager, TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<DataServer>getClass(Constants.WORKER_DATA_SERVER),
-            new Class[] { InetSocketAddress.class, BlockDataManager.class, TachyonConf.class },
+            new Class[] { InetSocketAddress.class, BlockWorker.class, TachyonConf.class },
             new Object[] { dataAddress, blockDataManager, conf });
       } catch (Exception e) {
         throw Throwables.propagate(e);

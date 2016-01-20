@@ -39,7 +39,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block data manager that carries out most of the operations **/
-  private final BlockDataManager mWorker;
+  private final BlockWorker mWorker;
   /** Association between storage tier aliases and ordinals ond this worker */
   private final StorageTierAssoc mStorageTierAssoc;
 
@@ -48,7 +48,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    *
    * @param worker block data manager handler
    */
-  public BlockWorkerClientServiceHandler(BlockDataManager worker) {
+  public BlockWorkerClientServiceHandler(BlockWorker worker) {
     mWorker = worker;
     mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
   }

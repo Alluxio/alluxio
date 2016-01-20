@@ -34,7 +34,7 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * This class is responsible for managing all top level components of the file system worker.
@@ -56,7 +56,7 @@ public final class FileSystemWorker extends WorkerBase {
    * @param blockDataManager a block data manager handle
    * @throws IOException if an I/O error occurs
    */
-  public FileSystemWorker(BlockDataManager blockDataManager) throws IOException {
+  public FileSystemWorker(BlockWorker blockDataManager) throws IOException {
     super(Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
 
