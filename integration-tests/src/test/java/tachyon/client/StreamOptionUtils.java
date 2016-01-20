@@ -30,7 +30,7 @@ public final class StreamOptionUtils {
   }
 
   /**
-   * Gets WriteBoth {@link CreateFileOptions}
+   * Gets CacheThrough {@link CreateFileOptions}
    *
    * @param conf the Tachyon config
    * @return the {@link CreateFileOptions}
@@ -40,7 +40,7 @@ public final class StreamOptionUtils {
   }
 
   /**
-   * Gets WriteTachyon {@link CreateFileOptions}
+   * Gets MustCache {@link CreateFileOptions}
    *
    * @param conf the Tachyon config
    * @return the {@link CreateFileOptions}
@@ -50,7 +50,7 @@ public final class StreamOptionUtils {
   }
 
   /**
-   * Gets WriteUnderStore {@link CreateFileOptions}
+   * Gets Through {@link CreateFileOptions}
    *
    * @param conf the Tachyon config
    * @return the {@link CreateFileOptions}
