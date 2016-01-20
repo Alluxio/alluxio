@@ -27,6 +27,9 @@ import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.OpenFileOptions;
 import tachyon.exception.TachyonException;
 
+/**
+ * Utility class for testing the Tachyon file system.
+ */
 public final class TachyonFSTestUtils {
   /**
    * Creates a simple file with {@code len} bytes.

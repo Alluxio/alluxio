@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +33,7 @@ import org.junit.runners.Parameterized;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;
 
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 import tachyon.worker.block.meta.StorageDir;
@@ -55,6 +57,9 @@ public class EvictorContractTestBase extends EvictorTestBase {
   private StorageDir mTestDir;
   private final String mEvictorClassName;
 
+  /**
+   * @return a list of all evictors
+   */
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     // Run this test against all types of Evictors
@@ -78,10 +83,18 @@ public class EvictorContractTestBase extends EvictorTestBase {
     return list;
   }
 
+  /**
+   * @param evictorClassName the class name of the evictor
+   */
   public EvictorContractTestBase(String evictorClassName) {
     mEvictorClassName = evictorClassName;
   }
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
+   */
   @Before
   public final void before() throws Exception {
     init(mEvictorClassName);
@@ -90,6 +103,19 @@ public class EvictorContractTestBase extends EvictorTestBase {
     mTestDir = tiers.get(TEST_TIER_LEVEL).getDir(TEST_DIR);
   }
 
+  /**
+   * Resets the context of the worker after a test ran.
+   */
+  @After
+  public void after() {
+    WorkerContext.reset();
+  }
+
+  /**
+   * Tests that no eviction plan is created whn there is no cached block in the evictor.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void noNeedToEvictTest1() throws Exception {
     // metadata manager is just created, no cached block in Evictor,
@@ -103,6 +129,11 @@ public class EvictorContractTestBase extends EvictorTestBase {
     }
   }
 
+  /**
+   * Tests that no eviction plan is created when there is enough space in a directory.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void noNeedToEvictTest2() throws Exception {
     // cache some data in a dir, then request the remaining space from the dir, the eviction plan
@@ -115,6 +146,12 @@ public class EvictorContractTestBase extends EvictorTestBase {
         dir.toBlockStoreLocation(), mManagerView).isEmpty());
   }
 
+  /**
+   * Tests that no eviction plan is created when all directories are filled except for one
+   * directory.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void noNeedToEvictTest3() throws Exception {
     // fill in all dirs except for one directory, then request the capacity of
@@ -136,6 +173,12 @@ public class EvictorContractTestBase extends EvictorTestBase {
         .isEmpty());
   }
 
+  /**
+   * Tests that an eviction plan is created when a directory is filled and the request size is the
+   * capacity of the directory.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void needToEvictTest() throws Exception {
     // fill in a dir and request the capacity of the dir, all cached data in the dir should be
@@ -150,6 +193,12 @@ public class EvictorContractTestBase extends EvictorTestBase {
     EvictorTestUtils.assertEvictionPlanValid(capacityBytes, plan, mMetaManager);
   }
 
+  /**
+   * Tests that an eviction plan is created when all capacity is used in each directory in a tier
+   * and the request size is the capacity of the largest directory.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void needToEvictAnyDirInTierTest() throws Exception {
     // cache data with size of "(capacity - 1)" in each dir in a tier, request size of "capacity" of
@@ -171,6 +220,12 @@ public class EvictorContractTestBase extends EvictorTestBase {
     EvictorTestUtils.assertEvictionPlanValid(requestBytes, plan, mMetaManager);
   }
 
+  /**
+   * Tests that an eviction plan is created when all capacity is used in each directory in all tiers
+   * and the request size is the minimum capacity of all directories.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void needToEvictAnyTierTest() throws Exception {
     // cache data with size of "(capacity - 1)" in each dir in all tiers, request size of minimum
@@ -192,6 +247,11 @@ public class EvictorContractTestBase extends EvictorTestBase {
     EvictorTestUtils.assertEvictionPlanValid(minCapacity, plan, mMetaManager);
   }
 
+  /**
+   * Tests that no eviction plan is available when requesting more space than capacity available.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void requestSpaceLargerThanCapacityTest() throws Exception {
     // cache data in a dir

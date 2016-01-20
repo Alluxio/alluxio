@@ -18,10 +18,7 @@ package tachyon.client;
 import tachyon.annotation.PublicApi;
 
 /**
- * Convenience modes for commonly used write types for a {@link tachyon.client.file.TachyonFile}.
- *
- * For finer grained control over data storage, advanced users may specify
- * {@link tachyon.client.TachyonStorageType} and {@link tachyon.client.UnderStorageType}.
+ * Write types for creating a file in Tachyon.
  */
 @PublicApi
 public enum WriteType {
@@ -50,14 +47,8 @@ public enum WriteType {
    */
   THROUGH(4),
   /**
-   * [Experimental] Write the file asynchronously to the under fs (either must cache or must
-   * through).
-   *
-   * @deprecated This write type is deprecated as of v0.8 and not recommended for use. Use
-   *             {@link tachyon.client.lineage.LineageFileSystem} for asynchronous data
-   *             persistence.
+   * [Experimental] Write the file asynchronously to the under fs.
    */
-  @Deprecated
   ASYNC_THROUGH(5),
   /**
    * Do not store the data in Tachyon or Under Storage. This write type should only be used for
@@ -87,6 +78,8 @@ public enum WriteType {
   public UnderStorageType getUnderStorageType() {
     if (isThrough()) {
       return UnderStorageType.SYNC_PERSIST;
+    } else if (isAsync()) {
+      return UnderStorageType.ASYNC_PERSIST;
     }
     return UnderStorageType.NO_PERSIST;
   }
@@ -99,13 +92,8 @@ public enum WriteType {
   }
 
   /**
-   * This method is deprecated, it is not recommended to use {@link #ASYNC_THROUGH}.
-   *
    * @return true if the write type is {@link #ASYNC_THROUGH}, false otherwise
-   * @deprecated Use {@link tachyon.client.lineage.LineageFileSystem} for asynchronous data
-   *             persistence.
    */
-  @Deprecated
   public boolean isAsync() {
     return mValue == ASYNC_THROUGH.mValue;
   }

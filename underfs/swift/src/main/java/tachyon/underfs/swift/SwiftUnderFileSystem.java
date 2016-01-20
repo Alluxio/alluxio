@@ -46,36 +46,33 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.swift.http.SwiftDirectClient;
 
 /**
- * Under file system implementation for OpenStack Swift based on
- * the JOSS library.
- * Swift {@link tachyon.underfs.UnderFileSystem} implementation
+ * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library.
  */
 public class SwiftUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Suffix for an empty file to flag it as a directory */
+  /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = "_$folder$";
-  /** Value used to indicate nested structure in Swift */
+  /** Value used to indicate nested structure in Swift. */
   private static final String PATH_SEPARATOR = "/";
 
-  /** Swift account */
+  /** Swift account. */
   private final Account mAccount;
-  /** Container name of user's configured Tachyon container */
+  /** Container name of user's configured Tachyon container. */
   private final String mContainerName;
   /** Prefix of the container, for example swift://my-container-name/ */
   private final String mContainerPrefix;
-  /** JOSS access object */
+  /** JOSS access object. */
   private final Access mAccess;
 
   /**
    * Constructs a new Swift {@link UnderFileSystem}.
    *
-   * @param fsDefaultName the under FS prefix
+   * @param containerName the name of the container
    * @param tachyonConf the configuration for Tachyon
-   * @param conf the configuration
    */
   public SwiftUnderFileSystem(String containerName,
-      TachyonConf tachyonConf) throws Exception {
+      TachyonConf tachyonConf) {
     super(tachyonConf);
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
@@ -121,7 +118,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public OutputStream create(String path) throws IOException {
     LOG.debug("Create method: {}", path);
     String newPath = path.substring(Constants.HEADER_SWIFT.length());
-    SwiftOutputStream out = SwiftDirectClient.Put(mAccess, newPath);
+    SwiftOutputStream out = SwiftDirectClient.put(mAccess, newPath);
     return out;
   }
 
@@ -141,11 +138,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return create(path);
   }
 
-  /* @inheritDoc
-   * @see UnderFileSystem#delete(java.lang.String, boolean).
-   * recursive will delete all objects with given prefix.
-   * parent will not be deleted.
-   * Method always returns {@code true}.
+  /**
+   * @inheritDoc
+   *
+   * @param path the file or folder name
+   * @param recursive whether we delete folder and its children
+   * @return true if succeed, false otherwise
+   * @throws IOException if a non-Tachyon error occurs
    */
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
@@ -189,8 +188,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * There is no concept of a block in Swift, however the maximum allowed size of
-   * one object is currently 4 GB.
+   * Gets the block size in bytes. There is no concept of a block in Swift, however the maximum
+   * allowed size of one file is currently 4 GB.
    *
    * @param path to the object
    * @return 4 GB in bytes
@@ -250,11 +249,14 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return listInternal(path, false);
   }
 
-  /* @inheritDoc
-   * @see tachyon.underfs.UnderFileSystem#mkdirs(java.lang.String, boolean)
-   * There is no notion of directories in Swift.
-   * The content of containers are objects.
-   * Object name may contain nested structure like a/b/c/d.data
+  /**
+   * @inheritDoc
+   *
+   * @param path the folder to create
+   * @param createParent if true, the method creates any necessary but nonexistent parent
+   *        directories; otherwise, the method does not create nonexistent parent directories
+   * @return {@code true} if and only if the directory was created; {@code false} otherwise
+   * @throws IOException if a non-Tachyon error occurs
    */
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
@@ -271,8 +273,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Each path is checked both for leading "/" and ending "/"
-   * Leading "/" is removed, and "/" is added at the end if not present
+   * Each path is checked both for leading "/" and ending "/". Leading "/" is removed, and "/" is
+   * added at the end if not present.
    *
    * @param path URI to the object
    * @return qualified path
@@ -287,16 +289,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return path;
   }
 
-  /* @inheritDoc
-   * @see tachyon.underfs.UnderFileSystem#rename(java.lang.String, java.lang.String)
-   * The rename works as follows:
-   * If src path exists: src renamed to dst. src is deleted on the success.
-   * If src path is not exists: src is assumed to be directory.
-   * Both src and dst paths are formatted to a/b/c/
-   * Listing is performed on src.
-   * For each returned object: src in the name is replaced with dst.
-   * Object is deleted if copy was successful.
-   * Directory rename always returns true.
+  /**
+   * @inheritDoc
+   *
+   * @param src the source file or folder name
+   * @param dst the destination file or folder name
+   * @return true if succeed, false otherwise
+   * @throws IOException if a non-Tachyon error occurs
    */
   @Override
   public boolean rename(String src, String dst) throws IOException {
@@ -349,13 +348,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Lists the files in the given path, the paths will be their logical names
-   * and not contain the folder suffix.
+   * Lists the files in the given path, the paths will be their logical names and not contain the
+   * folder suffix.
    *
    * @param path the key to list
    * @param recursive if true will list children directories as well
    * @return an array of the file and folder names in this directory
-   * @throws IOException if path is not accessible, e.g.network issues
+   * @throws IOException if path is not accessible, e.g. network issues
    */
   private String[] listInternal(String path, boolean recursive) throws IOException {
     try {
@@ -381,13 +380,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the folder suffix if it exists. This is a string manipulation utility
-   * and does not guarantee the existence of the folder. This method will leave
-   * keys without a suffix unaltered.
+   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
+   * guarantee the existence of the folder. This method will leave keys without a suffix unaltered.
    *
    * @param key the key to strip the suffix from
-   * @return the key with the suffix removed, or the key unaltered if the suffix
-   *         is not present
+   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
    */
   private String stripFolderSuffixIfPresent(String key) {
     if (key.endsWith(FOLDER_SUFFIX)) {
@@ -397,10 +394,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the Swift container prefix from the key if it is present. For example, for
-   * input key swift://my-container-name/my-path/file, the output would be
-   * my-path/file. This method will leave keys without a prefix unaltered, ie.
-   * my-path/file returns my-path/file.
+   * Strips the Swift container prefix from the key if it is present. For example, for input key
+   * swift://my-container-name/my-path/file, the output would be my-path/file. This method will
+   * leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
    *
    * @param path the key to strip
    * @return the key without the Swift container prefix
@@ -410,10 +406,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the Swift container prefix from the key if it is present. For example, for
-   * input key swift://my-container-name/my-path/file, the output would be
-   * my-path/file. This method will leave keys without a prefix unaltered, ie.
-   * my-path/file returns my-path/file.
+   * Strips the Swift container prefix from the key if it is present. For example, for input key
+   * swift://my-container-name/my-path/file, the output would be my-path/file. This method will
+   * leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
    *
    * @param path the key to strip
    * @param prefix prefix to remove

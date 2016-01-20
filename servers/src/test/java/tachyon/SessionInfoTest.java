@@ -34,12 +34,18 @@ public final class SessionInfoTest {
 
   private int mSessionTimeoutMs;
 
+  /**
+   * Sets up the configuration for Tachyon before a test runs.
+   */
   @Before
   public final void before() {
     TachyonConf tachyonConf = new TachyonConf();
     mSessionTimeoutMs = tachyonConf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
   }
 
+  /**
+   * Tests the {@link SessionInfo#SessionInfo(long, int)} constructor.
+   */
   @Test
   public void constructorTest() {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
@@ -48,6 +54,10 @@ public final class SessionInfoTest {
     }
   }
 
+  /**
+   * Tests that an exception is thrown in the {@link SessionInfo#SessionInfo(long, int)} constructor
+   * when using an invalid id for the session.
+   */
   @Test(expected = RuntimeException.class)
   public void constructorWithExceptionTest() {
     for (int k = 0; k >= -1000; k -= DELTA) {
@@ -57,6 +67,9 @@ public final class SessionInfoTest {
     }
   }
 
+  /**
+   * Tests the {@link SessionInfo#getSessionId()} method.
+   */
   @Test
   public void getSessionIdTest() {
     for (int k = MIN_LEN; k < MAX_LEN; k += 66) {
@@ -65,12 +78,18 @@ public final class SessionInfoTest {
     }
   }
 
+  /**
+   * Tests the {@link SessionInfo#timeout()} method.
+   */
   @Test
   public void timeoutTest() {
     SessionInfo tSessionInfo = new SessionInfo(1, mSessionTimeoutMs);
     Assert.assertFalse(tSessionInfo.timeout());
   }
 
+  /**
+   * Tests the {@link SessionInfo#toString()} method.
+   */
   @Test
   public void toStringTest() {
     SessionInfo tSessionInfo = new SessionInfo(99, mSessionTimeoutMs);

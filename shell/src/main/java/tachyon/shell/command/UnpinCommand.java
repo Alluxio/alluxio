@@ -27,6 +27,10 @@ import tachyon.conf.TachyonConf;
  */
 public final class UnpinCommand extends WithWildCardPathCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public UnpinCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
@@ -45,5 +49,10 @@ public final class UnpinCommand extends WithWildCardPathCommand {
   @Override
   public String getUsage() {
     return "unpin <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Unpins the given file or folder from memory (works recursively for a directory).";
   }
 }

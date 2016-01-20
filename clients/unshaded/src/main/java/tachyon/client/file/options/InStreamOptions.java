@@ -15,17 +15,22 @@
 
 package tachyon.client.file.options;
 
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonStorageType;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
+import tachyon.util.CommonUtils;
 
 /**
  * Method option for reading a file.
  */
 @PublicApi
 public final class InStreamOptions {
+  private FileWriteLocationPolicy mLocationPolicy;
   private ReadType mReadType;
 
   /**
@@ -38,6 +43,21 @@ public final class InStreamOptions {
   private InStreamOptions() {
     mReadType =
         ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
+    try {
+      mLocationPolicy =
+          CommonUtils.createNewClassInstance(ClientContext.getConf()
+                  .<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY),
+              new Class[]{}, new Object[]{});
+    } catch (Exception e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * @return the location policy to use when storing data to Tachyon
+   */
+  public FileWriteLocationPolicy getLocationPolicy() {
+    return mLocationPolicy;
   }
 
   /**
@@ -45,6 +65,15 @@ public final class InStreamOptions {
    */
   public TachyonStorageType getTachyonStorageType() {
     return mReadType.getTachyonStorageType();
+  }
+
+  /**
+   * @param policy the location policy to use when storing data to Tachyon
+   * @return the updated options object
+   */
+  public InStreamOptions setLocationPolicy(FileWriteLocationPolicy policy) {
+    mLocationPolicy = policy;
+    return this;
   }
 
   /**

@@ -19,21 +19,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.MasterStorageTierAssoc;
 import tachyon.StorageTierAssoc;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
+import tachyon.thrift.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 
 /**
  * Unit tests for {@link MasterWorkerInfo}.
@@ -49,17 +50,24 @@ public final class MasterWorkerInfoTest {
   private static final Set<Long> NEW_BLOCKS = Sets.newHashSet(1L, 2L);
   private MasterWorkerInfo mInfo;
 
+  /** The exception exptected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up a new {@link MasterWorkerInfo} before a test runs.
+   */
   @Before
   public void before() {
     // register
-    mInfo = new MasterWorkerInfo(0, new NetAddress());
+    mInfo = new MasterWorkerInfo(0, new NetAddress(new WorkerNetAddress()));
     mInfo.register(GLOBAL_STORAGE_TIER_ASSOC, STORAGE_TIER_ALIASES, TOTAL_BYTES_ON_TIERS,
         USED_BYTES_ON_TIERS, NEW_BLOCKS);
   }
 
+  /**
+   * Tests the {@link MasterWorkerInfo#register(StorageTierAssoc, List, Map, Map, Set)} method.
+   */
   @Test
   public void registerTest() {
     Assert.assertEquals(NEW_BLOCKS, mInfo.getBlocks());
@@ -69,12 +77,19 @@ public final class MasterWorkerInfoTest {
     Assert.assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
   }
 
+  /**
+   * Tests the {@link MasterWorkerInfo#getFreeBytesOnTiers()} method.
+   */
   @Test
   public void getFreeBytesOnTiersTest() {
     Assert.assertEquals(ImmutableMap.of("MEM", Constants.KB * 2L, "SSD", Constants.KB * 2L),
         mInfo.getFreeBytesOnTiers());
   }
 
+  /**
+   * Tests that re-registering via
+   * {@link MasterWorkerInfo#register(StorageTierAssoc, List, Map, Map, Set)} works.
+   */
   @Test
   public void registerAgainTest() {
     Set<Long> newBlocks = Sets.newHashSet(3L);
@@ -84,6 +99,11 @@ public final class MasterWorkerInfoTest {
     Assert.assertEquals(newBlocks, mInfo.getBlocks());
   }
 
+  /**
+   * Tests that an exception is thrown when trying to use the
+   * {@link MasterWorkerInfo#register(StorageTierAssoc, List, Map, Map, Set)} method with a
+   * different number of tiers.
+   */
   @Test
   public void registerWithDifferentNumberOfTiersTest() {
     mThrown.expect(IllegalArgumentException.class);
@@ -95,6 +115,9 @@ public final class MasterWorkerInfoTest {
         ImmutableMap.of("SSD", Constants.KB * 1L), NEW_BLOCKS);
   }
 
+  /**
+   * Tests the {@link MasterWorkerInfo#getBlocks()} method.
+   */
   @Test
   public void blockOperationTest() {
     // add existing block
@@ -108,17 +131,23 @@ public final class MasterWorkerInfoTest {
     Assert.assertFalse(mInfo.getBlocks().contains(3L));
   }
 
+  /**
+   * Tests the {@link MasterWorkerInfo#generateClientWorkerInfo()} method.
+   */
   @Test
   public void workerInfoGenerationTest() {
     WorkerInfo workerInfo = mInfo.generateClientWorkerInfo();
     Assert.assertEquals(mInfo.getId(), workerInfo.id);
-    Assert.assertEquals(mInfo.getAddress(), workerInfo.address);
+    Assert.assertEquals(mInfo.getWorkerAddress().toThrift(), workerInfo.address);
     Assert.assertEquals("In Service", workerInfo.state);
     Assert.assertEquals(mInfo.getCapacityBytes(), workerInfo.capacityBytes);
     Assert.assertEquals(mInfo.getUsedBytes(), workerInfo.usedBytes);
     Assert.assertEquals(mInfo.getStartTime(), workerInfo.startTimeMs);
   }
 
+  /**
+   * Tests the {@link MasterWorkerInfo#updateToRemovedBlock(boolean, long)} method.
+   */
   @Test
   public void updateToRemovedBlockTest() {
     // remove a non-existing block
@@ -136,6 +165,9 @@ public final class MasterWorkerInfoTest {
     Assert.assertTrue(mInfo.getToRemoveBlocks().isEmpty());
   }
 
+  /**
+   * Tests the {@link MasterWorkerInfo#updateUsedBytes(Map)} method.
+   */
   @Test
   public void updateUsedBytesTest() {
     Assert.assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
@@ -146,6 +178,9 @@ public final class MasterWorkerInfoTest {
     Assert.assertEquals(Constants.KB * 3L, mInfo.getUsedBytes());
   }
 
+  /**
+   * Tests the {@link MasterWorkerInfo#updateUsedBytes(String, long)} method.
+   */
   @Test
   public void updateUsedBytesInTierTest() {
     Assert.assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());

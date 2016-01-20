@@ -33,7 +33,7 @@ public final class CreateFileOptions {
   private boolean mRecursive;
   private long mBlockSizeBytes;
   private FileWriteLocationPolicy mLocationPolicy;
-  private long mTTL;
+  private long mTtl;
   private WriteType mWriteType;
 
   /**
@@ -59,7 +59,7 @@ public final class CreateFileOptions {
       throw Throwables.propagate(e);
     }
     mWriteType = conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
-    mTTL = Constants.NO_TTL;
+    mTtl = Constants.NO_TTL;
   }
 
   /**
@@ -87,8 +87,8 @@ public final class CreateFileOptions {
    * @return the TTL (time to live) value; it identifies duration (in milliseconds) the created file
    *         should be kept around before it is automatically deleted
    */
-  public long getTTL() {
-    return mTTL;
+  public long getTtl() {
+    return mTtl;
   }
 
   /**
@@ -138,8 +138,8 @@ public final class CreateFileOptions {
    *        the file is pinned
    * @return the updated options object
    */
-  public CreateFileOptions setTTL(long ttl) {
-    mTTL = ttl;
+  public CreateFileOptions setTtl(long ttl) {
+    mTtl = ttl;
     return this;
   }
 
@@ -158,7 +158,7 @@ public final class CreateFileOptions {
    */
   public OutStreamOptions toOutStreamOptions() {
     return OutStreamOptions.defaults().setBlockSizeBytes(mBlockSizeBytes)
-        .setLocationPolicy(mLocationPolicy).setTTL(mTTL).setWriteType(mWriteType);
+        .setLocationPolicy(mLocationPolicy).setTtl(mTtl).setWriteType(mWriteType);
   }
 
   /**
@@ -168,7 +168,7 @@ public final class CreateFileOptions {
   public String toString() {
     StringBuilder sb = new StringBuilder("CreateFileOptions(");
     sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
-    sb.append(", TTL: ").append(mTTL);
+    sb.append(", TTL: ").append(mTtl);
     sb.append(", Location Policy: ").append(mLocationPolicy);
     sb.append(", WriteType: ").append(mWriteType.toString());
     sb.append(")");
@@ -183,7 +183,7 @@ public final class CreateFileOptions {
     options.setBlockSizeBytes(mBlockSizeBytes);
     options.setPersisted(mWriteType.getUnderStorageType().isSyncPersist());
     options.setRecursive(mRecursive);
-    options.setTtl(mTTL);
+    options.setTtl(mTtl);
     return options;
   }
 }

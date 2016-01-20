@@ -30,8 +30,8 @@ import tachyon.Constants;
 import tachyon.underfs.swift.SwiftOutputStream;
 
 /**
- * Contains direct calls to OpenStack Swift.
- * This is needed to bypass certain limitations in the JOSS package.
+ * Contains direct calls to OpenStack Swift. This is needed to bypass certain limitations in the
+ * JOSS package.
  */
 public class SwiftDirectClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -45,7 +45,7 @@ public class SwiftDirectClient {
    * @param objectName name of the object to create
    * @return SwiftOutputStream that will be used to upload data to Swift
    */
-  public static SwiftOutputStream Put(Access access, String objectName) {
+  public static SwiftOutputStream put(Access access, String objectName) {
     LOG.debug("PUT method, object : {}", objectName);
     URL url;
     try {

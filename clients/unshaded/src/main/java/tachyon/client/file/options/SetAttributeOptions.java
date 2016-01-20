@@ -28,7 +28,7 @@ import tachyon.thrift.SetAttributeTOptions;
 @PublicApi
 public final class SetAttributeOptions {
   private Boolean mPinned;
-  private Long mTTL;
+  private Long mTtl;
   private Boolean mPersisted;
 
   /**
@@ -48,13 +48,13 @@ public final class SetAttributeOptions {
 
   private SetAttributeOptions(SetAttributeTOptions options) {
     mPinned = options.isSetPinned() ? options.isPinned() : null;
-    mTTL = options.isSetTtl() ? options.getTtl() : null;
+    mTtl = options.isSetTtl() ? options.getTtl() : null;
     mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
   }
 
   private SetAttributeOptions() {
     mPinned = null;
-    mTTL = null;
+    mTtl = null;
     mPersisted = null;
   }
 
@@ -76,8 +76,8 @@ public final class SetAttributeOptions {
   /**
    * @return true if the TTL value is set, otherwise false
    */
-  public boolean hasTTL() {
-    return mTTL != null;
+  public boolean hasTtl() {
+    return mTtl != null;
   }
 
   /**
@@ -85,9 +85,9 @@ public final class SetAttributeOptions {
    *         created file should be kept around before it is automatically deleted, irrespective of
    *         whether the file is pinned
    */
-  public long getTTL() {
-    Preconditions.checkState(hasTTL(), PreconditionMessage.MUST_SET_TTL);
-    return mTTL;
+  public long getTtl() {
+    Preconditions.checkState(hasTtl(), PreconditionMessage.MUST_SET_TTL);
+    return mTtl;
   }
 
   /**
@@ -123,8 +123,8 @@ public final class SetAttributeOptions {
    *        whether the file is pinned
    * @return the updated options object
    */
-  public SetAttributeOptions setTTL(long ttl) {
-    mTTL = ttl;
+  public SetAttributeOptions setTtl(long ttl) {
+    mTtl = ttl;
     return this;
   }
 
@@ -146,8 +146,8 @@ public final class SetAttributeOptions {
     if (mPinned != null) {
       options.setPinned(mPinned);
     }
-    if (mTTL != null) {
-      options.setTtl(mTTL);
+    if (mTtl != null) {
+      options.setTtl(mTtl);
     }
     if (mPersisted != null) {
       options.setPersisted(mPersisted);
@@ -161,7 +161,7 @@ public final class SetAttributeOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("SetStateOptions(");
-    sb.append(super.toString()).append(", Pinned: ").append(mPinned).append(", TTL: ").append(mTTL)
+    sb.append(super.toString()).append(", Pinned: ").append(mPinned).append(", TTL: ").append(mTtl)
         .append(", Persisted: ").append(mPersisted);
     sb.append(")");
     return sb.toString();

@@ -44,7 +44,7 @@ public class TfsShellUtils {
    * @param path the path to obtain the local path from
    * @param tachyonConf the instance of {@link tachyon.conf.TachyonConf} to be used
    * @return The local path in string format
-   * @throws IOException
+   * @throws IOException if the given path is not valid
    */
   public static String getFilePath(String path, TachyonConf tachyonConf) throws IOException {
     path = validatePath(path, tachyonConf);
@@ -93,7 +93,8 @@ public class TfsShellUtils {
    * @param tachyonClient the client used to fetch information of Tachyon files
    * @param inputURI the input URI (could contain wildcards)
    * @return a list of {@link TachyonURI}s that matches the inputURI
-   * @throws IOException
+   * @throws IOException if any filesystem errors are encountered when expanding paths with
+   *                     wildcards
    */
   public static List<TachyonURI> getTachyonURIs(FileSystem tachyonClient,
       TachyonURI inputURI) throws IOException {
@@ -119,7 +120,8 @@ public class TfsShellUtils {
    * @param parentDir the {@link TachyonURI} of the directory in which we are searching matched
    *                  files
    * @return a list of {@link TachyonURI}s of the files that match the inputURI in parentDir
-   * @throws IOException
+   * @throws IOException if any filesystem errors are encountered when expanding paths with
+   *                     wildcards
    */
   private static List<TachyonURI> getTachyonURIs(FileSystem tachyonClient,
       TachyonURI inputURI, TachyonURI parentDir) throws IOException {
@@ -152,7 +154,8 @@ public class TfsShellUtils {
   /**
    * Get the Files (on the local filesystem) that matches input path.
    * If the path is a regular path, the returned list only contains the corresponding file;
-   * Else if the path contains wildcards, the returned list contains all the matched Files
+   * Else if the path contains wildcards, the returned list contains all the matched Files.
+   *
    * @param inputPath The input file path (could contain wildcards)
    * @return a list of files that matches inputPath
    */
@@ -172,8 +175,9 @@ public class TfsShellUtils {
   }
 
   /**
-   * The utility function used to implement getFiles
-   * It follows the same algorithm as {@link #getTachyonURIs}
+   * The utility function used to implement getFiles.
+   * It follows the same algorithm as {@link #getTachyonURIs}.
+   *
    * @param inputPath the input file path (could contain wildcards)
    * @param parent the directory in which we are searching matched files
    * @return a list of files that matches the input path in the parent directory
@@ -203,12 +207,13 @@ public class TfsShellUtils {
   }
 
   /**
-   * The characters that have special regex semantics
+   * The characters that have special regex semantics.
    */
   private static final Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
 
   /**
-   * Escape the special characters in a given string
+   * Escapes the special characters in a given string.
+   *
    * @param str input string
    * @return the string with special characters escaped
    */
@@ -217,14 +222,15 @@ public class TfsShellUtils {
   }
 
   /**
-   * Replace the wildcards with Java's regex semantics
+   * Replaces the wildcards with Java's regex semantics.
    */
   private static String replaceWildcards(String text) {
     return escape(text).replace("\\*", ".*");
   }
 
   /**
-   * Return whether or not fileURI matches the patternURI
+   * Returns whether or not fileURI matches the patternURI.
+   *
    * @param fileURI the {@link TachyonURI} of a particular file
    * @param patternURI the URI that can contain wildcards
    * @return true if matches; false if not
@@ -234,7 +240,8 @@ public class TfsShellUtils {
   }
 
   /**
-   * Return whether or not filePath matches patternPath
+   * Returns whether or not filePath matches patternPath.
+   *
    * @param filePath path of a given file
    * @param patternPath path that can contain wildcards
    * @return true if matches; false if not

@@ -31,6 +31,9 @@ import tachyon.thrift.BlockLocation;
 public final class LocationCommand extends WithWildCardPathCommand {
 
   /**
+   * Constructs a new instance to display a list of hosts that have the file specified in args
+   * stored.
+   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
@@ -63,5 +66,10 @@ public final class LocationCommand extends WithWildCardPathCommand {
   @Override
   public String getUsage() {
     return "location <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Displays the list of hosts storing the specified file.";
   }
 }

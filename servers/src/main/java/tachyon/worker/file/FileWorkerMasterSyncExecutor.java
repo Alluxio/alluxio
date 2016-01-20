@@ -31,6 +31,7 @@ import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.PersistFile;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockMasterSync;
 
@@ -55,8 +56,8 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
   /** Client for communicating to file system master */
   private final FileSystemMasterClient mMasterClient;
   /** The thread pool to persist file */
-  private final ExecutorService mFixedExecutionService =
-      Executors.newFixedThreadPool(DEFAULT_FILE_PERSISTER_POOL_SIZE);
+  private final ExecutorService mPersistFileService = Executors.newFixedThreadPool(
+      DEFAULT_FILE_PERSISTER_POOL_SIZE, ThreadFactoryUtils.build("persist-file-service-%d", true));
 
   /**
    * Creates a new instance of {@link FileWorkerMasterSyncExecutor}.
@@ -72,20 +73,24 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-    List<Long> persistedFiles = mFileDataManager.popPersistedFiles();
+    List<Long> persistedFiles = mFileDataManager.getPersistedFiles();
     if (!persistedFiles.isEmpty()) {
       LOG.info("files {} persisted", persistedFiles);
     }
 
     FileSystemCommand command = null;
     try {
-      command = mMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(),
-          persistedFiles);
+      command = mMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(), persistedFiles);
     } catch (IOException e) {
       LOG.error("Failed to heartbeat to master", e);
-    }  catch (ConnectionFailedException e) {
+      return;
+    } catch (ConnectionFailedException e) {
       LOG.error("Failed to heartbeat to master", e);
+      return;
     }
+
+    // removes the persisted files that are confirmed
+    mFileDataManager.clearPersistedFiles(persistedFiles);
 
     if (command == null) {
       LOG.error("The command sent from master is null");
@@ -97,9 +102,17 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     }
 
     for (PersistFile persistFile : command.getCommandOptions().getPersistOptions().persistFiles) {
-      mFixedExecutionService
-          .execute(new FilePersister(mFileDataManager, persistFile.fileId, persistFile.blockIds));
+      long fileId = persistFile.fileId;
+      if (mFileDataManager.needPersistence(fileId)) {
+        mPersistFileService
+            .execute(new FilePersister(mFileDataManager, fileId, persistFile.blockIds));
+      }
     }
+  }
+
+  @Override
+  public void close() {
+    mPersistFileService.shutdown();
   }
 
   /**

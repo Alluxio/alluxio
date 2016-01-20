@@ -33,7 +33,7 @@ import tachyon.util.CommonUtils;
 @PublicApi
 public final class OutStreamOptions {
   private long mBlockSizeBytes;
-  private long mTTL;
+  private long mTtl;
   private FileWriteLocationPolicy mLocationPolicy;
   private WriteType mWriteType;
 
@@ -47,7 +47,7 @@ public final class OutStreamOptions {
   private OutStreamOptions() {
     TachyonConf conf = ClientContext.getConf();
     mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    mTTL = Constants.NO_TTL;
+    mTtl = Constants.NO_TTL;
     try {
       mLocationPolicy =
           CommonUtils.createNewClassInstance(ClientContext.getConf()
@@ -84,8 +84,8 @@ public final class OutStreamOptions {
    * @return the TTL (time to live) value; it identifies duration (in milliseconds) the created file
    *         should be kept around before it is automatically deleted
    */
-  public long getTTL() {
-    return mTTL;
+  public long getTtl() {
+    return mTtl;
   }
 
   /**
@@ -114,8 +114,8 @@ public final class OutStreamOptions {
    *        whether the file is pinned
    * @return the updated options object
    */
-  public OutStreamOptions setTTL(long ttl) {
-    mTTL = ttl;
+  public OutStreamOptions setTtl(long ttl) {
+    mTtl = ttl;
     return this;
   }
 
@@ -147,7 +147,7 @@ public final class OutStreamOptions {
   public String toString() {
     StringBuilder sb = new StringBuilder("OutStreamOptions(");
     sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
-    sb.append(", TTL: ").append(mTTL);
+    sb.append(", TTL: ").append(mTtl);
     sb.append(", LocationPolicy: ").append(mLocationPolicy.toString());
     sb.append(", WriteType: ").append(mWriteType.toString());
     sb.append(")");

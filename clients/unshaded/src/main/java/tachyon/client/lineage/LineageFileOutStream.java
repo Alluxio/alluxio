@@ -49,4 +49,10 @@ public class LineageFileOutStream extends FileOutStream {
   private static OutStreamOptions updateOutStreamOptions(OutStreamOptions options) {
     return options.setWriteType(WriteType.ASYNC_THROUGH);
   }
+
+  @Override
+  protected void scheduleAsyncPersist() throws IOException {
+    // do nothing, the scheduling is handled by the lineage master
+    return;
+  }
 }

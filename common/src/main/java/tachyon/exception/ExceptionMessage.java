@@ -36,7 +36,8 @@ public enum ExceptionMessage {
   BLOCK_UNAVAILABLE("Block {0} is not available in Tachyon"),
   CANNOT_REQUEST_SPACE("Unable to request space from worker"),
   NO_LOCAL_WORKER("Local {0} requested but there is no local worker"),
-  NO_WORKER_AVAILABLE("No Tachyon worker available for host: {0}"),
+  NO_WORKER_AVAILABLE_ON_HOST("No Tachyon worker available for host {0}"),
+  NO_WORKER_AVAILABLE("No available Tachyon worker found"),
 
   // block lock manager
   LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0} is for block {1}, not {2}"),
@@ -110,13 +111,6 @@ public enum ExceptionMessage {
   // file system master ufs
   FAILED_UFS_CREATE("Failed to create {0} in the under file system"),
   FAILED_UFS_RENAME("Failed to rename {0} to {1} in the under file system"),
-
-  // raw table master
-  RAW_TABLE_COLUMN_OVERRANGE("Number of column: {0} should range from 0 to {1} non-inclusive"),
-  RAW_TABLE_ID_DOES_NOT_EXIST("Raw table with id {0} does not exist"),
-  RAW_TABLE_ID_DUPLICATED("There is already a raw table with id {0}"),
-  RAW_TABLE_METADATA_OVERSIZED("Size of raw table metadata {0} should be smaller than {1}"),
-  RAW_TABLE_PATH_DOES_NOT_EXIST("Raw table with path {0} does not exist"),
 
   // shell
   DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE(

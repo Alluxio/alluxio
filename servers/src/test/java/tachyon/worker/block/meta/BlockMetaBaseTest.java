@@ -15,12 +15,14 @@
 
 package tachyon.worker.block.meta;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
@@ -45,6 +47,7 @@ public class BlockMetaBaseTest {
     }
   }
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -57,6 +60,11 @@ public class BlockMetaBaseTest {
   private StorageDir mDir;
   private BlockMetaBaseForTest mBlockMeta;
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
+   */
   @Before
   public void before() throws Exception {
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
@@ -69,11 +77,25 @@ public class BlockMetaBaseTest {
     mBlockMeta = new BlockMetaBaseForTest(TEST_BLOCK_ID, mDir);
   }
 
+  /**
+   * Resets the context of the worker after a test ran.
+   */
+  @After
+  public void after() {
+    WorkerContext.reset();
+  }
+
+  /**
+   * Tests the {@link BlockMetaBase#getBlockId()} method.
+   */
   @Test
   public void getBlockIdTest() {
     Assert.assertEquals(TEST_BLOCK_ID, mBlockMeta.getBlockId());
   }
 
+  /**
+   * Tests the {@link BlockMetaBase#getBlockLocation()} method.
+   */
   @Test
   public void getBlockLocationTest() {
     BlockStoreLocation expectedLocation =
@@ -81,6 +103,9 @@ public class BlockMetaBaseTest {
     Assert.assertEquals(expectedLocation, mBlockMeta.getBlockLocation());
   }
 
+  /**
+   * Tests the {@link BlockMetaBase#getParentDir()} method.
+   */
   @Test
   public void getParentDirTest() {
     Assert.assertEquals(mDir, mBlockMeta.getParentDir());

@@ -33,7 +33,7 @@ public final class StreamOptionUtils {
    * Gets WriteBoth {@link CreateFileOptions}
    *
    * @param conf the Tachyon config
-   * @return the OutStreamOptions
+   * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsCacheThrough(TachyonConf conf) {
     return CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
@@ -43,7 +43,7 @@ public final class StreamOptionUtils {
    * Gets WriteTachyon {@link CreateFileOptions}
    *
    * @param conf the Tachyon config
-   * @return the OutStreamOptions
+   * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsMustCache(TachyonConf conf) {
     return CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
@@ -53,7 +53,7 @@ public final class StreamOptionUtils {
    * Gets WriteUnderStore {@link CreateFileOptions}
    *
    * @param conf the Tachyon config
-   * @return the OutStreamOptions
+   * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsThrough(TachyonConf conf) {
     return CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
@@ -63,7 +63,7 @@ public final class StreamOptionUtils {
    * Gets WriteLocal {@link CreateFileOptions}
    *
    * @param conf the Tachyon config
-   * @return the OutStreamOptions
+   * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsWriteLocal(TachyonConf conf) {
     return CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)
@@ -84,9 +84,19 @@ public final class StreamOptionUtils {
    * Gets ReadNoCache {@link OpenFileOptions}
    *
    * @param conf the Tachyon config
-   * @return the InStreamOptions
+   * @return the {@link OpenFileOptions}
    */
   public static OpenFileOptions getOpenFileOptionsNoCache(TachyonConf conf) {
     return OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+  }
+
+  /**
+   * Gets AsyncWrite {@link CreateFileOptions}.
+   *
+   * @param conf the Tachyon config
+   * @return the {@link CreateFileOptions}
+   */
+  public static CreateFileOptions getCreateFileOptionsAsync(TachyonConf conf) {
+    return CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH);
   }
 }

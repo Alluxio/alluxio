@@ -32,7 +32,7 @@ import tachyon.exception.TachyonException;
  */
 @PublicApi
 public class LineageFileSystem extends BaseFileSystem {
-  private LineageContext mContext;
+  private LineageContext mLineageContext;
 
   /**
    * @return the current lineage file system for Tachyon
@@ -43,7 +43,7 @@ public class LineageFileSystem extends BaseFileSystem {
 
   protected LineageFileSystem() {
     super();
-    mContext = LineageContext.INSTANCE;
+    mLineageContext = LineageContext.INSTANCE;
   }
 
   /**
@@ -59,12 +59,12 @@ public class LineageFileSystem extends BaseFileSystem {
    */
   private long reinitializeFile(TachyonURI path, CreateFileOptions options)
       throws LineageDoesNotExistException, IOException, TachyonException {
-    LineageMasterClient masterClient = mContext.acquireMasterClient();
+    LineageMasterClient masterClient = mLineageContext.acquireMasterClient();
     try {
       return masterClient.reinitializeFile(path.getPath(), options.getBlockSizeBytes(),
-          options.getTTL());
+          options.getTtl());
     } finally {
-      mContext.releaseMasterClient(masterClient);
+      mLineageContext.releaseMasterClient(masterClient);
     }
   }
 
@@ -104,11 +104,11 @@ public class LineageFileSystem extends BaseFileSystem {
    */
   public void reportLostFile(TachyonURI path)
       throws IOException, FileDoesNotExistException, TachyonException {
-    LineageMasterClient masterClient = mContext.acquireMasterClient();
+    LineageMasterClient masterClient = mLineageContext.acquireMasterClient();
     try {
       masterClient.reportLostFile(path.getPath());
     } finally {
-      mContext.releaseMasterClient(masterClient);
+      mLineageContext.releaseMasterClient(masterClient);
     }
   }
 }
