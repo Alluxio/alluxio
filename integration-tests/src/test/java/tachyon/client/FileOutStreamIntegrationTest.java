@@ -30,7 +30,6 @@ import tachyon.util.io.PathUtils;
 /**
  * Integration tests for {@link tachyon.client.file.FileOutStream}.
  */
-
 public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamIntegrationTest {
   // TODO(binfan): Run tests with local writes enabled and disabled.
   /**

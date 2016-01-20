@@ -18,10 +18,7 @@ package tachyon.master;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -65,7 +62,6 @@ public class JournalIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private FileSystem mTfs = null;
   private TachyonURI mRootUri = new TachyonURI(TachyonURI.SEPARATOR);
-  private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
   private TachyonConf mMasterTachyonConf = null;
 
   /**
@@ -146,14 +142,6 @@ public class JournalIntegrationTest {
     FileInfo fsMasterInfo = fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI("/xyz")));
     Assert.assertEquals(status, new URIStatus(fsMasterInfo));
     fsMaster.stop();
-  }
-
-  /**
-   * @throws Exception
-   */
-  @After
-  public final void after() throws Exception {
-    mExecutorService.shutdown();
   }
 
   @Before
@@ -581,21 +569,5 @@ public class JournalIntegrationTest {
       ret.addAll(lsr(fsMaster, new TachyonURI(file.getPath())));
     }
     return ret;
-  }
-
-  private void rawTableTestUtil(URIStatus status) throws IOException, InvalidPathException,
-      FileDoesNotExistException {
-    FileSystemMaster fsMaster = createFsMasterFromJournal();
-
-    long fileId = fsMaster.getFileId(mRootUri);
-    Assert.assertTrue(fileId != -1);
-    // "ls -r /" should return 11 FileInfos, one is table root "/xyz", the others are 10 columns.
-    Assert.assertEquals(11, lsr(fsMaster, mRootUri).size());
-
-    fileId = fsMaster.getFileId(new TachyonURI("/xyz"));
-    Assert.assertTrue(fileId != -1);
-    Assert.assertEquals(status, new URIStatus(fsMaster.getFileInfo(fileId)));
-
-    fsMaster.stop();
   }
 }

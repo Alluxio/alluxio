@@ -64,8 +64,6 @@ public class LsCommandTest extends AbstractTfsShellTest {
         getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30, "Not In Memory",
             testUser, testUser, files[3].getPermission(), files[3].isFolder());
     Assert.assertEquals(expected, mOutput.toString());
-    // clear testing username
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
     MasterContext.reset();
   }
 
@@ -91,8 +89,6 @@ public class LsCommandTest extends AbstractTfsShellTest {
     expect += getLsResultStr(new TachyonURI("/testWildCards/foobar4"), 40, testUser, testUser);
     mFsShell.run("ls", "/testWildCards/*");
     Assert.assertEquals(expect, mOutput.toString());
-    // clear testing username
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
     MasterContext.reset();
   }
 }
