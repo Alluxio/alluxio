@@ -63,6 +63,11 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
     heartbeatWithFuture();
   }
 
+  @Override
+  public void close() {
+    mRecomputeLauncherService.shutdown();
+  }
+
   /**
    * A version of {@code heartbeat} which returns a {@link Future} representing completion of the
    * recompute plan. This is especially useful for tests.

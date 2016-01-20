@@ -89,7 +89,7 @@ public class PinCommandTest extends AbstractTfsShellTest {
     int fileAInMemoryPercentage = mTfs.getInfo(fileA).getInMemoryPercentage();
     int fileBInMemoryPercentage = mTfs.getInfo(fileB).getInMemoryPercentage();
     Assert.assertEquals(100, fileAInMemoryPercentage);
-    Assert.assertTrue("inMemoryPercentage for fileB  should be less than (" + fileBSize + ")",
+    Assert.assertTrue("inMemoryPercentage for fileB  should be less than 100%",
          fileBInMemoryPercentage < 100);
   }
 }
