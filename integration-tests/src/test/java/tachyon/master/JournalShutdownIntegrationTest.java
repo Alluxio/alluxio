@@ -50,7 +50,7 @@ public class JournalShutdownIntegrationTest {
     /** The number of successfully created files. */
     private int mSuccessNum = 0;
 
-    private final int mOpType; // 0:create file; 1:create raw table.
+    private final int mOpType; // 0: create file
     private final FileSystem mTfs;
 
     public ClientThread(int opType, FileSystem tfs) {
