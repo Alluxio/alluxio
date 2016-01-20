@@ -599,7 +599,7 @@ public class JournalIntegrationTest {
   public void setAclTest() throws Exception {
     TachyonURI filePath = new TachyonURI("/file");
 
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
+    ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
     OutStreamOptions op =
         new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSizeBytes(64).build();
     mTfs.getOutStream(filePath, op).close();

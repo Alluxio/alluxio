@@ -145,7 +145,7 @@ public class FileSystemMasterPermissionCheckTest {
     TachyonConf conf = new TachyonConf();
     // authentication
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "admin");
+    conf.set(Constants.SECURITY_LOGIN_USERNAME, "admin");
     // authorization
     conf.set(Constants.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.class.getName());
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
