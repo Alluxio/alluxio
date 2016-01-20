@@ -276,7 +276,7 @@ $ ./bin/tachyon tfs chgrpr tachyon-group-new /input/directory1
 ```
 
 ## chmod
-The `chmod` command changes the permission of file or directory in Tachyon. Currently octal modes
+The `chmod` command changes the permission of file or directory in Tachyon. Currently octal mode
 is supported: the numerical format accepts three octal digits which refer to permissions for the
 file owner, the group and other users. Here is number-permission mapping table:
 
