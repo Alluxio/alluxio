@@ -104,7 +104,7 @@ public class FileSystemMasterIntegrationTest {
         ExecutorService executor = Executors.newCachedThreadPool();
         try {
           ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
-          for (int i = 0; i < FILES_PER_NODE; i++) {
+          for (int i = 0; i < FILES_PER_NODE; i ++) {
             Callable<Void> call = (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
                 path.join(Integer.toString(i))));
             futures.add(executor.submit(call));
@@ -157,7 +157,7 @@ public class FileSystemMasterIntegrationTest {
           ExecutorService executor = Executors.newCachedThreadPool();
           try {
             ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
-            for (int i = 0; i < FILES_PER_NODE; i++) {
+            for (int i = 0; i < FILES_PER_NODE; i ++) {
               Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
                   path.join(Integer.toString(i))));
               futures.add(executor.submit(call));
@@ -229,7 +229,7 @@ public class FileSystemMasterIntegrationTest {
         ExecutorService executor = Executors.newCachedThreadPool();
         try {
           ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
-          for (int i = 0; i < FILES_PER_NODE; i++) {
+          for (int i = 0; i < FILES_PER_NODE; i ++) {
             Callable<Void> call = (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, mRootPath,
                 mRootPath2, path.join(Integer.toString(i))));
             futures.add(executor.submit(call));
