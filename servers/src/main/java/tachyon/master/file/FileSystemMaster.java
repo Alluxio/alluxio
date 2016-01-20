@@ -655,9 +655,10 @@ public final class FileSystemMaster extends MasterBase {
    * @param path the path to delete
    * @param recursive if true, will delete all its children
    * @return true if the file was deleted, false otherwise
+   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
-   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
+   * @throws InvalidPathException if the path is invalid
    */
   public boolean deleteFile(TachyonURI path, boolean recursive) throws IOException,
       FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException {
