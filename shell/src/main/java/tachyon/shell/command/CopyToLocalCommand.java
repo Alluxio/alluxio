@@ -26,15 +26,16 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ReadType;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.FileSystem;
-import tachyon.client.file.URIStatus;
-import tachyon.client.file.options.OpenFileOptions;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.shell.TfsShellUtils;
+import tachyon.thrift.FileInfo;
 
 /**
  * Copies a file or a directory from the Tachyon filesystem to the local filesystem.
@@ -45,7 +46,7 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public CopyToLocalCommand(TachyonConf conf, FileSystem tfs) {
+  public CopyToLocalCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -117,14 +118,16 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
    * @throws IOException
    */
   private void copyToLocal(TachyonURI srcPath, File dstFile) throws IOException {
-    URIStatus srcStatus;
+    TachyonFile srcFd;
+    FileInfo srcFileInfo;
     try {
-      srcStatus = mTfs.getStatus(srcPath);
+      srcFd = mTfs.open(srcPath);
+      srcFileInfo = mTfs.getInfo(srcFd);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
 
-    if (srcStatus.isFolder()) {
+    if (srcFileInfo.isFolder) {
       // make a local directory
       if (!dstFile.exists()) {
         if (!dstFile.mkdirs()) {
@@ -134,19 +137,19 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
         }
       }
 
-      List<URIStatus> statuses = null;
+      List<FileInfo> files = null;
       try {
-        statuses = mTfs.listStatus(srcPath);
+        files = mTfs.listStatus(srcFd);
       } catch (TachyonException e) {
         throw new IOException(e.getMessage());
       }
 
       List<String> errorMessages = new ArrayList<String>();
-      for (URIStatus status : statuses) {
+      for (FileInfo file : files) {
         try {
           copyToLocal(
-              new TachyonURI(srcPath.getScheme(), srcPath.getAuthority(), status.getPath()),
-              new File(dstFile.getAbsolutePath(), status.getName()));
+              new TachyonURI(srcPath.getScheme(), srcPath.getAuthority(), file.getPath()),
+              new File(dstFile.getAbsolutePath(), file.getName()));
         } catch (IOException e) {
           errorMessages.add(e.getMessage());
         }
@@ -170,13 +173,15 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
    */
   private void copyFileToLocal(TachyonURI srcPath, File dstFile) throws IOException {
     try {
+      TachyonFile srcFd = mTfs.open(srcPath);
       File tmpDst = File.createTempFile("copyToLocal", null);
       tmpDst.deleteOnExit();
 
       Closer closer = Closer.create();
       try {
-        OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-        FileInStream is = closer.register(mTfs.openFile(srcPath, options));
+        InStreamOptions op = new InStreamOptions.Builder(mTachyonConf)
+            .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
+        FileInStream is = closer.register(mTfs.getInStream(srcFd, op));
         FileOutputStream out = closer.register(new FileOutputStream(tmpDst));
         byte[] buf = new byte[64 * Constants.MB];
         int t = is.read(buf);

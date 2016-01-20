@@ -22,11 +22,12 @@ import java.util.List;
 import com.google.common.base.Joiner;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.FileSystem;
-import tachyon.client.file.FileSystemUtils;
-import tachyon.client.file.URIStatus;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystemUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.FileInfo;
 
 /**
  * Persists a file or directory currently stored only in Tachyon to the UnderFileSystem
@@ -37,7 +38,7 @@ public final class PersistCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public PersistCommand(TachyonConf conf, FileSystem tfs) {
+  public PersistCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -65,12 +66,13 @@ public final class PersistCommand extends AbstractTfsShellCommand {
    */
   private void persist(TachyonURI filePath) throws IOException {
     try {
-      URIStatus status = mTfs.getStatus(filePath);
-      if (status.isFolder()) {
-        List<URIStatus> statuses = mTfs.listStatus(filePath);
+      TachyonFile fd = mTfs.open(filePath);
+      FileInfo fInfo = mTfs.getInfo(fd);
+      if (fInfo.isFolder) {
+        List<FileInfo> files = mTfs.listStatus(fd);
         List<String> errorMessages = new ArrayList<String>();
-        for (URIStatus uriStatus : statuses) {
-          TachyonURI newPath = new TachyonURI(uriStatus.getPath());
+        for (FileInfo file : files) {
+          TachyonURI newPath = new TachyonURI(file.getPath());
           try {
             persist(newPath);
           } catch (IOException e) {
@@ -80,10 +82,10 @@ public final class PersistCommand extends AbstractTfsShellCommand {
         if (errorMessages.size() != 0) {
           throw new IOException(Joiner.on('\n').join(errorMessages));
         }
-      } else if (status.isPersisted()) {
+      } else if (fInfo.isIsPersisted()) {
         System.out.println(filePath + " is already persisted");
       } else {
-        long size = FileSystemUtils.persistFile(mTfs, filePath, status, mTachyonConf);
+        long size = TachyonFileSystemUtils.persistFile(mTfs, fd, fInfo, mTachyonConf);
         System.out.println("persisted file " + filePath + " with size " + size);
       }
     } catch (TachyonException e) {

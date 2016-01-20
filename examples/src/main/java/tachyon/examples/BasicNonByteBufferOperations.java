@@ -27,15 +27,16 @@ import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.FileSystem;
-import tachyon.client.file.options.CreateFileOptions;
-import tachyon.client.file.options.OpenFileOptions;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.TachyonException;
 
 /**
- * Basic example of using the {@link FileSystem} for writing to and reading from files.
+ * Basic example of using the {@link TachyonFileSystem} for writing to and reading from files.
  * <p>
  * This class is different from {@link tachyon.examples.BasicOperations} in the way writes happen.
  * Over there {@link java.nio.ByteBuffer} is used directly, where as here byte data is done via
@@ -71,13 +72,16 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.reset(tachyonConf);
-    FileSystem tachyonClient = FileSystem.Factory.get();
+    TachyonFileSystem tachyonClient = TachyonFileSystem.TachyonFileSystemFactory.get();
     write(tachyonClient);
     return read(tachyonClient);
   }
 
-  private void write(FileSystem tachyonClient) throws IOException, TachyonException {
-    FileOutStream fileOutStream = createFile(tachyonClient, mFilePath, mDeleteIfExists);
+  private void write(TachyonFileSystem tachyonClient) throws IOException, TachyonException {
+    OutStreamOptions clientOptions =
+        new OutStreamOptions.Builder(ClientContext.getConf()).setWriteType(mWriteType).build();
+    FileOutStream fileOutStream =
+        getOrCreate(tachyonClient, mFilePath, mDeleteIfExists, clientOptions);
     DataOutputStream os = new DataOutputStream(fileOutStream);
     try {
       os.writeInt(mLength);
@@ -89,25 +93,33 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     }
   }
 
-  private FileOutStream createFile(FileSystem fileSystem, TachyonURI filePath,
-      boolean deleteIfExists) throws IOException, TachyonException {
-    CreateFileOptions options = CreateFileOptions.defaults().setWriteType(mWriteType);
-    if (!fileSystem.exists(filePath)) {
+  private FileOutStream getOrCreate(TachyonFileSystem tachyonFileSystem, TachyonURI filePath,
+      boolean deleteIfExists, OutStreamOptions clientOptions) throws IOException, TachyonException {
+    TachyonFile file;
+
+    try {
+      file = tachyonFileSystem.open(filePath);
+    } catch (Exception e) {
+      file = null;
+    }
+    if (file == null) {
       // file doesn't exist yet, so create it
-      return fileSystem.createFile(filePath, options);
+      return tachyonFileSystem.getOutStream(filePath, clientOptions);
     } else if (deleteIfExists) {
       // file exists, so delete it and recreate
-      fileSystem.delete(filePath);
-      return fileSystem.createFile(filePath, options);
+      tachyonFileSystem.delete(file);
+      return tachyonFileSystem.getOutStream(filePath, clientOptions);
     }
     // file exists and deleteIfExists is false
     throw new FileAlreadyExistsException("File exists and deleteIfExists is false");
   }
 
-  private boolean read(FileSystem tachyonClient) throws IOException, TachyonException {
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(mReadType);
+  private boolean read(TachyonFileSystem tachyonClient) throws IOException, TachyonException {
+    InStreamOptions clientOptions = new InStreamOptions.Builder(ClientContext.getConf())
+          .setReadType(mReadType).build();
 
-    DataInputStream input = new DataInputStream(tachyonClient.openFile(mFilePath, options));
+    TachyonFile file = tachyonClient.open(mFilePath);
+    DataInputStream input = new DataInputStream(tachyonClient.getInStream(file, clientOptions));
     try {
       int length = input.readInt();
       for (int i = 0; i < length; i ++) {

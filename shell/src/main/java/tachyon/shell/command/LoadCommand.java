@@ -16,19 +16,21 @@
 package tachyon.shell.command;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ReadType;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.FileSystem;
-import tachyon.client.file.URIStatus;
-import tachyon.client.file.options.OpenFileOptions;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.FileInfo;
 
 /**
  * Loads a file or directory in Tachyon space, makes it resident in memory.
@@ -41,7 +43,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public LoadCommand(TachyonConf conf, FileSystem tfs) {
+  public LoadCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -63,22 +65,25 @@ public final class LoadCommand extends WithWildCardPathCommand {
    */
   private void load(TachyonURI filePath) throws IOException {
     try {
-      URIStatus status = mTfs.getStatus(filePath);
-      if (status.isFolder()) {
-        List<URIStatus> statuses = mTfs.listStatus(filePath);
-        for (URIStatus uriStatus : statuses) {
-          TachyonURI newPath = new TachyonURI(uriStatus.getPath());
+      TachyonFile fd = mTfs.open(filePath);
+      FileInfo fInfo = mTfs.getInfo(fd);
+      if (fInfo.isFolder) {
+        List<FileInfo> files = mTfs.listStatus(fd);
+        Collections.sort(files);
+        for (FileInfo file : files) {
+          TachyonURI newPath = new TachyonURI(file.getPath());
           load(newPath);
         }
       } else {
-        if (status.getInMemoryPercentage() == 100) {
+        if (fInfo.getInMemoryPercentage() == 100) {
           // The file has already been fully loaded into Tachyon memory.
           return;
         }
         Closer closer = Closer.create();
         try {
-          OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
-          FileInStream in = closer.register(mTfs.openFile(filePath, options));
+          InStreamOptions op = new InStreamOptions.Builder(mTachyonConf)
+              .setTachyonStorageType(TachyonStorageType.STORE).build();
+          FileInStream in = closer.register(mTfs.getInStream(fd, op));
           byte[] buf = new byte[8 * Constants.MB];
           while (in.read(buf) != -1) {
           }

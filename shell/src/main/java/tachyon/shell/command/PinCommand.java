@@ -18,7 +18,7 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.FileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -31,7 +31,7 @@ public final class PinCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public PinCommand(TachyonConf conf, FileSystem tfs) {
+  public PinCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 

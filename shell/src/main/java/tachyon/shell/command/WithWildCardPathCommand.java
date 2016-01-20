@@ -24,7 +24,7 @@ import java.util.List;
 import com.google.common.base.Joiner;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.FileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.shell.TfsShellUtils;
 
@@ -36,7 +36,7 @@ import tachyon.shell.TfsShellUtils;
  */
 public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
 
-  protected WithWildCardPathCommand(TachyonConf conf, FileSystem tfs) {
+  protected WithWildCardPathCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 
