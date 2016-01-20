@@ -18,118 +18,44 @@ package tachyon.client.file.options;
 import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.PreconditionMessage;
-import tachyon.thrift.SetStateTOptions;
+import tachyon.thrift.SetAttributeTOptions;
 
 /**
- * Method option for setting the state.
+ * Method options for setting any number of a path's attributes. If a value is set as null, it
+ * will be interpreted as an unset value and the current value will be unchanged.
  */
 @PublicApi
-public class SetStateOptions {
+public final class SetAttributeOptions {
+  private Boolean mPinned;
+  private Long mTtl;
+  private Boolean mPersisted;
 
   /**
-   * Builder for {@link SetStateOptions}.
+   * @return the default {@link SetAttributeOptions}
    */
-  public static class Builder implements OptionsBuilder<SetStateOptions> {
-    private Boolean mPinned;
-    private Long mTtl;
-    private Boolean mPersisted;
-
-    /**
-     * Creates a new builder for {@link SetStateOptions}.
-     */
-    public Builder() {
-      this(ClientContext.getConf());
-    }
-
-    /**
-     * Creates a new builder for {@link SetStateOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {
-      mPinned = null;
-      mTtl = null;
-      mPersisted = null;
-    }
-
-    /**
-     * Sets the pinned flag.
-     *
-     * @param pinned the pinned flag value to use; it specifies whether the object should be kept in
-     *        memory, if ttl(time to live) is set, the file will be deleted after expiration no
-     *        matter this value is true or false
-     * @return the builder
-     */
-    public Builder setPinned(boolean pinned) {
-      mPinned = pinned;
-      return this;
-    }
-
-    /**
-     * Sets the time to live.
-     *
-     * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-     *        created file should be kept around before it is automatically deleted, irrespective of
-     *        whether the file is pinned
-     * @return the builder
-     */
-    public Builder setTtl(long ttl) {
-      mTtl = ttl;
-      return this;
-    }
-
-    /**
-     * Sets the persisted flag.
-     *
-     * @param persisted the persisted flag value to use; it specifies whether the file has been
-     *        persisted in the under file system or not.
-     * @return the builder
-     */
-    public Builder setPersisted(boolean persisted) {
-      mPersisted = persisted;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link SetStateOptions}.
-     *
-     * @return a {@link SetStateOptions} instance
-     */
-    @Override
-    public SetStateOptions build() {
-      return new SetStateOptions(this);
-    }
+  public static SetAttributeOptions defaults() {
+    return new SetAttributeOptions();
   }
 
   /**
-   * @return the default {@link SetStateOptions}
+   * @param options the thrift options to convert from
+   * @return a {@link SetAttributeOptions} logically equivalent to the given thrift options
    */
-  public static SetStateOptions defaults() {
-    return new Builder().build();
+  public static SetAttributeOptions fromThriftOptions(SetAttributeTOptions options) {
+    return new SetAttributeOptions(options);
   }
 
-  private final Boolean mPinned;
-  private final Long mTtl;
-  private final Boolean mPersisted;
-
-  /**
-   * Constructs a new method option for setting the state.
-   *
-   * @param options the options for setting the state
-   */
-  public SetStateOptions(SetStateTOptions options) {
+  private SetAttributeOptions(SetAttributeTOptions options) {
     mPinned = options.isSetPinned() ? options.isPinned() : null;
     mTtl = options.isSetTtl() ? options.getTtl() : null;
     mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
   }
 
-  private SetStateOptions(SetStateOptions.Builder builder) {
-    mPinned = builder.mPinned;
-    mTtl = builder.mTtl;
-    mPersisted = builder.mPersisted;
+  private SetAttributeOptions() {
+    mPinned = null;
+    mTtl = null;
+    mPersisted = null;
   }
 
   /**
@@ -181,10 +107,42 @@ public class SetStateOptions {
   }
 
   /**
+   * @param pinned the pinned flag value to use; it specifies whether the object should be kept in
+   *        memory, if ttl(time to live) is set, the file will be deleted after expiration no
+   *        matter this value is true or false
+   * @return the updated options object
+   */
+  public SetAttributeOptions setPinned(boolean pinned) {
+    mPinned = pinned;
+    return this;
+  }
+
+  /**
+   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *        created file should be kept around before it is automatically deleted, irrespective of
+   *        whether the file is pinned
+   * @return the updated options object
+   */
+  public SetAttributeOptions setTtl(long ttl) {
+    mTtl = ttl;
+    return this;
+  }
+
+  /**
+   * @param persisted the persisted flag value to use; it specifies whether the file has been
+   *        persisted in the under file system or not.
+   * @return the updated options object
+   */
+  public SetAttributeOptions setPersisted(boolean persisted) {
+    mPersisted = persisted;
+    return this;
+  }
+
+  /**
    * @return Thrift representation of the options
    */
-  public SetStateTOptions toThrift() {
-    SetStateTOptions options = new SetStateTOptions();
+  public SetAttributeTOptions toThrift() {
+    SetAttributeTOptions options = new SetAttributeTOptions();
     if (mPinned != null) {
       options.setPinned(mPinned);
     }

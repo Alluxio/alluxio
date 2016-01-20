@@ -21,41 +21,37 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for the {@link SetStateOptions} class.
+ * Tests for the {@link SetAttributeOptions} class.
  */
-public class SetStateOptionsTest {
-
-  /**
-   * Tests that building a {@link SetStateOptions} works.
-   */
+public class SetAttributeOptionsTest {
   @Test
-  public void builderTest() {
-    Random random = new Random();
-    boolean recursive = random.nextBoolean();
-    long ttl = random.nextLong();
-    boolean persist = random.nextBoolean();
-
-    SetStateOptions options =
-        new SetStateOptions.Builder()
-            .setPinned(recursive)
-            .setTtl(ttl)
-            .setPersisted(persist)
-            .build();
-
-    Assert.assertEquals(recursive, options.getPinned());
-    Assert.assertEquals(ttl, options.getTtl());
-    Assert.assertEquals(persist, options.getPersisted());
+  public void defaultsTest() {
+    SetAttributeOptions options = SetAttributeOptions.defaults();
+    Assert.assertFalse(options.hasPersisted());
+    Assert.assertFalse(options.hasPinned());
+    Assert.assertFalse(options.hasTtl());
   }
 
   /**
-   * Tests that building a {@link SetStateOptions} with the defaults works.
+   * Tests getting and setting fields.
    */
   @Test
-  public void defaultsTest() {
-    SetStateOptions options = SetStateOptions.defaults();
+  public void fieldsTest() {
+    Random random = new Random();
+    boolean persisted = random.nextBoolean();
+    boolean pinned = random.nextBoolean();
+    long ttl = random.nextLong();
 
-    Assert.assertFalse(options.hasPinned());
-    Assert.assertFalse(options.hasTtl());
-    Assert.assertFalse(options.hasPersisted());
+    SetAttributeOptions options = SetAttributeOptions.defaults();
+    options.setPersisted(persisted);
+    options.setPinned(pinned);
+    options.setTtl(ttl);
+
+    Assert.assertTrue(options.hasPersisted());
+    Assert.assertEquals(persisted, options.getPersisted());
+    Assert.assertTrue(options.hasPinned());
+    Assert.assertEquals(pinned, options.getPinned());
+    Assert.assertTrue(options.hasTtl());
+    Assert.assertEquals(ttl, options.getTtl());
   }
 }

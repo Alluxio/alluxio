@@ -25,38 +25,44 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.CreateFileTOptions;
 import tachyon.util.CommonUtils;
 
 /**
- * Method option for writing a file.
+ * Method options for creating a file.
  */
 @PublicApi
-public final class OutStreamOptions {
+public final class CreateFileOptions {
+  private boolean mRecursive;
   private long mBlockSizeBytes;
-  private long mTtl;
   private FileWriteLocationPolicy mLocationPolicy;
+  private long mTtl;
   private WriteType mWriteType;
 
   /**
    * @return the default {@link OutStreamOptions}
    */
-  public static OutStreamOptions defaults() {
-    return new OutStreamOptions();
+  public static CreateFileOptions defaults() {
+    return new CreateFileOptions();
   }
 
-  private OutStreamOptions() {
+  /**
+   * Creates a new instance with defaults from the configuration.
+   */
+  private CreateFileOptions() {
     TachyonConf conf = ClientContext.getConf();
+    mRecursive = true;
     mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    mTtl = Constants.NO_TTL;
     try {
       mLocationPolicy =
-          CommonUtils.createNewClassInstance(ClientContext.getConf()
-              .<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY),
-              new Class[] {}, new Object[] {});
+          CommonUtils.createNewClassInstance(
+              conf.<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY),
+              new Class[]{}, new Object[]{});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
     mWriteType = conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+    mTtl = Constants.NO_TTL;
   }
 
   /**
@@ -67,7 +73,7 @@ public final class OutStreamOptions {
   }
 
   /**
-   * @return the file write location policy
+   * @return the location policy for writes to Tachyon storage
    */
   public FileWriteLocationPolicy getLocationPolicy() {
     return mLocationPolicy;
@@ -96,48 +102,66 @@ public final class OutStreamOptions {
   }
 
   /**
-   * Sets the size of the block in bytes.
-   *
+   * @return whether or not the recursive flag is set
+   */
+  public boolean isRecursive() {
+    return mRecursive;
+  }
+
+  /**
    * @param blockSizeBytes the block size to use
    * @return the updated options object
    */
-  public OutStreamOptions setBlockSizeBytes(long blockSizeBytes) {
+  public CreateFileOptions setBlockSizeBytes(long blockSizeBytes) {
     mBlockSizeBytes = blockSizeBytes;
     return this;
   }
 
   /**
-   * Sets the time to live.
-   *
-   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-   *        created file should be kept around before it is automatically deleted, no matter
-   *        whether the file is pinned
+   * @param locationPolicy the location policy to use
    * @return the updated options object
    */
-  public OutStreamOptions setTtl(long ttl) {
-    mTtl = ttl;
-    return this;
-  }
-
-  /**
-   * @param locationPolicy the file write location policy
-   * @return the updated options object
-   */
-  public OutStreamOptions setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
+  public CreateFileOptions setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
     mLocationPolicy = locationPolicy;
     return this;
   }
 
   /**
-   * Sets the {@link WriteType}.
-   *
-   * @param writeType the {@link tachyon.client.WriteType} to use for this operation. This will
-   *                  override both the TachyonStorageType and UnderStorageType.
+   * @param recursive whether or not to recursively create the file's parents
    * @return the updated options object
    */
-  public OutStreamOptions setWriteType(WriteType writeType) {
+  public CreateFileOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
+    return this;
+  }
+
+  /**
+   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *        created file should be kept around before it is automatically deleted, no matter whether
+   *        the file is pinned
+   * @return the updated options object
+   */
+  public CreateFileOptions setTtl(long ttl) {
+    mTtl = ttl;
+    return this;
+  }
+
+  /**
+   * @param writeType the {@link tachyon.client.WriteType} to use for this operation. This will
+   *        override both the TachyonStorageType and UnderStorageType.
+   * @return the updated options object
+   */
+  public CreateFileOptions setWriteType(WriteType writeType) {
     mWriteType = writeType;
     return this;
+  }
+
+  /**
+   * @return representation of this object in the form of {@link OutStreamOptions}
+   */
+  public OutStreamOptions toOutStreamOptions() {
+    return OutStreamOptions.defaults().setBlockSizeBytes(mBlockSizeBytes)
+        .setLocationPolicy(mLocationPolicy).setTtl(mTtl).setWriteType(mWriteType);
   }
 
   /**
@@ -145,12 +169,24 @@ public final class OutStreamOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("OutStreamOptions(");
+    StringBuilder sb = new StringBuilder("CreateFileOptions(");
     sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
     sb.append(", TTL: ").append(mTtl);
-    sb.append(", LocationPolicy: ").append(mLocationPolicy.toString());
+    sb.append(", Location Policy: ").append(mLocationPolicy);
     sb.append(", WriteType: ").append(mWriteType.toString());
     sb.append(")");
     return sb.toString();
+  }
+
+  /**
+   * @return Thrift representation of the options
+   */
+  public CreateFileTOptions toThrift() {
+    CreateFileTOptions options = new CreateFileTOptions();
+    options.setBlockSizeBytes(mBlockSizeBytes);
+    options.setPersisted(mWriteType.getUnderStorageType().isSyncPersist());
+    options.setRecursive(mRecursive);
+    options.setTtl(mTtl);
+    return options;
   }
 }

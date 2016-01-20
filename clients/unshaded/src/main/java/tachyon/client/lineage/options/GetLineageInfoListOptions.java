@@ -16,40 +16,23 @@
 package tachyon.client.lineage.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * The method option for retrieving a list of lineage information.
  */
 @PublicApi
 public final class GetLineageInfoListOptions {
-
-  /**
-   * The builder for the {@link GetLineageInfoListOptions} class.
-   */
-  public static class Builder {
-    /**
-     * Creates a new builder for {@link GetLineageInfoListOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {}
-
-    /**
-     * @return builds a new instance of {@link GetLineageInfoListOptions}
-     */
-    public GetLineageInfoListOptions build() {
-      return new GetLineageInfoListOptions(this);
-    }
-  }
-
   /**
    * @return the default options
    */
+  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static GetLineageInfoListOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new GetLineageInfoListOptions();
   }
 
-  private GetLineageInfoListOptions(GetLineageInfoListOptions.Builder buidler) {}
+  private GetLineageInfoListOptions() {
+    // No options currently
+  }
 }

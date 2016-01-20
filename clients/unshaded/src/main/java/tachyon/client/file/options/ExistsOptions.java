@@ -13,44 +13,47 @@
  * the License.
  */
 
-package tachyon.client.lineage.options;
+package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
 
 /**
- * The method option for deleting a lineage.
+ * Method options for checking the existence of a path.
  */
 @PublicApi
-public final class DeleteLineageOptions {
-  /** Whether to delete all downstream lineages */
-  private boolean mCascade;
+public final class ExistsOptions {
+  /** Whether or not to check the ufs if the path does not exist in Tachyon */
+  private boolean mCheckUfs;
 
   /**
-   * @return the default options
+   * @return the default {@link ExistsOptions} based on the client's configuration
    */
-  public static DeleteLineageOptions defaults() {
-    return new DeleteLineageOptions();
+  public static ExistsOptions defaults() {
+    return new ExistsOptions();
   }
 
-  private DeleteLineageOptions() {
-    mCascade = false;
+  private ExistsOptions() {
+    // TODO(calvin): Make this configurable
+    mCheckUfs = false;
   }
 
   /**
-   * @return the cascade flag value; if the delete is cascade, it will delete all the downstream
-   *         lineages that depend on the given one recursively
+   * @return whether we should check the under file system for the file if it is not found in
+   *         Tachyon space
    */
-  public boolean isCascade() {
-    return mCascade;
+  public boolean isCheckUfs() {
+    return mCheckUfs;
   }
 
   /**
-   * Sets the cascade flag for this option.
+   * Sets the checkUfs flag which determines if this operation should go to the ufs if the data
+   * is not found in Tachyon.
    *
+   * @param checkUfs the check ufs flag to set
    * @return the updated options object
    */
-  public DeleteLineageOptions setCascade(boolean cascade) {
-    mCascade = cascade;
+  public ExistsOptions setCheckUfs(boolean checkUfs) {
+    mCheckUfs = checkUfs;
     return this;
   }
 }

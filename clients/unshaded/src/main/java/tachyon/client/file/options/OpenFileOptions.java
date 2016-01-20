@@ -26,21 +26,24 @@ import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.util.CommonUtils;
 
 /**
- * Method option for reading a file.
+ * Method options for opening a file for reading.
  */
 @PublicApi
-public final class InStreamOptions {
+public final class OpenFileOptions {
   private FileWriteLocationPolicy mLocationPolicy;
   private ReadType mReadType;
 
   /**
    * @return the default {@link InStreamOptions}
    */
-  public static InStreamOptions defaults() {
-    return new InStreamOptions();
+  public static OpenFileOptions defaults() {
+    return new OpenFileOptions();
   }
 
-  private InStreamOptions() {
+  /**
+   * Creates a new instance with defaults based on the configuration
+   */
+  private OpenFileOptions() {
     mReadType =
         ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
     try {
@@ -71,21 +74,26 @@ public final class InStreamOptions {
    * @param policy the location policy to use when storing data to Tachyon
    * @return the updated options object
    */
-  public InStreamOptions setLocationPolicy(FileWriteLocationPolicy policy) {
+  public OpenFileOptions setLocationPolicy(FileWriteLocationPolicy policy) {
     mLocationPolicy = policy;
     return this;
   }
 
   /**
-   * Sets the {@link ReadType}.
-   *
-   * @param readType the {@link ReadType} for this operation. Setting this will override the
-   *                 {@link TachyonStorageType}.
+   * @param readType the {@link tachyon.client.ReadType} for this operation. Setting this will
+   *        override the TachyonStorageType.
    * @return the updated options object
    */
-  public InStreamOptions setReadType(ReadType readType) {
+  public OpenFileOptions setReadType(ReadType readType) {
     mReadType = readType;
     return this;
+  }
+
+  /**
+   * @return the {@link OutStreamOptions} representation of this object
+   */
+  public InStreamOptions toInStreamOptions() {
+    return InStreamOptions.defaults().setReadType(mReadType).setLocationPolicy(mLocationPolicy);
   }
 
   /**
@@ -93,7 +101,7 @@ public final class InStreamOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("InStreamOptions(");
+    StringBuilder sb = new StringBuilder("OpenFileOptions(");
     sb.append(super.toString()).append(", ReadType: ").append(mReadType.toString());
     sb.append(", LocationPolicy: ").append(mLocationPolicy.toString());
     sb.append(")");

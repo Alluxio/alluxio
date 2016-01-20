@@ -16,47 +16,23 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.conf.TachyonConf;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * Method option for mounting a path.
  */
 @PublicApi
 public final class MountOptions {
-
-  /**
-   * Builder for {@link MountOptions}.
-   */
-  public static class Builder implements OptionsBuilder<MountOptions> {
-    /**
-     * Creates a new builder for {@link MountOptions}.
-     */
-    public Builder() {}
-
-    /**
-     * Creates a new builder for {@link MountOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {}
-
-    /**
-     * Builds a new instance of {@link MountOptions}.
-     *
-     * @return a {@link MountOptions} instance
-     */
-    @Override
-    public MountOptions build() {
-      return new MountOptions(this);
-    }
-  }
-
   /**
    * @return the default {@link MountOptions}
    */
+  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static MountOptions defaults() {
-    return new Builder().build();
+    return new MountOptions();
   }
 
-  private MountOptions(MountOptions.Builder builder) {}
+  private MountOptions() {
+    // No options currently
+  }
 }

@@ -21,22 +21,20 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.client.file.policy.RoundRobinPolicy;
-import tachyon.conf.TachyonConf;
 
 /**
- * Tests for the {@link InStreamOptions} class.
+ * Tests for the {@link OpenFileOptions} class.
  */
-public class InStreamOptionsTest {
-  /**
-   * Tests that building an {@link InStreamOptions} with the defaults works.
-   */
+public class OpenFileOptionsTest {
+  private final ReadType mDefaultReadType =
+      ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
+
   @Test
   public void defaultsTest() {
-    InStreamOptions options = InStreamOptions.defaults();
-    Assert.assertEquals(TachyonStorageType.PROMOTE, options.getTachyonStorageType());
+    OpenFileOptions options = OpenFileOptions.defaults();
+    Assert.assertEquals(mDefaultReadType.getTachyonStorageType(), options.getTachyonStorageType());
   }
 
   /**
@@ -44,28 +42,23 @@ public class InStreamOptionsTest {
    */
   @Test
   public void fieldsTest() {
-    ReadType readType = ReadType.NO_CACHE;
     FileWriteLocationPolicy policy = new RoundRobinPolicy();
+    ReadType readType = ReadType.NO_CACHE;
 
-    InStreamOptions options = InStreamOptions.defaults();
+    OpenFileOptions options = OpenFileOptions.defaults();
     options.setReadType(readType);
     options.setLocationPolicy(policy);
 
-    Assert.assertEquals(options.getTachyonStorageType(), readType.getTachyonStorageType());
+    Assert.assertEquals(readType.getTachyonStorageType(), options.getTachyonStorageType());
     Assert.assertEquals(policy, options.getLocationPolicy());
   }
 
-  /**
-   * Tests that building a {@link InStreamOptions} with a modified configuration works.
-   */
   @Test
-  public void modifiedConfTest() {
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE.toString());
-    ClientContext.reset(conf);
-
-    InStreamOptions options = InStreamOptions.defaults();
-    Assert.assertEquals(ReadType.NO_CACHE.getTachyonStorageType(), options.getTachyonStorageType());
-    ClientContext.reset();
+  public void toInStreamOptionsTest() {
+    OpenFileOptions options = OpenFileOptions.defaults();
+    InStreamOptions inStreamOptions = options.toInStreamOptions();
+    Assert.assertEquals(options.getTachyonStorageType(),
+        inStreamOptions.getTachyonStorageType());
+    Assert.assertEquals(options.getLocationPolicy(), inStreamOptions.getLocationPolicy());
   }
 }

@@ -15,26 +15,32 @@
 
 package tachyon.client.file.options;
 
+import java.util.Random;
+
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for the {@link MountOptions} class.
+ * Tests for the {@link ExistsOptions} class.
  */
-public class MountOptionsTest {
-
-  /**
-   * Tests that building a {@link MountOptions} works.
-   */
+public class ExistsOptionsTest {
   @Test
-  public void builderTest() {
-    new MountOptions.Builder().build();
+  public void defaultsTest() {
+    ExistsOptions options = ExistsOptions.defaults();
+    Assert.assertFalse(options.isCheckUfs());
   }
 
   /**
-   * Tests that building a {@link MountOptions} with the defaults works.
+   * Tests getting and setting fields.
    */
   @Test
-  public void defaultsTest() {
-    MountOptions.defaults();
+  public void fieldsTest() {
+    Random random = new Random();
+    boolean checkUfs = random.nextBoolean();
+
+    ExistsOptions options = ExistsOptions.defaults();
+    options.setCheckUfs(checkUfs);
+
+    Assert.assertEquals(checkUfs, options.isCheckUfs());
   }
 }

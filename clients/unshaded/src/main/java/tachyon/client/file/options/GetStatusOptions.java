@@ -16,47 +16,41 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.conf.TachyonConf;
 
 /**
- * Method option for opening a file.
+ * Method options for getting the status of a path.
  */
 @PublicApi
-public final class OpenOptions {
+public final class GetStatusOptions {
+  /** Whether or not to check the ufs if the path does not exist in Tachyon */
+  private boolean mCheckUfs;
 
   /**
-   * Builder for {@link OpenOptions}.
+   * @return a default {@link GetStatusOptions} based on the client's configuration
    */
-  public static class Builder implements OptionsBuilder<OpenOptions> {
-    /**
-     * Creates a new builder for {@link OpenOptions}.
-     */
-    public Builder() {}
+  public static GetStatusOptions defaults() {
+    return new GetStatusOptions();
+  }
 
-    /**
-     * Creates a new builder for {@link OpenOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {}
-
-    /**
-     * Builds a new instance of {@link OpenOptions}.
-     *
-     * @return a {@link OpenOptions} instance
-     */
-    @Override
-    public OpenOptions build() {
-      return new OpenOptions(this);
-    }
+  private GetStatusOptions() {
+    // TODO(calvin): Make this configurable
+    mCheckUfs = false;
   }
 
   /**
-   * @return the default {@link OpenOptions}
+   * @return whether we should sync the under file system for the file if it is not found in
+   *         Tachyon space
    */
-  public static OpenOptions defaults() {
-    return new Builder().build();
+  public boolean isCheckUfs() {
+    return mCheckUfs;
   }
 
-  private OpenOptions(OpenOptions.Builder builder) {}
+  /**
+   * @param checkUfs the check ufs flag to set
+   * @return the updated options object
+   */
+  public GetStatusOptions setCheckUfs(boolean checkUfs) {
+    mCheckUfs = checkUfs;
+    return this;
+  }
 }
