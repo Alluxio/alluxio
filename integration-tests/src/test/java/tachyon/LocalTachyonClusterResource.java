@@ -65,6 +65,10 @@ import tachyon.master.LocalTachyonCluster;
  */
 public class LocalTachyonClusterResource implements TestRule {
 
+  private static final long DEFAULT_WORKER_CAPACITY_BYTES = 100 * Constants.MB;
+  private static final int DEFAULT_QUOTA_UNIT_BYTES = 100 * Constants.KB;
+  private static final int DEFAULT_USER_BLOCK_SIZE = Constants.KB;
+
   /** The capacity of the worker in bytes */
   private final long mWorkerCapacityBytes;
   /** The quota of space each user can request */
@@ -102,6 +106,14 @@ public class LocalTachyonClusterResource implements TestRule {
     mUserBlockSize = userBlockSize;
     mStartCluster = startCluster;
     mConfParams = confParams;
+  }
+
+  /**
+   * Create a new {@link LocalTachyonClusterResource} with default configuration.
+   */
+  // TODO(andrew) Go through our integration tests and see how many can use this constructor.
+  public LocalTachyonClusterResource() {
+    this(DEFAULT_WORKER_CAPACITY_BYTES, DEFAULT_QUOTA_UNIT_BYTES, DEFAULT_USER_BLOCK_SIZE);
   }
 
   public LocalTachyonClusterResource(long workerCapacityBytes, int quotaUnitBytes,

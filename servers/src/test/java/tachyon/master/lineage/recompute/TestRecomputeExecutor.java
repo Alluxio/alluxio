@@ -60,6 +60,7 @@ public final class TestRecomputeExecutor {
     RecomputeExecutor executor = new RecomputeExecutor(planner, fileSystemMaster);
     // wait for the executor to finish running
     executor.heartbeatWithFuture().get(1, TimeUnit.SECONDS);
+    executor.close();
 
     Mockito.verify(fileSystemMaster).resetFile(fileId);
     Mockito.verify(job).run();
