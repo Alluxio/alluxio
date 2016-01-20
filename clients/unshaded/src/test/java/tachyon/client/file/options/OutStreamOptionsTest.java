@@ -34,6 +34,35 @@ import tachyon.conf.TachyonConf;
  * Tests for the {@link OutStreamOptions} class.
  */
 public class OutStreamOptionsTest {
+
+  /**
+   * Tests that building an {@link OutStreamOptions} works.
+   */
+  @Test
+  public void builderTest() {
+    Random random = new Random();
+    long blockSize = random.nextLong();
+    TachyonStorageType tachyonType = TachyonStorageType.STORE;
+    long ttl = random.nextLong();
+    UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
+    FileWriteLocationPolicy policy = new RoundRobinPolicy();
+
+    OutStreamOptions options =
+        new OutStreamOptions.Builder(new TachyonConf())
+            .setBlockSizeBytes(blockSize)
+            .setTachyonStorageType(tachyonType)
+            .setTtl(ttl)
+            .setUnderStorageType(ufsType)
+            .setLocationPolicy(policy)
+            .build();
+
+    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
+    Assert.assertEquals(tachyonType, options.getTachyonStorageType());
+    Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertEquals(ufsType, options.getUnderStorageType());
+    Assert.assertEquals(policy, options.getLocationPolicy());
+  }
+
   /**
    * Tests that building an {@link OutStreamOptions} with the defaults works.
    */
@@ -54,29 +83,5 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
     ClientContext.reset();
-  }
-
-  /**
-   * Tests getting and setting fields.
-   */
-  @Test
-  public void fieldsTest() {
-    Random random = new Random();
-    long blockSize = random.nextLong();
-    FileWriteLocationPolicy policy = new RoundRobinPolicy();
-    long ttl = random.nextLong();
-    WriteType writeType = WriteType.NONE;
-
-    OutStreamOptions options = OutStreamOptions.defaults();
-    options.setBlockSizeBytes(blockSize);
-    options.setLocationPolicy(policy);
-    options.setTtl(ttl);
-    options.setWriteType(writeType);
-
-    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
-    Assert.assertEquals(policy, options.getLocationPolicy());
-    Assert.assertEquals(ttl, options.getTtl());
-    Assert.assertEquals(writeType.getTachyonStorageType(), options.getTachyonStorageType());
-    Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
   }
 }

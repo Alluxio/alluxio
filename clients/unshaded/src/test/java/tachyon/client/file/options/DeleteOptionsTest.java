@@ -24,6 +24,23 @@ import org.junit.Test;
  * Tests for the {@link DeleteOptions} class.
  */
 public class DeleteOptionsTest {
+
+  /**
+   * Tests that building a {@link DeleteOptions} works.
+   */
+  @Test
+  public void builderTest() {
+    Random random = new Random();
+    boolean recursive = random.nextBoolean();
+
+    DeleteOptions options =
+        new DeleteOptions.Builder()
+            .setRecursive(recursive)
+            .build();
+
+    Assert.assertEquals(recursive, options.isRecursive());
+  }
+
   /**
    * Tests that building a {@link DeleteOptions} with the defaults works.
    */
@@ -32,19 +49,5 @@ public class DeleteOptionsTest {
     DeleteOptions options = DeleteOptions.defaults();
 
     Assert.assertFalse(options.isRecursive());
-  }
-
-  /**
-   * Tests getting and setting fields.
-   */
-  @Test
-  public void fieldsTest() {
-    Random random = new Random();
-    boolean recursive = random.nextBoolean();
-    DeleteOptions options = DeleteOptions.defaults();
-
-    options.setRecursive(recursive);
-
-    Assert.assertEquals(recursive, options.isRecursive());
   }
 }

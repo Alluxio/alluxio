@@ -30,21 +30,21 @@ import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.FileSystemMasterClient;
-import tachyon.client.file.options.CreateFileOptions;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.exception.LineageDoesNotExistException;
 
 /**
- * Tests {@link LineageFileSystem}.
+ * Tests {@link TachyonLineageFileSystem}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({LineageContext.class, LineageMasterClient.class, FileSystemContext.class,
     FileSystemMasterClient.class})
-public final class LineageFileSystemTest {
+public final class TachyonLineageFileSystemTest {
   private static final long TEST_BLOCK_SIZE = Constants.MB;
 
   private LineageContext mLineageContext;
   private LineageMasterClient mLineageMasterClient;
-  private LineageFileSystem mTachyonLineageFileSystem;
+  private TachyonLineageFileSystem mTachyonLineageFileSystem;
   private FileSystemContext mFileSystemContext;
   private FileSystemMasterClient mFileSystemMasterClient;
 
@@ -57,13 +57,24 @@ public final class LineageFileSystemTest {
     mLineageContext = PowerMockito.mock(LineageContext.class);
     Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
     Whitebox.setInternalState(LineageContext.class, "INSTANCE", mLineageContext);
-    mTachyonLineageFileSystem = LineageFileSystem.get();
+    mTachyonLineageFileSystem = TachyonLineageFileSystem.get();
     Whitebox.setInternalState(mTachyonLineageFileSystem, "mLineageContext", mLineageContext);
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mFileSystemContext);
     Whitebox.setInternalState(mTachyonLineageFileSystem, "mContext", mFileSystemContext);
+  }
+
+  /**
+   * Tests that the same instance is returned when using the {@link TachyonLineageFileSystem#get()}
+   * method.
+   */
+  @Test
+  public void getInstanceTest() {
+    TachyonLineageFileSystem lfs = TachyonLineageFileSystem.get();
+    // same as the second get
+    Assert.assertEquals(lfs, TachyonLineageFileSystem.get());
   }
 
   /**
@@ -76,9 +87,9 @@ public final class LineageFileSystemTest {
     TachyonURI path = new TachyonURI("test");
     Mockito.when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0))
         .thenReturn(1L);
-    CreateFileOptions options =
-        CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0);
-    FileOutStream outStream = mTachyonLineageFileSystem.createFile(path, options);
+    OutStreamOptions options =
+        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0).build();
+    FileOutStream outStream = mTachyonLineageFileSystem.getOutStream(path, options);
     Assert.assertTrue(outStream instanceof LineageFileOutStream);
     // verify client is released
     Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
@@ -94,9 +105,9 @@ public final class LineageFileSystemTest {
     TachyonURI path = new TachyonURI("test");
     Mockito.when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0))
         .thenReturn(-1L);
-    CreateFileOptions options =
-        CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0);
-    FileOutStream outStream = mTachyonLineageFileSystem.createFile(path, options);
+    OutStreamOptions options =
+        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0).build();
+    FileOutStream outStream = mTachyonLineageFileSystem.getOutStream(path, options);
     Assert.assertTrue(outStream instanceof DummyFileOutputStream);
     // verify client is released
     Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
@@ -113,9 +124,9 @@ public final class LineageFileSystemTest {
     Mockito.when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0))
         .thenThrow(new LineageDoesNotExistException("lineage does not exist"));
 
-    CreateFileOptions options =
-        CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0);
-    FileOutStream outStream = mTachyonLineageFileSystem.createFile(path, options);
+    OutStreamOptions options =
+        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0).build();
+    FileOutStream outStream = mTachyonLineageFileSystem.getOutStream(path, options);
     Assert.assertTrue(outStream instanceof FileOutStream);
     Assert.assertFalse(outStream instanceof LineageFileOutStream);
     Assert.assertFalse(outStream instanceof DummyFileOutputStream);

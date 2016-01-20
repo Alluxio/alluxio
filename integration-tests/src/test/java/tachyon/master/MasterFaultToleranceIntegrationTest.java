@@ -29,15 +29,16 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.WriteType;
+import tachyon.client.UnderStorageType;
 import tachyon.client.block.TachyonBlockStore;
-import tachyon.client.file.FileSystem;
-import tachyon.client.file.URIStatus;
-import tachyon.client.file.options.CreateFileOptions;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.DeleteOptions;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.collections.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
@@ -48,7 +49,7 @@ public class MasterFaultToleranceIntegrationTest {
   private static final int MASTERS = 5;
 
   private LocalTachyonClusterMultiMaster mLocalTachyonClusterMultiMaster = null;
-  private FileSystem mTfs = null;
+  private TachyonFileSystem mTfs = null;
 
   @After
   public final void after() throws Exception {
@@ -77,14 +78,14 @@ public class MasterFaultToleranceIntegrationTest {
    */
   private void faultTestDataCreation(TachyonURI folderName, List<Pair<Long, TachyonURI>> answer)
       throws IOException, TachyonException {
-    mTfs.createDirectory(folderName);
-    answer.add(new Pair<Long, TachyonURI>(mTfs.getStatus(folderName).getFileId(), folderName));
+    mTfs.mkdir(folderName);
+    answer.add(new Pair<Long, TachyonURI>(mTfs.open(folderName).getFileId(), folderName));
 
     for (int k = 0; k < 10; k ++) {
       TachyonURI path =
           new TachyonURI(PathUtils.concatPath(folderName, folderName.toString().substring(1) + k));
-      mTfs.createFile(path).close();
-      answer.add(new Pair<Long, TachyonURI>(mTfs.getStatus(path).getFileId(), path));
+      mTfs.getOutStream(path).close();
+      answer.add(new Pair<Long, TachyonURI>(mTfs.open(path).getFileId(), path));
     }
   }
 
@@ -101,9 +102,9 @@ public class MasterFaultToleranceIntegrationTest {
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
       Assert.assertEquals(answer.get(k).getSecond().toString(),
-          mTfs.getStatus(answer.get(k).getSecond()).getPath());
+          mTfs.getInfo(new TachyonFile(answer.get(k).getFirst())).getPath());
       Assert.assertEquals(answer.get(k).getFirst().longValue(),
-          mTfs.getStatus(answer.get(k).getSecond()).getFileId());
+          mTfs.open(answer.get(k).getSecond()).getFileId());
     }
   }
 
@@ -139,8 +140,9 @@ public class MasterFaultToleranceIntegrationTest {
 
         // We can not call mTfs.delete(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR))) because root
         // node can not be deleted.
-        for (URIStatus file : mTfs.listStatus(new TachyonURI(TachyonURI.SEPARATOR))) {
-          mTfs.delete(new TachyonURI(file.getPath()), DeleteOptions.defaults().setRecursive(true));
+        for (FileInfo file : mTfs.listStatus(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR)))) {
+          mTfs.delete(new TachyonFile(file.getFileId()),
+              new DeleteOptions.Builder().setRecursive(true).build());
         }
         answer.clear();
         faultTestDataCheck(answer);
@@ -160,10 +162,11 @@ public class MasterFaultToleranceIntegrationTest {
   @Test
   public void createFilesTest() throws Exception {
     int clients = 10;
-    CreateFileOptions option =
-        CreateFileOptions.defaults().setBlockSizeBytes(1024).setWriteType(WriteType.THROUGH);
+    OutStreamOptions option =
+        new OutStreamOptions.Builder(new TachyonConf()).setBlockSizeBytes(1024)
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     for (int k = 0; k < clients; k ++) {
-      mTfs.createFile(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
+      mTfs.getOutStream(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
     }
     List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
     Assert.assertEquals(clients, files.size());

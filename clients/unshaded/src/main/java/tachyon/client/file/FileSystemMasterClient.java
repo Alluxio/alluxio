@@ -17,7 +17,6 @@ package tachyon.client.file;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -28,12 +27,9 @@ import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.CompleteFileOptions;
-import tachyon.client.file.options.CreateDirectoryOptions;
-import tachyon.client.file.options.CreateFileOptions;
-import tachyon.client.file.options.DeleteOptions;
-import tachyon.client.file.options.FreeOptions;
-import tachyon.client.file.options.LoadMetadataOptions;
-import tachyon.client.file.options.SetAttributeOptions;
+import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
@@ -84,163 +80,100 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Creates a new directory.
-   *
-   * @param path the directory path
-   * @param options method options
+   * @param path the path
+   * @return the file id for the given path, or -1 if the path does not point to a file
+   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void createDirectory(final TachyonURI path,
-      final CreateDirectoryOptions options) throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+  public synchronized long getFileId(final String path)
+      throws IOException, ConnectionFailedException {
+    return retryRPC(new RpcCallable<Long>() {
       @Override
-      public Void call() throws TachyonTException, TException {
-        mClient.createDirectory(path.getPath(), options.toThrift());
-        return null;
+      public Long call() throws TException {
+        return mClient.getFileId(path);
       }
     });
   }
 
   /**
-   * Creates a new file.
-   *
-   * @param path the file path
-   * @param options method options
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void createFile(final TachyonURI path, final CreateFileOptions options)
-      throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
-      @Override
-      public Void call() throws TachyonTException, TException {
-        mClient.createFile(path.getPath(), options.toThrift());
-        return null;
-      }
-    });
-  }
-
-  /**
-   * Marks a file as completed.
-   *
-   * @param path the file path
-   * @param options the method options
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void completeFile(final TachyonURI path, final CompleteFileOptions options)
-      throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
-      @Override
-      public Void call() throws TachyonTException, TException {
-        mClient.completeFile(path.getPath(), options.toThrift());
-        return null;
-      }
-    });
-  }
-
-  /**
-   * Deletes a file or a directory.
-   *
-   * @param path the path to delete
-   * @param options method options
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void delete(final TachyonURI path, final DeleteOptions options)
-      throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
-      @Override
-      public Void call() throws TachyonTException, TException {
-        mClient.remove(path.getPath(), options.isRecursive());
-        return null;
-      }
-    });
-  }
-
-  /**
-   * Frees a file.
-   *
-   * @param path the path to free
-   * @param options method options
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void free(final TachyonURI path, final FreeOptions options)
-      throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
-      @Override
-      public Void call() throws TachyonTException, TException {
-        mClient.free(path.getPath(), options.isRecursive());
-        return null;
-      }
-    });
-  }
-
-  /**
-   * @param path the URI of the file
-   * @return the list of file block information for the given file id
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized List<FileBlockInfo> getFileBlockInfoList(final TachyonURI path)
-      throws IOException, TachyonException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<List<FileBlockInfo>>() {
-      @Override
-      public List<FileBlockInfo> call() throws TachyonTException, TException {
-        return mClient.getFileBlockInfoList(path.getPath());
-      }
-    });
-  }
-
-  /**
-   * @param path the file path
-   * @return the file info for the given file id
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized URIStatus getStatus(final TachyonURI path) throws IOException,
-      TachyonException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<URIStatus>() {
-      @Override
-      public URIStatus call() throws TachyonTException, TException {
-        return new URIStatus(mClient.getStatus(path.getPath()));
-      }
-    });
-  }
-
-  /**
-   * Internal API, only used by the WebUI of the servers.
-   *
    * @param fileId the file id
    * @return the file info for the given file id
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  // TODO(calvin): Split this into its own client
-  public synchronized URIStatus getStatusInternal(final long fileId) throws IOException,
+  public synchronized FileInfo getFileInfo(final long fileId) throws IOException,
       TachyonException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<URIStatus>() {
+    return retryRPC(new RpcCallableThrowsTachyonTException<FileInfo>() {
       @Override
-      public URIStatus call() throws TachyonTException, TException {
-        return new URIStatus(mClient.getStatusInternal(fileId));
+      public FileInfo call() throws TachyonTException, TException {
+        return mClient.getFileInfo(fileId);
       }
     });
   }
 
   /**
-   * @param path the file path
-   * @return the next blockId for the file
+   * @param fileId the file id
+   * @return the list of file information for the given file id
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized long getNewBlockIdForFile(final TachyonURI path)
+  public synchronized List<FileInfo> getFileInfoList(final long fileId) throws IOException,
+      TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<List<FileInfo>>() {
+      @Override
+      public List<FileInfo> call() throws TachyonTException, TException {
+        return mClient.getFileInfoList(fileId);
+      }
+    });
+  }
+
+  /**
+   * @param fileId the file id
+   * @param fileBlockIndex the file block index
+   * @return the file block information
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  // TODO(calvin): Not sure if this is necessary.
+  public synchronized FileBlockInfo getFileBlockInfo(final long fileId, final int fileBlockIndex)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<FileBlockInfo>() {
+      @Override
+      public FileBlockInfo call() throws TachyonTException, TException {
+        return mClient.getFileBlockInfo(fileId, fileBlockIndex);
+      }
+    });
+  }
+
+  /**
+   * @param fileId the file id
+   * @return the list of file block information for the given file id
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  // TODO(calvin): Not sure if this is necessary.
+  public synchronized List<FileBlockInfo> getFileBlockInfoList(final long fileId)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<List<FileBlockInfo>>() {
+      @Override
+      public List<FileBlockInfo> call() throws TachyonTException, TException {
+        return mClient.getFileBlockInfoList(fileId);
+      }
+    });
+  }
+
+  /**
+   * @param fileId the file id
+   * @return a new block id for the given file id
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized long getNewBlockIdForFile(final long fileId)
       throws IOException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
       public Long call() throws TachyonTException, TException {
-        return mClient.getNewBlockIdForFile(path.getPath());
+        return mClient.getNewBlockIdForFile(fileId);
       }
     });
   }
@@ -260,40 +193,153 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * @param path the path to list
-   * @return the list of file information for the given path
+   * Creates a new file.
+   *
+   * @param path the file path
+   * @param options method options
+   * @return the file id
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized List<URIStatus> listStatus(final TachyonURI path)
+  public synchronized long create(final String path, final CreateOptions options)
       throws IOException, TachyonException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<List<URIStatus>>() {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
-      public List<URIStatus> call() throws TachyonTException, TException {
-        List<FileInfo> statuses = mClient.listStatus(path.getPath());
-        List<URIStatus> ret = new ArrayList<URIStatus>(statuses.size());
-        for (FileInfo status : statuses) {
-          ret.add(new URIStatus(status));
-        }
-        return ret;
+      public Long call() throws TachyonTException, TException {
+        return mClient.create(path, options.toThrift());
       }
     });
   }
 
   /**
-   * Loads the metadata of a file from the under file system.
+   * Marks a file as completed.
    *
-   * @param path the path of the file to load metadata for
-   * @param options method options
+   * @param fileId the file id
+   * @param options the method options
+   * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized void completeFile(final long fileId, final CompleteFileOptions options)
+      throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.completeFile(fileId, options.toThrift());
+        return null;
+      }
+    });
+  }
+
+  /**
+   * Deletes a file or a directory.
+   *
+   * @param id the id
+   * @param recursive whether to delete the file recursively (when it is a directory)
+   * @return whether operation succeeded or not
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized boolean delete(final long id, final boolean recursive)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.remove(id, recursive);
+      }
+    });
+  }
+
+  /**
+   * Renames a file or a directory.
+   *
+   * @param id the id
+   * @param dstPath new file path
+   * @return whether operation succeeded or not
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized boolean rename(final long id, final String dstPath)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.rename(id, dstPath);
+      }
+    });
+  }
+
+  /**
+   * Sets the file state.
+   *
+   * @param fileId the file id
+   * @param options the file state options to be set
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized void setState(final long fileId, final SetStateOptions options)
+      throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.setState(fileId, options.toThrift());
+        return null;
+      }
+    });
+  }
+
+  /**
+   * Creates a new directory.
+   *
+   * @param path the directory path
+   * @param options method options
+   * @return whether operation succeeded or not
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized boolean mkdir(final String path, final MkdirOptions options)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.mkdir(path, options.toThrift());
+      }
+    });
+  }
+
+  /**
+   * Frees a file.
+   *
+   * @param fileId the file id
+   * @param recursive whether free the file recursively (when it is a directory)
+   * @return whether operation succeeded or not
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized boolean free(final long fileId, final boolean recursive) throws IOException,
+      TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.free(fileId, recursive);
+      }
+    });
+  }
+
+  /**
+   * Loads a file from the under file system.
+   *
+   * @param path the Tachyon path of the file
+   * @param recursive whether parent directories should be loaded if not present yet
+   * @return the file id
+   * @throws TachyonException if a tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void loadMetadata(final TachyonURI path,
-      final LoadMetadataOptions options) throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+  public synchronized long loadMetadata(final String path, final boolean recursive)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
       public Long call() throws TachyonTException, TException {
-        return mClient.loadMetadata(path.toString(), options.isRecursive());
+        return mClient.loadMetadata(path, recursive);
       }
     });
   }
@@ -303,54 +349,16 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param tachyonPath the Tachyon path
    * @param ufsPath the UFS path
+   * @return true if the given UFS path can be mounted, false otherwise
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException an I/O error occurs
    */
-  public synchronized void mount(final TachyonURI tachyonPath, final TachyonURI ufsPath)
+  public synchronized boolean mount(final TachyonURI tachyonPath, final TachyonURI ufsPath)
       throws TachyonException, IOException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
-      public Void call() throws TachyonTException, TException {
-        mClient.mount(tachyonPath.toString(), ufsPath.toString());
-        return null;
-      }
-    });
-  }
-
-  /**
-   * Renames a file or a directory.
-   *
-   * @param src the path to rename
-   * @param dst new file path
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void rename(final TachyonURI src, final TachyonURI dst)
-      throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
-      @Override
-      public Void call() throws TachyonTException, TException {
-        mClient.rename(src.getPath(), dst.getPath());
-        return null;
-      }
-    });
-  }
-
-  /**
-   * Sets the file or directory attributes.
-   *
-   * @param path the file or directory path
-   * @param options the file or directory attribute options to be set
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void setAttribute(final TachyonURI path, final SetAttributeOptions options)
-      throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
-      @Override
-      public Void call() throws TachyonTException, TException {
-        mClient.setAttribute(path.getPath(), options.toThrift());
-        return null;
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.mount(tachyonPath.toString(), ufsPath.toString());
       }
     });
   }
@@ -358,16 +366,16 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * Schedules the async persistence of the given file.
    *
-   * @param path the file path
+   * @param fileId the file id
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void scheduleAsyncPersist(final TachyonURI path)
+  public synchronized void scheduleAsyncPersist(final long fileId)
       throws TachyonException, IOException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        mClient.scheduleAsyncPersist(path.getPath());
+        mClient.scheduleAsyncPersist(fileId);
         return null;
       }
     });
@@ -377,16 +385,16 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Unmounts the given Tachyon path.
    *
    * @param tachyonPath the Tachyon path
+   * @return true if the given Tachyon path can be unmounted, false otherwise
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException an I/O error occurs
    */
-  public synchronized void unmount(final TachyonURI tachyonPath)
+  public synchronized boolean unmount(final TachyonURI tachyonPath)
       throws TachyonException, IOException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
-      public Void call() throws TachyonTException, TException {
-        mClient.unmount(tachyonPath.toString());
-        return null;
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.unmount(tachyonPath.toString());
       }
     });
   }

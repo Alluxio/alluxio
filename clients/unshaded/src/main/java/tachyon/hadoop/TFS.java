@@ -22,7 +22,7 @@ import tachyon.annotation.PublicApi;
  * A Tachyon client API compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
  * interface. Any program working with Hadoop HDFS can work with Tachyon transparently. Note that
  * the performance of using this TFS API may not be as efficient as the performance of using the
- * Tachyon native API defined in {@link FileSystem}, which TFS is built
+ * Tachyon native API defined in {@link tachyon.client.file.TachyonFileSystem}, which TFS is built
  * on top of.
  */
 @PublicApi

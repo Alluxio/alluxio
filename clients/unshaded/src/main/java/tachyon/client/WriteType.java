@@ -18,7 +18,10 @@ package tachyon.client;
 import tachyon.annotation.PublicApi;
 
 /**
- * Write types for creating a file in Tachyon.
+ * Convenience modes for commonly used write types for a {@link tachyon.client.file.TachyonFile}.
+ *
+ * For finer grained control over data storage, advanced users may specify
+ * {@link tachyon.client.TachyonStorageType} and {@link tachyon.client.UnderStorageType}.
  */
 @PublicApi
 public enum WriteType {
@@ -47,14 +50,9 @@ public enum WriteType {
    */
   THROUGH(4),
   /**
-   * [Experimental] Write the file asynchronously to the under fs.
+   * Write the file asynchronously to the under fs.
    */
-  ASYNC_THROUGH(5),
-  /**
-   * Do not store the data in Tachyon or Under Storage. This write type should only be used for
-   * testing.
-   */
-  NONE(6);
+  ASYNC_THROUGH(5);
 
   private final int mValue;
 

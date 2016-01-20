@@ -1,4 +1,4 @@
-/*
+ /*
  * Licensed to the University of California, Berkeley under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional information regarding
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
@@ -63,6 +63,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Client for all master communication */
   private final BlockMasterClient mMasterClient;
   /** The thread pool to remove block */
+  // TODO(andrew): cleanup this threadpool when the master stops
   private final ExecutorService mBlockRemovalService = Executors.newFixedThreadPool(
       DEFAULT_BLOCK_REMOVER_POOL_SIZE, ThreadFactoryUtils.build("block-removal-service-%d", true));
 

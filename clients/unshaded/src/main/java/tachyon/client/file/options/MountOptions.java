@@ -16,39 +16,47 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
+import tachyon.conf.TachyonConf;
 
 /**
  * Method option for mounting a path.
  */
 @PublicApi
 public final class MountOptions {
-  /** Flag for if the mount should be a read-only mount, currently unsupported */
-  private boolean mReadOnly;
+
+  /**
+   * Builder for {@link MountOptions}.
+   */
+  public static class Builder implements OptionsBuilder<MountOptions> {
+    /**
+     * Creates a new builder for {@link MountOptions}.
+     */
+    public Builder() {}
+
+    /**
+     * Creates a new builder for {@link MountOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
+    public Builder(TachyonConf conf) {}
+
+    /**
+     * Builds a new instance of {@link MountOptions}.
+     *
+     * @return a {@link MountOptions} instance
+     */
+    @Override
+    public MountOptions build() {
+      return new MountOptions(this);
+    }
+  }
 
   /**
    * @return the default {@link MountOptions}
    */
   public static MountOptions defaults() {
-    return new MountOptions();
+    return new Builder().build();
   }
 
-  private MountOptions() {
-    mReadOnly = false;
-  }
-
-  /**
-   * @return whether the read-only flag is set
-   */
-  public boolean isReadOnly() {
-    return mReadOnly;
-  }
-
-  /**
-   * @param readOnly the read only flag for this option
-   * @return the updated options object
-   */
-  public MountOptions setReadOnly(boolean readOnly) {
-    mReadOnly = readOnly;
-    return this;
-  }
+  private MountOptions(MountOptions.Builder builder) {}
 }

@@ -16,39 +16,40 @@
 package tachyon.client.lineage.options;
 
 import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
+import tachyon.conf.TachyonConf;
 
 /**
  * The method option for retrieving a list of lineage information.
  */
 @PublicApi
 public final class GetLineageInfoListOptions {
-  /** Whether or not to list the lineage info recursively, currently not supported */
-  private boolean mRecursive;
+
+  /**
+   * The builder for the {@link GetLineageInfoListOptions} class.
+   */
+  public static class Builder {
+    /**
+     * Creates a new builder for {@link GetLineageInfoListOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
+    public Builder(TachyonConf conf) {}
+
+    /**
+     * @return builds a new instance of {@link GetLineageInfoListOptions}
+     */
+    public GetLineageInfoListOptions build() {
+      return new GetLineageInfoListOptions(this);
+    }
+  }
 
   /**
    * @return the default options
    */
   public static GetLineageInfoListOptions defaults() {
-    return new GetLineageInfoListOptions();
+    return new Builder(ClientContext.getConf()).build();
   }
 
-  private GetLineageInfoListOptions() {
-    mRecursive = false;
-  }
-
-  /**
-   * @return the recursive flag
-   */
-  public boolean isRecursive() {
-    return mRecursive;
-  }
-
-  /**
-   * @param recursive the recursive flag to set
-   * @return the updated options object
-   */
-  public GetLineageInfoListOptions setRecursive(boolean recursive) {
-    mRecursive = recursive;
-    return this;
-  }
+  private GetLineageInfoListOptions(GetLineageInfoListOptions.Builder buidler) {}
 }

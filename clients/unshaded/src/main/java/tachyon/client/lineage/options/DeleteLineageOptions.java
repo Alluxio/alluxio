@@ -16,24 +16,60 @@
 package tachyon.client.lineage.options;
 
 import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
+import tachyon.conf.TachyonConf;
 
 /**
  * The method option for deleting a lineage.
  */
 @PublicApi
 public final class DeleteLineageOptions {
-  /** Whether to delete all downstream lineages */
-  private boolean mCascade;
+
+  /**
+   * Builder for the {@link DeleteLineageOptions} class.
+   */
+  public static class Builder {
+    private boolean mCascade;
+
+    /**
+     * Creates a new builder for {@link DeleteLineageOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
+    public Builder(TachyonConf conf) {
+      mCascade = false;
+    }
+
+    /**
+     * @param cascade the cascade flag to use; if the delete is cascade, it will delete all the
+     *        downstream lineages that depend on the given one recursively.
+     *
+     * @return the builder
+     */
+    public Builder setCascade(boolean cascade) {
+      mCascade = cascade;
+      return this;
+    }
+
+    /**
+     * @return builds a new instance of {@link DeleteLineageOptions}
+     */
+    public DeleteLineageOptions build() {
+      return new DeleteLineageOptions(this);
+    }
+  }
 
   /**
    * @return the default options
    */
   public static DeleteLineageOptions defaults() {
-    return new DeleteLineageOptions();
+    return new Builder(ClientContext.getConf()).build();
   }
 
-  private DeleteLineageOptions() {
-    mCascade = false;
+  private final boolean mCascade;
+
+  private DeleteLineageOptions(DeleteLineageOptions.Builder builder) {
+    mCascade = builder.mCascade;
   }
 
   /**
@@ -42,15 +78,5 @@ public final class DeleteLineageOptions {
    */
   public boolean isCascade() {
     return mCascade;
-  }
-
-  /**
-   * Sets the cascade flag for this option.
-   *
-   * @return the updated options object
-   */
-  public DeleteLineageOptions setCascade(boolean cascade) {
-    mCascade = cascade;
-    return this;
   }
 }

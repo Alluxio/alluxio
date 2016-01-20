@@ -23,6 +23,7 @@ import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -30,62 +31,114 @@ import tachyon.util.CommonUtils;
  */
 @PublicApi
 public final class InStreamOptions {
+
+  /**
+   * Builder for {@link InStreamOptions}.
+   */
+  public static class Builder implements OptionsBuilder<InStreamOptions> {
+    private TachyonStorageType mTachyonStorageType;
+    private FileWriteLocationPolicy mLocationPolicy;
+
+    /**
+     * Creates a new builder for {@link InStreamOptions}.
+     */
+    public Builder() {
+      this(ClientContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link InStreamOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
+    public Builder(TachyonConf conf) {
+      ReadType defaultReadType =
+          conf.getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
+      mTachyonStorageType = defaultReadType.getTachyonStorageType();
+      try {
+        mLocationPolicy =
+            CommonUtils
+                .createNewClassInstance(
+                    ClientContext.getConf().<FileWriteLocationPolicy>getClass(
+                        Constants.USER_FILE_WRITE_LOCATION_POLICY),
+                    new Class[] {}, new Object[] {});
+      } catch (Exception e) {
+        throw Throwables.propagate(e);
+      }
+    }
+
+    /**
+     * Sets the {@link ReadType}.
+     *
+     * @param readType the {@link ReadType} for this operation. Setting this will override the
+     *                 {@link TachyonStorageType}.
+     * @return the builder
+     */
+    public Builder setReadType(ReadType readType) {
+      mTachyonStorageType = readType.getTachyonStorageType();
+      return this;
+    }
+
+    /**
+     * This is an advanced API, use {@link Builder#setReadType(ReadType)} when possible.
+     *
+     * @param tachyonStorageType the Tachyon storage type to use
+     * @return the builder
+     */
+    public Builder setTachyonStorageType(TachyonStorageType tachyonStorageType) {
+      mTachyonStorageType = tachyonStorageType;
+      return this;
+    }
+
+    /**
+     * Sets the location policy for CACHE type of read.
+     *
+     * @param locationPolicy the location policy to use
+     * @return the builder
+     */
+    public Builder setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
+      mLocationPolicy = locationPolicy;
+      return this;
+    }
+
+    /**
+     * Builds a new instance of {@link InStreamOptions}.
+     *
+     * @return a {@link InStreamOptions} instance
+     */
+    @Override
+    public InStreamOptions build() {
+      return new InStreamOptions(this);
+    }
+  }
+
+  private final TachyonStorageType mTachyonStorageType;
   private FileWriteLocationPolicy mLocationPolicy;
-  private ReadType mReadType;
 
   /**
    * @return the default {@link InStreamOptions}
    */
   public static InStreamOptions defaults() {
-    return new InStreamOptions();
+    return new Builder().build();
   }
 
-  private InStreamOptions() {
-    mReadType =
-        ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
-    try {
-      mLocationPolicy =
-          CommonUtils.createNewClassInstance(ClientContext.getConf()
-                  .<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY),
-              new Class[]{}, new Object[]{});
-    } catch (Exception e) {
-      throw Throwables.propagate(e);
-    }
-  }
-
-  /**
-   * @return the location policy to use when storing data to Tachyon
-   */
-  public FileWriteLocationPolicy getLocationPolicy() {
-    return mLocationPolicy;
+  private InStreamOptions(InStreamOptions.Builder builder) {
+    mTachyonStorageType = builder.mTachyonStorageType;
+    mLocationPolicy = builder.mLocationPolicy;
   }
 
   /**
    * @return the Tachyon storage type
    */
   public TachyonStorageType getTachyonStorageType() {
-    return mReadType.getTachyonStorageType();
+    return mTachyonStorageType;
   }
 
   /**
-   * @param policy the location policy to use when storing data to Tachyon
-   * @return the updated options object
+   * @return the location policy for CACHE type of read
    */
-  public InStreamOptions setLocationPolicy(FileWriteLocationPolicy policy) {
-    mLocationPolicy = policy;
-    return this;
-  }
-
-  /**
-   * Sets the {@link ReadType}.
-   *
-   * @param readType the {@link ReadType} for this operation. Setting this will override the
-   *                 {@link TachyonStorageType}.
-   * @return the updated options object
-   */
-  public InStreamOptions setReadType(ReadType readType) {
-    mReadType = readType;
-    return this;
+  public FileWriteLocationPolicy getLocationPolicy() {
+    return mLocationPolicy;
   }
 
   /**
@@ -94,7 +147,9 @@ public final class InStreamOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("InStreamOptions(");
-    sb.append(super.toString()).append(", ReadType: ").append(mReadType.toString());
+    sb.append(super.toString()).append(", TachyonStorageType: ")
+        .append(mTachyonStorageType.toString());
+    sb.append(", LocationPolicy: ").append(mLocationPolicy.toString());
     sb.append(")");
     return sb.toString();
   }

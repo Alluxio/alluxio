@@ -19,6 +19,7 @@ import java.net.URI;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -28,8 +29,9 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.WriteType;
-import tachyon.client.file.FileSystem;
+import tachyon.client.TachyonStorageType;
+import tachyon.client.UnderStorageType;
+import tachyon.client.file.TachyonFileSystem;
 
 /**
  * Integration tests for {@link TFS#getFileBlockLocations(FileStatus, long, long)}.
@@ -41,18 +43,19 @@ public class TFSBlockLocationIntegrationTest {
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE);
-  private static org.apache.hadoop.fs.FileSystem sTFS;
+  private static FileSystem sTFS;
 
   @BeforeClass
   public static void beforeClass() throws Exception {
     Configuration conf = new Configuration();
     conf.set("fs.tachyon.impl", TFS.class.getName());
 
-    FileSystem tachyonFS = sLocalTachyonClusterResource.get().getClient();
-    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
+    TachyonFileSystem tachyonFS = sLocalTachyonClusterResource.get().getClient();
+    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile1", TachyonStorageType.STORE,
+        UnderStorageType.SYNC_PERSIST, FILE_LEN);
 
     URI uri = URI.create(sLocalTachyonClusterResource.get().getMasterUri());
-    sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    sTFS = FileSystem.get(uri, conf);
   }
 
   /**

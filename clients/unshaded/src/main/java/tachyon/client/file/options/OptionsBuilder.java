@@ -15,33 +15,14 @@
 
 package tachyon.client.file.options;
 
-import java.util.Random;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 /**
- * Tests for the {@link GetStatusOptions} class.
+ * This interface should be implemented by all Tachyon option builders for client-side operations.
+ *
+ * @param <T> the type of the method option
  */
-public class GetStatusOptionsTest {
-  @Test
-  public void defaultsTest() {
-    GetStatusOptions options = GetStatusOptions.defaults();
-    Assert.assertFalse(options.isCheckUfs());
-  }
-
+public interface OptionsBuilder<T> {
   /**
-   * Tests getting and setting fields.
+   * @return a new instance
    */
-  @Test
-  public void fieldsTest() {
-    Random random = new Random();
-    boolean checkUfs = random.nextBoolean();
-
-    GetStatusOptions options = GetStatusOptions.defaults();
-    options.setCheckUfs(checkUfs);
-
-    Assert.assertEquals(checkUfs, options.isCheckUfs());
-  }
-
+  T build();
 }

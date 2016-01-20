@@ -20,10 +20,29 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.conf.TachyonConf;
+
 /**
  * Tests for the {@link CompleteFileOptions} class.
  */
 public class CompleteFileOptionsTest {
+
+  /**
+   * Tests that building a {@link CompleteFileOptions} works.
+   */
+  @Test
+  public void builderTest() {
+    Random random = new Random();
+    long ufsLength = random.nextLong();
+
+    CompleteFileOptions options =
+        new CompleteFileOptions.Builder(new TachyonConf())
+            .setUfsLength(ufsLength)
+            .build();
+
+    Assert.assertEquals(ufsLength, options.getUfsLength());
+  }
+
   /**
    * Tests that building a {@link CompleteFileOptions} with the defaults works.
    */
@@ -32,16 +51,5 @@ public class CompleteFileOptionsTest {
     CompleteFileOptions options = CompleteFileOptions.defaults();
 
     Assert.assertEquals(0, options.getUfsLength());
-  }
-
-  /**
-   * Tests getting and setting fields.
-   */
-  @Test
-  public void fieldsTest() {
-    long len = new Random().nextLong();
-    CompleteFileOptions options = CompleteFileOptions.defaults();
-    options.setUfsLength(len);
-    Assert.assertEquals(len, options.getUfsLength());
   }
 }

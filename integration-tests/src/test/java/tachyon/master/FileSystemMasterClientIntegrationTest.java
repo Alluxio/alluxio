@@ -24,9 +24,8 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
-import tachyon.TachyonURI;
 import tachyon.client.file.FileSystemMasterClient;
-import tachyon.client.file.options.CreateFileOptions;
+import tachyon.client.file.options.CreateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
@@ -51,17 +50,16 @@ public class FileSystemMasterClientIntegrationTest {
   public void openCloseTest() throws TachyonException, IOException {
     FileSystemMasterClient fsMasterClient = new FileSystemMasterClient(
         mLocalTachyonClusterResource.get().getMaster().getAddress(), mMasterTachyonConf);
-    TachyonURI file = new TachyonURI("/file");
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
-    fsMasterClient.createFile(file, CreateFileOptions.defaults());
-    Assert.assertNotNull(fsMasterClient.getStatus(file));
+    fsMasterClient.create("/file", CreateOptions.defaults());
+    Assert.assertTrue(fsMasterClient.getFileInfo(fsMasterClient.getFileId("/file")) != null);
     fsMasterClient.disconnect();
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
-    Assert.assertNotNull(fsMasterClient.getStatus(file));
+    Assert.assertTrue(fsMasterClient.getFileInfo(fsMasterClient.getFileId("/file")) != null);
     fsMasterClient.close();
   }
 
@@ -72,7 +70,7 @@ public class FileSystemMasterClientIntegrationTest {
     // in the cases we don't want to disconnect from master
     FileSystemMasterClient fsMasterClient = new FileSystemMasterClient(
         mLocalTachyonClusterResource.get().getMaster().getAddress(), mMasterTachyonConf);
-    fsMasterClient.getStatus(new TachyonURI("/doesNotExist"));
+    fsMasterClient.getFileInfo(Long.MAX_VALUE);
     fsMasterClient.close();
   }
 }

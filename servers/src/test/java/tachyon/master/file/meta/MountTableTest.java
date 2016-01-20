@@ -20,9 +20,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.TachyonURI;
-import tachyon.exception.ExceptionMessage;
-import tachyon.exception.FileAlreadyExistsException;
-import tachyon.exception.InvalidPathException;
 
 /**
  * Unit tests for {@link MountTable}.
@@ -46,25 +43,10 @@ public class MountTableTest {
   @Test
   public void pathTest() throws Exception {
     // Test add()
-    mMountTable.add(new TachyonURI("/mnt/foo"), new TachyonURI("/foo"));
-    mMountTable.add(new TachyonURI("/mnt/bar"), new TachyonURI("/bar"));
-
-    try {
-      mMountTable.add(new TachyonURI("/mnt/foo"), new TachyonURI("/foo2"));
-      Assert.fail("Should not be able to add a mount to an existing mount.");
-    } catch (FileAlreadyExistsException e) {
-      // Exception expected
-      Assert.assertEquals(ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage("/mnt/foo"),
-          e.getMessage());
-    }
-
-    try {
-      mMountTable.add(new TachyonURI("/mnt/bar/baz"), new TachyonURI("/baz"));
-    } catch (InvalidPathException e) {
-      // Exception expected
-      Assert.assertEquals(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage("/mnt/bar",
-          "/mnt/bar/baz"), e.getMessage());
-    }
+    Assert.assertTrue(mMountTable.add(new TachyonURI("/mnt/foo"), new TachyonURI("/foo")));
+    Assert.assertFalse(mMountTable.add(new TachyonURI("/mnt/foo"), new TachyonURI("/foo2")));
+    Assert.assertTrue(mMountTable.add(new TachyonURI("/mnt/bar"), new TachyonURI("/bar")));
+    Assert.assertFalse(mMountTable.add(new TachyonURI("/mnt/bar/baz"), new TachyonURI("/baz")));
 
     // Test resolve()
     Assert.assertEquals(new TachyonURI("/foo"), mMountTable.resolve(new TachyonURI("/mnt/foo")));
@@ -111,28 +93,14 @@ public class MountTableTest {
   @Test
   public void uriTest() throws Exception {
     // Test add()
-    mMountTable.add(new TachyonURI("tachyon://localhost:1234/mnt/foo"), new TachyonURI(
-        "hdfs://localhost:5678/foo"));
-    mMountTable.add(new TachyonURI("tachyon://localhost:1234/mnt/bar"), new TachyonURI(
-        "hdfs://localhost:5678/bar"));
-
-    try {
-      mMountTable.add(new TachyonURI("tachyon://localhost:1234/mnt/foo"), new TachyonURI(
-          "hdfs://localhost:5678/foo2"));
-    } catch (FileAlreadyExistsException e) {
-      // Exception expected
-      Assert.assertEquals(ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage("/mnt/foo"),
-          e.getMessage());
-    }
-
-    try {
-      mMountTable.add(new TachyonURI("tachyon://localhost:1234/mnt/bar/baz"), new TachyonURI(
-          "hdfs://localhost:5678/baz"));
-    } catch (InvalidPathException e) {
-      Assert.assertEquals(
-          ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage("/mnt/bar", "/mnt/bar/baz"),
-          e.getMessage());
-    }
+    Assert.assertTrue(mMountTable.add(new TachyonURI("tachyon://localhost:1234/mnt/foo"),
+        new TachyonURI("hdfs://localhost:5678/foo")));
+    Assert.assertFalse(mMountTable.add(new TachyonURI("tachyon://localhost:1234/mnt/foo"),
+        new TachyonURI("hdfs://localhost:5678/foo2")));
+    Assert.assertTrue(mMountTable.add(new TachyonURI("tachyon://localhost:1234/mnt/bar"),
+        new TachyonURI("hdfs://localhost:5678/bar")));
+    Assert.assertFalse(mMountTable.add(new TachyonURI("tachyon://localhost:1234/mnt/bar/baz"),
+        new TachyonURI("hdfs://localhost:5678/baz")));
 
     // Test resolve()
     Assert.assertEquals(new TachyonURI("hdfs://localhost:5678/foo"),

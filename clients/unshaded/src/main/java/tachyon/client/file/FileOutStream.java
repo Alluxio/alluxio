@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.ClientUtils;
@@ -40,6 +39,7 @@ import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.NetAddress;
@@ -70,17 +70,17 @@ public class FileOutStream extends OutStreamBase {
   protected BufferedBlockOutStream mCurrentBlockOutStream;
   protected List<BufferedBlockOutStream> mPreviousBlockOutStreams;
 
-  protected final TachyonURI mUri;
+  protected final long mFileId;
 
   /**
    * Creates a new file output stream.
    *
-   * @param path the file path
+   * @param fileId the file id
    * @param options the client options
    * @throws IOException if an I/O error occurs
    */
-  public FileOutStream(TachyonURI path, OutStreamOptions options) throws IOException {
-    mUri = path;
+  public FileOutStream(long fileId, OutStreamOptions options) throws IOException {
+    mFileId = fileId;
     mNonce = ClientUtils.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();
@@ -89,7 +89,7 @@ public class FileOutStream extends OutStreamBase {
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
     if (mUnderStorageType.isSyncPersist()) {
       updateUfsPath();
-      String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
+      String tmpPath = PathUtils.temporaryFileName(fileId, mNonce, mUfsPath);
       UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
       // TODO(jiri): Implement collection of temporary files left behind by dead clients.
       mUnderStorageOutputStream = ufs.create(tmpPath, (int) mBlockSize);
@@ -121,9 +121,9 @@ public class FileOutStream extends OutStreamBase {
     }
 
     Boolean canComplete = false;
-    CompleteFileOptions options = CompleteFileOptions.defaults();
+    CompleteFileOptions.Builder builder = new CompleteFileOptions.Builder(ClientContext.getConf());
     if (mUnderStorageType.isSyncPersist()) {
-      String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
+      String tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
       UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
       if (mCanceled) {
         // TODO(yupeng): Handle this special case in under storage integrations.
@@ -131,7 +131,7 @@ public class FileOutStream extends OutStreamBase {
         if (!ufs.exists(tmpPath)) {
           // Location of the temporary file has changed, recompute it.
           updateUfsPath();
-          tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
+          tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
         }
         ufs.delete(tmpPath, false);
       } else {
@@ -140,12 +140,12 @@ public class FileOutStream extends OutStreamBase {
         if (!ufs.exists(tmpPath)) {
           // Location of the temporary file has changed, recompute it.
           updateUfsPath();
-          tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
+          tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
         }
         if (!ufs.rename(tmpPath, mUfsPath)) {
           throw new IOException("Failed to rename " + tmpPath + " to " + mUfsPath);
         }
-        options.setUfsLength(ufs.getFileSize(mUfsPath));
+        builder.setUfsLength(ufs.getFileSize(mUfsPath));
         canComplete = true;
       }
     }
@@ -170,7 +170,7 @@ public class FileOutStream extends OutStreamBase {
     if (canComplete) {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
-        masterClient.completeFile(mUri, options);
+        masterClient.completeFile(mFileId, builder.build());
       } catch (TachyonException e) {
         throw new IOException(e);
       } finally {
@@ -277,7 +277,7 @@ public class FileOutStream extends OutStreamBase {
   private long getNextBlockId() throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.getNewBlockIdForFile(mUri);
+      return masterClient.getNewBlockIdForFile(mFileId);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
@@ -300,8 +300,8 @@ public class FileOutStream extends OutStreamBase {
   private void updateUfsPath() throws IOException {
     FileSystemMasterClient client = mContext.acquireMasterClient();
     try {
-      URIStatus status = client.getStatus(mUri);
-      mUfsPath = status.getUfsPath();
+      FileInfo fileInfo = client.getFileInfo(mFileId);
+      mUfsPath = fileInfo.getUfsPath();
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
@@ -317,7 +317,7 @@ public class FileOutStream extends OutStreamBase {
   protected void scheduleAsyncPersist() throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      masterClient.scheduleAsyncPersist(mUri);
+      masterClient.scheduleAsyncPersist(mFileId);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
