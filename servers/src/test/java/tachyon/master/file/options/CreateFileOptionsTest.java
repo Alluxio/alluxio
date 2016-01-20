@@ -30,7 +30,7 @@ import tachyon.master.MasterContext;
 public class CreateFileOptionsTest {
 
   /**
-   * Tests the {@link tachyon.master.file.options.CreateFileOptions.Builder}.
+   * Tests the {@link CreateFileOptions.Builder}.
    */
   @Test
   public void builderTest() {

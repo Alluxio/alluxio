@@ -27,7 +27,7 @@ import tachyon.conf.TachyonConf;
  */
 public class CreateDirectoryOptionsTest {
   /**
-   * Tests the {@link tachyon.master.file.options.CreateDirectoryOptions.Builder}.
+   * Tests the {@link CreateDirectoryOptions.Builder}.
    */
   @Test
   public void builderTest() {
