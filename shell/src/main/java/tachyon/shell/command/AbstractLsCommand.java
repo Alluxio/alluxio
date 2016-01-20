@@ -56,7 +56,7 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
         }
       }
       System.out.format(Constants.COMMAND_FORMAT_LS,
-          CommandUtils.formatPermission(status.getPermission(), status.isFolder()),
+          FormatUtils.formatPermission((short) status.getPermission(), status.isFolder()),
           status.getUserName(), status.getGroupName(),
           FormatUtils.getSizeFromBytes(status.getLength()),
           CommandUtils.convertMsToDate(status.getCreationTimeMs()), inMemory, status.getPath());
