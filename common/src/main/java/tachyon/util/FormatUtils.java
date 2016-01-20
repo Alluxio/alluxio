@@ -171,7 +171,7 @@ public final class FormatUtils {
    * Formats file permission to human-readable version.
    *
    * @param permission file permission
-   * @param isDirectory if the path is folder
+   * @param isDirectory if the path is a directory
    * @return human-readable version of permission
    */
   public static String formatPermission(short permission, boolean isDirectory) {
