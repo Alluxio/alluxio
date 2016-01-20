@@ -19,6 +19,8 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.RecordReader;
 
@@ -32,6 +34,7 @@ import tachyon.util.io.BufferUtils;
  * Implements {@link RecordReader}, each record is a key-value pair stored in a partition of the
  * {@link tachyon.client.keyvalue.KeyValueStores}.
  */
+@ThreadSafe
 final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWritable> {
   /** The partition reader for reading the key-value pairs */
   private final KeyValuePartitionReader mReader;
@@ -60,7 +63,7 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
   }
 
   @Override
-  public boolean next(BytesWritable keyWritable, BytesWritable valueWritable) throws IOException {
+  public synchronized boolean next(BytesWritable keyWritable, BytesWritable valueWritable) throws IOException {
     if (!mKeyValuePairIterator.hasNext()) {
       return false;
     }
@@ -111,17 +114,17 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
    * @return total bytes of key-value pairs read so far, as an approximation for all read bytes
    */
   @Override
-  public long getPos() throws IOException {
+  public synchronized long getPos() throws IOException {
     return mKeyValuePairsBytesRead;
   }
 
   @Override
-  public void close() throws IOException {
+  public synchronized void close() throws IOException {
     mReader.close();
   }
 
   @Override
-  public float getProgress() throws IOException {
+  public synchronized float getProgress() throws IOException {
     if (mNumKeyValuePairs == 0) {
       return 1.0f;
     }
