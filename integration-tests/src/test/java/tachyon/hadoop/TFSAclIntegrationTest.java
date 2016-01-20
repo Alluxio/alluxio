@@ -86,9 +86,8 @@ public final class TFSAclIntegrationTest {
 
     create(sTFS, fileA);
     FileStatus fs = sTFS.getFileStatus(fileA);
-    short permission = fs.getPermission().toShort();
     // Default permission should be 0644
-    Assert.assertEquals((short) 0644, permission);
+    Assert.assertEquals((short) 0644, fs.getPermission().toShort());
 
     sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0755));
     Assert.assertEquals((short) 0755, sTFS.getFileStatus(fileA).getPermission().toShort());
@@ -170,5 +169,26 @@ public final class TFSAclIntegrationTest {
     fs = sTFS.getFileStatus(fileC);
     Assert.assertEquals(newOwner, fs.getOwner());
     Assert.assertEquals(newGroup, fs.getGroup());
+  }
+
+  /**
+   * Test for {@link TFS#setOwner(Path, String, String)}. It will test both owner and group are
+   * null.
+   */
+  @Test
+  public void checkNullOwnerAndGroupTest() throws Exception {
+    Path fileD = new Path("/chownfileD");
+
+    create(sTFS, fileD);
+
+    FileStatus fs = sTFS.getFileStatus(fileD);
+    String defaultOwner = fs.getOwner();
+    String defaultGroup = fs.getGroup();
+
+    sTFS.setOwner(fileD, null, null);
+
+    fs = sTFS.getFileStatus(fileD);
+    Assert.assertEquals(defaultOwner, fs.getOwner());
+    Assert.assertEquals(defaultGroup, fs.getGroup());
   }
 }
