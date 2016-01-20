@@ -55,6 +55,9 @@ import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.KeyValue.CompletePartitionEntry;
+import tachyon.proto.journal.KeyValue.CompleteStoreEntry;
+import tachyon.proto.journal.KeyValue.CreateStoreEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
@@ -77,6 +80,7 @@ public abstract class JournalFormatterTestBase {
   protected static final String TEST_FILE_NAME = "journalFormatter.test";
   protected static final long TEST_LENGTH_BYTES = 256L;
   protected static final long TEST_BLOCK_SIZE_BYTES = 256L;
+  protected static final long TEST_TABLE_ID = 2L;
   protected static final long TEST_OP_TIME_MS = 1409349750338L;
   protected static final long TEST_SEQUENCE_NUMBER = 1945L;
   protected static final TachyonURI TEST_TACHYON_PATH = new TachyonURI("/test/path");
@@ -87,6 +91,8 @@ public abstract class JournalFormatterTestBase {
   protected static final PermissionStatus TEST_PERMISSION_STATUS =
       new PermissionStatus("user1", "group1", (short)0777);
   protected static final String TEST_PERSISTED_STATE = "PERSISTED";
+  protected static final String TEST_KEY1 = "test_key1";
+  protected static final String TEST_KEY2 = "test_key2";
 
   protected JournalFormatter mFormatter = getFormatter();
   protected OutputStream mOs;
@@ -99,16 +105,16 @@ public abstract class JournalFormatterTestBase {
     List<JournalEntry> entries = ImmutableList.<JournalEntry>builder()
         .add(
             JournalEntry.newBuilder()
-            .setBlockContainerIdGenerator(
-                BlockContainerIdGeneratorEntry.newBuilder()
-                .setNextContainerId(TEST_CONTAINER_ID))
-            .build())
+                .setBlockContainerIdGenerator(
+                    BlockContainerIdGeneratorEntry.newBuilder()
+                        .setNextContainerId(TEST_CONTAINER_ID))
+                .build())
         .add(
             JournalEntry.newBuilder()
-            .setBlockInfo(BlockInfoEntry.newBuilder()
-                .setBlockId(TEST_BLOCK_ID)
-                .setLength(TEST_LENGTH_BYTES))
-            .build())
+                .setBlockInfo(BlockInfoEntry.newBuilder()
+                    .setBlockId(TEST_BLOCK_ID)
+                    .setLength(TEST_LENGTH_BYTES))
+                .build())
         .add(JournalEntry.newBuilder()
             .setInodeFile(InodeFileEntry.newBuilder()
                 .setCreationTimeMs(TEST_OP_TIME_MS)
@@ -154,12 +160,12 @@ public abstract class JournalFormatterTestBase {
             .build())
         .add(
             JournalEntry.newBuilder()
-            .setCompleteFile(CompleteFileEntry.newBuilder()
-                .addAllBlockIds(Arrays.asList(1L, 2L, 3L))
-                .setId(TEST_FILE_ID)
-                .setLength(TEST_LENGTH_BYTES)
-                .setOpTimeMs(TEST_OP_TIME_MS))
-            .build())
+                .setCompleteFile(CompleteFileEntry.newBuilder()
+                    .addAllBlockIds(Arrays.asList(1L, 2L, 3L))
+                    .setId(TEST_FILE_ID)
+                    .setLength(TEST_LENGTH_BYTES)
+                    .setOpTimeMs(TEST_OP_TIME_MS))
+                .build())
         .add(JournalEntry.newBuilder()
             .setDeleteFile(DeleteFileEntry.newBuilder()
                 .setId(TEST_FILE_ID)
@@ -184,9 +190,9 @@ public abstract class JournalFormatterTestBase {
             .build())
         .add(
             JournalEntry.newBuilder()
-            .setDeleteMountPoint(DeleteMountPointEntry.newBuilder()
-                .setTachyonPath(TEST_TACHYON_PATH.toString()))
-            .build())
+                .setDeleteMountPoint(DeleteMountPointEntry.newBuilder()
+                    .setTachyonPath(TEST_TACHYON_PATH.toString()))
+                .build())
         .add(JournalEntry.newBuilder()
             .setReinitializeFile(ReinitializeFileEntry.newBuilder()
                 .setPath(TEST_FILE_NAME)
@@ -195,10 +201,10 @@ public abstract class JournalFormatterTestBase {
             .build())
         .add(
             JournalEntry.newBuilder()
-            .setDeleteLineage(DeleteLineageEntry.newBuilder()
-                .setLineageId(TEST_LINEAGE_ID)
-                .setCascade(false))
-            .build())
+                .setDeleteLineage(DeleteLineageEntry.newBuilder()
+                    .setLineageId(TEST_LINEAGE_ID)
+                    .setCascade(false))
+                .build())
         .add(JournalEntry.newBuilder()
             .setLineage(LineageEntry.newBuilder()
                 .setId(TEST_LINEAGE_ID)
@@ -210,22 +216,40 @@ public abstract class JournalFormatterTestBase {
             .build())
         .add(
             JournalEntry.newBuilder()
-            .setLineageIdGenerator(LineageIdGeneratorEntry.newBuilder()
-                .setSequenceNumber(TEST_SEQUENCE_NUMBER))
-            .build())
+                .setLineageIdGenerator(LineageIdGeneratorEntry.newBuilder()
+                    .setSequenceNumber(TEST_SEQUENCE_NUMBER))
+                .build())
         .add(JournalEntry.newBuilder()
             .setAsyncPersistRequest(AsyncPersistRequestEntry.newBuilder()
                 .setFileId(1L))
             .build())
         .add(
             JournalEntry.newBuilder()
-            .setSetState(SetStateEntry.newBuilder()
-                .setId(TEST_FILE_ID)
-                .setOpTimeMs(TEST_OP_TIME_MS)
-                .setPinned(true)
-                .setPersisted(true)
-                .setTtl(TEST_TTL))
-            .build())
+                .setSetState(SetStateEntry.newBuilder()
+                    .setId(TEST_FILE_ID)
+                    .setOpTimeMs(TEST_OP_TIME_MS)
+                    .setPinned(true)
+                    .setPersisted(true)
+                    .setTtl(TEST_TTL))
+                .build())
+        .add(
+            JournalEntry.newBuilder()
+                .setCompletePartition(CompletePartitionEntry.newBuilder()
+                    .setStoreId(TEST_FILE_ID)
+                    .setBlockId(TEST_BLOCK_ID)
+                    .setKeyLimit(TEST_KEY1)
+                    .setKeyStart(TEST_KEY2))
+                .build())
+        .add(
+            JournalEntry.newBuilder()
+                .setCreateStore(CreateStoreEntry.newBuilder()
+                    .setStoreId(TEST_FILE_ID))
+                .build())
+        .add(
+            JournalEntry.newBuilder()
+                .setCompleteStore(CompleteStoreEntry.newBuilder()
+                    .setStoreId(TEST_FILE_ID))
+                .build())
         .build();
     // Add the test sequence number to every journal entry
     ENTRIES_LIST = Lists.transform(entries, new Function<JournalEntry, JournalEntry>() {
