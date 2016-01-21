@@ -269,11 +269,7 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     executeTtlCheckOnce();
     // Since no valid TTL is set, the file should not be deleted.
-<<<<<<< HEAD
-    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
-=======
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).fileId);
->>>>>>> tachyon/master
 
     mFileSystemMaster.setState(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(0));
     executeTtlCheckOnce();
@@ -296,11 +292,7 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     executeTtlCheckOnce();
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
-<<<<<<< HEAD
-    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
-=======
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).fileId);
->>>>>>> tachyon/master
 
     mFileSystemMaster.setState(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(0));
     executeTtlCheckOnce();
@@ -320,11 +312,7 @@ public final class FileSystemMasterTest {
         new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).setTtl(0).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
-<<<<<<< HEAD
-    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
-=======
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).fileId);
->>>>>>> tachyon/master
 
     mFileSystemMaster.setState(NESTED_FILE_URI,
         SetAttributeOptions.defaults().setTtl(Constants.HOUR_MS));
@@ -360,30 +348,6 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setStateTest() throws Exception {
-<<<<<<< HEAD
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertFalse(fileInfo.isPinned());
-    Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-
-    // No State.
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().build());
-    fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertFalse(fileInfo.isPinned());
-    Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-
-    // Just set pinned flag.
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPinned(true).build());
-    fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertTrue(fileInfo.isPinned());
-    Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-
-    // Both pinned flag and ttl value.
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPinned(false).setTtl(1)
-        .build());
-    fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertFalse(fileInfo.isPinned());
-=======
     mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertFalse(fileInfo.isPinned);
@@ -406,7 +370,6 @@ public final class FileSystemMasterTest {
         .setTtl(1));
     fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertFalse(fileInfo.isPinned);
->>>>>>> tachyon/master
     Assert.assertEquals(1, fileInfo.getTtl());
 
     // Set ttl for a directory, raise IllegalArgumentException.
