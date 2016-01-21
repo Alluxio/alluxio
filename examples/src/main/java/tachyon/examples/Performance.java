@@ -44,6 +44,9 @@ import tachyon.exception.TachyonException;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 
+/**
+ * Example to show the performance of Tachyon.
+ */
 public class Performance {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -65,6 +68,12 @@ public class Performance {
   private static int sBaseFileNumber = 0;
   private static boolean sTachyonStreamingRead = false;
 
+  /**
+   * Creates the files for this example.
+   *
+   * @throws TachyonException if creating a file fails
+   * @throws IOException if a non-Tachyon related exception occurs
+   */
   public static void createFiles() throws TachyonException, IOException {
     final long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < sFiles; k ++) {
@@ -75,18 +84,35 @@ public class Performance {
     }
   }
 
+  /**
+   * Write log information.
+   *
+   * @param startTimeMs the start time in milliseconds
+   * @param times the number of the iteration
+   * @param msg the message
+   * @param workerId the id of the worker
+   */
   public static void logPerIteration(long startTimeMs, int times, String msg, int workerId) {
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
     double result = 1000.0 * sFileBytes / takenTimeMs / 1024 / 1024;
     LOG.info(times + msg + workerId + " : " + result + " Mb/sec. Took " + takenTimeMs + " ms. ");
   }
 
+  /**
+   * Base class for workers used in this example.
+   */
   public abstract static class Worker extends Thread {
     protected int mWorkerId;
     protected int mLeft;
     protected int mRight;
     protected ByteBuffer mBuf;
 
+    /**
+     * @param id the id of the worker
+     * @param left the id of the worker on the left
+     * @param right the id of the worker on the right
+     * @param buf the buffer used by the worker
+     */
     public Worker(int id, int left, int right, ByteBuffer buf) {
       mWorkerId = id;
       mLeft = left;
@@ -95,11 +121,23 @@ public class Performance {
     }
   }
 
+  /**
+   * A general worker.
+   */
   public static class GeneralWorker extends Worker {
     private boolean mOneToMany;
     private boolean mMemoryOnly;
     private String mMsg;
 
+    /**
+     * @param id the id of the worker
+     * @param left the id of the worker on the left
+     * @param right the id of the worker on the right
+     * @param buf the buffered used by the worker
+     * @param oneToMany true if the message should be written, false if it should be read
+     * @param memoryOnly true if the data should reside in memory, false otherwise
+     * @param msg the message to use
+     */
     public GeneralWorker(int id, int left, int right, ByteBuffer buf, boolean oneToMany,
         boolean memoryOnly, String msg) {
       super(id, left, right, buf);
@@ -108,6 +146,11 @@ public class Performance {
       mMsg = msg;
     }
 
+    /**
+     * Copies a partition in memory.
+     *
+     * @throws IOException if a non-Tachyon related exception occurs
+     */
     public void memoryCopyPartition() throws IOException {
       if (sDebugMode) {
         mBuf.flip();
@@ -180,14 +223,30 @@ public class Performance {
     }
   }
 
+  /**
+   * A worker in Tachyon for write operations.
+   */
   public static class TachyonWriterWorker extends Worker {
     private TachyonFileSystem mTFS;
 
+    /**
+     * @param id the id of the worker
+     * @param left the id of the worker on the left
+     * @param right the id of the worker on the right
+     * @param buf the buffer to write
+     * @throws IOException if a non-Tachyon related exception occurs
+     */
     public TachyonWriterWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
       mTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
     }
 
+    /**
+     * Writes a partition.
+     *
+     * @throws IOException if a non-Tachyon related exception occurs
+     * @throws TachyonException if the write stream cannot be retrieved
+     */
     public void writePartition()
             throws IOException, TachyonException {
       if (sDebugMode) {
@@ -219,14 +278,30 @@ public class Performance {
     }
   }
 
+  /**
+   * A worker in Tachyon for read operations.
+   */
   public static class TachyonReadWorker extends Worker {
     private TachyonFileSystem mTFS;
 
+    /**
+     * @param id the id of the worker
+     * @param left the id of the worker on the left
+     * @param right the id of the worker on the right
+     * @param buf the buffer to read
+     * @throws IOException if a non-Tachyon related exception occurs
+     */
     public TachyonReadWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
       mTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
     }
 
+    /**
+     * Reads a partition.
+     *
+     * @throws IOException if a non-Tachyon related exception occurs
+     * @throws TachyonException if the file cannot be opened or the stream cannot be retrieved
+     */
     public void readPartition()
             throws IOException, TachyonException {
       if (sDebugMode) {
@@ -302,11 +377,23 @@ public class Performance {
     }
   }
 
+  /**
+   * A worker for HDFS.
+   */
   public static class HdfsWorker extends Worker {
     private boolean mWrite;
     private String mMsg;
     private FileSystem mHdfsFs;
 
+    /**
+     * @param id the id of the worker
+     * @param left the id of the worker on the left
+     * @param right the id of the worker on the right
+     * @param buf the buffer
+     * @param write indicates if data is written to HDFS
+     * @param msg the message to write
+     * @throws IOException if a non-Tachyon related exception occurs
+     */
     public HdfsWorker(int id, int left, int right, ByteBuffer buf, boolean write, String msg)
         throws IOException {
       super(id, left, right, buf);
@@ -330,6 +417,11 @@ public class Performance {
       mHdfsFs = FileSystem.get(tConf);
     }
 
+    /**
+     * Creates IO utilization.
+     *
+     * @throws IOException if a non-Tachyon related exception occurs
+     */
     public void io() throws IOException {
       if (sDebugMode) {
         mBuf.flip();
@@ -498,6 +590,15 @@ public class Performance {
         + " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
+  /**
+   * Usage:
+   * {@code java -cp <TACHYON-VERSION> tachyon.examples.Performance <MasterIp> <FileNamePrefix>
+   * <WriteBlockSizeInBytes> <BlocksPerFile> <DebugMode:true/false> <Threads> <FilesPerThread>
+   * <TestCaseNumber> <BaseFileNumber>}
+   *
+   * @param args the arguments for this example
+   * @throws Exception if the example fails
+   */
   public static void main(String[] args) throws Exception {
     if (args.length != 9) {
       System.out.println("java -cp " + Version.TACHYON_JAR

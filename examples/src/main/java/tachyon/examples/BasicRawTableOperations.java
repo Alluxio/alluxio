@@ -38,6 +38,9 @@ import tachyon.client.table.RawTable;
 import tachyon.client.table.TachyonRawTables;
 import tachyon.exception.TachyonException;
 
+/**
+ * Example to show the basic raw table operations.
+ */
 public class BasicRawTableOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -50,6 +53,12 @@ public class BasicRawTableOperations implements Callable<Boolean> {
   private final int mDataLength = 20;
   private final int mMetadataLength = 5;
 
+  /**
+   * @param masterAddress address of the master
+   * @param tablePath the path to the table
+   * @param readType the {@link ReadType}
+   * @param writeType the {@link WriteType}
+   */
   public BasicRawTableOperations(TachyonURI masterAddress, TachyonURI tablePath,
       ReadType readType, WriteType writeType) {
     mMasterAddress = masterAddress;
@@ -126,7 +135,15 @@ public class BasicRawTableOperations implements Callable<Boolean> {
     }
   }
 
-  public static void main(String[] args) throws IllegalArgumentException {
+  /**
+   * Usage:
+   * {@code java -cp <TACHYON-VERSION> BasicRawTableOperations <master address> <file path>
+   * <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)>
+   * <WriteType (MUST_CACHE | CACHE_THROUGH | THROUGH)>}
+   *
+   * @param args the arguments for this example
+   */
+  public static void main(String[] args) {
     if (args.length != 4) {
       System.out.println("java -cp " + Version.TACHYON_JAR + " "
           + BasicRawTableOperations.class.getName() + " <master address> <file path> "
