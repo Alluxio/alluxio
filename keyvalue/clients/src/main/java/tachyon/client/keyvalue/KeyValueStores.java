@@ -79,4 +79,12 @@ public interface KeyValueStores {
    */
   void delete(TachyonURI uri) throws IOException, IsNotKeyValueStoreException,
       FileDoesNotExistException, TachyonException;
+
+  /**
+   * Merges one completed key-value store to another completed key-value store.
+   *
+   * @param fromUri the {@link TachyonURI} to the store to be merged
+   * @param toUri the {@link TachyonURI} to the store to be merged to
+   */
+  void merge(TachyonURI fromUri, TachyonURI toUri) throws IOException, TachyonException;
 }

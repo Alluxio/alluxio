@@ -54,4 +54,9 @@ public class BaseKeyValueStores implements KeyValueStores {
       FileDoesNotExistException, TachyonException {
     mMasterClient.deleteStore(uri);
   }
+
+  @Override
+  public void merge(TachyonURI fromUri, TachyonURI toUri) throws IOException, TachyonException {
+    mMasterClient.mergeStore(fromUri, toUri);
+  }
 }
