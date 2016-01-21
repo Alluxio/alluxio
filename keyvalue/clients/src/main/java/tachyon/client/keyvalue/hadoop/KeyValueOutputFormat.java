@@ -53,7 +53,7 @@ public class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, BytesW
     KeyValueStores kvStore = KeyValueStores.Factory.create();
     try {
       KeyValueStoreWriter writer = kvStore.create(new TachyonURI(outputPath.toString()));
-      return new KeyValueRecordWriter(writer);
+      return new KeyValueRecordWriter(writer, progress);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -62,8 +62,7 @@ public class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, BytesW
   /**
    * {@inheritDoc}
    * <p>
-   * {@link KeyValueOutputCommitter} is forced to be used to mergeAndDelete key-value stores created
-   * by each Reducer into one key-value store under the MapReduce output directory.
+   * {@link KeyValueOutputCommitter} is forced to be used.
    * <p>
    * NOTE: This method is called immediately when job is submitted, so that modifications to the
    * {@link JobConf} are reflected in the whole job.
