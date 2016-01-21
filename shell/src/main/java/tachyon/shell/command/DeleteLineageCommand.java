@@ -17,7 +17,7 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.lineage.TachyonLineage;
 import tachyon.client.lineage.options.DeleteLineageOptions;
 import tachyon.conf.TachyonConf;
@@ -31,7 +31,7 @@ public final class DeleteLineageCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public DeleteLineageCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public DeleteLineageCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -50,8 +50,7 @@ public final class DeleteLineageCommand extends AbstractTfsShellCommand {
     TachyonLineage tl = TachyonLineage.get();
     long lineageId = Long.parseLong(args[0]);
     boolean cascade = Boolean.parseBoolean(args[1]);
-    DeleteLineageOptions options =
-        new DeleteLineageOptions.Builder(new TachyonConf()).setCascade(cascade).build();
+    DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(cascade);
     try {
       tl.deleteLineage(lineageId, options);
     } catch (Exception e) {
