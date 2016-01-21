@@ -18,9 +18,10 @@ package tachyon.util.io;
 import java.io.File;
 import java.io.IOException;
 
-import com.google.common.io.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.io.Files;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -79,7 +80,7 @@ public final class FileUtils {
         Runtime.getRuntime().exec("chmod +t " + dir);
       }
     } catch (IOException e) {
-      LOG.info("Can not set the sticky bit of the directory: {}", dir);
+      LOG.info("Can not set the sticky bit of the directory: {}", dir, e);
     }
   }
 
@@ -95,9 +96,10 @@ public final class FileUtils {
     try {
       createStorageDirPath(PathUtils.getParent(path));
     } catch (InvalidPathException e) {
-      throw new IOException("Failed to create block path, get parent path of " + path + "failed");
-    } catch (IOException ioe) {
-      throw new IOException("Failed to create block path " + path);
+      throw new IOException("Failed to create block path, get parent path of " + path + "failed",
+          e);
+    } catch (IOException e) {
+      throw new IOException("Failed to create block path " + path, e);
     }
   }
 

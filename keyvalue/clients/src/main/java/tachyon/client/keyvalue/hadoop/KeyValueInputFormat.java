@@ -71,8 +71,8 @@ public final class KeyValueInputFormat implements InputFormat {
           splits.add(new KeyValueInputSplit(partitionInfo));
         }
       }
-    } catch (TachyonException te) {
-      throw new IOException(te);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     }
     InputSplit[] ret = new InputSplit[splits.size()];
     return splits.toArray(ret);
@@ -84,8 +84,8 @@ public final class KeyValueInputFormat implements InputFormat {
     if (inputSplit instanceof KeyValueInputSplit) {
       try {
         return new KeyValueRecordReader((KeyValueInputSplit) inputSplit);
-      } catch (TachyonException te) {
-        throw new IOException(te);
+      } catch (TachyonException e) {
+        throw new IOException(e);
       }
     } else {
       throw new IOException("Expected InputSplit to be instance of KeyValueInputSplit.");

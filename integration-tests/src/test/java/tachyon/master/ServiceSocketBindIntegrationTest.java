@@ -215,7 +215,7 @@ public class ServiceSocketBindIntegrationTest {
     try {
       mBlockWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient("127.0.0.1");
       Assert.fail("Client should not have successfully connected to Worker RPC service.");
-    } catch (RuntimeException rte) {
+    } catch (RuntimeException e) {
       // This is expected, since Work RPC service is NOT listening on loopback.
     }
 
@@ -226,7 +226,7 @@ public class ServiceSocketBindIntegrationTest {
       mWorkerDataService = SocketChannel.open(workerDataAddr);
       Assert.assertTrue(mWorkerDataService.isConnected());
       Assert.fail("Client should not have successfully connected to Worker RPC service.");
-    } catch (IOException ie) {
+    } catch (IOException e) {
       // This is expected, since Worker data service is NOT listening on loopback.
     }
 
@@ -237,7 +237,7 @@ public class ServiceSocketBindIntegrationTest {
           .openConnection();
       Assert.assertEquals(200, mMasterWebService.getResponseCode());
       Assert.fail("Client should not have successfully connected to Master Web service.");
-    } catch (IOException ie) {
+    } catch (IOException e) {
       // This is expected, since Master Web service is NOT listening on loopback.
     } finally {
       Assert.assertNotNull(mMasterWebService);
@@ -251,7 +251,7 @@ public class ServiceSocketBindIntegrationTest {
               .openConnection();
       Assert.assertEquals(200, mWorkerWebService.getResponseCode());
       Assert.fail("Client should not have successfully connected to Worker Web service.");
-    } catch (IOException ie) {
+    } catch (IOException e) {
       // This is expected, since Worker Web service is NOT listening on loopback.
     } finally {
       mWorkerWebService.disconnect();

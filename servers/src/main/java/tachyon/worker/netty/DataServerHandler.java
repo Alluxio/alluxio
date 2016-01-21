@@ -115,10 +115,10 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     BlockReader reader;
     try {
       reader = mDataManager.readBlockRemote(sessionId, blockId, lockId);
-    } catch (BlockDoesNotExistException nfe) {
-      throw new IOException(nfe);
-    } catch (InvalidWorkerStateException fpe) {
-      throw new IOException(fpe);
+    } catch (BlockDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (InvalidWorkerStateException e) {
+      throw new IOException(e);
     }
     try {
       req.validate();
