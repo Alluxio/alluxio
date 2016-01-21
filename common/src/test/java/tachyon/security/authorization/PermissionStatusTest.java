@@ -99,11 +99,10 @@ public final class PermissionStatusTest {
 
     // authentication is enabled, and remote is false
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
+    conf.set(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
     permissionStatus = PermissionStatus.get(conf, false);
     verifyPermissionStatus("test_login_user", "test_login_user", (short) 0755, permissionStatus);
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
   /**
@@ -137,11 +136,10 @@ public final class PermissionStatusTest {
 
     // authentication is enabled, and remote is false
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
+    conf.set(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
     permissionStatus = PermissionStatus.get(conf, false);
     verifyPermissionStatus("test_login_user", "group1", (short) 0755, permissionStatus);
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
   private void verifyPermissionStatus(String user, String group, short permission,

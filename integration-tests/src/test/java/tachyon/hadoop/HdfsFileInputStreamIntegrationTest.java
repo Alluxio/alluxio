@@ -34,13 +34,11 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.WriteType;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -55,7 +53,7 @@ public class HdfsFileInputStreamIntegrationTest {
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES, Constants.MB);
-  private static TachyonFileSystem sTachyonFileSystem = null;
+  private static FileSystem sFileSystem = null;
   private HdfsFileInputStream mInMemInputStream;
   private HdfsFileInputStream mUfsInputStream;
 
@@ -64,11 +62,9 @@ public class HdfsFileInputStreamIntegrationTest {
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sTachyonFileSystem = sLocalTachyonClusterResource.get().getClient();
-    TachyonFSTestUtils.createByteFile(sTachyonFileSystem, "/testFile1", TachyonStorageType.STORE,
-        UnderStorageType.SYNC_PERSIST, FILE_LEN);
-    TachyonFSTestUtils.createByteFile(sTachyonFileSystem, "/testFile2", TachyonStorageType.NO_STORE,
-        UnderStorageType.SYNC_PERSIST, FILE_LEN);
+    sFileSystem = sLocalTachyonClusterResource.get().getClient();
+    TachyonFSTestUtils.createByteFile(sFileSystem, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
+    TachyonFSTestUtils.createByteFile(sFileSystem, "/testFile2", WriteType.THROUGH, FILE_LEN);
   }
 
   @After
@@ -79,15 +75,15 @@ public class HdfsFileInputStreamIntegrationTest {
 
   @Before
   public final void before() throws IOException, TachyonException {
-    TachyonFile file1 = sTachyonFileSystem.open(new TachyonURI("/testFile1"));
-    FileInfo fileInfo1 = sTachyonFileSystem.getInfo(file1);
-    mInMemInputStream = new HdfsFileInputStream(fileInfo1.getFileId(),
-        new Path(fileInfo1.getUfsPath()), new Configuration(), BUFFER_SIZE, null);
+    TachyonURI file1 = new TachyonURI("/testFile1");
+    URIStatus fileStatus1 = sFileSystem.getStatus(file1);
+    mInMemInputStream = new HdfsFileInputStream(file1, new Path(fileStatus1.getUfsPath()),
+        new Configuration(), BUFFER_SIZE, null);
 
-    TachyonFile file2 = sTachyonFileSystem.open(new TachyonURI("/testFile2"));
-    FileInfo fileInfo2 = sTachyonFileSystem.getInfo(file2);
-    mUfsInputStream = new HdfsFileInputStream(fileInfo2.getFileId(),
-        new Path(fileInfo2.getUfsPath()), new Configuration(), BUFFER_SIZE, null);
+    TachyonURI file2 = new TachyonURI("/testFile2");
+    URIStatus fileStatus2 = sFileSystem.getStatus(file2);
+    mUfsInputStream = new HdfsFileInputStream(file2, new Path(fileStatus2.getUfsPath()),
+        new Configuration(), BUFFER_SIZE, null);
   }
 
   /**

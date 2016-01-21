@@ -26,13 +26,13 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
+import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.StreamOptionUtils;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.options.CreateFileOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.PathUtils;
 
@@ -47,15 +47,15 @@ public final class FileInStreamConcurrencyIntegrationTest {
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE);
-  private static TachyonFileSystem sTfs = null;
+  private static FileSystem sTfs = null;
   private static TachyonConf sTachyonConf;
-  private static OutStreamOptions sWriteTachyon;
+  private static CreateFileOptions sWriteTachyon;
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sTfs = sLocalTachyonClusterResource.get().getClient();
     sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
-    sWriteTachyon = StreamOptionUtils.getOutStreamOptionsWriteTachyon(sTachyonConf);
+    sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sTachyonConf);
   }
 
   /**
@@ -64,28 +64,27 @@ public final class FileInStreamConcurrencyIntegrationTest {
   @Test
   public void FileInStreamConcurrencyTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
-    TachyonFile f =
-        TachyonFSTestUtils.createByteFile(sTfs, uniqPath, BLOCK_SIZE * 2, sWriteTachyon);
+    TachyonFSTestUtils.createByteFile(sTfs, uniqPath, BLOCK_SIZE * 2, sWriteTachyon);
 
     List<Thread> threads = Lists.newArrayList();
     for (int i = 0; i < READ_THREADS_NUM; i ++) {
-      threads.add(new Thread(new FileRead(f)));
+      threads.add(new Thread(new FileRead(new TachyonURI(uniqPath))));
     }
 
     ConcurrencyTestUtils.assertConcurrent(threads, 100);
   }
 
   class FileRead implements Runnable {
-    private final TachyonFile mFile;
+    private final TachyonURI mUri;
 
-    FileRead(TachyonFile file) {
-      mFile = file;
+    FileRead(TachyonURI uri) {
+      mUri = uri;
     }
 
     @Override
     public void run() {
       try {
-        FileInStream stream = sTfs.getInStream(mFile);
+        FileInStream stream = sTfs.openFile(mUri);
         stream.read();
         stream.close();
       } catch (Exception e) {

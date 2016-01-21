@@ -16,71 +16,23 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
 
 /**
  * Method option for deleting a file.
  */
 @PublicApi
 public final class DeleteOptions {
-
-  /**
-   * Builder for {@link DeleteOptions}.
-   */
-  public static class Builder implements OptionsBuilder<DeleteOptions> {
-    private boolean mRecursive;
-
-    /**
-     * Creates a new builder for {@link DeleteOptions}.
-     */
-    public Builder() {
-      this(ClientContext.getConf());
-    }
-
-    /**
-     * Creates a new builder for {@link DeleteOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {
-      mRecursive = false;
-    }
-
-    /**
-     * Sets the recursive flag.
-     *
-     * @param recursive the recursive flag value to use; if the object to be deleted is a directory,
-     *        the flag specifies whether the directory content should be recursively deleted as well
-     * @return the builder
-     */
-    public Builder setRecursive(boolean recursive) {
-      mRecursive = recursive;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link DeleteOptions}.
-     *
-     * @return a {@link DeleteOptions} instance
-     */
-    @Override
-    public DeleteOptions build() {
-      return new DeleteOptions(this);
-    }
-  }
+  private boolean mRecursive;
 
   /**
    * @return the default {@link DeleteOptions}
    */
   public static DeleteOptions defaults() {
-    return new Builder().build();
+    return new DeleteOptions();
   }
 
-  private final boolean mRecursive;
-
-  private DeleteOptions(DeleteOptions.Builder builder) {
-    mRecursive = builder.mRecursive;
+  private DeleteOptions() {
+    mRecursive = false;
   }
 
   /**
@@ -89,6 +41,18 @@ public final class DeleteOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * Sets the recursive flag.
+   *
+   * @param recursive the recursive flag value to use; if the object to be deleted is a directory,
+   *        the flag specifies whether the directory content should be recursively deleted as well
+   * @return the updated options object
+   */
+  public DeleteOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
+    return this;
   }
 
   /**

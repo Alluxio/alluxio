@@ -25,7 +25,9 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
+import tachyon.util.OSUtils;
 
 /**
  * Utilities related to both Tachyon paths like {@link tachyon.TachyonURI} and local file paths.
@@ -168,22 +170,25 @@ public final class PathUtils {
    * @throws InvalidPathException If the path is not properly formed
    */
   public static void validatePath(String path) throws InvalidPathException {
-    if (path == null || path.isEmpty() || !path.startsWith(TachyonURI.SEPARATOR)
-        || path.contains(" ")) {
-      throw new InvalidPathException("Path " + path + " is invalid.");
+    boolean invalid = (path == null || path.isEmpty() || path.contains(" "));
+    if (!OSUtils.isWindows()) {
+      invalid = (invalid || !path.startsWith(TachyonURI.SEPARATOR));
+    }
+
+    if (invalid) {
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path));
     }
   }
 
   /**
    * Generates a deterministic temporary file name for the a path and a file id and a nonce.
    *
-   * @param fileId a file id
    * @param nonce a nonce token
    * @param path a file path
    * @return a deterministic temporary file name
    */
-  public static String temporaryFileName(long fileId, long nonce, String path) {
-    return path + ".tachyon." + fileId + "." + String.format("0x%16X", nonce) + ".tmp";
+  public static String temporaryFileName(long nonce, String path) {
+    return path + ".tachyon." + String.format("0x%16X", nonce) + ".tmp";
   }
 
   /**

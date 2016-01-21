@@ -38,6 +38,8 @@ public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
     if (path == null) {
       return false;
     }
-    return path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://");
+    return path.startsWith(TachyonURI.SEPARATOR)
+        || path.startsWith("file://")
+        || TachyonURI.hasWindowsDrive(path, false);
   }
 }

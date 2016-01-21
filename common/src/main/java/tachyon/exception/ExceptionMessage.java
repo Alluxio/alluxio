@@ -30,6 +30,7 @@ public enum ExceptionMessage {
   PATH_DOES_NOT_EXIST("Path {0} does not exist"),
   PATH_MUST_BE_FILE("Path {0} must be a file"),
   PATH_MUST_BE_DIRECTORY("Path {0} must be a directory"),
+  PATH_INVALID("Path {0} is invalid"),
 
   // general block
   BLOCK_NOT_LOCALLY_AVAILABLE("Block {0} is not available on local machine"),
@@ -100,14 +101,17 @@ public enum ExceptionMessage {
   HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
 
   // file system master
+  FILE_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
+  RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),
+  RENAME_CANNOT_BE_ACROSS_MOUNTS("Renaming {0} to {1} is a cross mount operation"),
+  RENAME_CANNOT_BE_TO_ROOT("Cannot rename a path to the root directory"),
+  RENAME_CANNOT_BE_TO_SUBDIRECTORY("Cannot rename because {0} is a prefix of {1}"),
+  ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
 
-  // raw table master
-  RAW_TABLE_COLUMN_OVERRANGE("Number of column: {0} should range from 0 to {1} non-inclusive"),
-  RAW_TABLE_ID_DOES_NOT_EXIST("Raw table with id {0} does not exist"),
-  RAW_TABLE_ID_DUPLICATED("There is already a raw table with id {0}"),
-  RAW_TABLE_METADATA_OVERSIZED("Size of raw table metadata {0} should be smaller than {1}"),
-  RAW_TABLE_PATH_DOES_NOT_EXIST("Raw table with path {0} does not exist"),
+  // file system master ufs
+  FAILED_UFS_CREATE("Failed to create {0} in the under file system"),
+  FAILED_UFS_RENAME("Failed to rename {0} to {1} in the under file system"),
 
   // shell
   DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE(
@@ -134,8 +138,11 @@ public enum ExceptionMessage {
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
-  PERMISSION_IS_NULL("Permission cannot be null when constructing PermissionStatus"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
+  INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
+  PERMISSION_DENIED("Permission denied: {0}"),
+  PERMISSION_IS_NULL("Permission cannot be null when constructing PermissionStatus"),
+  SECURITY_IS_NOT_ENABLED("Security is not enabled"),
 
   // yarn
   YARN_NOT_ENOUGH_HOSTS(
@@ -147,6 +154,10 @@ public enum ExceptionMessage {
   UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
   MOUNT_PATH_SHADOWS_DEFAULT_UFS(
       "Mount path {0} shadows an existing path in the default underlying filesystem"),
+
+  // key-value
+  KEY_VALUE_TOO_LARGE("Unable to put key-value pair: key {0} bytes, value {1} bytes"),
+
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 

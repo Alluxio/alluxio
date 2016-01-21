@@ -18,7 +18,7 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -34,7 +34,7 @@ public final class LsrCommand extends AbstractLsCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public LsrCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public LsrCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 
