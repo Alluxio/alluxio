@@ -32,7 +32,7 @@ import tachyon.exception.TachyonException;
  * Extension of {@link FileOutputCommitter} where creating, completing, or deleting a
  * {@link KeyValueStores} in different phases of a job's or task's lifecycle is considered.
  * <p>
- * This committer is forced to be used in {@link KeyValueOutputFormat}(no matter what users have
+ * This committer is forced to be used in {@link KeyValueOutputFormat} (no matter what users have
  * set as the {@link org.apache.hadoop.mapred.OutputCommitter} in configration) to merge the
  * key-value stores created by each Reducer into one key-value store under the MapReduce output
  * directory.

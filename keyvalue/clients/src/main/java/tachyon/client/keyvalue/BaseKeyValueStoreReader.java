@@ -105,8 +105,12 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   @Override
   public int size() throws IOException, TachyonException {
     int totalSize = 0;
+    // TODO(cc): Put size into PartitionInfo.
     for (PartitionInfo partition : mPartitions) {
-      totalSize += KeyValuePartitionReader.Factory.create(partition.getBlockId()).size();
+      KeyValuePartitionReader partitionReader =
+          KeyValuePartitionReader.Factory.create(partition.getBlockId());
+      totalSize += partitionReader.size();
+      partitionReader.close();
     }
     return totalSize;
   }

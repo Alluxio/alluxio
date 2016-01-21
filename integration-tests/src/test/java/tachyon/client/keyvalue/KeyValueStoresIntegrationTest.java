@@ -191,7 +191,7 @@ public final class KeyValueStoresIntegrationTest {
 
     int numStoreUri = storeUris.size();
     for (int i = 0; i < numStoreUri; i ++) {
-      List<KeyValuePair> actualPairs = keyValuePairs.get(i);
+      List<KeyValuePair> expectedPairs = keyValuePairs.get(i);
       List<KeyValuePair> iteratedPairs = Lists.newArrayList();
       mReader = sKVStores.open(storeUris.get(i));
       KeyValueIterator iterator = mReader.iterator();
@@ -200,11 +200,11 @@ public final class KeyValueStoresIntegrationTest {
       }
 
       // If size is not the same, no need for the time-consuming list comparison below.
-      Assert.assertEquals(actualPairs.size(), iteratedPairs.size());
+      Assert.assertEquals(expectedPairs.size(), iteratedPairs.size());
       // Sorts and then compares pairs and iteratedPairs.
-      Collections.sort(actualPairs);
+      Collections.sort(expectedPairs);
       Collections.sort(iteratedPairs);
-      Assert.assertEquals(actualPairs, iteratedPairs);
+      Assert.assertEquals(expectedPairs, iteratedPairs);
     }
   }
 
@@ -342,7 +342,7 @@ public final class KeyValueStoresIntegrationTest {
   }
 
   /**
-   * Tests that a store of vairous sizes(including empty store) can be correctly deleted.
+   * Tests that a store of various sizes (including empty store) can be correctly deleted.
    */
   @Test
   public void deleteStoreTest() throws Exception {
@@ -360,7 +360,7 @@ public final class KeyValueStoresIntegrationTest {
   }
 
   /**
-   * Tests that two stores of vairous sizes(including empty store) can be correctly merged.
+   * Tests that two stores of various sizes (including empty store) can be correctly merged.
    */
   @Test
   public void mergeStoreTest() throws Exception {
