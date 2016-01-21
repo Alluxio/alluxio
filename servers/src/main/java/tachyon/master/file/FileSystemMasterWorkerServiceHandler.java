@@ -23,6 +23,7 @@ import org.apache.thrift.TException;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
@@ -75,6 +76,8 @@ public final class FileSystemMasterWorkerServiceHandler
     } catch (FileDoesNotExistException e) {
       throw e.toTachyonTException();
     } catch (InvalidPathException e) {
+      throw e.toTachyonTException();
+    } catch (AccessControlException e) {
       throw e.toTachyonTException();
     }
   }

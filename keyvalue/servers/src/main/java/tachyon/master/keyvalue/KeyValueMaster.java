@@ -34,6 +34,7 @@ import com.google.protobuf.Message;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
@@ -156,9 +157,10 @@ public final class KeyValueMaster extends MasterBase {
    * @param path URI of the key-value store
    * @param info information of this completed parition
    * @throws FileDoesNotExistException if the key-value store URI does not exists
+   * @throws AccessControlException if permission checking fails
    */
   public synchronized void completePartition(TachyonURI path, PartitionInfo info)
-      throws FileDoesNotExistException {
+      throws FileDoesNotExistException, AccessControlException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
@@ -196,8 +198,10 @@ public final class KeyValueMaster extends MasterBase {
    *
    * @param path URI of the key-value store
    * @throws FileDoesNotExistException if the key-value store URI does not exists
+   * @throws AccessControlException if permission checking fails
    */
-  public synchronized void completeStore(TachyonURI path) throws FileDoesNotExistException {
+  public synchronized void completeStore(TachyonURI path) throws FileDoesNotExistException,
+      AccessControlException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
@@ -229,9 +233,10 @@ public final class KeyValueMaster extends MasterBase {
    *
    * @param path URI of the key-value store
    * @throws FileAlreadyExistsException if a key-value store URI exists
+   * @throws AccessControlException if permission checking fails
    */
   public synchronized void createStore(TachyonURI path)
-      throws FileAlreadyExistsException, InvalidPathException {
+      throws FileAlreadyExistsException, InvalidPathException, AccessControlException {
     try {
       // Create this dir
       mFileSystemMaster.mkdir(path,
@@ -270,9 +275,10 @@ public final class KeyValueMaster extends MasterBase {
    * @param path URI of the key-value store
    * @return a list of partition information
    * @throws FileDoesNotExistException if the key-value store URI does not exists
+   * @throws AccessControlException if permission checking fails
    */
   public synchronized List<PartitionInfo> getPartitionInfo(TachyonURI path)
-      throws FileDoesNotExistException {
+      throws FileDoesNotExistException, AccessControlException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
