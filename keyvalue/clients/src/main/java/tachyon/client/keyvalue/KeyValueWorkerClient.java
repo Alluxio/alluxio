@@ -17,6 +17,7 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -92,6 +93,42 @@ public final class KeyValueWorkerClient extends ClientBase {
       @Override
       public ByteBuffer call() throws TachyonTException, TException {
         return mClient.get(blockId, key);
+      }
+    });
+  }
+
+  /**
+   * Gets a batch of keys next to the current key in the partition.
+   * <p>
+   * If current key is null, it means get the initial batch of keys.
+   * If there are no more next keys, an empty list is returned.
+   *
+   * @param blockId the id of the partition
+   * @param key the current key
+   * @param numKeys maximum number of next keys to fetch
+   * @return the next batch of keys
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized List<ByteBuffer> getNextKeys(final long blockId, final ByteBuffer key,
+      final int numKeys) throws IOException, TachyonException {
+    return retryRPC(new ClientBase.RpcCallableThrowsTachyonTException<List<ByteBuffer>>() {
+      @Override
+      public List<ByteBuffer> call() throws TachyonTException, TException {
+        return mClient.getNextKeys(blockId, key, numKeys);
+      }
+    });
+  }
+
+  /**
+   * @param blockId the id of the partition
+   * @return the number of key-value pairs in the partition
+   */
+  public synchronized int getSize(final long blockId) throws IOException, TachyonException {
+    return retryRPC(new ClientBase.RpcCallableThrowsTachyonTException<Integer>() {
+      @Override
+      public Integer call() throws TachyonTException, TException {
+        return mClient.getSize(blockId);
       }
     });
   }
