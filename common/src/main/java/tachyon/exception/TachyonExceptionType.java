@@ -33,7 +33,6 @@ public enum TachyonExceptionType {
   INVALID_FILE_SIZE(InvalidFileSizeException.class),
   INVALID_PATH(InvalidPathException.class),
   INVALID_WORKER_STATE(InvalidWorkerStateException.class),
-  IS_NOT_KEY_VALUE_STORE(IsNotKeyValueStoreException.class),
   LINEAGE_DELETION(LineageDeletionException.class),
   LINEAGE_DOES_NOT_EXIST(LineageDoesNotExistException.class),
   NO_WORKER(NoWorkerException.class),

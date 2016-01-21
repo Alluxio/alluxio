@@ -20,7 +20,7 @@ import java.io.IOException;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.IsNotKeyValueStoreException;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 
 /**
@@ -73,12 +73,12 @@ public interface KeyValueStores {
    *
    * @param uri {@link TachyonURI} to the store
    * @throws IOException if non-Tachyon error occurs
-   * @throws IsNotKeyValueStoreException if the uri exists but is not a key-value store
+   * @throws InvalidPathException if the uri exists but is not a key-value store
    * @throws FileDoesNotExistException if the uri does not exist
    * @throws TachyonException if other Tachyon error occurs
    */
-  void delete(TachyonURI uri) throws IOException, IsNotKeyValueStoreException,
-      FileDoesNotExistException, TachyonException;
+  void delete(TachyonURI uri)
+      throws IOException, InvalidPathException, FileDoesNotExistException, TachyonException;
 
   /**
    * Merges one completed key-value store to another completed key-value store.

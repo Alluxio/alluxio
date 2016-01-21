@@ -23,7 +23,7 @@ import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.IsNotKeyValueStoreException;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 
@@ -50,8 +50,8 @@ public class BaseKeyValueStores implements KeyValueStores {
   }
 
   @Override
-  public void delete(TachyonURI uri) throws IOException, IsNotKeyValueStoreException,
-      FileDoesNotExistException, TachyonException {
+  public void delete(TachyonURI uri)
+      throws IOException, InvalidPathException, FileDoesNotExistException, TachyonException {
     mMasterClient.deleteStore(uri);
   }
 
