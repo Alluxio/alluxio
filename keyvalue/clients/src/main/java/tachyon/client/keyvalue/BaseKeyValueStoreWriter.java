@@ -111,7 +111,9 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   @Override
   public void put(byte[] key, byte[] value) throws IOException, TachyonException {
     Preconditions.checkNotNull(key, PreconditionMessage.ERR_PUT_NULL_KEY);
-    Preconditions.checkNotNull(value, PreconditionMessage.ERR_PUT_NULL_VALUE);
+    Preconditions.checkNotNull(value, PreconditionMessage.ERR_PUT_NULL_KEY);
+    Preconditions.checkArgument(key.length > 0, PreconditionMessage.ERR_PUT_EMPTY_KEY);
+    Preconditions.checkArgument(value.length > 0, PreconditionMessage.ERR_PUT_EMPTY_VALUE);
 
     // If this is the first put to the first partition in this store, create a new partition; or
     // if this is a put to an existing but full partition, create a new partition and switch to
