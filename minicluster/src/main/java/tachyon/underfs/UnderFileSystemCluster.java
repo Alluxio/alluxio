@@ -27,6 +27,9 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.PathUtils;
 
+/**
+ * Base class for a UFS cluster.
+ */
 public abstract class UnderFileSystemCluster {
   class ShutdownHook extends Thread {
     UnderFileSystemCluster mUFSCluster = null;
@@ -81,6 +84,13 @@ public abstract class UnderFileSystemCluster {
     return sUnderFSCluster;
   }
 
+  /**
+   * Gets the {@link UnderFileSystemCluster}.
+   *
+   * @param baseDir the base directory
+   * @param tachyonConf the configuration for Tachyon
+   * @return the {@link UnderFileSystemCluster}
+   */
   public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir,
       TachyonConf tachyonConf) {
     sUfsClz = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
@@ -119,6 +129,10 @@ public abstract class UnderFileSystemCluster {
     return sUfsClz != null && sUfsClz.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster");
   }
 
+  /**
+   * @param baseDir the base directory
+   * @param tachyonConf the configuration for Tachyon
+   */
   public UnderFileSystemCluster(String baseDir, TachyonConf tachyonConf) {
     mBaseDir = baseDir;
     mTachyonConf = tachyonConf;
@@ -142,6 +156,9 @@ public abstract class UnderFileSystemCluster {
     }
   }
 
+  /**
+   * @return the address of the UFS
+   */
   public abstract String getUnderFilesystemAddress();
 
   /**
