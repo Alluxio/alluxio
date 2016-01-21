@@ -235,14 +235,6 @@ public abstract class JournalFormatterTestBase {
                 .build())
         .add(
             JournalEntry.newBuilder()
-                .setCompletePartition(CompletePartitionEntry.newBuilder()
-                    .setStoreId(TEST_FILE_ID)
-                    .setBlockId(TEST_BLOCK_ID)
-                    .setKeyLimit(TEST_KEY1)
-                    .setKeyStart(TEST_KEY2))
-                .build())
-        .add(
-            JournalEntry.newBuilder()
                 .setSetAcl(File.SetAclEntry.newBuilder()
                     .setId(TEST_FILE_ID)
                     .setOpTimeMs(TEST_OP_TIME_MS)
