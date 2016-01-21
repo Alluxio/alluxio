@@ -43,7 +43,7 @@ import tachyon.exception.TachyonException;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.master.file.options.MkdirOptions;
+import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
@@ -240,7 +240,7 @@ public final class KeyValueMaster extends MasterBase {
     try {
       // Create this dir
       mFileSystemMaster.mkdir(path,
-          new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(true).build());
+          new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(true).build());
     } catch (IOException e) {
       // TODO(binfan): Investigate why mFileSystemMaster.mkdir throws IOException
       throw new InvalidPathException(

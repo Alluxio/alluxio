@@ -16,71 +16,23 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
 
 /**
  * Method option for freeing space.
  */
 @PublicApi
 public final class FreeOptions {
-
-  /**
-   * Builder for {@link FreeOptions}.
-   */
-  public static class Builder implements OptionsBuilder<FreeOptions> {
-    private boolean mRecursive;
-
-    /**
-     * Creates a new builder for {@link FreeOptions}.
-     */
-    public Builder() {
-      this(ClientContext.getConf());
-    }
-
-    /**
-     * Creates a new builder for {@link FreeOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {
-      mRecursive = false;
-    }
-
-    /**
-     * Sets the recursive flag.
-     *
-     * @param recursive the recursive flag value to use; if the object to be freed is a directory,
-     *        the flag specifies whether the directory content should be recursively freed as well
-     * @return the builder
-     */
-    public Builder setRecursive(boolean recursive) {
-      mRecursive = recursive;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link FreeOptions}.
-     *
-     * @return a {@link FreeOptions} instance
-     */
-    @Override
-    public FreeOptions build() {
-      return new FreeOptions(this);
-    }
-  }
+  private boolean mRecursive;
 
   /**
    * @return the default {@link FreeOptions}
    */
   public static FreeOptions defaults() {
-    return new Builder().build();
+    return new FreeOptions();
   }
 
-  private final boolean mRecursive;
-
-  private FreeOptions(FreeOptions.Builder builder) {
-    mRecursive = builder.mRecursive;
+  private FreeOptions() {
+    mRecursive = false;
   }
 
   /**
@@ -89,6 +41,18 @@ public final class FreeOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * Sets the recursive flag.
+   *
+   * @param recursive the recursive flag value to use; if the object to be freed is a directory,
+   *        the flag specifies whether the directory content should be recursively freed as well
+   * @return the updated options object
+   */
+  public FreeOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
+    return this;
   }
 
   /**
