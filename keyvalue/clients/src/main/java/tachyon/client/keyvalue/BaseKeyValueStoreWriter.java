@@ -16,6 +16,7 @@
 package tachyon.client.keyvalue;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -29,13 +30,12 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.FileSystem;
+import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.PreconditionMessage;
 import tachyon.exception.IsNotKeyValueStoreException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.thrift.FileInfo;
@@ -49,7 +49,7 @@ import tachyon.util.io.BufferUtils;
 class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final TachyonFileSystem mTfs = TachyonFileSystemFactory.get();
+  private final FileSystem mTfs = FileSystem.Factory.get();
   private final KeyValueMasterClient mMasterClient;
   private final TachyonURI mStoreUri;
 
@@ -178,8 +178,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
       return;
     }
     mWriter.close();
-    TachyonFile tFile = mTfs.open(getPartitionName());
-    List<Long> blockIds = mTfs.getInfo(tFile).getBlockIds();
+    List<Long> blockIds = mTfs.getStatus(getPartitionName()).getBlockIds();
     long blockId = blockIds.get(0);
     PartitionInfo info = new PartitionInfo(mKeyStart, mKeyLimit, blockId);
     mMasterClient.completePartition(mStoreUri, info);

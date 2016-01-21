@@ -16,36 +16,23 @@
 package tachyon.client.lineage.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * Method option for creating lineage.
  */
 @PublicApi
 public final class CreateLineageOptions {
-  private static class Builder {
-    /**
-     * Creates a new builder for {@link CreateLineageOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {}
-
-    /**
-     * @return builds a new instance of {@link CreateLineageOptions}
-     */
-    public CreateLineageOptions build() {
-      return new CreateLineageOptions(this);
-    }
-  }
-
   /**
    * @return the default options
    */
+  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static CreateLineageOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new CreateLineageOptions();
   }
 
-  private CreateLineageOptions(CreateLineageOptions.Builder buidler) {}
+  private CreateLineageOptions() {
+    // No options currently
+  }
 }

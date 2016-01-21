@@ -69,5 +69,11 @@
       <artifactId>powermock-module-junit4</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <!-- Dependency for findbugs (SuppressFBWarnings) -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
   </dependencies>
 </project>

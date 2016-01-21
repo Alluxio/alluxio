@@ -234,7 +234,7 @@ public class FormatUtilsTest {
   }
 
   /**
-   * Tests the {@link FormatUtils#formatFilePermission(short, boolean)} method.
+   * Tests the {@link FormatUtils#formatPermission(short, boolean)} method.
    */
   @Test
   public void convertPermissionTest() {
