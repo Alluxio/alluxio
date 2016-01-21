@@ -15,6 +15,7 @@
 
 package tachyon.master.keyvalue;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -25,6 +26,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.KeyValueMasterClientService;
 import tachyon.thrift.PartitionInfo;
 import tachyon.thrift.TachyonTException;
+import tachyon.thrift.ThriftIOException;
 
 /**
  * This class is a Thrift handler for key-value master RPCs invoked by a Tachyon client.
@@ -80,6 +82,17 @@ public final class KeyValueMasterClientServiceHandler implements KeyValueMasterC
       return mKeyValueMaster.getPartitionInfo(new TachyonURI(path));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
+    }
+  }
+
+  @Override
+  public void deleteStore(String path) throws TachyonTException, ThriftIOException {
+    try {
+      mKeyValueMaster.deleteStore(new TachyonURI(path));
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
     }
   }
 }
