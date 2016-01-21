@@ -339,18 +339,18 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     LOG.info("setOwner({},{},{}) HDFS Path: {} Tachyon Path: {}{}", path, username, groupname,
         hdfsPath, mTachyonHeader, tPath);
     try {
-      SetAclOptions.Builder optionsBuilder = new SetAclOptions.Builder();
+      SetAclOptions options = SetAclOptions.defaults();
       boolean ownerOrGroupChanged = false;
       if (username != null && !username.isEmpty()) {
-        optionsBuilder.setOwner(username).setRecursive(false);
+        options.setOwner(username).setRecursive(false);
         ownerOrGroupChanged = true;
       }
       if (groupname != null && !groupname.isEmpty()) {
-        optionsBuilder.setGroup(groupname).setRecursive(false);
+        options.setGroup(groupname).setRecursive(false);
         ownerOrGroupChanged = true;
       }
       if (ownerOrGroupChanged) {
-        mTFS.setAcl(tPath, optionsBuilder.build());
+        mTFS.setAcl(tPath, options);
       }
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -371,8 +371,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
         hdfsPath, mTachyonHeader, tPath);
     try {
       SetAclOptions options =
-          new SetAclOptions.Builder().setPermission(permission.toShort()).setRecursive(false)
-              .build();
+          SetAclOptions.defaults().setPermission(permission.toShort()).setRecursive(false);
       mTFS.setAcl(tPath, options);
     } catch (TachyonException e) {
       throw new IOException(e);
