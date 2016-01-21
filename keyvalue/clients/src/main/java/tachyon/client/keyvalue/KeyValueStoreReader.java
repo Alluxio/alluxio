@@ -49,4 +49,10 @@ public interface KeyValueStoreReader extends Closeable, KeyValueIterable {
    */
   ByteBuffer get(ByteBuffer key) throws IOException, TachyonException;
 
+  /**
+   * @return the number of key-value pairs in the store
+   * @throws IOException if a non-Tachyon error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  int size() throws IOException, TachyonException;
 }
