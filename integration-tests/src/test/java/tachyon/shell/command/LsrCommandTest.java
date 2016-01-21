@@ -23,14 +23,12 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFile;
+import tachyon.client.WriteType;
+import tachyon.client.file.URIStatus;
 import tachyon.exception.TachyonException;
 import tachyon.master.MasterContext;
 import tachyon.security.group.provider.IdentityUserGroupsMapping;
 import tachyon.shell.AbstractTfsShellTest;
-import tachyon.thrift.FileInfo;
 
 /**
  * Test for lsr command.
@@ -41,22 +39,18 @@ public class LsrCommandTest extends AbstractTfsShellTest {
     MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
 
-    FileInfo[] files = new FileInfo[4];
+    URIStatus[] files = new URIStatus[4];
     String testUser = "test_user_lsr";
     cleanAndLogin(testUser);
 
-    TachyonFile fileA =
-        TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", TachyonStorageType.STORE,
-            UnderStorageType.NO_PERSIST, 10);
-    files[0] = mTfs.getInfo(fileA);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB",
-        TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 20);
-    files[1] = mTfs.getInfo(mTfs.open(new TachyonURI("/testRoot/testDir")));
-    files[2] = mTfs.getInfo(mTfs.open(new TachyonURI("/testRoot/testDir/testFileB")));
-    TachyonFile fileC =
-        TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileC", TachyonStorageType.NO_STORE,
-            UnderStorageType.SYNC_PERSIST, 30);
-    files[3] = mTfs.getInfo(fileC);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    files[0] = mTfs.getStatus(new TachyonURI("/testRoot/testFileA"));
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE,
+        20);
+    files[1] = mTfs.getStatus(new TachyonURI("/testRoot/testDir"));
+    files[2] = mTfs.getStatus(new TachyonURI("/testRoot/testDir/testFileB"));
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileC", WriteType.THROUGH, 30);
+    files[3] = mTfs.getStatus(new TachyonURI("/testRoot/testFileC"));
     mFsShell.run("lsr", "/testRoot");
     String expected = "";
     expected +=
@@ -72,6 +66,8 @@ public class LsrCommandTest extends AbstractTfsShellTest {
         getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30, "Not In Memory",
             testUser, testUser, files[3].getPermission(), files[3].isFolder());
     Assert.assertEquals(expected, mOutput.toString());
+    // clear testing username
+    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
     MasterContext.reset();
   }
 }

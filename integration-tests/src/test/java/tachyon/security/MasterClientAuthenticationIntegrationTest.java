@@ -28,9 +28,10 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
+import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.file.FileSystemMasterClient;
-import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.CreateFileOptions;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.security.authentication.AuthenticationProvider;
 
@@ -117,8 +118,8 @@ public class MasterClientAuthenticationIntegrationTest {
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
-    masterClient.create(filename, CreateOptions.defaults());
-    Assert.assertNotNull(masterClient.getFileId(filename));
+    masterClient.createFile(new TachyonURI(filename), CreateFileOptions.defaults());
+    Assert.assertNotNull(masterClient.getStatus(new TachyonURI(filename)));
     masterClient.disconnect();
     masterClient.close();
   }

@@ -101,6 +101,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    * </p>
    *
    * @param path file system path
+   * @param tachyonConf Tachyon Configuration
    * @param config Hadoop configuration
    */
   protected void prepareConfiguration(String path, TachyonConf tachyonConf, Configuration config) {
