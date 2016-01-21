@@ -48,6 +48,8 @@ public final class TachyonFuse {
    * The user-space fuse application will stay on the foreground and keep
    * the file system mounted. The user can unmount the file system by
    * gracefully killing (SIGINT) the process.
+   *
+   * @param args arguments to run the command line
    */
   public static void main(String[] args) {
     sTachyonConf = ClientContext.getConf();
