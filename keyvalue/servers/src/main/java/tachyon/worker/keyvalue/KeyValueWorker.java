@@ -51,12 +51,12 @@ public class KeyValueWorker extends WorkerBase {
    *
    * @param blockDataManager handler to the {@link BlockDataManager}
    */
-  public KeyValueWorker(BlockWorker blockDataManager) {
+  public KeyValueWorker(BlockWorker blockWorker) {
     // TODO(binfan): figure out do we really need thread pool for key-value worker (and for what)
     super(Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("keyvalue-worker-heartbeat-%d", true)));
     mTachyonConf = WorkerContext.getConf();
-    mBlockWorker = Preconditions.checkNotNull(blockDataManager);
+    mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mKeyValueServiceHandler = new KeyValueWorkerClientServiceHandler(mBlockWorker);
   }
 

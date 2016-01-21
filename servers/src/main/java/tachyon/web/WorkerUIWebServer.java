@@ -35,7 +35,7 @@ public final class WorkerUIWebServer extends UIWebServer {
    *
    * @param serviceType the service type
    * @param webAddress the service address
-   * @param blockdataManager block data manager
+   * @param blockWorker block worker to manage blocks
    * @param workerAddress the worker address
    * @param startTimeMs start time milliseconds
    * @param conf Tachyon configuration
@@ -44,7 +44,7 @@ public final class WorkerUIWebServer extends UIWebServer {
       BlockWorker blockWorker, InetSocketAddress workerAddress, long startTimeMs,
       TachyonConf conf) {
     super(serviceType, webAddress, conf);
-    Preconditions.checkNotNull(blockWorker, "Block data manager cannot be null");
+    Preconditions.checkNotNull(blockWorker, "Block Worker cannot be null");
     Preconditions.checkNotNull(workerAddress, "Worker address cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerGeneralServlet(

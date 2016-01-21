@@ -63,8 +63,8 @@ public final class NIODataServer implements Runnable, DataServer {
   private final Map<SocketChannel, DataServerMessage> mReceivingData =
       Collections.synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
-  // The block data manager.
-  private final BlockWorker mDataManager;
+  // The BlockWorker handler
+  private final BlockWorker mBlockWorker;
   private final Thread mListenerThread;
 
   private volatile boolean mShutdown = false;
@@ -74,7 +74,7 @@ public final class NIODataServer implements Runnable, DataServer {
    * Creates a data server with direct access to worker storage.
    *
    * @param address the address of the data server
-   * @param dataManager the lock system for lock blocks
+   * @param blockWorker the lock system for lock blocks
    * @param tachyonConf Tachyon configuration
    */
   public NIODataServer(final InetSocketAddress address, final BlockWorker blockWorker,
@@ -82,7 +82,7 @@ public final class NIODataServer implements Runnable, DataServer {
     LOG.info("Starting DataServer @ {}", address);
     NetworkAddressUtils.assertValidPort(Preconditions.checkNotNull(address));
     mAddress = address;
-    mDataManager = Preconditions.checkNotNull(blockWorker);
+    mBlockWorker = Preconditions.checkNotNull(blockWorker);
     try {
       mSelector = initSelector();
       mListenerThread = new Thread(this);
@@ -214,12 +214,12 @@ public final class NIODataServer implements Runnable, DataServer {
       long lockId = tMessage.getLockId();
       long sessionId = tMessage.getSessionId();
       BlockReader reader =
-          mDataManager.readBlockRemote(sessionId, blockId, lockId);
+          mBlockWorker.readBlockRemote(sessionId, blockId, lockId);
       ByteBuffer data;
       int dataLen = 0;
       try {
         data = reader.read(tMessage.getOffset(), tMessage.getLength());
-        mDataManager.accessBlock(sessionId, blockId);
+        mBlockWorker.accessBlock(sessionId, blockId);
         dataLen = data.limit();
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);

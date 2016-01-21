@@ -45,11 +45,11 @@ import tachyon.worker.block.io.BlockReader;
 public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Block data manager for access block info */
-  private final BlockWorker mBlockDataManager;
+  /** BlockWorker handler for access block info */
+  private final BlockWorker mBlockWorker;
 
   public KeyValueWorkerClientServiceHandler(BlockWorker blockWorker) {
-    mBlockDataManager = Preconditions.checkNotNull(blockWorker);
+    mBlockWorker = Preconditions.checkNotNull(blockWorker);
   }
 
   @Override
@@ -96,9 +96,9 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
       throws BlockDoesNotExistException, IOException {
     BlockReader blockReader;
     final long sessionId = Sessions.KEYVALUE_SESSION_ID;
-    final long lockId = mBlockDataManager.lockBlock(sessionId, blockId);
+    final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
     try {
-      blockReader = mBlockDataManager.readBlockRemote(sessionId, blockId, lockId);
+      blockReader = mBlockWorker.readBlockRemote(sessionId, blockId, lockId);
       ByteBuffer fileBuffer = blockReader.read(0, blockReader.getLength());
       ByteBufferKeyValuePartitionReader reader = new ByteBufferKeyValuePartitionReader(fileBuffer);
       // TODO(binfan): clean fileBuffer which is a direct byte buffer
@@ -107,7 +107,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
       // We shall never reach here
       LOG.error("Reaching invalid state to get a key", e);
     } finally {
-      mBlockDataManager.unlockBlock(lockId);
+      mBlockWorker.unlockBlock(lockId);
     }
     return null;
   }
