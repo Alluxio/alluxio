@@ -27,13 +27,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
 
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.ReadType;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
-import tachyon.client.file.options.InStreamOptions;
-import tachyon.conf.TachyonConf;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
+import tachyon.client.file.options.OpenFileOptions;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
@@ -110,10 +108,9 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
   private void downloadFile(TachyonURI path, HttpServletRequest request,
       HttpServletResponse response) throws FileDoesNotExistException, IOException,
       InvalidPathException, TachyonException {
-    TachyonFileSystem tachyonClient = TachyonFileSystemFactory.get();
-    TachyonFile fd = tachyonClient.open(path);
-    FileInfo tFile = tachyonClient.getInfo(fd);
-    long len = tFile.getLength();
+    FileSystem tachyonClient = FileSystem.Factory.get();
+    URIStatus status = tachyonClient.getStatus(path);
+    long len = status.getLength();
     String fileName = path.getName();
     response.setContentType("application/octet-stream");
     if (len <= Integer.MAX_VALUE) {
@@ -127,9 +124,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     ServletOutputStream out = null;
     try {
       // TODO(jiri): Should we use MasterContext here instead?
-      InStreamOptions op = new InStreamOptions.Builder(
-          new TachyonConf()).setTachyonStorageType(TachyonStorageType.NO_STORE).build();
-      is = tachyonClient.getInStream(fd, op);
+      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+      is = tachyonClient.openFile(path, options);
       out = response.getOutputStream();
       ByteStreams.copy(is, out);
     } finally {

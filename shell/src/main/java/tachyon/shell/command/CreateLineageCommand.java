@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.lineage.TachyonLineage;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -39,7 +39,7 @@ public final class CreateLineageCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public CreateLineageCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public CreateLineageCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

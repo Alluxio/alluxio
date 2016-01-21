@@ -17,9 +17,6 @@ package tachyon.client.file.options;
 
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
-import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.SetAclTOptions;
 
 /**
@@ -27,100 +24,14 @@ import tachyon.thrift.SetAclTOptions;
  */
 @PublicApi
 public class SetAclOptions {
+  private String mOwner;
+  private String mGroup;
+  private short mPermission;
+  private boolean mRecursive;
 
-  /**
-   * Builder for {@link SetAclOptions}.
-   */
-  public static class Builder implements OptionsBuilder<SetAclOptions> {
-    private String mOwner;
-    private String mGroup;
-    private short mPermission;
-    private boolean mRecursive;
-
-    /**
-     * Creates a new builder for {@link SetAclOptions}.
-     */
-    public Builder() {
-      this(ClientContext.getConf());
-    }
-
-    /**
-     * Creates a new builder for {@link SetAclOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {
-      mOwner = null;
-      mGroup = null;
-      mPermission = Constants.INVALID_PERMISSION;
-      mRecursive = false;
-    }
-
-    /**
-     * Sets the owner of a path.
-     *
-     * @param owner to be set as the owner of a path
-     * @return the builder
-     */
-    public Builder setOwner(String owner) {
-      mOwner = owner;
-      return this;
-    }
-
-    /**
-     * Sets the group of a path.
-     *
-     * @param group to be set as the group of a path
-     * @return the builder
-     */
-    public Builder setGroup(String group) {
-      mGroup = group;
-      return this;
-    }
-
-    /**
-     * Sets the permission of a path.
-     *
-     * @param permission to be set as the permission of a path
-     * @return the builder
-     */
-    public Builder setPermission(short permission) {
-      mPermission = permission;
-      return this;
-    }
-
-    /**
-     * Sets the recursive flag.
-     *
-     * @param recursive whether to set acl recursively under a directory
-     * @return the builder
-     */
-    public Builder setRecursive(boolean recursive) {
-      mRecursive = recursive;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link SetAclOptions}.
-     *
-     * @return a {@link SetAclOptions} instance
-     * @throws IllegalArgumentException if the options are invalid
-     */
-    @Override
-    public SetAclOptions build() {
-      SetAclOptions options = new SetAclOptions(this);
-      if (options.isValid()) {
-        return options;
-      }
-      throw new IllegalArgumentException(
-          ExceptionMessage.INVALID_SET_ACL_OPTIONS.getMessage(mOwner, mGroup, mPermission));
-    }
+  public static SetAclOptions defaults() {
+    return new SetAclOptions();
   }
-
-  private final String mOwner;
-  private final String mGroup;
-  private final short mPermission;
-  private final boolean mRecursive;
 
   /**
    * Constructs a new method option for setting the acl.
@@ -135,21 +46,11 @@ public class SetAclOptions {
     mRecursive = options.isSetRecursive() ? options.isRecursive() : null;
   }
 
-  private SetAclOptions(Builder builder) {
-    mOwner = builder.mOwner;
-    mGroup = builder.mGroup;
-    mPermission = builder.mPermission;
-    mRecursive = builder.mRecursive;
-  }
-
-  /**
-   * Checks whether the instance of {@link SetAclOptions} is valid,
-   * which means at least one of three attributes (owner, group, permission) takes effect.
-   *
-   * @return true if the instance of {@link SetAclOptions} is valid, false otherwise
-   */
-  public boolean isValid() {
-    return mOwner != null || mGroup != null || mPermission != Constants.INVALID_PERMISSION;
+  private SetAclOptions() {
+    mOwner = null;
+    mGroup = null;
+    mPermission = Constants.INVALID_PERMISSION;
+    mRecursive = false;
   }
 
   /**
@@ -178,6 +79,50 @@ public class SetAclOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * Sets the owner of a path.
+   *
+   * @param owner to be set as the owner of a path
+   * @return the modified options object
+   */
+  public SetAclOptions setOwner(String owner) {
+    mOwner = owner;
+    return this;
+  }
+
+  /**
+   * Sets the group of a path.
+   *
+   * @param group to be set as the group of a path
+   * @return the modified options object
+   */
+  public SetAclOptions setGroup(String group) {
+    mGroup = group;
+    return this;
+  }
+
+  /**
+   * Sets the permission of a path.
+   *
+   * @param permission to be set as the permission of a path
+   * @return the modified options object
+   */
+  public SetAclOptions setPermission(short permission) {
+    mPermission = permission;
+    return this;
+  }
+
+  /**
+   * Sets the recursive flag.
+   *
+   * @param recursive whether to set acl recursively under a directory
+   * @return the modified options object
+   */
+  public SetAclOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
+    return this;
   }
 
   /**

@@ -18,7 +18,7 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -32,7 +32,7 @@ public final class ChownRecursiveCommand extends AbstractAclCommand {
    * @param conf a Tachyon configuration
    * @param tfs a Tachyon file system handle
    */
-  public ChownRecursiveCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public ChownRecursiveCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 
