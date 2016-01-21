@@ -22,28 +22,14 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonStorageType;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
+import tachyon.client.file.policy.RoundRobinPolicy;
 import tachyon.conf.TachyonConf;
 
 /**
  * Tests for the {@link InStreamOptions} class.
  */
 public class InStreamOptionsTest {
-
-  /**
-   * Tests that building an {@link InStreamOptions} works.
-   */
-  @Test
-  public void builderTest() {
-    TachyonStorageType tachyonType = TachyonStorageType.STORE;
-
-    InStreamOptions options =
-        new InStreamOptions.Builder(new TachyonConf())
-            .setTachyonStorageType(tachyonType)
-            .build();
-
-    Assert.assertEquals(tachyonType, options.getTachyonStorageType());
-  }
-
   /**
    * Tests that building an {@link InStreamOptions} with the defaults works.
    */
@@ -51,6 +37,22 @@ public class InStreamOptionsTest {
   public void defaultsTest() {
     InStreamOptions options = InStreamOptions.defaults();
     Assert.assertEquals(TachyonStorageType.PROMOTE, options.getTachyonStorageType());
+  }
+
+  /**
+   * Tests getting and setting fields.
+   */
+  @Test
+  public void fieldsTest() {
+    ReadType readType = ReadType.NO_CACHE;
+    FileWriteLocationPolicy policy = new RoundRobinPolicy();
+
+    InStreamOptions options = InStreamOptions.defaults();
+    options.setReadType(readType);
+    options.setLocationPolicy(policy);
+
+    Assert.assertEquals(options.getTachyonStorageType(), readType.getTachyonStorageType());
+    Assert.assertEquals(policy, options.getLocationPolicy());
   }
 
   /**

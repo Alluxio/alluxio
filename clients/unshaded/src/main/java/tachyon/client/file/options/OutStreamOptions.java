@@ -32,146 +32,31 @@ import tachyon.util.CommonUtils;
  */
 @PublicApi
 public final class OutStreamOptions {
-
-  /**
-   * Builder for {@link OutStreamOptions}.
-   */
-  public static class Builder implements OptionsBuilder<OutStreamOptions> {
-    private long mBlockSizeBytes;
-    private TachyonStorageType mTachyonStorageType;
-    private long mTtl;
-    private UnderStorageType mUnderStorageType;
-    private FileWriteLocationPolicy mLocationPolicy;
-
-    /**
-     * Creates a new builder for {@link OutStreamOptions}.
-     */
-    public Builder() {
-      this(ClientContext.getConf());
-    }
-
-    /**
-     * Creates a new builder for {@link OutStreamOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {
-      mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
-      WriteType defaultWriteType =
-          conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
-      mTachyonStorageType = defaultWriteType.getTachyonStorageType();
-      mUnderStorageType = defaultWriteType.getUnderStorageType();
-      mTtl = Constants.NO_TTL;
-      try {
-        mLocationPolicy =
-            CommonUtils
-                .createNewClassInstance(
-                    ClientContext.getConf().<FileWriteLocationPolicy>getClass(
-                        Constants.USER_FILE_WRITE_LOCATION_POLICY),
-                    new Class[] {}, new Object[] {});
-      } catch (Exception e) {
-        throw Throwables.propagate(e);
-      }
-    }
-
-    /**
-     * Sets the size of the block in bytes.
-     *
-     * @param blockSizeBytes the block size to use
-     * @return the builder
-     */
-    public Builder setBlockSizeBytes(long blockSizeBytes) {
-      mBlockSizeBytes = blockSizeBytes;
-      return this;
-    }
-
-    /**
-     * This is an advanced API, use {@link Builder#setWriteType(WriteType)} when possible.
-     *
-     * @param tachyonStorageType the Tachyon storage type to use
-     * @return the builder
-     */
-    public Builder setTachyonStorageType(TachyonStorageType tachyonStorageType) {
-      mTachyonStorageType = tachyonStorageType;
-      return this;
-    }
-
-    /**
-     * This is an advanced API, use {@link Builder#setWriteType(WriteType)} when possible.
-     *
-     * @param underStorageType the under storage type to use
-     * @return the builder
-     */
-    public Builder setUnderStorageType(UnderStorageType underStorageType) {
-      mUnderStorageType = underStorageType;
-      return this;
-    }
-
-    /**
-     * Sets the time to live.
-     *
-     * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-     *        created file should be kept around before it is automatically deleted, no matter
-     *        whether the file is pinned
-     * @return the builder
-     */
-    public Builder setTtl(long ttl) {
-      mTtl = ttl;
-      return this;
-    }
-
-    /**
-     * Sets the {@link WriteType}.
-     *
-     * @param writeType the {@link tachyon.client.WriteType} to use for this operation. This will
-     *                  override both the TachyonStorageType and UnderStorageType.
-     * @return the builder
-     */
-    public Builder setWriteType(WriteType writeType) {
-      mTachyonStorageType = writeType.getTachyonStorageType();
-      mUnderStorageType = writeType.getUnderStorageType();
-      return this;
-    }
-
-    /**
-     * @param locationPolicy the location policy for file write
-     * @return the builder
-     */
-    public Builder setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
-      mLocationPolicy = locationPolicy;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link OutStreamOptions}.
-     *
-     * @return a {@link OutStreamOptions} instance
-     */
-    @Override
-    public OutStreamOptions build() {
-      return new OutStreamOptions(this);
-    }
-  }
-
-  private final long mBlockSizeBytes;
-  private final TachyonStorageType mTachyonStorageType;
-  private final UnderStorageType mUnderStorageType;
-  private final long mTtl;
+  private long mBlockSizeBytes;
+  private long mTtl;
   private FileWriteLocationPolicy mLocationPolicy;
+  private WriteType mWriteType;
 
   /**
    * @return the default {@link OutStreamOptions}
    */
   public static OutStreamOptions defaults() {
-    return new Builder().build();
+    return new OutStreamOptions();
   }
 
-  private OutStreamOptions(OutStreamOptions.Builder builder) {
-    mBlockSizeBytes = builder.mBlockSizeBytes;
-    mTachyonStorageType = builder.mTachyonStorageType;
-    mTtl = builder.mTtl;
-    mUnderStorageType = builder.mUnderStorageType;
-    mLocationPolicy = builder.mLocationPolicy;
+  private OutStreamOptions() {
+    TachyonConf conf = ClientContext.getConf();
+    mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mTtl = Constants.NO_TTL;
+    try {
+      mLocationPolicy =
+          CommonUtils.createNewClassInstance(ClientContext.getConf()
+              .<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY),
+              new Class[] {}, new Object[] {});
+    } catch (Exception e) {
+      throw Throwables.propagate(e);
+    }
+    mWriteType = conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
   }
 
   /**
@@ -182,10 +67,17 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @return the file write location policy
+   */
+  public FileWriteLocationPolicy getLocationPolicy() {
+    return mLocationPolicy;
+  }
+
+  /**
    * @return the Tachyon storage type
    */
   public TachyonStorageType getTachyonStorageType() {
-    return mTachyonStorageType;
+    return mWriteType.getTachyonStorageType();
   }
 
   /**
@@ -200,14 +92,52 @@ public final class OutStreamOptions {
    * @return the under storage type
    */
   public UnderStorageType getUnderStorageType() {
-    return mUnderStorageType;
+    return mWriteType.getUnderStorageType();
   }
 
   /**
-   * @return the location policy
+   * Sets the size of the block in bytes.
+   *
+   * @param blockSizeBytes the block size to use
+   * @return the updated options object
    */
-  public FileWriteLocationPolicy getLocationPolicy() {
-    return mLocationPolicy;
+  public OutStreamOptions setBlockSizeBytes(long blockSizeBytes) {
+    mBlockSizeBytes = blockSizeBytes;
+    return this;
+  }
+
+  /**
+   * Sets the time to live.
+   *
+   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *        created file should be kept around before it is automatically deleted, no matter
+   *        whether the file is pinned
+   * @return the updated options object
+   */
+  public OutStreamOptions setTtl(long ttl) {
+    mTtl = ttl;
+    return this;
+  }
+
+  /**
+   * @param locationPolicy the file write location policy
+   * @return the updated options object
+   */
+  public OutStreamOptions setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
+    mLocationPolicy = locationPolicy;
+    return this;
+  }
+
+  /**
+   * Sets the {@link WriteType}.
+   *
+   * @param writeType the {@link tachyon.client.WriteType} to use for this operation. This will
+   *                  override both the TachyonStorageType and UnderStorageType.
+   * @return the updated options object
+   */
+  public OutStreamOptions setWriteType(WriteType writeType) {
+    mWriteType = writeType;
+    return this;
   }
 
   /**
@@ -217,10 +147,9 @@ public final class OutStreamOptions {
   public String toString() {
     StringBuilder sb = new StringBuilder("OutStreamOptions(");
     sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
-    sb.append(", TachyonStorageType: ").append(mTachyonStorageType.toString());
-    sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
     sb.append(", TTL: ").append(mTtl);
     sb.append(", LocationPolicy: ").append(mLocationPolicy.toString());
+    sb.append(", WriteType: ").append(mWriteType.toString());
     sb.append(")");
     return sb.toString();
   }

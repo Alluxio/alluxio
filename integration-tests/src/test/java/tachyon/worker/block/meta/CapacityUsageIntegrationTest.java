@@ -26,15 +26,12 @@ import org.junit.Rule;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.OutStreamOptions;
-import tachyon.conf.TachyonConf;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
+import tachyon.client.file.options.CreateFileOptions;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 
 public class CapacityUsageIntegrationTest {
@@ -52,44 +49,40 @@ public class CapacityUsageIntegrationTest {
           String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 1),
           String.valueOf(DISK_CAPACITY_BYTES), Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS,
           String.valueOf(HEARTBEAT_INTERVAL_MS));
-  private TachyonFileSystem mTFS = null;
+  private FileSystem mTFS = null;
 
   @Before
   public final void before() throws Exception {
     mTFS = mLocalTachyonClusterResource.get().getClient();
   }
 
-  private TachyonFile createAndWriteFile(TachyonURI filePath, TachyonStorageType tachyonStorageType,
-      UnderStorageType underStorageType, int len) throws IOException, TachyonException {
+  private void createAndWriteFile(TachyonURI filePath, WriteType writeType, int len)
+      throws IOException, TachyonException {
     ByteBuffer buf = ByteBuffer.allocate(len);
     buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < len; k ++) {
       buf.put((byte) k);
     }
 
-    OutStreamOptions options = new OutStreamOptions.Builder(new TachyonConf())
-        .setTachyonStorageType(tachyonStorageType).setUnderStorageType(underStorageType).build();
-    FileOutStream os = mTFS.getOutStream(filePath, options);
+    CreateFileOptions options = CreateFileOptions.defaults().setWriteType(writeType);
+    FileOutStream os = mTFS.createFile(filePath, options);
     os.write(buf.array());
     os.close();
-    return mTFS.open(filePath);
   }
 
   private void deleteDuringEviction(int i) throws IOException, TachyonException {
-    final String fileName1 = "/file" + i + "_1";
-    final String fileName2 = "/file" + i + "_2";
-    TachyonFile file1 = createAndWriteFile(new TachyonURI(fileName1), TachyonStorageType.STORE,
-        UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES);
-    FileInfo fileInfo1 = mTFS.getInfo(file1);
-    Assert.assertTrue(fileInfo1.getInMemoryPercentage() == 100);
+    final TachyonURI fileName1 = new TachyonURI("/file" + i + "_1");
+    final TachyonURI fileName2 = new TachyonURI("/file" + i + "_2");
+    createAndWriteFile(fileName1, WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES);
+    URIStatus fileStatus1 = mTFS.getStatus(fileName1);
+    Assert.assertTrue(fileStatus1.getInMemoryPercentage() == 100);
     // Deleting file1, command will be sent by master to worker asynchronously
-    mTFS.delete(file1);
+    mTFS.delete(fileName1);
     // Meanwhile creating file2. If creation arrives earlier than deletion, it will evict file1
-    TachyonFile file2 = createAndWriteFile(new TachyonURI(fileName2), TachyonStorageType.STORE,
-        UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 4);
-    FileInfo fileInfo2 = mTFS.getInfo(file2);
-    Assert.assertTrue(fileInfo2.getInMemoryPercentage() == 100);
-    mTFS.delete(file2);
+    createAndWriteFile(fileName2, WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES / 4);
+    URIStatus fileStatus2 = mTFS.getStatus(fileName2);
+    Assert.assertTrue(fileStatus2.getInMemoryPercentage() == 100);
+    mTFS.delete(fileName2);
   }
 
   // TODO(calvin): Rethink the approach of this test and what it should be testing.
