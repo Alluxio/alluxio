@@ -21,7 +21,6 @@ import java.net.URI;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -30,9 +29,8 @@ import org.junit.Test;
 
 import tachyon.LocalTachyonClusterResource;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.WriteType;
+import tachyon.client.file.FileSystem;
 
 /**
  * Integration tests for statistics in TFS.
@@ -44,21 +42,21 @@ public class TFSStatisticsTest {
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(10000, 1000, BLOCK_SIZE);
-  private static FileSystem.Statistics sStatistics;
-  private static FileSystem sTFS;
+  private static org.apache.hadoop.fs.FileSystem.Statistics sStatistics;
+  private static org.apache.hadoop.fs.FileSystem sTFS;
 
   @BeforeClass
   public static void beforeClass() throws Exception {
     Configuration conf = new Configuration();
     conf.set("fs.tachyon.impl", TFS.class.getName());
 
-    TachyonFileSystem tachyonFS = sLocalTachyonClusterResource.get().getClient();
-    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile-read", TachyonStorageType.STORE,
-        UnderStorageType.SYNC_PERSIST, FILE_LEN);
+    FileSystem tachyonFS = sLocalTachyonClusterResource.get().getClient();
+    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile-read", WriteType.CACHE_THROUGH,
+        FILE_LEN);
 
     URI uri = URI.create(sLocalTachyonClusterResource.get().getMasterUri());
-    sTFS = FileSystem.get(uri, conf);
-    sStatistics = FileSystem.getStatistics(uri.getScheme(), sTFS.getClass());
+    sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    sStatistics = org.apache.hadoop.fs.FileSystem.getStatistics(uri.getScheme(), sTFS.getClass());
   }
 
   /**

@@ -38,10 +38,11 @@ import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.heartbeat.HeartbeatContext;
@@ -52,7 +53,7 @@ import tachyon.master.file.meta.PersistenceState;
 import tachyon.master.file.meta.TtlBucket;
 import tachyon.master.file.meta.TtlBucketPrivateAccess;
 import tachyon.master.file.options.CompleteFileOptions;
-import tachyon.master.file.options.CreateOptions;
+import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.CommandType;
@@ -71,7 +72,7 @@ public final class FileSystemMasterTest {
   private static final TachyonURI ROOT_URI = new TachyonURI("/");
   private static final TachyonURI ROOT_FILE_URI = new TachyonURI("/file");
   private static final TachyonURI TEST_URI = new TachyonURI("/test");
-  private static CreateOptions sNestedFileOptions;
+  private static CreateFileOptions sNestedFileOptions;
   private static long sOldTtlIntervalMs;
 
   private BlockMaster mBlockMaster;
@@ -94,7 +95,7 @@ public final class FileSystemMasterTest {
   public static void beforeClass() {
     MasterContext.reset(new TachyonConf());
     sNestedFileOptions =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
     sOldTtlIntervalMs = TtlBucket.getTtlIntervalMs();
     TtlBucketPrivateAccess.setTtlIntervalMs(TTLCHECKER_INTERVAL_MS);
@@ -153,20 +154,19 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#deleteFile(long, boolean)} method.
+   * Tests the {@link FileSystemMaster#deleteFile(TachyonURI, boolean)} method.
    *
    * @throws Exception if deleting a file fails
    */
   @Test
   public void deleteFileTest() throws Exception {
     // cannot delete root
-    long rootId = mFileSystemMaster.getFileId(ROOT_URI);
-    Assert.assertFalse(mFileSystemMaster.deleteFile(rootId, true));
+    Assert.assertFalse(mFileSystemMaster.deleteFile(ROOT_URI, true));
 
     // delete the file
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     Assert.assertTrue(
-        mFileSystemMaster.deleteFile(mFileSystemMaster.getFileId(NESTED_FILE_URI), false));
+        mFileSystemMaster.deleteFile(NESTED_FILE_URI, false));
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // verify the file is deleted
@@ -174,17 +174,17 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#deleteFile(long, boolean)} method with a non-empty directory.
+   * Tests the {@link FileSystemMaster#deleteFile(TachyonURI, boolean)} method with a non-empty
+   * directory.
    *
    * @throws Exception if deleting a directory fails
    */
   @Test
   public void deleteNonemptyDirectoryTest() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
-    long dirId = mFileSystemMaster.getFileId(NESTED_URI);
-    String dirName = mFileSystemMaster.getFileInfo(dirId).getName();
+    String dirName = mFileSystemMaster.getFileInfo(NESTED_URI).getName();
     try {
-      mFileSystemMaster.deleteFile(dirId, false);
+      mFileSystemMaster.deleteFile(NESTED_URI, false);
       Assert.fail("Deleting a non-empty directory without setting recursive should fail");
     } catch (DirectoryNotEmptyException e) {
       String expectedMessage =
@@ -193,35 +193,34 @@ public final class FileSystemMasterTest {
     }
 
     // Now delete with recursive set to true
-    Assert.assertTrue(mFileSystemMaster.deleteFile(dirId, true));
+    Assert.assertTrue(mFileSystemMaster.deleteFile(NESTED_URI, true));
   }
 
   /**
-   * Tests the {@link FileSystemMaster#deleteFile(long, boolean)} method for a directory.
+   * Tests the {@link FileSystemMaster#deleteFile(TachyonURI, boolean)} method for a directory.
    *
    * @throws Exception if deleting the directory fails
    */
   @Test
   public void deleteDirTest() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
-    long dirId = mFileSystemMaster.getFileId(NESTED_URI);
     // delete the dir
-    Assert.assertTrue(mFileSystemMaster.deleteFile(dirId, true));
+    Assert.assertTrue(mFileSystemMaster.deleteFile(NESTED_URI, true));
 
     // verify the dir is deleted
     Assert.assertEquals(-1, mFileSystemMaster.getFileId(NESTED_URI));
   }
 
   /**
-   * Tests the {@link FileSystemMaster#getNewBlockIdForFile(long)} method.
+   * Tests the {@link FileSystemMaster#getNewBlockIdForFile(TachyonURI)} method.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void getNewBlockIdForFileTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
-    long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
+    long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
   }
 
@@ -238,15 +237,16 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests  that an exception is in the {@link FileSystemMaster#create(TachyonURI, CreateOptions)}
-   * with a TTL set in the {@link CreateOptions} after the TTL check was done once.
+   * Tests that an exception is in the
+   * {@link FileSystemMaster#create(TachyonURI, CreateFileOptions)} with a TTL set in the
+   * {@link CreateFileOptions} after the TTL check was done once.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void createFileWithTtlTest() throws Exception {
-    CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+    CreateFileOptions options =
+        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).setTtl(1).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
@@ -265,15 +265,15 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setTtlForFileWithNoTtlTest() throws Exception {
-    CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+    CreateFileOptions options =
+        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     executeTtlCheckOnce();
     // Since no valid TTL is set, the file should not be deleted.
-    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).fileId);
 
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTtl(0).build());
+    mFileSystemMaster.setState(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(0));
     executeTtlCheckOnce();
     // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -288,15 +288,15 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setSmallerTtlForFileWithTtlTest() throws Exception {
-    CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+    CreateFileOptions options =
+        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).setTtl(Constants.HOUR_MS).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     executeTtlCheckOnce();
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
-    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).fileId);
 
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTtl(0).build());
+    mFileSystemMaster.setState(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(0));
     executeTtlCheckOnce();
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -310,14 +310,14 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setLargerTtlForFileWithTtlTest() throws Exception {
-    CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+    CreateFileOptions options =
+        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).setTtl(0).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
-    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).fileId);
 
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTtl(Constants.HOUR_MS)
-        .build());
+    mFileSystemMaster.setState(NESTED_FILE_URI,
+        SetAttributeOptions.defaults().setTtl(Constants.HOUR_MS));
     executeTtlCheckOnce();
     // TTL is reset to 1 hour, the file should not be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
@@ -330,54 +330,53 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setNoTtlForFileWithTtlTest() throws Exception {
-    CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+    CreateFileOptions options =
+        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).setTtl(0).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTtl(Constants.NO_TTL)
-        .build());
+    mFileSystemMaster.setState(NESTED_FILE_URI,
+        SetAttributeOptions.defaults().setTtl(Constants.NO_TTL));
     executeTtlCheckOnce();
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
   }
 
   /**
-   * Tests the {@link FileSystemMaster#setState(long, SetStateOptions)} method and that an exception
-   * is thrown when trying to set a TTL for a directory.
+   * Tests the {@link FileSystemMaster#setState(TachyonURI, SetAttributeOptions)} method and that an
+   * exception is thrown when trying to set a TTL for a directory.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void setStateTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertFalse(fileInfo.isPinned);
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // No State.
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().build());
-    fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    mFileSystemMaster.setState(NESTED_FILE_URI, SetAttributeOptions.defaults());
+    fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertFalse(fileInfo.isPinned);
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // Just set pinned flag.
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPinned(true).build());
-    fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    mFileSystemMaster.setState(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
+    fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertTrue(fileInfo.isPinned);
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // Both pinned flag and ttl value.
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPinned(false).setTtl(1)
-        .build());
-    fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    mFileSystemMaster.setState(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(false)
+        .setTtl(1));
+    fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertFalse(fileInfo.isPinned);
     Assert.assertEquals(1, fileInfo.getTtl());
 
     // Set ttl for a directory, raise IllegalArgumentException.
     mThrown.expect(IllegalArgumentException.class);
-    mFileSystemMaster.setState(mFileSystemMaster.getFileId(NESTED_URI),
-        new SetStateOptions.Builder().setTtl(1).build());
+    mFileSystemMaster.setState(NESTED_URI, SetAttributeOptions.defaults().setTtl(1));
   }
 
   /**
@@ -402,38 +401,54 @@ public final class FileSystemMasterTest {
     // add nested file
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
     // add in-memory block
-    long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
+    long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
     // add SSD block
-    blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
+    blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "SSD", blockId, Constants.KB);
-    mFileSystemMaster.completeFile(fileId, CompleteFileOptions.defaults());
+    mFileSystemMaster.completeFile(NESTED_FILE_URI, CompleteFileOptions.defaults());
 
     createFileWithSingleBlock(ROOT_FILE_URI);
     Assert.assertEquals(Lists.newArrayList(ROOT_FILE_URI), mFileSystemMaster.getInMemoryFiles());
   }
 
   /**
-   * Tests the {@link FileSystemMaster#rename(long, TachyonURI)} method.
+   * Tests the {@link FileSystemMaster#rename(TachyonURI, TachyonURI)} method.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void renameTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
 
-    // move a nested file to root
-    Assert.assertFalse(mFileSystemMaster.rename(fileId, ROOT_URI));
+    // try to rename a file to root
+    try {
+      mFileSystemMaster.rename(NESTED_FILE_URI, ROOT_URI);
+      Assert.fail("Renaming to root should fail.");
+    } catch (InvalidPathException e) {
+      Assert.assertEquals(ExceptionMessage.RENAME_CANNOT_BE_TO_ROOT.getMessage(), e.getMessage());
+    }
 
-    // move root
-    long rootId = mFileSystemMaster.getFileId(ROOT_URI);
-    Assert.assertFalse(mFileSystemMaster.rename(rootId, TEST_URI));
+    // move root to another path
+    try {
+      mFileSystemMaster.rename(ROOT_URI, TEST_URI);
+      Assert.fail("Should not be able to rename root");
+    } catch (InvalidPathException e) {
+      Assert.assertEquals(ExceptionMessage.ROOT_CANNOT_BE_RENAMED.getMessage(), e.getMessage());
+    }
 
     // move to existing path
-    Assert.assertFalse(mFileSystemMaster.rename(fileId, NESTED_URI));
+    try {
+      mFileSystemMaster.rename(NESTED_FILE_URI, NESTED_URI);
+      Assert.fail("Should not be able to overwrite existing file.");
+    } catch (FileAlreadyExistsException e) {
+      Assert.assertEquals(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(NESTED_URI.getPath()),
+          e.getMessage());
+    }
 
     // move a nested file to a root file
-    Assert.assertTrue(mFileSystemMaster.rename(fileId, TEST_URI));
+    mFileSystemMaster.rename(NESTED_FILE_URI, TEST_URI);
+    Assert.assertEquals(mFileSystemMaster.getFileInfo(TEST_URI).getPath(), TEST_URI.getPath());
   }
 
   /**
@@ -447,12 +462,13 @@ public final class FileSystemMasterTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/nested/test"));
 
-    CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB).build();
-    long fileId = mFileSystemMaster.create(TEST_URI, options);
+    CreateFileOptions options =
+        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+            .build();
+    mFileSystemMaster.create(TEST_URI, options);
 
     // nested dir
-    Assert.assertFalse(mFileSystemMaster.rename(fileId, NESTED_FILE_URI));
+    mFileSystemMaster.rename(TEST_URI, NESTED_FILE_URI);
   }
 
   /**
@@ -464,14 +480,14 @@ public final class FileSystemMasterTest {
   @Test
   public void renameToSubpathTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Failed to rename: /nested/test is a prefix of /nested/test/file");
+    mThrown.expectMessage("/nested/test is a prefix of /nested/test/file");
 
-    long fileId = mFileSystemMaster.create(NESTED_URI, sNestedFileOptions);
-    mFileSystemMaster.rename(fileId, NESTED_FILE_URI);
+    mFileSystemMaster.create(NESTED_URI, sNestedFileOptions);
+    mFileSystemMaster.rename(NESTED_URI, NESTED_FILE_URI);
   }
 
   /**
-   * Tests the {@link FileSystemMaster#free(long, boolean)} method.
+   * Tests the {@link FileSystemMaster#free(TachyonURI, boolean)} method.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -481,16 +497,15 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // cannot free directory with recursive argument to false
-    long dirId = mFileSystemMaster.getFileId(NESTED_FILE_URI.getParent());
-    Assert.assertFalse(mFileSystemMaster.free(dirId, false));
+    Assert.assertFalse(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), false));
 
     // free the file
-    Assert.assertTrue(mFileSystemMaster.free(mFileSystemMaster.getFileId(NESTED_FILE_URI), false));
+    Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI, false));
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
   /**
-   * Tests the {@link FileSystemMaster#free(long, boolean)} method with a directory.
+   * Tests the {@link FileSystemMaster#free(TachyonURI, boolean)} method with a directory.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -500,8 +515,7 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // free the dir
-    long dirId = mFileSystemMaster.getFileId(NESTED_FILE_URI.getParent());
-    Assert.assertTrue(mFileSystemMaster.free(dirId, true));
+    Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), true));
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -533,7 +547,7 @@ public final class FileSystemMasterTest {
     long blockId = createFileWithSingleBlock(ROOT_FILE_URI);
 
     long fileId = mFileSystemMaster.getFileId(ROOT_FILE_URI);
-    mFileSystemMaster.scheduleAsyncPersistence(fileId);
+    mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI);
 
     FileSystemCommand command =
         mFileSystemMaster.workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId));
@@ -553,15 +567,15 @@ public final class FileSystemMasterTest {
   @Test
   public void persistenceFileWithBlocksOnMultipleWorkers() throws Exception {
     long fileId = mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
-    long blockId1 = mFileSystemMaster.getNewBlockIdForFile(fileId);
+    long blockId1 = mFileSystemMaster.getNewBlockIdForFile(ROOT_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId1, Constants.KB);
-    long blockId2 = mFileSystemMaster.getNewBlockIdForFile(fileId);
+    long blockId2 = mFileSystemMaster.getNewBlockIdForFile(ROOT_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId2, Constants.KB, "MEM", blockId2, Constants.KB);
     CompleteFileOptions options =
         new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(Constants.KB).build();
-    mFileSystemMaster.completeFile(fileId, options);
+    mFileSystemMaster.completeFile(ROOT_FILE_URI, options);
 
-    long workerId = mFileSystemMaster.scheduleAsyncPersistence(fileId);
+    long workerId = mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI);
     Assert.assertEquals(IdUtils.INVALID_WORKER_ID, workerId);
   }
 
@@ -591,12 +605,12 @@ public final class FileSystemMasterTest {
   }
 
   private long createFileWithSingleBlock(TachyonURI uri) throws Exception {
-    long fileId = mFileSystemMaster.create(uri, sNestedFileOptions);
-    long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
+    mFileSystemMaster.create(uri, sNestedFileOptions);
+    long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
     CompleteFileOptions options =
         new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(Constants.KB).build();
-    mFileSystemMaster.completeFile(fileId, options);
+    mFileSystemMaster.completeFile(uri, options);
     return blockId;
   }
 }
