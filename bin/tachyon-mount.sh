@@ -9,7 +9,6 @@ LAUNCHER=
 if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
-
 BIN=$(cd "$( dirname "$0" )"; pwd)
 
 Usage="Usage: tachyon-mount.sh [Mount|SudoMount] [MACHINE]
