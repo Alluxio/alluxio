@@ -15,6 +15,7 @@
 
 package tachyon.client.keyvalue;
 
+import java.util.Collections;
 import java.io.IOException;
 import java.util.List;
 
@@ -25,6 +26,8 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
@@ -41,9 +44,13 @@ import tachyon.util.io.PathUtils;
  */
 public final class KeyValueStoresIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
+  private static final String BASE_KEY = "base_key";
+  private static final String BASE_VALUE = "base_value";
+  private static final int BASE_KEY_VALUE_NUMBER = 100;
   private static final byte[] KEY1 = "key1".getBytes();
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
+  private static final byte[] VALUE2 = "value2_bar".getBytes();
   private static KeyValueStores sKVStores;
 
   private KeyValueStoreWriter mWriter;
@@ -126,6 +133,75 @@ public final class KeyValueStoresIntegrationTest {
   }
 
   /**
+   * Tests that an iterator for an empty store has no next elements.
+   */
+  @Test
+  public void emptyStoreIteratorTest() throws Exception {
+    mWriter = sKVStores.create(mStoreUri);
+    mWriter.close();
+
+    mReader = sKVStores.open(mStoreUri);
+    KeyValueIterator iterator = mReader.iterator();
+    Assert.assertFalse(iterator.hasNext());
+  }
+
+  /**
+   * Generates a key in the format {@link #BASE_KEY}_{@code id}.
+   *
+   * @param id the id of the key
+   * @return the generated key
+   */
+  private String genBaseKey(int id) {
+    return String.format("%s_%d", BASE_KEY, id);
+  }
+
+  /**
+   * Generates a value in the format {@link #BASE_VALUE}_{@code id}.
+   *
+   * @param id the id of the value
+   * @return the generated value
+   */
+  private String genBaseValue(int id) {
+    return String.format("%s_%d", BASE_VALUE, id);
+  }
+
+  /**
+   * Tests that an iterator can correctly iterate over a store.
+   * <p>
+   * There is no assumption about the order of iteration, it just makes sure all key-value pairs are
+   * iterated.
+   */
+  @Test
+  public void noOrderIteratorTest() throws Exception {
+    List<KeyValuePair> pairs = Lists.newArrayListWithExpectedSize(BASE_KEY_VALUE_NUMBER);
+    // TODO(cc): Assure multiple partitions are created by creating larger pairs, after fixing the
+    // way of detecting whether the current partition is full.
+    for (int i = 0; i < BASE_KEY_VALUE_NUMBER; i++) {
+      pairs.add(new KeyValuePair(genBaseKey(i).getBytes(), genBaseValue(i).getBytes()));
+    }
+    List<KeyValuePair> iteratedPairs = Lists.newArrayListWithExpectedSize(pairs.size());
+
+    mWriter = sKVStores.create(mStoreUri);
+    for (KeyValuePair pair : pairs) {
+      mWriter.put(pair.getKey().array(), pair.getValue().array());
+    }
+    mWriter.close();
+
+    mReader = sKVStores.open(mStoreUri);
+    KeyValueIterator iterator = mReader.iterator();
+    Assert.assertTrue(iterator.hasNext());
+    while (iterator.hasNext()) {
+      iteratedPairs.add(iterator.next());
+    }
+    Assert.assertEquals(pairs.size(), iteratedPairs.size());
+
+    // Sorts and then compares pairs and iteratedPairs.
+    Collections.sort(pairs);
+    Collections.sort(iteratedPairs);
+    Assert.assertEquals(pairs, iteratedPairs);
+  }
+
+  /*
    * Tests creating and opening a store with a number of keys, while each key-value pair is large
    * enough to take a separate key-value partition.
    */
