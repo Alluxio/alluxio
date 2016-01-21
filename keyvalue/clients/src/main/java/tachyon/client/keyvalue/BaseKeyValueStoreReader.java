@@ -101,4 +101,13 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   public KeyValueIterator iterator() throws IOException, TachyonException {
     return new KeyValueStoreIterator(mPartitions);
   }
+
+  @Override
+  public int size() throws IOException, TachyonException {
+    int totalSize = 0;
+    for (PartitionInfo partition : mPartitions) {
+      totalSize += KeyValuePartitionReader.Factory.create(partition.getBlockId()).size();
+    }
+    return totalSize;
+  }
 }
