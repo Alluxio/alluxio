@@ -43,6 +43,7 @@ import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
@@ -71,11 +72,13 @@ import tachyon.master.file.meta.TtlBucket;
 import tachyon.master.file.meta.TtlBucketList;
 import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.file.options.CompleteFileOptions;
+import tachyon.master.file.options.SetAclOptions;
 import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
+import tachyon.master.permission.FileSystemPermissionChecker;
 import tachyon.proto.journal.File.AddMountPointEntry;
 import tachyon.proto.journal.File.AsyncPersistRequestEntry;
 import tachyon.proto.journal.File.CompleteFileEntry;
@@ -88,9 +91,14 @@ import tachyon.proto.journal.File.InodeLastModificationTimeEntry;
 import tachyon.proto.journal.File.PersistDirectoryEntry;
 import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
+import tachyon.proto.journal.File.SetAclEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.security.User;
+import tachyon.security.authentication.PlainSaslServer;
+import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.authorization.PermissionStatus;
+import tachyon.security.group.GroupMappingService;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.CommandType;
@@ -105,6 +113,7 @@ import tachyon.thrift.PersistFile;
 import tachyon.thrift.WorkerNetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
+import tachyon.util.SecurityUtils;
 import tachyon.util.io.PathUtils;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -124,6 +133,8 @@ public final class FileSystemMaster extends MasterBase {
   private final MountTable mMountTable;
   /** Map from worker to the files to persist on that worker. Used by async persistence service. */
   private final Map<Long, Set<Long>> mWorkerToAsyncPersistFiles;
+  /** This provides user groups mapping service. */
+  private final GroupMappingService mGroupMappingService;
 
   private final PrefixList mWhitelist;
 
@@ -173,6 +184,7 @@ public final class FileSystemMaster extends MasterBase {
     mWhitelist = new PrefixList(conf.getList(Constants.MASTER_WHITELIST, ","));
 
     mWorkerToAsyncPersistFiles = Maps.newHashMap();
+    mGroupMappingService = GroupMappingService.Factory.getUserToGroupsMappingService(conf);
   }
 
   @Override
@@ -262,8 +274,30 @@ public final class FileSystemMaster extends MasterBase {
       } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
+    } else if (innerEntry instanceof SetAclEntry) {
+      try {
+        setAclFromEntry((SetAclEntry) innerEntry);
+      } catch (FileDoesNotExistException e) {
+        throw new RuntimeException(e);
+      }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
+    }
+  }
+
+  private void setAclFromEntry(SetAclEntry setAclEntry) throws FileDoesNotExistException {
+    synchronized (mInodeTree) {
+      Inode inode = mInodeTree.getInodeById(setAclEntry.getId());
+      inode.setLastModificationTimeMs(setAclEntry.getOpTimeMs());
+      if (setAclEntry.hasUserName()) {
+        inode.setUserName(setAclEntry.getUserName());
+      }
+      if (setAclEntry.hasGroupName()) {
+        inode.setGroupName(setAclEntry.getGroupName());
+      }
+      if (setAclEntry.hasPermission()) {
+        inode.setPermission((short) setAclEntry.getPermission());
+      }
     }
   }
 
@@ -327,11 +361,13 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
+   * @throws AccessControlException if permission checking fails
    */
-  public long getFileId(TachyonURI path) {
+  public long getFileId(TachyonURI path) throws AccessControlException {
     synchronized (mInodeTree) {
       Inode inode;
       try {
+        checkPermission(FileSystemAction.READ, path, false);
         inode = mInodeTree.getInodeByPath(path);
       } catch (InvalidPathException e) {
         try {
@@ -411,11 +447,12 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param path the path to get the {@link FileInfo} list for
    * @return the list of {@link FileInfo}s
+   * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
   public List<FileInfo> getFileInfoList(TachyonURI path)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
       // getFileInfoList should load from ufs if the file does not exist
@@ -452,12 +489,14 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws InvalidFileSizeException if an invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
+   * @throws AccessControlException if permission checking fails
    */
   public void completeFile(TachyonURI path, CompleteFileOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
-      InvalidFileSizeException, FileAlreadyCompletedException {
+      InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException {
     MasterContext.getMasterSource().incCompleteFileOps(1);
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.WRITE, path, false);
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeByPath(path);
       long fileId = inode.getId();
@@ -542,11 +581,15 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileAlreadyExistsException if the file already exists
    * @throws BlockInfoException if an invalid block information in encountered
    * @throws IOException if the creation fails
+   * @throws AccessControlException if permission checking fails
    */
+
   public long create(TachyonURI path, CreateFileOptions options)
-      throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
+      throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
+          BlockInfoException, IOException {
     MasterContext.getMasterSource().incCreateFileOps(1);
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.WRITE, path, true);
       InodeTree.CreatePathResult createResult = createInternal(path, options);
       List<Inode> created = createResult.getCreated();
 
@@ -658,12 +701,16 @@ public final class FileSystemMaster extends MasterBase {
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
+   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
+   * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public boolean deleteFile(TachyonURI path, boolean recursive) throws IOException,
-      FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException {
+  public boolean deleteFile(TachyonURI path, boolean recursive)
+      throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
+          InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incDeletePathOps(1);
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.WRITE, path, true);
       Inode inode = mInodeTree.getInodeByPath(path);
       long fileId = inode.getId();
       long opTimeMs = System.currentTimeMillis();
@@ -981,13 +1028,15 @@ public final class FileSystemMaster extends MasterBase {
    *         {@link InodeTree#createPath(TachyonURI, CreatePathOptions)} for more details
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws IOException if a non-Tachyon related exception occurs
+   * @throws AccessControlException if permission checking fails
    */
   public InodeTree.CreatePathResult mkdir(TachyonURI path, CreateDirectoryOptions options)
-      throws InvalidPathException, FileAlreadyExistsException, IOException {
+      throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException {
     LOG.debug("mkdir {} ", path);
     MasterContext.getMasterSource().incCreateDirectoriesOps(1);
     synchronized (mInodeTree) {
       try {
+        checkPermission(FileSystemAction.WRITE, path, true);
         CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
             .setAllowExists(options.isAllowExists())
             .setDirectory(true)
@@ -1049,11 +1098,14 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
+   * @throws AccessControlException if permission checking fails
    */
   public void rename(TachyonURI srcPath, TachyonURI dstPath) throws FileAlreadyExistsException,
-      FileDoesNotExistException, InvalidPathException, IOException {
+      FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incRenamePathOps(1);
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.WRITE, srcPath, true);
+      checkPermission(FileSystemAction.WRITE, dstPath, true);
       Inode srcInode = mInodeTree.getInodeByPath(srcPath);
       // Renaming path to itself is a no-op.
       if (srcPath.equals(dstPath)) {
@@ -1224,9 +1276,10 @@ public final class FileSystemMaster extends MasterBase {
    * @param recursive if true, and the file is a directory, all descendants will be freed
    * @return true if the file was freed
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
    */
   public boolean free(TachyonURI path, boolean recursive)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incFreeFileOps(1);
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeByPath(path);
@@ -1237,6 +1290,7 @@ public final class FileSystemMaster extends MasterBase {
         return false;
       }
 
+      checkPermission(FileSystemAction.WRITE, path, false);
       List<Inode> freeInodes = new ArrayList<Inode>();
       freeInodes.add(inode);
       if (inode.isDirectory()) {
@@ -1347,13 +1401,16 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidFileSizeException if invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
    * @throws IOException if an I/O error occurs
+   * @throws AccessControlException if permission checking fails
    */
   // TODO(jiri): Make it possible to load UFS objects recursively.
   public long loadMetadata(TachyonURI path, boolean recursive)
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
-      InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException, IOException {
+      InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException, IOException,
+      AccessControlException {
     TachyonURI ufsPath;
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.READ, path, false);
       ufsPath = mMountTable.resolve(path);
     }
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
@@ -1395,10 +1452,11 @@ public final class FileSystemMaster extends MasterBase {
    * @return the file id of the loaded directory
    * @throws FileAlreadyExistsException if the object to be loaded already exists
    * @throws InvalidPathException if invalid path is encountered
-   * @throws IOException if an I/O error occurs
+   * @throws IOException if an I/O error occurs   *
+   * @throws AccessControlException if permission checking fails
    */
   private long loadMetadataDirectory(TachyonURI path, boolean recursive)
-      throws IOException, FileAlreadyExistsException, InvalidPathException {
+      throws IOException, FileAlreadyExistsException, InvalidPathException, AccessControlException {
     CreateDirectoryOptions options =
         new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(recursive)
             .setPersisted(true).build();
@@ -1427,9 +1485,10 @@ public final class FileSystemMaster extends MasterBase {
    * @throws IOException if an I/O error occurs
    */
   public void mount(TachyonURI tachyonPath, TachyonURI ufsPath)
-      throws FileAlreadyExistsException, InvalidPathException, IOException {
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incMountOps(1);
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.WRITE, tachyonPath, true);
       mountInternal(tachyonPath, ufsPath);
       boolean loadMetadataSuceeded = false;
       try {
@@ -1490,9 +1549,10 @@ public final class FileSystemMaster extends MasterBase {
    * @throws IOException if an I/O error occurs
    */
   public boolean unmount(TachyonURI tachyonPath)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incUnmountOps(1);
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.WRITE, tachyonPath, true);
       if (unmountInternal(tachyonPath)) {
         Inode inode = mInodeTree.getInodeByPath(tachyonPath);
         // Use the internal delete API, setting {@code replayed} to false to prevent the delete
@@ -1534,8 +1594,10 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param fileId the id of the file
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
    */
-  public void resetFile(long fileId) throws FileDoesNotExistException, InvalidPathException {
+  public void resetFile(long fileId)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     // TODO(yupeng) check the file is not persisted
     synchronized (mInodeTree) {
       // free the file first
@@ -1551,12 +1613,14 @@ public final class FileSystemMaster extends MasterBase {
    * @param path the path to set state
    * @param options attributes to be set, see {@link SetAttributeOptions}
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
    */
-  public void setState(TachyonURI path, SetAttributeOptions options) throws
-      FileDoesNotExistException {
+  public void setState(TachyonURI path, SetAttributeOptions options)
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException {
     MasterContext.getMasterSource().incSetStateOps(1);
     synchronized (mInodeTree) {
-      long fileId = getFileId(path);
+      checkPermission(FileSystemAction.WRITE, path, false);
+      long fileId = mInodeTree.getInodeByPath(path).getId();
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
       SetStateEntry.Builder setState =
@@ -1723,9 +1787,10 @@ public final class FileSystemMaster extends MasterBase {
    * @return the command for persisting the blocks of a file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
+   * @throws AccessControlException if permission checking fails
    */
   public synchronized FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     for (long fileId : persistedFiles) {
       setState(getPath(fileId), SetAttributeOptions.defaults().setPersisted(true));
     }
@@ -1788,6 +1853,228 @@ public final class FileSystemMaster extends MasterBase {
       options.setPersisted(entry.getPersisted());
     }
     setStateInternal(entry.getId(), entry.getOpTimeMs(), options);
+  }
+
+  /**
+   * Sets the acl of a file or directory. At least one of owner, group, or permission in the
+   * {@link SetAclOptions} could be set at a time.
+   *
+   * @param path to be set acl on
+   * @param options acl option to be set
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
+  public void setAcl(TachyonURI path, SetAclOptions options) throws AccessControlException,
+      InvalidPathException {
+    Preconditions.checkArgument(options.isValid(), PreconditionMessage.INVALID_SET_ACL_OPTIONS,
+        options.getOwner(), options.getGroup(), options.getPermission());
+
+    if (options.getOwner() != null) {
+      setOwner(path,new SetAclOptions.Builder().setOwner(options.getOwner())
+          .setRecursive(options.isRecursive()).build());
+    }
+
+    if (options.getGroup() != null
+        || options.getPermission() != Constants.INVALID_PERMISSION) {
+      setGroupOrPermission(path, new SetAclOptions.Builder().setGroup(options.getGroup())
+          .setPermission(options.getPermission()).setRecursive(options.isRecursive()).build());
+    }
+  }
+
+  /**
+   * Sets the user to be the owner of the path. Only a super user can change the owner of a path.
+   *
+   * @param path to be set owner on
+   * @param options acl option to be set
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
+  private void setOwner(TachyonURI path, SetAclOptions options)
+      throws AccessControlException, InvalidPathException {
+    FileSystemPermissionChecker.checkSuperuser(getClientUser(), getGroups(getClientUser()));
+    synchronized (mInodeTree) {
+      long opTimeMs = System.currentTimeMillis();
+      Inode targetInode = mInodeTree.getInodeByPath(path);
+      if (options.isRecursive() && targetInode.isDirectory()) {
+        List<Inode> inodeChildren =
+            mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
+        for (Inode inode : inodeChildren) {
+          setAclInternal(inode, opTimeMs, options);
+        }
+      }
+      setAclInternal(targetInode, opTimeMs, options);
+    }
+  }
+
+  /**
+   * Sets the group or permission of the path. Only a super user or the path owner can change.
+   *
+   * @param path to be set permission on
+   * @param options acl option to be set
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
+  private void setGroupOrPermission(TachyonURI path, SetAclOptions options) throws
+      AccessControlException, InvalidPathException {
+    synchronized (mInodeTree) {
+      checkOwner(path);
+      long opTimeMs = System.currentTimeMillis();
+      Inode targetInode = mInodeTree.getInodeByPath(path);
+      if (options.isRecursive() && targetInode.isDirectory()) {
+        List<Inode> inodeChildren =
+            mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
+        for (Inode inode : inodeChildren) {
+          checkOwner(mInodeTree.getPath(inode));
+        }
+        for (Inode inode : inodeChildren) {
+          setAclInternal(inode, opTimeMs, options);
+        }
+      }
+      setAclInternal(targetInode, opTimeMs, options);
+    }
+  }
+
+  /**
+   * Sets acl attributes to the inode. At least one of user, group, or permission in
+   * {@link SetAclOptions} is set.
+   *
+   * @param inode the inode to be set on
+   * @param opTimeMs the time of the operation
+   * @param options acl option to be set
+   * @throws AccessControlException if security is not enabled
+   */
+  private void setAclInternal(Inode inode, long opTimeMs, SetAclOptions options)
+      throws AccessControlException {
+    // throws exception if security is not enabled.
+    if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
+      throw new AccessControlException(ExceptionMessage.SECURITY_IS_NOT_ENABLED.getMessage());
+    }
+
+    SetAclEntry.Builder setAcl = SetAclEntry.newBuilder().setId(inode.getId())
+        .setOpTimeMs(opTimeMs);
+    if (options.getOwner() != null) {
+      setAcl.setUserName(options.getOwner());
+    }
+    if (options.getGroup() != null) {
+      setAcl.setGroupName(options.getGroup());
+    }
+    if (options.getPermission() != Constants.INVALID_PERMISSION) {
+      setAcl.setPermission(options.getPermission());
+    }
+
+    try {
+      setAclFromEntry(setAcl.build());
+    } catch (FileDoesNotExistException e) {
+      LOG.warn("Exception happens when setting acl: ", e);
+    }
+
+    writeJournalEntry(JournalEntry.newBuilder().setSetAcl(setAcl).build());
+    flushJournal();
+  }
+
+  /**
+   * Checks whether the client user is the owner of the path.
+   *
+   * @param path to be checked on
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
+  private void checkOwner(TachyonURI path) throws AccessControlException, InvalidPathException {
+    // throws exception if security is not enabled.
+    if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
+      throw new AccessControlException(ExceptionMessage.SECURITY_IS_NOT_ENABLED.getMessage());
+    }
+
+    // collects inodes info on the path
+    List<FileInfo> fileInfos = collectFileInfoList(path);
+
+    // collects user and groups
+    String user = getClientUser();
+    List<String> groups = getGroups(user);
+
+    // checks the owner
+    FileSystemPermissionChecker.checkOwner(user, groups, path, fileInfos);
+  }
+
+  /**
+   * Checks user's permission on a path. If the path is invalid, it should bypass the
+   * {@link InvalidPathException} and the logic at operation will handle it. The caller should lock
+   * mInodeTree before calling it.
+   *
+   * @param action requested {@link FileSystemAction} by user
+   * @param path the path to check permission on
+   * @param checkParent indicates whether to check its parent
+   * @throws AccessControlException if permission checking fails
+   */
+  private void checkPermission(FileSystemAction action, TachyonURI path, boolean checkParent)
+      throws AccessControlException {
+    // bypasses permission checking if security is not enabled.
+    if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
+      return;
+    }
+
+    try {
+      // collects inodes info on the path
+      List<FileInfo> fileInfos = collectFileInfoList(path);
+
+      // collects user and groups
+      String user = getClientUser();
+      List<String> groups = getGroups(user);
+
+      // perform permission check
+      String[] pathComponents = PathUtils.getPathComponents(path.getPath());
+      if (checkParent) {
+        if (// involved methods: create, mkdir, rename, deleteFile
+            action.equals(FileSystemAction.WRITE)
+            // create or mkdir under root "/", then assumes to have write permission.
+            && (fileInfos.size() == 1 && pathComponents.length > 1)
+            // rename or deleteFile under root "/", then must be the owner.
+            || (fileInfos.size() == 2 && pathComponents.length == 2)) {
+          // Handle a special case where the path is a level under root "/" and checking write
+          // permission on it. We simply assume user has write permission on the root "/",
+          // with a limitation that the user must be the owner of the path.
+          FileSystemPermissionChecker.checkOwner(user, groups, path, fileInfos);
+        } else {
+          FileSystemPermissionChecker.checkParentPermission(user, groups, action, path, fileInfos);
+        }
+      } else {
+        FileSystemPermissionChecker.checkPermission(user, groups, action, path, fileInfos);
+      }
+    } catch (InvalidPathException e) {
+      LOG.warn("Invalid Path {} for checking permission: " + e.getMessage(), path);
+    }
+  }
+
+  private String getClientUser() throws AccessControlException {
+    User authorizedUser = PlainSaslServer.AuthorizedClientUser.get();
+    if (authorizedUser == null) {
+      throw new AccessControlException(
+          ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
+    }
+    return authorizedUser.getName();
+  }
+
+  private List<String> getGroups(String user) throws AccessControlException {
+    try {
+      return mGroupMappingService.getGroups(user);
+    } catch (IOException e) {
+      throw new AccessControlException(
+          ExceptionMessage.PERMISSION_DENIED.getMessage(e.getMessage()));
+    }
+  }
+
+  private List<FileInfo> collectFileInfoList(TachyonURI path) throws AccessControlException,
+      InvalidPathException {
+    List<FileInfo> fileInfos = Lists.newArrayList();
+    for (Inode inodeOnPath :  mInodeTree.collectInodes(path)) {
+      fileInfos.add(inodeOnPath.generateClientFileInfo(mInodeTree.getPath(inodeOnPath).toString()));
+    }
+
+    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
+    if (pathComponents.length < fileInfos.size()) {
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path.getPath()));
+    }
+    return fileInfos;
   }
 
   /**

@@ -44,64 +44,64 @@ public class FileSystemMasterClientService {
 
     /**
      * Marks a file as completed.
-     * 
+     *
      * @param path the path of the file
-     * 
+     *
      * @param options the method options
      */
     public void completeFile(String path, CompleteFileTOptions options) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Creates a directory.
-     * 
+     *
      * @param path the path of the directory
-     * 
+     *
      * @param options the method options
      */
     public void createDirectory(String path, CreateDirectoryTOptions options) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Creates a file.
-     * 
+     *
      * @param path the path of the file
-     * 
+     *
      * @param options the options for creating the file
      */
     public void createFile(String path, CreateFileTOptions options) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Frees the given file or directory from Tachyon.
-     * 
+     *
      * @param path the path of the file or directory
-     * 
+     *
      * @param recursive whether to free recursively
      */
     public void free(String path, boolean recursive) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Returns the list of file blocks information for the given file.
-     * 
+     *
      * @param path the path of the file
      */
     public List<tachyon.thrift.FileBlockInfo> getFileBlockInfoList(String path) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Returns the status of the file or directory.
-     * 
+     *
      * @param path the path of the file or directory
      */
     public FileInfo getStatus(String path) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Returns the status of the file or directory, only used internally by servers.
-     * 
+     *
      * @param fileId the id of the file or directory
      */
     public FileInfo getStatusInternal(long fileId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Generates a new block id for the given file.
-     * 
+     *
      * @param path the path of the file
      */
     public long getNewBlockIdForFile(String path) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
@@ -115,16 +115,16 @@ public class FileSystemMasterClientService {
      * If the path points to a file, the method returns a singleton with its file information.
      * If the path points to a directory, the method returns a list with file information for the
      * directory contents.
-     * 
+     *
      * @param path the path of the file or directory
      */
     public List<FileInfo> listStatus(String path) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Loads metadata for the object identified by the given Tachyon path from UFS into Tachyon.
-     * 
+     *
      * @param ufsPath the path of the under file system
-     * 
+     *
      * @param recursive whether to load meta data recursively
      */
     public long loadMetadata(String ufsPath, boolean recursive) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
@@ -132,9 +132,9 @@ public class FileSystemMasterClientService {
     /**
      * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
      * path. The path should not exist and should not be nested under any existing mount point.
-     * 
+     *
      * @param tachyonPath the path of tachyon mount point
-     * 
+     *
      * @param ufsPath the path of the under file system
      */
     public void mount(String tachyonPath, String ufsPath) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
@@ -142,34 +142,43 @@ public class FileSystemMasterClientService {
     /**
      * Deletes a file or a directory and returns whether the remove operation succeeded.
      * NOTE: Unfortunately, the method cannot be called "delete" as that is a reserved Thrift keyword.
-     * 
+     *
      * @param path the path of the file or directory
-     * 
+     *
      * @param recursive whether to remove recursively
      */
     public void remove(String path, boolean recursive) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Renames a file or a directory.
-     * 
+     *
      * @param path the path of the file or directory
-     * 
+     *
      * @param dstPath the desinationpath of the file
      */
     public void rename(String path, String dstPath) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
+     * Sets the acl of a path.
+     *
+     * @param path the path of a file or directory
+     *
+     * @param options the method options
+     */
+    public void setAcl(String path, SetAclTOptions options) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
+
+    /**
      * Sets file or directory attributes.
-     * 
+     *
      * @param path the path of the file or directory
-     * 
+     *
      * @param options the method options
      */
     public void setAttribute(String path, SetAttributeTOptions options) throws org.apache.thrift.TException;
 
     /**
      * Schedules async persistence.
-     * 
+     *
      * @param path the path of the file
      */
     public void scheduleAsyncPersist(String path) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
@@ -178,7 +187,7 @@ public class FileSystemMasterClientService {
      * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
      * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
      * will be persisted before they are removed from the Tachyon namespace.
-     * 
+     *
      * @param tachyonPath the path of the tachyon mount point
      */
     public void unmount(String tachyonPath) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
@@ -214,6 +223,8 @@ public class FileSystemMasterClientService {
     public void remove(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void rename(String path, String dstPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+
+    public void setAcl(String path, SetAclTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void setAttribute(String path, SetAttributeTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -601,6 +612,30 @@ public class FileSystemMasterClientService {
       }
       if (result.ioe != null) {
         throw result.ioe;
+      }
+      return;
+    }
+
+    public void setAcl(String path, SetAclTOptions options) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException
+    {
+      send_setAcl(path, options);
+      recv_setAcl();
+    }
+
+    public void send_setAcl(String path, SetAclTOptions options) throws org.apache.thrift.TException
+    {
+      setAcl_args args = new setAcl_args();
+      args.setPath(path);
+      args.setOptions(options);
+      sendBase("setAcl", args);
+    }
+
+    public void recv_setAcl() throws tachyon.thrift.TachyonTException, org.apache.thrift.TException
+    {
+      setAcl_result result = new setAcl_result();
+      receiveBase(result, "setAcl");
+      if (result.e != null) {
+        throw result.e;
       }
       return;
     }
@@ -1162,6 +1197,41 @@ public class FileSystemMasterClientService {
       }
     }
 
+    public void setAcl(String path, SetAclTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      setAcl_call method_call = new setAcl_call(path, options, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class setAcl_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String path;
+      private SetAclTOptions options;
+      public setAcl_call(String path, SetAclTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.path = path;
+        this.options = options;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("setAcl", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        setAcl_args args = new setAcl_args();
+        args.setPath(path);
+        args.setOptions(options);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public void getResult() throws tachyon.thrift.TachyonTException, org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        (new Client(prot)).recv_setAcl();
+      }
+    }
+
     public void setAttribute(String path, SetAttributeTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
       setAttribute_call method_call = new setAttribute_call(path, options, resultHandler, this, ___protocolFactory, ___transport);
@@ -1288,6 +1358,7 @@ public class FileSystemMasterClientService {
       processMap.put("mount", new mount());
       processMap.put("remove", new remove());
       processMap.put("rename", new rename());
+      processMap.put("setAcl", new setAcl());
       processMap.put("setAttribute", new setAttribute());
       processMap.put("scheduleAsyncPersist", new scheduleAsyncPersist());
       processMap.put("unmount", new unmount());
@@ -1638,6 +1709,30 @@ public class FileSystemMasterClientService {
       }
     }
 
+    public static class setAcl<I extends Iface> extends org.apache.thrift.ProcessFunction<I, setAcl_args> {
+      public setAcl() {
+        super("setAcl");
+      }
+
+      public setAcl_args getEmptyArgsInstance() {
+        return new setAcl_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public setAcl_result getResult(I iface, setAcl_args args) throws org.apache.thrift.TException {
+        setAcl_result result = new setAcl_result();
+        try {
+          iface.setAcl(args.path, args.options);
+        } catch (tachyon.thrift.TachyonTException e) {
+          result.e = e;
+        }
+        return result;
+      }
+    }
+
     public static class setAttribute<I extends Iface> extends org.apache.thrift.ProcessFunction<I, setAttribute_args> {
       public setAttribute() {
         super("setAttribute");
@@ -1735,6 +1830,7 @@ public class FileSystemMasterClientService {
       processMap.put("mount", new mount());
       processMap.put("remove", new remove());
       processMap.put("rename", new rename());
+      processMap.put("setAcl", new setAcl());
       processMap.put("setAttribute", new setAttribute());
       processMap.put("scheduleAsyncPersist", new scheduleAsyncPersist());
       processMap.put("unmount", new unmount());
@@ -1752,7 +1848,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
+        return new AsyncMethodCallback<Void>() {
           public void onComplete(Void o) {
             completeFile_result result = new completeFile_result();
             try {
@@ -1772,7 +1868,7 @@ public class FileSystemMasterClientService {
                         result.setEIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1808,7 +1904,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
+        return new AsyncMethodCallback<Void>() {
           public void onComplete(Void o) {
             createDirectory_result result = new createDirectory_result();
             try {
@@ -1833,7 +1929,7 @@ public class FileSystemMasterClientService {
                         result.setIoeIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1869,7 +1965,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
+        return new AsyncMethodCallback<Void>() {
           public void onComplete(Void o) {
             createFile_result result = new createFile_result();
             try {
@@ -1894,7 +1990,7 @@ public class FileSystemMasterClientService {
                         result.setIoeIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1930,7 +2026,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
+        return new AsyncMethodCallback<Void>() {
           public void onComplete(Void o) {
             free_result result = new free_result();
             try {
@@ -1950,7 +2046,7 @@ public class FileSystemMasterClientService {
                         result.setEIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1986,7 +2082,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<List<tachyon.thrift.FileBlockInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<List<tachyon.thrift.FileBlockInfo>>() { 
+        return new AsyncMethodCallback<List<tachyon.thrift.FileBlockInfo>>() {
           public void onComplete(List<tachyon.thrift.FileBlockInfo> o) {
             getFileBlockInfoList_result result = new getFileBlockInfoList_result();
             result.success = o;
@@ -2007,7 +2103,7 @@ public class FileSystemMasterClientService {
                         result.setEIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -2043,7 +2139,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<FileInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<FileInfo>() { 
+        return new AsyncMethodCallback<FileInfo>() {
           public void onComplete(FileInfo o) {
             getStatus_result result = new getStatus_result();
             result.success = o;
@@ -2064,7 +2160,7 @@ public class FileSystemMasterClientService {
                         result.setEIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -2100,7 +2196,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<FileInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<FileInfo>() { 
+        return new AsyncMethodCallback<FileInfo>() {
           public void onComplete(FileInfo o) {
             getStatusInternal_result result = new getStatusInternal_result();
             result.success = o;
@@ -2121,7 +2217,7 @@ public class FileSystemMasterClientService {
                         result.setEIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -2157,7 +2253,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<Long> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Long>() { 
+        return new AsyncMethodCallback<Long>() {
           public void onComplete(Long o) {
             getNewBlockIdForFile_result result = new getNewBlockIdForFile_result();
             result.success = o;
@@ -2179,7 +2275,7 @@ public class FileSystemMasterClientService {
                         result.setEIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -2215,7 +2311,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<String> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<String>() { 
+        return new AsyncMethodCallback<String>() {
           public void onComplete(String o) {
             getUfsAddress_result result = new getUfsAddress_result();
             result.success = o;
@@ -2266,7 +2362,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<List<FileInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<List<FileInfo>>() { 
+        return new AsyncMethodCallback<List<FileInfo>>() {
           public void onComplete(List<FileInfo> o) {
             listStatus_result result = new listStatus_result();
             result.success = o;
@@ -2287,7 +2383,7 @@ public class FileSystemMasterClientService {
                         result.setEIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -2323,7 +2419,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<Long> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Long>() { 
+        return new AsyncMethodCallback<Long>() {
           public void onComplete(Long o) {
             loadMetadata_result result = new loadMetadata_result();
             result.success = o;
@@ -2350,7 +2446,7 @@ public class FileSystemMasterClientService {
                         result.setIoeIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -2386,7 +2482,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
+        return new AsyncMethodCallback<Void>() {
           public void onComplete(Void o) {
             mount_result result = new mount_result();
             try {
@@ -2411,7 +2507,7 @@ public class FileSystemMasterClientService {
                         result.setIoeIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -2447,7 +2543,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
+        return new AsyncMethodCallback<Void>() {
           public void onComplete(Void o) {
             remove_result result = new remove_result();
             try {
@@ -2467,7 +2563,7 @@ public class FileSystemMasterClientService {
                         result.setEIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -2503,7 +2599,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
+        return new AsyncMethodCallback<Void>() {
           public void onComplete(Void o) {
             rename_result result = new rename_result();
             try {
@@ -2528,7 +2624,7 @@ public class FileSystemMasterClientService {
                         result.setIoeIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -2553,6 +2649,62 @@ public class FileSystemMasterClientService {
       }
     }
 
+    public static class setAcl<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, setAcl_args, Void> {
+      public setAcl() {
+        super("setAcl");
+      }
+
+      public setAcl_args getEmptyArgsInstance() {
+        return new setAcl_args();
+      }
+
+      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+        final org.apache.thrift.AsyncProcessFunction fcall = this;
+        return new AsyncMethodCallback<Void>() {
+          public void onComplete(Void o) {
+            setAcl_result result = new setAcl_result();
+            try {
+              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
+              return;
+            } catch (Exception e) {
+              LOGGER.error("Exception writing to internal frame buffer", e);
+            }
+            fb.close();
+          }
+          public void onError(Exception e) {
+            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
+            org.apache.thrift.TBase msg;
+            setAcl_result result = new setAcl_result();
+            if (e instanceof tachyon.thrift.TachyonTException) {
+                        result.e = (tachyon.thrift.TachyonTException) e;
+                        result.setEIsSet(true);
+                        msg = result;
+            }
+             else
+            {
+              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
+              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
+            }
+            try {
+              fcall.sendResponse(fb,msg,msgType,seqid);
+              return;
+            } catch (Exception ex) {
+              LOGGER.error("Exception writing to internal frame buffer", ex);
+            }
+            fb.close();
+          }
+        };
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public void start(I iface, setAcl_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
+        iface.setAcl(args.path, args.options,resultHandler);
+      }
+    }
+
     public static class setAttribute<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, setAttribute_args, Void> {
       public setAttribute() {
         super("setAttribute");
@@ -2564,7 +2716,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
+        return new AsyncMethodCallback<Void>() {
           public void onComplete(Void o) {
             setAttribute_result result = new setAttribute_result();
             try {
@@ -2614,7 +2766,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
+        return new AsyncMethodCallback<Void>() {
           public void onComplete(Void o) {
             scheduleAsyncPersist_result result = new scheduleAsyncPersist_result();
             try {
@@ -2634,7 +2786,7 @@ public class FileSystemMasterClientService {
                         result.setEIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -2670,7 +2822,7 @@ public class FileSystemMasterClientService {
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
+        return new AsyncMethodCallback<Void>() {
           public void onComplete(Void o) {
             unmount_result result = new unmount_result();
             try {
@@ -2695,7 +2847,7 @@ public class FileSystemMasterClientService {
                         result.setIoeIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -2814,9 +2966,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CompleteFileTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(completeFile_args.class, metaDataMap);
@@ -3120,7 +3272,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -3128,7 +3280,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
                 struct.setPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -3137,7 +3289,7 @@ public class FileSystemMasterClientService {
                 struct.options = new CompleteFileTOptions();
                 struct.options.read(iprot);
                 struct.setOptionsIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -3292,7 +3444,7 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(completeFile_result.class, metaDataMap);
@@ -3506,7 +3658,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -3515,7 +3667,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -3672,9 +3824,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CreateDirectoryTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createDirectory_args.class, metaDataMap);
@@ -3978,7 +4130,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -3986,7 +4138,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
                 struct.setPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -3995,7 +4147,7 @@ public class FileSystemMasterClientService {
                 struct.options = new CreateDirectoryTOptions();
                 struct.options.read(iprot);
                 struct.setOptionsIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -4155,9 +4307,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createDirectory_result.class, metaDataMap);
@@ -4446,7 +4598,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -4455,7 +4607,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -4464,7 +4616,7 @@ public class FileSystemMasterClientService {
                 struct.ioe = new tachyon.thrift.ThriftIOException();
                 struct.ioe.read(iprot);
                 struct.setIoeIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -4637,9 +4789,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CreateFileTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createFile_args.class, metaDataMap);
@@ -4943,7 +5095,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -4951,7 +5103,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
                 struct.setPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -4960,7 +5112,7 @@ public class FileSystemMasterClientService {
                 struct.options = new CreateFileTOptions();
                 struct.options.read(iprot);
                 struct.setOptionsIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -5120,9 +5272,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createFile_result.class, metaDataMap);
@@ -5411,7 +5563,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -5420,7 +5572,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -5429,7 +5581,7 @@ public class FileSystemMasterClientService {
                 struct.ioe = new tachyon.thrift.ThriftIOException();
                 struct.ioe.read(iprot);
                 struct.setIoeIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -5604,9 +5756,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(free_args.class, metaDataMap);
@@ -5905,7 +6057,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -5913,7 +6065,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
                 struct.setPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -5921,7 +6073,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
                 struct.recursive = iprot.readBool();
                 struct.setRecursiveIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -6073,7 +6225,7 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(free_result.class, metaDataMap);
@@ -6287,7 +6439,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -6296,7 +6448,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -6442,7 +6594,7 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getFileBlockInfoList_args.class, metaDataMap);
@@ -6662,7 +6814,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -6670,7 +6822,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
                 struct.setPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -6814,10 +6966,10 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST,
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, tachyon.thrift.FileBlockInfo.class))));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getFileBlockInfoList_result.class, metaDataMap);
@@ -7125,7 +7277,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -7144,7 +7296,7 @@ public class FileSystemMasterClientService {
                   iprot.readListEnd();
                 }
                 struct.setSuccessIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -7153,7 +7305,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -7337,7 +7489,7 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getStatus_args.class, metaDataMap);
@@ -7557,7 +7709,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -7565,7 +7717,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
                 struct.setPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -7709,9 +7861,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileInfo.class)));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getStatus_result.class, metaDataMap);
@@ -8003,7 +8155,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -8012,7 +8164,7 @@ public class FileSystemMasterClientService {
                 struct.success = new FileInfo();
                 struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -8021,7 +8173,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -8185,7 +8337,7 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getStatusInternal_args.class, metaDataMap);
@@ -8403,7 +8555,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -8411,7 +8563,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.fileId = iprot.readI64();
                 struct.setFileIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -8553,9 +8705,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileInfo.class)));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getStatusInternal_result.class, metaDataMap);
@@ -8847,7 +8999,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -8856,7 +9008,7 @@ public class FileSystemMasterClientService {
                 struct.success = new FileInfo();
                 struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -8865,7 +9017,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -9027,7 +9179,7 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getNewBlockIdForFile_args.class, metaDataMap);
@@ -9247,7 +9399,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -9255,7 +9407,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
                 struct.setPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -9401,9 +9553,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getNewBlockIdForFile_result.class, metaDataMap);
@@ -9690,7 +9842,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -9698,7 +9850,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.success = iprot.readI64();
                 struct.setSuccessIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -9707,7 +9859,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -9989,7 +10141,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -10110,7 +10262,7 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getUfsAddress_result.class, metaDataMap);
@@ -10324,7 +10476,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -10332,7 +10484,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.success = iprot.readString();
                 struct.setSuccessIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -10477,7 +10629,7 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(listStatus_args.class, metaDataMap);
@@ -10697,7 +10849,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -10705,7 +10857,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
                 struct.setPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -10849,10 +11001,10 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST,
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileInfo.class))));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(listStatus_result.class, metaDataMap);
@@ -11160,7 +11312,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -11179,7 +11331,7 @@ public class FileSystemMasterClientService {
                   iprot.readListEnd();
                 }
                 struct.setSuccessIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -11188,7 +11340,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -11385,9 +11537,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(loadMetadata_args.class, metaDataMap);
@@ -11686,7 +11838,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -11694,7 +11846,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.ufsPath = iprot.readString();
                 struct.setUfsPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -11702,7 +11854,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
                 struct.recursive = iprot.readBool();
                 struct.setRecursiveIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -11866,11 +12018,11 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(loadMetadata_result.class, metaDataMap);
@@ -12232,7 +12384,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -12240,7 +12392,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.success = iprot.readI64();
                 struct.setSuccessIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -12249,7 +12401,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -12258,7 +12410,7 @@ public class FileSystemMasterClientService {
                 struct.ioe = new tachyon.thrift.ThriftIOException();
                 struct.ioe.read(iprot);
                 struct.setIoeIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -12446,9 +12598,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.TACHYON_PATH, new org.apache.thrift.meta_data.FieldMetaData("tachyonPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.TACHYON_PATH, new org.apache.thrift.meta_data.FieldMetaData("tachyonPath", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(mount_args.class, metaDataMap);
@@ -12749,7 +12901,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -12757,7 +12909,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.tachyonPath = iprot.readString();
                 struct.setTachyonPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -12765,7 +12917,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.ufsPath = iprot.readString();
                 struct.setUfsPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -12924,9 +13076,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(mount_result.class, metaDataMap);
@@ -13215,7 +13367,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -13224,7 +13376,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -13233,7 +13385,7 @@ public class FileSystemMasterClientService {
                 struct.ioe = new tachyon.thrift.ThriftIOException();
                 struct.ioe.read(iprot);
                 struct.setIoeIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -13408,9 +13560,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(remove_args.class, metaDataMap);
@@ -13709,7 +13861,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -13717,7 +13869,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
                 struct.setPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -13725,7 +13877,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
                 struct.recursive = iprot.readBool();
                 struct.setRecursiveIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -13877,7 +14029,7 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(remove_result.class, metaDataMap);
@@ -14091,7 +14243,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -14100,7 +14252,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -14257,9 +14409,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.DST_PATH, new org.apache.thrift.meta_data.FieldMetaData("dstPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.DST_PATH, new org.apache.thrift.meta_data.FieldMetaData("dstPath", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(rename_args.class, metaDataMap);
@@ -14560,7 +14712,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -14568,7 +14720,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
                 struct.setPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -14576,7 +14728,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.dstPath = iprot.readString();
                 struct.setDstPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -14735,9 +14887,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(rename_result.class, metaDataMap);
@@ -15026,7 +15178,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -15035,7 +15187,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -15044,7 +15196,7 @@ public class FileSystemMasterClientService {
                 struct.ioe = new tachyon.thrift.ThriftIOException();
                 struct.ioe.read(iprot);
                 struct.setIoeIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -15119,6 +15271,864 @@ public class FileSystemMasterClientService {
           struct.ioe = new tachyon.thrift.ThriftIOException();
           struct.ioe.read(iprot);
           struct.setIoeIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class setAcl_args implements org.apache.thrift.TBase<setAcl_args, setAcl_args._Fields>, java.io.Serializable, Cloneable, Comparable<setAcl_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("setAcl_args");
+
+    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new setAcl_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new setAcl_argsTupleSchemeFactory());
+    }
+
+    /**
+     * the path of a file or directory
+     */
+    public String path; // required
+    /**
+     * the method options
+     */
+    public SetAclTOptions options; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      /**
+       * the path of a file or directory
+       */
+      PATH((short)1, "path"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)2, "options");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // PATH
+            return PATH;
+          case 2: // OPTIONS
+            return OPTIONS;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT,
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT,
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, SetAclTOptions.class)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(setAcl_args.class, metaDataMap);
+    }
+
+    public setAcl_args() {
+    }
+
+    public setAcl_args(
+      String path,
+      SetAclTOptions options)
+    {
+      this();
+      this.path = path;
+      this.options = options;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public setAcl_args(setAcl_args other) {
+      if (other.isSetPath()) {
+        this.path = other.path;
+      }
+      if (other.isSetOptions()) {
+        this.options = new SetAclTOptions(other.options);
+      }
+    }
+
+    public setAcl_args deepCopy() {
+      return new setAcl_args(this);
+    }
+
+    @Override
+    public void clear() {
+      this.path = null;
+      this.options = null;
+    }
+
+    /**
+     * the path of a file or directory
+     */
+    public String getPath() {
+      return this.path;
+    }
+
+    /**
+     * the path of a file or directory
+     */
+    public setAcl_args setPath(String path) {
+      this.path = path;
+      return this;
+    }
+
+    public void unsetPath() {
+      this.path = null;
+    }
+
+    /** Returns true if field path is set (has been assigned a value) and false otherwise */
+    public boolean isSetPath() {
+      return this.path != null;
+    }
+
+    public void setPathIsSet(boolean value) {
+      if (!value) {
+        this.path = null;
+      }
+    }
+
+    /**
+     * the method options
+     */
+    public SetAclTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public setAcl_args setOptions(SetAclTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case PATH:
+        if (value == null) {
+          unsetPath();
+        } else {
+          setPath((String)value);
+        }
+        break;
+
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((SetAclTOptions)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case PATH:
+        return getPath();
+
+      case OPTIONS:
+        return getOptions();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case PATH:
+        return isSetPath();
+      case OPTIONS:
+        return isSetOptions();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof setAcl_args)
+        return this.equals((setAcl_args)that);
+      return false;
+    }
+
+    public boolean equals(setAcl_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_path = true && this.isSetPath();
+      boolean that_present_path = true && that.isSetPath();
+      if (this_present_path || that_present_path) {
+        if (!(this_present_path && that_present_path))
+          return false;
+        if (!this.path.equals(that.path))
+          return false;
+      }
+
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_path = true && (isSetPath());
+      list.add(present_path);
+      if (present_path)
+        list.add(path);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(setAcl_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("setAcl_args(");
+      boolean first = true;
+
+      sb.append("path:");
+      if (this.path == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.path);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class setAcl_argsStandardSchemeFactory implements SchemeFactory {
+      public setAcl_argsStandardScheme getScheme() {
+        return new setAcl_argsStandardScheme();
+      }
+    }
+
+    private static class setAcl_argsStandardScheme extends StandardScheme<setAcl_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, setAcl_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // PATH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.path = iprot.readString();
+                struct.setPathIsSet(true);
+              } else {
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new SetAclTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else {
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, setAcl_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.path != null) {
+          oprot.writeFieldBegin(PATH_FIELD_DESC);
+          oprot.writeString(struct.path);
+          oprot.writeFieldEnd();
+        }
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class setAcl_argsTupleSchemeFactory implements SchemeFactory {
+      public setAcl_argsTupleScheme getScheme() {
+        return new setAcl_argsTupleScheme();
+      }
+    }
+
+    private static class setAcl_argsTupleScheme extends TupleScheme<setAcl_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, setAcl_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetPath()) {
+          optionals.set(0);
+        }
+        if (struct.isSetOptions()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetPath()) {
+          oprot.writeString(struct.path);
+        }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, setAcl_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.path = iprot.readString();
+          struct.setPathIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.options = new SetAclTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class setAcl_result implements org.apache.thrift.TBase<setAcl_result, setAcl_result._Fields>, java.io.Serializable, Cloneable, Comparable<setAcl_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("setAcl_result");
+
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new setAcl_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new setAcl_resultTupleSchemeFactory());
+    }
+
+    public tachyon.thrift.TachyonTException e; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      E((short)1, "e");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // E
+            return E;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(setAcl_result.class, metaDataMap);
+    }
+
+    public setAcl_result() {
+    }
+
+    public setAcl_result(
+      tachyon.thrift.TachyonTException e)
+    {
+      this();
+      this.e = e;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public setAcl_result(setAcl_result other) {
+      if (other.isSetE()) {
+        this.e = new tachyon.thrift.TachyonTException(other.e);
+      }
+    }
+
+    public setAcl_result deepCopy() {
+      return new setAcl_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.e = null;
+    }
+
+    public tachyon.thrift.TachyonTException getE() {
+      return this.e;
+    }
+
+    public setAcl_result setE(tachyon.thrift.TachyonTException e) {
+      this.e = e;
+      return this;
+    }
+
+    public void unsetE() {
+      this.e = null;
+    }
+
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
+    }
+
+    public void setEIsSet(boolean value) {
+      if (!value) {
+        this.e = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case E:
+        if (value == null) {
+          unsetE();
+        } else {
+          setE((tachyon.thrift.TachyonTException)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case E:
+        return getE();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case E:
+        return isSetE();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof setAcl_result)
+        return this.equals((setAcl_result)that);
+      return false;
+    }
+
+    public boolean equals(setAcl_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
+          return false;
+        if (!this.e.equals(that.e))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(setAcl_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("setAcl_result(");
+      boolean first = true;
+
+      sb.append("e:");
+      if (this.e == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.e);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class setAcl_resultStandardSchemeFactory implements SchemeFactory {
+      public setAcl_resultStandardScheme getScheme() {
+        return new setAcl_resultStandardScheme();
+      }
+    }
+
+    private static class setAcl_resultStandardScheme extends StandardScheme<setAcl_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, setAcl_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // E
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.e = new tachyon.thrift.TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
+              } else {
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, setAcl_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class setAcl_resultTupleSchemeFactory implements SchemeFactory {
+      public setAcl_resultTupleScheme getScheme() {
+        return new setAcl_resultTupleScheme();
+      }
+    }
+
+    private static class setAcl_resultTupleScheme extends TupleScheme<setAcl_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, setAcl_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetE()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, setAcl_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.e = new tachyon.thrift.TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -15217,9 +16227,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, SetAttributeTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(setAttribute_args.class, metaDataMap);
@@ -15523,7 +16533,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -15531,7 +16541,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
                 struct.setPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -15540,7 +16550,7 @@ public class FileSystemMasterClientService {
                 struct.options = new SetAttributeTOptions();
                 struct.options.read(iprot);
                 struct.setOptionsIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -15822,7 +16832,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -15949,7 +16959,7 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(scheduleAsyncPersist_args.class, metaDataMap);
@@ -16169,7 +17179,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -16177,7 +17187,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
                 struct.setPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -16316,7 +17326,7 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(scheduleAsyncPersist_result.class, metaDataMap);
@@ -16530,7 +17540,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -16539,7 +17549,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -16685,7 +17695,7 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.TACHYON_PATH, new org.apache.thrift.meta_data.FieldMetaData("tachyonPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.TACHYON_PATH, new org.apache.thrift.meta_data.FieldMetaData("tachyonPath", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(unmount_args.class, metaDataMap);
@@ -16905,7 +17915,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -16913,7 +17923,7 @@ public class FileSystemMasterClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.tachyonPath = iprot.readString();
                 struct.setTachyonPathIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -17057,9 +18067,9 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(unmount_result.class, metaDataMap);
@@ -17348,7 +18358,7 @@ public class FileSystemMasterClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -17357,7 +18367,7 @@ public class FileSystemMasterClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -17366,7 +18376,7 @@ public class FileSystemMasterClientService {
                 struct.ioe = new tachyon.thrift.ThriftIOException();
                 struct.ioe.read(iprot);
                 struct.setIoeIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
