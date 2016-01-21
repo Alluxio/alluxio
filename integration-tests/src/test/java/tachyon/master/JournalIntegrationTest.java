@@ -618,7 +618,7 @@ public class JournalIntegrationTest {
 
     PlainSaslServer.AuthorizedClientUser.set("user1");
     FileInfo info = fsMaster.getFileInfo(new TachyonURI("/file"));
-    Assert.assertEquals(status, info);
+    Assert.assertEquals(status, new URIStatus(info));
 
     fsMaster.stop();
   }

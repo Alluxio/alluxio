@@ -1616,11 +1616,11 @@ public final class FileSystemMaster extends MasterBase {
    * @throws AccessControlException if permission checking fails
    */
   public void setState(TachyonURI path, SetAttributeOptions options)
-      throws FileDoesNotExistException, AccessControlException {
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException {
     MasterContext.getMasterSource().incSetStateOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, path, false);
-      long fileId = getFileId(path);
+      long fileId = mInodeTree.getInodeByPath(path).getId();
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
       SetStateEntry.Builder setState =
