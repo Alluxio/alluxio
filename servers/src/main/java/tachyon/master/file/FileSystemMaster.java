@@ -493,7 +493,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public void completeFile(TachyonURI path, CompleteFileOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
-          InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException {
+      InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException {
     MasterContext.getMasterSource().incCompleteFileOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, path, false);
