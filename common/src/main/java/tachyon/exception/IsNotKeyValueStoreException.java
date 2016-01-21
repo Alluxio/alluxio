@@ -16,7 +16,7 @@
 package tachyon.exception;
 
 /**
- * The exception thrown when a key-value store does not exist in Tachyon.
+ * The exception thrown when a URI exists in Tachyon but is not a key-value store.
  */
 // TODO(cc): Find a way to move this into keyvalue package.
 public class IsNotKeyValueStoreException extends TachyonException {

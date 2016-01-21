@@ -314,7 +314,8 @@ public final class KeyValueMaster extends MasterBase {
     deleteStoreInternal(entry.getStoreId());
   }
 
-  long getFileId(TachyonURI uri, String caller) throws FileDoesNotExistException {
+  long getFileId(TachyonURI uri, String caller)
+      throws AccessControlException, FileDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(uri);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
@@ -347,11 +348,10 @@ public final class KeyValueMaster extends MasterBase {
     checkIsCompletePartition(fromFileId, fromUri);
     checkIsCompletePartition(toFileId, toUri);
 
-    // Rename fromUri to "toUri/%s-%s" % (last component of fromUri, UUID constructed from fromUri).
+    // Rename fromUri to "toUri/%s-%s" % (last component of fromUri, UUID).
     // NOTE: rename does not change the existing block IDs.
-    String fromUriUUID = UUID.fromString(fromUri.toString()).toString();
     mFileSystemMaster.rename(fromUri, new TachyonURI(PathUtils.concatPath(toUri.toString(),
-        String.format("%s-%s", fromUri.getName(), fromUriUUID))));
+        String.format("%s-%s", fromUri.getName(), UUID.randomUUID().toString()))));
     mergeStoreInternal(fromFileId, toFileId);
 
     writeJournalEntry(newMergeStoreEntry(fromFileId, toFileId));

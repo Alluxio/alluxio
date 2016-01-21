@@ -83,8 +83,13 @@ public interface KeyValueStores {
   /**
    * Merges one completed key-value store to another completed key-value store.
    *
+   * If there are the same keys from both stores, they are merged too, for these keys, whose value
+   * will be retrieved is undetermined.
+   *
    * @param fromUri the {@link TachyonURI} to the store to be merged
    * @param toUri the {@link TachyonURI} to the store to be merged to
+   * @throws IOException if non-Tachyon error occurs
+   * @throws TachyonException if other Tachyon error occurs
    */
   void merge(TachyonURI fromUri, TachyonURI toUri) throws IOException, TachyonException;
 }
