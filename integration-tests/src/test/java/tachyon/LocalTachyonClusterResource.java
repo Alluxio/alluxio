@@ -20,10 +20,11 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import com.google.common.base.Preconditions;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
@@ -64,6 +65,10 @@ import tachyon.master.LocalTachyonCluster;
  */
 public class LocalTachyonClusterResource implements TestRule {
 
+  private static final long DEFAULT_WORKER_CAPACITY_BYTES = 100 * Constants.MB;
+  private static final int DEFAULT_QUOTA_UNIT_BYTES = 100 * Constants.KB;
+  private static final int DEFAULT_USER_BLOCK_SIZE = Constants.KB;
+
   /** The capacity of the worker in bytes */
   private final long mWorkerCapacityBytes;
   /** The quota of space each user can request */
@@ -101,6 +106,14 @@ public class LocalTachyonClusterResource implements TestRule {
     mUserBlockSize = userBlockSize;
     mStartCluster = startCluster;
     mConfParams = confParams;
+  }
+
+  /**
+   * Create a new {@link LocalTachyonClusterResource} with default configuration.
+   */
+  // TODO(andrew) Go through our integration tests and see how many can use this constructor.
+  public LocalTachyonClusterResource() {
+    this(DEFAULT_WORKER_CAPACITY_BYTES, DEFAULT_QUOTA_UNIT_BYTES, DEFAULT_USER_BLOCK_SIZE);
   }
 
   public LocalTachyonClusterResource(long workerCapacityBytes, int quotaUnitBytes,
@@ -174,8 +187,11 @@ public class LocalTachyonClusterResource implements TestRule {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        statement.evaluate();
-        mLocalTachyonCluster.stop();
+        try {
+          statement.evaluate();
+        } finally {
+          mLocalTachyonCluster.stop();
+        }
       }
     };
   }

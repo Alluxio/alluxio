@@ -29,17 +29,19 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.ReadType;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
-import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
+import tachyon.client.file.options.OpenFileOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.master.TachyonMaster;
+import tachyon.security.LoginUser;
+import tachyon.security.authentication.PlainSaslServer;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
@@ -78,16 +80,14 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void displayFile(TachyonURI path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException, TachyonException {
-    TachyonFileSystem tFS = TachyonFileSystemFactory.get();
-    TachyonFile tFile = tFS.open(path);
+    FileSystem tFS = FileSystem.Factory.get();
     String fileData = null;
-    FileInfo fileInfo = tFS.getInfo(tFile);
-    if (fileInfo.isCompleted) {
-      InStreamOptions readNoCache = new InStreamOptions.Builder(mTachyonConf)
-          .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
-      FileInStream is = tFS.getInStream(tFile, readNoCache);
+    URIStatus status = tFS.getStatus(path);
+    if (status.isCompleted()) {
+      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+      FileInStream is = tFS.openFile(path, options);
       try {
-        int len = (int) Math.min(5 * Constants.KB, fileInfo.length - offset);
+        int len = (int) Math.min(5 * Constants.KB, status.getLength() - offset);
         byte[] data = new byte[len];
         long skipped = is.skip(offset);
         if (skipped < 0) {
@@ -135,6 +135,9 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    if (PlainSaslServer.AuthorizedClientUser.get() == null) {
+      PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(mTachyonConf).getName());
+    }
     request.setAttribute("debug", Constants.DEBUG);
     request.setAttribute("viewLog", false);
 
@@ -193,8 +196,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         return;
       }
       setPathDirectories(currentPath, request);
-      fileId = mMaster.getFileSystemMaster().getFileId(currentPath);
-      filesInfo = mMaster.getFileSystemMaster().getFileInfoList(fileId);
+      filesInfo = mMaster.getFileSystemMaster().getFileInfoList(currentPath);
     } catch (FileDoesNotExistException fdne) {
       request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
@@ -208,6 +210,11 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
           "Error: File " + currentPath + " is not available " + ie.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
+    } catch (AccessControlException ace) {
+      request.setAttribute("invalidPathError",
+          "Error: File " + currentPath + " cannot be accessed " + ace.getMessage());
+      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+      return;
     }
 
     List<UIFileInfo> fileInfos = new ArrayList<UIFileInfo>(filesInfo.size());
@@ -216,7 +223,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       try {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
           FileBlockInfo blockInfo =
-              mMaster.getFileSystemMaster().getFileBlockInfoList(toAdd.getId()).get(0);
+              mMaster.getFileSystemMaster()
+                  .getFileBlockInfoList(new TachyonURI(toAdd.getAbsolutePath())).get(0);
           List<WorkerNetAddress> addrs = Lists.newArrayList();
           // add the in-memory block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
@@ -280,9 +288,10 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if an invalid path is encountered
+   * @throws AccessControlException if permission checking fails
    */
   private void setPathDirectories(TachyonURI path, HttpServletRequest request)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     if (path.isRoot()) {
       request.setAttribute("pathInfos", new UIFileInfo[0]);
       return;

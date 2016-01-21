@@ -17,6 +17,7 @@ package tachyon.master;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -27,11 +28,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Joiner;
 
 import tachyon.Constants;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.block.BlockMasterPrivateAccess;
+import tachyon.security.LoginUser;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.CommonUtils;
 import tachyon.util.UnderFileSystemUtils;
@@ -72,7 +74,6 @@ public abstract class AbstractLocalTachyonCluster {
       Constants.BLOCK_MASTER_NAME,
       Constants.FILE_SYSTEM_MASTER_NAME,
       Constants.LINEAGE_MASTER_NAME,
-      Constants.RAW_TABLE_MASTER_NAME,
   };
 
   public AbstractLocalTachyonCluster(long workerCapacityBytes, int userBlockSize) {
@@ -283,6 +284,7 @@ public abstract class AbstractLocalTachyonCluster {
     stopUFS();
 
     resetContext();
+    resetLoginUser();
   }
 
   /**
@@ -302,6 +304,19 @@ public abstract class AbstractLocalTachyonCluster {
     if (mUfsCluster != null) {
       mUfsCluster.cleanup();
     }
+  }
+
+  /**
+   * Reset the {@link LoginUser}. This is called when the cluster is stopped.
+   *
+   * @throws Exception when the operation fails
+   */
+  private void resetLoginUser() throws Exception {
+    // TODO(dong): use the util methods in TACHYON-1566 to reset login user.
+    // Use reflection to reset the private static member sLoginUser in LoginUser.
+    Field field = LoginUser.class.getDeclaredField("sLoginUser");
+    field.setAccessible(true);
+    field.set(null, null);
   }
 
   /**
@@ -414,12 +429,12 @@ public abstract class AbstractLocalTachyonCluster {
   }
 
   /**
-   * Returns a {@link tachyon.client.file.TachyonFileSystem} client.
+   * Returns a {@link FileSystem} client.
    *
    * @return a TachyonFS client
    * @throws IOException when the operation fails
    */
-  public abstract TachyonFileSystem getClient() throws IOException;
+  public abstract FileSystem getClient() throws IOException;
 
   /**
    * Gets the master which should be listening for RPC and Web requests.

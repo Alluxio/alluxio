@@ -30,7 +30,6 @@ import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.ReadOnlyJournal;
 import tachyon.master.lineage.LineageMaster;
-import tachyon.master.rawtable.RawTableMaster;
 import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -86,7 +85,6 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
         // Transitioning from standby to master, replace readonly journal with writable journal.
         mBlockMaster.upgradeToReadWriteJournal(mBlockMasterJournal);
         mFileSystemMaster.upgradeToReadWriteJournal(mFileSystemMasterJournal);
-        mRawTableMaster.upgradeToReadWriteJournal(mRawTableMasterJournal);
         mLineageMaster.upgradeToReadWriteJournal(mLineageMasterJournal);
 
         startMasters(true);
@@ -104,8 +102,6 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
           mBlockMaster = new BlockMaster(new ReadOnlyJournal(mBlockMasterJournal.getDirectory()));
           mFileSystemMaster = new FileSystemMaster(mBlockMaster,
               new ReadOnlyJournal(mFileSystemMasterJournal.getDirectory()));
-          mRawTableMaster = new RawTableMaster(mFileSystemMaster,
-              new ReadOnlyJournal(mRawTableMasterJournal.getDirectory()));
           mLineageMaster = new LineageMaster(mFileSystemMaster,
               new ReadOnlyJournal(mLineageMasterJournal.getDirectory()));
           startMasters(false);
