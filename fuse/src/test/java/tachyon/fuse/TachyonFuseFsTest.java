@@ -30,8 +30,8 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileInfo;
 
@@ -64,7 +64,7 @@ public class TachyonFuseFsTest {
       new TachyonURI(TEST_MASTER_ADDRESS + TEST_ROOT_PATH);
 
   private TachyonFuseFs mFuseFs;
-  private TachyonFileSystem mTFS;
+  private FileSystem mTFS;
   private FuseFileInfo mFileInfo;
 
   @Before
@@ -77,7 +77,7 @@ public class TachyonFuseFsTest {
     TachyonFuseOptions opts = new TachyonFuseOptions(
         "/doesnt/matter", TEST_ROOT_PATH, false, empty);
 
-    mTFS = mock(TachyonFileSystem.class);
+    mTFS = mock(FileSystem.class);
     mFuseFs = new TachyonFuseFs(conf, mTFS, opts);
     mFileInfo = allocateNativeFileInfo();
   }
@@ -87,7 +87,7 @@ public class TachyonFuseFsTest {
     mFileInfo.flags.set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
     TachyonURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    verify(mTFS).getOutStream(expectedPath);
+    verify(mTFS).createFile(expectedPath);
   }
 
   @Test
@@ -107,7 +107,7 @@ public class TachyonFuseFsTest {
   public void flushTest() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     TachyonURI anyURI = any();
-    when(mTFS.getOutStream(anyURI)).thenReturn(fos);
+    when(mTFS.createFile(anyURI)).thenReturn(fos);
 
     // open a file
     mFileInfo.flags.set(O_WRONLY.intValue());
@@ -121,25 +121,25 @@ public class TachyonFuseFsTest {
   @Test
   public void mkDirTest() throws Exception {
     mFuseFs.mkdir("/foo/bar", -1);
-    verify(mTFS).mkdir(BASE_EXPECTED_URI.join("/foo/bar"));
+    verify(mTFS).createDirectory(BASE_EXPECTED_URI.join("/foo/bar"));
   }
 
   @Test
   public void openTest() throws Exception {
     // mocks set-up
     TachyonURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    TachyonFile fake = new TachyonFile(42L);
     FileInfo fi = new FileInfo();
     fi.isFolder = false;
+    URIStatus status = new URIStatus(fi);
 
-    when(mTFS.openIfExists(expectedPath)).thenReturn(fake);
-    when(mTFS.getInfo(fake)).thenReturn(fi);
+    when(mTFS.exists(expectedPath)).thenReturn(true);
+    when(mTFS.getStatus(expectedPath)).thenReturn(status);
     mFileInfo.flags.set(O_RDONLY.intValue());
 
     // actual test
     mFuseFs.open("/foo/bar", mFileInfo);
-    verify(mTFS).openIfExists(expectedPath);
-    verify(mTFS).getInStream(fake);
+    verify(mTFS).exists(expectedPath);
+    verify(mTFS).openFile(expectedPath);
   }
 
   @Test
@@ -161,12 +161,12 @@ public class TachyonFuseFsTest {
   public void readTest() throws Exception {
     // mocks set-up
     TachyonURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    TachyonFile fake = new TachyonFile(42L);
     FileInfo fi = new FileInfo();
     fi.isFolder = false;
+    URIStatus status = new URIStatus(fi);
 
-    when(mTFS.openIfExists(expectedPath)).thenReturn(fake);
-    when(mTFS.getInfo(fake)).thenReturn(fi);
+    when(mTFS.exists(expectedPath)).thenReturn(true);
+    when(mTFS.getStatus(expectedPath)).thenReturn(status);
 
     FileInStream fakeInStream = mock(FileInStream.class);
     when(fakeInStream.read(any(byte[].class),anyInt(),anyInt())).then(new Answer<Integer>() {
@@ -179,7 +179,7 @@ public class TachyonFuseFsTest {
         return 4;
       }
     });
-    when(mTFS.getInStream(fake)).thenReturn(fakeInStream);
+    when(mTFS.openFile(expectedPath)).thenReturn(fakeInStream);
     mFileInfo.flags.set(O_RDONLY.intValue());
 
     // prepare something to read to it
@@ -202,7 +202,7 @@ public class TachyonFuseFsTest {
   public void writeTest() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     TachyonURI anyURI = any();
-    when(mTFS.getOutStream(anyURI)).thenReturn(fos);
+    when(mTFS.createFile(anyURI)).thenReturn(fos);
 
     // open a file
     mFileInfo.flags.set(O_WRONLY.intValue());
