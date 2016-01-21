@@ -54,7 +54,7 @@ import tachyon.worker.WorkerIdRegistry;
 public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
-  /** Block data manager responsible for interacting with Tachyon and UFS storage */
+  /** BlockWorker responsible for interacting with Tachyon and UFS storage */
   private final BlockWorker mBlockWorker;
   /** The net address of the worker */
   private final NetAddress mWorkerAddress;
@@ -73,7 +73,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /**
    * Creates a new instance of {@link BlockMasterSync}.
    *
-   * @param blockDataManager the {@link BlockDataManager} this syncer is updating to
+   * @param blockWorker the {@link BlockWorker} this syncer is updating to
    * @param workerAddress the net address of the worker
    * @param masterClient the Tachyon master client
    */
@@ -200,19 +200,19 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * Thread to remove block from master.
    */
   private class BlockRemover implements Runnable {
-    private BlockWorker mBlockDataManager;
+    private BlockWorker mBlockWorker;
     private long mSessionId;
     private long mBlockId;
 
     /**
      * Creates a new instance of {@link BlockRemover}.
      *
-     * @param blockDataManager a block data manager handle
+     * @param blockWorker block worker for data manager
      * @param sessionId the session id
      * @param blockId the block id
      */
-    public BlockRemover(BlockWorker blockDataManager, long sessionId, long blockId) {
-      mBlockDataManager = blockDataManager;
+    public BlockRemover(BlockWorker blockWorker, long sessionId, long blockId) {
+      mBlockWorker = blockWorker;
       mSessionId = sessionId;
       mBlockId = blockId;
     }
@@ -220,7 +220,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     @Override
     public void run() {
       try {
-        mBlockDataManager.removeBlock(mSessionId, mBlockId);
+        mBlockWorker.removeBlock(mSessionId, mBlockId);
         LOG.info("Block {} removed at session {}", mBlockId, mSessionId);
       } catch (IOException ioe) {
         LOG.warn("Failed master free block cmd for: {} due to concurrent read.", mBlockId);

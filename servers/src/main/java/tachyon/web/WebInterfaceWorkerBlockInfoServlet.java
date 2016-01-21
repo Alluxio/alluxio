@@ -50,7 +50,7 @@ import tachyon.worker.block.meta.BlockMeta;
  */
 public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   private static final long serialVersionUID = 4148506607369321012L;
-  private final transient BlockWorker mBlockDataManager;
+  private final transient BlockWorker mBlockWorker;
 
   /**
    * Creates a new instance of {@link WebInterfaceWorkerBlockInfoServlet}.
@@ -58,7 +58,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @param blockDataManager block data manager
    */
   public WebInterfaceWorkerBlockInfoServlet(BlockWorker blockWorker) {
-    mBlockDataManager = Preconditions.checkNotNull(blockWorker);
+    mBlockWorker = Preconditions.checkNotNull(blockWorker);
   }
 
   /**
@@ -168,7 +168,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    */
   private List<Long> getSortedFileIds() {
     Set<Long> fileIds = new HashSet<Long>();
-    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
     for (List<Long> blockIds : storeMeta.getBlockList().values()) {
       for (long blockId : blockIds) {
         long fileId =
@@ -242,9 +242,9 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     UIFileInfo uiFileInfo = new UIFileInfo(fileInfo);
     boolean blockExistOnWorker = false;
     for (long blockId : fileInfo.getBlockIds()) {
-      if (mBlockDataManager.hasBlockMeta(blockId)) {
+      if (mBlockWorker.hasBlockMeta(blockId)) {
         blockExistOnWorker = true;
-        BlockMeta blockMeta = mBlockDataManager.getVolatileBlockMeta(blockId);
+        BlockMeta blockMeta = mBlockWorker.getVolatileBlockMeta(blockId);
         long blockSize = blockMeta.getBlockSize();
         // The block last access time is not available. Use -1 for now.
         // It's not necessary to show location information here since
