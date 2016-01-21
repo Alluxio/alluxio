@@ -19,14 +19,12 @@ import java.io.IOException;
 
 import org.apache.hadoop.mapred.FileOutputCommitter;
 import org.apache.hadoop.mapred.FileOutputFormat;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobContext;
 import org.apache.hadoop.mapred.TaskAttemptContext;
 
-import com.google.common.base.Preconditions;
-
 import tachyon.TachyonURI;
 import tachyon.client.keyvalue.KeyValueStores;
-import tachyon.client.keyvalue.KeyValueStoreWriter;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
 
@@ -41,44 +39,29 @@ import tachyon.exception.TachyonException;
  */
 class KeyValueOutputCommitter extends FileOutputCommitter {
   private static final KeyValueStores KEY_VALUE_STORES = KeyValueStores.Factory.create();
-  private static final Object KEY_VALUE_STORE_WRITER_LOCK = new Object();
 
-  private static KeyValueStoreWriter sWriter;
+  private TachyonURI getOutputURI(JobConf conf) {
+    return new TachyonURI(FileOutputFormat.getOutputPath(conf).toString());
+  }
 
-  private TachyonURI getOutputURI(JobContext context) {
-    return new TachyonURI(FileOutputFormat.getOutputPath(context.getJobConf()).toString());
+  private TachyonURI getTaskAttemptOutputURI(TaskAttemptContext context) throws IOException {
+    return new TachyonURI(getTaskAttemptPath(context).toString());
   }
 
   /**
    * {@inheritDoc}
    * <p>
-   * Calls {@link FileOutputCommitter#setupJob(JobContext)} first, and then creates a
+   * Calls {@link FileOutputCommitter#setupJob(JobContext)} first, and then creates an empty
    * key-value store under the job's output directory.
    */
   @Override
   public void setupJob(JobContext context) throws IOException {
     super.setupJob(context);
-    if (sWriter == null) {
-      try {
-        sWriter = KEY_VALUE_STORES.create(getOutputURI(context));
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      }
+    try {
+      KEY_VALUE_STORES.create(getOutputURI(context.getJobConf())).close();
+    } catch (TachyonException e) {
+      throw new IOException(e);
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * Closes the key-value store created in {@link #setupJob(JobContext)} first, and then
-   * calls {@link FileOutputCommitter#commitJob(JobContext)}.
-   */
-  @Override
-  public void commitJob(JobContext context) throws IOException {
-    Preconditions.checkNotNull(sWriter, "KeyValueStoreWriter cannot be null");
-
-    sWriter.close();
-    super.commitJob(context);
   }
 
   /**
@@ -89,12 +72,9 @@ class KeyValueOutputCommitter extends FileOutputCommitter {
    */
   @Override
   public void abortJob(JobContext context, int runState) throws IOException {
-    Preconditions.checkNotNull(sWriter, "KeyValueStoreWriter cannot be null");
-
-    sWriter.close();
     // The output directory should exist since the store writer is just closed.
     try {
-      KEY_VALUE_STORES.delete(getOutputURI(context));
+      KEY_VALUE_STORES.delete(getOutputURI(context.getJobConf()));
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -105,21 +85,15 @@ class KeyValueOutputCommitter extends FileOutputCommitter {
    * {@inheritDoc}
    * <p>
    * Merges the completed key-value store under the task's temporary output directory to the
-   * key-value store created in {@link #setupJob(JobContext)}, and then calls
-   * {@link FileOutputCommitter#commitTask(TaskAttemptContext)}.
+   * key-value store created in {@link #setupJob(JobContext)}.
    */
   @Override
   public void commitTask(TaskAttemptContext context) throws IOException {
     try {
-      // Since sWriter is not thread-safe and multiple tasks may be committed at the same time,
-      // guard this statement with a synchronized global variable.
-      synchronized (KEY_VALUE_STORE_WRITER_LOCK) {
-        sWriter.mergeAndDelete(new TachyonURI(getTaskAttemptPath(context).toString()));
-      }
+      KEY_VALUE_STORES.merge(getTaskAttemptOutputURI(context), getOutputURI(context.getJobConf()));
     } catch (TachyonException e) {
       throw new IOException(e);
     }
-    super.commitTask(context);
   }
 
   /**
