@@ -21,9 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.options.OutStreamOptions;
 
@@ -38,23 +38,16 @@ public class LineageFileOutStream extends FileOutStream {
   /**
    * Creates a new file output stream when lineage is enabled.
    *
-   * @param fileId the id of the file
+   * @param path the path of the file
    * @param options the set of options specific to this operation
    * @throws IOException if an I/O error occurs
    */
-  public LineageFileOutStream(long fileId, OutStreamOptions options) throws IOException {
-    super(fileId, updateOutStreamOptions(options));
+  public LineageFileOutStream(TachyonURI path, OutStreamOptions options) throws IOException {
+    super(path, updateOutStreamOptions(options));
   }
 
   private static OutStreamOptions updateOutStreamOptions(OutStreamOptions options) {
-    // change the under storage type to async
-    OutStreamOptions.Builder builder = new OutStreamOptions.Builder(ClientContext.getConf());
-    builder.setBlockSizeBytes(options.getBlockSizeBytes());
-    builder.setLocationPolicy(options.getLocationPolicy());
-    builder.setTachyonStorageType(options.getTachyonStorageType());
-    builder.setTtl(options.getTtl());
-    builder.setUnderStorageType(UnderStorageType.ASYNC_PERSIST);
-    return builder.build();
+    return options.setWriteType(WriteType.ASYNC_THROUGH);
   }
 
   @Override

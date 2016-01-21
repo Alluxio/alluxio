@@ -23,8 +23,7 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.exception.TachyonException;
 
 /**
@@ -45,9 +44,8 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
     public static KeyValuePartitionReader create(TachyonURI uri)
         throws TachyonException, IOException {
       Preconditions.checkNotNull(uri);
-      TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
-      TachyonFile tFile = tfs.open(uri);
-      List<Long> blockIds = tfs.getInfo(tFile).getBlockIds();
+      FileSystem tfs = FileSystem.Factory.get();
+      List<Long> blockIds = tfs.getStatus(uri).getBlockIds();
       // Each partition file should only contains one block.
       // TODO(binfan): throw exception if a partition file has more than one blocks
       long blockId = blockIds.get(0);

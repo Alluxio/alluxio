@@ -28,11 +28,11 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.util.CommonUtils;
 import tachyon.util.IdUtils;
@@ -50,9 +50,11 @@ public class JournalShutdownIntegrationTest {
     /** The number of successfully created files. */
     private int mSuccessNum = 0;
 
-    private final TachyonFileSystem mTfs;
+    private final int mOpType; // 0: create file
+    private final FileSystem mTfs;
 
-    public ClientThread(TachyonFileSystem tfs) {
+    public ClientThread(int opType, FileSystem tfs) {
+      mOpType = opType;
       mTfs = tfs;
     }
 
@@ -61,21 +63,28 @@ public class JournalShutdownIntegrationTest {
     }
 
     /**
-     * Keep creating files until something crashes or fails to be created. Record how many files are
+     * Keep creating files until something crashes or fail to create. Record how many files are
      * created successfully.
      */
     @Override
     public void run() {
       try {
-        // This infinity loop will be broken if something crashes or fails to be created. This is
+        // This infinity loop will be broken if something crashes or fail to create. This is
         // expected since the master will shutdown at a certain time.
         while (true) {
-          try {
-            mTfs.getOutStream(new TachyonURI(TEST_FILE_DIR + mSuccessNum)).close();
-          } catch (IOException ioe) {
-            break;
+          if (mOpType == 0) {
+            try {
+              mTfs.createFile(new TachyonURI(TEST_FILE_DIR + mSuccessNum)).close();
+            } catch (IOException ioe) {
+              break;
+            }
+          } else if (mOpType == 1) {
+            // TODO(gene): Add this back when there is new RawTable client API.
+            // if (mTfs.createRawTable(new TachyonURI(TEST_TABLE_DIR + mSuccessNum), 1) == -1) {
+            // break;
+            // }
           }
-          // The create operation may succeed at the master side but still return false due to the
+          // The create operation may succeed at the master side but still returns false due to the
           // shutdown. So the mSuccessNum may be less than the actual success number.
           mSuccessNum ++;
           CommonUtils.sleepMs(100);
@@ -93,7 +102,7 @@ public class JournalShutdownIntegrationTest {
 
   private ClientThread mCreateFileThread = null;
   /** Executor for running client threads */
-  private final ExecutorService mExecutorsForClient = Executors.newFixedThreadPool(2);
+  private final ExecutorService mExecutorsForClient = Executors.newFixedThreadPool(1);
   private TachyonConf mMasterTachyonConf = null;
 
   @After
@@ -118,14 +127,12 @@ public class JournalShutdownIntegrationTest {
       InvalidPathException, FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
-    int actualFiles =
-        fsMaster.getFileInfoList(fsMaster.getFileId(new TachyonURI(TEST_FILE_DIR))).size();
+    int actualFiles = fsMaster.getFileInfoList(new TachyonURI(TEST_FILE_DIR)).size();
     Assert.assertTrue((successFiles == actualFiles) || (successFiles + 1 == actualFiles));
     for (int f = 0; f < successFiles; f ++) {
       Assert.assertTrue(
           fsMaster.getFileId(new TachyonURI(TEST_FILE_DIR + f)) != IdUtils.INVALID_FILE_ID);
     }
-
     fsMaster.stop();
   }
 
@@ -136,7 +143,7 @@ public class JournalShutdownIntegrationTest {
         new LocalTachyonClusterMultiMaster(100, TEST_NUM_MASTERS, TEST_BLOCK_SIZE);
     cluster.start();
     mMasterTachyonConf = cluster.getMasterTachyonConf();
-    mCreateFileThread = new ClientThread(cluster.getClient());
+    mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
   }
@@ -147,7 +154,7 @@ public class JournalShutdownIntegrationTest {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100, 100, TEST_BLOCK_SIZE);
     cluster.start();
     mMasterTachyonConf = cluster.getMasterTachyonConf();
-    mCreateFileThread = new ClientThread(cluster.getClient());
+    mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
   }
