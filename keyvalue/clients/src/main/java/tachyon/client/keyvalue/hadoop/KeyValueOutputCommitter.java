@@ -35,14 +35,15 @@ import tachyon.exception.TachyonException;
  * {@link KeyValueStores} in different phases of a job's or task's lifecycle is considered.
  * <p>
  * This committer is forced to be used in {@link KeyValueOutputFormat}(no matter what users have
- * set as the {@link org.apache.hadoop.mapred.OutputCommitter} in configration) to mergeAndDelete
- * the key-value stores created by each Reducer into one key-value store under the MapReduce output
+ * set as the {@link org.apache.hadoop.mapred.OutputCommitter} in configration) to merge the
+ * key-value stores created by each Reducer into one key-value store under the MapReduce output
  * directory.
  */
 class KeyValueOutputCommitter extends FileOutputCommitter {
-  private static final KeyValueStores KEY_VALUE_STORE = KeyValueStores.Factory.create();
+  private static final KeyValueStores KEY_VALUE_STORES = KeyValueStores.Factory.create();
+  private static final Object KEY_VALUE_STORE_WRITER_LOCK = new Object();
 
-  private KeyValueStoreWriter mWriter;
+  private static KeyValueStoreWriter sWriter;
 
   private TachyonURI getOutputURI(JobContext context) {
     return new TachyonURI(FileOutputFormat.getOutputPath(context.getJobConf()).toString());
@@ -57,10 +58,12 @@ class KeyValueOutputCommitter extends FileOutputCommitter {
   @Override
   public void setupJob(JobContext context) throws IOException {
     super.setupJob(context);
-    try {
-      mWriter = KEY_VALUE_STORE.create(getOutputURI(context));
-    } catch (TachyonException e) {
-      throw new IOException(e);
+    if (sWriter == null) {
+      try {
+        sWriter = KEY_VALUE_STORES.create(getOutputURI(context));
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      }
     }
   }
 
@@ -72,28 +75,26 @@ class KeyValueOutputCommitter extends FileOutputCommitter {
    */
   @Override
   public void commitJob(JobContext context) throws IOException {
-    Preconditions.checkNotNull(mWriter, "KeyValueStoreWriter cannot be null");
+    Preconditions.checkNotNull(sWriter, "KeyValueStoreWriter cannot be null");
 
-    mWriter.close();
+    sWriter.close();
     super.commitJob(context);
   }
 
   /**
    * {@inheritDoc}
    * <p>
-   * Deletes the {@link KeyValueStores} created in {@link #setupJob(JobContext)} first, and then
-   * calls {@link FileOutputCommitter#commitJob(JobContext)}.
+   * Deletes the key-value store created in {@link #setupJob(JobContext)} first, and then
+   * calls {@link FileOutputCommitter#abortJob(JobContext, int)}.
    */
   @Override
   public void abortJob(JobContext context, int runState) throws IOException {
-    Preconditions.checkNotNull(mWriter, "KeyValueStoreWriter cannot be null");
+    Preconditions.checkNotNull(sWriter, "KeyValueStoreWriter cannot be null");
 
-    mWriter.close();
+    sWriter.close();
+    // The output directory should exist since the store writer is just closed.
     try {
-      KEY_VALUE_STORE.delete(getOutputURI(context));
-    } catch (FileDoesNotExistException e) {
-      // The goal of deleting the store is to cleanup directories before aborting the job, since the
-      // key-value store directory does not exist, it meets the goal, nothing needs to be done.
+      KEY_VALUE_STORES.delete(getOutputURI(context));
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -105,12 +106,16 @@ class KeyValueOutputCommitter extends FileOutputCommitter {
    * <p>
    * Merges the completed key-value store under the task's temporary output directory to the
    * key-value store created in {@link #setupJob(JobContext)}, and then calls
-   * {@link FileOutputCommitter#commitJob(JobContext)}.
+   * {@link FileOutputCommitter#commitTask(TaskAttemptContext)}.
    */
   @Override
   public void commitTask(TaskAttemptContext context) throws IOException {
     try {
-      mWriter.mergeAndDelete(new TachyonURI(getTaskAttemptPath(context).toString()));
+      // Since sWriter is not thread-safe and multiple tasks may be committed at the same time,
+      // guard this statement with a synchronized global variable.
+      synchronized (KEY_VALUE_STORE_WRITER_LOCK) {
+        sWriter.mergeAndDelete(new TachyonURI(getTaskAttemptPath(context).toString()));
+      }
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -126,7 +131,7 @@ class KeyValueOutputCommitter extends FileOutputCommitter {
   @Override
   public void abortTask(TaskAttemptContext context) throws IOException {
     try {
-      KEY_VALUE_STORE.delete(new TachyonURI(getTaskAttemptPath(context).toString()));
+      KEY_VALUE_STORES.delete(new TachyonURI(getTaskAttemptPath(context).toString()));
     } catch (FileDoesNotExistException e) {
       // The goal of deleting the store is to cleanup directories before aborting the task, since
       // the key-value store directory does not exist, it meets the goal, nothing needs to be done.
