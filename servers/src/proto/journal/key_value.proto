@@ -26,3 +26,9 @@ message CreateStoreEntry {
 message DeleteStoreEntry {
   optional int64 store_id = 1;
 }
+
+// next available id: 3
+message MergeStoreEntry {
+  optional int64 from_store_id = 1;
+  optional int64 to_store_id = 2;
+}

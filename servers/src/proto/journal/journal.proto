@@ -9,7 +9,7 @@ import "key_value.proto";
 import "lineage.proto";
 
 // Wraps around all types of Tachyon journal messages.
-// next available id: 25
+// next available id: 26
 message JournalEntry {
   optional int64 sequence_number = 1;
   oneof entry {
@@ -30,6 +30,7 @@ message JournalEntry {
     InodeLastModificationTimeEntry inode_last_modification_time = 12;
     LineageEntry lineage = 13;
     LineageIdGeneratorEntry lineage_id_generator = 14;
+    MergeStoreEntry merge_store = 25;
     PersistDirectoryEntry persist_directory = 15;
     AsyncPersistRequestEntry async_persist_request = 16;
     ReinitializeFileEntry reinitialize_file = 18;

@@ -53,6 +53,7 @@ import tachyon.proto.journal.KeyValue.CompletePartitionEntry;
 import tachyon.proto.journal.KeyValue.CompleteStoreEntry;
 import tachyon.proto.journal.KeyValue.CreateStoreEntry;
 import tachyon.proto.journal.KeyValue.DeleteStoreEntry;
+import tachyon.proto.journal.KeyValue.MergeStoreEntry;
 import tachyon.thrift.KeyValueMasterClientService;
 import tachyon.thrift.PartitionInfo;
 import tachyon.util.IdUtils;
@@ -120,6 +121,8 @@ public final class KeyValueMaster extends MasterBase {
         completeStoreFromEntry((CompleteStoreEntry) innerEntry);
       } else if (innerEntry instanceof DeleteStoreEntry) {
         deleteStoreFromEntry((DeleteStoreEntry) innerEntry);
+      } else if (innerEntry instanceof MergeStoreEntry) {
+        mergeStoreFromEntry((MergeStoreEntry) innerEntry);
       } else {
         throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
       }
@@ -306,7 +309,7 @@ public final class KeyValueMaster extends MasterBase {
     deleteStoreInternal(entry.getStoreId());
   }
 
-  long getFileId(TachyonURI uri, String caller) throws FileDoesNotExistException{
+  long getFileId(TachyonURI uri, String caller) throws FileDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(uri);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
@@ -332,22 +335,34 @@ public final class KeyValueMaster extends MasterBase {
    * @throws FileDoesNotExistException if the uri does not exist
    * @throws TachyonException if other Tachyon error occurs
    */
-  public synchronized void merge(TachyonURI fromUri, TachyonURI toUri)
+  public synchronized void mergeStore(TachyonURI fromUri, TachyonURI toUri)
       throws IOException, FileDoesNotExistException, IsNotKeyValueStoreException, TachyonException {
     long fromFileId = getFileId(fromUri, "merge");
     long toFileId = getFileId(toUri, "merge");
     checkIsCompletePartition(fromFileId, fromUri);
     checkIsCompletePartition(toFileId, toUri);
 
-    // Move partition infos to the new store.
-    List<PartitionInfo> partitionsToBeMerged = mCompleteStoreToPartitions.remove(fromFileId);
-    mCompleteStoreToPartitions.get(toFileId).addAll(partitionsToBeMerged);
-
     // Rename fromUri to "toUri/%s-%s" % (last component of fromUri, UUID constructed from fromUri).
     // NOTE: rename does not change the existing block IDs.
     String fromUriUUID = UUID.fromString(fromUri.toString()).toString();
     mFileSystemMaster.rename(fromUri, new TachyonURI(PathUtils.concatPath(toUri.toString(),
         String.format("%s-%s", fromUri.getName(), fromUriUUID))));
+    mergeStoreInternal(fromFileId, toFileId);
+
+    writeJournalEntry(newMergeStoreEntry(fromFileId, toFileId));
+    flushJournal();
+  }
+
+  // Internal implementation to merge two completed stores.
+  private void mergeStoreInternal(long fromFileId, long toFileId) {
+    // Move partition infos to the new store.
+    List<PartitionInfo> partitionsToBeMerged = mCompleteStoreToPartitions.remove(fromFileId);
+    mCompleteStoreToPartitions.get(toFileId).addAll(partitionsToBeMerged);
+  }
+
+  // Merges two completed stores, called when replaying journals.
+  private void mergeStoreFromEntry(MergeStoreEntry entry) {
+    mergeStoreInternal(entry.getFromStoreId(), entry.getToStoreId());
   }
 
   /**
@@ -393,5 +408,11 @@ public final class KeyValueMaster extends MasterBase {
   private JournalEntry newDeleteStoreEntry(long fileId) {
     DeleteStoreEntry deleteStore = DeleteStoreEntry.newBuilder().setStoreId(fileId).build();
     return JournalEntry.newBuilder().setDeleteStore(deleteStore).build();
+  }
+
+  private JournalEntry newMergeStoreEntry(long fromFileId, long toFileId) {
+    MergeStoreEntry mergeStore = MergeStoreEntry.newBuilder().setFromStoreId(fromFileId)
+        .setToStoreId(toFileId).build();
+    return JournalEntry.newBuilder().setMergeStore(mergeStore).build();
   }
 }
