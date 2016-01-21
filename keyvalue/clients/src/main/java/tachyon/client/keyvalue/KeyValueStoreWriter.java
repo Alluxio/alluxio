@@ -47,4 +47,5 @@ public interface KeyValueStoreWriter extends Closeable, Cancelable {
    * @throws TachyonException if Tachyon error occurs
    */
   void put(ByteBuffer key, ByteBuffer value) throws IOException, TachyonException;
+
 }

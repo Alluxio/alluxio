@@ -56,7 +56,6 @@ import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
-import tachyon.proto.journal.KeyValue;
 import tachyon.proto.journal.KeyValue.CompletePartitionEntry;
 import tachyon.proto.journal.KeyValue.CompleteStoreEntry;
 import tachyon.proto.journal.KeyValue.CreateStoreEntry;
