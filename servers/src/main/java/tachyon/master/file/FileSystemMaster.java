@@ -1326,7 +1326,7 @@ public final class FileSystemMaster extends MasterBase {
       List<Long> blockIds = Lists.newArrayList();
       try {
         for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(getPath(fileId))) {
-          blockIds.add(fileBlockInfo.blockInfo.blockId);
+          blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
         }
       } catch (InvalidPathException e) {
         LOG.info("Failed to get file info {}", fileId, e);
@@ -1702,7 +1702,7 @@ public final class FileSystemMaster extends MasterBase {
             fileIdsToPersist.add(fileId);
             List<Long> blockIds = Lists.newArrayList();
             for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(mInodeTree.getPath(inode))) {
-              blockIds.add(fileBlockInfo.blockInfo.blockId);
+              blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
             }
 
             filesToPersist.add(new PersistFile(fileId, blockIds));

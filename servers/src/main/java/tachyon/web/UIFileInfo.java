@@ -120,8 +120,8 @@ public final class UIFileInfo {
     mUserName = fileInfo.getUserName();
     mGroupName = fileInfo.getGroupName();
     mPermission =
-        FormatUtils.formatPermission((short) fileInfo.getPermission(), fileInfo.isFolder);
-    mPersistenceState = fileInfo.persistenceState;
+        FormatUtils.formatPermission((short) fileInfo.getPermission(), fileInfo.isFolder());
+    mPersistenceState = fileInfo.getPersistenceState();
     mFileLocations = new ArrayList<String>();
   }
 

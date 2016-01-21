@@ -89,7 +89,7 @@ public final class LineageMasterIntegrationTest {
 
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
       Assert.assertEquals(1, infos.size());
-      TachyonURI uri = new TachyonURI(infos.get(0).outputFiles.get(0));
+      TachyonURI uri = new TachyonURI(infos.get(0).getOutputFiles().get(0));
       URIStatus status = getFileSystemMasterClient().getStatus(uri);
       Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
       Assert.assertFalse(status.isCompleted());
@@ -121,7 +121,7 @@ public final class LineageMasterIntegrationTest {
       outputStream.close();
 
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
-      TachyonURI uri = new TachyonURI(infos.get(0).outputFiles.get(0));
+      TachyonURI uri = new TachyonURI(infos.get(0).getOutputFiles().get(0));
       URIStatus status = getFileSystemMasterClient().getStatus(uri);
       Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
       Assert.assertTrue(status.isCompleted());
