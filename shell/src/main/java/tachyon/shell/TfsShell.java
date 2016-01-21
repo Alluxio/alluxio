@@ -139,7 +139,7 @@ public class TfsShell implements Closeable {
       command.run(args);
       return 0;
     } catch (IOException e) {
-      System.out.println(e.getMessage());
+      e.printStackTrace();
       return -1;
     }
   }
