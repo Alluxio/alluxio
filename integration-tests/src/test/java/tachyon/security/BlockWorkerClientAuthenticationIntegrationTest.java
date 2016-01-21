@@ -108,6 +108,7 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
       blockWorkerClient.connect();
     } finally {
       blockWorkerClient.close();
+      ClientContext.reset();
     }
   }
 
