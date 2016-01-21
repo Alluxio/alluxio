@@ -150,18 +150,18 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
         int limit = Integer.parseInt(request.getParameter("limit"));
         List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
         request.setAttribute("fileInfos", sub);
-      } catch (NumberFormatException nfe) {
+      } catch (NumberFormatException e) {
         request.setAttribute("fatalError",
-                "Error: offset or limit parse error, " + nfe.getLocalizedMessage());
+                "Error: offset or limit parse error, " + e.getLocalizedMessage());
         getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
         return;
-      } catch (IndexOutOfBoundsException iobe) {
+      } catch (IndexOutOfBoundsException e) {
         request.setAttribute("fatalError",
-                "Error: offset or offset + limit is out of bound, " + iobe.getLocalizedMessage());
+                "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
         getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
         return;
-      } catch (IllegalArgumentException iae) {
-        request.setAttribute("fatalError", iae.getLocalizedMessage());
+      } catch (IllegalArgumentException e) {
+        request.setAttribute("fatalError", e.getLocalizedMessage());
         getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
         return;
       }
@@ -185,7 +185,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
           if (offsetParam != null) {
             relativeOffset = Long.parseLong(offsetParam);
           }
-        } catch (NumberFormatException nfe) {
+        } catch (NumberFormatException e) {
           relativeOffset = 0;
         }
         String endParam = request.getParameter("end");
@@ -205,9 +205,9 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
         displayLocalFile(logFile, request, offset);
         request.setAttribute("viewingOffset", offset);
         getServletContext().getRequestDispatcher(mViewJsp).forward(request, response);
-      } catch (IOException ie) {
+      } catch (IOException e) {
         request.setAttribute("invalidPathError", "Error: File " + logFile + " is not available "
-                + ie.getMessage());
+                + e.getMessage());
         getServletContext().getRequestDispatcher(mViewJsp).forward(request, response);
       }
     }

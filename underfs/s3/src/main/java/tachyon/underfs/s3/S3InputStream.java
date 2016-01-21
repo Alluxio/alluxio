@@ -103,8 +103,8 @@ public class S3InputStream extends InputStream {
     try {
       mObject = mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
       mInputStream = new BufferedInputStream(mObject.getDataInputStream());
-    } catch (ServiceException se) {
-      throw new IOException(se);
+    } catch (ServiceException e) {
+      throw new IOException(e);
     }
     return n;
   }

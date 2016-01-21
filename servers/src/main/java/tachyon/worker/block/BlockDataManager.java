@@ -149,8 +149,8 @@ public final class BlockDataManager {
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
       mBlockMasterClient.commitBlock(WorkerIdRegistry.getWorkerId(), bytesUsedOnTier,
           loc.tierAlias(), blockId, length);
-    } catch (IOException ioe) {
-      throw new IOException("Failed to commit block to master.", ioe);
+    } catch (IOException e) {
+      throw new IOException("Failed to commit block to master.", e);
     } catch (ConnectionFailedException e) {
       throw new IOException("Failed to commit block to master.", e);
     } finally {

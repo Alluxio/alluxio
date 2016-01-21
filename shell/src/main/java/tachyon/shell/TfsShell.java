@@ -138,8 +138,8 @@ public class TfsShell implements Closeable {
     try {
       command.run(args);
       return 0;
-    } catch (IOException ioe) {
-      System.out.println(ioe.getMessage());
+    } catch (IOException e) {
+      System.out.println(e.getMessage());
       return -1;
     }
   }

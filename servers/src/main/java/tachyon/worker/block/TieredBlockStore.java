@@ -370,7 +370,7 @@ public final class TieredBlockStore implements BlockStore {
           if (new File(sessionFolderPath).exists()) {
             FileUtils.delete(sessionFolderPath);
           }
-        } catch (IOException ioe) {
+        } catch (IOException e) {
           // This error means we could not delete the directory but should not affect the
           // correctness of the method since the data has already been deleted. It is not
           // necessary to throw an exception here.
@@ -474,8 +474,8 @@ public final class TieredBlockStore implements BlockStore {
       mMetadataWriteLock.lock();
       try {
         mMetaManager.abortTempBlockMeta(tempBlockMeta);
-      } catch (BlockDoesNotExistException nfe) {
-        throw Throwables.propagate(nfe); // We shall never reach here
+      } catch (BlockDoesNotExistException e) {
+        throw Throwables.propagate(e); // We shall never reach here
       } finally {
         mMetadataWriteLock.unlock();
       }
@@ -524,12 +524,12 @@ public final class TieredBlockStore implements BlockStore {
       mMetadataWriteLock.lock();
       try {
         mMetaManager.commitTempBlockMeta(tempBlockMeta);
-      } catch (BlockAlreadyExistsException aee) {
-        throw Throwables.propagate(aee); // we shall never reach here
-      } catch (BlockDoesNotExistException nfe) {
-        throw Throwables.propagate(nfe); // we shall never reach here
-      } catch (WorkerOutOfSpaceException ose) {
-        throw Throwables.propagate(ose); // we shall never reach here
+      } catch (BlockAlreadyExistsException e) {
+        throw Throwables.propagate(e); // we shall never reach here
+      } catch (BlockDoesNotExistException e) {
+        throw Throwables.propagate(e); // we shall never reach here
+      } catch (WorkerOutOfSpaceException e) {
+        throw Throwables.propagate(e); // we shall never reach here
       } finally {
         mMetadataWriteLock.unlock();
       }
@@ -575,16 +575,16 @@ public final class TieredBlockStore implements BlockStore {
         // Add allocated temp block to metadata manager. This should never fail if allocator
         // correctly assigns a StorageDir.
         mMetaManager.addTempBlockMeta(tempBlock);
-      } catch (WorkerOutOfSpaceException ose) {
+      } catch (WorkerOutOfSpaceException e) {
         // If we reach here, allocator is not working properly
         LOG.error("Unexpected failure: {} bytes allocated at {} by allocator, "
             + "but addTempBlockMeta failed", initialBlockSize, location);
-        throw Throwables.propagate(ose);
-      } catch (BlockAlreadyExistsException aee) {
+        throw Throwables.propagate(e);
+      } catch (BlockAlreadyExistsException e) {
         // If we reach here, allocator is not working properly
         LOG.error("Unexpected failure: {} bytes allocated at {} by allocator, "
             + "but addTempBlockMeta failed", initialBlockSize, location);
-        throw Throwables.propagate(aee);
+        throw Throwables.propagate(e);
       }
       return tempBlock;
     } finally {
@@ -616,8 +616,8 @@ public final class TieredBlockStore implements BlockStore {
       try {
         mMetaManager.resizeTempBlockMeta(tempBlockMeta,
             tempBlockMeta.getBlockSize() + additionalBytes);
-      } catch (InvalidWorkerStateException ise) {
-        throw Throwables.propagate(ise); // we shall never reach here
+      } catch (InvalidWorkerStateException e) {
+        throw Throwables.propagate(e); // we shall never reach here
       }
       return new Pair<Boolean, BlockStoreLocation>(true, null);
     } finally {
@@ -653,11 +653,11 @@ public final class TieredBlockStore implements BlockStore {
     for (Pair<Long, BlockStoreLocation> blockInfo : plan.toEvict()) {
       try {
         removeBlockInternal(sessionId, blockInfo.getFirst(), blockInfo.getSecond());
-      } catch (InvalidWorkerStateException ise) {
+      } catch (InvalidWorkerStateException e) {
         // Evictor is not working properly
         LOG.error("Failed to evict blockId {}, this is temp block", blockInfo.getFirst());
         continue;
-      } catch (BlockDoesNotExistException nfe) {
+      } catch (BlockDoesNotExistException e) {
         LOG.info("Failed to evict blockId {}, it could be already deleted", blockInfo.getFirst());
         continue;
       }
@@ -692,13 +692,13 @@ public final class TieredBlockStore implements BlockStore {
         MoveBlockResult moveResult;
         try {
           moveResult = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
-        } catch (InvalidWorkerStateException ise) {
+        } catch (InvalidWorkerStateException e) {
           // Evictor is not working properly
           LOG.error("Failed to evict blockId {}, this is temp block", blockId);
           continue;
-        } catch (BlockAlreadyExistsException aee) {
+        } catch (BlockAlreadyExistsException e) {
           continue;
-        } catch (BlockDoesNotExistException nfe) {
+        } catch (BlockDoesNotExistException e) {
           LOG.info("Failed to move blockId {}, it could be already deleted", blockId);
           continue;
         }
@@ -799,14 +799,14 @@ public final class TieredBlockStore implements BlockStore {
         // If this metadata update fails, we panic for now.
         // TODO(bin): Implement rollback scheme to recover from IO failures.
         mMetaManager.moveBlockMeta(srcBlockMeta, dstTempBlock);
-      } catch (BlockAlreadyExistsException aee) {
-        throw Throwables.propagate(aee); // we shall never reach here
-      } catch (BlockDoesNotExistException nfe) {
-        throw Throwables.propagate(nfe); // we shall never reach here
-      } catch (WorkerOutOfSpaceException ose) {
+      } catch (BlockAlreadyExistsException e) {
+        throw Throwables.propagate(e); // we shall never reach here
+      } catch (BlockDoesNotExistException e) {
+        throw Throwables.propagate(e); // we shall never reach here
+      } catch (WorkerOutOfSpaceException e) {
         // Only possible if sessionId gets cleaned between createBlockMetaInternal and
         // moveBlockMeta.
-        throw Throwables.propagate(ose);
+        throw Throwables.propagate(e);
       } finally {
         mMetadataWriteLock.unlock();
       }
@@ -854,8 +854,8 @@ public final class TieredBlockStore implements BlockStore {
       mMetadataWriteLock.lock();
       try {
         mMetaManager.removeBlockMeta(blockMeta);
-      } catch (BlockDoesNotExistException nfe) {
-        throw Throwables.propagate(nfe); // we shall never reach here
+      } catch (BlockDoesNotExistException e) {
+        throw Throwables.propagate(e); // we shall never reach here
       } finally {
         mMetadataWriteLock.unlock();
       }

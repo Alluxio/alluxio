@@ -39,9 +39,9 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.file.FileOutStream;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.FileSystemMasterClient;
-import tachyon.client.file.FileSystem;
 import tachyon.client.file.URIStatus;
 import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
@@ -571,8 +571,8 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
   private void ensureExists(TachyonURI path) throws IOException {
     try {
       mTFS.getStatus(path);
-    } catch (TachyonException te) {
-      throw new IOException(te);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     }
   }
 

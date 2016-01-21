@@ -72,9 +72,9 @@ import tachyon.master.file.meta.TtlBucket;
 import tachyon.master.file.meta.TtlBucketList;
 import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.file.options.CompleteFileOptions;
-import tachyon.master.file.options.SetAclOptions;
-import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
+import tachyon.master.file.options.CreateFileOptions;
+import tachyon.master.file.options.SetAclOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
@@ -348,7 +348,7 @@ public final class FileSystemMaster extends MasterBase {
       Inode inode;
       try {
         inode = mInodeTree.getInodeById(id);
-      } catch (FileDoesNotExistException fne) {
+      } catch (FileDoesNotExistException e) {
         return false;
       }
       return inode.isDirectory();
@@ -566,8 +566,8 @@ public final class FileSystemMaster extends MasterBase {
     try {
       completeFileInternal(entry.getBlockIdsList(), entry.getId(), entry.getLength(),
           entry.getOpTimeMs());
-    } catch (FileDoesNotExistException fdnee) {
-      throw new RuntimeException(fdnee);
+    } catch (FileDoesNotExistException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -927,7 +927,7 @@ public final class FileSystemMaster extends MasterBase {
               resolvedHost = ipport[0];
               resolvedPort = Integer.parseInt(ipport[1]);
             }
-          } catch (NumberFormatException nfe) {
+          } catch (NumberFormatException e) {
             continue;
           }
           // The resolved port is the data transfer port not the rpc port
@@ -1054,10 +1054,10 @@ public final class FileSystemMaster extends MasterBase {
         LOG.debug("flushed journal for mkdir {}", path);
         MasterContext.getMasterSource().incDirectoriesCreated(1);
         return createResult;
-      } catch (BlockInfoException bie) {
+      } catch (BlockInfoException e) {
         // Since we are creating a directory, the block size is ignored, no such exception should
         // happen.
-        Throwables.propagate(bie);
+        Throwables.propagate(e);
       }
     }
     return null;
