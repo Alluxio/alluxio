@@ -17,6 +17,7 @@ package tachyon.util;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.security.authentication.AuthType;
 
 /**
  * Utility methods for security.
@@ -41,7 +42,8 @@ public final class SecurityUtils {
    * @return true if authentication is enabled, false otherwise
    */
   public static boolean isAuthenticationEnabled(TachyonConf conf) {
-    return !conf.get(Constants.SECURITY_AUTHENTICATION_TYPE).equals("NOSASL");
+    return !conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class)
+        .equals(AuthType.NOSASL);
   }
 
   /**
