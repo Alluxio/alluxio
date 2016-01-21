@@ -32,6 +32,7 @@ import com.google.protobuf.Message;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
@@ -187,8 +188,8 @@ public final class LineageMaster extends MasterBase {
    * @throws IOException if the creation of a file fails
    */
   public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
-      Job job)
-          throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
+      Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
+      IOException, AccessControlException {
     List<Long> inputTachyonFiles = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
       long fileId;
@@ -279,9 +280,10 @@ public final class LineageMaster extends MasterBase {
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws InvalidPathException the file path is invalid
    * @throws FileDoesNotExistException when the file does not exist
+   * @throws AccessControlException if permission checking fails
    */
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
-      throws InvalidPathException, FileDoesNotExistException {
+      throws InvalidPathException, FileDoesNotExistException, AccessControlException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     if (!fileInfo.isCompleted || mFileSystemMaster.getLostFiles().contains(fileId)) {
@@ -359,8 +361,10 @@ public final class LineageMaster extends MasterBase {
    *
    * @param path the path to the file
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
    */
-  public synchronized void reportLostFile(String path) throws FileDoesNotExistException {
+  public synchronized void reportLostFile(String path) throws FileDoesNotExistException,
+      AccessControlException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
     mFileSystemMaster.reportLostFile(fileId);
   }

@@ -35,7 +35,10 @@ import tachyon.client.file.options.OpenFileOptions;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
+import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
+import tachyon.security.LoginUser;
+import tachyon.security.authentication.PlainSaslServer;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -66,6 +69,9 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    if (PlainSaslServer.AuthorizedClientUser.get() == null) {
+      PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(MasterContext.getConf()).getName());
+    }
     String requestPath = request.getParameter("path");
     if (requestPath == null || requestPath.isEmpty()) {
       requestPath = TachyonURI.SEPARATOR;

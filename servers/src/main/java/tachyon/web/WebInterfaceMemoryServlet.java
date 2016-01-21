@@ -28,8 +28,12 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.master.MasterContext;
 import tachyon.master.TachyonMaster;
+import tachyon.security.LoginUser;
+import tachyon.security.authentication.PlainSaslServer;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -59,6 +63,9 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    if (PlainSaslServer.AuthorizedClientUser.get() == null) {
+      PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(MasterContext.getConf()).getName());
+    }
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("fatalError", "");
 
@@ -76,6 +83,11 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
       } catch (FileDoesNotExistException fee) {
         request.setAttribute("fatalError",
             "Error: File does not exist " + fee.getLocalizedMessage());
+        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+        return;
+      } catch (AccessControlException ace) {
+        request.setAttribute("permissionError",
+            "Error: File " + file + " cannot be accessed " + ace.getMessage());
         getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
         return;
       }
