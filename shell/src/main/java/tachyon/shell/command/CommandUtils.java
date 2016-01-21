@@ -22,9 +22,8 @@ import java.util.Date;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.TachyonException;
 
 /**
@@ -46,11 +45,10 @@ public final class CommandUtils {
    *        whether the file is pinned; {@link Constants#NO_TTL} means to unset the TTL value
    * @throws IOException when failing to set/unset the TTL
    */
-  public static void setTtl(TachyonFileSystem tfs, TachyonURI path, long ttlMs) throws IOException {
+  public static void setTtl(FileSystem tfs, TachyonURI path, long ttlMs) throws IOException {
     try {
-      TachyonFile fd = tfs.open(path);
-      SetStateOptions options = new SetStateOptions.Builder().setTtl(ttlMs).build();
-      tfs.setState(fd, options);
+      SetAttributeOptions options = SetAttributeOptions.defaults().setTtl(ttlMs);
+      tfs.setAttribute(path, options);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
@@ -70,17 +68,16 @@ public final class CommandUtils {
   /**
    * Sets pin state for the input path
    *
-   * @param tfs The {@link TachyonFileSystem} client
+   * @param tfs The {@link FileSystem} client
    * @param path The {@link TachyonURI} path as the input of the command
    * @param pinned the state to be set
    * @throws IOException if a non-Tachyon related exception occurs
    */
-  public static void setPinned(TachyonFileSystem tfs, TachyonURI path, boolean pinned)
+  public static void setPinned(FileSystem tfs, TachyonURI path, boolean pinned)
       throws IOException {
     try {
-      TachyonFile fd = tfs.open(path);
-      SetStateOptions options = new SetStateOptions.Builder().setPinned(pinned).build();
-      tfs.setState(fd, options);
+      SetAttributeOptions options = SetAttributeOptions.defaults().setPinned(pinned);
+      tfs.setAttribute(path, options);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
