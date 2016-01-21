@@ -23,7 +23,7 @@ import com.google.common.base.Preconditions;
 import tachyon.TachyonURI;
 import tachyon.client.Cancelable;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.exception.TachyonException;
 
 /**
@@ -44,8 +44,8 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
     public static KeyValuePartitionWriter create(TachyonURI uri)
         throws TachyonException, IOException {
       Preconditions.checkNotNull(uri);
-      TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
-      FileOutStream fileOutStream = tfs.getOutStream(uri);
+      FileSystem tfs = FileSystem.Factory.get();
+      FileOutStream fileOutStream = tfs.createFile(uri);
       return new BaseKeyValuePartitionWriter(fileOutStream);
     }
   }
@@ -61,8 +61,11 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
   void put(byte[] key, byte[] value) throws IOException;
 
   /**
+   * Returns whether this writer will be full after inserting the given key-value pair.
+   *
+   * @param key key to put, cannot be null
+   * @param value value to put, cannot be null
    * @return whether this writer is full to take any more key-value pairs
    */
-  boolean isFull();
-
+  boolean canPut(byte[] key, byte[] value);
 }

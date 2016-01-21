@@ -19,11 +19,10 @@ import java.io.IOException;
 
 import tachyon.TachyonURI;
 import tachyon.client.block.TachyonBlockStore;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 
 /**
  * Displays the file's all blocks info.
@@ -34,7 +33,7 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public FileInfoCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public FileInfoCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -45,22 +44,20 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
 
   @Override
   void runCommand(TachyonURI path) throws IOException {
-    TachyonFile fd;
-    FileInfo fInfo;
+    URIStatus status;
     try {
-      fd = mTfs.open(path);
-      fInfo = mTfs.getInfo(fd);
+      status = mTfs.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
 
-    if (fInfo.isFolder) {
+    if (status.isFolder()) {
       throw new IOException(path + " is a directory path so does not have file blocks.");
     }
 
-    System.out.println(fInfo);
+    System.out.println(status);
     System.out.println("Containing the following blocks: ");
-    for (long blockId : fInfo.getBlockIds()) {
+    for (long blockId : status.getBlockIds()) {
       System.out.println(TachyonBlockStore.get().getInfo(blockId));
     }
   }
