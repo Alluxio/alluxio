@@ -33,8 +33,12 @@ import tachyon.client.ClientContext;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.IsNotKeyValueStoreException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
+import tachyon.exception.TachyonExceptionType;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.PartitionInfo;
 import tachyon.util.io.BufferUtils;
 
@@ -46,8 +50,6 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final FileSystem mTfs = FileSystem.Factory.get();
-  private final TachyonConf mConf = ClientContext.getConf();
-  private final InetSocketAddress mMasterAddress = ClientContext.getMasterAddress();
   private final KeyValueMasterClient mMasterClient;
   private final TachyonURI mStoreUri;
 
@@ -72,7 +74,8 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
    */
   BaseKeyValueStoreWriter(TachyonURI uri) throws IOException, TachyonException {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
-    mMasterClient = new KeyValueMasterClient(mMasterAddress, mConf);
+    mMasterClient =
+        new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
 
     mStoreUri = Preconditions.checkNotNull(uri);
     mMasterClient.createStore(mStoreUri);
@@ -180,5 +183,46 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     PartitionInfo info = new PartitionInfo(mKeyStart, mKeyLimit, blockId);
     mMasterClient.completePartition(mStoreUri, info);
     mPartitionIndex ++;
+  }
+
+  @Override
+  public void mergeAndDelete(TachyonURI uri)
+      throws IOException, FileDoesNotExistException, IsNotKeyValueStoreException, TachyonException {
+    Preconditions.checkState(!mCanceled, "writer must not be canceled before merging");
+    Preconditions.checkState(!mClosed, "writer must not be closed before merging");
+
+    List<PartitionInfo> partitions;
+    try {
+      partitions = mMasterClient.getPartitionInfo(uri);
+    } catch (TachyonException e) {
+      TachyonExceptionType exceptionType = e.getType();
+      if (exceptionType.equals(TachyonExceptionType.FILE_DOES_NOT_EXIST)) {
+        throw new FileDoesNotExistException(e.getMessage());
+      } else if (exceptionType.equals(TachyonExceptionType.IS_NOT_KEY_VALUE_STORE)) {
+        throw new IsNotKeyValueStoreException(e.getMessage());
+      }
+      throw e;
+    }
+
+    // Complete current partition even if it is not full, for merging other partitions.
+    completePartition();
+
+    // Move each partition file to the current key-value store's directory, and update the current
+    // store's partition info.
+    List<FileInfo> partitionFiles = mTfs.listStatus(mTfs.open(uri));
+    for (FileInfo partitionFile : partitionFiles) {
+      // Rename wouldn't change a file's block IDs, so that partition info can be directly copied to
+      // the current store.
+      mTfs.rename(new TachyonFile(partitionFile.getFileId()), getPartitionName());
+      mPartitionIndex ++;
+    }
+    // TODO(cc): Use a master side API to merge and delete a partition to eliminate unnecessary
+    // network transfer of PartitionInfo and thrift calls.
+    for (PartitionInfo partition : partitions) {
+      mMasterClient.completePartition(mStoreUri, partition);
+    }
+
+    // Finally, deletes the merged store.
+    mMasterClient.deleteStore(uri);
   }
 }

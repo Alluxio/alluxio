@@ -38,6 +38,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.IsNotKeyValueStoreException;
 import tachyon.exception.TachyonException;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
@@ -50,6 +51,7 @@ import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.KeyValue.CompletePartitionEntry;
 import tachyon.proto.journal.KeyValue.CompleteStoreEntry;
 import tachyon.proto.journal.KeyValue.CreateStoreEntry;
+import tachyon.proto.journal.KeyValue.DeleteStoreEntry;
 import tachyon.thrift.KeyValueMasterClientService;
 import tachyon.thrift.PartitionInfo;
 import tachyon.util.IdUtils;
@@ -115,6 +117,8 @@ public final class KeyValueMaster extends MasterBase {
         completePartitionFromEntry((CompletePartitionEntry) innerEntry);
       } else if (innerEntry instanceof CompleteStoreEntry) {
         completeStoreFromEntry((CompleteStoreEntry) innerEntry);
+      } else if (innerEntry instanceof DeleteStoreEntry) {
+        deleteStoreFromEntry((DeleteStoreEntry) innerEntry);
       } else {
         throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
       }
@@ -265,6 +269,43 @@ public final class KeyValueMaster extends MasterBase {
   }
 
   /**
+   * Deletes a completed key-value store.
+   *
+   * @param uri {@link TachyonURI} to the store
+   * @throws IOException if non-Tachyon error occurs
+   * @throws IsNotKeyValueStoreException if the uri exists but is not a key-value store
+   * @throws FileDoesNotExistException if the uri does not exist
+   * @throws TachyonException if other Tachyon error occurs
+   */
+  public synchronized void deleteStore(TachyonURI uri)
+      throws IOException, IsNotKeyValueStoreException, FileDoesNotExistException, TachyonException {
+    long fileId = mFileSystemMaster.getFileId(uri);
+    if (fileId == IdUtils.INVALID_FILE_ID) {
+      throw new FileDoesNotExistException(
+          String.format("Failed to deleteStore: path %s does not exist", uri));
+    }
+    if (!mCompleteStoreToPartitions.containsKey(fileId)) {
+      // TODO(cc): If it is an incomplete store, throw a better exception.
+      throw new IsNotKeyValueStoreException(
+          String.format("Failed to deleteStore: path %s is not a completed key-value store", uri));
+    }
+    mFileSystemMaster.deleteFile(fileId, true);
+    deleteStoreInternal(fileId);
+    writeJournalEntry(newDeleteStoreEntry(fileId));
+    flushJournal();
+  }
+
+  // Internal implementation to deleteStore a key-value store.
+  private void deleteStoreInternal(long fileId) {
+    mCompleteStoreToPartitions.remove(fileId);
+  }
+
+  // Deletes a store, called when replaying journals.
+  private void deleteStoreFromEntry(DeleteStoreEntry entry) {
+    deleteStoreInternal(entry.getStoreId());
+  }
+
+  /**
    * Gets a list of partitions of a given key-value store.
    *
    * @param path URI of the key-value store
@@ -302,5 +343,10 @@ public final class KeyValueMaster extends MasterBase {
   private JournalEntry newCompleteStoreEntry(long fileId) {
     CompleteStoreEntry completeStore = CompleteStoreEntry.newBuilder().setStoreId(fileId).build();
     return JournalEntry.newBuilder().setCompleteStore(completeStore).build();
+  }
+
+  private JournalEntry newDeleteStoreEntry(long fileId) {
+    DeleteStoreEntry deleteStore = DeleteStoreEntry.newBuilder().setStoreId(fileId).build();
+    return JournalEntry.newBuilder().setDeleteStore(deleteStore).build();
   }
 }
