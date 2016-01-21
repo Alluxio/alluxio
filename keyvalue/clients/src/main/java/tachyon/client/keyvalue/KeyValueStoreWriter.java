@@ -19,8 +19,11 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.Cancelable;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.IsNotKeyValueStoreException;
 import tachyon.exception.TachyonException;
 
 /**
@@ -48,4 +51,15 @@ public interface KeyValueStoreWriter extends Closeable, Cancelable {
    */
   void put(ByteBuffer key, ByteBuffer value) throws IOException, TachyonException;
 
+  /**
+   * Merges a key-value store to the current store and deletes the merged store afterwards.
+   *
+   * @param uri URI of the key-value store to be merged
+   * @throws IOException if non-Tachyon error occurs
+   * @throws FileDoesNotExistException if the uri does not exist
+   * @throws IsNotKeyValueStoreException if the uri exists but is not a key-value store
+   * @throws TachyonException if Tachyon error occurs
+   */
+  void mergeAndDelete(TachyonURI uri)
+      throws IOException, FileDoesNotExistException, IsNotKeyValueStoreException, TachyonException;
 }
