@@ -9,7 +9,6 @@ LAUNCHER=
 if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
-
 BIN=$(cd "$( dirname "$0" )"; pwd)
 
 Usage="Usage: tachyon-mount.sh [Mount|SudoMount] [MACHINE]
@@ -18,7 +17,7 @@ Usage="Usage: tachyon-mount.sh [Mount|SudoMount] [MACHINE]
   workers\t\tMount all the workers on worker nodes"
 
 function init_env() {
-  
+  BIN=$(cd "$( dirname "$1" )"; pwd)
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
   TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
   . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
