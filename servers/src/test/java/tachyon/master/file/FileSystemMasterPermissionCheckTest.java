@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,9 +26,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AccessControlException;
 import tachyon.exception.ExceptionMessage;
@@ -37,8 +38,8 @@ import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.options.CompleteFileOptions;
-import tachyon.master.file.options.CreateOptions;
-import tachyon.master.file.options.MkdirOptions;
+import tachyon.master.file.options.CreateDirectoryOptions;
+import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.file.options.SetAclOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
@@ -216,9 +217,9 @@ public class FileSystemMasterPermissionCheckTest {
     long fileId;
     if (recursive) {
       fileId = mFileSystemMaster.create(new TachyonURI(path),
-          new CreateOptions.Builder(MasterContext.getConf()).setRecursive(true).build());
+          new CreateFileOptions.Builder(MasterContext.getConf()).setRecursive(true).build());
     } else {
-      fileId = mFileSystemMaster.create(new TachyonURI(path), CreateOptions.defaults());
+      fileId = mFileSystemMaster.create(new TachyonURI(path), CreateFileOptions.defaults());
     }
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
@@ -268,9 +269,9 @@ public class FileSystemMasterPermissionCheckTest {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
     if (recursive) {
       mFileSystemMaster.mkdir(new TachyonURI(path),
-          new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(true).build());
+          new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(true).build());
     } else {
-      mFileSystemMaster.mkdir(new TachyonURI(path), MkdirOptions.defaults());
+      mFileSystemMaster.mkdir(new TachyonURI(path), CreateDirectoryOptions.defaults());
     }
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
@@ -347,8 +348,7 @@ public class FileSystemMasterPermissionCheckTest {
     String fileOwner = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
         new TachyonURI(srcPath))).getUserName();
 
-    mFileSystemMaster.rename(mFileSystemMaster.getFileId(new TachyonURI(srcPath)),
-        new TachyonURI(dstPath));
+    mFileSystemMaster.rename(new TachyonURI(srcPath), new TachyonURI(dstPath));
 
     Assert.assertEquals(-1, mFileSystemMaster.getFileId(new TachyonURI(srcPath)));
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
@@ -420,7 +420,7 @@ public class FileSystemMasterPermissionCheckTest {
 
   private void verifyDelete(TestUser user, String path, boolean recursive) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
-    mFileSystemMaster.deleteFile(mFileSystemMaster.getFileId(new TachyonURI(path)), recursive);
+    mFileSystemMaster.deleteFile(new TachyonURI(path), recursive);
 
     Assert.assertEquals(-1, mFileSystemMaster.getFileId(new TachyonURI(path)));
   }
@@ -481,8 +481,8 @@ public class FileSystemMasterPermissionCheckTest {
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
     verifyCreate(TEST_USER_1, file, false);
-    SetStateOptions expect = getNonDefaultSetState();
-    SetStateOptions result = verifySetState(TEST_USER_2, getFileId(TEST_USER_1, file), expect);
+    SetAttributeOptions expect = getNonDefaultSetState();
+    SetAttributeOptions result = verifySetState(TEST_USER_2, file, expect);
 
     Assert.assertEquals(expect.getTtl(), result.getTtl());
     Assert.assertEquals(expect.getPinned(), result.getPinned());
@@ -497,38 +497,30 @@ public class FileSystemMasterPermissionCheckTest {
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
     verifyCreate(TEST_USER_1, file, false);
-    SetStateOptions expect = getNonDefaultSetState();
+    SetAttributeOptions expect = getNonDefaultSetState();
 
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(toExceptionMessage(
         TEST_USER_2.getUser(), FileSystemAction.WRITE, file, "testState1")));
-    verifySetState(TEST_USER_2, getFileId(TEST_USER_1, file), expect);
+    verifySetState(TEST_USER_2, file, expect);
   }
 
-  private SetStateOptions getNonDefaultSetState() {
+  private SetAttributeOptions getNonDefaultSetState() {
     boolean recursive = true;
     long ttl = 11;
 
-    return new SetStateOptions.Builder().setPinned(recursive).setTtl(ttl).build();
+    return SetAttributeOptions.defaults().setPinned(recursive).setTtl(ttl);
   }
 
-  private long getFileId(TestUser user, String path) throws AccessControlException {
-    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
-    return mFileSystemMaster.getFileId(new TachyonURI(path));
-  }
-
-  private SetStateOptions verifySetState(TestUser user, long fileId, SetStateOptions options)
-      throws Exception {
+  private SetAttributeOptions verifySetState(
+      TestUser user, String path, SetAttributeOptions options) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
 
-    mFileSystemMaster.setState(fileId, options);
+    mFileSystemMaster.setState(new TachyonURI(path), options);
 
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    return new SetStateOptions.Builder()
-        .setPinned(fileInfo.isIsPinned())
-        .setTtl(fileInfo.getTtl())
-        .setPersisted(fileInfo.isIsPersisted())
-        .build();
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(new TachyonURI(path));
+    return SetAttributeOptions.defaults().setPinned(fileInfo.isIsPinned())
+        .setTtl(fileInfo.getTtl()).setPersisted(fileInfo.isIsPersisted());
   }
 
   @Test
@@ -541,7 +533,7 @@ public class FileSystemMasterPermissionCheckTest {
     String file = PathUtils.concatPath(TEST_DIR_URI, "/testState1");
     verifyCreate(TEST_USER_1, file, false);
     CompleteFileOptions expect = getNonDefaultCompleteFileOptions();
-    verifyCompleteFile(TEST_USER_2, getFileId(TEST_USER_1, file), expect);
+    verifyCompleteFile(TEST_USER_2, file, expect);
   }
 
   @Test
@@ -558,7 +550,7 @@ public class FileSystemMasterPermissionCheckTest {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(toExceptionMessage(
         TEST_USER_2.getUser(), FileSystemAction.WRITE, file, "testComplete1")));
-    verifyCompleteFile(TEST_USER_2, getFileId(TEST_USER_1, file), expect);
+    verifyCompleteFile(TEST_USER_2, file, expect);
   }
 
   private CompleteFileOptions getNonDefaultCompleteFileOptions() {
@@ -569,10 +561,10 @@ public class FileSystemMasterPermissionCheckTest {
         .setOperationTimeMs(operationTimeMs).build();
   }
 
-  private void verifyCompleteFile(TestUser user, long fileId, CompleteFileOptions options)
+  private void verifyCompleteFile(TestUser user, String path, CompleteFileOptions options)
       throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
-    mFileSystemMaster.completeFile(fileId, options);
+    mFileSystemMaster.completeFile(new TachyonURI(path), options);
   }
 
   @Test
@@ -584,7 +576,7 @@ public class FileSystemMasterPermissionCheckTest {
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "/testState1");
     verifyCreate(TEST_USER_1, file, false);
-    verifyFree(TEST_USER_2, getFileId(TEST_USER_1, file), false);
+    verifyFree(TEST_USER_2, file, false);
   }
 
   @Test
@@ -598,7 +590,7 @@ public class FileSystemMasterPermissionCheckTest {
     verifyMkdir(TEST_USER_1, subDir, false);
     String file = subDir + "/testState1";
     verifyCreate(TEST_USER_1, file, false);
-    verifyFree(TEST_USER_2, getFileId(TEST_USER_1, subDir), true);
+    verifyFree(TEST_USER_2, subDir, true);
   }
 
   @Test
@@ -614,7 +606,7 @@ public class FileSystemMasterPermissionCheckTest {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(toExceptionMessage(
         TEST_USER_2.getUser(), FileSystemAction.WRITE, file, "testComplete1")));
-    verifyFree(TEST_USER_2, getFileId(TEST_USER_1, file), false);
+    verifyFree(TEST_USER_2, file, false);
   }
 
   @Test
@@ -630,12 +622,12 @@ public class FileSystemMasterPermissionCheckTest {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(toExceptionMessage(
         TEST_USER_2.getUser(), FileSystemAction.WRITE, file, "testComplete1")));
-    verifyFree(TEST_USER_2, getFileId(TEST_USER_1, file), false);
+    verifyFree(TEST_USER_2, file, false);
   }
 
-  private void verifyFree(TestUser user, long fileId, boolean recursive) throws Exception {
+  private void verifyFree(TestUser user, String path, boolean recursive) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
-    mFileSystemMaster.free(fileId, recursive);
+    mFileSystemMaster.free(new TachyonURI(path), recursive);
   }
 
   private void verifyGetFileId(TestUser user, String path) throws Exception {

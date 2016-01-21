@@ -23,9 +23,7 @@ import org.powermock.reflect.Whitebox;
 
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFile;
+import tachyon.client.WriteType;
 import tachyon.exception.TachyonException;
 import tachyon.security.LoginUser;
 import tachyon.shell.AbstractTfsShellTest;
@@ -38,14 +36,12 @@ public class ChownCommandTest extends AbstractTfsShellTest {
   @Test
   public void chownTest() throws IOException, TachyonException {
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", TachyonStorageType.STORE,
-        UnderStorageType.NO_PERSIST, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chown", "user1", "/testFile");
-    TachyonFile tf = mTfs.open(new TachyonURI("/testFile"));
-    String owner = mTfs.getInfo(tf).getUserName();
+    String owner = mTfs.getStatus(new TachyonURI("/testFile")).getUserName();
     Assert.assertEquals("user1", owner);
     mFsShell.run("chown", "user2", "/testFile");
-    owner = mTfs.getInfo(tf).getUserName();
+    owner = mTfs.getStatus(new TachyonURI("/testFile")).getUserName();
     Assert.assertEquals("user2", owner);
   }
 }

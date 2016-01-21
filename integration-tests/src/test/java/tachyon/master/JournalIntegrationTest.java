@@ -101,7 +101,6 @@ public class JournalIntegrationTest {
         true);
   }
 
-
   private void addBlockTestUtil(URIStatus status)
       throws AccessControlException, IOException, InvalidPathException, FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
@@ -601,12 +600,9 @@ public class JournalIntegrationTest {
         CreateFileOptions.defaults().setBlockSizeBytes(64);
     mTfs.createFile(filePath, op).close();
 
-    mTfs.setAcl(filePath,
-        new SetAclOptions.Builder().setOwner("user1").setRecursive(false).build());
-    mTfs.setAcl(filePath,
-        new SetAclOptions.Builder().setGroup("group1").setRecursive(false).build());
-    mTfs.setAcl(filePath,
-        new SetAclOptions.Builder().setPermission((short) 0400).setRecursive(false).build());
+    mTfs.setAcl(filePath, SetAclOptions.defaults().setOwner("user1").setRecursive(false));
+    mTfs.setAcl(filePath, SetAclOptions.defaults().setGroup("group1").setRecursive(false));
+    mTfs.setAcl(filePath, SetAclOptions.defaults().setPermission((short) 0400).setRecursive(false));
 
     URIStatus status = mTfs.getStatus(filePath);
 

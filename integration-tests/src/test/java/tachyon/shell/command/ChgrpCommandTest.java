@@ -23,9 +23,7 @@ import org.powermock.reflect.Whitebox;
 
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFile;
+import tachyon.client.WriteType;
 import tachyon.exception.TachyonException;
 import tachyon.security.LoginUser;
 import tachyon.shell.AbstractTfsShellTest;
@@ -34,18 +32,15 @@ import tachyon.shell.AbstractTfsShellTest;
  * Tests for chgrp command.
  */
 public class ChgrpCommandTest extends AbstractTfsShellTest {
-
   @Test
   public void chgrpTest() throws IOException, TachyonException {
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", TachyonStorageType.STORE,
-        UnderStorageType.NO_PERSIST, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chgrp", "group1", "/testFile");
-    TachyonFile tf = mTfs.open(new TachyonURI("/testFile"));
-    String group = mTfs.getInfo(tf).getGroupName();
+    String group = mTfs.getStatus(new TachyonURI("/testFile")).getGroupName();
     Assert.assertEquals("group1", group);
     mFsShell.run("chgrp", "group2", "/testFile");
-    group = mTfs.getInfo(tf).getGroupName();
+    group = mTfs.getStatus(new TachyonURI("/testFile")).getGroupName();
     Assert.assertEquals("group2", group);
   }
 }
