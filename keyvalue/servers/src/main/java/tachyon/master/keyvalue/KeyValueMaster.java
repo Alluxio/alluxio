@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -303,6 +304,50 @@ public final class KeyValueMaster extends MasterBase {
   // Deletes a store, called when replaying journals.
   private void deleteStoreFromEntry(DeleteStoreEntry entry) {
     deleteStoreInternal(entry.getStoreId());
+  }
+
+  long getFileId(TachyonURI uri, String caller) throws FileDoesNotExistException{
+    long fileId = mFileSystemMaster.getFileId(uri);
+    if (fileId == IdUtils.INVALID_FILE_ID) {
+      throw new FileDoesNotExistException(
+          String.format("Failed to %s: path %s does not exist", caller, uri));
+    }
+    return fileId;
+  }
+
+  void checkIsCompletePartition(long fileId, TachyonURI uri) throws IsNotKeyValueStoreException {
+    if (!mCompleteStoreToPartitions.containsKey(fileId)) {
+      throw new IsNotKeyValueStoreException(
+          String.format("Failed to deleteStore: path %s is not a completed key-value store", uri));
+    }
+  }
+
+  /**
+   * Merges one completed key-value store to another completed key-value store.
+   *
+   * @param fromUri the {@link TachyonURI} to the store to be merged
+   * @param toUri the {@link TachyonURI} to the store to be merged to
+   * @throws IOException if non-Tachyon error occurs
+   * @throws IsNotKeyValueStoreException if the uri exists but is not a key-value store
+   * @throws FileDoesNotExistException if the uri does not exist
+   * @throws TachyonException if other Tachyon error occurs
+   */
+  public synchronized void merge(TachyonURI fromUri, TachyonURI toUri)
+      throws IOException, FileDoesNotExistException, IsNotKeyValueStoreException, TachyonException {
+    long fromFileId = getFileId(fromUri, "merge");
+    long toFileId = getFileId(toUri, "merge");
+    checkIsCompletePartition(fromFileId, fromUri);
+    checkIsCompletePartition(toFileId, toUri);
+
+    // Move partition infos to the new store.
+    List<PartitionInfo> partitionsToBeMerged = mCompleteStoreToPartitions.remove(fromFileId);
+    mCompleteStoreToPartitions.get(toFileId).addAll(partitionsToBeMerged);
+
+    // Rename fromUri to "toUri/%s-%s" % (last component of fromUri, UUID constructed from fromUri).
+    // NOTE: rename does not change the existing block IDs.
+    String fromUriUUID = UUID.fromString(fromUri.toString()).toString();
+    mFileSystemMaster.rename(fromUri, new TachyonURI(PathUtils.concatPath(toUri.toString(),
+        String.format("%s-%s", fromUri.getName(), fromUriUUID))));
   }
 
   /**
