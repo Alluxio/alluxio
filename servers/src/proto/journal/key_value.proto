@@ -21,3 +21,8 @@ message CompleteStoreEntry {
 message CreateStoreEntry {
   optional int64 store_id = 1;
 }
+
+// next available id: 2
+message DeleteStoreEntry {
+  optional int64 store_id = 1;
+}
