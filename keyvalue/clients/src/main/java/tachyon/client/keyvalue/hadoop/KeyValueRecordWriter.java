@@ -20,6 +20,7 @@ import java.io.IOException;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.util.Progressable;
 import org.apache.http.annotation.ThreadSafe;
 
 import tachyon.client.keyvalue.KeyValueStoreWriter;
@@ -27,20 +28,30 @@ import tachyon.exception.TachyonException;
 
 /**
  * A {@link RecordWriter} to write key-value pairs output by Reducers to a
- * {@link tachyon.client.keyvalue.KeyValueStore}.
+ * {@link tachyon.client.keyvalue.KeyValueStores}.
  */
 @ThreadSafe
 class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable> {
   private KeyValueStoreWriter mWriter;
+  private Progressable mProgress;
 
-  public KeyValueRecordWriter(KeyValueStoreWriter writer) {
+  /**
+   * Constructs a new {@link KeyValueRecordWriter}.
+   *
+   * @param writer the key-value store writer
+   * @param progress the object to be used for reporting progress
+   */
+  public KeyValueRecordWriter(KeyValueStoreWriter writer, Progressable progress) {
     mWriter = writer;
+    mProgress = progress;
   }
 
   @Override
   public synchronized void write(BytesWritable key, BytesWritable value) throws IOException {
     try {
       mWriter.put(key.getBytes(), value.getBytes());
+      // Send a progress to the job manager to inform it that the task is still running.
+      mProgress.progress();
     } catch (TachyonException e) {
       throw new IOException(e);
     }
