@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.Futures;
 
 import tachyon.Constants;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.heartbeat.HeartbeatExecutor;
@@ -111,6 +112,8 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
               LOG.error("the lost file {} does not exist", fileId, e);
             } catch (InvalidPathException e) {
               LOG.error("the lost file {} is invalid", fileId, e);
+            } catch (AccessControlException e) {
+              LOG.error("the lost file {} cannot be accessed", fileId, e);
             }
           }
         } catch (FileDoesNotExistException e) {
