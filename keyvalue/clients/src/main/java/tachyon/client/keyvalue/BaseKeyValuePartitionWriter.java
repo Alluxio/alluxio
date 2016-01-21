@@ -101,6 +101,8 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
   public void put(byte[] key, byte[] value) throws IOException {
     Preconditions.checkNotNull(key);
     Preconditions.checkNotNull(value);
+    Preconditions.checkArgument(key.length > 0, "Cannot put an empty key");
+    Preconditions.checkArgument(value.length > 0, "Cannot put an empty value");
     Preconditions.checkState(!mClosed);
     mIndex.put(key, value, mPayloadWriter);
     mKeyCount ++;
