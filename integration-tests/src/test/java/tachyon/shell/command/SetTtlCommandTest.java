@@ -43,7 +43,7 @@ public class SetTtlCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void setTTLNegativeTest() throws IOException {
+  public void setTtlNegativeTest() throws IOException {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 1);
     mException.expect(IllegalArgumentException.class);
     mException.expectMessage("TTL value must be >= 0");
