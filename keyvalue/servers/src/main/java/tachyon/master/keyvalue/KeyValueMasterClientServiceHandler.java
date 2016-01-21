@@ -95,4 +95,16 @@ public final class KeyValueMasterClientServiceHandler implements KeyValueMasterC
       throw new ThriftIOException(e.getMessage());
     }
   }
+
+  @Override
+  public void mergeStore(String fromPath, String toPath)
+      throws TachyonTException, ThriftIOException {
+    try {
+      mKeyValueMaster.mergeStore(new TachyonURI(fromPath), new TachyonURI(toPath));
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    }
+  }
 }

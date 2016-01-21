@@ -159,4 +159,21 @@ public final class KeyValueMasterClient extends MasterClientBase {
       }
     });
   }
+
+  /**
+   * Merges one completed key-value store to another completed key-value store.
+   *
+   * @param fromPath URI of the store to be merged
+   * @param toPath URI of the store to be merged to
+   */
+  void mergeStore(final TachyonURI fromPath, final TachyonURI toPath)
+      throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.mergeStore(fromPath.toString(), toPath.toString());
+        return null;
+      }
+    });
+  }
 }
