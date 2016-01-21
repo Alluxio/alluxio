@@ -21,10 +21,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
+import tachyon.client.file.URIStatus;
 import tachyon.exception.TachyonException;
 import tachyon.shell.AbstractTfsShellTest;
-import tachyon.thrift.FileInfo;
 
 /**
  * Tests for touch command.
@@ -34,26 +33,23 @@ public class TouchCommandTest extends AbstractTfsShellTest {
   public void touchTest() throws IOException, TachyonException {
     String[] argv = new String[] {"touch", "/testFile"};
     mFsShell.run(argv);
-    TachyonFile tFile = mTfs.open(new TachyonURI("/testFile"));
-    FileInfo fileInfo = mTfs.getInfo(tFile);
-    Assert.assertNotNull(fileInfo);
+    URIStatus status = mTfs.getStatus(new TachyonURI("/testFile"));
+    Assert.assertNotNull(status);
     Assert.assertEquals(getCommandOutput(argv), mOutput.toString());
-    Assert.assertFalse(fileInfo.isFolder);
+    Assert.assertFalse(status.isFolder());
   }
 
   @Test
   public void touchTestWithFullURI() throws IOException, TachyonException {
-    String tachyonURI =
-        "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
-            + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
+    String tachyonURI = "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
+        + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
     // when
     String[] argv = new String[] {"touch", tachyonURI};
     mFsShell.run(argv);
     // then
-    TachyonFile tFile = mTfs.open(new TachyonURI("/destFileURI"));
-    FileInfo fileInfo = mTfs.getInfo(tFile);
-    Assert.assertNotNull(fileInfo);
+    URIStatus status = mTfs.getStatus(new TachyonURI("/destFileURI"));
+    Assert.assertNotNull(status);
     Assert.assertEquals(getCommandOutput(argv), mOutput.toString());
-    Assert.assertFalse(fileInfo.isFolder);
+    Assert.assertFalse(status.isFolder());
   }
 }

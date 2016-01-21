@@ -26,10 +26,10 @@ import org.junit.rules.ExpectedException;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.MkdirOptions;
-import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
+import tachyon.client.file.options.CreateDirectoryOptions;
+import tachyon.client.file.options.CreateFileOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
@@ -37,22 +37,21 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
-import tachyon.thrift.FileInfo;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
 
 /**
  * Integration tests on TachyonClient (Reuse the LocalTachyonCluster).
  */
-public class TachyonFileSystemIntegrationTest {
+public class FileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 2 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.MB,
           Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
-  private TachyonFileSystem mTfs = null;
-  private OutStreamOptions mWriteBoth;
+  private FileSystem mTfs = null;
+  private CreateFileOptions mWriteBoth;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -61,12 +60,12 @@ public class TachyonFileSystemIntegrationTest {
   public void before() throws Exception {
     mTfs = mLocalTachyonClusterResource.get().getClient();
     TachyonConf conf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
-    mWriteBoth = StreamOptionUtils.getOutStreamOptionsWriteBoth(conf);
+    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(conf);
   }
 
   @Test
   public void getRootTest() throws IOException, TachyonException {
-    Assert.assertEquals(0, mTfs.getInfo(mTfs.open(new TachyonURI("/"))).getFileId());
+    Assert.assertEquals(0, mTfs.getStatus(new TachyonURI("/")).getFileId());
   }
 
   @Test
@@ -74,18 +73,18 @@ public class TachyonFileSystemIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = 1; k < 5; k ++) {
       TachyonURI uri = new TachyonURI(uniqPath + k);
-      mTfs.getOutStream(uri, mWriteBoth).close();
-      Assert.assertNotNull(mTfs.getInfo(mTfs.open(uri)));
+      mTfs.createFile(uri, mWriteBoth).close();
+      Assert.assertNotNull(mTfs.getStatus(uri));
     }
   }
 
   @Test
   public void createFileWithFileAlreadyExistsExceptionTest() throws IOException, TachyonException {
     TachyonURI uri = new TachyonURI(PathUtils.uniqPath());
-    mTfs.getOutStream(uri, mWriteBoth).close();
-    Assert.assertNotNull(mTfs.getInfo(mTfs.open(uri)));
+    mTfs.createFile(uri, mWriteBoth).close();
+    Assert.assertNotNull(mTfs.getStatus(uri));
     try {
-      mTfs.getOutStream(uri, mWriteBoth);
+      mTfs.createFile(uri, mWriteBoth);
     } catch (TachyonException e) {
       Assert.assertEquals(e.getType(), TachyonExceptionType.FILE_ALREADY_EXISTS);
     }
@@ -95,7 +94,7 @@ public class TachyonFileSystemIntegrationTest {
   public void createFileWithInvalidPathExceptionTest() throws IOException, TachyonException {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage("Path root/testFile1 is invalid.");
-    mTfs.getOutStream(new TachyonURI("root/testFile1"), mWriteBoth);
+    mTfs.createFile(new TachyonURI("root/testFile1"), mWriteBoth);
   }
 
   @Test
@@ -104,18 +103,17 @@ public class TachyonFileSystemIntegrationTest {
 
     for (int k = 0; k < 5; k ++) {
       TachyonURI fileURI = new TachyonURI(uniqPath + k);
-      TachyonFile f = TachyonFSTestUtils.createByteFile(mTfs, fileURI.getPath(), k, mWriteBoth);
-      Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
-      Assert.assertNotNull(mTfs.getInfo(f));
+      TachyonFSTestUtils.createByteFile(mTfs, fileURI.getPath(), k, mWriteBoth);
+      Assert.assertTrue(mTfs.getStatus(fileURI).getInMemoryPercentage() == 100);
+      Assert.assertNotNull(mTfs.getStatus(fileURI));
     }
 
     for (int k = 0; k < 5; k ++) {
       TachyonURI fileURI = new TachyonURI(uniqPath + k);
-      TachyonFile f = mTfs.open(fileURI);
-      mTfs.delete(f);
-      Assert.assertNull(mTfs.openIfExists(fileURI));
+      mTfs.delete(fileURI);
+      Assert.assertFalse(mTfs.exists(fileURI));
       mThrown.expect(FileDoesNotExistException.class);
-      mTfs.getInfo(f);
+      mTfs.getStatus(fileURI);
     }
   }
 
@@ -124,22 +122,21 @@ public class TachyonFileSystemIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
     TachyonURI uri = new TachyonURI(uniqPath);
-    TachyonFile f = TachyonFSTestUtils.createByteFile(mTfs, uri.getPath(), writeBytes, mWriteBoth);
-    Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
-    FileInfo fileInfo = mTfs.getInfo(f);
-    Assert.assertNotNull(fileInfo);
-    Assert.assertTrue(fileInfo.getPath().equals(uniqPath));
+    TachyonFSTestUtils.createByteFile(mTfs, uri.getPath(), writeBytes, mWriteBoth);
+    Assert.assertTrue(mTfs.getStatus(uri).getInMemoryPercentage() == 100);
+
+    Assert.assertTrue(mTfs.getStatus(uri).getPath().equals(uniqPath));
   }
 
   @Test
   public void mkdirTest() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
-    MkdirOptions options = new MkdirOptions.Builder(new TachyonConf()).setRecursive(true).build();
+    CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
     for (int k = 0; k < 10; k ++) {
-      Assert.assertTrue(mTfs.mkdir(new TachyonURI(uniqPath + k), options));
+      mTfs.createDirectory(new TachyonURI(uniqPath + k), options);
       try {
-        Assert.assertFalse(mTfs.mkdir(new TachyonURI(uniqPath + k), options));
-        Assert.assertTrue("mkdir should throw FileAlreadyExistsException", false);
+        mTfs.createDirectory(new TachyonURI(uniqPath + k), options);
+        Assert.fail("mkdir should throw FileAlreadyExistsException");
       } catch (FileAlreadyExistsException faee) {
         Assert.assertEquals(faee.getMessage(),
             ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uniqPath + k));
@@ -151,15 +148,15 @@ public class TachyonFileSystemIntegrationTest {
   public void renameFileTest1() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     TachyonURI path1 = new TachyonURI(uniqPath + 1);
-    mTfs.getOutStream(path1, mWriteBoth).close();
+    mTfs.createFile(path1, mWriteBoth).close();
     for (int k = 1; k < 10; k ++) {
       TachyonURI fileA = new TachyonURI(uniqPath + k);
       TachyonURI fileB = new TachyonURI(uniqPath + (k + 1));
-      TachyonFile existingFile = mTfs.open(fileA);
+      URIStatus existingFile = mTfs.getStatus(fileA);
       long oldFileId = existingFile.getFileId();
       Assert.assertNotNull(existingFile);
-      Assert.assertTrue(mTfs.rename(existingFile, fileB));
-      TachyonFile renamedFile = mTfs.open(fileB);
+      mTfs.rename(fileA, fileB);
+      URIStatus renamedFile = mTfs.getStatus(fileB);
       Assert.assertNotNull(renamedFile);
       Assert.assertEquals(oldFileId, renamedFile.getFileId());
     }
@@ -168,11 +165,11 @@ public class TachyonFileSystemIntegrationTest {
   @Test
   public void renameFileTest2() throws IOException, TachyonException {
     TachyonURI uniqUri = new TachyonURI(PathUtils.uniqPath());
-    mTfs.getOutStream(uniqUri, mWriteBoth).close();
-    TachyonFile f = mTfs.open(uniqUri);
+    mTfs.createFile(uniqUri, mWriteBoth).close();
+    URIStatus f = mTfs.getStatus(uniqUri);
     long oldFileId = f.getFileId();
-    Assert.assertTrue(mTfs.rename(f, uniqUri));
-    Assert.assertEquals(oldFileId, mTfs.open(uniqUri).getFileId());
+    mTfs.rename(uniqUri, uniqUri);
+    Assert.assertEquals(oldFileId, mTfs.getStatus(uniqUri).getFileId());
   }
 
   /**
@@ -207,10 +204,9 @@ public class TachyonFileSystemIntegrationTest {
     try {
       String filePath = PathUtils.concatPath(alternateUfsRoot, "file1");
       UnderFileSystemUtils.touch(filePath, mLocalTachyonClusterResource.getTestConf());
-      Assert.assertTrue(mTfs.mount(new TachyonURI("/dir1"), new TachyonURI(alternateUfsRoot)));
+      mTfs.mount(new TachyonURI("/dir1"), new TachyonURI(alternateUfsRoot));
       mTfs.loadMetadata(new TachyonURI("/dir1/file1"));
-      Assert.assertEquals("file1", mTfs.listStatus(mTfs.open(new TachyonURI("/dir1"))).get(0)
-          .getName());
+      Assert.assertEquals("file1", mTfs.listStatus(new TachyonURI("/dir1")).get(0).getName());
     } finally {
       destroyAlternateUfs(alternateUfsRoot);
     }
@@ -230,14 +226,12 @@ public class TachyonFileSystemIntegrationTest {
       UnderFileSystemUtils.touch(filePath1, testConf);
       UnderFileSystemUtils.touch(filePath2, testConf);
 
-      Assert.assertTrue(mTfs.mount(new TachyonURI("/dirx"), new TachyonURI(dirPath1)));
-      Assert.assertTrue(mTfs.mount(new TachyonURI("/diry"), new TachyonURI(dirPath2)));
+      mTfs.mount(new TachyonURI("/dirx"), new TachyonURI(dirPath1));
+      mTfs.mount(new TachyonURI("/diry"), new TachyonURI(dirPath2));
       mTfs.loadMetadata(new TachyonURI("/dirx/file1"));
       mTfs.loadMetadata(new TachyonURI("/diry/file2"));
-      Assert.assertEquals("file1", mTfs.listStatus(mTfs.open(new TachyonURI("/dirx"))).get(0)
-          .getName());
-      Assert.assertEquals("file2", mTfs.listStatus(mTfs.open(new TachyonURI("/diry"))).get(0)
-          .getName());
+      Assert.assertEquals("file1", mTfs.listStatus(new TachyonURI("/dirx")).get(0).getName());
+      Assert.assertEquals("file2", mTfs.listStatus(new TachyonURI("/diry")).get(0).getName());
     } finally {
       destroyAlternateUfs(alternateUfsRoot);
     }
@@ -250,18 +244,33 @@ public class TachyonFileSystemIntegrationTest {
     String ufsRoot = testConf.get(Constants.UNDERFS_ADDRESS);
     String ufsSubdir = PathUtils.concatPath(ufsRoot, "dir1");
     UnderFileSystemUtils.mkdirIfNotExists(ufsSubdir, testConf);
-    Assert.assertFalse(mTfs.mount(new TachyonURI("/dir"), new TachyonURI(ufsSubdir)));
+    try {
+      mTfs.mount(new TachyonURI("/dir"), new TachyonURI(ufsSubdir));
+      Assert.fail("Cannot remount primary ufs.");
+    } catch (InvalidPathException e) {
+      // Exception expected
+    }
 
     String alternateUfsRoot = createAlternateUfs();
     try {
       String midDirPath = PathUtils.concatPath(alternateUfsRoot, "mid");
       String innerDirPath = PathUtils.concatPath(midDirPath, "inner");
       UnderFileSystemUtils.mkdirIfNotExists(innerDirPath, testConf);
-      Assert.assertTrue(mTfs.mount(new TachyonURI("/mid"), new TachyonURI(midDirPath)));
+      mTfs.mount(new TachyonURI("/mid"), new TachyonURI(midDirPath));
       // Cannot mount suffix of already-mounted directory
-      Assert.assertFalse(mTfs.mount(new TachyonURI("/inner"), new TachyonURI(innerDirPath)));
+      try {
+        mTfs.mount(new TachyonURI("/inner"), new TachyonURI(innerDirPath));
+        Assert.fail("Cannot mount suffix of already-mounted directory");
+      } catch (InvalidPathException e) {
+        // Exception expected, continue
+      }
       // Cannot mount prefix of already-mounted directory
-      Assert.assertFalse(mTfs.mount(new TachyonURI("/root"), new TachyonURI(alternateUfsRoot)));
+      try {
+        mTfs.mount(new TachyonURI("/root"), new TachyonURI(alternateUfsRoot));
+        Assert.fail("Cannot mount prefix of already-mounted directory");
+      } catch (InvalidPathException e) {
+        // Exception expected, continue
+      }
     } finally {
       destroyAlternateUfs(alternateUfsRoot);
     }
@@ -279,7 +288,10 @@ public class TachyonFileSystemIntegrationTest {
       String subdirPath = PathUtils.concatPath(alternateUfsRoot, "subdir");
       UnderFileSystemUtils.mkdirIfNotExists(subdirPath, testConf);
       // Cannot mount to path that shadows a file in the primary UFS
-      Assert.assertFalse(mTfs.mount(new TachyonURI("/dir1"), new TachyonURI(subdirPath)));
+      mTfs.mount(new TachyonURI("/dir1"), new TachyonURI(subdirPath));
+      Assert.fail("Cannot mount to path that shadows a file in the primary UFS");
+    } catch (IOException e) {
+      // Exception expected, continue
     } finally {
       destroyAlternateUfs(alternateUfsRoot);
     }

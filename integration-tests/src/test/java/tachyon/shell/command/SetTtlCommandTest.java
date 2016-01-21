@@ -15,36 +15,38 @@
 
 package tachyon.shell.command;
 
+import java.io.IOException;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFile;
+import tachyon.client.WriteType;
 import tachyon.shell.AbstractTfsShellTest;
 
 /**
- * Test for unsetTtl command.
+ * Tests for setTtl command.
  */
-public class UnsetTtLTest extends AbstractTfsShellTest {
+public class SetTtlCommandTest extends AbstractTfsShellTest {
   @Test
-  public void unsetTtlTest() throws Exception {
+  public void setTtlTest() throws Exception {
     String filePath = "/testFile";
-    TachyonFile file =
-        TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType.STORE,
-            UnderStorageType.NO_PERSIST, 1);
-    Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
+    TachyonFSTestUtils.createByteFile(mTfs, filePath, WriteType.MUST_CACHE, 1);
+    Assert.assertEquals(Constants.NO_TTL, mTfs.getStatus(new TachyonURI("/testFile")).getTtl());
+    long[] ttls = new long[] { 0L, 1000L };
+    for (long ttl : ttls) {
+      Assert.assertEquals(0, mFsShell.run("setTtl", filePath, String.valueOf(ttl)));
+      Assert.assertEquals(ttl, mTfs.getStatus(new TachyonURI("/testFile")).getTtl());
+    }
+  }
 
-    // unsetTtl on a file originally with no TTL will leave the TTL unchanged.
-    Assert.assertEquals(0, mFsShell.run("unsetTtl", filePath));
-    Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
-
-    long ttl = 1000L;
-    Assert.assertEquals(0, mFsShell.run("setTtl", filePath, String.valueOf(ttl)));
-    Assert.assertEquals(ttl, mTfs.getInfo(file).getTtl());
-    Assert.assertEquals(0, mFsShell.run("unsetTtl", filePath));
-    Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
+  @Test
+  public void setTTLNegativeTest() throws IOException {
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 1);
+    mException.expect(IllegalArgumentException.class);
+    mException.expectMessage("TTL value must be >= 0");
+    mFsShell.run("setTtl", "/testFile", "-1");
   }
 }

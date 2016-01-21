@@ -30,10 +30,9 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.exception.ExceptionMessage;
-import tachyon.thrift.FileInfo;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -137,7 +136,7 @@ public final class KeyValueStoresIntegrationTest {
     final int keyLength = 4; // 4Byte key
     final int valueLength = 500 * Constants.KB; // 500KB value
 
-    TachyonFileSystem tfs = TachyonFileSystemFactory.get();
+    FileSystem tfs = FileSystem.Factory.get();
 
     ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
         String.valueOf(maxPartitionSize));
@@ -149,9 +148,9 @@ public final class KeyValueStoresIntegrationTest {
     }
     mWriter.close();
 
-    List<FileInfo> files = tfs.listStatus(tfs.open(mStoreUri));
+    List<URIStatus> files = tfs.listStatus(mStoreUri);
     Assert.assertEquals(numKeys, files.size());
-    for (FileInfo info : files) {
+    for (URIStatus info : files) {
       Assert.assertTrue(info.getLength() <= maxPartitionSize);
     }
 

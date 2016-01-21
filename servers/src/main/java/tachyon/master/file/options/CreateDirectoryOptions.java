@@ -15,45 +15,41 @@
 
 package tachyon.master.file.options;
 
-import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
-import tachyon.thrift.CreateTOptions;
+import tachyon.thrift.CreateDirectoryTOptions;
 
 /**
- * Method option for creating a file.
+ * Method option for creating a directory.
  */
-public final class CreateOptions {
-
+public final class CreateDirectoryOptions {
   /**
-   * Builder for {@link CreateOptions}.
+   * Builder for {@link CreateDirectoryOptions}.
    */
   public static class Builder {
-    private long mBlockSizeBytes;
+    private boolean mAllowExists;
     private long mOperationTimeMs;
     private boolean mPersisted;
     private boolean mRecursive;
-    private long mTtl;
 
     /**
-     * Creates a new builder for {@link CreateOptions}.
+     * Creates a new builder for {@link CreateDirectoryOptions}.
      *
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mOperationTimeMs = System.currentTimeMillis();
       mPersisted = false;
       mRecursive = false;
-      mTtl = Constants.NO_TTL;
     }
 
     /**
-     * @param blockSizeBytes the block size to use
+     * @param allowExists the allowExists flag value to use; it specifies whether an exception
+     *        should be thrown if the directory being made already exists.
      * @return the builder
      */
-    public Builder setBlockSizeBytes(long blockSizeBytes) {
-      mBlockSizeBytes = blockSizeBytes;
+    public Builder setAllowExists(boolean allowExists) {
+      mAllowExists = allowExists;
       return this;
     }
 
@@ -87,64 +83,52 @@ public final class CreateOptions {
     }
 
     /**
-     * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-     *        created file should be kept around before it is automatically deleted
-     * @return the builder
-     */
-    public Builder setTtl(long ttl) {
-      mTtl = ttl;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link CreateOptions}.
+     * Builds a new instance of {@link CreateDirectoryOptions}.
      *
-     * @return a {@link CreateOptions} instance
+     * @return a {@link CreateDirectoryOptions} instance
      */
-    public CreateOptions build() {
-      return new CreateOptions(this);
+    public CreateDirectoryOptions build() {
+      return new CreateDirectoryOptions(this);
     }
   }
 
-  private long mBlockSizeBytes;
-  private long mOperationTimeMs;
-  private boolean mPersisted;
-  private boolean mRecursive;
-  private long mTtl;
-
   /**
-   * @return the default {@link CreateOptions}
+   * @return the default {@link CreateDirectoryOptions}
    */
-  public static CreateOptions defaults() {
+  public static CreateDirectoryOptions defaults() {
     return new Builder(MasterContext.getConf()).build();
   }
 
-  private CreateOptions(CreateOptions.Builder builder) {
-    mBlockSizeBytes = builder.mBlockSizeBytes;
+  private boolean mAllowExists;
+  private long mOperationTimeMs;
+  private boolean mPersisted;
+  private boolean mRecursive;
+
+  private CreateDirectoryOptions(CreateDirectoryOptions.Builder builder) {
+    mAllowExists = builder.mAllowExists;
     mOperationTimeMs = builder.mOperationTimeMs;
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
-    mTtl = builder.mTtl;
   }
 
   /**
-   * Creates a new instance of {@link CreateOptions} from {@link CreateTOptions}.
+   * Creates a new instance of {@link CreateDirectoryOptions} from {@link CreateDirectoryTOptions}.
    *
    * @param options Thrift options
    */
-  public CreateOptions(CreateTOptions options) {
-    mBlockSizeBytes = options.getBlockSizeBytes();
+  public CreateDirectoryOptions(CreateDirectoryTOptions options) {
+    mAllowExists = options.isAllowExists();
     mOperationTimeMs = System.currentTimeMillis();
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
-    mTtl = options.getTtl();
   }
 
   /**
-   * @return the block size
+   * @return the allowExists flag; it specifies whether an exception should be thrown if the
+   *         directory being made already exists.
    */
-  public long getBlockSizeBytes() {
-    return mBlockSizeBytes;
+  public boolean isAllowExists() {
+    return mAllowExists;
   }
 
   /**
@@ -163,17 +147,9 @@ public final class CreateOptions {
 
   /**
    * @return the recursive flag value; it specifies whether parent directories should be created if
-   * they do not already exist
+   *         they do not already exist
    */
   public boolean isRecursive() {
     return mRecursive;
-  }
-
-  /**
-   * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
-   * should be kept around before it is automatically deleted
-   */
-  public long getTtl() {
-    return mTtl;
   }
 }

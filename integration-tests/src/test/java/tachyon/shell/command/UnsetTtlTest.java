@@ -15,38 +15,34 @@
 
 package tachyon.shell.command;
 
-import java.io.IOException;
-
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.WriteType;
-import tachyon.exception.ExceptionMessage;
 import tachyon.shell.AbstractTfsShellTest;
 
 /**
- * Test for du command.
+ * Test for unsetTtl command.
  */
-public class DuCommandTest extends AbstractTfsShellTest {
+public class UnsetTtlTest extends AbstractTfsShellTest {
   @Test
-  public void duTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
-    TachyonFSTestUtils
-        .createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testDir/testFileC",
-        WriteType.MUST_CACHE, 30);
+  public void unsetTtlTest() throws Exception {
+    String filePath = "/testFile";
+    TachyonURI uri = new TachyonURI("/testFile");
+    TachyonFSTestUtils.createByteFile(mTfs, filePath, WriteType.MUST_CACHE, 1);
+    Assert.assertEquals(Constants.NO_TTL, mTfs.getStatus(uri).getTtl());
 
-    String expected = "";
-    // du a non-existing file
-    mFsShell.run("du", "/testRoot/noneExisting");
-    expected += ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testRoot/noneExisting") + "\n";
-    // du a file
-    mFsShell.run("du", "/testRoot/testFileA");
-    expected += "/testRoot/testFileA is 10 bytes\n";
-    // du a folder
-    mFsShell.run("du", "/testRoot/testDir");
-    expected += "/testRoot/testDir is 50 bytes\n";
-    Assert.assertEquals(expected, mOutput.toString());
+    // unsetTTL on a file originally with no TTL will leave the TTL unchanged.
+    Assert.assertEquals(0, mFsShell.run("unsetTtl", filePath));
+    Assert.assertEquals(Constants.NO_TTL, mTfs.getStatus(uri).getTtl());
+
+    long ttl = 1000L;
+    Assert.assertEquals(0, mFsShell.run("setTtl", filePath, String.valueOf(ttl)));
+    Assert.assertEquals(ttl, mTfs.getStatus(uri).getTtl());
+    Assert.assertEquals(0, mFsShell.run("unsetTtl", filePath));
+    Assert.assertEquals(Constants.NO_TTL, mTfs.getStatus(uri).getTtl());
   }
 }
