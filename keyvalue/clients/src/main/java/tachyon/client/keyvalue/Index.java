@@ -17,6 +17,7 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 
 /**
  * Interface of key-value index. An implementation of this interface is supposed to index keys
@@ -58,5 +59,28 @@ public interface Index {
    * @return the number of keys inserted
    */
   int keyCount();
+
+  /**
+   * Gets the next key relative to the current provided key.
+   * <p>
+   * This could be more efficient than iterating over {@link #keyIterator(PayloadReader)} to find
+   * the next key.
+   *
+   * @param currentKey the current key, or null if there is no initial key known yet
+   * @param reader reader to access key-value payload
+   * @return the next key, or null if there are no remaining keys
+   */
+  ByteBuffer nextKey(ByteBuffer currentKey, PayloadReader reader);
+
+  /**
+   * Gets an iterator to iterate over all keys.
+   * <p>
+   * This could be more efficient than repeatedly calling
+   * {@link #nextKey(ByteBuffer, PayloadReader)}.
+   *
+   * @param reader reader to access key-value payload
+   * @return an iterator of keys, the iterator does not support remove
+   */
+  Iterator<ByteBuffer> keyIterator(PayloadReader reader);
 
 }

@@ -295,9 +295,6 @@ case ${COMMAND} in
   exit 0
 ;;
 "thriftGen")
-  rm -rf ${BIN}/../common/src/main/java/tachyon/thrift
-  for src_file in $(ls ${BIN}/../common/src/thrift); do
-    thrift --gen java -out ${BIN}/../common/src/main/java/. ${BIN}/../common/src/thrift/${src_file}
   declare -a thriftSrcPaths=("${BIN}/../common/src" "${BIN}/../keyvalue/common/src")
   for thriftSrcPath in ${thriftSrcPaths[@]}; do
     rm -rf "${thriftSrcPath}/main/java/tachyon/thrift"
