@@ -18,7 +18,7 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.SetAclOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -28,7 +28,7 @@ import tachyon.exception.TachyonException;
  */
 public abstract class AbstractAclCommand extends AbstractTfsShellCommand {
 
-  protected AbstractAclCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  protected AbstractAclCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -42,8 +42,7 @@ public abstract class AbstractAclCommand extends AbstractTfsShellCommand {
    */
   protected void chown(TachyonURI path, String owner, boolean recursive) throws IOException {
     try {
-      SetAclOptions options =
-          new SetAclOptions.Builder().setOwner(owner).setRecursive(recursive).build();
+      SetAclOptions options = SetAclOptions.defaults().setOwner(owner).setRecursive(recursive);
       mTfs.setAcl(path, options);
       System.out.println("Changed owner of " + path + " to " + owner);
     } catch (TachyonException e) {
@@ -62,8 +61,7 @@ public abstract class AbstractAclCommand extends AbstractTfsShellCommand {
    */
   protected void chgrp(TachyonURI path, String group, boolean recursive) throws IOException {
     try {
-      SetAclOptions options =
-          new SetAclOptions.Builder().setGroup(group).setRecursive(recursive).build();
+      SetAclOptions options = SetAclOptions.defaults().setGroup(group).setRecursive(recursive);
       mTfs.setAcl(path, options);
       System.out.println("Changed group of " + path + " to " + group);
     } catch (TachyonException e) {
@@ -85,7 +83,7 @@ public abstract class AbstractAclCommand extends AbstractTfsShellCommand {
     try {
       newPermission = Short.parseShort(modeStr, 8);
       SetAclOptions options =
-          new SetAclOptions.Builder().setPermission(newPermission).setRecursive(recursive).build();
+          SetAclOptions.defaults().setPermission(newPermission).setRecursive(recursive);
       mTfs.setAcl(path, options);
       System.out.println("Changed permission of " + path + " to "
           + Integer.toOctalString(newPermission));

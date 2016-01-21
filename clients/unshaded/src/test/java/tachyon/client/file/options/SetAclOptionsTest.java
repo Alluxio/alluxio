@@ -31,10 +31,10 @@ public class SetAclOptionsTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   /**
-   * Tests that building a {@link SetAclOptions} works.
+   * Tests setting the fields of a {@link SetAclOptions} object
    */
   @Test
-  public void builderTest() {
+  public void setFieldsTest() {
     Random random = new Random();
     boolean recursive = random.nextBoolean();
 
@@ -42,36 +42,19 @@ public class SetAclOptionsTest {
     byte[] bytes = new byte[5];
     random.nextBytes(bytes);
     String owner = new String(bytes);
-    SetAclOptions options =
-        new SetAclOptions.Builder()
-            .setOwner(owner)
-            .setRecursive(recursive)
-            .build();
+    SetAclOptions options = SetAclOptions.defaults().setOwner(owner).setRecursive(recursive);
     Assert.assertEquals(owner, options.getOwner());
     Assert.assertEquals(recursive, options.isRecursive());
 
     // group
     random.nextBytes(bytes);
     String group = new String(bytes);
-    options = new SetAclOptions.Builder()
-        .setGroup(group)
-        .setRecursive(recursive)
-        .build();
+    options = SetAclOptions.defaults().setGroup(group).setRecursive(recursive);
     Assert.assertEquals(group, options.getGroup());
 
     // permission
     short permission = (short) random.nextInt();
-    options = new SetAclOptions.Builder()
-        .setPermission(permission)
-        .setRecursive(recursive)
-        .build();
+    options = SetAclOptions.defaults().setPermission(permission).setRecursive(recursive);
     Assert.assertEquals(permission, options.getPermission());
-  }
-
-  @Test
-  public void invalidOptionsTest() {
-    mThrown.expect(IllegalArgumentException.class);
-
-    new SetAclOptions.Builder().build();
   }
 }

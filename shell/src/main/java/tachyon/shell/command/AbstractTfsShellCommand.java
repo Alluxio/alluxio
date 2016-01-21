@@ -43,8 +43,8 @@ public abstract class AbstractTfsShellCommand implements TfsShellCommand {
   public boolean validateArgs(String... args) {
     boolean valid = args.length == getNumOfArgs();
     if (!valid) {
-      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " arguments, "
-              + " not " + args.length + "\n");
+      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " arguments, " + " not "
+          + args.length + "\n");
     }
     return valid;
   }
