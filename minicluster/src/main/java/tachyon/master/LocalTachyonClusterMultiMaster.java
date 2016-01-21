@@ -25,7 +25,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.underfs.UnderFileSystem;
@@ -54,7 +54,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   }
 
   @Override
-  public synchronized TachyonFileSystem getClient() throws IOException {
+  public synchronized FileSystem getClient() throws IOException {
     return getMaster().getClient();
   }
 

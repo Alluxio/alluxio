@@ -34,16 +34,16 @@ import tachyon.TachyonURI;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystemMasterClient;
-import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.URIStatus;
+import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.lineage.LineageMasterClient;
-import tachyon.client.lineage.TachyonLineageFileSystem;
+import tachyon.client.lineage.LineageFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
 import tachyon.master.file.meta.PersistenceState;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.LineageInfo;
 
 /**
@@ -89,12 +89,10 @@ public final class LineageMasterIntegrationTest {
 
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
       Assert.assertEquals(1, infos.size());
-      String uri = infos.get(0).getOutputFiles().get(0);
-      long fileId = getFileSystemMasterClient().getFileId(uri);
-      FileInfo fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
-      Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
-          fileInfo.getPersistenceState());
-      Assert.assertFalse(fileInfo.isCompleted());
+      TachyonURI uri = new TachyonURI(infos.get(0).outputFiles.get(0));
+      URIStatus status = getFileSystemMasterClient().getStatus(uri);
+      Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
+      Assert.assertFalse(status.isCompleted());
     } finally {
       lineageMasterClient.close();
     }
@@ -113,21 +111,20 @@ public final class LineageMasterIntegrationTest {
       lineageMasterClient.createLineage(Lists.<String>newArrayList(), Lists.newArrayList(OUT_FILE),
           mJob);
 
-      OutStreamOptions options = new OutStreamOptions.Builder(mTestConf)
-          .setWriteType(WriteType.MUST_CACHE).setBlockSizeBytes(BLOCK_SIZE_BYTES).build();
-      TachyonLineageFileSystem tfs =
-          (TachyonLineageFileSystem) mLocalTachyonClusterResource.get().getClient();
-      FileOutStream outputStream = tfs.getOutStream(new TachyonURI(OUT_FILE), options);
+      CreateFileOptions options =
+          CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
+              .setBlockSizeBytes(BLOCK_SIZE_BYTES);
+      LineageFileSystem tfs =
+          (LineageFileSystem) mLocalTachyonClusterResource.get().getClient();
+      FileOutStream outputStream = tfs.createFile(new TachyonURI(OUT_FILE), options);
       outputStream.write(1);
       outputStream.close();
 
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
-      String uri = infos.get(0).getOutputFiles().get(0);
-      long fileId = getFileSystemMasterClient().getFileId(uri);
-      FileInfo fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
-      Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
-          fileInfo.getPersistenceState());
-      Assert.assertTrue(fileInfo.isCompleted());
+      TachyonURI uri = new TachyonURI(infos.get(0).outputFiles.get(0));
+      URIStatus status = getFileSystemMasterClient().getStatus(uri);
+      Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
+      Assert.assertTrue(status.isCompleted());
 
       // Execute the checkpoint scheduler for async checkpoint
       HeartbeatScheduler.schedule(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING);
@@ -137,20 +134,18 @@ public final class LineageMasterIntegrationTest {
       Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
           TimeUnit.SECONDS));
 
-      fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
-      Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(),
-          fileInfo.getPersistenceState());
+      status = getFileSystemMasterClient().getStatus(uri);
+      Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(), status.getPersistenceState());
 
-      IntegrationTestUtils.waitForPersist(mLocalTachyonClusterResource, fileId);
+      IntegrationTestUtils.waitForPersist(mLocalTachyonClusterResource, status.getFileId());
 
       // worker notifies the master
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
       Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
           TimeUnit.SECONDS));
 
-      fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
-      Assert.assertEquals(PersistenceState.PERSISTED.toString(),
-          fileInfo.getPersistenceState());
+      status = getFileSystemMasterClient().getStatus(uri);
+      Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
     } finally {
       lineageMasterClient.close();

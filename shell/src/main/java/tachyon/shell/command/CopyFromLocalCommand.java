@@ -29,15 +29,13 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.TachyonException;
 import tachyon.shell.TfsShellUtils;
-import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -50,7 +48,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public CopyFromLocalCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public CopyFromLocalCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -91,21 +89,20 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
    */
   private void copyFromLocalWildcard(List<File> srcFiles, TachyonURI dstPath) throws IOException {
     try {
-      mTfs.mkdir(dstPath);
+      mTfs.createDirectory(dstPath);
     } catch (FileAlreadyExistsException e) {
       // it's fine if the directory already exists
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
 
-    FileInfo dstFileInfo;
+    URIStatus dstStatus;
     try {
-      TachyonFile dstFd = mTfs.open(dstPath);
-      dstFileInfo = mTfs.getInfo(dstFd);
+      dstStatus = mTfs.getStatus(dstPath);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
-    if (!dstFileInfo.isFolder()) {
+    if (!dstStatus.isFolder()) {
       throw new IOException(
           ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
     }
@@ -143,18 +140,14 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
       if (!src.isDirectory()) {
         // If the dstPath is a directory, then it should be updated to be the path of the file where
         // src will be copied to
-        TachyonFile fd = mTfs.openIfExists(dstPath);
-        if (fd != null) {
-          FileInfo tFile = mTfs.getInfo(fd);
-          if (tFile.isFolder()) {
-            dstPath = dstPath.join(src.getName());
-          }
+        if (mTfs.exists(dstPath) && mTfs.getStatus(dstPath).isFolder()) {
+          dstPath = dstPath.join(src.getName());
         }
 
         Closer closer = Closer.create();
         FileOutStream os = null;
         try {
-          os = closer.register(mTfs.getOutStream(dstPath, OutStreamOptions.defaults()));
+          os = closer.register(mTfs.createFile(dstPath));
           FileInputStream in = closer.register(new FileInputStream(src));
           FileChannel channel = closer.register(in.getChannel());
           ByteBuffer buf = ByteBuffer.allocate(8 * Constants.MB);
@@ -167,9 +160,8 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
           // around
           if (os != null) {
             os.cancel();
-            fd = mTfs.openIfExists(dstPath);
-            if (fd != null) {
-              mTfs.delete(fd);
+            if (mTfs.exists(dstPath)) {
+              mTfs.delete(dstPath);
             }
           }
           throw e;
@@ -177,7 +169,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
           closer.close();
         }
       } else {
-        mTfs.mkdir(dstPath);
+        mTfs.createDirectory(dstPath);
         List<String> errorMessages = Lists.newArrayList();
         String[] fileList = src.list();
         for (String file : fileList) {
@@ -192,9 +184,8 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
         if (errorMessages.size() != 0) {
           if (errorMessages.size() == fileList.length) {
             // If no files were created, then delete the directory
-            TachyonFile f = mTfs.openIfExists(dstPath);
-            if (f != null) {
-              mTfs.delete(f);
+            if (mTfs.exists(dstPath)) {
+              mTfs.delete(dstPath);
             }
           }
           throw new IOException(Joiner.on('\n').join(errorMessages));

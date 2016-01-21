@@ -16,15 +16,13 @@
 package tachyon.shell.command;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 
 /**
  * Displays the number of folders and files matching the specified prefix in args.
@@ -35,7 +33,7 @@ public final class CountCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public CountCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public CountCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -60,30 +58,27 @@ public final class CountCommand extends AbstractTfsShellCommand {
   }
 
   private long[] countHelper(TachyonURI path) throws IOException {
-    TachyonFile fd;
-    FileInfo fInfo;
+    URIStatus status;
     try {
-      fd = mTfs.open(path);
-      fInfo = mTfs.getInfo(fd);
+      status = mTfs.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
 
-    if (!fInfo.isFolder()) {
-      return new long[] { 1L, 0L, fInfo.getLength()};
+    if (!status.isFolder()) {
+      return new long[] { 1L, 0L, status.getLength() };
     }
 
     long[] rtn = new long[] { 0L, 1L, 0L };
 
-    List<FileInfo> files = null;
+    List<URIStatus> statuses;
     try {
-      files = mTfs.listStatus(fd);
+      statuses = mTfs.listStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
-    Collections.sort(files);
-    for (FileInfo file : files) {
-      long[] toAdd = countHelper(new TachyonURI(file.getPath()));
+    for (URIStatus uriStatus : statuses) {
+      long[] toAdd = countHelper(new TachyonURI(uriStatus.getPath()));
       rtn[0] += toAdd[0];
       rtn[1] += toAdd[1];
       rtn[2] += toAdd[2];
