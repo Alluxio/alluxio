@@ -5,6 +5,7 @@ LAUNCHER=
 if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
+BIN=$(cd "$( dirname "$0" )"; pwd)
 
 Usage="Usage: tachyon-stop.sh [-h] [component] 
 Where component is one of:
@@ -14,18 +15,17 @@ Where component is one of:
   workers\t\tStop local worker and all remote workers.
 
 -h  display this help."
-bin=`cd "$( dirname "$0" )"; pwd`
 
 kill_master() {
-  $LAUNCHER $bin/tachyon killAll tachyon.master.TachyonMaster
+  $LAUNCHER ${BIN}/tachyon killAll tachyon.master.TachyonMaster
 }
 
 kill_worker() {
-  $LAUNCHER $bin/tachyon killAll tachyon.worker.TachyonWorker
+  $LAUNCHER ${BIN}/tachyon killAll tachyon.worker.TachyonWorker
 }
 
 kill_remote_workers() {
-  $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon killAll tachyon.worker.TachyonWorker
+  $LAUNCHER ${BIN}/tachyon-workers.sh ${BIN}/tachyon killAll tachyon.worker.TachyonWorker
 }
 
 WHAT=${1:--h}
