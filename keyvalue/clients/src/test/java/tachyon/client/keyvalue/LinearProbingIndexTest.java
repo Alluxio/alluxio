@@ -15,13 +15,16 @@
 
 package tachyon.client.keyvalue;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.client.ByteArrayOutStream;
+import tachyon.util.io.BufferUtils;
 
 /**
  * Unit tests of {@link LinearProbingIndex}.
@@ -96,5 +99,113 @@ public class LinearProbingIndexTest {
     ByteBuffer nonExistentKey = ByteBuffer.allocate(10);
     nonExistentKey.put("NoSuchKey".getBytes());
     Assert.assertNull(index.get(nonExistentKey, payloadReaderNotUsed));
+  }
+
+  /**
+   * Tests that {@link LinearProbingIndex#keyCount()} changes while key-value pairs are inserted,
+   * and can be correctly recovered after recovering {@link LinearProbingIndex} from an byte array.
+   */
+  @Test
+  public void keyCountTest() throws Exception {
+    // keyCount should increase while inserting key-value pairs.
+    LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
+    Assert.assertEquals(0, index.keyCount());
+
+    index.put(KEY1, VALUE1, mPayloadWriter);
+    Assert.assertEquals(1, index.keyCount());
+    index.put(KEY2, VALUE2, mPayloadWriter);
+    Assert.assertEquals(2, index.keyCount());
+    mPayloadWriter.close();
+
+    // keyCount should be correctly recovered after recovering Index from byte array.
+    byte[] indexRawBytes = index.getBytes();
+    index = LinearProbingIndex.loadFromByteArray(ByteBuffer.wrap(indexRawBytes));
+    Assert.assertEquals(2, index.keyCount());
+  }
+
+  /**
+   * Tests that {@link LinearProbingIndex#byteCount()} should be correctly recovered after
+   * recovering {@link LinearProbingIndex} from byte array.
+   */
+  @Test
+  public void byteCountTest() throws Exception {
+    // Empty Index.
+    LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
+    int count = index.byteCount();
+    index = LinearProbingIndex.loadFromByteArray(ByteBuffer.wrap(index.getBytes()));
+    Assert.assertEquals(count, index.byteCount());
+
+    // Non-empty Index.
+    index.put(KEY1, VALUE1, mPayloadWriter);
+    index.put(KEY2, VALUE2, mPayloadWriter);
+    mPayloadWriter.close();
+    count = index.byteCount();
+    index = LinearProbingIndex.loadFromByteArray(ByteBuffer.wrap(index.getBytes()));
+    Assert.assertEquals(count, index.byteCount());
+  }
+
+  private PayloadReader createPayloadReader() throws IOException {
+    return new BasePayloadReader(ByteBuffer.wrap(mOutStream.toByteArray()));
+  }
+
+  private byte[] nextKey(LinearProbingIndex index, byte[] key) throws IOException {
+    ByteBuffer currentKey = key == null ? null : ByteBuffer.wrap(key);
+    ByteBuffer ret = index.nextKey(currentKey, createPayloadReader());
+    return ret == null ? null : BufferUtils.newByteArrayFromByteBuffer(ret);
+  }
+
+  /**
+   * Tests that {@link LinearProbingIndex#nextKey(ByteBuffer, PayloadReader)} works correctly for
+   * both empty and non-empty index.
+   */
+  @Test
+  public void nextKeyTest() throws Exception {
+    LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
+    Assert.assertNull(nextKey(index, null));
+
+    index.put(KEY1, VALUE1, mPayloadWriter);
+    Assert.assertArrayEquals(KEY1, nextKey(index, null));
+
+    index.put(KEY2, VALUE2, mPayloadWriter);
+    byte[] firstKey = KEY1;
+    byte[] secondKey = KEY2;
+    // Keys with smaller hash is positioned closer to the beginning of the Index buffer.
+    if (index.indexHash(KEY1) > index.indexHash(KEY2)) {
+      firstKey = KEY2;
+      secondKey = KEY1;
+    }
+    Assert.assertArrayEquals(firstKey, nextKey(index, null));
+    Assert.assertArrayEquals(firstKey, nextKey(index, null));
+    Assert.assertArrayEquals(secondKey, nextKey(index, firstKey));
+    Assert.assertNull(nextKey(index, secondKey));
+  }
+
+  /**
+   * Tests that {@link LinearProbingIndex#keyIterator(PayloadReader)} works correctly for both empty
+   * and non-empty index.
+   */
+  @Test
+  public void keyIteratorTest() throws Exception {
+    LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
+    Assert.assertNull(nextKey(index, null));
+
+    Iterator<ByteBuffer> keyIterator = index.keyIterator(createPayloadReader());
+    Assert.assertFalse(keyIterator.hasNext());
+
+    index.put(KEY1, VALUE1, mPayloadWriter);
+    index.put(KEY2, VALUE2, mPayloadWriter);
+    mPayloadWriter.close();
+
+    byte[] firstKey = KEY1;
+    byte[] secondKey = KEY2;
+    // Keys with smaller hash is positioned closer to the beginning of the Index buffer.
+    if (index.indexHash(KEY1) > index.indexHash(KEY2)) {
+      firstKey = KEY2;
+      secondKey = KEY1;
+    }
+    keyIterator = index.keyIterator(createPayloadReader());
+    Assert.assertArrayEquals(firstKey, BufferUtils.newByteArrayFromByteBuffer(keyIterator.next()));
+    Assert.assertArrayEquals(secondKey, BufferUtils.newByteArrayFromByteBuffer(keyIterator.next()));
+    Assert.assertFalse(keyIterator.hasNext());
   }
 }
