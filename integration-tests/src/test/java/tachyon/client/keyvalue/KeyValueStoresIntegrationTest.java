@@ -174,32 +174,38 @@ public final class KeyValueStoresIntegrationTest {
    */
   @Test
   public void noOrderIteratorTest() throws Exception {
-    List<KeyValuePair> pairs = Lists.newArrayListWithExpectedSize(BASE_KEY_VALUE_NUMBER);
-    // TODO(cc): Assure multiple partitions are created by creating larger pairs, after fixing the
-    // way of detecting whether the current partition is full.
-    for (int i = 0; i < BASE_KEY_VALUE_NUMBER; i++) {
-      pairs.add(new KeyValuePair(genBaseKey(i).getBytes(), genBaseValue(i).getBytes()));
-    }
-    List<KeyValuePair> iteratedPairs = Lists.newArrayListWithExpectedSize(pairs.size());
+    List<TachyonURI> storeUris = Lists.newArrayList();
+    List<List<KeyValuePair>> keyValuePairs = Lists.newArrayList();
 
-    mWriter = sKVStores.create(mStoreUri);
-    for (KeyValuePair pair : pairs) {
-      mWriter.put(pair.getKey().array(), pair.getValue().array());
-    }
-    mWriter.close();
+    List<KeyValuePair> pairs = Lists.newArrayList();
+    storeUris.add(createStoreOfSize(0, pairs));
+    keyValuePairs.add(pairs);
 
-    mReader = sKVStores.open(mStoreUri);
-    KeyValueIterator iterator = mReader.iterator();
-    Assert.assertTrue(iterator.hasNext());
-    while (iterator.hasNext()) {
-      iteratedPairs.add(iterator.next());
-    }
-    Assert.assertEquals(pairs.size(), iteratedPairs.size());
+    pairs = Lists.newArrayList();
+    storeUris.add(createStoreOfSize(2, pairs));
+    keyValuePairs.add(pairs);
 
-    // Sorts and then compares pairs and iteratedPairs.
-    Collections.sort(pairs);
-    Collections.sort(iteratedPairs);
-    Assert.assertEquals(pairs, iteratedPairs);
+    pairs = Lists.newArrayList();
+    storeUris.add(createStoreOfMultiplePartitions(3,pairs));
+    keyValuePairs.add(pairs);
+
+    int numStoreUri = storeUris.size();
+    for (int i = 0; i < numStoreUri; i ++) {
+      List<KeyValuePair> actualPairs = keyValuePairs.get(i);
+      List<KeyValuePair> iteratedPairs = Lists.newArrayList();
+      mReader = sKVStores.open(storeUris.get(i));
+      KeyValueIterator iterator = mReader.iterator();
+      while (iterator.hasNext()) {
+        iteratedPairs.add(iterator.next());
+      }
+
+      // If size is not the same, no need for the time-consuming list comparison below.
+      Assert.assertEquals(actualPairs.size(), iteratedPairs.size());
+      // Sorts and then compares pairs and iteratedPairs.
+      Collections.sort(actualPairs);
+      Collections.sort(iteratedPairs);
+      Assert.assertEquals(actualPairs, iteratedPairs);
+    }
   }
 
   /*
@@ -271,19 +277,19 @@ public final class KeyValueStoresIntegrationTest {
    * The created store's size is {@link Assert}ed before return.
    *
    * @param size the number of key-value pairs
-   * @param keyValuePairs the key-value pairs in the store, null if you don't want to know them
+   * @param pairs the key-value pairs in the store, null if you don't want to know them
    * @return the URI to the store
    * @throws Exception if any error happens
    */
-  private TachyonURI createStoreOfSize(int size, List<KeyValuePair> keyValuePairs) throws Exception {
+  private TachyonURI createStoreOfSize(int size, List<KeyValuePair> pairs) throws Exception {
     TachyonURI path = new TachyonURI(PathUtils.uniqPath());
     KeyValueStoreWriter writer = sKVStores.create(path);
     for (int i = 0; i < size; i ++) {
       byte[] key = genBaseKey(i).getBytes();
       byte[] value = genBaseValue(i).getBytes();
       writer.put(key, value);
-      if (keyValuePairs != null) {
-        keyValuePairs.add(new KeyValuePair(key, value));
+      if (pairs != null) {
+        pairs.add(new KeyValuePair(key, value));
       }
     }
     writer.close();
@@ -389,15 +395,17 @@ public final class KeyValueStoresIntegrationTest {
         List<KeyValuePair> mergedPairs = Lists.newArrayList();
         Collections.copy(mergedPairs, keyValuePairs.get(i));
         mergedPairs.addAll(keyValuePairs.get(j));
-        Collections.sort(mergedPairs);
 
         List<KeyValuePair> store2Pairs = Lists.newArrayList();
         KeyValueIterator iterator = sKVStores.open(store2).iterator();
         while (iterator.hasNext()) {
           store2Pairs.add(iterator.next());
         }
-        Collections.sort(store2Pairs);
 
+        // If size is not the same, no need for the time-consuming list comparison below.
+        Assert.assertEquals(mergedPairs.size(), store2Pairs.size());
+        Collections.sort(mergedPairs);
+        Collections.sort(store2Pairs);
         Assert.assertEquals(mergedPairs, store2Pairs);
       }
     }
