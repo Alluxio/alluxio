@@ -2116,6 +2116,489 @@ public final class KeyValue {
     // @@protoc_insertion_point(class_scope:tachyon.proto.journal.DeleteStoreEntry)
   }
 
+  public interface MergeStoreEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.journal.MergeStoreEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 from_store_id = 1;</code>
+     */
+    boolean hasFromStoreId();
+    /**
+     * <code>optional int64 from_store_id = 1;</code>
+     */
+    long getFromStoreId();
+
+    /**
+     * <code>optional int64 to_store_id = 2;</code>
+     */
+    boolean hasToStoreId();
+    /**
+     * <code>optional int64 to_store_id = 2;</code>
+     */
+    long getToStoreId();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.journal.MergeStoreEntry}
+   *
+   * <pre>
+   * next available id: 3
+   * </pre>
+   */
+  public static final class MergeStoreEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.journal.MergeStoreEntry)
+      MergeStoreEntryOrBuilder {
+    // Use MergeStoreEntry.newBuilder() to construct.
+    private MergeStoreEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private MergeStoreEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final MergeStoreEntry defaultInstance;
+    public static MergeStoreEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public MergeStoreEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private MergeStoreEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              fromStoreId_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              toStoreId_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.journal.KeyValue.internal_static_tachyon_proto_journal_MergeStoreEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.journal.KeyValue.internal_static_tachyon_proto_journal_MergeStoreEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.journal.KeyValue.MergeStoreEntry.class, tachyon.proto.journal.KeyValue.MergeStoreEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<MergeStoreEntry> PARSER =
+        new com.google.protobuf.AbstractParser<MergeStoreEntry>() {
+      public MergeStoreEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new MergeStoreEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<MergeStoreEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int FROM_STORE_ID_FIELD_NUMBER = 1;
+    private long fromStoreId_;
+    /**
+     * <code>optional int64 from_store_id = 1;</code>
+     */
+    public boolean hasFromStoreId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 from_store_id = 1;</code>
+     */
+    public long getFromStoreId() {
+      return fromStoreId_;
+    }
+
+    public static final int TO_STORE_ID_FIELD_NUMBER = 2;
+    private long toStoreId_;
+    /**
+     * <code>optional int64 to_store_id = 2;</code>
+     */
+    public boolean hasToStoreId() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 to_store_id = 2;</code>
+     */
+    public long getToStoreId() {
+      return toStoreId_;
+    }
+
+    private void initFields() {
+      fromStoreId_ = 0L;
+      toStoreId_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, fromStoreId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, toStoreId_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, fromStoreId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, toStoreId_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.journal.KeyValue.MergeStoreEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.journal.KeyValue.MergeStoreEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.journal.KeyValue.MergeStoreEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.journal.KeyValue.MergeStoreEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.journal.KeyValue.MergeStoreEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.journal.KeyValue.MergeStoreEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.journal.KeyValue.MergeStoreEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.journal.KeyValue.MergeStoreEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.journal.KeyValue.MergeStoreEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.journal.KeyValue.MergeStoreEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.journal.KeyValue.MergeStoreEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.journal.MergeStoreEntry}
+     *
+     * <pre>
+     * next available id: 3
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.journal.MergeStoreEntry)
+        tachyon.proto.journal.KeyValue.MergeStoreEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.journal.KeyValue.internal_static_tachyon_proto_journal_MergeStoreEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.journal.KeyValue.internal_static_tachyon_proto_journal_MergeStoreEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.journal.KeyValue.MergeStoreEntry.class, tachyon.proto.journal.KeyValue.MergeStoreEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.journal.KeyValue.MergeStoreEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        fromStoreId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        toStoreId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.journal.KeyValue.internal_static_tachyon_proto_journal_MergeStoreEntry_descriptor;
+      }
+
+      public tachyon.proto.journal.KeyValue.MergeStoreEntry getDefaultInstanceForType() {
+        return tachyon.proto.journal.KeyValue.MergeStoreEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.journal.KeyValue.MergeStoreEntry build() {
+        tachyon.proto.journal.KeyValue.MergeStoreEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.journal.KeyValue.MergeStoreEntry buildPartial() {
+        tachyon.proto.journal.KeyValue.MergeStoreEntry result = new tachyon.proto.journal.KeyValue.MergeStoreEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.fromStoreId_ = fromStoreId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.toStoreId_ = toStoreId_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.journal.KeyValue.MergeStoreEntry) {
+          return mergeFrom((tachyon.proto.journal.KeyValue.MergeStoreEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.journal.KeyValue.MergeStoreEntry other) {
+        if (other == tachyon.proto.journal.KeyValue.MergeStoreEntry.getDefaultInstance()) return this;
+        if (other.hasFromStoreId()) {
+          setFromStoreId(other.getFromStoreId());
+        }
+        if (other.hasToStoreId()) {
+          setToStoreId(other.getToStoreId());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.journal.KeyValue.MergeStoreEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.journal.KeyValue.MergeStoreEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long fromStoreId_ ;
+      /**
+       * <code>optional int64 from_store_id = 1;</code>
+       */
+      public boolean hasFromStoreId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 from_store_id = 1;</code>
+       */
+      public long getFromStoreId() {
+        return fromStoreId_;
+      }
+      /**
+       * <code>optional int64 from_store_id = 1;</code>
+       */
+      public Builder setFromStoreId(long value) {
+        bitField0_ |= 0x00000001;
+        fromStoreId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 from_store_id = 1;</code>
+       */
+      public Builder clearFromStoreId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        fromStoreId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long toStoreId_ ;
+      /**
+       * <code>optional int64 to_store_id = 2;</code>
+       */
+      public boolean hasToStoreId() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 to_store_id = 2;</code>
+       */
+      public long getToStoreId() {
+        return toStoreId_;
+      }
+      /**
+       * <code>optional int64 to_store_id = 2;</code>
+       */
+      public Builder setToStoreId(long value) {
+        bitField0_ |= 0x00000002;
+        toStoreId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 to_store_id = 2;</code>
+       */
+      public Builder clearToStoreId() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        toStoreId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.MergeStoreEntry)
+    }
+
+    static {
+      defaultInstance = new MergeStoreEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.MergeStoreEntry)
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_CompletePartitionEntry_descriptor;
   private static
@@ -2136,6 +2619,11 @@ public final class KeyValue {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_DeleteStoreEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_journal_MergeStoreEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_journal_MergeStoreEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -2151,7 +2639,8 @@ public final class KeyValue {
       "(\t\022\020\n\010block_id\030\004 \001(\003\"&\n\022CompleteStoreEnt" +
       "ry\022\020\n\010store_id\030\001 \001(\003\"$\n\020CreateStoreEntry" +
       "\022\020\n\010store_id\030\001 \001(\003\"$\n\020DeleteStoreEntry\022\020" +
-      "\n\010store_id\030\001 \001(\003"
+      "\n\010store_id\030\001 \001(\003\"=\n\017MergeStoreEntry\022\025\n\rf" +
+      "rom_store_id\030\001 \001(\003\022\023\n\013to_store_id\030\002 \001(\003"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -2189,6 +2678,12 @@ public final class KeyValue {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_DeleteStoreEntry_descriptor,
         new java.lang.String[] { "StoreId", });
+    internal_static_tachyon_proto_journal_MergeStoreEntry_descriptor =
+      getDescriptor().getMessageTypes().get(4);
+    internal_static_tachyon_proto_journal_MergeStoreEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_journal_MergeStoreEntry_descriptor,
+        new java.lang.String[] { "FromStoreId", "ToStoreId", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
