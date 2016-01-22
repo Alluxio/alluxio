@@ -88,8 +88,7 @@ public final class TachyonLineageTest {
 
   @Test
   public void deleteLineageTest() throws Exception {
-    DeleteLineageOptions options =
-        new DeleteLineageOptions.Builder(new TachyonConf()).setCascade(true).build();
+    DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(true);
     mTachyonLineage.deleteLineage(0, options);
     Mockito.verify(mLineageMasterClient).deleteLineage(0, true);
     // verify client is released
