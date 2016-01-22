@@ -17,6 +17,8 @@ package tachyon.client.lineage;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.file.BaseFileSystem;
@@ -25,7 +27,6 @@ import tachyon.client.file.options.CreateFileOptions;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.TachyonException;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Tachyon lineage file system client. This class provides lineage support in the file system
