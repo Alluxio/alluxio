@@ -38,6 +38,12 @@ public final class KeyValueStoreIterator implements KeyValueIterator {
   /** Iterator of the partition being visited */
   private KeyValueIterator mPartitionIterator;
 
+  /**
+   * @param partitions the partitions to use
+   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws TachyonException if a {@link KeyValuePartitionReader} cannot be created or iterated
+   *                          over
+   */
   public KeyValueStoreIterator(List<PartitionInfo> partitions)
       throws IOException, TachyonException {
     mPartitions = Preconditions.checkNotNull(partitions);

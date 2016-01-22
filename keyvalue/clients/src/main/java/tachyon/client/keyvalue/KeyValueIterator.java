@@ -31,10 +31,13 @@ public interface KeyValueIterator {
   boolean hasNext();
 
   /**
+   * Throws a {@link java.util.NoSuchElementException} if there are no more pairs.
+   *
    * @return the next key-value pair in the iteration
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if an unexpected Tachyon exception is thrown
-   * @throws java.util.NoSuchElementException if there are no more pairs
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if an exception in Tachyon occurs
    */
   KeyValuePair next() throws IOException, TachyonException;
 }
