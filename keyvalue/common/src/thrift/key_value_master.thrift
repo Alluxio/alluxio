@@ -41,4 +41,17 @@ service KeyValueMasterClientService extends common.TachyonService {
    */
   list<PartitionInfo> getPartitionInfo( /** the path of the store */ 1: string path)
     throws (1: exception.TachyonTException e)
+
+  /**
+   * Deletes a completed key-value store.
+   */
+  void deleteStore( /** the path of the store */ 1: string path)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
+
+  /**
+   * Merges one completed key-value store to another completed key-value store.
+   */
+  void mergeStore( /** the path of the store to be merged */ 1: string fromPath,
+      /** the path of the store to be merged to */ 2: string toPath)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 }

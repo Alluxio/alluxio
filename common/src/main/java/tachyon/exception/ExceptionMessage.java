@@ -157,6 +157,7 @@ public enum ExceptionMessage {
 
   // key-value
   KEY_VALUE_TOO_LARGE("Unable to put key-value pair: key {0} bytes, value {1} bytes"),
+  INVALID_KEY_VALUE_STORE_URI("The URI {0} exists but is not a key-value store"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
