@@ -20,6 +20,8 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +53,7 @@ import tachyon.worker.NetAddress;
  * {@link UnderStorageType#SYNC_PERSIST}, another stream will write the data to the under storage
  * system.
  */
-@PublicApi
+@PublicApi @NotThreadSafe
 public class FileOutStream extends OutStreamBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
