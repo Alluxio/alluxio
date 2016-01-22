@@ -32,11 +32,21 @@ import tachyon.thrift.PartitionInfo;
  * {@link tachyon.client.keyvalue.KeyValueStores}.
  */
 final class KeyValueInputSplit implements InputSplit {
+  private static final long INVALID_BLOCK_ID = -1;
+
   /** The block store client */
   private TachyonBlockStore mBlockStore;
   // TODO(cc): Use the concept of partition ID in the future.
   /** The ID of the block represented by this split */
   private long mBlockId;
+
+  /**
+   * Default constructor, to be used in de-serialization of {@link KeyValueInputSplit}.
+   */
+  public KeyValueInputSplit() {
+    mBlockStore = TachyonBlockStore.get();
+    mBlockId = INVALID_BLOCK_ID;
+  }
 
   /**
    * Creates an {@link InputSplit} for a partition.
