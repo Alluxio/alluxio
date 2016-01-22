@@ -17,7 +17,7 @@ package tachyon.client.lineage;
 
 import java.io.IOException;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
