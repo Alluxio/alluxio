@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * <p>
@@ -71,6 +72,7 @@ import tachyon.conf.TachyonConf;
  * will have the first opportunity to indicate whether they support a requested path.
  * </p>
  */
+@ThreadSafe
 public final class UnderFileSystemRegistry {
 
   private static final List<UnderFileSystemFactory> FACTORIES =
