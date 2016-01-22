@@ -30,6 +30,9 @@ import tachyon.conf.TachyonConf;
 public final class AppCallbackHandler implements CallbackHandler {
   private String mUserName;
 
+  /**
+   * @param conf the configuration for Tachyon
+   */
   public AppCallbackHandler(TachyonConf conf) {
     if (conf.containsKey(Constants.SECURITY_LOGIN_USERNAME)) {
       mUserName = conf.get(Constants.SECURITY_LOGIN_USERNAME);
