@@ -25,8 +25,7 @@ import tachyon.worker.NetAddress;
 /**
  * Information of an active block worker.
  */
-@PublicApi
-@ThreadSafe
+@PublicApi @ThreadSafe
 public final class BlockWorkerInfo {
   private final NetAddress mNetAddress;
   private final long mCapacityBytes;

@@ -15,6 +15,8 @@
 
 package tachyon.client.file.options;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -30,7 +32,7 @@ import tachyon.util.CommonUtils;
 /**
  * Method option for writing a file.
  */
-@PublicApi
+@PublicApi @ThreadSafe
 public final class OutStreamOptions {
   private long mBlockSizeBytes;
   private long mTtl;

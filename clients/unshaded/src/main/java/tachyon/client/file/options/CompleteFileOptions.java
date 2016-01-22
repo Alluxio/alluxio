@@ -15,13 +15,15 @@
 
 package tachyon.client.file.options;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.annotation.PublicApi;
 import tachyon.thrift.CompleteFileTOptions;
 
 /**
  * The method option for completing a file.
  */
-@PublicApi
+@PublicApi @ThreadSafe
 public final class CompleteFileOptions {
   private long mUfsLength;
 
