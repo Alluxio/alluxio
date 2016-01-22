@@ -17,6 +17,8 @@ package tachyon.client.file.policy;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.client.block.BlockWorkerInfo;
@@ -26,6 +28,7 @@ import tachyon.worker.NetAddress;
  * Always returns a worker with the specified hostname. Returns null if no active worker on that
  * hostname found.
  */
+@ThreadSafe
 public final class SpecificHostPolicy implements FileWriteLocationPolicy {
   private final String mHostname;
 

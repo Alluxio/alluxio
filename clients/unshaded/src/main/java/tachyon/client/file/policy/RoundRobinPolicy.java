@@ -18,6 +18,8 @@ package tachyon.client.file.policy;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.worker.NetAddress;
 
@@ -25,6 +27,7 @@ import tachyon.worker.NetAddress;
  * A policy that chooses the worker for the next block in a round-robin manner and skips workers
  * that do not have enough space. The policy returns null if no worker can be found.
  */
+@NotThreadSafe
 public final class RoundRobinPolicy implements FileWriteLocationPolicy {
   private List<BlockWorkerInfo> mWorkerInfoList;
   private int mIndex;
