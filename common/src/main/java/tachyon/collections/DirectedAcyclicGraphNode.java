@@ -17,6 +17,8 @@ package tachyon.collections;
 
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
@@ -25,6 +27,7 @@ import com.google.common.collect.Lists;
  *
  * @param <T> payload
  */
+@NotThreadSafe
 public class DirectedAcyclicGraphNode<T> {
   private final T mPayload;
   private final List<DirectedAcyclicGraphNode<T>> mParents;
