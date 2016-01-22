@@ -26,11 +26,19 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 
+/**
+ * Utilities to run the examples.
+ */
 public final class Utils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private Utils() {}
 
+  /**
+   * Prints information of the test result.
+   *
+   * @param pass the test result
+   */
   public static void printPassInfo(boolean pass) {
     if (pass) {
       System.out.println(Constants.ANSI_GREEN + "Passed the test!" + Constants.ANSI_RESET);
@@ -39,6 +47,14 @@ public final class Utils {
     }
   }
 
+  /**
+   * Provides the options to show in the usage for a {@link String}.
+   *
+   * @param args the arguments to parse
+   * @param index the index of the option
+   * @param defaultValue the default value
+   * @return either the value of the index of the arguments or the default value
+   */
   public static String option(String[] args, int index, String defaultValue) {
     if (index < args.length && index >= 0) {
       return args[index];
@@ -47,6 +63,14 @@ public final class Utils {
     }
   }
 
+  /**
+   * Provides the options to show in the usage for a {@link boolean}.
+   *
+   * @param args the arguments to parse
+   * @param index the index of the option
+   * @param defaultValue the default value
+   * @return either the value of the index of the arguments or the default value
+   */
   public static boolean option(String[] args, int index, boolean defaultValue) {
     if (index < args.length && index >= 0) {
       // if data isn't a boolean, false is returned here. Unable to check this.
@@ -56,6 +80,14 @@ public final class Utils {
     }
   }
 
+  /**
+   * Provides the options to show in the usage for an {@link int}.
+   *
+   * @param args the arguments to parse
+   * @param index the index of the option
+   * @param defaultValue the default value
+   * @return either the value of the index of the arguments or the default value
+   */
   public static int option(String[] args, int index, int defaultValue) {
     if (index < args.length && index >= 0) {
       try {
@@ -70,6 +102,14 @@ public final class Utils {
     }
   }
 
+  /**
+   * Provides the options to show in the usage for a {@link ReadType}.
+   *
+   * @param args the arguments to parse
+   * @param index the index of the option
+   * @param defaultValue the default value
+   * @return either the value of the index of the arguments or the default value
+   */
   public static ReadType option(String[] args, int index, ReadType defaultValue) {
     if (index < args.length && index >= 0) {
       try {
@@ -84,6 +124,14 @@ public final class Utils {
     }
   }
 
+  /**
+   * Provides the options to show in the usage for a {@link TachyonStorageType}.
+   *
+   * @param args the arguments to parse
+   * @param index the index of the option
+   * @param defaultValue the default value
+   * @return either the value of the index of the arguments or the default value
+   */
   public static TachyonStorageType option(String[] args, int index,
       TachyonStorageType defaultValue) {
     if (index < args.length && index >= 0) {
@@ -99,6 +147,14 @@ public final class Utils {
     }
   }
 
+  /**
+   * Provides the options to show in the usage for a {@link UnderStorageType}.
+   *
+   * @param args the arguments to parse
+   * @param index the index of the option
+   * @param defaultValue the default value
+   * @return either the value of the index of the arguments or the default value
+   */
   public static UnderStorageType option(String[] args, int index, UnderStorageType defaultValue) {
     if (index < args.length && index >= 0) {
       try {
@@ -113,6 +169,14 @@ public final class Utils {
     }
   }
 
+  /**
+   * Provides the options to show in the usage for a {@link WriteType}.
+   *
+   * @param args the arguments to parse
+   * @param index the index of the option
+   * @param defaultValue the default value
+   * @return either the value of the index of the arguments or the default value
+   */
   public static WriteType option(String[] args, int index, WriteType defaultValue) {
     if (index < args.length && index >= 0) {
       try {
@@ -127,6 +191,11 @@ public final class Utils {
     }
   }
 
+  /**
+   * Runs an example.
+   *
+   * @param example the example to run
+   */
   public static void runExample(final Callable<Boolean> example) {
     boolean result;
     try {
