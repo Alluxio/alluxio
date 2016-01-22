@@ -15,6 +15,8 @@
 
 package tachyon.client.netty;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelInitializer;
@@ -31,7 +33,6 @@ import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCMessageDecoder;
 import tachyon.network.protocol.RPCMessageEncoder;
 import tachyon.util.network.NettyUtils;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Shared configuration and methods for the Netty client.
