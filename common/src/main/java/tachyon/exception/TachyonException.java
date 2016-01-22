@@ -17,8 +17,9 @@ package tachyon.exception;
 
 import java.lang.reflect.InvocationTargetException;
 
-import tachyon.thrift.TachyonTException;
 import javax.annotation.concurrent.ThreadSafe;
+
+import tachyon.thrift.TachyonTException;
 
 /**
  * General {@link TachyonException} used throughout the system. It must be able serialize itself to
