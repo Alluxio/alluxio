@@ -15,8 +15,8 @@
 
 package tachyon.client;
 
-import junit.framework.Assert;
 import org.junit.Test;
+import org.junit.Assert;
 
 /**
  * Tests {@link ClientUtils}.
@@ -24,7 +24,7 @@ import org.junit.Test;
 public final class ClientUtilsTest {
 
   /**
-   * Tests if output of getRandomNonNegativeLong from {@link ClientUtils} is non-negative, allowing for zero.
+   * Tests if output of getRandomNonNegativeLong from {@link ClientUtils} is non-negative.
    */
   @Test
   public void getRandomNonNegativeLongTest() throws Exception {
