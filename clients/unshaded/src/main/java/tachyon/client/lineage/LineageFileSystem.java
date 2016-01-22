@@ -25,12 +25,13 @@ import tachyon.client.file.options.CreateFileOptions;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.TachyonException;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Tachyon lineage file system client. This class provides lineage support in the file system
  * operations.
  */
-@PublicApi
+@PublicApi @ThreadSafe
 public class LineageFileSystem extends BaseFileSystem {
   private LineageContext mLineageContext;
 
