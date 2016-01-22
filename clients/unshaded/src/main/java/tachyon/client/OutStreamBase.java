@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import tachyon.annotation.PublicApi;
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * An abstraction of the output stream API in Tachyon to write data to a file or a block. In

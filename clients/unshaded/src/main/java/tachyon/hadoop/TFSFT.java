@@ -15,6 +15,8 @@
 
 package tachyon.hadoop;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.Constants;
 import tachyon.client.file.FileSystem;
 
@@ -28,6 +30,7 @@ import tachyon.client.file.FileSystem;
  * Unlike {@link TFS}, this class enables Zookeeper.
  * </p>
  */
+@NotThreadSafe
 public final class TFSFT extends AbstractTFS {
 
   @Override
