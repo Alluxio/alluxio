@@ -15,11 +15,12 @@
 
 package tachyon.worker;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Objects;
 
 import tachyon.annotation.PublicApi;
 import tachyon.thrift.WorkerNetAddress;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The network address of a worker.
