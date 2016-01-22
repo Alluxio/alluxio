@@ -17,8 +17,9 @@ package tachyon.exception;
 
 import java.text.MessageFormat;
 
-import com.google.common.base.Preconditions;
 import javax.annotation.concurrent.ThreadSafe;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Exception messages used across Tachyon.
