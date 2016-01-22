@@ -15,9 +15,12 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The exception thrown when a worker does not exist, i.e. the id of the worker cannot be found.
  */
+@ThreadSafe
 public class NoWorkerException extends TachyonException {
   private static final long serialVersionUID = -4513463729402967717L;
 
