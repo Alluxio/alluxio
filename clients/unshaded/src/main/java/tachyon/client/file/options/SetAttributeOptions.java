@@ -15,6 +15,8 @@
 
 package tachyon.client.file.options;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
@@ -25,7 +27,7 @@ import tachyon.thrift.SetAttributeTOptions;
  * Method options for setting any number of a path's attributes. If a value is set as null, it
  * will be interpreted as an unset value and the current value will be unchanged.
  */
-@PublicApi
+@PublicApi @ThreadSafe
 public final class SetAttributeOptions {
   private Boolean mPinned;
   private Long mTtl;

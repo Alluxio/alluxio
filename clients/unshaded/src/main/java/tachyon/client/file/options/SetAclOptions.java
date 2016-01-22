@@ -15,6 +15,8 @@
 
 package tachyon.client.file.options;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.thrift.SetAclTOptions;
@@ -22,7 +24,7 @@ import tachyon.thrift.SetAclTOptions;
 /**
  * Method option for setting the acl.
  */
-@PublicApi
+@PublicApi @ThreadSafe
 public class SetAclOptions {
   private String mOwner;
   private String mGroup;

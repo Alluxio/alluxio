@@ -15,12 +15,14 @@
 
 package tachyon.client.file.options;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.annotation.PublicApi;
 
 /**
  * Method option for listing the status.
  */
-@PublicApi
+@PublicApi @ThreadSafe
 public final class ListStatusOptions {
   /** Whether or not to check the ufs if the path does not exist in Tachyon */
   private boolean mCheckUfs;

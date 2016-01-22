@@ -15,12 +15,14 @@
 
 package tachyon.client.file.options;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.annotation.PublicApi;
 
 /**
  * Method option for freeing space.
  */
-@PublicApi
+@PublicApi @ThreadSafe
 public final class FreeOptions {
   private boolean mRecursive;
 

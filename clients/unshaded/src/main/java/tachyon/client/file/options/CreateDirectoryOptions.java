@@ -15,6 +15,8 @@
 
 package tachyon.client.file.options;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
@@ -25,7 +27,7 @@ import tachyon.thrift.CreateDirectoryTOptions;
 /**
  * Method options for creating a directory.
  */
-@PublicApi
+@PublicApi @ThreadSafe
 public final class CreateDirectoryOptions {
   private boolean mAllowExists;
   private boolean mRecursive;
