@@ -37,7 +37,8 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
-import tachyon.exception.TachyonExceptionType;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
@@ -286,7 +287,7 @@ public final class BlockWorkerClient extends ClientBase {
         }
       });
     } catch (TachyonException e) {
-      if (e.getType() == TachyonExceptionType.FILE_DOES_NOT_EXIST) {
+      if (e instanceof FileDoesNotExistException) {
         return null;
       } else {
         throw new IOException(e);
@@ -348,7 +349,7 @@ public final class BlockWorkerClient extends ClientBase {
         }
       });
     } catch (TachyonException e) {
-      if (e.getType() == TachyonExceptionType.WORKER_OUT_OF_SPACE) {
+      if (e instanceof WorkerOutOfSpaceException) {
         throw new IOException("Failed to request " + initialBytes, e);
       } else {
         throw new IOException(e);
@@ -374,7 +375,7 @@ public final class BlockWorkerClient extends ClientBase {
         }
       });
     } catch (TachyonException e) {
-      if (e.getType() == TachyonExceptionType.WORKER_OUT_OF_SPACE) {
+      if (e instanceof WorkerOutOfSpaceException) {
         return false;
       } else {
         throw new IOException(e);
