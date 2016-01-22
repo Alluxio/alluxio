@@ -15,10 +15,13 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The exception thrown when a worker is in an invalid state, i.e. the id of a block does not belong
  * to the session id.
  */
+@ThreadSafe
 public class InvalidWorkerStateException extends TachyonException {
   private static final long serialVersionUID = -5416224494611880597L;
 
