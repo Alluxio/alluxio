@@ -15,12 +15,15 @@
 
 package tachyon.util;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
 /**
  * Utility methods for lineage.
  */
+@ThreadSafe
 public final class LineageUtils {
   private LineageUtils() {} // prevent instantiation
 
