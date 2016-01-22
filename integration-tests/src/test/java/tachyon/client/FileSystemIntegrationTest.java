@@ -86,7 +86,7 @@ public class FileSystemIntegrationTest {
     try {
       mTfs.createFile(uri, mWriteBoth);
     } catch (TachyonException e) {
-      Assert.assertEquals(e.getType(), TachyonExceptionType.FILE_ALREADY_EXISTS);
+      Assert.assertTrue(e instanceof FileAlreadyExistsException);
     }
   }
 

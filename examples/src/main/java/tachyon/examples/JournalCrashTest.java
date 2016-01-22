@@ -34,8 +34,8 @@ import tachyon.client.WriteType;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.TachyonException;
-import tachyon.exception.TachyonExceptionType;
 import tachyon.util.CommonUtils;
 
 /**
@@ -128,7 +128,7 @@ public class JournalCrashTest {
               sTfs.createFile(testURI, sCreateFileOptions).close();
             } catch (TachyonException e) {
               // If file already exists, ignore it.
-              if (e.getType() != TachyonExceptionType.FILE_ALREADY_EXISTS) {
+              if (!(e instanceof FileAlreadyExistsException)) {
                 throw e;
               }
             } catch (Exception e) {
@@ -140,7 +140,7 @@ public class JournalCrashTest {
               sTfs.createFile(testURI, sCreateFileOptions).close();
             } catch (TachyonException e) {
               // If file already exists, ignore it.
-              if (e.getType() != TachyonExceptionType.FILE_ALREADY_EXISTS) {
+              if (!(e instanceof FileAlreadyExistsException)) {
                 throw e;
               }
             } catch (Exception e) {
