@@ -31,10 +31,12 @@ import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCMessageDecoder;
 import tachyon.network.protocol.RPCMessageEncoder;
 import tachyon.util.network.NettyUtils;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Shared configuration and methods for the Netty client.
  */
+@ThreadSafe
 public final class NettyClient {
   /**  Share both the encoder and decoder with all the client pipelines. */
   private static final RPCMessageEncoder ENCODER = new RPCMessageEncoder();

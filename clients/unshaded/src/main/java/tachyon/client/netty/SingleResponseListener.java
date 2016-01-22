@@ -19,6 +19,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.util.concurrent.SettableFuture;
 
 import tachyon.network.protocol.RPCResponse;
@@ -26,6 +28,7 @@ import tachyon.network.protocol.RPCResponse;
 /**
  * A simple listener that waits for a single {@link RPCResponse} message from the remote server.
  */
+@ThreadSafe
 public final class SingleResponseListener implements ClientHandler.ResponseListener {
 
   private SettableFuture<RPCResponse> mResponse = SettableFuture.create();
