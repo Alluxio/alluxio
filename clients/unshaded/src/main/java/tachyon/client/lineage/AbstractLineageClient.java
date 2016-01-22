@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,12 +41,11 @@ import tachyon.exception.ConnectionFailedException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.thrift.LineageInfo;
-
 /**
  * Tachyon Lineage client. This class provides implementation of interacting with Tachyon Lineage
  * master.
  */
-@PublicApi
+@PublicApi @ThreadSafe
 public abstract class AbstractLineageClient implements LineageClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   protected LineageContext mContext;
