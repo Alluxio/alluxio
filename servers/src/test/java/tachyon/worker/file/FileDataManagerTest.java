@@ -37,6 +37,7 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
@@ -127,6 +128,40 @@ public final class FileDataManagerTest {
     manager.clearPersistedFiles(poppedList);
     persistedFiles = (Set<Long>) Whitebox.getInternalState(manager, "mPersistedFiles");
     Assert.assertEquals(Sets.newHashSet(2L), persistedFiles);
+  }
+
+  /**
+   * Tests the blocks are unlocked correctly when exception is encountered in
+   * {@link FileDataManager#lockBlocks(long, List)}.
+   *
+   * @throws Exception when an exception occurs
+   */
+  @Test
+  public void lockBlocksErrorHandlingTest() throws Exception {
+    long fileId = 1;
+    List<Long> blockIds = Lists.newArrayList(1L, 2L, 3L);
+
+    // mock block data manager
+    BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
+    FileInfo fileInfo = new FileInfo();
+    fileInfo.path = "test";
+    Mockito.when(blockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, 1L)).thenReturn(1L);
+    Mockito.when(blockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, 2L)).thenReturn(2L);
+    Mockito.when(blockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, 3L))
+        .thenThrow(new BlockDoesNotExistException("block 3 does not exist"));
+    FileDataManager manager = new FileDataManager(blockDataManager);
+    try {
+      manager.lockBlocks(fileId, blockIds);
+      Assert.fail("the lock should fail");
+    } catch (IOException e) {
+      Assert.assertEquals(
+          "the blocks of file1 are failed to lock\n"
+              + "tachyon.exception.BlockDoesNotExistException: block 3 does not exist\n",
+          e.getMessage());
+      // verify the locks are all unlocked
+      Mockito.verify(blockDataManager).unlockBlock(1L);
+      Mockito.verify(blockDataManager).unlockBlock(2L);
+    }
   }
 
   /**
