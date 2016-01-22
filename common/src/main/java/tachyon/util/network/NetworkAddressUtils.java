@@ -300,7 +300,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Gets a local host name for the host this JVM is running on
+   * Gets a local host name for the host this JVM is running on.
    *
    * @param conf Tachyon configuration used to look up the host resolution timeout
    * @return the local host name, which is not based on a loopback ip address
@@ -314,7 +314,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Gets a local host name for the host this JVM is running on
+   * Gets a local host name for the host this JVM is running on.
    *
    * @param timeout Timeout in milliseconds to use for checking that a possible local host is
    *        reachable
@@ -335,7 +335,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Gets a local IP address for the host this JVM is running on
+   * Gets a local IP address for the host this JVM is running on.
    *
    * @param conf Tachyon configuration
    * @return the local ip address, which is not a loopback address and is reachable
@@ -349,7 +349,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Gets a local IP address for the host this JVM is running on
+   * Gets a local IP address for the host this JVM is running on.
    *
    * @param timeout Timeout in milliseconds to use for checking that a possible local IP is
    *        reachable
