@@ -101,9 +101,9 @@ public class KeyValueStoreOperations implements Callable<Boolean> {
     }
 
     // API: KeyValueStoreReader#get
-    for (ByteBuffer key : mKeyValuePairs.keySet()) {
-      ByteBuffer expectedValue = mKeyValuePairs.get(key);
-      ByteBuffer gotValue = reader.get(key);
+    for (Map.Entry<ByteBuffer, ByteBuffer> pair : mKeyValuePairs.entrySet()) {
+      ByteBuffer expectedValue = pair.getValue();
+      ByteBuffer gotValue = reader.get(pair.getKey());
       if (!expectedValue.equals(gotValue)) {
         LOG.error("The value returned from the key-value store iterator is unexpected");
         return false;
