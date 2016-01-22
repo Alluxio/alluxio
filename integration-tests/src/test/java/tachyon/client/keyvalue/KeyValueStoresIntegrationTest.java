@@ -214,6 +214,7 @@ public final class KeyValueStoresIntegrationTest {
    */
   @Test
   public void createMultiPartitionsTest() throws Exception {
+    // TODO(cc): Remove codes using createStoreOfMultiplePartitions.
     final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
     final int numKeys = 10;
     final int keyLength = 4; // 4Byte key
@@ -341,6 +342,20 @@ public final class KeyValueStoresIntegrationTest {
     return storeUri;
   }
 
+  private void testDeleteStore(TachyonURI storeUri) throws Exception {
+    sKVStores.delete(storeUri);
+
+    // TachyonException is expected to be thrown.
+    try {
+      sKVStores.open(storeUri);
+    } catch (TachyonException e) {
+      Assert.assertEquals(e.getMessage(),
+          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(storeUri));
+      return;
+    }
+    Assert.assertTrue("The URI to the deleted key-value store still exists", false);
+  }
+
   /**
    * Tests that a store of various sizes (including empty store) can be correctly deleted.
    */
@@ -352,11 +367,41 @@ public final class KeyValueStoresIntegrationTest {
     storeUris.add(createStoreOfMultiplePartitions(3, null));
 
     for (TachyonURI storeUri : storeUris) {
-      sKVStores.delete(storeUri);
-
-      mThrown.expect(TachyonException.class);
-      sKVStores.open(storeUri);
+      testDeleteStore(storeUri);
     }
+  }
+
+  private void testMergeStore(TachyonURI store1, List<KeyValuePair> keyValuePairs1,
+      TachyonURI store2, List<KeyValuePair> keyValuePairs2) throws Exception {
+    sKVStores.merge(store1, store2);
+
+    // store2 contains all key-value pairs in both store1 and store2.
+    List<KeyValuePair> mergedPairs = Lists.newArrayList();
+    mergedPairs.addAll(keyValuePairs1);
+    mergedPairs.addAll(keyValuePairs2);
+
+    List<KeyValuePair> store2Pairs = Lists.newArrayList();
+    KeyValueIterator iterator = sKVStores.open(store2).iterator();
+    while (iterator.hasNext()) {
+      store2Pairs.add(iterator.next());
+    }
+
+    // If size is not the same, no need for the time-consuming list comparison below.
+    Assert.assertEquals(mergedPairs.size(), store2Pairs.size());
+    Collections.sort(mergedPairs);
+    Collections.sort(store2Pairs);
+    Assert.assertEquals(mergedPairs, store2Pairs);
+
+    // store1 no longer exists, because it has been merged into store2.
+    // TachyonException is expected to be thrown.
+    try {
+      sKVStores.open(store1);
+    } catch (TachyonException e) {
+      Assert.assertEquals(e.getMessage(),
+          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(store1));
+      return;
+    }
+    Assert.assertTrue("The URI to the deleted key-value store still exists", false);
   }
 
   /**
@@ -364,49 +409,30 @@ public final class KeyValueStoresIntegrationTest {
    */
   @Test
   public void mergeStoreTest() throws Exception {
-    List<TachyonURI> storeUris = Lists.newArrayList();
-    List<List<KeyValuePair>> keyValuePairs = Lists.newArrayList();
+    final int storeOfSize = 1;
+    final int storeOfPartitions = 2;
+    final int[][] storeCreationMethodAndParameter = new int[][]{
+        {storeOfSize, 0},
+        {storeOfSize, 2},
+        {storeOfPartitions, 3}
+    };
+    final int length = storeCreationMethodAndParameter.length;
 
-    List<KeyValuePair> pairs = Lists.newArrayList();
-    storeUris.add(createStoreOfSize(0, pairs));
-    keyValuePairs.add(pairs);
+    for (int i = 0; i < length; i ++) {
+      for (int j = 0; j < length; j ++) {
+        int method1 = storeCreationMethodAndParameter[i][0];
+        int parameter1 = storeCreationMethodAndParameter[i][1];
+        List<KeyValuePair> pairs1 = Lists.newArrayList();
+        TachyonURI storeUri1 = method1 == storeOfSize ? createStoreOfSize(parameter1, pairs1) :
+            createStoreOfMultiplePartitions(parameter1, pairs1);
 
-    pairs = Lists.newArrayList();
-    storeUris.add(createStoreOfSize(2, pairs));
-    keyValuePairs.add(pairs);
+        int method2 = storeCreationMethodAndParameter[j][0];
+        int parameter2 = storeCreationMethodAndParameter[j][1];
+        List<KeyValuePair> pairs2 = Lists.newArrayList();
+        TachyonURI storeUri2 = method2 == storeOfSize ? createStoreOfSize(parameter2, pairs2) :
+            createStoreOfMultiplePartitions(parameter2, pairs2);
 
-    pairs = Lists.newArrayList();
-    storeUris.add(createStoreOfMultiplePartitions(3,pairs));
-    keyValuePairs.add(pairs);
-
-    int numStoreUri = storeUris.size();
-    for (int i = 0; i < numStoreUri; i ++) {
-      for (int j = i + 1; j < numStoreUri; j ++) {
-        TachyonURI store1 = storeUris.get(i);
-        TachyonURI store2 = storeUris.get(j);
-
-        sKVStores.merge(store1, store2);
-
-        // store1 no longer exists, because it has been merged into store2.
-        mThrown.expect(TachyonException.class);
-        sKVStores.open(store1);
-
-        // store2 contains all key-value pairs in both store1 and store2.
-        List<KeyValuePair> mergedPairs = Lists.newArrayList();
-        Collections.copy(mergedPairs, keyValuePairs.get(i));
-        mergedPairs.addAll(keyValuePairs.get(j));
-
-        List<KeyValuePair> store2Pairs = Lists.newArrayList();
-        KeyValueIterator iterator = sKVStores.open(store2).iterator();
-        while (iterator.hasNext()) {
-          store2Pairs.add(iterator.next());
-        }
-
-        // If size is not the same, no need for the time-consuming list comparison below.
-        Assert.assertEquals(mergedPairs.size(), store2Pairs.size());
-        Collections.sort(mergedPairs);
-        Collections.sort(store2Pairs);
-        Assert.assertEquals(mergedPairs, store2Pairs);
+        testMergeStore(storeUri1, pairs1, storeUri2, pairs2);
       }
     }
   }
