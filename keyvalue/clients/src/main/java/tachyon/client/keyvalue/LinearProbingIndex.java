@@ -43,6 +43,9 @@ import tachyon.util.io.ByteIOUtils;
  * |                ...                |
  *
  * If fingerprint is zero, it indicates the bucket is empty.
+ * <p>
+ * The overall byte array of the index looks like:
+ * | key count (int) | the above hash table |
  */
 @NotThreadSafe
 public final class LinearProbingIndex implements Index {
@@ -60,16 +63,26 @@ public final class LinearProbingIndex implements Index {
   /** Size of each bucket in bytes */
   private static final int BUCKET_SIZE_BYTES = Constants.BYTES_IN_INTEGER + 1;
 
+  /**
+   * Total byte buffer of the index, including a key count and a hash table. This is to avoid
+   * byte array copy when calling {@link #getBytes()}.
+   */
   private ByteBuffer mBuf;
-  private int mNumBuckets;
+  /**
+   * Number of keys, when calling {@link #getBytes()}, it is written to the first four bytes of
+   * {@link #mBuf}.
+   */
   private int mKeyCount;
+  /** A duplicate of mBuf corresponding to the hash table part */
+  private ByteBuffer mHashTableBuf;
+  private int mNumBuckets;
 
   /**
    * @return an instance of linear probing index, with no key added
    */
   public static LinearProbingIndex createEmptyIndex() {
     int numBuckets = 1 << 15;
-    byte[] buffer = new byte[numBuckets * BUCKET_SIZE_BYTES];
+    byte[] buffer = new byte[Constants.BYTES_IN_INTEGER + numBuckets * BUCKET_SIZE_BYTES];
     return new LinearProbingIndex(ByteBuffer.wrap(buffer), numBuckets, 0);
   }
 
@@ -81,28 +94,21 @@ public final class LinearProbingIndex implements Index {
    * @return an instance of linear probing index
    */
   public static LinearProbingIndex loadFromByteArray(ByteBuffer buffer) {
-    int numBuckets = 0;
-    int keyCount = 0;
-    int limit = buffer.limit();
-    for (int offset = 0; offset < limit; offset += BUCKET_SIZE_BYTES) {
-      byte fingerprint = ByteIOUtils.readByte(buffer, offset);
-      numBuckets ++;
-      if (fingerprint != 0) {
-        keyCount ++;
-      }
-    }
+    int keyCount = buffer.getInt();
+    int numBuckets = buffer.remaining() / BUCKET_SIZE_BYTES;
     return new LinearProbingIndex(buffer, numBuckets, keyCount);
   }
 
   private LinearProbingIndex(ByteBuffer buf, int numBuckets, int keyCount) {
     mBuf = buf;
+    mHashTableBuf = ((ByteBuffer) mBuf.duplicate().position(Constants.BYTES_IN_INTEGER)).slice();
     mNumBuckets = numBuckets;
     mKeyCount = keyCount;
   }
 
   @Override
   public int byteCount() {
-    return mNumBuckets * BUCKET_SIZE_BYTES;
+    return Constants.BYTES_IN_INTEGER + mNumBuckets * BUCKET_SIZE_BYTES;
   }
 
   @Override
@@ -116,13 +122,13 @@ public final class LinearProbingIndex implements Index {
     int pos = bucketIndex * BUCKET_SIZE_BYTES;
     // Linear probing until the next empty bucket (fingerprint is 0) is found
     for (int probe = 0; probe < MAX_PROBES; probe ++) {
-      byte fingerprint = ByteIOUtils.readByte(mBuf, pos);
+      byte fingerprint = ByteIOUtils.readByte(mHashTableBuf, pos);
       if (fingerprint == 0) {
         // bucket is empty
         // Pack key and value into a byte array payload
         final int offset = writer.insert(key, value);
-        ByteIOUtils.writeByte(mBuf, pos ++, fingerprintHash(key));
-        ByteIOUtils.writeInt(mBuf, pos, offset);
+        ByteIOUtils.writeByte(mHashTableBuf, pos ++, fingerprintHash(key));
+        ByteIOUtils.writeInt(mHashTableBuf, pos, offset);
         mKeyCount ++;
         return true;
       }
@@ -138,7 +144,7 @@ public final class LinearProbingIndex implements Index {
     if (bucketOffset == - 1) {
       return null;
     }
-    return reader.getValue(ByteIOUtils.readInt(mBuf, bucketOffset + 1));
+    return reader.getValue(ByteIOUtils.readInt(mHashTableBuf, bucketOffset + 1));
   }
 
   /**
@@ -152,8 +158,8 @@ public final class LinearProbingIndex implements Index {
     int bucketOffset = bucketIndex * BUCKET_SIZE_BYTES;
     // Linear probing until a bucket having the same key is found.
     for (int probe = 0; probe < MAX_PROBES; probe ++) {
-      if (fingerprint == ByteIOUtils.readByte(mBuf, bucketOffset)) {
-        int offset = ByteIOUtils.readInt(mBuf, bucketOffset + 1);
+      if (fingerprint == ByteIOUtils.readByte(mHashTableBuf, bucketOffset)) {
+        int offset = ByteIOUtils.readInt(mHashTableBuf, bucketOffset + 1);
         ByteBuffer keyStored = reader.getKey(offset);
         if (key.equals(keyStored)) {
           return bucketOffset;
@@ -167,6 +173,8 @@ public final class LinearProbingIndex implements Index {
 
   @Override
   public byte[] getBytes() {
+    // No byte array copy happens.
+    mBuf.putInt(0, mKeyCount);
     return mBuf.array();
   }
 
@@ -220,11 +228,11 @@ public final class LinearProbingIndex implements Index {
   public ByteBuffer nextKey(ByteBuffer currentKey, PayloadReader reader) {
     int nextBucketOffset =
         currentKey == null ? 0 : bucketOffset(currentKey, reader) + BUCKET_SIZE_BYTES;
-    final int bufLimit = mBuf.limit();
+    final int bufLimit = mHashTableBuf.limit();
     while (nextBucketOffset < bufLimit) {
-      byte fingerprint = ByteIOUtils.readByte(mBuf, nextBucketOffset);
+      byte fingerprint = ByteIOUtils.readByte(mHashTableBuf, nextBucketOffset);
       if (fingerprint != 0) {
-        return reader.getKey(ByteIOUtils.readInt(mBuf, nextBucketOffset + 1));
+        return reader.getKey(ByteIOUtils.readInt(mHashTableBuf, nextBucketOffset + 1));
       }
       nextBucketOffset += BUCKET_SIZE_BYTES;
     }
@@ -234,7 +242,7 @@ public final class LinearProbingIndex implements Index {
   @Override
   public Iterator<ByteBuffer> keyIterator(final PayloadReader reader) {
     return new Iterator<ByteBuffer>() {
-      private final int mBufLimit = mBuf.limit();
+      private final int mBufLimit = mHashTableBuf.limit();
       private int mOffset = 0;
       private int mKeyIndex = 0;
 
@@ -249,9 +257,9 @@ public final class LinearProbingIndex implements Index {
           throw new NoSuchElementException();
         }
         while (mOffset < mBufLimit) {
-          byte fingerprint = ByteIOUtils.readByte(mBuf, mOffset);
+          byte fingerprint = ByteIOUtils.readByte(mHashTableBuf, mOffset);
           if (fingerprint != 0) {
-            int offset = ByteIOUtils.readInt(mBuf, mOffset + 1);
+            int offset = ByteIOUtils.readInt(mHashTableBuf, mOffset + 1);
             ByteBuffer key = reader.getKey(offset);
             mOffset += BUCKET_SIZE_BYTES;
             mKeyIndex ++;
