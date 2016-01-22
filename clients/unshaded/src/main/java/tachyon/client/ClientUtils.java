@@ -17,10 +17,13 @@ package tachyon.client;
 
 import java.util.Random;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Utilities class for Tachyon Client. All methods and variables are static. This class is thread
  * safe.
  */
+@ThreadSafe
 public final class ClientUtils {
   private static Random sRandom = new Random();
 
