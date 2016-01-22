@@ -27,7 +27,7 @@ import tachyon.client.file.options.OutStreamOptions;
  * A dummy file output stream that does nothing. This is used for lineage recomputation. When the
  * file is not lost on Tachyon, there's no need for the job to rewrite the file.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class DummyFileOutputStream extends FileOutStream {
 
   /**

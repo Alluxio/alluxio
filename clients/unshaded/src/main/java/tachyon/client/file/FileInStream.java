@@ -53,7 +53,8 @@ import tachyon.worker.NetAddress;
  * file and abstracts the switching between streams. The backing streams can read from Tachyon space
  * in the local machine, remote machines, or the under storage system.
  */
-@PublicApi @NotThreadSafe
+@PublicApi
+@NotThreadSafe
 public class FileInStream extends InputStream implements BoundedStream, Seekable {
   /** Logger for this class */
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

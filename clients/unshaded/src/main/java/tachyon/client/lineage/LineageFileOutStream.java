@@ -33,7 +33,8 @@ import tachyon.client.file.options.OutStreamOptions;
  * A stream API to write a file when lineage is enabled. It supports asynchronous persistence of the
  * data to the under storage system.
  */
-@PublicApi @NotThreadSafe
+@PublicApi
+@NotThreadSafe
 public class LineageFileOutStream extends FileOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

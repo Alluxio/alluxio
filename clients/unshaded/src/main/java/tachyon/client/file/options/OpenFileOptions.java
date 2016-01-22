@@ -15,7 +15,7 @@
 
 package tachyon.client.file.options;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Throwables;
 
@@ -30,7 +30,8 @@ import tachyon.util.CommonUtils;
 /**
  * Method options for opening a file for reading.
  */
-@PublicApi @ThreadSafe
+@PublicApi
+@NotThreadSafe
 public final class OpenFileOptions {
   private FileWriteLocationPolicy mLocationPolicy;
   private ReadType mReadType;

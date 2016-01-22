@@ -30,7 +30,8 @@ import tachyon.thrift.FileInfo;
  * guaranteed to be up to date. Attributes documented as immutable will always be accurate, and
  * attributes documented as mutable may be out of date.
  */
-@PublicApi @ThreadSafe
+@PublicApi
+@ThreadSafe
 public class URIStatus {
   private final FileInfo mInfo;
 

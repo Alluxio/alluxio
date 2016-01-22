@@ -17,7 +17,7 @@ package tachyon.client.block;
 
 import java.io.InputStream;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import tachyon.client.BoundedStream;
 import tachyon.client.Seekable;
@@ -27,7 +27,7 @@ import tachyon.client.Seekable;
  * could be a local Tachyon worker, a remote Tachyon worker, or the under storage system. All
  * block streams provide data access to a sequential region of data of the block size of the block.
  */
-@ThreadSafe
+@NotThreadSafe
 // TODO(calvin): Resolve the confusion between Tachyon BufferedBlockInStream and BlockInStream.
 public abstract class BlockInStream extends InputStream implements BoundedStream, Seekable {
 

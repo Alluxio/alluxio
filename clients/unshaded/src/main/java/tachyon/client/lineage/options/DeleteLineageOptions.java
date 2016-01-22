@@ -15,14 +15,15 @@
 
 package tachyon.client.lineage.options;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import tachyon.annotation.PublicApi;
 
 /**
  * The method option for deleting a lineage.
  */
-@PublicApi @ThreadSafe
+@PublicApi
+@NotThreadSafe
 public final class DeleteLineageOptions {
   /** Whether to delete all downstream lineages */
   private boolean mCascade;

@@ -53,7 +53,8 @@ import tachyon.worker.NetAddress;
  * {@link UnderStorageType#SYNC_PERSIST}, another stream will write the data to the under storage
  * system.
  */
-@PublicApi @NotThreadSafe
+@PublicApi
+@NotThreadSafe
 public class FileOutStream extends OutStreamBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

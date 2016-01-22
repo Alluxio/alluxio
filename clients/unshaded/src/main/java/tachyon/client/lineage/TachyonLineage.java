@@ -39,7 +39,8 @@ import tachyon.thrift.LineageInfo;
  * A {@link LineageClient} implementation. This class does not access the master client directly
  * but goes through the implementations provided in {@link AbstractLineageClient}.
  */
-@PublicApi @ThreadSafe
+@PublicApi
+@ThreadSafe
 public final class TachyonLineage extends AbstractLineageClient {
   private static AtomicBoolean sInitialized = new AtomicBoolean(false);
   private static TachyonLineage sTachyonLineage;

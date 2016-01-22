@@ -25,7 +25,8 @@ import tachyon.annotation.PublicApi;
  * For finer grained control over data storage, advanced users may specify
  * {@link TachyonStorageType} and {@link UnderStorageType}.
  */
-@PublicApi @ThreadSafe
+@PublicApi
+@ThreadSafe
 public enum ReadType {
   /**
    * Read the file and skip Tachyon storage. This read type will not cause any data migration or

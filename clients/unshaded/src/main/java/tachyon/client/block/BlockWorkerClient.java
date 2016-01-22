@@ -93,7 +93,7 @@ public final class BlockWorkerClient extends ClientBase {
     mSessionId = sessionId;
     mIsLocal = isLocal;
     mClientMetrics = Preconditions.checkNotNull(clientMetrics);
-    mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);
+    mHeartbeatExecutor = new BlockWorkerClientHeartbeatExecutor(this);
   }
 
   /**
@@ -419,7 +419,7 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   /**
-   * Called only by {@link WorkerClientHeartbeatExecutor}, encapsulates {@link #sessionHeartbeat()}
+   * Called only by {@link BlockWorkerClientHeartbeatExecutor}, encapsulates {@link #sessionHeartbeat()}
    * in order to cancel and cleanup the heartbeating thread in case of failures
    */
   public synchronized void periodicHeartbeat() {
