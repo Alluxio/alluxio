@@ -19,9 +19,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * A collection of utility functions to read/write primitive values from/to a byte array.
  */
+@NotThreadSafe
 public final class ByteIOUtils {
 
   private ByteIOUtils() {} // prevent instantiation.
