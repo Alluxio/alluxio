@@ -15,8 +15,9 @@
 
 package tachyon;
 
-import tachyon.conf.TachyonConf;
 import javax.annotation.concurrent.ThreadSafe;
+
+import tachyon.conf.TachyonConf;
 
 /**
  * The version of the current build.
