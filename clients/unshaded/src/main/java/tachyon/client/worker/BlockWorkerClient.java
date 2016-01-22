@@ -37,7 +37,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
-import tachyon.exception.FileAlreadyExistsException;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
@@ -287,7 +287,7 @@ public final class BlockWorkerClient extends ClientBase {
         }
       });
     } catch (TachyonException e) {
-      if (e instanceof FileAlreadyExistsException) {
+      if (e instanceof FileDoesNotExistException) {
         return null;
       } else {
         throw new IOException(e);
