@@ -240,6 +240,7 @@ public final class KeyValueMaster extends MasterBase {
    *
    * @param path URI of the key-value store
    * @throws FileAlreadyExistsException if a key-value store URI exists
+   * @throws InvalidPathException if the given path is invalid
    * @throws AccessControlException if permission checking fails
    */
   public synchronized void createStore(TachyonURI path)
