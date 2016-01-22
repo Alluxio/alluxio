@@ -15,9 +15,12 @@
 
 package tachyon.security.authentication;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Different authentication types for Tachyon.
  */
+@ThreadSafe
 public enum AuthType {
   /**
    * Authentication is disabled. No user info in Tachyon.

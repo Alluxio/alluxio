@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.security.Security;
 import java.util.HashMap;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
@@ -39,6 +40,7 @@ import tachyon.conf.TachyonConf;
  * PlainSaslHelper is used to register this provider. It also provides methods to generate PLAIN
  * transport for server and client.
  */
+@ThreadSafe
 public final class PlainSaslUtils {
   static {
     Security.addProvider(new PlainSaslServerProvider());
