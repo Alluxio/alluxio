@@ -20,8 +20,7 @@ import java.util.Random;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Utilities class for Tachyon Client. All methods and variables are static. This class is thread
- * safe.
+ * Utilities class for Tachyon Client. All methods and variables are static.
  */
 @ThreadSafe
 public final class ClientUtils {

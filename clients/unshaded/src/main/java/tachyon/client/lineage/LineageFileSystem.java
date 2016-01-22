@@ -32,7 +32,8 @@ import tachyon.exception.TachyonException;
  * Tachyon lineage file system client. This class provides lineage support in the file system
  * operations.
  */
-@PublicApi @ThreadSafe
+@PublicApi
+@ThreadSafe
 public class LineageFileSystem extends BaseFileSystem {
   private LineageContext mLineageContext;
 

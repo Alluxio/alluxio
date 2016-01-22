@@ -15,14 +15,15 @@
 
 package tachyon.client.file.options;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import tachyon.annotation.PublicApi;
 
 /**
  * Method option for loading the metadata.
  */
-@PublicApi @ThreadSafe
+@PublicApi
+@NotThreadSafe
 public final class LoadMetadataOptions {
   private boolean mRecursive;
 

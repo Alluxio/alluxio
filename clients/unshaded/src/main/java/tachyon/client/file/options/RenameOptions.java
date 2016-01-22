@@ -15,7 +15,7 @@
 
 package tachyon.client.file.options;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import tachyon.annotation.PublicApi;
 
@@ -24,7 +24,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 /**
  * Method option for renaming a file or a directory.
  */
-@PublicApi @ThreadSafe
+@PublicApi
+@NotThreadSafe
 public final class RenameOptions {
   /**
    * @return the default {@link RenameOptions}

@@ -27,7 +27,8 @@ import tachyon.client.file.FileSystem;
  * the performance of using this TFS API may not be as efficient as the performance of using the
  * Tachyon native API defined in {@link FileSystem}, which TFS is built on top of.
  */
-@PublicApi @NotThreadSafe
+@PublicApi
+@NotThreadSafe
 public final class TFS extends AbstractTFS {
 
   @Override

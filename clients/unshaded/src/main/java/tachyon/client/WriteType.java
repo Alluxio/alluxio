@@ -22,7 +22,8 @@ import tachyon.annotation.PublicApi;
 /**
  * Write types for creating a file in Tachyon.
  */
-@PublicApi @ThreadSafe
+@PublicApi
+@ThreadSafe
 public enum WriteType {
   /**
    * Write the file, guaranteeing the data is written to Tachyon storage or failing the operation.

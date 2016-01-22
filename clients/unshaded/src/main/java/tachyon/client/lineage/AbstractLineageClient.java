@@ -45,7 +45,8 @@ import tachyon.thrift.LineageInfo;
  * Tachyon Lineage client. This class provides implementation of interacting with Tachyon Lineage
  * master.
  */
-@PublicApi @ThreadSafe
+@PublicApi
+@ThreadSafe
 public abstract class AbstractLineageClient implements LineageClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   protected LineageContext mContext;
