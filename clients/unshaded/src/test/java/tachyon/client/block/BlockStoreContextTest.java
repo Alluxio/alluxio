@@ -31,7 +31,6 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.worker.BlockWorkerClient;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.WorkerInfo;
 import tachyon.thrift.WorkerNetAddress;

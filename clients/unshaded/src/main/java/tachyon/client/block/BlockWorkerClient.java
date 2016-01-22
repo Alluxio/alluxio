@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client.worker;
+package tachyon.client.block;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
