@@ -20,7 +20,6 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.FileAlreadyExistsException;
 import org.apache.hadoop.mapred.FileOutputFormat;
@@ -32,8 +31,8 @@ import org.apache.hadoop.util.Progressable;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.keyvalue.KeyValueStores;
 import tachyon.client.keyvalue.KeyValueStoreWriter;
+import tachyon.client.keyvalue.KeyValueStores;
 import tachyon.exception.TachyonException;
 
 /**
@@ -49,13 +48,17 @@ import tachyon.exception.TachyonException;
 @PublicApi
 @ThreadSafe
 public class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, BytesWritable> {
+  public static TachyonURI getTaskTempOutputDirectoryURI(JobConf conf) throws IOException {
+    return new TachyonURI(FileOutputFormat.getTaskOutputPath(conf, "PLACE_HOLDER").toString())
+        .getParent();
+  }
+
   @Override
   public RecordWriter<BytesWritable, BytesWritable> getRecordWriter(FileSystem ignored,
       JobConf conf, String name, Progressable progress) throws IOException {
-    Path outputPath = FileOutputFormat.getTaskOutputPath(conf, name);
     KeyValueStores kvStore = KeyValueStores.Factory.create();
     try {
-      KeyValueStoreWriter writer = kvStore.create(new TachyonURI(outputPath.toString()));
+      KeyValueStoreWriter writer = kvStore.create(getTaskTempOutputDirectoryURI(conf).join(name));
       return new KeyValueRecordWriter(writer, progress);
     } catch (TachyonException e) {
       throw new IOException(e);

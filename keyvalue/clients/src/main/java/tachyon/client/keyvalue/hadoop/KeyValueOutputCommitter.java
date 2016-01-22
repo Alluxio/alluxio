@@ -47,8 +47,9 @@ class KeyValueOutputCommitter extends FileOutputCommitter {
     return new TachyonURI(FileOutputFormat.getOutputPath(conf).toString());
   }
 
-  private TachyonURI getTaskAttemptOutputURI(TaskAttemptContext context) throws IOException {
-    return new TachyonURI(getTaskAttemptPath(context).toString());
+  private TachyonURI getTaskTempOutputURI(TaskAttemptContext context) throws IOException {
+    return new TachyonURI(KeyValueOutputFormat.getTaskTempOutputDirectoryURI(context.getJobConf())
+        .toString());
   }
 
   /**
@@ -93,7 +94,7 @@ class KeyValueOutputCommitter extends FileOutputCommitter {
   @Override
   public void commitTask(TaskAttemptContext context) throws IOException {
     try {
-      KEY_VALUE_STORES.merge(getTaskAttemptOutputURI(context), getOutputURI(context.getJobConf()));
+      KEY_VALUE_STORES.merge(getTaskTempOutputURI(context), getOutputURI(context.getJobConf()));
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -108,7 +109,7 @@ class KeyValueOutputCommitter extends FileOutputCommitter {
   @Override
   public void abortTask(TaskAttemptContext context) throws IOException {
     try {
-      KEY_VALUE_STORES.delete(new TachyonURI(getTaskAttemptPath(context).toString()));
+      KEY_VALUE_STORES.delete(getTaskTempOutputURI(context));
     } catch (FileDoesNotExistException e) {
       // The goal of deleting the store is to cleanup directories before aborting the task, since
       // the key-value store directory does not exist, it meets the goal, nothing needs to be done.
