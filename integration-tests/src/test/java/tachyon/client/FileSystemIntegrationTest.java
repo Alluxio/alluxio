@@ -36,7 +36,6 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
-import tachyon.exception.TachyonExceptionType;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
 
