@@ -24,23 +24,6 @@ import org.junit.Test;
  * Tests for the {@link FreeOptions} class.
  */
 public class FreeOptionsTest {
-
-  /**
-   * Tests that building a {@link FreeOptions} works.
-   */
-  @Test
-  public void builderTest() {
-    Random random = new Random();
-    boolean recursive = random.nextBoolean();
-
-    FreeOptions options =
-        new FreeOptions.Builder()
-            .setRecursive(recursive)
-            .build();
-
-    Assert.assertEquals(recursive, options.isRecursive());
-  }
-
   /**
    * Tests that building a {@link FreeOptions} with the defaults works.
    */
@@ -49,5 +32,19 @@ public class FreeOptionsTest {
     FreeOptions options = FreeOptions.defaults();
 
     Assert.assertFalse(options.isRecursive());
+  }
+
+  /**
+   * Tests getting and setting fields.
+   */
+  @Test
+  public void fieldsTest() {
+    Random random = new Random();
+    boolean recursive = random.nextBoolean();
+
+    FreeOptions options = FreeOptions.defaults();
+    options.setRecursive(recursive);
+
+    Assert.assertEquals(recursive, options.isRecursive());
   }
 }

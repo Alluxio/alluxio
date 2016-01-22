@@ -30,6 +30,9 @@ import tachyon.network.protocol.RPCMessageEncoder;
 public final class PipelineHandler extends ChannelInitializer<SocketChannel> {
   private final DataServerHandler mDataServerHandler;
 
+  /**
+   * @param handler the handler for the main logic of the read path
+   */
   public PipelineHandler(final DataServerHandler handler) {
     mDataServerHandler = handler;
   }

@@ -23,36 +23,32 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.client.block.TachyonBlockStore;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
+import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.DeleteOptions;
-import tachyon.client.file.options.OutStreamOptions;
 import tachyon.collections.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
 public class MasterFaultToleranceIntegrationTest {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final int BLOCK_SIZE = 30;
   private static final int MASTERS = 5;
 
   private LocalTachyonClusterMultiMaster mLocalTachyonClusterMultiMaster = null;
-  private TachyonFileSystem mTfs = null;
+  private FileSystem mTfs = null;
 
   @After
   public final void after() throws Exception {
@@ -81,14 +77,14 @@ public class MasterFaultToleranceIntegrationTest {
    */
   private void faultTestDataCreation(TachyonURI folderName, List<Pair<Long, TachyonURI>> answer)
       throws IOException, TachyonException {
-    mTfs.mkdir(folderName);
-    answer.add(new Pair<Long, TachyonURI>(mTfs.open(folderName).getFileId(), folderName));
+    mTfs.createDirectory(folderName);
+    answer.add(new Pair<Long, TachyonURI>(mTfs.getStatus(folderName).getFileId(), folderName));
 
     for (int k = 0; k < 10; k ++) {
       TachyonURI path =
           new TachyonURI(PathUtils.concatPath(folderName, folderName.toString().substring(1) + k));
-      mTfs.getOutStream(path).close();
-      answer.add(new Pair<Long, TachyonURI>(mTfs.open(path).getFileId(), path));
+      mTfs.createFile(path).close();
+      answer.add(new Pair<Long, TachyonURI>(mTfs.getStatus(path).getFileId(), path));
     }
   }
 
@@ -105,9 +101,9 @@ public class MasterFaultToleranceIntegrationTest {
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
       Assert.assertEquals(answer.get(k).getSecond().toString(),
-          mTfs.getInfo(new TachyonFile(answer.get(k).getFirst())).getPath());
+          mTfs.getStatus(answer.get(k).getSecond()).getPath());
       Assert.assertEquals(answer.get(k).getFirst().longValue(),
-          mTfs.open(answer.get(k).getSecond()).getFileId());
+          mTfs.getStatus(answer.get(k).getSecond()).getFileId());
     }
   }
 
@@ -143,9 +139,8 @@ public class MasterFaultToleranceIntegrationTest {
 
         // We can not call mTfs.delete(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR))) because root
         // node can not be deleted.
-        for (FileInfo file : mTfs.listStatus(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR)))) {
-          mTfs.delete(new TachyonFile(file.getFileId()),
-              new DeleteOptions.Builder().setRecursive(true).build());
+        for (URIStatus file : mTfs.listStatus(new TachyonURI(TachyonURI.SEPARATOR))) {
+          mTfs.delete(new TachyonURI(file.getPath()), DeleteOptions.defaults().setRecursive(true));
         }
         answer.clear();
         faultTestDataCheck(answer);
@@ -165,11 +160,10 @@ public class MasterFaultToleranceIntegrationTest {
   @Test
   public void createFilesTest() throws Exception {
     int clients = 10;
-    OutStreamOptions option =
-        new OutStreamOptions.Builder(new TachyonConf()).setBlockSizeBytes(1024)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
+    CreateFileOptions option =
+        CreateFileOptions.defaults().setBlockSizeBytes(1024).setWriteType(WriteType.THROUGH);
     for (int k = 0; k < clients; k ++) {
-      mTfs.getOutStream(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
+      mTfs.createFile(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
     }
     List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
     Assert.assertEquals(clients, files.size());

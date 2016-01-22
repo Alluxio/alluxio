@@ -20,8 +20,12 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TMultiplexedProtocol;
+import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +37,8 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
-import tachyon.exception.TachyonExceptionType;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
@@ -53,6 +58,7 @@ import tachyon.worker.NetAddress;
  * Since {@link BlockWorkerClientService.Client} is not thread safe, this class has to guarantee
  * thread safety.
  */
+@ThreadSafe
 public final class BlockWorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
@@ -161,7 +167,7 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   @Override
-  protected void beforeDisconnect() {
+  protected synchronized void beforeDisconnect() {
     // Heartbeat to send the client metrics.
     if (mHeartbeatExecutor != null) {
       mHeartbeatExecutor.heartbeat();
@@ -169,14 +175,14 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   @Override
-  protected void afterDisconnect() {
+  protected synchronized void afterDisconnect() {
     if (mHeartbeat != null) {
       mHeartbeat.cancel(true);
     }
   }
 
   @Override
-  protected TachyonService.Client getClient() {
+  protected synchronized TachyonService.Client getClient() {
     return mClient;
   }
 
@@ -199,8 +205,9 @@ public final class BlockWorkerClient extends ClientBase {
     if (!mConnected) {
       LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mAddress);
 
-      mProtocol = new TBinaryProtocol(AuthenticationUtils.getClientTransport(
-          mTachyonConf, mAddress));
+      TProtocol binaryProtocol =
+          new TBinaryProtocol(AuthenticationUtils.getClientTransport(mTachyonConf, mAddress));
+      mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       mClient = new BlockWorkerClientService.Client(mProtocol);
 
       try {
@@ -224,8 +231,8 @@ public final class BlockWorkerClient extends ClientBase {
 
   /**
    * Updates the session id of the client, starting a new session. The previous session's held
-   * resources should have already been freed, and will be automatically freed after the timeout
-   * is exceeded.
+   * resources should have already been freed, and will be automatically freed after the timeout is
+   * exceeded.
    *
    * @param newSessionId the new id that represents the new session
    */
@@ -280,7 +287,7 @@ public final class BlockWorkerClient extends ClientBase {
         }
       });
     } catch (TachyonException e) {
-      if (e.getType() == TachyonExceptionType.FILE_DOES_NOT_EXIST) {
+      if (e instanceof FileDoesNotExistException) {
         return null;
       } else {
         throw new IOException(e);
@@ -342,7 +349,7 @@ public final class BlockWorkerClient extends ClientBase {
         }
       });
     } catch (TachyonException e) {
-      if (e.getType() == TachyonExceptionType.WORKER_OUT_OF_SPACE) {
+      if (e instanceof WorkerOutOfSpaceException) {
         throw new IOException("Failed to request " + initialBytes, e);
       } else {
         throw new IOException(e);
@@ -358,8 +365,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @return true if success, false otherwise
    * @throws IOException if a non-Tachyon exception occurs
    */
-  public synchronized boolean requestSpace(final long blockId, final long requestBytes) throws
-          IOException {
+  public synchronized boolean requestSpace(final long blockId, final long requestBytes)
+      throws IOException {
     try {
       return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
         @Override
@@ -368,7 +375,7 @@ public final class BlockWorkerClient extends ClientBase {
         }
       });
     } catch (TachyonException e) {
-      if (e.getType() == TachyonExceptionType.WORKER_OUT_OF_SPACE) {
+      if (e instanceof WorkerOutOfSpaceException) {
         return false;
       } else {
         throw new IOException(e);

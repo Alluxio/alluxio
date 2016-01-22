@@ -23,7 +23,7 @@ import com.google.common.base.Supplier;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -111,10 +111,16 @@ public final class LocalTachyonMaster {
     return new LocalTachyonMaster();
   }
 
+  /**
+   * Starts the master.
+   */
   public void start() {
     mMasterThread.start();
   }
 
+  /**
+   * @return true if the master is serving, false otherwise
+   */
   public boolean isServing() {
     return mTachyonMaster.isServing();
   }
@@ -143,6 +149,11 @@ public final class LocalTachyonMaster {
     mMasterThread.interrupt();
   }
 
+  /**
+   * Clears all the clients.
+   *
+   * @throws IOException if the client pool cannot be closed
+   */
   public void clearClients() throws IOException {
     mClientPool.close();
   }
@@ -197,11 +208,18 @@ public final class LocalTachyonMaster {
     return mTachyonMaster.getWebLocalPort();
   }
 
+  /**
+   * @return the URI of the master
+   */
   public String getUri() {
     return Constants.HEADER + mHostname + ":" + getRPCLocalPort();
   }
 
-  public TachyonFileSystem getClient() throws IOException {
+  /**
+   * @return the client from the pool
+   * @throws IOException if the client cannot be retrieved
+   */
+  public FileSystem getClient() throws IOException {
     return mClientPool.getClient(ClientContext.getConf());
   }
 
@@ -209,6 +227,9 @@ public final class LocalTachyonMaster {
     return File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.nanoTime();
   }
 
+  /**
+   * @return the folder of the journal
+   */
   public String getJournalFolder() {
     return mJournalFolder;
   }

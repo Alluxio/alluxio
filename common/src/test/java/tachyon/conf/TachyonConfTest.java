@@ -8,8 +8,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
@@ -112,14 +112,12 @@ public class TachyonConfTest {
     booleanValue = sDefaultTachyonConf.getBoolean(Constants.IN_TEST_MODE);
     Assert.assertFalse(booleanValue);
 
-    int intValue = sDefaultTachyonConf.getInt(Constants.MAX_COLUMNS);
-    Assert.assertEquals(1000, intValue);
-
-    intValue = sDefaultTachyonConf.getInt(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+    int intValue = sDefaultTachyonConf.getInt(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     Assert.assertEquals(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS, intValue);
 
-    long longBytesValue = sDefaultTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
-    Assert.assertEquals(Constants.MB * 5, longBytesValue);
+    long longBytesValue =
+        sDefaultTachyonConf.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
+    Assert.assertEquals(Constants.MB * 8, longBytesValue);
 
     int maxTry = sDefaultTachyonConf.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
     Assert.assertEquals(10, maxTry);

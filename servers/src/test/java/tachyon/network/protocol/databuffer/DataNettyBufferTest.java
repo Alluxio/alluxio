@@ -28,19 +28,29 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 
+/**
+ * Tests for the {@link DataNettyBuffer} class.
+ */
 public class DataNettyBufferTest {
   private static final int LENGTH = 4;
 
   private ByteBuf mBuffer = null;
 
+  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up the buffer before a test runs.
+   */
   @Before
   public final void before() {
     mBuffer = Unpooled.buffer(LENGTH);
   }
 
+  /**
+   * Releases the buffer a test ran.
+   */
   @After
   public final void after() {
     releaseBuffer();
@@ -52,6 +62,9 @@ public class DataNettyBufferTest {
     }
   }
 
+  /**
+   * Tests that an exception is thrown when two NIO buffers are used.
+   */
   @Test
   public void singleNioBufferCheckFailedTest() {
     mThrown.expect(IllegalArgumentException.class);
@@ -64,6 +77,9 @@ public class DataNettyBufferTest {
     new DataNettyBuffer(mBuffer, LENGTH);
   }
 
+  /**
+   * Tests that an exception is thrown when the reference count is two.
+   */
   @Test
   public void refCountCheckFailedTest() {
     mThrown.expect(IllegalArgumentException.class);
@@ -72,6 +88,10 @@ public class DataNettyBufferTest {
     new DataNettyBuffer(mBuffer, LENGTH);
   }
 
+  /**
+   * Tests that an exception is thrown when the unsupported {@link DataNettyBuffer#getNettyOutput()}
+   * method is used.
+   */
   @Test
   public void getNettyOutputNotSupportedTest() {
     mThrown.expect(UnsupportedOperationException.class);
@@ -80,12 +100,18 @@ public class DataNettyBufferTest {
     data.getNettyOutput();
   }
 
+  /**
+   * Tests the {@link DataNettyBuffer#getLength()} method.
+   */
   @Test
   public void lengthTest() {
     DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
     Assert.assertEquals(LENGTH, data.getLength());
   }
 
+  /**
+   * Tests the {@link DataNettyBuffer#getReadOnlyByteBuffer()} method.
+   */
   @Test
   public void readOnlyByteBufferTest() {
     DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
@@ -94,6 +120,9 @@ public class DataNettyBufferTest {
     Assert.assertEquals(mBuffer.nioBuffer(), readOnlyBuffer);
   }
 
+  /**
+   * Tests the {@link DataNettyBuffer#release()} method.
+   */
   @Test
   public void releaseBufferTest() {
     DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
@@ -101,6 +130,10 @@ public class DataNettyBufferTest {
     data.release();
   }
 
+  /**
+   * Tests that an exception is thrown when the {@link DataNettyBuffer#release()} method fails with
+   * a reference count of two netty buffers.
+   */
   @Test
   public void releaseBufferFailTest() {
     mThrown.expect(IllegalStateException.class);
@@ -109,6 +142,10 @@ public class DataNettyBufferTest {
     data.release();
   }
 
+  /**
+   * Tests that an exception is thrown when the buffer was already released via the
+   * {@link DataNettyBuffer#release()} method.
+   */
   @Test
   public void bufferAlreadyReleasedTest() {
     mThrown.expect(IllegalStateException.class);
