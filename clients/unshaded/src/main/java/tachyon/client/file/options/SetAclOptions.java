@@ -29,6 +29,9 @@ public class SetAclOptions {
   private short mPermission;
   private boolean mRecursive;
 
+  /**
+   * @return the default settings of the acl
+   */
   public static SetAclOptions defaults() {
     return new SetAclOptions();
   }
@@ -143,6 +146,9 @@ public class SetAclOptions {
     return options;
   }
 
+  /**
+   * @return the options in a readable format
+   */
   public String toString() {
     StringBuilder sb = new StringBuilder("SetAclOptions(");
     sb.append(super.toString())

@@ -54,6 +54,9 @@ import tachyon.exception.TachyonException;
 public class BaseFileSystem implements FileSystem {
   private final FileSystemContext mContext;
 
+  /**
+   * @return the {@link BaseFileSystem}
+   */
   public static BaseFileSystem get() {
     return new BaseFileSystem();
   }
