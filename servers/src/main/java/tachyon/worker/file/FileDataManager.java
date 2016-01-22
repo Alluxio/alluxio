@@ -203,7 +203,7 @@ public final class FileDataManager {
     Map<Long, Long> blockIdToLockId;
     synchronized (mLock) {
       blockIdToLockId = mPersistingInProgressFiles.get(fileId);
-      if (blockIdToLockId == null || blockIdToLockId.size() != blockIds.size()) {
+      if (blockIdToLockId == null || !blockIdToLockId.keySet().equals(Sets.newHashSet(blockIds))) {
         throw new IOException("Not all the blocks of file " + fileId + " are blocked");
       }
     }
