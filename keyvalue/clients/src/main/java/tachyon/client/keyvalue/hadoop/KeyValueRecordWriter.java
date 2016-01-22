@@ -23,26 +23,34 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.Progressable;
 import org.apache.http.annotation.ThreadSafe;
 
+import tachyon.TachyonURI;
 import tachyon.client.keyvalue.KeyValueStoreWriter;
+import tachyon.client.keyvalue.KeyValueStores;
 import tachyon.exception.TachyonException;
 
 /**
- * A {@link RecordWriter} to write key-value pairs output by Reducers to a
- * {@link tachyon.client.keyvalue.KeyValueStores}.
+ * It writes key-value pairs into a temporary key-value store.
  */
 @ThreadSafe
 class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable> {
-  private KeyValueStoreWriter mWriter;
-  private Progressable mProgress;
+  private static final KeyValueStores KEY_VALUE_STORES = KeyValueStores.Factory.create();
+
+  private final KeyValueStoreWriter mWriter;
+  private final Progressable mProgress;
 
   /**
    * Constructs a new {@link KeyValueRecordWriter}.
    *
-   * @param writer the key-value store writer
+   * @param storeUri the URI for the temporary key-value store to be created by this record writer
    * @param progress the object to be used for reporting progress
+   * @throws IOException when instance creation fails
    */
-  public KeyValueRecordWriter(KeyValueStoreWriter writer, Progressable progress) {
-    mWriter = writer;
+  public KeyValueRecordWriter(TachyonURI storeUri, Progressable progress) throws IOException {
+    try {
+      mWriter = KEY_VALUE_STORES.create(storeUri);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
     mProgress = progress;
   }
 
@@ -50,7 +58,7 @@ class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable>
   public synchronized void write(BytesWritable key, BytesWritable value) throws IOException {
     try {
       mWriter.put(key.getBytes(), value.getBytes());
-      // Send a progress to the job manager to inform it that the task is still running.
+      // Sends a progress to the job manager to inform it that the task is still running.
       mProgress.progress();
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -59,6 +67,7 @@ class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable>
 
   @Override
   public synchronized void close(Reporter reporter) throws IOException {
+    // Completes the new store.
     mWriter.close();
   }
 }

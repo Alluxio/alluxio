@@ -15,8 +15,6 @@
 
 package tachyon.client.keyvalue.hadoop;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -78,21 +76,8 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
 
     // TODO(cc): Implement a ByteBufferInputStream which is backed by a ByteBuffer so we could
     // benefit from zero-copy.
-    DataInputStream key = new DataInputStream(new ByteArrayInputStream(
-        BufferUtils.newByteArrayFromByteBuffer(pair.getKey())));
-    try {
-      keyWritable.readFields(key);
-    } finally {
-      key.close();
-    }
-
-    DataInputStream value = new DataInputStream(new ByteArrayInputStream(
-        BufferUtils.newByteArrayFromByteBuffer(pair.getValue())));
-    try {
-      valueWritable.readFields(value);
-    } finally {
-      value.close();
-    }
+    keyWritable.set(new BytesWritable(BufferUtils.newByteArrayFromByteBuffer(pair.getKey())));
+    valueWritable.set(new BytesWritable(BufferUtils.newByteArrayFromByteBuffer(pair.getValue())));
 
     mKeyValuePairsBytesRead += keyWritable.getLength() + valueWritable.getLength();
     mNumVisitedKeyValuePairs ++;

@@ -16,12 +16,18 @@
 package tachyon.client.keyvalue.hadoop;
 
 import java.io.IOException;
+import java.util.List;
 
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileOutputCommitter;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobContext;
 import org.apache.hadoop.mapred.TaskAttemptContext;
+
+import com.google.common.collect.Lists;
 
 import tachyon.TachyonURI;
 import tachyon.client.keyvalue.KeyValueStores;
@@ -32,85 +38,62 @@ import tachyon.exception.TachyonException;
  * Extension of {@link FileOutputCommitter} where creating, completing, or deleting a
  * {@link KeyValueStores} in different phases of a job's or task's lifecycle is considered.
  * <p>
- * This committer is forced to be used in {@link KeyValueOutputFormat} (no matter what users have
- * set as the {@link org.apache.hadoop.mapred.OutputCommitter} in configration) to merge the
- * key-value stores created by each Reducer into one key-value store under the MapReduce output
- * directory.
+ * This committer must be used along with {@link KeyValueOutputFormat} to merge the key-value stores
+ * created by each Reducer into one key-value store under the MapReduce output directory.
  */
-class KeyValueOutputCommitter extends FileOutputCommitter {
+public class KeyValueOutputCommitter extends FileOutputCommitter {
   private static final KeyValueStores KEY_VALUE_STORES = KeyValueStores.Factory.create();
 
-  private TachyonURI getOutputURI(JobConf conf) {
-    return new TachyonURI(FileOutputFormat.getOutputPath(conf).toString());
-  }
-
-  private TachyonURI getTaskAttemptOutputURI(TaskAttemptContext context) throws IOException {
-    return new TachyonURI(getTaskAttemptPath(context).toString());
-  }
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * Calls {@link FileOutputCommitter#setupJob(JobContext)} first, and then creates an empty
-   * key-value store under the job's output directory.
-   */
-  @Override
-  public void setupJob(JobContext context) throws IOException {
-    super.setupJob(context);
-    try {
-      KEY_VALUE_STORES.create(getOutputURI(context.getJobConf())).close();
-    } catch (TachyonException e) {
-      throw new IOException(e);
+  private List<TachyonURI> getTaskTemporaryStores(JobConf conf) throws IOException {
+    TachyonURI taskOutputURI = KeyValueOutputFormat.getTaskOutputURI(conf);
+    Path outputPath = FileOutputFormat.getOutputPath(conf);
+    FileSystem fs = outputPath.getFileSystem(conf);
+    FileStatus[] subDirs = fs.listStatus(new Path(taskOutputURI.toString()));
+    List<TachyonURI> ret = Lists.newArrayListWithExpectedSize(subDirs.length);
+    for (FileStatus subDir : subDirs) {
+      ret.add(taskOutputURI.join(subDir.getPath().getName()));
     }
+    return ret;
   }
 
   /**
    * {@inheritDoc}
    * <p>
-   * Deletes the key-value store created in {@link #setupJob(JobContext)} first, and then
-   * calls {@link FileOutputCommitter#abortJob(JobContext, int)}.
-   */
-  @Override
-  public void abortJob(JobContext context, int runState) throws IOException {
-    // The output directory should exist since the store writer is just closed.
-    try {
-      KEY_VALUE_STORES.delete(getOutputURI(context.getJobConf()));
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    }
-    super.abortJob(context, runState);
-  }
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * Merges the completed key-value store under the task's temporary output directory to the
-   * key-value store created in {@link #setupJob(JobContext)}.
+   * Merges the completed key-value stores under the task's temporary output directory to the
+   * key-value store created in {@link #setupJob(JobContext)}, then calls
+   * {@link FileOutputCommitter#commitTask(TaskAttemptContext)}.
    */
   @Override
   public void commitTask(TaskAttemptContext context) throws IOException {
-    try {
-      KEY_VALUE_STORES.merge(getTaskAttemptOutputURI(context), getOutputURI(context.getJobConf()));
-    } catch (TachyonException e) {
-      throw new IOException(e);
+    JobConf conf = context.getJobConf();
+    TachyonURI jobOutputURI = KeyValueOutputFormat.getJobOutputURI(conf);
+    for (TachyonURI tempStoreUri : getTaskTemporaryStores(conf)) {
+      try {
+        KEY_VALUE_STORES.merge(tempStoreUri, jobOutputURI);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      }
     }
+    super.commitTask(context);
   }
 
   /**
    * {@inheritDoc}
    * <p>
-   * Deletes the completed key-value store under the task's temporary output directory, and then
+   * Deletes the completed key-value stores under the task's temporary output directory, and then
    * calls {@link FileOutputCommitter#abortTask(TaskAttemptContext)}.
    */
   @Override
   public void abortTask(TaskAttemptContext context) throws IOException {
-    try {
-      KEY_VALUE_STORES.delete(new TachyonURI(getTaskAttemptPath(context).toString()));
-    } catch (FileDoesNotExistException e) {
-      // The goal of deleting the store is to cleanup directories before aborting the task, since
-      // the key-value store directory does not exist, it meets the goal, nothing needs to be done.
-    } catch (TachyonException e) {
-      throw new IOException(e);
+    for (TachyonURI tempStoreUri : getTaskTemporaryStores(context.getJobConf())) {
+      try {
+        KEY_VALUE_STORES.delete(tempStoreUri);
+      } catch (FileDoesNotExistException e) {
+        // The goal of deleting the store is to cleanup directories before aborting the task, since
+        // the key-value store directory does not exist, it meets the goal, nothing needs to be done.
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      }
     }
     super.abortTask(context);
   }
