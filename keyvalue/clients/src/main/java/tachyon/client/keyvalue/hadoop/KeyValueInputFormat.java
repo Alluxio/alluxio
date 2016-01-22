@@ -56,6 +56,7 @@ public final class KeyValueInputFormat implements InputFormat {
    * @param conf MapReduce job configuration
    * @param numSplits number of splits, ignored because it is determined by number of partitions
    * @return list of {@link InputSplit}s, each split is a partition
+   * @throws IOException if information about the partition cannot be retrieved
    */
   @Override
   public InputSplit[] getSplits(JobConf conf, int numSplits) throws IOException {

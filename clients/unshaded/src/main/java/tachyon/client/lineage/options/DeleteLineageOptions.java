@@ -47,6 +47,7 @@ public final class DeleteLineageOptions {
   /**
    * Sets the cascade flag for this option.
    *
+   * @param cascade true if the deletion is cascading, false otherwise
    * @return the updated options object
    */
   public DeleteLineageOptions setCascade(boolean cascade) {
