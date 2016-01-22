@@ -154,6 +154,7 @@ public final class FileDataManager {
 
   /**
    * Locks all the blocks of a given file Id.
+   *
    * @param fileId the id of the file
    * @throws IOException when an I/O exception occurs
    */
@@ -168,7 +169,6 @@ public final class FileDataManager {
       }
     } catch (BlockDoesNotExistException e) {
       errors.add(e);
-    } finally {
       // make sure all the locks are released
       for (long lockId : blockIdToLockId.values()) {
         try {
@@ -181,8 +181,8 @@ public final class FileDataManager {
       if (!errors.isEmpty()) {
         StringBuilder errorStr = new StringBuilder();
         errorStr.append("the blocks of file").append(fileId).append(" are failed to lock\n");
-        for (Throwable e : errors) {
-          errorStr.append(e).append('\n');
+        for (Throwable error : errors) {
+          errorStr.append(error).append('\n');
         }
         throw new IOException(errorStr.toString());
       }

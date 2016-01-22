@@ -92,6 +92,7 @@ public final class FileDataManagerTest {
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
 
+    manager.lockBlocks(fileId, blockIds);
     manager.persistFile(fileId, blockIds);
 
     // verify file persisted
@@ -164,6 +165,7 @@ public final class FileDataManagerTest {
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
 
+    manager.lockBlocks(fileId, blockIds);
     try {
       manager.persistFile(fileId, blockIds);
       Assert.fail("the persist should fail");
