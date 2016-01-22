@@ -18,8 +18,6 @@ package tachyon.client.lineage.options;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.conf.TachyonConf;
-
 /**
  * Tests for {@link DeleteLineageOptions}.
  */
@@ -30,8 +28,7 @@ public final class DeleteLineageOptionsTest {
    */
   @Test
   public void builderTest() {
-    DeleteLineageOptions options =
-        new DeleteLineageOptions.Builder(new TachyonConf()).setCascade(true).build();
+    DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(true);
     Assert.assertTrue(options.isCascade());
   }
 
