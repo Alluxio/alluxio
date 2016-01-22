@@ -63,4 +63,9 @@ public final class PinListSync implements HeartbeatExecutor {
       // mMasterClient.resetConnection();
     }
   }
+
+  @Override
+  public void close() {
+    // Nothing to clean up
+  }
 }

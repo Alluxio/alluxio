@@ -19,6 +19,7 @@ import org.apache.hadoop.conf.Configuration;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.hdfs.HdfsUnderFileSystem;
 
 /**
@@ -32,12 +33,12 @@ import tachyon.underfs.hdfs.HdfsUnderFileSystem;
 public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
 
   /**
-   * Constant for the Gluster FS URI scheme
+   * Constant for the Gluster FS URI scheme.
    */
   public static final String SCHEME = "glusterfs://";
 
   /**
-   * Constructs a new Gluster FS {@link tachyon.underfs.UnderFileSystem}.
+   * Constructs a new Gluster FS {@link UnderFileSystem}.
    *
    * @param fsDefaultName the under FS prefix
    * @param tachyonConf the configuration for Tachyon

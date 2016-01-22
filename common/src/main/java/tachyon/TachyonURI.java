@@ -187,7 +187,12 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     if (path.isEmpty()) {
       return 0;
     }
+    if (hasWindowsDrive(path, true)) {
+      path = path.substring(3);
+    }
+
     int depth = 0;
+
     int slash = path.length() == 1 && path.charAt(0) == '/' ? -1 : 0;
     while (slash != -1) {
       depth ++;
@@ -330,16 +335,15 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Check if the path is a windows path.
+   * Check if the path is a windows path. This should be platform independent.
    *
    * @param path the path to check
    * @param slashed if the path starts with a slash
    * @return true if it is a windows path, false otherwise
    */
-  private boolean hasWindowsDrive(String path, boolean slashed) {
+  public static boolean hasWindowsDrive(String path, boolean slashed) {
     int start = slashed ? 1 : 0;
-    return WINDOWS
-        && path.length() >= start + 2
+    return path.length() >= start + 2
         && (!slashed || path.charAt(0) == '/')
         && path.charAt(start + 1) == ':'
         && ((path.charAt(start) >= 'A' && path.charAt(start) <= 'Z') || (path.charAt(start) >= 'a'

@@ -8,7 +8,7 @@ Tachyon is an open source memory-centric distributed storage system enabling rel
 at memory-speed across cluster jobs, possibly written in different computation frameworks, such as
 Apache Spark, Apache MapReduce, and Apache Flink. In the big data ecosystem, Tachyon lies between
 computation frameworks or jobs, such as Apache Spark, Apache MapReduce, or Apache Flink, and various
-kinds of storage systems, such as Amazon S3, OpenStack Swift, GlusterFS, HDFS, or Ceph. Tachyon
+kinds of storage systems, such as Amazon S3, OpenStack Swift, GlusterFS, HDFS, Ceph, or OSS. Tachyon
 brings significant performance improvement to the stack; for example, [Baidu](https://www.baidu.com)
 uses Tachyon to improve their data analytics performance by 30 times. Beyond performance, Tachyon
 bridges new workloads with data stored in traditional storage systems. Users can run Tachyon using
@@ -20,7 +20,7 @@ of Tachyon without any code changes. The project is open source
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
 multiple companies. It is one of the fastest growing open source projects. With less than three
 years open source history, Tachyon has attracted more than
-[150 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
+[160 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
 including [Alibaba](http://www.alibaba.com), [Baidu](https://www.baidu.com),
 [CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com), [Intel](http://www.intel.com/),
 [Red Hat](https://www.redhat.com/), [Tachyon Nexus](http://www.tachyonnexus.com/),
@@ -29,10 +29,11 @@ The project is the storage layer of the Berkeley Data Analytics Stack
 ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
 
-[Github Repository](https://github.com/amplab/tachyon/) |
-[Releases and Downloads](https://github.com/amplab/tachyon/releases) |
-[User Documentation](Getting-Started.html) |
-[Developer Documentation](Contributing-to-Tachyon.html) |
+[Github](https://github.com/amplab/tachyon/) |
+[Releases](http://tachyon-project.org/releases/) |
+[Downloads](http://tachyon-project.org/downloads/) |
+[User Document](Getting-Started.html) |
+[Developer Document](Contributing-to-Tachyon.html) |
 [Meetup Group](https://www.meetup.com/Tachyon/) |
 [JIRA](https://tachyon.atlassian.net/browse/TACHYON) |
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)

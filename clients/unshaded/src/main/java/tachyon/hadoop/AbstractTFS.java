@@ -26,7 +26,6 @@ import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
@@ -42,12 +41,12 @@ import tachyon.client.ClientContext;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.FileSystemMasterClient;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
+import tachyon.client.file.options.CreateDirectoryOptions;
+import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.DeleteOptions;
-import tachyon.client.file.options.MkdirOptions;
-import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
@@ -56,18 +55,17 @@ import tachyon.exception.InvalidPathException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
 
 /**
- * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class really just delegates
- * to {@link TachyonFileSystem} for most operations.
+ * Base class for Apache Hadoop based Tachyon {@link org.apache.hadoop.fs.FileSystem}. This class
+ * really just delegates to {@link tachyon.client.file.FileSystem} for most operations.
  *
  * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant is
  * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
  */
-abstract class AbstractTFS extends FileSystem {
+abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
   public static final String FIRST_COM_PATH = "tachyon_dep/";
   public static final String RECOMPUTE_PATH = "tachyon_recompute/";
 
@@ -80,7 +78,7 @@ abstract class AbstractTFS extends FileSystem {
   private URI mUri = null;
   private Path mWorkingDir = new Path(TachyonURI.SEPARATOR);
   private Statistics mStatistics = null;
-  private TachyonFileSystem mTFS = null;
+  private FileSystem mTFS = null;
   private String mTachyonHeader = null;
   private final TachyonConf mTachyonConf = ClientContext.getConf();
 
@@ -92,18 +90,17 @@ abstract class AbstractTFS extends FileSystem {
       mStatistics.incrementWriteOps(1);
     }
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    TachyonFile file;
     try {
-      file = mTFS.open(path);
-      if (mTFS.getInfo(file).length > 0) {
-        LOG.warn("Appending to nonempty file. This may be an error.");
+      if (!mTFS.exists(path)) {
+        return new FSDataOutputStream(mTFS.createFile(path), mStatistics);
+      } else {
+        throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
       }
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
-
-    return new FSDataOutputStream(mTFS.getOutStream(file.getFileId(), OutStreamOptions.defaults()),
-        mStatistics);
   }
 
   @Override
@@ -137,27 +134,24 @@ abstract class AbstractTFS extends FileSystem {
     // Check whether the file already exists, and delete it if overwrite is true
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
     try {
-      TachyonFile file = mTFS.openIfExists(path);
-      if (file != null) {
+      if (mTFS.exists(path)) {
         if (!overwrite) {
           throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(cPath.toString()));
         }
-        FileInfo info = mTFS.getInfo(file);
-        if (info.isIsFolder()) {
+        if (mTFS.getStatus(path).isFolder()) {
           throw new IOException(
               ExceptionMessage.FILE_CREATE_IS_DIRECTORY.getMessage(cPath.toString()));
         }
-        mTFS.delete(file);
+        mTFS.delete(path);
       }
     } catch (TachyonException e) {
       throw new IOException(e);
     }
 
     // The file no longer exists at this point, so we can create it
-    OutStreamOptions options =
-        new OutStreamOptions.Builder(mTachyonConf).setBlockSizeBytes(blockSize).build();
+    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(blockSize);
     try {
-      FileOutStream outStream = mTFS.getOutStream(path, options);
+      FileOutStream outStream = mTFS.createFile(path, options);
       return new FSDataOutputStream(outStream, mStatistics);
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -190,7 +184,7 @@ abstract class AbstractTFS extends FileSystem {
       boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress)
           throws IOException {
     TachyonURI parentPath = new TachyonURI(Utils.getPathWithoutScheme(cPath.getParent()));
-    tryOpen(parentPath);
+    ensureExists(parentPath);
     return this.create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
 
@@ -224,10 +218,9 @@ abstract class AbstractTFS extends FileSystem {
       mStatistics.incrementWriteOps(1);
     }
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    DeleteOptions options = new DeleteOptions.Builder().setRecursive(recursive).build();
+    DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
     try {
-      TachyonFile file = mTFS.open(path);
-      mTFS.delete(file, options);
+      mTFS.delete(path, options);
       return true;
     } catch (InvalidPathException e) {
       LOG.info("delete failed: {}", e.getMessage());
@@ -256,8 +249,13 @@ abstract class AbstractTFS extends FileSystem {
     }
 
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(file.getPath()));
-    TachyonFile fileMetadata = tryOpen(path);
-    List<FileBlockInfo> blocks = getFileBlocks(fileMetadata.getFileId());
+    URIStatus status;
+    try {
+      status = mTFS.getStatus(path);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
+    List<FileBlockInfo> blocks = getFileBlocks(path);
 
     List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
     for (int k = 0; k < blocks.size(); k ++) {
@@ -302,34 +300,93 @@ abstract class AbstractTFS extends FileSystem {
     TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
     Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
 
-    LOG.info("getFileStatus({}): HDFS Path: {} TPath: {}{}", path, hdfsPath, mTachyonHeader, tPath);
+    LOG.info("getFileStatus({}): HDFS Path: {} Tachyon Path: {}{}", path, hdfsPath, mTachyonHeader,
+        tPath);
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
     }
-    FileInfo fileStatus;
+    URIStatus fileStatus;
     try {
-      TachyonFile file = mTFS.open(tPath);
-      fileStatus = mTFS.getInfo(file);
-    } catch (InvalidPathException e) {
+      fileStatus = mTFS.getStatus(tPath);
+    } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(e.getMessage());
     } catch (TachyonException e) {
       throw new IOException(e);
     }
 
-    FileStatus ret = new FileStatus(fileStatus.getLength(), fileStatus.isIsFolder(),
+    FileStatus ret = new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
         BLOCK_REPLICATION_CONSTANT, fileStatus.getBlockSizeBytes(), fileStatus.getCreationTimeMs(),
-        fileStatus.getCreationTimeMs(), null, null, null, new Path(mTachyonHeader + tPath));
+            fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getPermission()),
+            fileStatus.getUserName(), fileStatus.getGroupName(), new Path(mTachyonHeader + tPath));
     return ret;
   }
 
   /**
-   * Gets the URI schema that maps to the {@link FileSystem}. This was introduced in Hadoop 2.x as
-   * a means to make loading new {@link FileSystem}s simpler. This doesn't exist in Hadoop 1.x, so
-   * cannot put {@literal @Override}.
+   * Changes owner or group of a path (i.e. a file or a directory). If username is null, the
+   * original username remains unchanged. Same as groupname. If username and groupname are non-null,
+   * both of them will be changed.
+   *
+   * @param path path to set owner or group
+   * @param username username to be set
+   * @param groupname groupname to be set
+   * @throws IOException if changing owner or group of the path failed
+   */
+  @Override
+  public void setOwner(Path path, final String username, final String groupname)
+      throws IOException {
+    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
+    Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
+    LOG.info("setOwner({},{},{}) HDFS Path: {} Tachyon Path: {}{}", path, username, groupname,
+        hdfsPath, mTachyonHeader, tPath);
+    try {
+      SetAclOptions options = SetAclOptions.defaults();
+      boolean ownerOrGroupChanged = false;
+      if (username != null && !username.isEmpty()) {
+        options.setOwner(username).setRecursive(false);
+        ownerOrGroupChanged = true;
+      }
+      if (groupname != null && !groupname.isEmpty()) {
+        options.setGroup(groupname).setRecursive(false);
+        ownerOrGroupChanged = true;
+      }
+      if (ownerOrGroupChanged) {
+        mTFS.setAcl(tPath, options);
+      }
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
+  }
+
+  /**
+   * Changes permission of a path.
+   *
+   * @param path path to set permission
+   * @param permission permission set to path
+   * @throws IOException if the path failed to be changed permission
+   */
+  public void setPermission(Path path, FsPermission permission) throws IOException {
+    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
+    Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
+    LOG.info("setPermission({},{}) HDFS Path: {} Tachyon Path: {}{}", path, permission.toString(),
+        hdfsPath, mTachyonHeader, tPath);
+    try {
+      SetAclOptions options =
+          SetAclOptions.defaults().setPermission(permission.toShort()).setRecursive(false);
+      mTFS.setAcl(tPath, options);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
+  }
+
+  /**
+   * Gets the URI schema that maps to the {@link org.apache.hadoop.fs.FileSystem}. This was
+   * introduced in Hadoop 2.x as a means to make loading new {@link org.apache.hadoop.fs.FileSystem}
+   * s simpler. This doesn't exist in Hadoop 1.x, so cannot put {@literal @Override}.
    *
    * @return schema hadoop should map to
    *
-   * @see FileSystem#createFileSystem(java.net.URI, org.apache.hadoop.conf.Configuration)
+   * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
+   *      org.apache.hadoop.conf.Configuration)
    */
   public abstract String getScheme();
 
@@ -372,15 +429,16 @@ abstract class AbstractTFS extends FileSystem {
     mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
     ClientContext.reset(mTachyonConf);
 
-    mTFS = TachyonFileSystemFactory.get();
+    mTFS = FileSystem.Factory.get();
     mUri = URI.create(mTachyonHeader);
     mUnderFSAddress = getUfsAddress();
     LOG.info("{} {} {}", mTachyonHeader, mUri, mUnderFSAddress);
   }
 
   /**
-   * Determines if zookeeper should be used for the {@link FileSystem}. This method should only be
-   * used for {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
+   * Determines if zookeeper should be used for the {@link org.apache.hadoop.fs.FileSystem}. This
+   * method should only be used for
+   * {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
    *
    * @return true if zookeeper should be used
    */
@@ -396,21 +454,20 @@ abstract class AbstractTFS extends FileSystem {
       mStatistics.incrementReadOps(1);
     }
 
-    List<FileInfo> files;
+    List<URIStatus> statuses;
     try {
-      TachyonFile file = mTFS.open(tPath);
-      files = mTFS.listStatus(file);
+      statuses = mTFS.listStatus(tPath);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
 
-    FileStatus[] ret = new FileStatus[files.size()];
-    for (int k = 0; k < files.size(); k ++) {
-      FileInfo info = files.get(k);
+    FileStatus[] ret = new FileStatus[statuses.size()];
+    for (int k = 0; k < statuses.size(); k ++) {
+      URIStatus status = statuses.get(k);
       // TODO(hy): Replicate 3 with the number of disk replications.
-      ret[k] = new FileStatus(info.getLength(), info.isFolder, 3, info.getBlockSizeBytes(),
-          info.getCreationTimeMs(), info.getCreationTimeMs(), null, null, null,
-          new Path(mTachyonHeader + info.getPath()));
+      ret[k] = new FileStatus(status.getLength(), status.isFolder(), 3, status.getBlockSizeBytes(),
+          status.getCreationTimeMs(), status.getCreationTimeMs(), null, null, null,
+          new Path(mTachyonHeader + status.getPath()));
     }
     return ret;
   }
@@ -420,7 +477,7 @@ abstract class AbstractTFS extends FileSystem {
    *
    * @param cPath path to create
    * @param permission permissions to grant the created folder
-   * @return true if the indicated folder is created successfully or already exists, false otherwise
+   * @return true if the indicated folder is created successfully or already exists
    * @throws IOException if the folder cannot be created
    */
   @Override
@@ -430,10 +487,11 @@ abstract class AbstractTFS extends FileSystem {
       mStatistics.incrementWriteOps(1);
     }
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    MkdirOptions options =
-        new MkdirOptions.Builder(mTachyonConf).setRecursive(true).setAllowExists(true).build();
+    CreateDirectoryOptions options =
+        CreateDirectoryOptions.defaults().setRecursive(true).setAllowExists(true);
     try {
-      return mTFS.mkdir(path, options);
+      mTFS.createDirectory(path, options);
+      return true;
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -455,11 +513,8 @@ abstract class AbstractTFS extends FileSystem {
     }
 
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    TachyonFile file = tryOpen(path);
-    long fileId = file.getFileId();
-
-    return new FSDataInputStream(new HdfsFileInputStream(fileId,
-        Utils.getHDFSPath(path, mUnderFSAddress), getConf(), bufferSize, mStatistics));
+    return new FSDataInputStream(new HdfsFileInputStream(path, Utils.getHDFSPath(path,
+        mUnderFSAddress), getConf(), bufferSize, mStatistics));
   }
 
   @Override
@@ -471,22 +526,22 @@ abstract class AbstractTFS extends FileSystem {
 
     TachyonURI srcPath = new TachyonURI(Utils.getPathWithoutScheme(src));
     TachyonURI dstPath = new TachyonURI(Utils.getPathWithoutScheme(dst));
-    TachyonFile srcFile = tryOpen(srcPath);
-    FileInfo info;
+    ensureExists(srcPath);
+    URIStatus dstStatus;
     try {
-      TachyonFile file = mTFS.open(dstPath);
-      info = mTFS.getInfo(file);
+      dstStatus = mTFS.getStatus(dstPath);
     } catch (IOException e) {
-      info = null;
+      dstStatus = null;
     } catch (TachyonException e) {
-      info = null;
+      dstStatus = null;
     }
     // If the destination is an existing folder, try to move the src into the folder
-    if (info != null && info.isFolder) {
+    if (dstStatus != null && dstStatus.isFolder()) {
       dstPath = dstPath.join(srcPath.getName());
     }
     try {
-      return mTFS.rename(srcFile, dstPath);
+      mTFS.rename(srcPath, dstPath);
+      return true;
     } catch (IOException e) {
       LOG.error("Failed to rename {} to {}", src, dst, e);
       return false;
@@ -507,24 +562,24 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Convenience method which opens a {@link TachyonFile} for the given path, wrapping any
-   * {@link TachyonException} in {@link IOException}.
+   * Convenience method which ensures the given path exists, wrapping any {@link TachyonException}
+   * in {@link IOException}.
    *
    * @param path the path to look up
    * @throws IOException if a Tachyon exception occurs
    */
-  private TachyonFile tryOpen(TachyonURI path) throws IOException {
+  private void ensureExists(TachyonURI path) throws IOException {
     try {
-      return mTFS.open(path);
+      mTFS.getStatus(path);
     } catch (TachyonException te) {
       throw new IOException(te);
     }
   }
 
-  private List<FileBlockInfo> getFileBlocks(long fileId) throws IOException {
+  private List<FileBlockInfo> getFileBlocks(TachyonURI path) throws IOException {
     FileSystemMasterClient master = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
-      return master.getFileBlockInfoList(fileId);
+      return master.getFileBlockInfoList(path);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {

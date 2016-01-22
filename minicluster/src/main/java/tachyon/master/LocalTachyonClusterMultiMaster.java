@@ -25,7 +25,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.underfs.UnderFileSystem;
@@ -41,6 +41,11 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
   private final List<LocalTachyonMaster> mMasters = new ArrayList<LocalTachyonMaster>();
 
+  /**
+   * @param workerCapacityBytes the capacity of the worker in bytes
+   * @param masters the number of the master
+   * @param userBlockSize the block size for a user
+   */
   public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters, int userBlockSize) {
     super(workerCapacityBytes, userBlockSize);
     mNumOfMasters = masters;
@@ -54,10 +59,13 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   }
 
   @Override
-  public synchronized TachyonFileSystem getClient() throws IOException {
+  public synchronized FileSystem getClient() throws IOException {
     return getMaster().getClient();
   }
 
+  /**
+   * @return the URI of the master
+   */
   public String getUri() {
     return new StringBuilder()
         .append(Constants.HEADER_FT)
@@ -112,6 +120,11 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     return false;
   }
 
+  /**
+   * Iterate over the masters in the order of master creation, kill the leader master.
+   *
+   * @return true if the leader master is successfully killed, false otherwise
+   */
   public boolean killLeader() {
     for (int k = 0; k < mNumOfMasters; k ++) {
       if (mMasters.get(k).isServing()) {

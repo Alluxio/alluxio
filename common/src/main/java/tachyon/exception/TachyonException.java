@@ -54,15 +54,6 @@ public abstract class TachyonException extends Exception {
   }
 
   /**
-   * Gets the type of the exception.
-   *
-   * @return the type of the exception
-   */
-  public TachyonExceptionType getType() {
-    return mType;
-  }
-
-  /**
    * Constructs a {@link TachyonTException} from a {@link TachyonException}.
    *
    * @return a {@link TachyonTException} of the type of this exception

@@ -183,8 +183,8 @@ public class TachyonURITest {
     testParentChild("foo://bar boo:80/foo/bar/baz", "foo://bar boo:80/foo", "bar/baz");
     testParentChild("foo://bar boo:80/foo/bar/baz", "foo://bar boo:80/foo/bar", "baz");
     testParentChild("foo://bar boo:80/foo", "foo://bar boo:80/bar", "/foo");
-    testParentChild("c:/foo", "foo://bar boo:80/bar", "c:/foo");
-    testParentChild("c:/foo", "foo://bar boo:80/d:/bar", "c:/foo");
+    testParentChild("foo://bar boo:80/c:/foo", "foo://bar boo:80/bar", "c:/foo");
+    testParentChild("foo://bar boo:80/c:/foo", "foo://bar boo:80/d:/bar", "c:/foo");
     testParentChild("foo://bar boo:80/c:/foo", "foo://bar boo:80/d:/bar",
         "foo://bar boo:80/c:/foo");
   }
@@ -260,6 +260,7 @@ public class TachyonURITest {
     Assert.assertEquals(3, new TachyonURI("/a/b/c.txt").getDepth());
     Assert.assertEquals(2, new TachyonURI("/a/b/").getDepth());
     Assert.assertEquals(2, new TachyonURI("a\\b").getDepth());
+    Assert.assertEquals(1, new TachyonURI("C:\\a").getDepth());
     Assert.assertEquals(1, new TachyonURI("C:\\\\a").getDepth());
     Assert.assertEquals(0, new TachyonURI("C:\\\\").getDepth());
     Assert.assertEquals(0, new TachyonURI("tachyon://localhost:1998/").getDepth());
@@ -476,7 +477,7 @@ public class TachyonURITest {
 
     TachyonURI uri = new TachyonURI("C:\\foo\\bar");
     Assert.assertFalse(uri.hasAuthority());
-    Assert.assertEquals("/foo/bar", uri.getPath());
+    Assert.assertEquals("/C:/foo/bar", uri.getPath());
     Assert.assertEquals("C:/foo/bar", uri.toString());
   }
 

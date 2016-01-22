@@ -19,12 +19,13 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
-import tachyon.client.table.RawTableContext;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.PreconditionMessage;
 import tachyon.util.ThreadFactoryUtils;
@@ -32,8 +33,9 @@ import tachyon.worker.ClientMetrics;
 
 /**
  * A shared context in each client JVM. It provides common functionality such as the Tachyon
- * configuration and master address. This class is thread safe.
+ * configuration and master address.
  */
+@ThreadSafe
 public final class ClientContext {
   private static ExecutorService sExecutorService;
   private static TachyonConf sTachyonConf;
@@ -50,9 +52,6 @@ public final class ClientContext {
    * Initializes the client context singleton.
    */
   public static synchronized void reset() {
-    if (sInitialized) {
-      return;
-    }
     reset(new TachyonConf());
   }
 
@@ -71,7 +70,7 @@ public final class ClientContext {
     sClientMetrics = new ClientMetrics();
 
     if (sExecutorService != null) {
-      sExecutorService.shutdown();
+      sExecutorService.shutdownNow();
     }
     sExecutorService = Executors.newFixedThreadPool(
         sTachyonConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
@@ -81,7 +80,6 @@ public final class ClientContext {
     if (sInitialized) {
       BlockStoreContext.INSTANCE.reset();
       FileSystemContext.INSTANCE.reset();
-      RawTableContext.INSTANCE.reset();
     }
     sInitialized = true;
   }
