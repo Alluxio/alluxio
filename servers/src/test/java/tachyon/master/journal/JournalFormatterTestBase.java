@@ -59,6 +59,8 @@ import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.KeyValue.CompletePartitionEntry;
 import tachyon.proto.journal.KeyValue.CompleteStoreEntry;
 import tachyon.proto.journal.KeyValue.CreateStoreEntry;
+import tachyon.proto.journal.KeyValue.DeleteStoreEntry;
+import tachyon.proto.journal.KeyValue.MergeStoreEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
@@ -259,6 +261,17 @@ public abstract class JournalFormatterTestBase {
             JournalEntry.newBuilder()
                 .setCompleteStore(CompleteStoreEntry.newBuilder()
                     .setStoreId(TEST_FILE_ID))
+                .build())
+        .add(
+            JournalEntry.newBuilder()
+                .setDeleteStore(DeleteStoreEntry.newBuilder()
+                  .setStoreId(TEST_FILE_ID))
+                .build())
+        .add(
+            JournalEntry.newBuilder()
+                .setMergeStore(MergeStoreEntry.newBuilder()
+                  .setFromStoreId(TEST_FILE_ID)
+                  .setToStoreId(TEST_FILE_ID + 1))
                 .build())
         .build();
     // Add the test sequence number to every journal entry
