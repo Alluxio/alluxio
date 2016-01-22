@@ -18,6 +18,8 @@ package tachyon.heartbeat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
@@ -27,6 +29,7 @@ import tachyon.util.CommonUtils;
  * Thread class to execute a heartbeat periodically. This thread is daemonic, so it will not prevent
  * the JVM from exiting.
  */
+@NotThreadSafe
 public final class HeartbeatThread implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
