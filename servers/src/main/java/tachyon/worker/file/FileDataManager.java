@@ -57,8 +57,8 @@ public final class FileDataManager {
   /** Block data manager for access block info */
   private final BlockDataManager mBlockDataManager;
 
-  // the file being persisted
-  private final Set<Long> mPersistingInProgressFiles;
+  // the file being persisted, and the locks being held for the blocks
+  private final Map<Long, Map<Long, Long>> mPersistingInProgressFiles;
   // the file are persisted, but not sent back to master for confirmation yet
   private final Set<Long> mPersistedFiles;
   private final TachyonConf mTachyonConf;
@@ -71,7 +71,7 @@ public final class FileDataManager {
    */
   public FileDataManager(BlockDataManager blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
-    mPersistingInProgressFiles = Sets.newHashSet();
+    mPersistingInProgressFiles = Maps.newHashMap();
     mPersistedFiles = Sets.newHashSet();
     mTachyonConf = WorkerContext.getConf();
     // Create Under FileSystem Client
@@ -153,21 +153,11 @@ public final class FileDataManager {
   }
 
   /**
-   * Persists the blocks of a file into the under file system.
-   *
+   * Locks all the blocks of a given file Id.
    * @param fileId the id of the file
-   * @param blockIds the list of block ids
-   * @throws IOException if the file persistence fails
+   * @throws IOException when an I/O exception occurs
    */
-  public void persistFile(long fileId, List<Long> blockIds) throws IOException {
-    synchronized (mLock) {
-      mPersistingInProgressFiles.add(fileId);
-    }
-
-    String dstPath = prepareUfsFilePath(fileId);
-    OutputStream outputStream = mUfs.create(dstPath);
-    final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
-
+  public void lockBlocks(long fileId, List<Long> blockIds) throws IOException {
     Map<Long, Long> blockIdToLockId = Maps.newHashMap();
     List<Throwable> errors = new ArrayList<Throwable>();
     try {
@@ -176,7 +166,54 @@ public final class FileDataManager {
         long lockId = mBlockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
         blockIdToLockId.put(blockId, lockId);
       }
+    } catch (BlockDoesNotExistException e) {
+      errors.add(e);
+    } finally {
+      // make sure all the locks are released
+      for (long lockId : blockIdToLockId.values()) {
+        try {
+          mBlockDataManager.unlockBlock(lockId);
+        } catch (BlockDoesNotExistException bdnee) {
+          errors.add(bdnee);
+        }
+      }
 
+      if (!errors.isEmpty()) {
+        StringBuilder errorStr = new StringBuilder();
+        errorStr.append("the blocks of file").append(fileId).append(" are failed to lock\n");
+        for (Throwable e : errors) {
+          errorStr.append(e).append('\n');
+        }
+        throw new IOException(errorStr.toString());
+      }
+    }
+    synchronized (mLock) {
+      mPersistingInProgressFiles.put(fileId, blockIdToLockId);
+    }
+  }
+
+  /**
+   * Persists the blocks of a file into the under file system.
+   *
+   * @param fileId the id of the file
+   * @param blockIds the list of block ids
+   * @throws IOException if the file persistence fails
+   */
+  public void persistFile(long fileId, List<Long> blockIds) throws IOException {
+    Map<Long, Long> blockIdToLockId;
+    synchronized (mLock) {
+      blockIdToLockId = mPersistingInProgressFiles.get(fileId);
+      if (blockIdToLockId == null || blockIdToLockId.size() != blockIds.size()) {
+        throw new IOException("Not all the blocks of file " + fileId + " are blocked");
+      }
+    }
+
+    String dstPath = prepareUfsFilePath(fileId);
+    OutputStream outputStream = mUfs.create(dstPath);
+    final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
+
+    List<Throwable> errors = new ArrayList<Throwable>();
+    try {
       for (long blockId : blockIds) {
         long lockId = blockIdToLockId.get(blockId);
 
