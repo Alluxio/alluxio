@@ -16,10 +16,12 @@
 package tachyon;
 
 import tachyon.conf.TachyonConf;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The version of the current build.
  */
+@ThreadSafe
 public final class Version {
   public static final String VERSION;
 

@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
@@ -37,6 +39,7 @@ import com.google.common.base.Preconditions;
 /**
  * Masters use this client to elect a leader.
  */
+@NotThreadSafe
 public final class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
