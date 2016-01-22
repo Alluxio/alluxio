@@ -15,6 +15,8 @@
 
 package tachyon.client.lineage.options;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.annotation.PublicApi;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -22,7 +24,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 /**
  * Method option for creating lineage.
  */
-@PublicApi
+@PublicApi @ThreadSafe
 public final class CreateLineageOptions {
   /**
    * @return the default options
