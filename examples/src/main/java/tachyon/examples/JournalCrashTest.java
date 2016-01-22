@@ -76,19 +76,32 @@ public class JournalCrashTest {
     /** The number of successfully operations. */
     private int mSuccessNum = 0;
 
+    /**
+     * @param workDir the working directory for this thread on Tachyon
+     * @param opType the type of operation this thread should do
+     */
     public ClientThread(String workDir, ClientOpType opType) {
       mOpType = opType;
       mWorkDir = workDir;
     }
 
+    /**
+     * @return the type of operation this thread should do
+     */
     public ClientOpType getOpType() {
       return mOpType;
     }
 
+    /**
+     * @return the number of successfully operations
+     */
     public int getSuccessNum() {
       return mSuccessNum;
     }
 
+    /**
+     * @return the working directory of this thread on Tachyon
+     */
     public String getWorkDir() {
       return mWorkDir;
     }
@@ -145,6 +158,9 @@ public class JournalCrashTest {
       }
     }
 
+    /**
+     * @param isStopped signal from supervisor to stop this thread
+     */
     public synchronized void setIsStopped(boolean isStopped) {
       mIsStopped = isStopped;
     }
@@ -217,6 +233,13 @@ public class JournalCrashTest {
     }
   }
 
+  /**
+   * Usage:
+   * {@code java -cp
+   * tachyon-<TACHYON-VERSION>-jar-with-dependencies.jar tachyon.examples.JournalCrashTest}
+   *
+   * @param args no arguments
+   */
   public static void main(String[] args) {
     // Parse the input args.
     if (!parseInputArgs(args)) {
