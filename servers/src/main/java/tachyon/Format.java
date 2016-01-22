@@ -16,9 +16,12 @@
 package tachyon;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
 
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
@@ -73,11 +76,13 @@ public final class Format {
         System.exit(-1);
       }
 
-      String[] masterServiceNames = new String[] {
-          Constants.BLOCK_MASTER_NAME,
-          Constants.FILE_SYSTEM_MASTER_NAME,
-          Constants.LINEAGE_MASTER_NAME,
-      };
+      List<String> masterServiceNames = Lists.newArrayList();
+      masterServiceNames.add(Constants.BLOCK_MASTER_NAME);
+      masterServiceNames.add(Constants.FILE_SYSTEM_MASTER_NAME);
+      masterServiceNames.add(Constants.LINEAGE_MASTER_NAME);
+      if (tachyonConf.getBoolean(Constants.KEY_VALUE_ENABLED)) {
+        masterServiceNames.add(Constants.KEY_VALUE_MASTER_NAME);
+      }
       for (String masterServiceName : masterServiceNames) {
         if (!formatFolder(masterServiceName + "_JOURNAL_FOLDER", PathUtils.concatPath(masterJournal,
             masterServiceName), tachyonConf)) {
