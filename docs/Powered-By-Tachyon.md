@@ -27,4 +27,8 @@ Here is a list tracks external software projects that supplement Tachyon and add
 * [Apache Hadoop MapReduce](https://hadoop.apache.org/)
 * [Apache Flink](https://flink.apache.org/)
 * [Apache Zeppelin](http://zeppelin-project.org/)
+* [Amazon S3](https://aws.amazon.com/s3/)
+* [Openstack Swift](http://docs.openstack.org/developer/swift/)
+* [GlusterFS](http://www.gluster.org/)
+* [Alibaba OSS](http://www.aliyun.com/product/oss/?lang=en)
 * [Tachyon Service for Ambari](https://github.com/chuyqa/tachyon-ambari-service)
