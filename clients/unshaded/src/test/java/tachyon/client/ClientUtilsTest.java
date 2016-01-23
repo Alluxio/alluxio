@@ -22,13 +22,14 @@ import org.junit.Assert;
  * Tests {@link ClientUtils}.
  */
 public final class ClientUtilsTest {
-
   /**
    * Tests if output of {@link ClientUtils#getRandomNonNegativeLong()} is non-negative.
+   * Also tests for randomness property.
+   *
    */
   @Test
   public void getRandomNonNegativeLongTest() throws Exception {
     Assert.assertTrue(ClientUtils.getRandomNonNegativeLong() > 0);
+    Assert.assertTrue(ClientUtils.getRandomNonNegativeLong() != ClientUtils.getRandomNonNegativeLong());
   }
-
 }
