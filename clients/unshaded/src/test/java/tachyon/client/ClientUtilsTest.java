@@ -24,7 +24,7 @@ import org.junit.Assert;
 public final class ClientUtilsTest {
 
   /**
-   * Tests if output of getRandomNonNegativeLong from {@link ClientUtils} is non-negative.
+   * Tests if output of {@link ClientUtils#getRandomNonNegativeLong()} is non-negative.
    */
   @Test
   public void getRandomNonNegativeLongTest() throws Exception {
