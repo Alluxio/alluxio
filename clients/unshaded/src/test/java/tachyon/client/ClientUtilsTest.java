@@ -29,7 +29,10 @@ public final class ClientUtilsTest {
    */
   @Test
   public void getRandomNonNegativeLongTest() throws Exception {
-    Assert.assertTrue(ClientUtils.getRandomNonNegativeLong() > 0);
-    Assert.assertTrue(ClientUtils.getRandomNonNegativeLong() != ClientUtils.getRandomNonNegativeLong());
+    long first = ClientUtils.getRandomNonNegativeLong();
+    long second = ClientUtils.getRandomNonNegativeLong();
+    Assert.assertTrue(first > 0);
+    Assert.assertTrue(second > 0);
+    Assert.assertTrue(first != second);
   }
 }
