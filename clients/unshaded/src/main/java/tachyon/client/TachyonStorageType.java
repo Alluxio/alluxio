@@ -15,9 +15,11 @@
 
 package tachyon.client;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
- * Specifies the type of data interaction with Tachyon. This option is for developers and
- * advanced users. See {@link tachyon.client.WriteType} and {@link tachyon.client.ReadType}.
+ * Specifies the type of data interaction with Tachyon. This option is for developers and advanced
+ * users. See {@link WriteType} and {@link ReadType}.
  * <ul>
  * <li>For a write operation, this determines whether the data will be written into Tachyon storage.
  * Metadata will always be updated in Tachyon space.</li>
@@ -25,6 +27,7 @@ package tachyon.client;
  * storage.</li>
  * </ul>
  */
+@ThreadSafe
 public enum TachyonStorageType {
   /** Put the data reading or writing in Tachyon storage. */
   STORE(1),
