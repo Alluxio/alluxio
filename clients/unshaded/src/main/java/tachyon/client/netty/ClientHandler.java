@@ -38,7 +38,8 @@ import tachyon.network.protocol.RPCResponse;
 /**
  * This handles all the messages received by the client channel.
  */
-@ChannelHandler.Sharable @NotThreadSafe
+@ChannelHandler.Sharable
+@NotThreadSafe
 public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
