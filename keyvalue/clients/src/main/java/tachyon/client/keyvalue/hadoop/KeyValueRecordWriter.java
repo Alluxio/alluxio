@@ -54,10 +54,24 @@ class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable>
     mProgress = progress;
   }
 
+  /**
+   * Copies a byte array of the specified length from the specified array, starting at offset 0.
+   *
+   * @param src the source array
+   * @param length the length of bytes to be copied
+   * @return the copied array
+   */
+  private byte[] copyBytes(byte[] src, int length) {
+    byte[] result = new byte[length];
+    System.arraycopy(src, 0, result, 0, length);
+    return result;
+  }
+
   @Override
   public synchronized void write(BytesWritable key, BytesWritable value) throws IOException {
     try {
-      mWriter.put(key.getBytes(), value.getBytes());
+      mWriter.put(copyBytes(key.getBytes(), key.getLength()), copyBytes(value.getBytes(),
+          value.getLength()));
       // Sends a progress to the job manager to inform it that the task is still running.
       mProgress.progress();
     } catch (TachyonException e) {
