@@ -90,7 +90,7 @@ public class KeyValueOutputCommitter extends FileOutputCommitter {
         KEY_VALUE_STORES.delete(tempStoreUri);
       } catch (FileDoesNotExistException e) {
         // The goal of deleting the store is to cleanup directories before aborting the task, since
-        // the key-value store directory does not exist, it meets the goal, nothing needs to be done.
+        // the store directory does not exist, it meets the goal, nothing needs to be done.
       } catch (TachyonException e) {
         throw new IOException(e);
       }

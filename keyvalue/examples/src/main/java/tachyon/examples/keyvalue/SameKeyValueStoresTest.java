@@ -36,7 +36,7 @@ import tachyon.util.io.BufferUtils;
  * Tests whether two key-value stores contain the same set of key-value pairs.
  */
 public class SameKeyValueStoresTest implements Callable<Boolean> {
-    private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonURI mStoreUri1;
   private final TachyonURI mStoreUri2;

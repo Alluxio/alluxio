@@ -38,12 +38,13 @@ public class ShowKeyValueStore {
     } else if (scope.equals("value")) {
       System.out.println(value);
     } else if (scope.equals("all")) {
-      System.out.printf("%s %s\n", key, value);
+      System.out.printf("%s %s%n", key, value);
     } else {
       throw new RuntimeException(String.format("Unknown scope: %s, should be one of key/value/all",
           scope));
     }
   }
+
   public static void main(String[] args) throws Exception {
     if (args.length != 2) {
       System.out.println("java -cp " + Version.TACHYON_JAR + " "
