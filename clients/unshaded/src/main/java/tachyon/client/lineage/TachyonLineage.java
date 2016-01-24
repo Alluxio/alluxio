@@ -17,7 +17,6 @@ package tachyon.client.lineage;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -42,14 +41,13 @@ import tachyon.thrift.LineageInfo;
 @PublicApi
 @ThreadSafe
 public final class TachyonLineage extends AbstractLineageClient {
-  private static AtomicBoolean sInitialized = new AtomicBoolean(false);
   private static TachyonLineage sTachyonLineage;
 
   /**
    * @return the current lineage for Tachyon
    */
   public static synchronized TachyonLineage get() {
-    if (!sInitialized.getAndSet(true)) {
+    if (sTachyonLineage == null) {
       if (!ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED)) {
         throw new IllegalStateException("Lineage is not enabled in the configuration.");
       }
