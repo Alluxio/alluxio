@@ -24,6 +24,8 @@ import java.util.regex.Pattern;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
 
 /**
@@ -91,6 +93,32 @@ public class FormatUtilsTest {
 
     for (TestCase testCase : testCases) {
       Assert.assertEquals(testCase.mExpected, FormatUtils.byteBufferToString(testCase.mInput));
+    }
+  }
+
+  /**
+   * Tests the {@link FormatUtils#byteArrayToHexString(byte[])} method.
+   */
+  @Test
+  public void byteArrayToHexStringTest() {
+    class TestCase {
+      String mExpected;
+      byte[] mInput;
+
+      public TestCase(String expected, byte[] input) {
+        mExpected = expected;
+        mInput = input;
+      }
+    }
+
+    List<TestCase> testCases = Lists.newArrayList();
+    testCases.add(new TestCase("", new byte[0]));
+    testCases.add(new TestCase("0x01", new byte[]{1}));
+    testCases.add(new TestCase("0x01 0x02", new byte[]{1, 2}));
+    testCases.add(new TestCase("0x01 0x02 0xAC 0xFF", new byte[]{1, 2, (byte) 0xAC, (byte) 0xFF}));
+
+    for (TestCase testCase : testCases) {
+      Assert.assertEquals(testCase.mExpected, FormatUtils.byteArrayToHexString(testCase.mInput));
     }
   }
 

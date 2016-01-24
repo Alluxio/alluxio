@@ -73,6 +73,24 @@ public final class FormatUtils {
   }
 
   /**
+   * Parses a byte array into a space separated hex string where each byte is represented in the
+   * format {@code 0x%02X}.
+   *
+   * @param bytes the byte array to be transformed
+   * @return the string representation of the byte array
+   */
+  public static String byteArrayToHexString(byte[] bytes) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < bytes.length; i ++) {
+      sb.append(String.format("0x%02X", bytes[i]));
+      if (i != bytes.length - 1) {
+        sb.append(" ");
+      }
+    }
+    return sb.toString();
+  }
+
+  /**
    * Formats time elapsed since the given start time (in milliseconds).
    *
    * @param startTimeMs start time in milliseconds
