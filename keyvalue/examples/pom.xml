@@ -29,5 +29,11 @@
       <artifactId>tachyon-examples</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <!-- for FormatUtils#byteArrayToHexString -->
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 </project>
