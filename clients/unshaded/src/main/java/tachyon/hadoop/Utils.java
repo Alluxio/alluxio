@@ -17,6 +17,8 @@ package tachyon.hadoop;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
@@ -31,6 +33,7 @@ import tachyon.TachyonURI;
 /**
  * Utilty class for using Tachyon with Hadoop.
  */
+@ThreadSafe
 public final class Utils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

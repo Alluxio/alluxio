@@ -15,15 +15,18 @@
 
 package tachyon.client;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.annotation.PublicApi;
 
 /**
- * Convenience modes for commonly used read types for a {@link tachyon.client.file.TachyonFile}.
+ * Convenience modes for commonly used read types.
  *
  * For finer grained control over data storage, advanced users may specify
- * {@link tachyon.client.TachyonStorageType} and {@link tachyon.client.UnderStorageType}.
+ * {@link TachyonStorageType} and {@link UnderStorageType}.
  */
 @PublicApi
+@ThreadSafe
 public enum ReadType {
   /**
    * Read the file and skip Tachyon storage. This read type will not cause any data migration or

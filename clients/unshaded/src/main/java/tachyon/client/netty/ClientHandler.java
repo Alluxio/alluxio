@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +38,7 @@ import tachyon.network.protocol.RPCResponse;
 /**
  * This handles all the messages received by the client channel.
  */
-@ChannelHandler.Sharable
+@ChannelHandler.Sharable @NotThreadSafe
 public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

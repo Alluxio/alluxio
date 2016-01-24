@@ -18,6 +18,8 @@ package tachyon.client;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.annotation.PublicApi;
 
 /**
@@ -27,6 +29,7 @@ import tachyon.annotation.PublicApi;
  * writes.
  */
 @PublicApi
+@NotThreadSafe
 public abstract class OutStreamBase extends OutputStream implements Cancelable {
   // TODO(binfan): make mBytesWritten long so we could make offset > 2GB. This
   // requires checking the codebase for this assumption (using int to denote an offset).
