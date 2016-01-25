@@ -447,8 +447,8 @@ final class TachyonFuseFs extends FuseStubFS {
       }
       final List<URIStatus> ls = mTFS.listStatus(turi);
       // standard . and .. entries
-      filter.apply(buff, ".", null, 0);
-      filter.apply(buff, "..", null, 0);
+      filter.apply(buff, "", null, 0);
+      filter.apply(buff, "src/main", null, 0);
 
       for (final URIStatus file : ls) {
         filter.apply(buff, file.getName(), null, 0);
