@@ -102,6 +102,7 @@ public final class LinearProbingIndex implements Index {
   private LinearProbingIndex(ByteBuffer buf, int numBuckets, int keyCount) {
     mBuf = buf;
     mHashTableBuf = ((ByteBuffer) mBuf.duplicate().position(Constants.BYTES_IN_INTEGER)).slice();
+    mHashTableBuf = BufferUtils.sliceByteBuffer(mBuf, Constants.BYTES_IN_INTEGER);
     mNumBuckets = numBuckets;
     mKeyCount = keyCount;
   }

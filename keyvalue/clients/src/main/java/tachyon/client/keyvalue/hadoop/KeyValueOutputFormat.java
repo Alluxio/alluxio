@@ -43,7 +43,7 @@ import tachyon.exception.TachyonException;
  * TODO(cc): Consider key distributions in each Reducer.
  */
 @PublicApi
-public class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, BytesWritable> {
+public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, BytesWritable> {
   /**
    * @param conf MapReduce job configuration
    * @return the task's temporary output path ${mapred.out.dir}/_temporary/_${taskid}
