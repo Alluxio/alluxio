@@ -15,8 +15,8 @@
 
 package tachyon.client.keyvalue;
 
-import java.util.Collections;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Assert;
@@ -36,6 +36,7 @@ import tachyon.client.ClientContext;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.URIStatus;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.TachyonException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -173,32 +174,38 @@ public final class KeyValueStoresIntegrationTest {
    */
   @Test
   public void noOrderIteratorTest() throws Exception {
-    List<KeyValuePair> pairs = Lists.newArrayListWithExpectedSize(BASE_KEY_VALUE_NUMBER);
-    // TODO(cc): Assure multiple partitions are created by creating larger pairs, after fixing the
-    // way of detecting whether the current partition is full.
-    for (int i = 0; i < BASE_KEY_VALUE_NUMBER; i++) {
-      pairs.add(new KeyValuePair(genBaseKey(i).getBytes(), genBaseValue(i).getBytes()));
-    }
-    List<KeyValuePair> iteratedPairs = Lists.newArrayListWithExpectedSize(pairs.size());
+    List<TachyonURI> storeUris = Lists.newArrayList();
+    List<List<KeyValuePair>> keyValuePairs = Lists.newArrayList();
 
-    mWriter = sKVStores.create(mStoreUri);
-    for (KeyValuePair pair : pairs) {
-      mWriter.put(pair.getKey().array(), pair.getValue().array());
-    }
-    mWriter.close();
+    List<KeyValuePair> pairs = Lists.newArrayList();
+    storeUris.add(createStoreOfSize(0, pairs));
+    keyValuePairs.add(pairs);
 
-    mReader = sKVStores.open(mStoreUri);
-    KeyValueIterator iterator = mReader.iterator();
-    Assert.assertTrue(iterator.hasNext());
-    while (iterator.hasNext()) {
-      iteratedPairs.add(iterator.next());
-    }
-    Assert.assertEquals(pairs.size(), iteratedPairs.size());
+    pairs = Lists.newArrayList();
+    storeUris.add(createStoreOfSize(2, pairs));
+    keyValuePairs.add(pairs);
 
-    // Sorts and then compares pairs and iteratedPairs.
-    Collections.sort(pairs);
-    Collections.sort(iteratedPairs);
-    Assert.assertEquals(pairs, iteratedPairs);
+    pairs = Lists.newArrayList();
+    storeUris.add(createStoreOfMultiplePartitions(3,pairs));
+    keyValuePairs.add(pairs);
+
+    int numStoreUri = storeUris.size();
+    for (int i = 0; i < numStoreUri; i ++) {
+      List<KeyValuePair> expectedPairs = keyValuePairs.get(i);
+      List<KeyValuePair> iteratedPairs = Lists.newArrayList();
+      mReader = sKVStores.open(storeUris.get(i));
+      KeyValueIterator iterator = mReader.iterator();
+      while (iterator.hasNext()) {
+        iteratedPairs.add(iterator.next());
+      }
+
+      // If size is not the same, no need for the time-consuming list comparison below.
+      Assert.assertEquals(expectedPairs.size(), iteratedPairs.size());
+      // Sorts and then compares pairs and iteratedPairs.
+      Collections.sort(expectedPairs);
+      Collections.sort(iteratedPairs);
+      Assert.assertEquals(expectedPairs, iteratedPairs);
+    }
   }
 
   /*
@@ -207,6 +214,7 @@ public final class KeyValueStoresIntegrationTest {
    */
   @Test
   public void createMultiPartitionsTest() throws Exception {
+    // TODO(cc): Remove codes using createStoreOfMultiplePartitions.
     final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
     final int numKeys = 10;
     final int keyLength = 4; // 4Byte key
@@ -260,5 +268,172 @@ public final class KeyValueStoresIntegrationTest {
     mThrown.expect(IOException.class);
     mThrown.expectMessage(ExceptionMessage.KEY_VALUE_TOO_LARGE.getMessage(keyLength, valueLength));
     mWriter.put(key, value);
+  }
+
+  /**
+   * Creates a store with the specified number of key-value pairs. The key-value pairs are in the
+   * format specified in {@link #genBaseKey(int)} and {@link #genBaseValue(int)} with id starts
+   * from 0.
+   *
+   * The created store's size is {@link Assert}ed before return.
+   *
+   * @param size the number of key-value pairs
+   * @param pairs the key-value pairs in the store, null if you don't want to know them
+   * @return the URI to the store
+   * @throws Exception if any error happens
+   */
+  private TachyonURI createStoreOfSize(int size, List<KeyValuePair> pairs) throws Exception {
+    TachyonURI path = new TachyonURI(PathUtils.uniqPath());
+    KeyValueStoreWriter writer = sKVStores.create(path);
+    for (int i = 0; i < size; i ++) {
+      byte[] key = genBaseKey(i).getBytes();
+      byte[] value = genBaseValue(i).getBytes();
+      writer.put(key, value);
+      if (pairs != null) {
+        pairs.add(new KeyValuePair(key, value));
+      }
+    }
+    writer.close();
+
+    Assert.assertEquals(size, sKVStores.open(path).size());
+
+    return path;
+  }
+
+  private int getPartitionNumber(TachyonURI storeUri) throws Exception {
+    KeyValueMasterClient client =
+        new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
+    return client.getPartitionInfo(storeUri).size();
+  }
+
+  /**
+   * Creates a store with the specified number of partitions.
+   *
+   * NOTE: calling this method will set {@link Constants#KEY_VALUE_PARTITION_SIZE_BYTES_MAX} to
+   * {@link Constants#MB}.
+   *
+   * @param partitionNumber the number of partitions
+   * @param keyValuePairs the key-value pairs in the store, null if you don't want to know them
+   * @return the URI to the created store
+   */
+  private TachyonURI createStoreOfMultiplePartitions(int partitionNumber,
+      List<KeyValuePair> keyValuePairs) throws Exception {
+    // These sizes are carefully selected, one partition holds only one key-value pair.
+    final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
+    ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
+        String.valueOf(maxPartitionSize));
+    final int keyLength = 4; // 4Byte key
+    final int valueLength = 500 * Constants.KB; // 500KB value
+
+    TachyonURI storeUri = new TachyonURI(PathUtils.uniqPath());
+    mWriter = sKVStores.create(storeUri);
+    for (int i = 0; i < partitionNumber; i ++) {
+      byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
+      byte[] value = BufferUtils.getIncreasingByteArray(i, valueLength);
+      mWriter.put(key, value);
+      if (keyValuePairs != null) {
+        keyValuePairs.add(new KeyValuePair(key, value));
+      }
+    }
+    mWriter.close();
+
+    Assert.assertEquals(partitionNumber, getPartitionNumber(storeUri));
+
+    return storeUri;
+  }
+
+  private void testDeleteStore(TachyonURI storeUri) throws Exception {
+    sKVStores.delete(storeUri);
+
+    // TachyonException is expected to be thrown.
+    try {
+      sKVStores.open(storeUri);
+    } catch (TachyonException e) {
+      Assert.assertEquals(e.getMessage(),
+          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(storeUri));
+      return;
+    }
+    Assert.assertTrue("The URI to the deleted key-value store still exists", false);
+  }
+
+  /**
+   * Tests that a store of various sizes (including empty store) can be correctly deleted.
+   */
+  @Test
+  public void deleteStoreTest() throws Exception {
+    List<TachyonURI> storeUris = Lists.newArrayList();
+    storeUris.add(createStoreOfSize(0, null));
+    storeUris.add(createStoreOfSize(2, null));
+    storeUris.add(createStoreOfMultiplePartitions(3, null));
+
+    for (TachyonURI storeUri : storeUris) {
+      testDeleteStore(storeUri);
+    }
+  }
+
+  private void testMergeStore(TachyonURI store1, List<KeyValuePair> keyValuePairs1,
+      TachyonURI store2, List<KeyValuePair> keyValuePairs2) throws Exception {
+    sKVStores.merge(store1, store2);
+
+    // store2 contains all key-value pairs in both store1 and store2.
+    List<KeyValuePair> mergedPairs = Lists.newArrayList();
+    mergedPairs.addAll(keyValuePairs1);
+    mergedPairs.addAll(keyValuePairs2);
+
+    List<KeyValuePair> store2Pairs = Lists.newArrayList();
+    KeyValueIterator iterator = sKVStores.open(store2).iterator();
+    while (iterator.hasNext()) {
+      store2Pairs.add(iterator.next());
+    }
+
+    // If size is not the same, no need for the time-consuming list comparison below.
+    Assert.assertEquals(mergedPairs.size(), store2Pairs.size());
+    Collections.sort(mergedPairs);
+    Collections.sort(store2Pairs);
+    Assert.assertEquals(mergedPairs, store2Pairs);
+
+    // store1 no longer exists, because it has been merged into store2.
+    // TachyonException is expected to be thrown.
+    try {
+      sKVStores.open(store1);
+    } catch (TachyonException e) {
+      Assert.assertEquals(e.getMessage(),
+          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(store1));
+      return;
+    }
+    Assert.assertTrue("The URI to the deleted key-value store still exists", false);
+  }
+
+  /**
+   * Tests that two stores of various sizes (including empty store) can be correctly merged.
+   */
+  @Test
+  public void mergeStoreTest() throws Exception {
+    final int storeOfSize = 1;
+    final int storeOfPartitions = 2;
+    final int[][] storeCreationMethodAndParameter = new int[][]{
+        {storeOfSize, 0},
+        {storeOfSize, 2},
+        {storeOfPartitions, 3}
+    };
+    final int length = storeCreationMethodAndParameter.length;
+
+    for (int i = 0; i < length; i ++) {
+      for (int j = 0; j < length; j ++) {
+        int method1 = storeCreationMethodAndParameter[i][0];
+        int parameter1 = storeCreationMethodAndParameter[i][1];
+        List<KeyValuePair> pairs1 = Lists.newArrayList();
+        TachyonURI storeUri1 = method1 == storeOfSize ? createStoreOfSize(parameter1, pairs1) :
+            createStoreOfMultiplePartitions(parameter1, pairs1);
+
+        int method2 = storeCreationMethodAndParameter[j][0];
+        int parameter2 = storeCreationMethodAndParameter[j][1];
+        List<KeyValuePair> pairs2 = Lists.newArrayList();
+        TachyonURI storeUri2 = method2 == storeOfSize ? createStoreOfSize(parameter2, pairs2) :
+            createStoreOfMultiplePartitions(parameter2, pairs2);
+
+        testMergeStore(storeUri1, pairs1, storeUri2, pairs2);
+      }
+    }
   }
 }

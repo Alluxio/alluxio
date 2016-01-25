@@ -32,7 +32,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.client.ClientContext;
-import tachyon.client.worker.BlockWorkerClient;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;

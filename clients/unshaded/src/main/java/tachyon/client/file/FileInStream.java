@@ -18,6 +18,8 @@ package tachyon.client.file;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +54,7 @@ import tachyon.worker.NetAddress;
  * in the local machine, remote machines, or the under storage system.
  */
 @PublicApi
+@NotThreadSafe
 public class FileInStream extends InputStream implements BoundedStream, Seekable {
   /** Logger for this class */
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,6 +35,7 @@ import com.google.protobuf.Message;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
@@ -50,6 +52,8 @@ import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.KeyValue.CompletePartitionEntry;
 import tachyon.proto.journal.KeyValue.CompleteStoreEntry;
 import tachyon.proto.journal.KeyValue.CreateStoreEntry;
+import tachyon.proto.journal.KeyValue.DeleteStoreEntry;
+import tachyon.proto.journal.KeyValue.MergeStoreEntry;
 import tachyon.thrift.KeyValueMasterClientService;
 import tachyon.thrift.PartitionInfo;
 import tachyon.util.IdUtils;
@@ -115,6 +119,10 @@ public final class KeyValueMaster extends MasterBase {
         completePartitionFromEntry((CompletePartitionEntry) innerEntry);
       } else if (innerEntry instanceof CompleteStoreEntry) {
         completeStoreFromEntry((CompleteStoreEntry) innerEntry);
+      } else if (innerEntry instanceof DeleteStoreEntry) {
+        deleteStoreFromEntry((DeleteStoreEntry) innerEntry);
+      } else if (innerEntry instanceof MergeStoreEntry) {
+        mergeStoreFromEntry((MergeStoreEntry) innerEntry);
       } else {
         throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
       }
@@ -156,9 +164,10 @@ public final class KeyValueMaster extends MasterBase {
    * @param path URI of the key-value store
    * @param info information of this completed parition
    * @throws FileDoesNotExistException if the key-value store URI does not exists
+   * @throws AccessControlException if permission checking fails
    */
   public synchronized void completePartition(TachyonURI path, PartitionInfo info)
-      throws FileDoesNotExistException {
+      throws FileDoesNotExistException, AccessControlException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
@@ -196,8 +205,10 @@ public final class KeyValueMaster extends MasterBase {
    *
    * @param path URI of the key-value store
    * @throws FileDoesNotExistException if the key-value store URI does not exists
+   * @throws AccessControlException if permission checking fails
    */
-  public synchronized void completeStore(TachyonURI path) throws FileDoesNotExistException {
+  public synchronized void completeStore(TachyonURI path) throws FileDoesNotExistException,
+      AccessControlException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
@@ -229,9 +240,10 @@ public final class KeyValueMaster extends MasterBase {
    *
    * @param path URI of the key-value store
    * @throws FileAlreadyExistsException if a key-value store URI exists
+   * @throws AccessControlException if permission checking fails
    */
   public synchronized void createStore(TachyonURI path)
-      throws FileAlreadyExistsException, InvalidPathException {
+      throws FileAlreadyExistsException, InvalidPathException, AccessControlException {
     try {
       // Create this dir
       mFileSystemMaster.mkdir(path,
@@ -265,20 +277,98 @@ public final class KeyValueMaster extends MasterBase {
   }
 
   /**
+   * Deletes a completed key-value store.
+   *
+   * @param uri {@link TachyonURI} to the store
+   * @throws IOException if non-Tachyon error occurs
+   * @throws InvalidPathException if the uri exists but is not a key-value store
+   * @throws FileDoesNotExistException if the uri does not exist
+   * @throws TachyonException if other Tachyon error occurs
+   */
+  public synchronized void deleteStore(TachyonURI uri)
+      throws IOException, InvalidPathException, FileDoesNotExistException, TachyonException {
+    long fileId = getFileId(uri);
+    checkIsCompletePartition(fileId, uri);
+    mFileSystemMaster.deleteFile(uri, true);
+    deleteStoreInternal(fileId);
+    writeJournalEntry(newDeleteStoreEntry(fileId));
+    flushJournal();
+  }
+
+  // Deletes a store, called when replaying journals.
+  private void deleteStoreFromEntry(DeleteStoreEntry entry) {
+    deleteStoreInternal(entry.getStoreId());
+  }
+
+  // Internal implementation to deleteStore a key-value store.
+  private void deleteStoreInternal(long fileId) {
+    mCompleteStoreToPartitions.remove(fileId);
+  }
+
+  private long getFileId(TachyonURI uri) throws AccessControlException, FileDoesNotExistException {
+    long fileId = mFileSystemMaster.getFileId(uri);
+    if (fileId == IdUtils.INVALID_FILE_ID) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));
+    }
+    return fileId;
+  }
+
+  void checkIsCompletePartition(long fileId, TachyonURI uri) throws InvalidPathException {
+    if (!mCompleteStoreToPartitions.containsKey(fileId)) {
+      throw new InvalidPathException(ExceptionMessage.INVALID_KEY_VALUE_STORE_URI.getMessage(uri));
+    }
+  }
+
+  /**
+   * Merges one completed key-value store to another completed key-value store.
+   *
+   * @param fromUri the {@link TachyonURI} to the store to be merged
+   * @param toUri the {@link TachyonURI} to the store to be merged to
+   * @throws IOException if non-Tachyon error occurs
+   * @throws InvalidPathException if the uri exists but is not a key-value store
+   * @throws FileDoesNotExistException if the uri does not exist
+   * @throws TachyonException if other Tachyon error occurs
+   */
+  public synchronized void mergeStore(TachyonURI fromUri, TachyonURI toUri)
+      throws IOException, FileDoesNotExistException, InvalidPathException, TachyonException {
+    long fromFileId = getFileId(fromUri);
+    long toFileId = getFileId(toUri);
+    checkIsCompletePartition(fromFileId, fromUri);
+    checkIsCompletePartition(toFileId, toUri);
+
+    // Rename fromUri to "toUri/%s-%s" % (last component of fromUri, UUID).
+    // NOTE: rename does not change the existing block IDs.
+    mFileSystemMaster.rename(fromUri, new TachyonURI(PathUtils.concatPath(toUri.toString(),
+        String.format("%s-%s", fromUri.getName(), UUID.randomUUID().toString()))));
+    mergeStoreInternal(fromFileId, toFileId);
+
+    writeJournalEntry(newMergeStoreEntry(fromFileId, toFileId));
+    flushJournal();
+  }
+
+  // Internal implementation to merge two completed stores.
+  private void mergeStoreInternal(long fromFileId, long toFileId) {
+    // Move partition infos to the new store.
+    List<PartitionInfo> partitionsToBeMerged = mCompleteStoreToPartitions.remove(fromFileId);
+    mCompleteStoreToPartitions.get(toFileId).addAll(partitionsToBeMerged);
+  }
+
+  // Merges two completed stores, called when replaying journals.
+  private void mergeStoreFromEntry(MergeStoreEntry entry) {
+    mergeStoreInternal(entry.getFromStoreId(), entry.getToStoreId());
+  }
+
+  /**
    * Gets a list of partitions of a given key-value store.
    *
    * @param path URI of the key-value store
    * @return a list of partition information
    * @throws FileDoesNotExistException if the key-value store URI does not exists
+   * @throws AccessControlException if permission checking fails
    */
   public synchronized List<PartitionInfo> getPartitionInfo(TachyonURI path)
-      throws FileDoesNotExistException {
-    final long fileId = mFileSystemMaster.getFileId(path);
-    if (fileId == IdUtils.INVALID_FILE_ID) {
-      throw new FileDoesNotExistException(
-          String.format("Failed to getPartitionInfo: path %s does not exist", path));
-    }
-
+      throws FileDoesNotExistException, AccessControlException {
+    long fileId = getFileId(path);
     List<PartitionInfo> partitions = mCompleteStoreToPartitions.get(fileId);
     if (partitions == null) {
       return Lists.newArrayList();
@@ -302,5 +392,16 @@ public final class KeyValueMaster extends MasterBase {
   private JournalEntry newCompleteStoreEntry(long fileId) {
     CompleteStoreEntry completeStore = CompleteStoreEntry.newBuilder().setStoreId(fileId).build();
     return JournalEntry.newBuilder().setCompleteStore(completeStore).build();
+  }
+
+  private JournalEntry newDeleteStoreEntry(long fileId) {
+    DeleteStoreEntry deleteStore = DeleteStoreEntry.newBuilder().setStoreId(fileId).build();
+    return JournalEntry.newBuilder().setDeleteStore(deleteStore).build();
+  }
+
+  private JournalEntry newMergeStoreEntry(long fromFileId, long toFileId) {
+    MergeStoreEntry mergeStore = MergeStoreEntry.newBuilder().setFromStoreId(fromFileId)
+        .setToStoreId(toFileId).build();
+    return JournalEntry.newBuilder().setMergeStore(mergeStore).build();
   }
 }

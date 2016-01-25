@@ -29,8 +29,8 @@ import tachyon.worker.NetAddress;
  * </p>
  *
  * <p>
- * The {@link FileOutStream} calls {@link #getWorkerForNextBlock(List)} to decide which worker to
- * write the next block per block write.
+ * The {@link FileOutStream} calls {@link #getWorkerForNextBlock(List, long)} to decide which worker
+ * to write the next block per block write.
  * </p>
  *
  * <p>

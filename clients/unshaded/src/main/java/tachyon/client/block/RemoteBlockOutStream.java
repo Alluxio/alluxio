@@ -21,7 +21,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockWriter;
-import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.TachyonException;
 import tachyon.worker.NetAddress;
 
