@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DefaultStringifier;
 import org.slf4j.Logger;
@@ -30,6 +32,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Utility class for {@link TachyonConf}
  */
+@ThreadSafe
 public final class ConfUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

@@ -20,6 +20,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Class representing a pool of resources to be temporarily used and returned. Inheriting classes
  * must implement the close method as well as initialize the resources in the constructor. The
@@ -28,6 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @param <T> the type of resource this pool manages
  */
+@ThreadSafe
 public abstract class ResourcePool<T> {
   private final ReentrantLock mTakeLock;
   private final Condition mNotEmpty;
@@ -94,8 +97,8 @@ public abstract class ResourcePool<T> {
       } finally {
         mTakeLock.unlock();
       }
-    } catch (InterruptedException ie) {
-      throw new RuntimeException(ie);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
   }
 

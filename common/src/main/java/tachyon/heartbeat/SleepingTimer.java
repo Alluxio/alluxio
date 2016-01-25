@@ -15,6 +15,8 @@
 
 package tachyon.heartbeat;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +25,7 @@ import tachyon.Constants;
 /**
  * This class can be used for executing heartbeats periodically.
  */
+@NotThreadSafe
 public final class SleepingTimer implements HeartbeatTimer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

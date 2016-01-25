@@ -48,8 +48,8 @@ public class MessageSavingHandler extends SimpleChannelInboundHandler<RPCMessage
       if (!mMessageAvailable.tryAcquire(1, 1, TimeUnit.SECONDS)) {
         Assert.fail("Timed out receiving message.");
       }
-    } catch (InterruptedException ie) {
-      Assert.fail("Failed with exception: " + ie.getMessage());
+    } catch (InterruptedException e) {
+      Assert.fail("Failed with exception: " + e.getMessage());
     }
     return mMessage;
   }

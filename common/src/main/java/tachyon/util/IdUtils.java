@@ -17,6 +17,8 @@ package tachyon.util;
 
 import java.util.UUID;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +28,7 @@ import tachyon.master.block.BlockId;
 /**
  * Utility methods for working with an id in Tachyon.
  */
+@ThreadSafe
 public final class IdUtils {
   private IdUtils() {} // prevent instantiation
 

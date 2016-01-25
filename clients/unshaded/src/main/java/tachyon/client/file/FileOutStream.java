@@ -20,6 +20,8 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +54,7 @@ import tachyon.worker.NetAddress;
  * system.
  */
 @PublicApi
+@NotThreadSafe
 public class FileOutStream extends OutStreamBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -162,8 +165,8 @@ public class FileOutStream extends OutStreamBase {
           }
           canComplete = true;
         }
-      } catch (IOException ioe) {
-        handleCacheWriteException(ioe);
+      } catch (IOException e) {
+        handleCacheWriteException(e);
       }
     }
 
@@ -200,8 +203,8 @@ public class FileOutStream extends OutStreamBase {
           getNextBlock();
         }
         mCurrentBlockOutStream.write(b);
-      } catch (IOException ioe) {
-        handleCacheWriteException(ioe);
+      } catch (IOException e) {
+        handleCacheWriteException(e);
       }
     }
 
@@ -242,8 +245,8 @@ public class FileOutStream extends OutStreamBase {
             tLen -= currentBlockLeftBytes;
           }
         }
-      } catch (IOException ioe) {
-        handleCacheWriteException(ioe);
+      } catch (IOException e) {
+        handleCacheWriteException(e);
       }
     }
 
@@ -285,12 +288,12 @@ public class FileOutStream extends OutStreamBase {
     }
   }
 
-  protected void handleCacheWriteException(IOException ioe) throws IOException {
+  protected void handleCacheWriteException(IOException e) throws IOException {
     if (!mUnderStorageType.isSyncPersist()) {
-      throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(ioe.getMessage()), ioe);
+      throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.getMessage()), e);
     }
 
-    LOG.warn("Failed to write into TachyonStore, canceling write attempt.", ioe);
+    LOG.warn("Failed to write into TachyonStore, canceling write attempt.", e);
     if (mCurrentBlockOutStream != null) {
       mShouldCacheCurrentBlock = false;
       mCurrentBlockOutStream.cancel();

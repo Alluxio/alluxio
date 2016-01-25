@@ -18,6 +18,8 @@ package tachyon.client.keyvalue.hadoop;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -43,6 +45,7 @@ import tachyon.exception.TachyonException;
  * created by each Reducer into one key-value store under the MapReduce output directory.
  */
 @PublicApi
+@ThreadSafe
 public final class KeyValueOutputCommitter extends FileOutputCommitter {
   private static final KeyValueStores KEY_VALUE_STORES = KeyValueStores.Factory.create();
 

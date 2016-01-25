@@ -18,6 +18,8 @@ package tachyon;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -32,6 +34,7 @@ import tachyon.util.io.PathUtils;
 /**
  * Utility to get leader from zookeeper.
  */
+@ThreadSafe
 public final class LeaderInquireClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

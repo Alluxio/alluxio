@@ -25,12 +25,13 @@ import org.apache.hadoop.mapred.RecordReader;
 import tachyon.client.keyvalue.KeyValueIterator;
 import tachyon.client.keyvalue.KeyValuePair;
 import tachyon.client.keyvalue.KeyValuePartitionReader;
+import tachyon.client.keyvalue.KeyValueStores;
 import tachyon.exception.TachyonException;
 import tachyon.util.io.BufferUtils;
 
 /**
  * Implements {@link RecordReader}, each record is a key-value pair stored in a partition of the
- * {@link tachyon.client.keyvalue.KeyValueStores}.
+ * {@link KeyValueStores}.
  */
 @ThreadSafe
 final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWritable> {

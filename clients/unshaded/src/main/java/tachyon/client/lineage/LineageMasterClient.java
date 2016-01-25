@@ -27,6 +27,7 @@ import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
+import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.thrift.LineageInfo;
@@ -123,10 +124,11 @@ public final class LineageMasterClient extends MasterClientBase {
    * @param ttl the time to live for the file
    * @return the value of the lineage creation result
    * @throws IOException if a non-Tachyon exception occurs
+   * @throws LineageDoesNotExistException if the file does not exist
    * @throws TachyonException if a Tachyon exception occurs
    */
   public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
-      final long ttl) throws IOException, TachyonException {
+      final long ttl) throws IOException, LineageDoesNotExistException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
       public Long call() throws TachyonTException, TException {

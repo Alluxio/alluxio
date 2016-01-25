@@ -31,6 +31,9 @@ import tachyon.exception.TachyonException;
  */
 public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
 
+  /**
+   * Factory for {@link KeyValuePartitionReader}.
+   */
   class Factory {
     /**
      * Factory method to create a {@link KeyValuePartitionReader} given the {@link TachyonURI} of a

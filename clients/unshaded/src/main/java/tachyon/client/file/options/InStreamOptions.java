@@ -15,6 +15,8 @@
 
 package tachyon.client.file.options;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -29,6 +31,7 @@ import tachyon.util.CommonUtils;
  * Method option for reading a file.
  */
 @PublicApi
+@NotThreadSafe
 public final class InStreamOptions {
   private FileWriteLocationPolicy mLocationPolicy;
   private ReadType mReadType;

@@ -23,11 +23,15 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.commons.lang.StringUtils;
 import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
+import tachyon.Constants;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.shell.command.TfsShellCommand;
@@ -37,6 +41,8 @@ import tachyon.util.CommonUtils;
  * Class for handling command line inputs.
  */
 public class TfsShell implements Closeable {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /**
    * Main method, starts a new TfsShell.
    *
@@ -138,8 +144,9 @@ public class TfsShell implements Closeable {
     try {
       command.run(args);
       return 0;
-    } catch (IOException ioe) {
-      System.out.println(ioe.getMessage());
+    } catch (IOException e) {
+      System.out.println(e.getMessage());
+      LOG.error("Error running " + StringUtils.join(argv, " "), e);
       return -1;
     }
   }
