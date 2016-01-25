@@ -26,7 +26,7 @@ import tachyon.worker.file.FileSystemMasterClient;
 
 /**
  * PinListSync periodically syncs the set of pinned inodes from master,  and saves the new pinned
- * inodes to the {@link BlockDataManager}.
+ * inodes to the {@link BlockWorker}.
  *
  */
 public final class PinListSync implements HeartbeatExecutor {
