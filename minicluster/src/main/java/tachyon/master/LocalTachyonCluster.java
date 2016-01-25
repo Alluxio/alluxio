@@ -17,6 +17,8 @@ package tachyon.master;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.file.FileSystem;
@@ -41,6 +43,7 @@ import tachyon.worker.WorkerContext;
  * localTachyonCluster.start(testConf);
  * </pre>
  */
+@NotThreadSafe
 public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   private LocalTachyonMaster mMaster;
   private TachyonConf mClientConf;
