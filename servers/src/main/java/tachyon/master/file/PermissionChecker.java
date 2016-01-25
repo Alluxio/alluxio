@@ -17,6 +17,8 @@ package tachyon.master.file;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
@@ -28,7 +30,6 @@ import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.authorization.FileSystemPermission;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Base class to provide permission check logic.
