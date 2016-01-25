@@ -117,10 +117,6 @@ public abstract class UnderFileSystemCluster {
     return new LocalFilesystemCluster(baseDir, tachyonConf);
   }
 
-  protected String mBaseDir;
-
-  protected final TachyonConf mTachyonConf;
-
   /**
    * This method is only used by the tachyon.client.FileOutStreamIntegrationTest unit-test.
    *
@@ -131,6 +127,10 @@ public abstract class UnderFileSystemCluster {
     return sUnderFSClass != null
         && sUnderFSClass.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster");
   }
+
+  protected String mBaseDir;
+
+  protected final TachyonConf mTachyonConf;
 
   /**
    * @param baseDir the base directory
