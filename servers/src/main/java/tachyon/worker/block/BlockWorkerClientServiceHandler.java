@@ -18,6 +18,8 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,7 @@ import tachyon.worker.WorkerContext;
 /**
  * This class is a Thrift handler for block worker RPCs invoked by a Tachyon client.
  */
+@NotThreadSafe
 public final class BlockWorkerClientServiceHandler implements BlockWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

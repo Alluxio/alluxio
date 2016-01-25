@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,19 +51,25 @@ import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
 
 /**
- * Responsible for Storing files into under file system.
+ * Responsible for storing files into under file system.
  */
+@NotThreadSafe // TODO(jiri): make thread-safe
 public final class FileDataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final UnderFileSystem mUfs;
-  /** Block data manager for access block info */
+
+  /** Block data manager for access block info. */
   private final BlockDataManager mBlockDataManager;
 
-  // the file being persisted
+  /** The file being persisted. */
+  @GuardedBy("mLock")
   private final Set<Long> mPersistingInProgressFiles;
-  // the file are persisted, but not sent back to master for confirmation yet
+
+  /** The file are persisted, but not sent back to master for confirmation yet. */
+  @GuardedBy("mLock")
   private final Set<Long> mPersistedFiles;
+
   private final TachyonConf mTachyonConf;
   private final Object mLock = new Object();
 

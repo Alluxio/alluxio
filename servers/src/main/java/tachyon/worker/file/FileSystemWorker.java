@@ -35,10 +35,12 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockDataManager;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class is responsible for managing all top level components of the file system worker.
  */
+@NotThreadSafe // TODO(jiri): make thread-safe
 public final class FileSystemWorker extends WorkerBase {
   /** Logic for managing file persistence */
   private final FileDataManager mFileDataManager;

@@ -17,6 +17,8 @@ package tachyon.worker.block;
 
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.Constants;
 import tachyon.StorageTierAssoc;
 import tachyon.WorkerStorageTierAssoc;
@@ -26,6 +28,7 @@ import tachyon.worker.WorkerSource;
 /**
  * This class listens on block events and increases the metrics counters.
  */
+@NotThreadSafe
 public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
   private final WorkerSource mWorkerSource;
   private final StorageTierAssoc mStorageTierAssoc;

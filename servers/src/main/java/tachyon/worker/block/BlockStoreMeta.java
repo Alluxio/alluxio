@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.collections.Pair;
@@ -32,21 +34,25 @@ import tachyon.worker.block.meta.StorageTier;
  * <p>
  * TODO(bin): Use proto buf to represent this information.
  */
+@ThreadSafe
 public final class BlockStoreMeta {
   // TODO(bin): The following two fields don't need to be computed on the creation of each
   // {@link BlockStoreMeta} instance.
 
-  /** Mapping from storage tier alias to capacity bytes */
+  /** Mapping from storage tier alias to capacity bytes. */
   private final Map<String, Long> mCapacityBytesOnTiers = new HashMap<String, Long>();
-  /** Mapping from storage tier alias to used bytes */
+
+  /** Mapping from storage tier alias to used bytes. */
   private final Map<String, Long> mUsedBytesOnTiers = new HashMap<String, Long>();
-  /** Mapping from storage tier alias to capacity bytes */
+
+  /** Mapping from storage tier alias to capacity bytes. */
   private final Map<String, List<Long>> mBlockIdsOnTiers = new HashMap<String, List<Long>>();
 
-  /** Mapping from storage dir tier and path to total capacity */
+  /** Mapping from storage dir tier and path to total capacity. */
   private final Map<Pair<String, String>, Long> mCapacityBytesOnDirs =
       new HashMap<Pair<String, String>, Long>();
-  /** Mapping from storage dir tier and path to used bytes */
+
+  /** Mapping from storage dir tier and path to used bytes. */
   private final Map<Pair<String, String>, Long> mUsedBytesOnDirs =
       new HashMap<Pair<String, String>, Long>();
 

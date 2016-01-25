@@ -15,9 +15,12 @@
 
 package tachyon.worker.block;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
- * A ReadWrite Lock to guard one block. There should be only one lock per block.
+ * A read-write lock to guard one block. There should be only one lock per block.
  */
+@ThreadSafe
 public enum BlockLockType {
   READ(0), // A read lock
   WRITE(1); // A write lock

@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,16 +39,21 @@ import tachyon.worker.WorkerContext;
  * {@link SpaceReserver} periodically checks if there is enough space reserved on each storage tier,
  * if there is no enough free space on some tier, free space from it.
  */
+@NotThreadSafe
 public class SpaceReserver implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final BlockDataManager mBlockManager;
-  /** Association between storage tier aliases and ordinals for the worker */
+
+  /** Association between storage tier aliases and ordinals for the worker. */
   private final StorageTierAssoc mStorageTierAssoc;
-  /** Mapping from tier alias to space size to be reserved on the tier */
+
+  /** Mapping from tier alias to space size to be reserved on the tier. */
   private final Map<String, Long> mBytesToReserveOnTiers = new HashMap<String, Long>();
-  /** Milliseconds between each check */
+
+  /** Milliseconds between each check. */
   private final int mCheckIntervalMs;
-  /** Flag to indicate if the checking should continue */
+
+  /** Flag to indicate if the checking should continue. */
   private volatile boolean mRunning;
 
   /**

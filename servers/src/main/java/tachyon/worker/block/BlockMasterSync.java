@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,22 +53,28 @@ import tachyon.worker.WorkerIdRegistry;
  * If the task fails to heartbeat to the master, it will destroy its old master client and recreate
  * it before retrying.
  */
+@NotThreadSafe
 public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
-  /** Block data manager responsible for interacting with Tachyon and UFS storage */
+
+  /** Block data manager responsible for interacting with Tachyon and UFS storage. */
   private final BlockDataManager mBlockDataManager;
-  /** The net address of the worker */
+
+  /** The net address of the worker. */
   private final NetAddress mWorkerAddress;
-  /** Milliseconds between heartbeats before a timeout */
+
+  /** Milliseconds between heartbeats before a timeout. */
   private final int mHeartbeatTimeoutMs;
-  /** Client for all master communication */
+
+  /** Client for all master communication. */
   private final BlockMasterClient mMasterClient;
-  /** The thread pool to remove block */
+
+  /** The thread pool to remove block. */
   private final ExecutorService mBlockRemovalService = Executors.newFixedThreadPool(
       DEFAULT_BLOCK_REMOVER_POOL_SIZE, ThreadFactoryUtils.build("block-removal-service-%d", true));
 
-  /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed */
+  /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
   /**
@@ -198,8 +206,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /**
    * Thread to remove block from master.
    */
+  @NotThreadSafe
   private class BlockRemover implements Runnable {
-    private BlockDataManager mBlockDataManager;
+    private final BlockDataManager mBlockDataManager;
     private long mSessionId;
     private long mBlockId;
 

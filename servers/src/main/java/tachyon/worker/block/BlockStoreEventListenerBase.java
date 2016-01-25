@@ -15,10 +15,13 @@
 
 package tachyon.worker.block;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * A block store event listener base class implementing the {@link BlockStoreEventListener}
  * interface with empty methods bodies.
  */
+@NotThreadSafe
 public abstract class BlockStoreEventListenerBase implements BlockStoreEventListener {
 
   @Override

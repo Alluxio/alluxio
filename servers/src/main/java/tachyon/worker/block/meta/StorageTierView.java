@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.worker.block.BlockMetadataManagerView;
@@ -26,12 +28,13 @@ import tachyon.worker.block.BlockMetadataManagerView;
 /**
  * This class is a wrapper of {@link StorageTier} to provide more limited access
  */
+@ThreadSafe
 public final class StorageTierView {
 
   /** the {@link StorageTier} this view is derived from */
   private final StorageTier mTier;
   /** a list of {@link StorageDirView} under this StorageTierView */
-  private List<StorageDirView> mDirViews = new ArrayList<StorageDirView>();
+  private final List<StorageDirView> mDirViews = new ArrayList<StorageDirView>();
   /** the {@link BlockMetadataManagerView} this {@link StorageTierView} is under */
   private final BlockMetadataManagerView mManagerView;
 

@@ -15,6 +15,8 @@
 
 package tachyon.worker.block.meta;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.util.io.PathUtils;
@@ -23,6 +25,7 @@ import tachyon.worker.block.BlockStoreLocation;
 /**
  * A base class of the metadata of blocks in Tachyon managed storage.
  */
+@ThreadSafe
 public abstract class BlockMetaBase {
   /**
    * All blocks are created as temp blocks before committed. They are stored in BlockStore under a
