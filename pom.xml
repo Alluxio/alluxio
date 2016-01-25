@@ -657,7 +657,7 @@
         <jdk>[1.8,)</jdk> <!-- 1.8 or newer -->
       </activation>
       <modules>
-        <module>fuse</module>
+        <module>integration/fuse</module>
       </modules>
     </profile>
   </profiles>
