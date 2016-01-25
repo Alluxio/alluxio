@@ -186,6 +186,7 @@ public final class LineageMaster extends MasterBase {
    * @throws FileAlreadyExistsException if the output file already exists
    * @throws BlockInfoException if fails to create the output file
    * @throws IOException if the creation of a file fails
+   * @throws AccessControlException if the permission check fails
    */
   public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
       Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
