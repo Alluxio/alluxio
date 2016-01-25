@@ -29,6 +29,9 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +79,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 /**
  * This master manages the metadata for all the blocks and block workers in Tachyon.
  */
+@ThreadSafe
+// TODO(jiri): Make this class thread safe.
 public final class BlockMaster extends MasterBase implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -85,11 +90,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * must be synchronized on mBlocks. If both block and worker metadata must be locked, mBlocks must
    * be locked first.
    */
+  @GuardedBy("itself")
   private final Map<Long, MasterBlockInfo> mBlocks = new HashMap<Long, MasterBlockInfo>();
   /**
    * Keeps track of block which are no longer in Tachyon storage. Access must be synchronized on
    * mBlocks.
    */
+  @GuardedBy("mBlocks")
   private final Set<Long> mLostBlocks = new HashSet<Long>();
   /** This state must be journaled. */
   private final BlockContainerIdGenerator mBlockContainerIdGenerator =
@@ -122,6 +129,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * metadata must be locked, mBlocks must be locked first.
    */
   // This warning cannot be avoided when passing generics into varargs
+  @GuardedBy("itself")
   @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
@@ -130,6 +138,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * synchronized on {@link #mWorkers}.
    */
   // This warning cannot be avoided when passing generics into varargs
+  @GuardedBy("mWorkers")
   @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
@@ -181,7 +190,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   @Override
   public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
     // clear state before processing checkpoint.
-    mBlocks.clear();
+    synchronized (mBlocks) {
+      mBlocks.clear();
+    }
     super.processJournalCheckpoint(inputStream);
   }
 
@@ -194,8 +205,10 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
           .setNextContainerId(((BlockContainerIdGeneratorEntry) innerEntry).getNextContainerId());
     } else if (innerEntry instanceof BlockInfoEntry) {
       BlockInfoEntry blockInfoEntry = (BlockInfoEntry) innerEntry;
-      mBlocks.put(blockInfoEntry.getBlockId(),
-          new MasterBlockInfo(blockInfoEntry.getBlockId(), blockInfoEntry.getLength()));
+      synchronized (mBlocks) {
+        mBlocks.put(blockInfoEntry.getBlockId(),
+            new MasterBlockInfo(blockInfoEntry.getBlockId(), blockInfoEntry.getLength()));
+      }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -204,12 +217,14 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     outputStream.writeEntry(mBlockContainerIdGenerator.toJournalEntry());
-    for (MasterBlockInfo blockInfo : mBlocks.values()) {
-      BlockInfoEntry blockInfoEntry = BlockInfoEntry.newBuilder()
-          .setBlockId(blockInfo.getBlockId())
-          .setLength(blockInfo.getLength())
-          .build();
-      outputStream.writeEntry(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
+    synchronized (mBlocks) {
+      for (MasterBlockInfo blockInfo : mBlocks.values()) {
+        BlockInfoEntry blockInfoEntry = BlockInfoEntry.newBuilder()
+            .setBlockId(blockInfo.getBlockId())
+            .setLength(blockInfo.getLength())
+            .build();
+        outputStream.writeEntry(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
+      }
     }
   }
 
@@ -234,8 +249,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * @return a list of {@link WorkerInfo} objects representing the workers in Tachyon. Called via
-   *         RPC, and the internal web ui.
+   * @return a list of {@link WorkerInfo} objects representing the workers in Tachyon
    */
   public List<WorkerInfo> getWorkerInfoList() {
     synchronized (mWorkers) {
@@ -248,8 +262,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * @return the total capacity (in bytes) on all tiers, on all workers of Tachyon. Called via RPC
-   *         and internal web ui.
+   * @return the total capacity (in bytes) on all tiers, on all workers of Tachyon
    */
   public long getCapacityBytes() {
     long ret = 0;
@@ -269,8 +282,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * @return the total used bytes on all tiers, on all workers of Tachyon. Called via RPC and
-   *         internal web ui.
+   * @return the total used bytes on all tiers, on all workers of Tachyon
    */
   public long getUsedBytes() {
     long ret = 0;
@@ -283,7 +295,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * Gets info about the lost workers. Called by the internal web ui.
+   * Gets info about the lost workers.
    *
    * @return a set of worker info
    */
@@ -298,7 +310,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * Removes blocks from workers. Called by internal masters.
+   * Removes blocks from workers.
    *
    * @param blockIds a list of block ids to remove from Tachyon space
    */
@@ -324,20 +336,18 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * @return a new block container id. Called by internal masters
+   * @return a new block container id
    */
   @Override
   public long getNewContainerId() {
-    synchronized (mBlockContainerIdGenerator) {
-      long containerId = mBlockContainerIdGenerator.getNewContainerId();
-      writeJournalEntry(mBlockContainerIdGenerator.toJournalEntry());
-      flushJournal();
-      return containerId;
-    }
+    long containerId = mBlockContainerIdGenerator.getNewContainerId();
+    writeJournalEntry(mBlockContainerIdGenerator.toJournalEntry());
+    flushJournal();
+    return containerId;
   }
 
   /**
-   * Marks a block as committed on a specific worker. Called by workers via RPC.
+   * Marks a block as committed on a specific worker.
    *
    * @param workerId the worker id committing the block
    * @param usedBytesOnTier the updated used bytes on the tier of the worker
@@ -375,7 +385,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
 
   /**
    * Marks a block as committed, but without a worker location. This means the block is only in ufs.
-   * Called by internal masters.
    *
    * @param blockId the id of the block to commit
    * @param length the length of the block
@@ -401,7 +410,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
 
   /**
    * @param blockId the block id to get information for
-   * @return the {@link BlockInfo} for the given block id. Called via RPC
+   * @return the {@link BlockInfo} for the given block id
    * @throws BlockInfoException if the block info is not found
    */
   public BlockInfo getBlockInfo(long blockId) throws BlockInfoException {
@@ -418,7 +427,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * Retrieves information for the given list of block ids. Called by internal masters.
+   * Retrieves information for the given list of block ids.
    *
    * @param blockIds A list of block ids to retrieve the information for
    * @return A list of {@link BlockInfo} objects corresponding to the input list of block ids. The
@@ -441,7 +450,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * @return the total bytes on each storage tier. Called by internal web ui
+   * @return the total bytes on each storage tier.
    */
   public Map<String, Long> getTotalBytesOnTiers() {
     Map<String, Long> ret = new HashMap<String, Long>();
@@ -457,7 +466,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * @return the used bytes on each storage tier. Called by internal web ui
+   * @return the used bytes on each storage tier.
    */
   public Map<String, Long> getUsedBytesOnTiers() {
     Map<String, Long> ret = new HashMap<String, Long>();
@@ -473,8 +482,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * Returns a worker id for the given worker. Returns the existing worker id if it exists. Called
-   * by workers, via RPC.
+   * Returns a worker id for the given worker.
    *
    * @param workerNetAddress the worker {@link NetAddress}
    * @return the worker id for this worker
@@ -513,7 +521,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * Updates metadata when a worker registers with the master. Called by workers via RPC.
+   * Updates metadata when a worker registers with the master.
    *
    * @param workerId the worker id of the worker registering
    * @param storageTiers a list of storage tier aliases in order of their position in the worker's
@@ -552,8 +560,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * Updates metadata when a worker periodically heartbeats with the master. Called by the worker
-   * periodically, via RPC.
+   * Updates metadata when a worker periodically heartbeats with the master.
    *
    * @param workerId the worker id
    * @param usedBytesOnTiers a mapping from tier alias to the used bytes
@@ -589,7 +596,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   /**
    * Updates the worker and block metadata for blocks removed from a worker.
    *
-   * mBlocks should already be locked before calling this method.
+   * NOTE: {@link #mBlocks} should already be locked before calling this method.
    *
    * @param workerInfo The worker metadata object
    * @param removedBlockIds A list of block ids removed from the worker
@@ -627,7 +634,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   /**
    * Updates the worker and block metadata for blocks added to a worker.
    *
-   * {@link #mBlocks} should already be locked before calling this method.
+   * NOTE: {@link #mBlocks} should already be locked before calling this method.
    *
    * @param workerInfo The worker metadata object
    * @param addedBlockIds A mapping from storage tier alias to a list of block ids added
@@ -661,7 +668,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * Creates a {@link BlockInfo} form a given {@link MasterBlockInfo}, by populating worker
    * locations.
    *
-   * {@link #mWorkers} should already be locked before calling this method.
+   * NOTE: {@link #mWorkers} should already be locked before calling this method.
    *
    * @param masterBlockInfo the {@link MasterBlockInfo}
    * @return a {@link BlockInfo} from a {@link MasterBlockInfo}. Populates worker locations
@@ -695,7 +702,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * @param blockIds the ids of the lost blocks
    */
   public void reportLostBlocks(List<Long> blockIds) {
-    synchronized (mLostBlocks) {
+    synchronized (mBlocks) {
       mLostBlocks.addAll(blockIds);
     }
   }
