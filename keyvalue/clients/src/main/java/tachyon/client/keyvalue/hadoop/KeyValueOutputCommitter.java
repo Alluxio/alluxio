@@ -48,6 +48,8 @@ class KeyValueOutputCommitter extends FileOutputCommitter {
   }
 
   private TachyonURI getTaskTempOutputURI(TaskAttemptContext context) throws IOException {
+    // We specifically avoid using KeyValueOutputCommitter#getTaskAttemptPath, which exists in the
+    // hdfs2 API but not the hdfs1 API
     return new TachyonURI(KeyValueOutputFormat.getTaskTempOutputDirectoryURI(context.getJobConf())
         .toString());
   }
