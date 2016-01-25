@@ -22,7 +22,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
 
 /**
- * The mock cluster for local file system as UnderFileSystemSingleLocal.
+ * The mock cluster for local file system.
  */
 public class LocalFilesystemCluster extends UnderFileSystemCluster {
 
