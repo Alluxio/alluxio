@@ -17,6 +17,8 @@ package tachyon.yarn;
 
 import java.util.Vector;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 /**
@@ -24,6 +26,7 @@ import com.google.common.base.Preconditions;
  *
  * TODO(binfan): to share this class into util.
  */
+@NotThreadSafe
 public class CommandBuilder {
   private String mBase;
   private Vector<String> mArgs = new Vector<String>(10);
