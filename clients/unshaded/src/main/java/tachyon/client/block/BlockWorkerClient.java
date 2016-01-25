@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client.worker;
+package tachyon.client.block;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -93,7 +93,7 @@ public final class BlockWorkerClient extends ClientBase {
     mSessionId = sessionId;
     mIsLocal = isLocal;
     mClientMetrics = Preconditions.checkNotNull(clientMetrics);
-    mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);
+    mHeartbeatExecutor = new BlockWorkerClientHeartbeatExecutor(this);
   }
 
   /**
@@ -150,7 +150,7 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   /**
-   * Notifies worker that the block has been cancelled
+   * Notifies worker that the block has been cancelled.
    *
    * @param blockId The Id of the block to be cancelled
    * @throws IOException if an I/O error occurs
@@ -314,7 +314,7 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   /**
-   * Promotes block back to the top StorageTier
+   * Promotes block back to the top StorageTier.
    *
    * @param blockId The id of the block that will be promoted
    * @return true if succeed, false otherwise
@@ -332,7 +332,7 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   /**
-   * Gets temporary path for the block from the worker
+   * Gets temporary path for the block from the worker.
    *
    * @param blockId The id of the block
    * @param initialBytes The initial size bytes allocated for the block
@@ -358,7 +358,7 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   /**
-   * Requests space for some block from worker
+   * Requests space for some block from worker.
    *
    * @param blockId The id of the block
    * @param requestBytes The requested space size, in bytes
@@ -384,7 +384,7 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   /**
-   * Unlocks the block
+   * Unlocks the block.
    *
    * @param blockId The id of the block
    * @return true if success, false otherwise
@@ -419,8 +419,9 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   /**
-   * Called only by {@link WorkerClientHeartbeatExecutor}, encapsulates {@link #sessionHeartbeat()}
-   * in order to cancel and cleanup the heartbeating thread in case of failures
+   * Called only by {@link BlockWorkerClientHeartbeatExecutor}, encapsulates
+   * {@link #sessionHeartbeat()} in order to cancel and cleanup the heartbeating thread in case of
+   * failures.
    */
   public synchronized void periodicHeartbeat() {
     try {

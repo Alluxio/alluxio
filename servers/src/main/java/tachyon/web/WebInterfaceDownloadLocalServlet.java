@@ -72,8 +72,8 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
     File logFile = new File(logsDir, requestPath);
     try {
       downloadLogFile(logFile, request, response);
-    } catch (FileNotFoundException fnfe) {
-      request.setAttribute("invalidPathError", "Error: Invalid file " + fnfe.getMessage());
+    } catch (FileNotFoundException e) {
+      request.setAttribute("invalidPathError", "Error: Invalid file " + e.getMessage());
       request.setAttribute("currentPath", requestPath);
       request.setAttribute("downloadLogFile", 1);
       request.setAttribute("viewingOffset", 0);

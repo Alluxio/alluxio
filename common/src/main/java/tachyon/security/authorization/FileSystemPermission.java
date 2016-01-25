@@ -223,7 +223,7 @@ public final class FileSystemPermission {
     try {
       Integer.parseInt(value);
       return true;
-    } catch (NumberFormatException nfe) {
+    } catch (NumberFormatException e) {
       return false;
     }
   }

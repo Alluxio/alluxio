@@ -18,6 +18,8 @@ package tachyon.fuse;
 import java.io.Closeable;
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 
@@ -32,6 +34,7 @@ import tachyon.client.file.FileOutStream;
  * This mechanism is preferred over more complex subclassing to avoid useless casts
  * or type checks for every read/write call, which happen quite often.
  */
+@NotThreadSafe
 final class OpenFileEntry implements Closeable {
   private final FileInStream mIn;
   private final FileOutStream mOut;

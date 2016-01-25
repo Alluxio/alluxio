@@ -30,7 +30,7 @@ import org.powermock.reflect.Whitebox;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.client.ClientContext;
-import tachyon.client.worker.BlockWorkerClient;
+import tachyon.client.block.BlockWorkerClient;
 import tachyon.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
 import tachyon.worker.ClientMetrics;
 

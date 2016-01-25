@@ -63,7 +63,7 @@ public final class DataFileChannel implements DataBuffer {
       while (bytesRemaining > 0 && (bytesRead = mFileChannel.read(buffer)) >= 0) {
         bytesRemaining -= bytesRead;
       }
-    } catch (IOException ioe) {
+    } catch (IOException e) {
       return null;
     }
     ByteBuffer readOnly = buffer.asReadOnlyBuffer();

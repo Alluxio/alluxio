@@ -18,15 +18,17 @@ package tachyon.client.file.policy;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.client.ClientContext;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.NetAddress;
-
 /**
  * A policy that returns local host first, and if the local worker doesn't have enough availability,
  * it randomly picks a worker from the active workers list for each block write.
  */
+@ThreadSafe
 public final class LocalFirstPolicy implements FileWriteLocationPolicy {
   private String mLocalHostName = null;
 

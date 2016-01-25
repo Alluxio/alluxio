@@ -97,8 +97,8 @@ public abstract class ResourcePool<T> {
       } finally {
         mTakeLock.unlock();
       }
-    } catch (InterruptedException ie) {
-      throw new RuntimeException(ie);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
   }
 

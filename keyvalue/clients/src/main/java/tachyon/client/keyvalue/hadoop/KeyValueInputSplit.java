@@ -63,8 +63,8 @@ final class KeyValueInputSplit implements InputSplit {
         locations[i] = workersInfo.get(i).getNetAddress().getHost();
       }
       return locations;
-    } catch (TachyonException te) {
-      throw new IOException(te);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     }
   }
 

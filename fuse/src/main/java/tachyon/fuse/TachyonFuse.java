@@ -18,6 +18,8 @@ package tachyon.fuse;
 import java.nio.file.Paths;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -37,6 +39,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Main entry point to Tachyon-FUSE
  */
+@ThreadSafe
 public final class TachyonFuse {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static TachyonConf sTachyonConf;

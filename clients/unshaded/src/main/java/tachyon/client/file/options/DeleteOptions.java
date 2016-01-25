@@ -15,12 +15,15 @@
 
 package tachyon.client.file.options;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.annotation.PublicApi;
 
 /**
  * Method option for deleting a file.
  */
 @PublicApi
+@NotThreadSafe
 public final class DeleteOptions {
   private boolean mRecursive;
 
