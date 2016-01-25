@@ -288,7 +288,7 @@ public abstract class UnderFileSystem {
    * Gets the block size of a file in under file system, in bytes.
    *
    * @param path The file name
-   * @return file size in bytes
+   * @return the block size in bytes
    * @throws IOException if a non-Tachyon error occurs
    */
   public abstract long getBlockSizeByte(String path) throws IOException;
