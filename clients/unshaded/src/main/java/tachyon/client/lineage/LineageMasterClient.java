@@ -124,6 +124,7 @@ public final class LineageMasterClient extends MasterClientBase {
    * @param ttl the time to live for the file
    * @return the value of the lineage creation result
    * @throws IOException if a non-Tachyon exception occurs
+   * @throws LineageDoesNotExistException if the file does not exist
    * @throws TachyonException if a Tachyon exception occurs
    */
   public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
