@@ -15,6 +15,8 @@
 
 package tachyon.worker.block.evictor;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.StorageDirView;
@@ -23,6 +25,7 @@ import tachyon.worker.block.meta.StorageTierView;
 /**
  * Utility functions for the evictor package.
  */
+@ThreadSafe
 // TODO(calvin): This could be moved into EvictorBase.
 public final class EvictorUtils {
 

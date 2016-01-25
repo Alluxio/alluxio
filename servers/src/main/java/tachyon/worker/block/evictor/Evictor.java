@@ -15,6 +15,8 @@
 
 package tachyon.worker.block.evictor;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -34,6 +36,7 @@ public interface Evictor {
   /**
    * Factory for {@link Evictor}.
    */
+  @ThreadSafe
   class Factory {
     /**
      * Factory for {@link Evictor}.
