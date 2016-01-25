@@ -55,7 +55,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   /**
    * Creates a new instance of {@link WebInterfaceWorkerBlockInfoServlet}.
    *
-   * @param blockDataManager block data manager
+   * @param blockWorker block worker handle
    */
   public WebInterfaceWorkerBlockInfoServlet(BlockWorker blockWorker) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);

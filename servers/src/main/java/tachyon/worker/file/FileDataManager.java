@@ -54,7 +54,7 @@ public final class FileDataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final UnderFileSystem mUfs;
-  /** Block data manager for access block info */
+  /** Block worker handler for access block info */
   private final BlockWorker mBlockWorker;
 
   // the file being persisted
@@ -67,7 +67,7 @@ public final class FileDataManager {
   /**
    * Creates a new instance of {@link FileDataManager}.
    *
-   * @param blockDataManager a block data manager handle
+   * @param blockWorker the block worker handle
    */
   public FileDataManager(BlockWorker blockWorker) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);

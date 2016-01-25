@@ -141,7 +141,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   /**
    * Creates a new instance of {@link WebInterfaceWorkerGeneralServlet}.
    *
-   * @param blockDataManager block data manager
+   * @param blockWorker block worker handle
    * @param workerAddress worker address
    * @param startTimeMs start time in milliseconds
    */

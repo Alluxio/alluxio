@@ -67,7 +67,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   /**
    * Creates a new instance of {@link DataServerHandler}.
    *
-   * @param dataManager a block data manager handle
+   * @param blockWorker the block worker handle
    * @param tachyonConf Tachyon configuration
    */
   public DataServerHandler(final BlockWorker blockWorker, TachyonConf tachyonConf) {
