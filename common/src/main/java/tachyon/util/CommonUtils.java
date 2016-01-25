@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,7 @@ import tachyon.util.ShellUtils.ExitCodeException;
 /**
  * Common utilities shared by all components in Tachyon.
  */
+@ThreadSafe
 public final class CommonUtils {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

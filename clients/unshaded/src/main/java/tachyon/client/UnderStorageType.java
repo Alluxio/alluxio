@@ -15,14 +15,16 @@
 
 package tachyon.client;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Specifies the type of data interaction with Tachyon's Under Storage. This is not applicable for
  * reads. Only writing temporary data is suggested to use type {@link #NO_PERSIST} where writing to
  * Under Storage will be skipped and data may be lost when evicted from Tachyon storage.
  *
- * This option is for developers and advanced users. See {@link tachyon.client.WriteType} and
- * {@link tachyon.client.ReadType}.
+ * This option is for developers and advanced users. See {@link WriteType} and {@link ReadType}.
  */
+@ThreadSafe
 public enum UnderStorageType {
   /** Persist data to Under Storage synchronously. */
   SYNC_PERSIST(1),

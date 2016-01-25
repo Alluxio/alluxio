@@ -36,7 +36,8 @@ The project is the storage layer of the Berkeley Data Analytics Stack
 [Developer Document](Contributing-to-Tachyon.html) |
 [Meetup Group](https://www.meetup.com/Tachyon/) |
 [JIRA](https://tachyon.atlassian.net/browse/TACHYON) |
-[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
+[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users) |
+[Powered By](Powered-By-Tachyon.html)
 
 # Current Features
 

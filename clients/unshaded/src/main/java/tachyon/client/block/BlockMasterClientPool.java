@@ -17,6 +17,8 @@ package tachyon.client.block;
 
 import java.net.InetSocketAddress;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.resource.ResourcePool;
@@ -26,6 +28,7 @@ import tachyon.resource.ResourcePool;
  * {@link ResourcePool#acquire()}, {@link ResourcePool#release(Object)} must be called when the
  * thread is done using the client.
  */
+@ThreadSafe
 final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
   private final InetSocketAddress mMasterAddress;
 

@@ -19,6 +19,8 @@ import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.security.authorization.FileSystemPermission;
 
@@ -28,6 +30,7 @@ import tachyon.security.authorization.FileSystemPermission;
  * specific string format, parsing a specific string format back to objects and printing or logging
  * according to a specific format.
  */
+@ThreadSafe
 public final class FormatUtils {
   /**
    * Parses a list of {@code Objects} into a {@code String}.

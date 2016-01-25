@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -43,6 +45,7 @@ import com.google.common.collect.Lists;
 /**
  * Utility methods for working with Yarn.
  */
+@ThreadSafe
 public final class YarnUtils {
   public static final String TACHYON_SETUP_SCRIPT = "tachyon-yarn-setup.sh";
 

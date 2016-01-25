@@ -17,6 +17,8 @@ package tachyon.client.keyvalue.hadoop;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.FileOutputCommitter;
@@ -43,6 +45,7 @@ import tachyon.exception.TachyonException;
  * TODO(cc): Consider key distributions in each Reducer.
  */
 @PublicApi
+@ThreadSafe
 public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, BytesWritable> {
   /**
    * @param conf MapReduce job configuration

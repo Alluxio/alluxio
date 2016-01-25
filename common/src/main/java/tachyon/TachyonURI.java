@@ -19,6 +19,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.commons.lang.StringUtils;
 
 import tachyon.util.OSUtils;
@@ -28,6 +30,7 @@ import tachyon.util.OSUtils;
  *
  * Does not support fragment or query in the URI.
  */
+@ThreadSafe
 public final class TachyonURI implements Comparable<TachyonURI> {
   public static final String SEPARATOR = "/";
   public static final String CUR_DIR = ".";

@@ -37,7 +37,6 @@ import com.aliyun.oss.model.ObjectMetadata;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
@@ -338,8 +337,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       LOG.info("Copying {} to {}", src, dst);
       mOssClient.copyObject(mBucketName, src, mBucketName, dst);
       return true;
-    } catch (ServiceException se) {
-      LOG.error("Failed to rename file {} to {}", src, dst);
+    } catch (ServiceException e) {
+      LOG.error("Failed to rename file {} to {}", src, dst, e);
       return false;
     }
   }
@@ -358,8 +357,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       } else {
         mOssClient.deleteObject(mBucketName, stripPrefixIfPresent(key));
       }
-    } catch (ServiceException se) {
-      LOG.error("Failed to delete {}", key, se);
+    } catch (ServiceException e) {
+      LOG.error("Failed to delete {}", key, e);
       return false;
     }
     return true;
@@ -378,7 +377,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
         return mOssClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(key));
       }
     } catch (ServiceException e) {
-      LOG.warn("Failed to get Object {}, return null", key);
+      LOG.warn("Failed to get Object {}, return null", key, e);
       return null;
     }
   }

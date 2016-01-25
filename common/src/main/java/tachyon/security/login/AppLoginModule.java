@@ -18,6 +18,7 @@ package tachyon.security.login;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -36,6 +37,7 @@ import tachyon.security.User;
  * different identifies (for resource and data management), or if Tachyon clients running under
  * different OS user names want to get same identify.
  */
+@NotThreadSafe
 public final class AppLoginModule implements LoginModule {
   private Subject mSubject;
   private User mUser;
@@ -61,10 +63,10 @@ public final class AppLoginModule implements LoginModule {
     callbacks[0] = new NameCallback("user name: ");
     try {
       mCallbackHandler.handle(callbacks);
-    } catch (IOException ioe) {
-      throw new LoginException(ioe.getMessage());
-    } catch (UnsupportedCallbackException uce) {
-      throw new LoginException(uce.getMessage());
+    } catch (IOException e) {
+      throw new LoginException(e.getMessage());
+    } catch (UnsupportedCallbackException e) {
+      throw new LoginException(e.getMessage());
     }
 
     String userName = ((NameCallback) callbacks[0]).getName();

@@ -17,6 +17,8 @@ package tachyon.exception;
 
 import java.text.MessageFormat;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 /**
@@ -24,6 +26,7 @@ import com.google.common.base.Preconditions;
  *
  * Note: To minimize merge conflicts, please sort alphabetically in this section.
  */
+@ThreadSafe
 public enum ExceptionMessage {
   // general
   NOT_SUPPORTED("This method is not supported"),
@@ -122,6 +125,7 @@ public enum ExceptionMessage {
   LINEAGE_DOES_NOT_EXIST("The lineage {0} does not exist"),
   LINEAGE_INPUT_FILE_NOT_EXIST("The lineage input file {0} does not exist"),
   LINEAGE_OUTPUT_FILE_NOT_EXIST("No lineage has output file {0}"),
+  MISSING_REINITIALIZE_FILE("Cannot reinitialize file {0} because its lineage does not exist"),
   UNKNOWN_LINEAGE_FILE_STATE("Unknown LineageFileState: {0}"),
 
   // client

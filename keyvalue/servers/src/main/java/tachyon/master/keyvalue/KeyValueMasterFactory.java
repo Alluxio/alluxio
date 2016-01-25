@@ -17,6 +17,8 @@ package tachyon.master.keyvalue;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +34,7 @@ import tachyon.master.journal.ReadWriteJournal;
 /**
  * Factory to create a {@link KeyValueMaster} instance.
  */
+@ThreadSafe
 public final class KeyValueMasterFactory implements MasterFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

@@ -17,6 +17,8 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
@@ -33,6 +35,7 @@ import tachyon.exception.TachyonException;
  * through {@link BaseKeyValueStoreReader} and {@link BaseKeyValueStoreWriter}.
  */
 @PublicApi
+@ThreadSafe
 public class BaseKeyValueStores implements KeyValueStores {
   private final KeyValueMasterClient mMasterClient =
       new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());

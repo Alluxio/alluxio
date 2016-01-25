@@ -15,6 +15,8 @@
 
 package tachyon.client.file.options;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
@@ -26,6 +28,7 @@ import tachyon.thrift.SetAttributeTOptions;
  * will be interpreted as an unset value and the current value will be unchanged.
  */
 @PublicApi
+@NotThreadSafe
 public final class SetAttributeOptions {
   private Boolean mPinned;
   private Long mTtl;

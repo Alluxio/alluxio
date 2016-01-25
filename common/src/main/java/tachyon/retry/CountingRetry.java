@@ -15,11 +15,14 @@
 
 package tachyon.retry;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 /**
  * An option which allows retrying based on maximum count.
  */
+@NotThreadSafe
 public class CountingRetry implements RetryPolicy {
 
   private final int mMaxRetries;
