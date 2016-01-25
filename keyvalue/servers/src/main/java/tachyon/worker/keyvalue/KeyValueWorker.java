@@ -32,7 +32,7 @@ import tachyon.thrift.KeyValueWorkerClientService;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * A worker serving key-value queries.
@@ -41,23 +41,23 @@ import tachyon.worker.block.BlockDataManager;
 public class KeyValueWorker extends WorkerBase {
   /** Configuration object */
   private final TachyonConf mTachyonConf;
-  /** Block data manager for access block info */
-  private final BlockDataManager mBlockDataManager;
+  /** BlockWorker handle for access block info */
+  private final BlockWorker mBlockWorker;
   /** Logic for handling key-value RPC requests. */
   private final KeyValueWorkerClientServiceHandler mKeyValueServiceHandler;
 
   /**
    * Constructor of {@link KeyValueWorker}.
    *
-   * @param blockDataManager handler to the {@link BlockDataManager}
+   * @param blockWorker handler to the {@link BlockWorker}
    */
-  public KeyValueWorker(BlockDataManager blockDataManager) {
+  public KeyValueWorker(BlockWorker blockWorker) {
     // TODO(binfan): figure out do we really need thread pool for key-value worker (and for what)
     super(Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("keyvalue-worker-heartbeat-%d", true)));
     mTachyonConf = WorkerContext.getConf();
-    mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
-    mKeyValueServiceHandler = new KeyValueWorkerClientServiceHandler(mBlockDataManager);
+    mBlockWorker = Preconditions.checkNotNull(blockWorker);
+    mKeyValueServiceHandler = new KeyValueWorkerClientServiceHandler(mBlockWorker);
   }
 
   @Override
