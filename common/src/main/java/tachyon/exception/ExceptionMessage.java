@@ -30,6 +30,7 @@ public enum ExceptionMessage {
   PATH_DOES_NOT_EXIST("Path {0} does not exist"),
   PATH_MUST_BE_FILE("Path {0} must be a file"),
   PATH_MUST_BE_DIRECTORY("Path {0} must be a directory"),
+  PATH_INVALID("Path {0} is invalid"),
 
   // general block
   BLOCK_NOT_LOCALLY_AVAILABLE("Block {0} is not available on local machine"),
@@ -137,8 +138,11 @@ public enum ExceptionMessage {
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
-  PERMISSION_IS_NULL("Permission cannot be null when constructing PermissionStatus"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
+  INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
+  PERMISSION_DENIED("Permission denied: {0}"),
+  PERMISSION_IS_NULL("Permission cannot be null when constructing PermissionStatus"),
+  SECURITY_IS_NOT_ENABLED("Security is not enabled"),
 
   // yarn
   YARN_NOT_ENOUGH_HOSTS(
@@ -153,6 +157,7 @@ public enum ExceptionMessage {
 
   // key-value
   KEY_VALUE_TOO_LARGE("Unable to put key-value pair: key {0} bytes, value {1} bytes"),
+  INVALID_KEY_VALUE_STORE_URI("The URI {0} exists but is not a key-value store"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

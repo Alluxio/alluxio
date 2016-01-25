@@ -142,4 +142,38 @@ public final class KeyValueMasterClient extends MasterClientBase {
       }
     });
   }
+
+  /**
+   * Deletes a completed key-value store.
+   *
+   * @param path URI of the store
+   * @throws IOException if non-Tachyon error occurs
+   * @throws TachyonException if other Tachyon error occurs
+   */
+  public synchronized void deleteStore(final TachyonURI path) throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.deleteStore(path.toString());
+        return null;
+      }
+    });
+  }
+
+  /**
+   * Merges one completed key-value store to another completed key-value store.
+   *
+   * @param fromPath URI of the store to be merged
+   * @param toPath URI of the store to be merged to
+   */
+  void mergeStore(final TachyonURI fromPath, final TachyonURI toPath)
+      throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.mergeStore(fromPath.toString(), toPath.toString());
+        return null;
+      }
+    });
+  }
 }

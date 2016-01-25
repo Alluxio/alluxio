@@ -30,7 +30,7 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.client.block.BlockMasterClient;
 import tachyon.client.block.BlockStoreContext;
-import tachyon.client.worker.BlockWorkerClient;
+import tachyon.client.block.BlockWorkerClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.util.network.NetworkAddressUtils;

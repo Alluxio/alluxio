@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystem;
@@ -30,6 +32,7 @@ import tachyon.exception.TachyonException;
 /**
  * Utility class for testing the Tachyon file system.
  */
+@ThreadSafe
 public final class TachyonFSTestUtils {
   /**
    * Creates a simple file with {@code len} bytes.

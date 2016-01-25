@@ -21,6 +21,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -46,6 +48,7 @@ import tachyon.client.file.URIStatus;
 import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.DeleteOptions;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
@@ -64,6 +67,7 @@ import tachyon.util.CommonUtils;
  * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant is
  * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
  */
+@NotThreadSafe
 abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
   public static final String FIRST_COM_PATH = "tachyon_dep/";
   public static final String RECOMPUTE_PATH = "tachyon_recompute/";
@@ -299,7 +303,8 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
     Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
 
-    LOG.info("getFileStatus({}): HDFS Path: {} TPath: {}{}", path, hdfsPath, mTachyonHeader, tPath);
+    LOG.info("getFileStatus({}): HDFS Path: {} Tachyon Path: {}{}", path, hdfsPath, mTachyonHeader,
+        tPath);
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
     }
@@ -314,8 +319,66 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
 
     FileStatus ret = new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
         BLOCK_REPLICATION_CONSTANT, fileStatus.getBlockSizeBytes(), fileStatus.getCreationTimeMs(),
-        fileStatus.getCreationTimeMs(), null, null, null, new Path(mTachyonHeader + tPath));
+            fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getPermission()),
+            fileStatus.getUserName(), fileStatus.getGroupName(), new Path(mTachyonHeader + tPath));
     return ret;
+  }
+
+  /**
+   * Changes owner or group of a path (i.e. a file or a directory). If username is null, the
+   * original username remains unchanged. Same as groupname. If username and groupname are non-null,
+   * both of them will be changed.
+   *
+   * @param path path to set owner or group
+   * @param username username to be set
+   * @param groupname groupname to be set
+   * @throws IOException if changing owner or group of the path failed
+   */
+  @Override
+  public void setOwner(Path path, final String username, final String groupname)
+      throws IOException {
+    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
+    Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
+    LOG.info("setOwner({},{},{}) HDFS Path: {} Tachyon Path: {}{}", path, username, groupname,
+        hdfsPath, mTachyonHeader, tPath);
+    try {
+      SetAclOptions options = SetAclOptions.defaults();
+      boolean ownerOrGroupChanged = false;
+      if (username != null && !username.isEmpty()) {
+        options.setOwner(username).setRecursive(false);
+        ownerOrGroupChanged = true;
+      }
+      if (groupname != null && !groupname.isEmpty()) {
+        options.setGroup(groupname).setRecursive(false);
+        ownerOrGroupChanged = true;
+      }
+      if (ownerOrGroupChanged) {
+        mTFS.setAcl(tPath, options);
+      }
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
+  }
+
+  /**
+   * Changes permission of a path.
+   *
+   * @param path path to set permission
+   * @param permission permission set to path
+   * @throws IOException if the path failed to be changed permission
+   */
+  public void setPermission(Path path, FsPermission permission) throws IOException {
+    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
+    Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
+    LOG.info("setPermission({},{}) HDFS Path: {} Tachyon Path: {}{}", path, permission.toString(),
+        hdfsPath, mTachyonHeader, tPath);
+    try {
+      SetAclOptions options =
+          SetAclOptions.defaults().setPermission(permission.toShort()).setRecursive(false);
+      mTFS.setAcl(tPath, options);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
