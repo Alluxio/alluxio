@@ -20,12 +20,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import tachyon.proto.journal.Journal.JournalEntry;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Reads and writes protocol buffer journal entries. The entries contain headers describing their
  * length. This framing is handled entirely by {@link JournalEntry#writeDelimitedTo(OutputStream)}
  * and {@link JournalEntry#parseDelimitedFrom(InputStream)}. This class is thread-safe.
  */
+@ThreadSafe
 public final class ProtoBufJournalFormatter implements JournalFormatter {
   @Override
   public void serialize(JournalEntry entry, OutputStream outputStream) throws IOException {

@@ -17,6 +17,8 @@ package tachyon.master.journal;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -38,6 +40,7 @@ import tachyon.util.CommonUtils;
  *   tachyon.master.journal.JournalTool < journal/FileSystemMaster/log.out
  * </pre>
  */
+@NotThreadSafe
 public final class JournalTool {
   /** Separator to place at the end of each journal entry. */
   private static final String ENTRY_SEPARATOR = StringUtils.repeat('-', 80);
