@@ -44,6 +44,8 @@ import tachyon.client.file.URIStatus;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.lineage.LineageFileSystem;
 import tachyon.client.lineage.LineageMasterClient;
+import tachyon.client.lineage.TachyonLineage;
+import tachyon.client.lineage.options.DeleteLineageOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
@@ -197,6 +199,42 @@ public final class LineageMasterIntegrationTest {
     } finally {
       lineageClient.close();
     }
+  }
+
+  /**
+   * Runs code given in the docs (http://tachyon-project.org/documentation/Lineage-API.html) to make
+   * sure it actually runs.
+   */
+  @Test
+  public void docExampleTest() throws Exception {
+    // create input files
+    FileSystem fs = FileSystem.Factory.get();
+    fs.createFile(new TachyonURI("/inputFile1")).close();
+    fs.createFile(new TachyonURI("/inputFile2")).close();
+
+    // ------ code block from docs ------
+    TachyonLineage tl = TachyonLineage.get();
+    // input file paths
+    TachyonURI input1 = new TachyonURI("/inputFile1");
+    TachyonURI input2 = new TachyonURI("/inputFile2");
+    List<TachyonURI> inputFiles = Lists.newArrayList(input1, input2);
+    // output file paths
+    TachyonURI output = new TachyonURI("/outputFile");
+    List<TachyonURI> outputFiles = Lists.newArrayList(output);
+    // command-line job
+    JobConf conf = new JobConf("/tmp/recompute.log");
+    CommandLineJob job = new CommandLineJob("my-spark-job.sh", conf);
+    long lineageId = tl.createLineage(inputFiles, outputFiles, job);
+
+    // ------ code block from docs ------
+    DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(true);
+    tl.deleteLineage(lineageId);
+
+    fs.delete(new TachyonURI("/outputFile"));
+    lineageId = tl.createLineage(inputFiles, outputFiles, job);
+
+    // ------ code block from docs ------
+    tl.deleteLineage(lineageId, options);
   }
 
   private LineageMasterClient getLineageMasterClient() {
