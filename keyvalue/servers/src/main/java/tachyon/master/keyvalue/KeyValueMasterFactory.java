@@ -17,10 +17,10 @@ package tachyon.master.keyvalue;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 
