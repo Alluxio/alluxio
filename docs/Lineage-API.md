@@ -20,7 +20,7 @@ handle divergent outputs.
 
 # Enable Lineage
 
-By default, lineage is not enabled. It can be enabled by setting the 
+By default, lineage is not enabled. It can be enabled by setting the
 `tachyon.user.lineage.enabled` property to `true` in the configuration file.
 
 # Lineage API
@@ -40,13 +40,17 @@ TachyonLineage tl = TachyonLineage.get();
 Lineage can be created by calling
 `TachyonLineage#createLineage(List<TachyonURI>, List<TachyonURI>, Job)`. A lineage record takes (1)
 a list of URIs of the input files, (2) a list of URIs of the output files, and (3) a *job*. A job
-is description of a program that can be run by Tachyon to recompute the output files given the input 
-files. *Note: In the current alpha version, only a built-in `CommandLineJob` is supported, which 
-simply takes a command String that can be run in a terminal. The user needs to provide the necessary 
-configurations and execution environments to ensure the command can be executed both at the client 
+is description of a program that can be run by Tachyon to recompute the output files given the input
+files. *Note: In the current alpha version, only a built-in `CommandLineJob` is supported, which
+simply takes a command String that can be run in a terminal. The user needs to provide the necessary
+configurations and execution environments to ensure the command can be executed both at the client
 and at Tachyon master (during recomputation).*
 
 For example,
+<!---
+NOTE: This code is tested in LineageMasterIntegrationTest, so if you update it here make sure to
+update it there as well.
+-->
 
 ```java
 TachyonLineage tl = TachyonLineage.get();
@@ -64,7 +68,7 @@ long lineageId = tl.createLineage(inputFiles, outputFiles, job);
 ```
 
 The `createLineage` function returns the id of the newly created lineage record. Before creating a
-lineage record, make sure that all the input files are either persisted, or specified as an output 
+lineage record, make sure that all the input files are either persisted, or specified as an output
 file in another lineage record.
 
 ### Specifying Operation Options
@@ -91,9 +95,8 @@ flag. For example:
 
 ```java
 TachyonLineage tl = TachyonLineage.get();
-DeleteLineageOptions options =
-    new DeleteLineageOptions.Builder(new TachyonConf()).setCascade(true).build();
-tl.deleteLineage(1, options);
+DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(true);
+tl.deleteLineage(lineageId, options);
 ```
 
 # Configuration Parameters For Lineage
