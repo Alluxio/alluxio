@@ -25,6 +25,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
 import tachyon.util.OSUtils;
 
@@ -175,7 +176,7 @@ public final class PathUtils {
     }
 
     if (invalid) {
-      throw new InvalidPathException("Path " + path + " is invalid.");
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path));
     }
   }
 
