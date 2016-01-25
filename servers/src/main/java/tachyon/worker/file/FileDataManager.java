@@ -57,7 +57,7 @@ public final class FileDataManager {
   /** Block data manager for access block info */
   private final BlockDataManager mBlockDataManager;
 
-  // the file being persisted, and the locks being held for the blocks
+  // the file being persisted, and the inner map tracks the block id to lock id
   private final Map<Long, Map<Long, Long>> mPersistingInProgressFiles;
   // the file are persisted, but not sent back to master for confirmation yet
   private final Set<Long> mPersistedFiles;
@@ -156,38 +156,42 @@ public final class FileDataManager {
    * Locks all the blocks of a given file Id.
    *
    * @param fileId the id of the file
+   * @param blockIds the ids of the file's blocks
    * @throws IOException when an I/O exception occurs
    */
   public void lockBlocks(long fileId, List<Long> blockIds) throws IOException {
     Map<Long, Long> blockIdToLockId = Maps.newHashMap();
     List<Throwable> errors = new ArrayList<Throwable>();
-    try {
-      // lock all the blocks to prevent any eviction
-      for (long blockId : blockIds) {
-        long lockId = mBlockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
-        blockIdToLockId.put(blockId, lockId);
-      }
-    } catch (BlockDoesNotExistException e) {
-      errors.add(e);
-      // make sure all the locks are released
-      for (long lockId : blockIdToLockId.values()) {
-        try {
-          mBlockDataManager.unlockBlock(lockId);
-        } catch (BlockDoesNotExistException bdnee) {
-          errors.add(bdnee);
-        }
-      }
-
-      if (!errors.isEmpty()) {
-        StringBuilder errorStr = new StringBuilder();
-        errorStr.append("the blocks of file").append(fileId).append(" are failed to lock\n");
-        for (Throwable error : errors) {
-          errorStr.append(error).append('\n');
-        }
-        throw new IOException(errorStr.toString());
-      }
-    }
     synchronized (mLock) {
+      if (mPersistingInProgressFiles.containsKey(fileId)) {
+        throw new IOException("the file " + fileId + " is already being persisted");
+      }
+      try {
+        // lock all the blocks to prevent any eviction
+        for (long blockId : blockIds) {
+          long lockId = mBlockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
+          blockIdToLockId.put(blockId, lockId);
+        }
+      } catch (BlockDoesNotExistException e) {
+        errors.add(e);
+        // make sure all the locks are released
+        for (long lockId : blockIdToLockId.values()) {
+          try {
+            mBlockDataManager.unlockBlock(lockId);
+          } catch (BlockDoesNotExistException bdnee) {
+            errors.add(bdnee);
+          }
+        }
+
+        if (!errors.isEmpty()) {
+          StringBuilder errorStr = new StringBuilder();
+          errorStr.append("failed to lock all blocks of file ").append(fileId).append("\n");
+          for (Throwable error : errors) {
+            errorStr.append(error).append('\n');
+          }
+          throw new IOException(errorStr.toString());
+        }
+      }
       mPersistingInProgressFiles.put(fileId, blockIdToLockId);
     }
   }

@@ -155,7 +155,7 @@ public final class FileDataManagerTest {
       Assert.fail("the lock should fail");
     } catch (IOException e) {
       Assert.assertEquals(
-          "the blocks of file1 are failed to lock\n"
+          "failed to lock all blocks of file 1\n"
               + "tachyon.exception.BlockDoesNotExistException: block 3 does not exist\n",
           e.getMessage());
       // verify the locks are all unlocked
