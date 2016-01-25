@@ -3,7 +3,7 @@
 <suppressions>
     <!-- Supresses files in the src/test folder. To be used for rules which only apply to
          production code. -->
-    <suppress files="[\\/]src[\\/]test[\\/].*" id="RegularScope" />
+    <suppress files="[\\/]src[\\/]test[\\/].*" id="ProductionScope" />
     <!-- Supresses files in the src/main folder. To be used for rules which only apply to test
          code. -->
     <suppress files="[\\/]src[\\/]main[\\/].*" id="TestScope" />
