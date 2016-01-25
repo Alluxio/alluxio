@@ -16,6 +16,7 @@
 package tachyon.master;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +31,7 @@ import com.google.common.collect.Maps;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
+import tachyon.client.ClientContext;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystem;
@@ -37,13 +39,17 @@ import tachyon.client.file.URIStatus;
 import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.DeleteOptions;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.security.authentication.PlainSaslServer;
+import tachyon.security.group.GroupMappingService;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
@@ -96,7 +102,7 @@ public class JournalIntegrationTest {
   }
 
   private void addBlockTestUtil(URIStatus status)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws AccessControlException, IOException, InvalidPathException, FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
     long rootId = fsMaster.getFileId(mRootUri);
@@ -132,7 +138,7 @@ public class JournalIntegrationTest {
   }
 
   private void loadMetadataTestUtil(URIStatus status)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws AccessControlException, IOException, InvalidPathException, FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
     long rootId = fsMaster.getFileId(mRootUri);
@@ -206,8 +212,7 @@ public class JournalIntegrationTest {
     deleteTestUtil();
   }
 
-  private void deleteTestUtil()
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+  private void deleteTestUtil() throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -251,8 +256,7 @@ public class JournalIntegrationTest {
     fileDirectoryTestUtil();
   }
 
-  private void fileDirectoryTestUtil()
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+  private void fileDirectoryTestUtil() throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -284,7 +288,7 @@ public class JournalIntegrationTest {
   }
 
   private void fileTestUtil(URIStatus status)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws AccessControlException, IOException, InvalidPathException, FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -326,7 +330,7 @@ public class JournalIntegrationTest {
   }
 
   private void pinTestUtil(URIStatus directory, URIStatus file0, URIStatus file1)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws AccessControlException, IOException, InvalidPathException, FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
     FileInfo info = fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI("/myFolder")));
@@ -361,7 +365,7 @@ public class JournalIntegrationTest {
   }
 
   private void directoryTestUtil(URIStatus status)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws AccessControlException, IOException, InvalidPathException, FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -428,8 +432,7 @@ public class JournalIntegrationTest {
     manyFileTestUtil();
   }
 
-  private void manyFileTestUtil()
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+  private void manyFileTestUtil() throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -457,8 +460,7 @@ public class JournalIntegrationTest {
     multiEditLogTestUtil();
   }
 
-  private void multiEditLogTestUtil()
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+  private void multiEditLogTestUtil() throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -546,8 +548,7 @@ public class JournalIntegrationTest {
     renameTestUtil();
   }
 
-  private void renameTestUtil()
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+  private void renameTestUtil() throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -562,12 +563,91 @@ public class JournalIntegrationTest {
   }
 
   private List<FileInfo> lsr(FileSystemMaster fsMaster, TachyonURI uri)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     List<FileInfo> files = fsMaster.getFileInfoList(uri);
     List<FileInfo> ret = Lists.newArrayList(files);
     for (FileInfo file : files) {
       ret.addAll(lsr(fsMaster, new TachyonURI(file.getPath())));
     }
     return ret;
+  }
+
+  private void rawTableTestUtil(FileInfo fileInfo) throws Exception {
+    FileSystemMaster fsMaster = createFsMasterFromJournal();
+
+    long fileId = fsMaster.getFileId(mRootUri);
+    Assert.assertTrue(fileId != -1);
+    // "ls -r /" should return 11 FileInfos, one is table root "/xyz", the others are 10 columns.
+    Assert.assertEquals(11, lsr(fsMaster, mRootUri).size());
+
+    fileId = fsMaster.getFileId(new TachyonURI("/xyz"));
+    Assert.assertTrue(fileId != -1);
+    Assert.assertEquals(fileInfo, fsMaster.getFileInfo(fileId));
+
+    fsMaster.stop();
+  }
+
+  @Test
+  @LocalTachyonClusterResource.Config(tachyonConfParams = {
+      Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+      Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+      Constants.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.FULL_CLASS_NAME})
+  public void setAclTest() throws Exception {
+    TachyonURI filePath = new TachyonURI("/file");
+
+    ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
+    CreateFileOptions op =
+        CreateFileOptions.defaults().setBlockSizeBytes(64);
+    mTfs.createFile(filePath, op).close();
+
+    mTfs.setAcl(filePath, SetAclOptions.defaults().setOwner("user1").setRecursive(false));
+    mTfs.setAcl(filePath, SetAclOptions.defaults().setGroup("group1").setRecursive(false));
+    mTfs.setAcl(filePath, SetAclOptions.defaults().setPermission((short) 0400).setRecursive(false));
+
+    URIStatus status = mTfs.getStatus(filePath);
+
+    mLocalTachyonCluster.stopTFS();
+
+    aclTestUtil(status);
+    deleteFsMasterJournalLogs();
+    aclTestUtil(status);
+  }
+
+  private void aclTestUtil(URIStatus status) throws Exception {
+    FileSystemMaster fsMaster = createFsMasterFromJournal();
+
+    PlainSaslServer.AuthorizedClientUser.set("user1");
+    FileInfo info = fsMaster.getFileInfo(new TachyonURI("/file"));
+    Assert.assertEquals(status, new URIStatus(info));
+
+    fsMaster.stop();
+  }
+
+  public static class FakeUserGroupsMapping implements GroupMappingService {
+    // The fullly qualified class name of this group mapping service. This is needed to configure
+    // the tachyon cluster
+    public static final String FULL_CLASS_NAME =
+        "tachyon.master.JournalIntegrationTest$FakeUserGroupsMapping";
+
+    private HashMap<String, String> mUserGroups = new HashMap<String, String>();
+
+    public FakeUserGroupsMapping() {
+      mUserGroups.put("tachyon", "supergroup");
+      mUserGroups.put("user1", "group1");
+      mUserGroups.put("others", "anygroup");
+    }
+
+    @Override
+    public List<String> getGroups(String user) throws IOException {
+      if (mUserGroups.containsKey(user)) {
+        return Lists.newArrayList(mUserGroups.get(user).split(","));
+      }
+      return Lists.newArrayList(mUserGroups.get("others").split(","));
+    }
+
+    @Override
+    public void setConf(TachyonConf conf) throws IOException {
+      // no-op
+    }
   }
 }

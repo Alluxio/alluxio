@@ -38,6 +38,7 @@ import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.conf.TachyonConf;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
@@ -92,6 +93,7 @@ public final class FileSystemMasterTest {
    */
   @BeforeClass
   public static void beforeClass() {
+    MasterContext.reset(new TachyonConf());
     sNestedFileOptions =
         new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
