@@ -30,6 +30,7 @@ import org.apache.hadoop.mapred.TaskAttemptContext;
 import com.google.common.collect.Lists;
 
 import tachyon.TachyonURI;
+import tachyon.annotation.PublicApi;
 import tachyon.client.keyvalue.KeyValueStores;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
@@ -41,7 +42,8 @@ import tachyon.exception.TachyonException;
  * This committer must be used along with {@link KeyValueOutputFormat} to merge the key-value stores
  * created by each Reducer into one key-value store under the MapReduce output directory.
  */
-public class KeyValueOutputCommitter extends FileOutputCommitter {
+@PublicApi
+public final class KeyValueOutputCommitter extends FileOutputCommitter {
   private static final KeyValueStores KEY_VALUE_STORES = KeyValueStores.Factory.create();
 
   private List<TachyonURI> getTaskTemporaryStores(JobConf conf) throws IOException {

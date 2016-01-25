@@ -383,10 +383,15 @@ public class BufferUtilsTest {
       // Slice a ByteBuffer from the target position to the end
       int slicedBufferLength = size - slicePosition;
       slicedBuffer = BufferUtils.sliceByteBuffer(buf, slicePosition, slicedBufferLength);
+      ByteBuffer slicedBuffer1 = BufferUtils.sliceByteBuffer(buf, slicePosition);
       Assert.assertEquals(0, slicedBuffer.position());
+      Assert.assertEquals(0, slicedBuffer1.position());
       Assert.assertEquals(slicedBufferLength, slicedBuffer.limit());
+      Assert.assertEquals(slicedBufferLength, slicedBuffer1.limit());
       Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(slicePosition, slicedBufferLength,
           slicedBuffer));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(slicePosition, slicedBufferLength,
+          slicedBuffer1));
     }
   }
 }
