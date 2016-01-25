@@ -41,8 +41,8 @@ import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.BlockStoreMeta;
+import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.meta.BlockMeta;
 
 /**
@@ -50,15 +50,15 @@ import tachyon.worker.block.meta.BlockMeta;
  */
 public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   private static final long serialVersionUID = 4148506607369321012L;
-  private final transient BlockDataManager mBlockDataManager;
+  private final transient BlockWorker mBlockWorker;
 
   /**
    * Creates a new instance of {@link WebInterfaceWorkerBlockInfoServlet}.
    *
-   * @param blockDataManager block data manager
+   * @param blockWorker block worker handle
    */
-  public WebInterfaceWorkerBlockInfoServlet(BlockDataManager blockDataManager) {
-    mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
+  public WebInterfaceWorkerBlockInfoServlet(BlockWorker blockWorker) {
+    mBlockWorker = Preconditions.checkNotNull(blockWorker);
   }
 
   /**
@@ -168,7 +168,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    */
   private List<Long> getSortedFileIds() {
     Set<Long> fileIds = new HashSet<Long>();
-    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
     for (List<Long> blockIds : storeMeta.getBlockList().values()) {
       for (long blockId : blockIds) {
         long fileId =
@@ -224,9 +224,9 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     UIFileInfo uiFileInfo = new UIFileInfo(status.getInfo());
     boolean blockExistOnWorker = false;
     for (long blockId : status.getBlockIds()) {
-      if (mBlockDataManager.hasBlockMeta(blockId)) {
+      if (mBlockWorker.hasBlockMeta(blockId)) {
         blockExistOnWorker = true;
-        BlockMeta blockMeta = mBlockDataManager.getVolatileBlockMeta(blockId);
+        BlockMeta blockMeta = mBlockWorker.getVolatileBlockMeta(blockId);
         long blockSize = blockMeta.getBlockSize();
         // The block last access time is not available. Use -1 for now.
         // It's not necessary to show location information here since
