@@ -15,12 +15,14 @@
 
 package tachyon.security.authentication;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.security.sasl.AuthenticationException;
 
 /**
  * An authentication provider implementation that allows arbitrary combination of username and
  * password including empty strings.
  */
+@ThreadSafe
 public class SimpleAuthenticationProviderImpl implements AuthenticationProvider {
 
   @Override

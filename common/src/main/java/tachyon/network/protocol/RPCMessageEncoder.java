@@ -17,6 +17,8 @@ package tachyon.network.protocol;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 
@@ -32,6 +34,7 @@ import tachyon.network.protocol.databuffer.DataBuffer;
  * Simple Netty encoder for RPCMessages.
  */
 @ChannelHandler.Sharable
+@ThreadSafe
 public final class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage> {
 
   @Override

@@ -15,6 +15,8 @@
 
 package tachyon.client.file.options;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.annotation.PublicApi;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -23,6 +25,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * Method option for mounting a path.
  */
 @PublicApi
+@NotThreadSafe
 public final class MountOptions {
   /**
    * @return the default {@link MountOptions}

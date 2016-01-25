@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -78,6 +80,7 @@ import tachyon.yarn.YarnUtils.YarnContainerType;
  * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client -help
  * }
  */
+@NotThreadSafe
 public final class Client {
   /** Yarn client to talk to resource manager. */
   private YarnClient mYarnClient;

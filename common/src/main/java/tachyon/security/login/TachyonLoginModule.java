@@ -19,6 +19,7 @@ import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.LoginException;
@@ -30,6 +31,7 @@ import tachyon.security.User;
  * A login module that search the Kerberos or OS user from Subject, and then convert to a Tachyon
  * user. It does not really authenticate the user in its login method.
  */
+@NotThreadSafe
 public final class TachyonLoginModule implements LoginModule {
   private Subject mSubject;
   private User mUser;

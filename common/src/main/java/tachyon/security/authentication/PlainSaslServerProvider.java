@@ -18,6 +18,7 @@ package tachyon.security.authentication;
 import java.security.Provider;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
@@ -28,6 +29,7 @@ import javax.security.sasl.SaslServerFactory;
  * When the SASL is using PLAIN mechanism, there is no support the SASL server. So there is a new
  * provider needed to register to support server-side PLAIN mechanism.
  */
+@ThreadSafe
 public final class PlainSaslServerProvider extends Provider {
   private static final long serialVersionUID = 4583558117355348638L;
 

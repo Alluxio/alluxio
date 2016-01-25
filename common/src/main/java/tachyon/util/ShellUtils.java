@@ -21,14 +21,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-
 /**
  * A base class for running a Unix command.
  */
+@ThreadSafe
 public final class ShellUtils {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -105,8 +107,8 @@ public final class ShellUtils {
       if (mExitCode != 0) {
         throw new ExitCodeException(mExitCode, errMsg.toString());
       }
-    } catch (InterruptedException ie) {
-      throw new IOException(ie.toString());
+    } catch (InterruptedException e) {
+      throw new IOException(e);
     } finally {
       // close the input stream
       try {
@@ -121,8 +123,8 @@ public final class ShellUtils {
         synchronized (stdout) {
           inReader.close();
         }
-      } catch (IOException ioe) {
-        LOG.warn("Error while closing the input stream", ioe);
+      } catch (IOException e) {
+        LOG.warn("Error while closing the input stream", e);
       }
       mProcess.destroy();
     }

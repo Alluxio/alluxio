@@ -15,24 +15,24 @@
 
 package tachyon.client;
 
-import java.util.Random;
-
-import javax.annotation.concurrent.ThreadSafe;
+import org.junit.Test;
+import org.junit.Assert;
 
 /**
- * Utilities class for Tachyon Client. All methods and variables are static.
+ * Tests {@link ClientUtils}.
  */
-@ThreadSafe
-public final class ClientUtils {
-  private static Random sRandom = new Random();
-
+public final class ClientUtilsTest {
   /**
-   * @return a random long which is guaranteed to be non negative (zero is allowed)
+   * Tests if output of {@link ClientUtils#getRandomNonNegativeLong()} is non-negative.
+   * Also tests for randomness property.
+   *
    */
-  public static synchronized long getRandomNonNegativeLong() {
-    return Math.abs(sRandom.nextLong());
+  @Test
+  public void getRandomNonNegativeLongTest() throws Exception {
+    long first = ClientUtils.getRandomNonNegativeLong();
+    long second = ClientUtils.getRandomNonNegativeLong();
+    Assert.assertTrue(first > 0);
+    Assert.assertTrue(second > 0);
+    Assert.assertTrue(first != second);
   }
-
-  // Prevent instantiation
-  private ClientUtils() {}
 }

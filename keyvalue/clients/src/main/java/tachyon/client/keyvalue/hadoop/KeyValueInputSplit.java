@@ -20,17 +20,20 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.hadoop.mapred.InputSplit;
 
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.block.TachyonBlockStore;
+import tachyon.client.keyvalue.KeyValueStores;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.PartitionInfo;
 
 /**
- * Implements {@link InputSplit}, each split contains one partition of the
- * {@link tachyon.client.keyvalue.KeyValueStores}.
+ * Implements {@link InputSplit}, each split contains one partition of the {@link KeyValueStores}.
  */
+@NotThreadSafe
 final class KeyValueInputSplit implements InputSplit {
   /** The block store client */
   private TachyonBlockStore mBlockStore;
@@ -63,8 +66,8 @@ final class KeyValueInputSplit implements InputSplit {
         locations[i] = workersInfo.get(i).getNetAddress().getHost();
       }
       return locations;
-    } catch (TachyonException te) {
-      throw new IOException(te);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     }
   }
 

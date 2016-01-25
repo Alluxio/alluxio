@@ -274,7 +274,7 @@ public class PathUtilsTest {
       try {
         PathUtils.validatePath(invalidPath);
         Assert.fail("validatePath(" + invalidPath + ") did not fail");
-      } catch (InvalidPathException ipe) {
+      } catch (InvalidPathException e) {
         // this is expected
       }
     }

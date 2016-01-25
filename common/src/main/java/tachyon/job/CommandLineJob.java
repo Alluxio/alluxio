@@ -22,6 +22,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,7 @@ import tachyon.thrift.JobConfInfo;
  * A job that wraps a programmed run by command line. This job's caller should ensure the execution
  * environment are identical on master and at the client side.
  */
+@ThreadSafe
 public class CommandLineJob extends Job {
   private static final long serialVersionUID = 1655996721855899996L;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

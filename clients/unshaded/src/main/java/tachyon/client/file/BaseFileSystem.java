@@ -49,8 +49,8 @@ import tachyon.exception.TachyonException;
 * instead of implementing the interface. This implementation reads and writes data through
 * {@link FileInStream} and {@link FileOutStream}. This class is thread safe.
 */
-@ThreadSafe
 @PublicApi
+@ThreadSafe
 public class BaseFileSystem implements FileSystem {
   private final FileSystemContext mContext;
 

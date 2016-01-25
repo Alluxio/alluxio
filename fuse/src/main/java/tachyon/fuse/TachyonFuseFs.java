@@ -21,8 +21,11 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.common.collect.Maps;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
@@ -58,6 +61,7 @@ import static jnr.constants.platform.OpenFlags.O_WRONLY;
  *
  * Implements the FUSE callbacks defined by jnr-fuse.
  */
+@ThreadSafe
 final class TachyonFuseFs extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;

@@ -18,6 +18,8 @@ package tachyon.client.lineage;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
@@ -37,7 +39,8 @@ import tachyon.thrift.LineageInfo;
  * but goes through the implementations provided in {@link AbstractLineageClient}.
  */
 @PublicApi
-public class TachyonLineage extends AbstractLineageClient {
+@ThreadSafe
+public final class TachyonLineage extends AbstractLineageClient {
   private static TachyonLineage sTachyonLineage;
 
   /**
