@@ -112,8 +112,7 @@ public class SetAclOptions {
     }
 
     /**
-     * Builds a new instance of {@link SetAclOptions}. Throws an {@link IllegalArgumentException} if
-     * the acl options are not valid.
+     * Builds a new instance of {@link SetAclOptions}.
      *
      * @return a {@link SetAclOptions} instance
      */
