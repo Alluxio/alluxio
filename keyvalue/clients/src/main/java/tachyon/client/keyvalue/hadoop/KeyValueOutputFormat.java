@@ -48,6 +48,11 @@ import tachyon.exception.TachyonException;
 @PublicApi
 @ThreadSafe
 public class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, BytesWritable> {
+  /**
+   * @param conf the job configuration
+   * @return the temporary output directory for the given job configuration
+   * @throws IOException if the output directory cannot be determined
+   */
   public static TachyonURI getTaskTempOutputDirectoryURI(JobConf conf) throws IOException {
     return new TachyonURI(FileOutputFormat.getTaskOutputPath(conf, "PLACE_HOLDER").toString())
         .getParent();
