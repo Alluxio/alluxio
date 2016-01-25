@@ -42,6 +42,8 @@ public class SpaceReserver implements Runnable {
   private final BlockDataManager mBlockManager;
   /** Association between storage tier aliases and ordinals for the worker */
   private final StorageTierAssoc mStorageTierAssoc;
+  /** Mapping from tier alias to high watermark in bytes */
+  private final Map<String, Long> mHighWaterMarkInBytesOnTiers = new HashMap<String, Long>();
   /** Mapping from tier alias to space size to be reserved on the tier */
   private final Map<String, Long> mBytesToReserveOnTiers = new HashMap<String, Long>();
   /** Milliseconds between each check */
@@ -57,15 +59,25 @@ public class SpaceReserver implements Runnable {
   public SpaceReserver(BlockDataManager blockManager) {
     mBlockManager = blockManager;
     mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
-    Map<String, Long> capOnTiers = blockManager.getStoreMeta().getCapacityBytesOnTiers();
+    Map<String, Long> capOnTiers = mBlockManager.getStoreMeta().getCapacityBytesOnTiers();
     long lastTierReservedBytes = 0;
     for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal ++) {
-      String tierReservedSpaceProp =
-          String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, ordinal);
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
-      long reservedSpaceBytes =
+      // To-do: make sure highWatermark ratio is larger than lowWatermark ratio
+      // HighWatemark defines when to start the space reserving process
+      String highWatermarkRatio =
+          String.format(Constants.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT, ordinal);
+      long highWatermarkInBytes =
           (long) (capOnTiers.get(tierAlias) * WorkerContext.getConf().getDouble(
-              tierReservedSpaceProp));
+              highWatermarkRatio));
+      mHighWaterMarkInBytesOnTiers.put(tierAlias, highWatermarkInBytes);
+
+      // LowWatemark defines when to stop the space reserving process if started
+      String lowWatermarkRatio =
+          String.format(Constants.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT, ordinal);
+      long reservedSpaceBytes =
+          (long) (capOnTiers.get(tierAlias)
+              * (1 - WorkerContext.getConf().getDouble(lowWatermarkRatio)));
       mBytesToReserveOnTiers.put(tierAlias, reservedSpaceBytes + lastTierReservedBytes);
       lastTierReservedBytes += reservedSpaceBytes;
     }
@@ -99,21 +111,25 @@ public class SpaceReserver implements Runnable {
   }
 
   private void reserveSpace() {
+    Map<String, Long> usedBytesOnTiers = mBlockManager.getStoreMeta().getUsedBytesOnTiers();
     for (int ordinal = mStorageTierAssoc.size() - 1; ordinal >= 0 ; ordinal --) {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
-      long bytesReserved = mBytesToReserveOnTiers.get(tierAlias);
-      try {
-        mBlockManager.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, bytesReserved, tierAlias);
-      } catch (WorkerOutOfSpaceException e) {
-        LOG.warn(e.getMessage());
-      } catch (BlockDoesNotExistException e) {
-        LOG.warn(e.getMessage());
-      } catch (BlockAlreadyExistsException e) {
-        LOG.warn(e.getMessage());
-      } catch (InvalidWorkerStateException e) {
-        LOG.warn(e.getMessage());
-      } catch (IOException e) {
-        LOG.warn(e.getMessage());
+      long highWatermarkInBytes = mHighWaterMarkInBytesOnTiers.get(tierAlias);
+      if (highWatermarkInBytes > 0 && usedBytesOnTiers.get(tierAlias) >= highWatermarkInBytes) {
+        long bytesReserved = mBytesToReserveOnTiers.get(tierAlias);
+        try {
+          mBlockManager.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, bytesReserved, tierAlias);
+        } catch (WorkerOutOfSpaceException e) {
+          LOG.warn(e.getMessage());
+        } catch (BlockDoesNotExistException e) {
+          LOG.warn(e.getMessage());
+        } catch (BlockAlreadyExistsException e) {
+          LOG.warn(e.getMessage());
+        } catch (InvalidWorkerStateException e) {
+          LOG.warn(e.getMessage());
+        } catch (IOException e) {
+          LOG.warn(e.getMessage());
+        }
       }
     }
   }

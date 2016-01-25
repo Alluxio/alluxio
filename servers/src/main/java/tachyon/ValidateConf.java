@@ -67,8 +67,11 @@ public final class ValidateConf {
     Pattern dirsQuotaPattern =
         Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.replace("%d",
             "\\d+").replace(".", "\\."));
-    Pattern reservedRatioPattern =
-        Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.replace("%d",
+    Pattern spaceReserverHighWaterMarkPattern =
+        Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT
+            .replace("%d", "\\d+").replace(".", "\\."));
+    Pattern spaceReserverLowWaterMarkPattern =
+        Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.replace("%d",
             "\\d+").replace(".", "\\."));
     TachyonConf tachyonConf = new TachyonConf();
     boolean valid = true;
@@ -77,7 +80,8 @@ public final class ValidateConf {
       if (aliasPattern.matcher(propertyName).matches()
           || dirsPathPattern.matcher(propertyName).matches()
           || dirsQuotaPattern.matcher(propertyName).matches()
-          || reservedRatioPattern.matcher(propertyName).matches()) {
+          || spaceReserverHighWaterMarkPattern.matcher(propertyName).matches()
+          || spaceReserverLowWaterMarkPattern.matcher(propertyName).matches()) {
         continue;
       }
       if (propertyName.startsWith("tachyon.") && !validProperties.contains(propertyName)) {

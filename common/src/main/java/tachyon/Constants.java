@@ -302,10 +302,16 @@ public final class Constants {
       "tachyon.worker.tieredstore.level%d.dirs.quota";
   /**
    * This format is used as a template to generate the property name for a given level. e.g.,
-   * {@code String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, level)}
+   * {@code String.format(Constants.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT, level)}
    */
-  public static final String WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT =
-      "tachyon.worker.tieredstore.level%d.reserved.ratio";
+  public static final String  WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT =
+      "tachyon.worker.tieredstore.level%d.watermark.high.ratio";
+  /**
+   * This format is used as a template to generate the property name for a given level. e.g.,
+   * {@code String.format(Constants.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT, level)}
+   */
+  public static final String  WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT =
+      "tachyon.worker.tieredstore.level%d.watermark.low.ratio";
 
   public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
       "tachyon.worker.tieredstore.reserver.interval.ms";

@@ -81,12 +81,19 @@ public class SpaceReserverTest {
     mBlockStore = new TieredBlockStore();
     BlockDataManager blockDataManager = new BlockDataManager(workerSource, blockMasterClient,
         workerFileSystemMasterClient, mBlockStore);
-    String reserveRatioProp =
-        String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 0);
-    WorkerContext.getConf().set(reserveRatioProp, "0.2");
-    reserveRatioProp =
-        String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 1);
-    WorkerContext.getConf().set(reserveRatioProp, "0.3");
+    String highWatermarkRatio =
+        String.format(Constants.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT, 0);
+    WorkerContext.getConf().set(highWatermarkRatio, "0.9");
+    String lowWatermarkRatio =
+        String.format(Constants.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT, 0);
+    WorkerContext.getConf().set(lowWatermarkRatio, "0.8");
+
+    highWatermarkRatio =
+        String.format(Constants.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT, 1);
+    WorkerContext.getConf().set(highWatermarkRatio, "0.9");
+    lowWatermarkRatio =
+       String.format(Constants.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT, 1);
+    WorkerContext.getConf().set(lowWatermarkRatio, "0.7");
     mSpaceReserver = new SpaceReserver(blockDataManager);
   }
 
