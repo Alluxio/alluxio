@@ -83,6 +83,7 @@ public final class KeyValueWorkerClient extends ClientBase {
    * Gets the value of a given {@code key} from a specific key-value block.
    *
    * @param blockId The id of the block
+   * @param key the key to get the value for
    * @return ByteBuffer of value, or null if not found
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
@@ -123,6 +124,8 @@ public final class KeyValueWorkerClient extends ClientBase {
   /**
    * @param blockId the id of the partition
    * @return the number of key-value pairs in the partition
+   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws TachyonException if an exception in Tachyon occurs
    */
   public synchronized int getSize(final long blockId) throws IOException, TachyonException {
     return retryRPC(new ClientBase.RpcCallableThrowsTachyonTException<Integer>() {

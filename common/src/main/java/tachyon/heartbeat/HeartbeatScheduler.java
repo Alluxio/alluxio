@@ -23,6 +23,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 /**
@@ -40,6 +42,7 @@ import com.google.common.base.Preconditions;
  * For an example of how to use the {@link HeartbeatScheduler}, see unit test of
  * {@link HeartbeatThread}.
  */
+@ThreadSafe
 public final class HeartbeatScheduler {
   private static Map<String, ScheduledTimer> sTimers = new HashMap<String, ScheduledTimer>();
   private static Lock sLock = new ReentrantLock();

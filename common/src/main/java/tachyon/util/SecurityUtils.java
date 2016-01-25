@@ -15,6 +15,8 @@
 
 package tachyon.util;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.security.authentication.AuthType;
@@ -22,6 +24,7 @@ import tachyon.security.authentication.AuthType;
 /**
  * Utility methods for security.
  */
+@ThreadSafe
 public final class SecurityUtils {
   private SecurityUtils() {} // prevent instantiation
 

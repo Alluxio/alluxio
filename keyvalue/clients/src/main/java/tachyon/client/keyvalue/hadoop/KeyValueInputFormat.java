@@ -18,7 +18,7 @@ package tachyon.client.keyvalue.hadoop;
 import java.io.IOException;
 import java.util.List;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileInputFormat;
@@ -34,18 +34,19 @@ import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.keyvalue.KeyValueMasterClient;
+import tachyon.client.keyvalue.KeyValueStores;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.PartitionInfo;
 
 /**
  * Implementation of {@link org.apache.hadoop.mapred.InputFormat} for MapReduce programs to access
- * {@link tachyon.client.keyvalue.KeyValueStores}.
+ * {@link KeyValueStores}.
  * <p>
- * It takes a {@link tachyon.client.keyvalue.KeyValueStores} URI, and emits key-value pairs stored
- * in the KeyValueStore to {@link org.apache.hadoop.mapred.Mapper}s.
+ * It takes a {@link KeyValueStores} URI, and emits key-value pairs stored in the KeyValueStore to
+ * {@link org.apache.hadoop.mapred.Mapper}s.
  */
 @PublicApi
-@NotThreadSafe
+@ThreadSafe
 public final class KeyValueInputFormat implements InputFormat {
   private final KeyValueMasterClient mKeyValueMasterClient =
       new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
@@ -56,6 +57,7 @@ public final class KeyValueInputFormat implements InputFormat {
    * @param conf MapReduce job configuration
    * @param numSplits number of splits, ignored because it is determined by number of partitions
    * @return list of {@link InputSplit}s, each split is a partition
+   * @throws IOException if information about the partition cannot be retrieved
    */
   @Override
   public InputSplit[] getSplits(JobConf conf, int numSplits) throws IOException {
@@ -71,8 +73,8 @@ public final class KeyValueInputFormat implements InputFormat {
           splits.add(new KeyValueInputSplit(partitionInfo));
         }
       }
-    } catch (TachyonException te) {
-      throw new IOException(te);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     }
     InputSplit[] ret = new InputSplit[splits.size()];
     return splits.toArray(ret);
@@ -84,8 +86,8 @@ public final class KeyValueInputFormat implements InputFormat {
     if (inputSplit instanceof KeyValueInputSplit) {
       try {
         return new KeyValueRecordReader((KeyValueInputSplit) inputSplit);
-      } catch (TachyonException te) {
-        throw new IOException(te);
+      } catch (TachyonException e) {
+        throw new IOException(e);
       }
     } else {
       throw new IOException("Expected InputSplit to be instance of KeyValueInputSplit.");

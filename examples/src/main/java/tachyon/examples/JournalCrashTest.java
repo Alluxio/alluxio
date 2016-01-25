@@ -34,8 +34,8 @@ import tachyon.client.WriteType;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.TachyonException;
-import tachyon.exception.TachyonExceptionType;
 import tachyon.util.CommonUtils;
 
 /**
@@ -76,19 +76,32 @@ public class JournalCrashTest {
     /** The number of successfully operations. */
     private int mSuccessNum = 0;
 
+    /**
+     * @param workDir the working directory for this thread on Tachyon
+     * @param opType the type of operation this thread should do
+     */
     public ClientThread(String workDir, ClientOpType opType) {
       mOpType = opType;
       mWorkDir = workDir;
     }
 
+    /**
+     * @return the type of operation this thread should do
+     */
     public ClientOpType getOpType() {
       return mOpType;
     }
 
+    /**
+     * @return the number of successfully operations
+     */
     public int getSuccessNum() {
       return mSuccessNum;
     }
 
+    /**
+     * @return the working directory of this thread on Tachyon
+     */
     public String getWorkDir() {
       return mWorkDir;
     }
@@ -115,7 +128,7 @@ public class JournalCrashTest {
               sTfs.createFile(testURI, sCreateFileOptions).close();
             } catch (TachyonException e) {
               // If file already exists, ignore it.
-              if (e.getType() != TachyonExceptionType.FILE_ALREADY_EXISTS) {
+              if (!(e instanceof FileAlreadyExistsException)) {
                 throw e;
               }
             } catch (Exception e) {
@@ -127,7 +140,7 @@ public class JournalCrashTest {
               sTfs.createFile(testURI, sCreateFileOptions).close();
             } catch (TachyonException e) {
               // If file already exists, ignore it.
-              if (e.getType() != TachyonExceptionType.FILE_ALREADY_EXISTS) {
+              if (!(e instanceof FileAlreadyExistsException)) {
                 throw e;
               }
             } catch (Exception e) {
@@ -145,6 +158,9 @@ public class JournalCrashTest {
       }
     }
 
+    /**
+     * @param isStopped signal from supervisor to stop this thread
+     */
     public synchronized void setIsStopped(boolean isStopped) {
       mIsStopped = isStopped;
     }
@@ -217,6 +233,13 @@ public class JournalCrashTest {
     }
   }
 
+  /**
+   * Usage:
+   * {@code java -cp
+   * tachyon-<TACHYON-VERSION>-jar-with-dependencies.jar tachyon.examples.JournalCrashTest}
+   *
+   * @param args no arguments
+   */
   public static void main(String[] args) {
     // Parse the input args.
     if (!parseInputArgs(args)) {
@@ -248,7 +271,7 @@ public class JournalCrashTest {
       sTfs = FileSystem.Factory.get();
       try {
         sTfs.delete(new TachyonURI(sTestDir));
-      } catch (Exception ioe) {
+      } catch (Exception e) {
         // Test Directory not exist
       }
 

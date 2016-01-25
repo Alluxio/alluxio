@@ -15,9 +15,12 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The exception thrown when a lineage deletion fails in Tachyon.
  */
+@ThreadSafe
 public class LineageDeletionException extends TachyonException {
   private static final long serialVersionUID = -1183157316281653017L;
 

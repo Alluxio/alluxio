@@ -15,9 +15,12 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Holds the different types of exceptions thrown by Tachyon.
  */
+@ThreadSafe
 public enum TachyonExceptionType {
   ACCESS_CONTROL(AccessControlException.class),
   BLOCK_ALREADY_EXISTS(BlockAlreadyExistsException.class),

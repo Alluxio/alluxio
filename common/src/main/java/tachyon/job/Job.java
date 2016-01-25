@@ -17,12 +17,15 @@ package tachyon.job;
 
 import java.io.Serializable;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 /**
  * A Job that can run at Tachyon.
  */
 @SuppressWarnings("serial")
+@ThreadSafe
 public abstract class Job implements Serializable {
   private final JobConf mJobConf;
 

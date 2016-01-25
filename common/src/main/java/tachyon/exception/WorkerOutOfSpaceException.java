@@ -15,9 +15,12 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The exception thrown when a worker is out of space.
  */
+@ThreadSafe
 public class WorkerOutOfSpaceException extends TachyonException {
   private static final long serialVersionUID = 8148784998226149669L;
 

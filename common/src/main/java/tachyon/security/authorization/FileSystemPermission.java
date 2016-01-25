@@ -15,6 +15,8 @@
 
 package tachyon.security.authorization;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -22,6 +24,7 @@ import tachyon.exception.ExceptionMessage;
 /**
  * A class for file/directory permissions.
  */
+@NotThreadSafe
 public final class FileSystemPermission {
   //POSIX permission style
   private FileSystemAction mUseraction;
@@ -220,7 +223,7 @@ public final class FileSystemPermission {
     try {
       Integer.parseInt(value);
       return true;
-    } catch (NumberFormatException nfe) {
+    } catch (NumberFormatException e) {
       return false;
     }
   }

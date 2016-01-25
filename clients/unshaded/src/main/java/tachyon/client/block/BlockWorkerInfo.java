@@ -15,6 +15,8 @@
 
 package tachyon.client.block;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
@@ -24,6 +26,7 @@ import tachyon.worker.NetAddress;
  * Information of an active block worker.
  */
 @PublicApi
+@ThreadSafe
 public final class BlockWorkerInfo {
   private final NetAddress mNetAddress;
   private final long mCapacityBytes;

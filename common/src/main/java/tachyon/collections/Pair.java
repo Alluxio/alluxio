@@ -15,12 +15,15 @@
 
 package tachyon.collections;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * A pair representation defined by two elements (of type First and type Second).
  *
  * @param <T1> the first element of the Pair
  * @param <T2> the second element of the Pair
  */
+@NotThreadSafe
 public final class Pair<T1, T2> {
   private T1 mFirst;
   private T2 mSecond;

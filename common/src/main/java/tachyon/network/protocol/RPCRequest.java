@@ -15,8 +15,11 @@
 
 package tachyon.network.protocol;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The base class for constructing RPC requests.
  */
+@ThreadSafe
 public abstract class RPCRequest extends RPCMessage {
 }

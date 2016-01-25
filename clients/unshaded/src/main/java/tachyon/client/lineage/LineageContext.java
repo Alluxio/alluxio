@@ -33,7 +33,7 @@ public enum LineageContext {
    * Creates a new lineage context.
    */
   LineageContext() {
-    mLineageMasterClientPool = new LineageMasterClientPool(ClientContext.getMasterAddress());
+    reset();
   }
 
   /**
@@ -52,5 +52,16 @@ public enum LineageContext {
    */
   public void releaseMasterClient(LineageMasterClient masterClient) {
     mLineageMasterClientPool.release(masterClient);
+  }
+
+  /**
+   * Re-initializes the {@link LineageContext}. This method should only be used in
+   * {@link ClientContext}.
+   */
+  public void reset() {
+    if (mLineageMasterClientPool != null) {
+      mLineageMasterClientPool.close();
+    }
+    mLineageMasterClientPool = new LineageMasterClientPool(ClientContext.getMasterAddress());
   }
 }

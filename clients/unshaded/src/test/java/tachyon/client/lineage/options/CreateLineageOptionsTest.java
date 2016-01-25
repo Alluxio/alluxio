@@ -13,30 +13,22 @@
  * the License.
  */
 
-package tachyon.client.worker;
+package tachyon.client.lineage.options;
 
-import com.google.common.base.Preconditions;
-
-import tachyon.heartbeat.HeartbeatExecutor;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * Session client sends periodical heartbeats to the worker it is talking to. If it fails to do so,
- * the worker may withdraw the space granted to the particular session.
+ * Tests for {@link CreateLineageOptions}.
  */
-final class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
-  private final BlockWorkerClient mBlockWorkerClient;
+public final class CreateLineageOptionsTest {
 
-  public WorkerClientHeartbeatExecutor(BlockWorkerClient blockWorkerClient) {
-    mBlockWorkerClient = Preconditions.checkNotNull(blockWorkerClient);
-  }
-
-  @Override
-  public void heartbeat() {
-    mBlockWorkerClient.periodicHeartbeat();
-  }
-
-  @Override
-  public void close() {
-    // Not responsible for cleaning up blockWorkerClient
+  /**
+   * Tests that building a {@link CreateLineageOptions} with the defaults works.
+   */
+  @Test
+  public void defaultsTest() {
+    CreateLineageOptions options = CreateLineageOptions.defaults();
+    Assert.assertNotNull(options);
   }
 }
