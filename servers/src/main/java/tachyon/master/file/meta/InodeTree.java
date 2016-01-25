@@ -62,6 +62,7 @@ import tachyon.util.io.PathUtils;
  * Represents the tree of Inode's.
  */
 @NotThreadSafe
+// TODO(jiri): Make this class thread-safe.
 public final class InodeTree implements JournalCheckpointStreamable {
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
