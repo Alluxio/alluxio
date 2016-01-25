@@ -25,6 +25,9 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -121,25 +124,40 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 /**
  * The master that handles all file system metadata management.
  */
+@ThreadSafe
 public final class FileSystemMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** Handle to the block master. */
   private final BlockMaster mBlockMaster;
+
   /** This manages the file system inode structure. This must be journaled. */
+  @GuardedBy("itself")
   private final InodeTree mInodeTree;
+
+  /** This manages the file system mount points. */
+  @GuardedBy("mInodeTree")
+  private final MountTable mMountTable;
+
+  /** Map from worker to the files to persist on that worker. Used by async persistence service. */
+  @GuardedBy("mInodeTree")
+  private final Map<Long, Set<Long>> mWorkerToAsyncPersistFiles;
+
+  /** This maintains inodes with ttl set, for the for the ttl checker service to use. */
+  @GuardedBy("mInodeTree")
+  private final TtlBucketList mTtlBuckets = new TtlBucketList();
+
   /** This generates unique directory ids. This must be journaled. */
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
-  /** This manages the file system mount points. */
-  private final MountTable mMountTable;
-  /** Map from worker to the files to persist on that worker. Used by async persistence service. */
-  private final Map<Long, Set<Long>> mWorkerToAsyncPersistFiles;
+
   /** This provides user groups mapping service. */
   private final GroupMappingService mGroupMappingService;
 
+  /** List of paths to always keep in memory. */
   private final PrefixList mWhitelist;
 
   /**
-   * The service that tries to check inodefiles with ttl set. We store it here so that it can be
+   * The service that checks for inode files with ttl set. We store it here so that it can be
    * accessed from tests.
    */
   @SuppressFBWarnings("URF_UNREAD_FIELD")
@@ -150,12 +168,6 @@ public final class FileSystemMaster extends MasterBase {
    */
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mLostFilesDetectionService;
-
-  /**
-   * This maintains inodes with ttl set in the corresponding ttlbucket, for the
-   * mTtlCheckerService to use
-   */
-  private final TtlBucketList mTtlBuckets = new TtlBucketList();
 
   /**
    * @param baseDirectory the base journal directory
@@ -209,118 +221,108 @@ public final class FileSystemMaster extends MasterBase {
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
     Message innerEntry = JournalProtoUtils.unwrap(entry);
-    if (innerEntry instanceof InodeFileEntry || innerEntry instanceof InodeDirectoryEntry) {
-      mInodeTree.addInodeFromJournal(entry);
-    } else if (innerEntry instanceof InodeLastModificationTimeEntry) {
-      InodeLastModificationTimeEntry modTimeEntry = (InodeLastModificationTimeEntry) innerEntry;
-      try {
-        Inode inode = mInodeTree.getInodeById(modTimeEntry.getId());
-        inode.setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs());
-      } catch (FileDoesNotExistException e) {
-        throw new RuntimeException(e);
-      }
-    } else if (innerEntry instanceof PersistDirectoryEntry) {
-      PersistDirectoryEntry typedEntry = (PersistDirectoryEntry) innerEntry;
-      try {
-        Inode inode = mInodeTree.getInodeById(typedEntry.getId());
-        inode.setPersistenceState(PersistenceState.PERSISTED);
-      } catch (FileDoesNotExistException e) {
-        throw new RuntimeException(e);
-      }
-    } else if (innerEntry instanceof CompleteFileEntry) {
-      try {
-        completeFileFromEntry((CompleteFileEntry) innerEntry);
-      } catch (InvalidPathException e) {
-        throw new RuntimeException(e);
-      } catch (InvalidFileSizeException e) {
-        throw new RuntimeException(e);
-      } catch (FileAlreadyCompletedException e) {
-        throw new RuntimeException(e);
-      }
-    } else if (innerEntry instanceof SetStateEntry) {
-      try {
-        setStateFromEntry((SetStateEntry) innerEntry);
-      } catch (FileDoesNotExistException e) {
-        throw new RuntimeException(e);
-      }
-    } else if (innerEntry instanceof DeleteFileEntry) {
-      deleteFileFromEntry((DeleteFileEntry) innerEntry);
-    } else if (innerEntry instanceof RenameEntry) {
-      renameFromEntry((RenameEntry) innerEntry);
-    } else if (innerEntry instanceof InodeDirectoryIdGeneratorEntry) {
-      mDirectoryIdGenerator.initFromJournalEntry((InodeDirectoryIdGeneratorEntry) innerEntry);
-    } else if (innerEntry instanceof ReinitializeFileEntry) {
-      resetBlockFileFromEntry((ReinitializeFileEntry) innerEntry);
-    } else if (innerEntry instanceof AddMountPointEntry) {
-      try {
-        mountFromEntry((AddMountPointEntry) innerEntry);
-      } catch (FileAlreadyExistsException e) {
-        throw new RuntimeException(e);
-      } catch (InvalidPathException e) {
-        throw new RuntimeException(e);
-      }
-    } else if (innerEntry instanceof DeleteMountPointEntry) {
-      try {
-        unmountFromEntry((DeleteMountPointEntry) innerEntry);
-      } catch (InvalidPathException e) {
-        throw new RuntimeException(e);
-      }
-    } else if (innerEntry instanceof AsyncPersistRequestEntry) {
-      try {
-        long fileId = ((AsyncPersistRequestEntry) innerEntry).getFileId();
-        scheduleAsyncPersistenceInternal(getPath(fileId));
-      } catch (FileDoesNotExistException e) {
-        throw new RuntimeException(e);
-      } catch (InvalidPathException e) {
-        throw new RuntimeException(e);
-      }
-    } else if (innerEntry instanceof SetAclEntry) {
-      try {
-        setAclFromEntry((SetAclEntry) innerEntry);
-      } catch (FileDoesNotExistException e) {
-        throw new RuntimeException(e);
-      }
-    } else {
-      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
-    }
-  }
-
-  private void setAclFromEntry(SetAclEntry setAclEntry) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeById(setAclEntry.getId());
-      inode.setLastModificationTimeMs(setAclEntry.getOpTimeMs());
-      if (setAclEntry.hasUserName()) {
-        inode.setUserName(setAclEntry.getUserName());
-      }
-      if (setAclEntry.hasGroupName()) {
-        inode.setGroupName(setAclEntry.getGroupName());
-      }
-      if (setAclEntry.hasPermission()) {
-        inode.setPermission((short) setAclEntry.getPermission());
+      if (innerEntry instanceof InodeFileEntry || innerEntry instanceof InodeDirectoryEntry) {
+        mInodeTree.addInodeFromJournal(entry);
+      } else if (innerEntry instanceof InodeLastModificationTimeEntry) {
+        InodeLastModificationTimeEntry modTimeEntry = (InodeLastModificationTimeEntry) innerEntry;
+        try {
+          Inode inode = mInodeTree.getInodeById(modTimeEntry.getId());
+          inode.setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs());
+        } catch (FileDoesNotExistException e) {
+          throw new RuntimeException(e);
+        }
+      } else if (innerEntry instanceof PersistDirectoryEntry) {
+        PersistDirectoryEntry typedEntry = (PersistDirectoryEntry) innerEntry;
+        try {
+          Inode inode = mInodeTree.getInodeById(typedEntry.getId());
+          inode.setPersistenceState(PersistenceState.PERSISTED);
+        } catch (FileDoesNotExistException e) {
+          throw new RuntimeException(e);
+        }
+      } else if (innerEntry instanceof CompleteFileEntry) {
+        try {
+          completeFileFromEntry((CompleteFileEntry) innerEntry);
+        } catch (InvalidPathException e) {
+          throw new RuntimeException(e);
+        } catch (InvalidFileSizeException e) {
+          throw new RuntimeException(e);
+        } catch (FileAlreadyCompletedException e) {
+          throw new RuntimeException(e);
+        }
+      } else if (innerEntry instanceof SetStateEntry) {
+        try {
+          setStateFromEntry((SetStateEntry) innerEntry);
+        } catch (FileDoesNotExistException e) {
+          throw new RuntimeException(e);
+        }
+      } else if (innerEntry instanceof DeleteFileEntry) {
+        deleteFileFromEntry((DeleteFileEntry) innerEntry);
+      } else if (innerEntry instanceof RenameEntry) {
+        renameFromEntry((RenameEntry) innerEntry);
+      } else if (innerEntry instanceof InodeDirectoryIdGeneratorEntry) {
+        mDirectoryIdGenerator.initFromJournalEntry((InodeDirectoryIdGeneratorEntry) innerEntry);
+      } else if (innerEntry instanceof ReinitializeFileEntry) {
+        resetBlockFileFromEntry((ReinitializeFileEntry) innerEntry);
+      } else if (innerEntry instanceof AddMountPointEntry) {
+        try {
+          mountFromEntry((AddMountPointEntry) innerEntry);
+        } catch (FileAlreadyExistsException e) {
+          throw new RuntimeException(e);
+        } catch (InvalidPathException e) {
+          throw new RuntimeException(e);
+        }
+      } else if (innerEntry instanceof DeleteMountPointEntry) {
+        try {
+          unmountFromEntry((DeleteMountPointEntry) innerEntry);
+        } catch (InvalidPathException e) {
+          throw new RuntimeException(e);
+        }
+      } else if (innerEntry instanceof AsyncPersistRequestEntry) {
+        try {
+          long fileId = ((AsyncPersistRequestEntry) innerEntry).getFileId();
+          scheduleAsyncPersistenceInternal(getPath(fileId));
+        } catch (FileDoesNotExistException e) {
+          throw new RuntimeException(e);
+        } catch (InvalidPathException e) {
+          throw new RuntimeException(e);
+        }
+      } else if (innerEntry instanceof SetAclEntry) {
+        try {
+          setAclFromEntry((SetAclEntry) innerEntry);
+        } catch (FileDoesNotExistException e) {
+          throw new RuntimeException(e);
+        }
+      } else {
+        throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
       }
     }
   }
 
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    mInodeTree.streamToJournalCheckpoint(outputStream);
-    outputStream.writeEntry(mDirectoryIdGenerator.toJournalEntry());
+    synchronized (mInodeTree) {
+      mInodeTree.streamToJournalCheckpoint(outputStream);
+      outputStream.writeEntry(mDirectoryIdGenerator.toJournalEntry());
+    }
   }
 
   @Override
   public void start(boolean isLeader) throws IOException {
     if (isLeader) {
-      // Only initialize root when isLeader because when initializing root, BlockMaster needs to
-      // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
-      // If it is standby, it should be able to load the inode tree from leader's checkpoint.
-      mInodeTree.initializeRoot(PermissionStatus.get(MasterContext.getConf(), false));
-      String defaultUFS = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
-      try {
-        mMountTable.add(new TachyonURI(MountTable.ROOT), new TachyonURI(defaultUFS));
-      } catch (FileAlreadyExistsException e) {
-        throw new IOException("Failed to mount the default UFS " + defaultUFS);
-      } catch (InvalidPathException e) {
-        throw new IOException("Failed to mount the default UFS " + defaultUFS);
+      synchronized (mInodeTree) {
+        // Only initialize root when isLeader because when initializing root, BlockMaster needs to
+        // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
+        // If it is standby, it should be able to load the inode tree from leader's checkpoint.
+        mInodeTree.initializeRoot(PermissionStatus.get(MasterContext.getConf(), false));
+        String defaultUFS = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
+        try {
+          mMountTable.add(new TachyonURI(MountTable.ROOT), new TachyonURI(defaultUFS));
+        } catch (FileAlreadyExistsException e) {
+          throw new IOException("Failed to mount the default UFS " + defaultUFS);
+        } catch (InvalidPathException e) {
+          throw new IOException("Failed to mount the default UFS " + defaultUFS);
+        }
       }
     }
     // Call super.start after mInodeTree is initialized because mInodeTree is needed to write
@@ -422,6 +424,13 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param inode the inode to get the {@linke FileInfo} for
+   * @return the {@link FileInfo} for the given inode
+   * @throws FileDoesNotExistException if the file does not exist
+   */
   private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
@@ -541,6 +550,18 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param blockIds the block ids to use
+   * @param fileId the file id to use
+   * @param length the length to use
+   * @param opTimeMs the operation time (in milliseconds)
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws InvalidFileSizeException if an invalid file size is encountered
+   * @throws FileAlreadyCompletedException if the file has already been completed
+   */
   void completeFileInternal(List<Long> blockIds, long fileId, long length, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
       FileAlreadyCompletedException {
@@ -561,6 +582,14 @@ public final class FileSystemMaster extends MasterBase {
     MasterContext.getMasterSource().incFilesCompleted(1);
   }
 
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param entry the entry to use
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws InvalidFileSizeException if an invalid file size is encountered
+   * @throws FileAlreadyCompletedException if the file has already been completed
+   */
   private void completeFileFromEntry(CompleteFileEntry entry)
       throws InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException {
     try {
@@ -583,7 +612,6 @@ public final class FileSystemMaster extends MasterBase {
    * @throws IOException if the creation fails
    * @throws AccessControlException if permission checking fails
    */
-
   public long create(TachyonURI path, CreateFileOptions options)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
           BlockInfoException, IOException {
@@ -600,6 +628,17 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param path the path to be created
+   * @param options method options
+   * @return {@link InodeTree.CreatePathResult} with the path creation result
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws FileAlreadyExistsException if the file already exists
+   * @throws BlockInfoException if invalid block information is encountered
+   * @throws IOException if an I/O error occurs
+   */
   InodeTree.CreatePathResult createInternal(TachyonURI path, CreateFileOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
     CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
@@ -646,6 +685,11 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param entry the entry to use
+   */
   private void resetBlockFileFromEntry(ReinitializeFileEntry entry) {
     try {
       mInodeTree.reinitializeFile(new TachyonURI(entry.getPath()), entry.getBlockSizeBytes(),
@@ -727,6 +771,11 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param entry the entry to use
+   */
   private void deleteFileFromEntry(DeleteFileEntry entry) {
     MasterContext.getMasterSource().incDeletePathOps(1);
     try {
@@ -739,6 +788,8 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Convenience method for avoiding {@link DirectoryNotEmptyException} when calling
    * {@link #deleteFileInternal(long, boolean, boolean, long)}.
+   *
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
    * @param fileId the file id
    * @param replayed whether the operation is a result of replaying the journal
@@ -760,6 +811,8 @@ public final class FileSystemMaster extends MasterBase {
 
   /**
    * Implements file deletion.
+   *
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
    * @param fileId the file id
    * @param recursive if the file id identifies a directory, this flag specifies whether the
@@ -892,6 +945,8 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Generates a {@link FileBlockInfo} object from internal metadata. This adds file information to
    * the block, such as the file offset, and additional UFS locations for the block.
+   *
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
    * @param file the file the block is a part of
    * @param blockInfo the {@link BlockInfo} to generate the {@link FileBlockInfo} from
@@ -1181,6 +1236,8 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Implements renaming.
    *
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
    * @param fileId the file id of the rename source
    * @param dstPath the path to the rename destionation
    * @param replayed whether the operation is a result of replaying the journal
@@ -1226,6 +1283,11 @@ public final class FileSystemMaster extends MasterBase {
     propagatePersisted(srcInode, replayed);
   }
 
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param entry the entry to use
+   */
   private void renameFromEntry(RenameEntry entry) {
     MasterContext.getMasterSource().incRenamePathOps(1);
     try {
@@ -1238,6 +1300,8 @@ public final class FileSystemMaster extends MasterBase {
 
   /**
    * Propagates the persisted status to all parents of the given inode in the same mount partition.
+   *
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
    * @param inode the inode to start the propagation at
    * @param replayed whether the invocation is a result of replaying the journal
@@ -1347,7 +1411,9 @@ public final class FileSystemMaster extends MasterBase {
    * @return the white list
    */
   public List<String> getWhiteList() {
-    return mWhitelist.getList();
+    synchronized (mInodeTree) {
+      return mWhitelist.getList();
+    }
   }
 
   /**
@@ -1514,6 +1580,14 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param entry the entry to use
+   * @throws FileAlreadyExistsException if the mount point already exists
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws IOException if an I/O exception occurs
+   */
   void mountFromEntry(AddMountPointEntry entry)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     TachyonURI tachyonURI = new TachyonURI(entry.getTachyonPath());
@@ -1521,6 +1595,15 @@ public final class FileSystemMaster extends MasterBase {
     mountInternal(tachyonURI, ufsURI);
   }
 
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param tachyonPath the Tachyon mount point
+   * @param ufsPath the UFS endpoint to mount
+   * @throws FileAlreadyExistsException if the mount point already exists
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws IOException if an I/O exception occurs
+   */
   void mountInternal(TachyonURI tachyonPath, TachyonURI ufsPath)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     // Check that the ufsPath exists and is a directory
@@ -1583,6 +1666,12 @@ public final class FileSystemMaster extends MasterBase {
     return false;
   }
 
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param entry the entry to use
+   * @throws InvalidPathException if an invalid path is encountered
+   */
   void unmountFromEntry(DeleteMountPointEntry entry) throws InvalidPathException {
     TachyonURI tachyonURI = new TachyonURI(entry.getTachyonPath());
     if (!unmountInternal(tachyonURI)) {
@@ -1590,6 +1679,13 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param tachyonPath the Tachyon mount point to unmount
+   * @return true if successful, false otherwise
+   * @throws InvalidPathException if an invalied path is encountered
+   */
   boolean unmountInternal(TachyonURI tachyonPath) throws InvalidPathException {
     return mMountTable.delete(tachyonPath);
   }
@@ -1656,9 +1752,8 @@ public final class FileSystemMaster extends MasterBase {
    */
   public long scheduleAsyncPersistence(TachyonURI path)
       throws FileDoesNotExistException, InvalidPathException {
-    long workerId = scheduleAsyncPersistenceInternal(path);
-
     synchronized (mInodeTree) {
+      long workerId = scheduleAsyncPersistenceInternal(path);
       long fileId = mInodeTree.getInodeByPath(path).getId();
       // write to journal
       AsyncPersistRequestEntry asyncPersistRequestEntry =
@@ -1670,6 +1765,14 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param path the path to schedule asynchronous persistence for
+   * @return the id of the worker that will perform the operation
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if an invalid path is encountered
+   */
   private long scheduleAsyncPersistenceInternal(TachyonURI path) throws
       FileDoesNotExistException, InvalidPathException {
     // find the worker
@@ -1681,20 +1784,16 @@ public final class FileSystemMaster extends MasterBase {
       return workerId;
     }
 
-    long fileId;
     // update the state
-    synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeByPath(path);
-      inode.setPersistenceState(PersistenceState.IN_PROGRESS);
-      fileId = inode.getId();
-    }
+    Inode inode = mInodeTree.getInodeByPath(path);
+    inode.setPersistenceState(PersistenceState.IN_PROGRESS);
+    long fileId = inode.getId();
 
-    synchronized (mWorkerToAsyncPersistFiles) {
-      if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
-        mWorkerToAsyncPersistFiles.put(workerId, Sets.<Long>newHashSet());
-      }
-      mWorkerToAsyncPersistFiles.get(workerId).add(fileId);
+    if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
+      mWorkerToAsyncPersistFiles.put(workerId, Sets.<Long>newHashSet());
     }
+    mWorkerToAsyncPersistFiles.get(workerId).add(fileId);
+
     return workerId;
   }
 
@@ -1759,31 +1858,28 @@ public final class FileSystemMaster extends MasterBase {
     List<PersistFile> filesToPersist = Lists.newArrayList();
     List<Long> fileIdsToPersist = Lists.newArrayList();
 
-    synchronized (mWorkerToAsyncPersistFiles) {
-      synchronized (mInodeTree) {
-        if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
-          return filesToPersist;
-        }
-
-        Set<Long> scheduledFiles = mWorkerToAsyncPersistFiles.get(workerId);
-        for (long fileId : scheduledFiles) {
-          InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
-          if (inode.isCompleted()) {
-            fileIdsToPersist.add(fileId);
-            List<Long> blockIds = Lists.newArrayList();
-            for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(mInodeTree.getPath(inode))) {
-              blockIds.add(fileBlockInfo.blockInfo.blockId);
-            }
-
-            filesToPersist.add(new PersistFile(fileId, blockIds));
-            // update the inode file persisence state
-            inode.setPersistenceState(PersistenceState.IN_PROGRESS);
-          }
-        }
-
+    synchronized (mInodeTree) {
+      if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
+        return filesToPersist;
       }
+
+      Set<Long> scheduledFiles = mWorkerToAsyncPersistFiles.get(workerId);
+      for (long fileId : scheduledFiles) {
+        InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
+        if (inode.isCompleted()) {
+          fileIdsToPersist.add(fileId);
+          List<Long> blockIds = Lists.newArrayList();
+          for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(mInodeTree.getPath(inode))) {
+            blockIds.add(fileBlockInfo.blockInfo.blockId);
+          }
+
+          filesToPersist.add(new PersistFile(fileId, blockIds));
+          // update the inode file persisence state
+          inode.setPersistenceState(PersistenceState.IN_PROGRESS);
+        }
+      }
+      mWorkerToAsyncPersistFiles.get(workerId).removeAll(fileIdsToPersist);
     }
-    mWorkerToAsyncPersistFiles.get(workerId).removeAll(fileIdsToPersist);
     return filesToPersist;
   }
 
@@ -1813,6 +1909,14 @@ public final class FileSystemMaster extends MasterBase {
     return new FileSystemCommand(CommandType.Persist, options);
   }
 
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param fileId the file id to use
+   * @param opTimeMs the operation time (in milliseconds)
+   * @param options the method options
+   * @throws FileDoesNotExistException
+   */
   private void setStateInternal(long fileId, long opTimeMs, SetAttributeOptions options)
       throws FileDoesNotExistException {
     Inode inode = mInodeTree.getInodeById(fileId);
@@ -1848,7 +1952,13 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  // TODO(calvin): Rename SetStateEntry to SetAttributeEntry, do not rely on client side options
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param entry the entry to use
+   * @throws FileDoesNotExistException if the file does not exist
+   */
+  // TODO(calvin): Rename SetStateEntry to SetAttributeEntry, do not rely on client side options.
   private void setStateFromEntry(SetStateEntry entry) throws FileDoesNotExistException {
     SetAttributeOptions options = SetAttributeOptions.defaults();
     if (entry.hasPinned()) {
@@ -1946,11 +2056,15 @@ public final class FileSystemMaster extends MasterBase {
    * Sets acl attributes to the inode. At least one of user, group, or permission in
    * {@link SetAclOptions} is set.
    *
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
    * @param inode the inode to be set on
    * @param opTimeMs the time of the operation
    * @param options acl option to be set
    * @throws AccessControlException if security is not enabled
    */
+  // TODO(jiri): Use setAclInternal to implement setAclFromEntry not the other way around to be
+  // consistent with the rest of the code base.
   private void setAclInternal(Inode inode, long opTimeMs, SetAclOptions options)
       throws AccessControlException {
     // throws exception if security is not enabled.
@@ -1981,7 +2095,29 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param entry the entry to use
+   * @throws FileDoesNotExistException if the file does not exist
+   */
+  private void setAclFromEntry(SetAclEntry entry) throws FileDoesNotExistException {
+    Inode inode = mInodeTree.getInodeById(entry.getId());
+    inode.setLastModificationTimeMs(entry.getOpTimeMs());
+    if (entry.hasUserName()) {
+      inode.setUserName(entry.getUserName());
+    }
+    if (entry.hasGroupName()) {
+      inode.setGroupName(entry.getGroupName());
+    }
+    if (entry.hasPermission()) {
+      inode.setPermission((short) entry.getPermission());
+    }
+  }
+
+  /**
    * Checks whether the client user is the owner of the path.
+   *
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
    * @param path to be checked on
    * @throws AccessControlException if permission checking fails
@@ -2008,6 +2144,8 @@ public final class FileSystemMaster extends MasterBase {
    * Checks user's permission on a path. If the path is invalid, it should bypass the
    * {@link InvalidPathException} and the logic at operation will handle it. The caller should lock
    * mInodeTree before calling it.
+   *
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
    * @param action requested {@link FileSystemAction} by user
    * @param path the path to check permission on
@@ -2053,6 +2191,10 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * @return the client user
+   * @throws AccessControlException if the client user information cannot be accessed
+   */
   private String getClientUser() throws AccessControlException {
     User authorizedUser = PlainSaslServer.AuthorizedClientUser.get();
     if (authorizedUser == null) {
@@ -2062,6 +2204,11 @@ public final class FileSystemMaster extends MasterBase {
     return authorizedUser.getName();
   }
 
+  /**
+   * @param user the user to get groups for
+   * @return the groups for the given user
+   * @throws AccessControlException if the group service information cannot be accessed
+   */
   private List<String> getGroups(String user) throws AccessControlException {
     try {
       return mGroupMappingService.getGroups(user);
@@ -2071,8 +2218,14 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private List<FileInfo> collectFileInfoList(TachyonURI path) throws AccessControlException,
-      InvalidPathException {
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param path the path to collect file information for
+   * @return a list of {@link FileInfo}
+   * @throws InvalidPathException if an invalid path is encountered
+   */
+  private List<FileInfo> collectFileInfoList(TachyonURI path) throws InvalidPathException {
     List<FileInfo> fileInfos = Lists.newArrayList();
     for (Inode inodeOnPath :  mInodeTree.collectInodes(path)) {
       fileInfos.add(inodeOnPath.generateClientFileInfo(mInodeTree.getPath(inodeOnPath).toString()));
@@ -2086,7 +2239,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * This class represents the executor for periodic inode TTL check.
+   * This class represents the executor for periodic inode ttl check.
    */
   private final class MasterInodeTtlCheckExecutor implements HeartbeatExecutor {
     @Override

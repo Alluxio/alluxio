@@ -80,7 +80,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * This master manages the metadata for all the blocks and block workers in Tachyon.
  */
 @ThreadSafe
-// TODO(jiri): Make this class thread safe.
 public final class BlockMaster extends MasterBase implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -92,12 +91,14 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    */
   @GuardedBy("itself")
   private final Map<Long, MasterBlockInfo> mBlocks = new HashMap<Long, MasterBlockInfo>();
+
   /**
    * Keeps track of block which are no longer in Tachyon storage. Access must be synchronized on
    * mBlocks.
    */
   @GuardedBy("mBlocks")
   private final Set<Long> mLostBlocks = new HashSet<Long>();
+
   /** This state must be journaled. */
   private final BlockContainerIdGenerator mBlockContainerIdGenerator =
       new BlockContainerIdGenerator();
@@ -110,6 +111,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
           return o.getId();
         }
       };
+
   private final IndexedSet.FieldIndex<MasterWorkerInfo> mAddressIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
         @Override
@@ -117,6 +119,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
           return o.getWorkerAddress();
         }
       };
+
   /**
    * Mapping between all possible storage level aliases and their ordinal position. This mapping
    * forms a total ordering on all storage level aliases in the system, and must be consistent
@@ -142,12 +145,14 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
+
   /**
    * The service that detects lost worker nodes, and tries to restart the failed workers.
    * We store it here so that it can be accessed from tests.
    */
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mLostWorkerDetectionService;
+
   /** The next worker id to use. This state must be journaled. */
   private final AtomicLong mNextWorkerId = new AtomicLong(1);
 
@@ -450,7 +455,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * @return the total bytes on each storage tier.
+   * @return the total bytes on each storage tier
    */
   public Map<String, Long> getTotalBytesOnTiers() {
     Map<String, Long> ret = new HashMap<String, Long>();
@@ -466,7 +471,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * @return the used bytes on each storage tier.
+   * @return the used bytes on each storage tier
    */
   public Map<String, Long> getUsedBytesOnTiers() {
     Map<String, Long> ret = new HashMap<String, Long>();
