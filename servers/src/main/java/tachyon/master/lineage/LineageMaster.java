@@ -279,16 +279,19 @@ public final class LineageMaster extends MasterBase {
    * @param ttl the TTL
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws InvalidPathException the file path is invalid
-   * @throws FileDoesNotExistException when the file does not exist
+   * @throws LineageDoesNotExistException when the file does not exist
    * @throws AccessControlException if permission checking fails
    */
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
-      throws InvalidPathException, FileDoesNotExistException, AccessControlException {
+      throws InvalidPathException, LineageDoesNotExistException, AccessControlException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
-    if (fileId == -1) {
-      throw new FileDoesNotExistException(ExceptionMessage.MISSING_REINITIALIZE_FILE.getMessage(path));
+    FileInfo fileInfo;
+    try {
+      fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    } catch (FileDoesNotExistException e) {
+      throw new LineageDoesNotExistException(
+          ExceptionMessage.MISSING_REINITIALIZE_FILE.getMessage(path));
     }
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     if (!fileInfo.isCompleted || mFileSystemMaster.getLostFiles().contains(fileId)) {
       LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
       return mFileSystemMaster.reinitializeFile(new TachyonURI(path), blockSizeBytes, ttl);
