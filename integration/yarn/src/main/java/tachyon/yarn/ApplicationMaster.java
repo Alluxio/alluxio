@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
@@ -63,6 +65,7 @@ import tachyon.yarn.YarnUtils.YarnContainerType;
  * ApplicationMaster on an allocated container. The ApplicationMaster communicates with the YARN
  * cluster, and handles application execution. It performs operations asynchronously.
  */
+@NotThreadSafe
 public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
