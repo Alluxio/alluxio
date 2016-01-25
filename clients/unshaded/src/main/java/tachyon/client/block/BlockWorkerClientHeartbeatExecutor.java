@@ -13,7 +13,9 @@
  * the License.
  */
 
-package tachyon.client.worker;
+package tachyon.client.block;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 
@@ -23,10 +25,11 @@ import tachyon.heartbeat.HeartbeatExecutor;
  * Session client sends periodical heartbeats to the worker it is talking to. If it fails to do so,
  * the worker may withdraw the space granted to the particular session.
  */
-final class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
+@ThreadSafe
+final class BlockWorkerClientHeartbeatExecutor implements HeartbeatExecutor {
   private final BlockWorkerClient mBlockWorkerClient;
 
-  public WorkerClientHeartbeatExecutor(BlockWorkerClient blockWorkerClient) {
+  public BlockWorkerClientHeartbeatExecutor(BlockWorkerClient blockWorkerClient) {
     mBlockWorkerClient = Preconditions.checkNotNull(blockWorkerClient);
   }
 

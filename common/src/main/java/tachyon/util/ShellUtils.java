@@ -107,8 +107,8 @@ public final class ShellUtils {
       if (mExitCode != 0) {
         throw new ExitCodeException(mExitCode, errMsg.toString());
       }
-    } catch (InterruptedException ie) {
-      throw new IOException(ie.toString());
+    } catch (InterruptedException e) {
+      throw new IOException(e);
     } finally {
       // close the input stream
       try {
@@ -123,8 +123,8 @@ public final class ShellUtils {
         synchronized (stdout) {
           inReader.close();
         }
-      } catch (IOException ioe) {
-        LOG.warn("Error while closing the input stream", ioe);
+      } catch (IOException e) {
+        LOG.warn("Error while closing the input stream", e);
       }
       mProcess.destroy();
     }

@@ -51,6 +51,10 @@ import tachyon.exception.TachyonException;
  */
 @PublicApi
 public interface FileSystem {
+
+  /**
+   * Factory for {@link FileSystem}.
+   */
   class Factory {
     public static FileSystem get() {
       if (ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED)) {
@@ -192,6 +196,7 @@ public interface FileSystem {
    * @return the {@link URIStatus} of the file
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the path does not exist
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   URIStatus getStatus(TachyonURI path)
       throws FileDoesNotExistException, IOException, TachyonException;
@@ -204,6 +209,7 @@ public interface FileSystem {
    * @return the {@link URIStatus} of the file
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the path does not exist
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   URIStatus getStatus(TachyonURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException, TachyonException;

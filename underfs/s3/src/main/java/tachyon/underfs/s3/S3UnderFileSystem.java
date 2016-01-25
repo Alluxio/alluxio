@@ -290,8 +290,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
     try {
       path = stripPrefixIfPresent(path);
       return new S3InputStream(mBucketName, path, mClient);
-    } catch (ServiceException se) {
-      LOG.error("Failed to open file: {}", path, se);
+    } catch (ServiceException e) {
+      LOG.error("Failed to open file: {}", path, e);
       return null;
     }
   }
@@ -364,8 +364,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
       S3Object obj = new S3Object(dst);
       mClient.copyObject(mBucketName, src, mBucketName, obj, false);
       return true;
-    } catch (ServiceException se) {
-      LOG.error("Failed to rename file {} to {}", src, dst);
+    } catch (ServiceException e) {
+      LOG.error("Failed to rename file {} to {}", src, dst, e);
       return false;
     }
   }
@@ -384,8 +384,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
       } else {
         mClient.deleteObject(mBucketName, stripPrefixIfPresent(key));
       }
-    } catch (ServiceException se) {
-      LOG.error("Failed to delete {}", key, se);
+    } catch (ServiceException e) {
+      LOG.error("Failed to delete {}", key, e);
       return false;
     }
     return true;
@@ -419,7 +419,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       } else {
         return mClient.getObjectDetails(mBucketName, stripPrefixIfPresent(key));
       }
-    } catch (ServiceException se) {
+    } catch (ServiceException e) {
       return null;
     }
   }
@@ -457,7 +457,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       mClient.getObjectDetails(mBucketName, keyAsFolder);
       // If no exception is thrown, the key exists as a folder
       return true;
-    } catch (ServiceException se) {
+    } catch (ServiceException s) {
       return false;
     }
   }
@@ -515,8 +515,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
         children.add(child);
       }
       return children.toArray(new String[children.size()]);
-    } catch (ServiceException se) {
-      LOG.error("Failed to list path {}", path);
+    } catch (ServiceException e) {
+      LOG.error("Failed to list path {}", path, e);
       return null;
     }
   }
@@ -537,8 +537,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
       obj.setContentType(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
       mClient.putObject(mBucketName, obj);
       return true;
-    } catch (ServiceException se) {
-      LOG.error("Failed to create directory: {}", key, se);
+    } catch (ServiceException e) {
+      LOG.error("Failed to create directory: {}", key, e);
       return false;
     }
   }

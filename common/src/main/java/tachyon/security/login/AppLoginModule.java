@@ -63,10 +63,10 @@ public final class AppLoginModule implements LoginModule {
     callbacks[0] = new NameCallback("user name: ");
     try {
       mCallbackHandler.handle(callbacks);
-    } catch (IOException ioe) {
-      throw new LoginException(ioe.getMessage());
-    } catch (UnsupportedCallbackException uce) {
-      throw new LoginException(uce.getMessage());
+    } catch (IOException e) {
+      throw new LoginException(e.getMessage());
+    } catch (UnsupportedCallbackException e) {
+      throw new LoginException(e.getMessage());
     }
 
     String userName = ((NameCallback) callbacks[0]).getName();

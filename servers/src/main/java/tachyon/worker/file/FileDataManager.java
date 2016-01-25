@@ -198,8 +198,8 @@ public final class FileDataManager {
       for (long lockId : blockIdToLockId.values()) {
         try {
           mBlockDataManager.unlockBlock(lockId);
-        } catch (BlockDoesNotExistException bdnee) {
-          errors.add(bdnee);
+        } catch (BlockDoesNotExistException e) {
+          errors.add(e);
         }
       }
 

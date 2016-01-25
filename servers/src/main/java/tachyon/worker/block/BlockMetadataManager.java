@@ -71,12 +71,12 @@ public final class BlockMetadataManager {
       ret.initBlockMetadataManager();
       // caller of newBlockMetadataManager should not be forced to catch and handle these exceptions
       // since it is the responsibility of BlockMetadataManager.
-    } catch (BlockAlreadyExistsException aee) {
-      throw new RuntimeException(aee);
-    } catch (IOException ioe) {
-      throw new RuntimeException(ioe);
-    } catch (WorkerOutOfSpaceException ooe) {
-      throw new RuntimeException(ooe);
+    } catch (BlockAlreadyExistsException e) {
+      throw new RuntimeException(e);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    } catch (WorkerOutOfSpaceException e) {
+      throw new RuntimeException(e);
     }
     return ret;
   }

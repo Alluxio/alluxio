@@ -42,7 +42,7 @@ public class CustomAuthenticationProviderImpl implements AuthenticationProvider 
     Class<?> customProviderClass;
     try {
       customProviderClass = Class.forName(providerName);
-    } catch (ClassNotFoundException cfe) {
+    } catch (ClassNotFoundException e) {
       throw new RuntimeException(providerName + " not found");
     }
 
