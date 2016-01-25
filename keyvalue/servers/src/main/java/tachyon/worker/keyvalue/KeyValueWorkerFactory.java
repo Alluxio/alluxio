@@ -17,6 +17,8 @@ package tachyon.worker.keyvalue;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,7 @@ import tachyon.worker.block.BlockWorker;
 /**
  * Factory to create a {@link KeyValueWorker} instance.
  */
+@ThreadSafe
 public final class KeyValueWorkerFactory implements WorkerFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
