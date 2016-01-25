@@ -149,7 +149,7 @@
     <module>keyvalue</module>
     <module>shell</module>
     <module>examples</module>
-    <module>integration-tests</module>
+    <module>tests</module>
     <module>integration</module>
     <module>assembly</module>
     <module>minicluster</module>
