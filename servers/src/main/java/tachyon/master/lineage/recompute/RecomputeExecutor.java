@@ -19,6 +19,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +40,7 @@ import tachyon.util.ThreadFactoryUtils;
 /**
  * A periodical executor that detects lost files and launches recompute jobs.
  */
+@ThreadSafe
 public final class RecomputeExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -87,8 +90,9 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
   /**
    * Thread to launch the recompute jobs in a given plan.
    */
+  @ThreadSafe
   final class RecomputeLauncher implements Runnable {
-    private RecomputePlan mPlan;
+    private final RecomputePlan mPlan;
 
     /**
      * Creates a new instance of {@link RecomputeLauncher}.
