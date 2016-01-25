@@ -170,6 +170,8 @@ public final class LineageMasterIntegrationTest {
   @Test(timeout = 20000)
   public void lineageRecoveryTest() throws Exception {
     File logFile = mFolder.newFile();
+    // Delete the log file so that when it starts to exist we know that it was created by the
+    // lineage recompute job
     logFile.delete();
     LineageMasterClient lineageClient = getLineageMasterClient();
     FileSystem fs = FileSystem.Factory.get();
@@ -180,11 +182,11 @@ public final class LineageMasterIntegrationTest {
       out.write("foo".getBytes());
       out.close();
       lineageClient.reportLostFile("/testFile");
-      // Wait for the log file to be created by recompute job
+      // Wait for the log file to be created by the recompute job
       while (!logFile.exists()) {
         CommonUtils.sleepMs(20);
       }
-      // Wait for the output to be written (should be very fast)
+      // Wait for the output to be written (this should be very fast)
       CommonUtils.sleepMs(10);
       BufferedReader reader = new BufferedReader(new FileReader(logFile));
       try {
