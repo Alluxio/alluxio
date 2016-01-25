@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +77,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * The lineage master stores the lineage metadata in Tachyon, and it contains the components that
  * manage all lineage-related activities.
  */
+@ThreadSafe
 public final class LineageMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -132,7 +135,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   @Override
-  public void processJournalEntry(JournalEntry entry) throws IOException {
+  public synchronized void processJournalEntry(JournalEntry entry) throws IOException {
     Message innerEntry = JournalProtoUtils.unwrap(entry);
     if (innerEntry instanceof LineageEntry) {
       mLineageStore.addLineageFromJournal((LineageEntry) innerEntry);
@@ -146,7 +149,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   @Override
-  public void start(boolean isLeader) throws IOException {
+  public synchronized void start(boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
       mCheckpointExecutionService = getExecutorService()
