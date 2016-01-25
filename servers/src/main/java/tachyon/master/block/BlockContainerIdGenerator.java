@@ -17,6 +17,8 @@ package tachyon.master.block;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.master.journal.JournalEntryRepresentable;
 import tachyon.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
@@ -24,6 +26,7 @@ import tachyon.proto.journal.Journal.JournalEntry;
 /**
  * This class generates unique block container ids.
  */
+@ThreadSafe
 public final class BlockContainerIdGenerator
     implements JournalEntryRepresentable, ContainerIdGenerable {
 
