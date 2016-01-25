@@ -18,6 +18,8 @@ package tachyon.fuse;
 import java.nio.file.Paths;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -31,13 +33,13 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
  * Main entry point to Tachyon-FUSE
  */
+@ThreadSafe
 public final class TachyonFuse {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static TachyonConf sTachyonConf;
@@ -48,6 +50,8 @@ public final class TachyonFuse {
    * The user-space fuse application will stay on the foreground and keep
    * the file system mounted. The user can unmount the file system by
    * gracefully killing (SIGINT) the process.
+   *
+   * @param args arguments to run the command line
    */
   public static void main(String[] args) {
     sTachyonConf = ClientContext.getConf();
@@ -56,7 +60,7 @@ public final class TachyonFuse {
       System.exit(1);
     }
 
-    final TachyonFileSystem tfs = TachyonFileSystemFactory.get();
+    final FileSystem tfs = FileSystem.Factory.get();
     final TachyonFuseFs fs = new TachyonFuseFs(sTachyonConf, tfs, opts);
     final List<String> fuseOpts = opts.getFuseOpts();
     // Force direct_io in FUSE: writes and reads bypass the kernel page

@@ -24,6 +24,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.javaswift.joss.client.factory.AccountConfig;
 import org.javaswift.joss.client.factory.AccountFactory;
 import org.javaswift.joss.client.factory.AuthenticationMethod;
@@ -34,11 +36,8 @@ import org.javaswift.joss.model.Directory;
 import org.javaswift.joss.model.DirectoryOrObject;
 import org.javaswift.joss.model.PaginationMap;
 import org.javaswift.joss.model.StoredObject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -373,8 +372,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
         children.add(noPrefix);
       }
       return children.toArray(new String[children.size()]);
-    } catch (Exception se) {
-      LOG.error("Failed to list path {}", path);
+    } catch (Exception e) {
+      LOG.error("Failed to list path {}", path, e);
       return null;
     }
   }

@@ -152,6 +152,19 @@ public final class Journal {
     tachyon.proto.journal.File.DeleteMountPointEntryOrBuilder getDeleteMountPointOrBuilder();
 
     /**
+     * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+     */
+    boolean hasDeleteStore();
+    /**
+     * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+     */
+    tachyon.proto.journal.KeyValue.DeleteStoreEntry getDeleteStore();
+    /**
+     * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+     */
+    tachyon.proto.journal.KeyValue.DeleteStoreEntryOrBuilder getDeleteStoreOrBuilder();
+
+    /**
      * <code>optional .tachyon.proto.journal.InodeDirectoryEntry inode_directory = 9;</code>
      */
     boolean hasInodeDirectory();
@@ -228,6 +241,19 @@ public final class Journal {
      * <code>optional .tachyon.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
      */
     tachyon.proto.journal.Lineage.LineageIdGeneratorEntryOrBuilder getLineageIdGeneratorOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+     */
+    boolean hasMergeStore();
+    /**
+     * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+     */
+    tachyon.proto.journal.KeyValue.MergeStoreEntry getMergeStore();
+    /**
+     * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+     */
+    tachyon.proto.journal.KeyValue.MergeStoreEntryOrBuilder getMergeStoreOrBuilder();
 
     /**
      * <code>optional .tachyon.proto.journal.PersistDirectoryEntry persist_directory = 15;</code>
@@ -312,7 +338,7 @@ public final class Journal {
    *
    * <pre>
    * Wraps around all types of Tachyon journal messages.
-   * next available id: 25
+   * next available id: 27
    * </pre>
    */
   public static final class JournalEntry extends
@@ -655,6 +681,32 @@ public final class Journal {
               entryCase_ = 24;
               break;
             }
+            case 202: {
+              tachyon.proto.journal.KeyValue.DeleteStoreEntry.Builder subBuilder = null;
+              if (entryCase_ == 25) {
+                subBuilder = ((tachyon.proto.journal.KeyValue.DeleteStoreEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.journal.KeyValue.DeleteStoreEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.journal.KeyValue.DeleteStoreEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 25;
+              break;
+            }
+            case 210: {
+              tachyon.proto.journal.KeyValue.MergeStoreEntry.Builder subBuilder = null;
+              if (entryCase_ == 26) {
+                subBuilder = ((tachyon.proto.journal.KeyValue.MergeStoreEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.journal.KeyValue.MergeStoreEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.journal.KeyValue.MergeStoreEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 26;
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -709,12 +761,14 @@ public final class Journal {
       DELETE_FILE(6),
       DELETE_LINEAGE(7),
       DELETE_MOUNT_POINT(8),
+      DELETE_STORE(25),
       INODE_DIRECTORY(9),
       INODE_DIRECTORY_ID_GENERATOR(10),
       INODE_FILE(11),
       INODE_LAST_MODIFICATION_TIME(12),
       LINEAGE(13),
       LINEAGE_ID_GENERATOR(14),
+      MERGE_STORE(26),
       PERSIST_DIRECTORY(15),
       ASYNC_PERSIST_REQUEST(16),
       REINITIALIZE_FILE(18),
@@ -738,12 +792,14 @@ public final class Journal {
           case 6: return DELETE_FILE;
           case 7: return DELETE_LINEAGE;
           case 8: return DELETE_MOUNT_POINT;
+          case 25: return DELETE_STORE;
           case 9: return INODE_DIRECTORY;
           case 10: return INODE_DIRECTORY_ID_GENERATOR;
           case 11: return INODE_FILE;
           case 12: return INODE_LAST_MODIFICATION_TIME;
           case 13: return LINEAGE;
           case 14: return LINEAGE_ID_GENERATOR;
+          case 26: return MERGE_STORE;
           case 15: return PERSIST_DIRECTORY;
           case 16: return ASYNC_PERSIST_REQUEST;
           case 18: return REINITIALIZE_FILE;
@@ -1041,6 +1097,32 @@ public final class Journal {
       return tachyon.proto.journal.File.DeleteMountPointEntry.getDefaultInstance();
     }
 
+    public static final int DELETE_STORE_FIELD_NUMBER = 25;
+    /**
+     * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+     */
+    public boolean hasDeleteStore() {
+      return entryCase_ == 25;
+    }
+    /**
+     * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+     */
+    public tachyon.proto.journal.KeyValue.DeleteStoreEntry getDeleteStore() {
+      if (entryCase_ == 25) {
+         return (tachyon.proto.journal.KeyValue.DeleteStoreEntry) entry_;
+      }
+      return tachyon.proto.journal.KeyValue.DeleteStoreEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+     */
+    public tachyon.proto.journal.KeyValue.DeleteStoreEntryOrBuilder getDeleteStoreOrBuilder() {
+      if (entryCase_ == 25) {
+         return (tachyon.proto.journal.KeyValue.DeleteStoreEntry) entry_;
+      }
+      return tachyon.proto.journal.KeyValue.DeleteStoreEntry.getDefaultInstance();
+    }
+
     public static final int INODE_DIRECTORY_FIELD_NUMBER = 9;
     /**
      * <code>optional .tachyon.proto.journal.InodeDirectoryEntry inode_directory = 9;</code>
@@ -1195,6 +1277,32 @@ public final class Journal {
          return (tachyon.proto.journal.Lineage.LineageIdGeneratorEntry) entry_;
       }
       return tachyon.proto.journal.Lineage.LineageIdGeneratorEntry.getDefaultInstance();
+    }
+
+    public static final int MERGE_STORE_FIELD_NUMBER = 26;
+    /**
+     * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+     */
+    public boolean hasMergeStore() {
+      return entryCase_ == 26;
+    }
+    /**
+     * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+     */
+    public tachyon.proto.journal.KeyValue.MergeStoreEntry getMergeStore() {
+      if (entryCase_ == 26) {
+         return (tachyon.proto.journal.KeyValue.MergeStoreEntry) entry_;
+      }
+      return tachyon.proto.journal.KeyValue.MergeStoreEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+     */
+    public tachyon.proto.journal.KeyValue.MergeStoreEntryOrBuilder getMergeStoreOrBuilder() {
+      if (entryCase_ == 26) {
+         return (tachyon.proto.journal.KeyValue.MergeStoreEntry) entry_;
+      }
+      return tachyon.proto.journal.KeyValue.MergeStoreEntry.getDefaultInstance();
     }
 
     public static final int PERSIST_DIRECTORY_FIELD_NUMBER = 15;
@@ -1438,6 +1546,12 @@ public final class Journal {
       if (entryCase_ == 24) {
         output.writeMessage(24, (tachyon.proto.journal.File.SetAclEntry) entry_);
       }
+      if (entryCase_ == 25) {
+        output.writeMessage(25, (tachyon.proto.journal.KeyValue.DeleteStoreEntry) entry_);
+      }
+      if (entryCase_ == 26) {
+        output.writeMessage(26, (tachyon.proto.journal.KeyValue.MergeStoreEntry) entry_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -1539,6 +1653,14 @@ public final class Journal {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(24, (tachyon.proto.journal.File.SetAclEntry) entry_);
       }
+      if (entryCase_ == 25) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(25, (tachyon.proto.journal.KeyValue.DeleteStoreEntry) entry_);
+      }
+      if (entryCase_ == 26) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(26, (tachyon.proto.journal.KeyValue.MergeStoreEntry) entry_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
@@ -1622,7 +1744,7 @@ public final class Journal {
      *
      * <pre>
      * Wraps around all types of Tachyon journal messages.
-     * next available id: 25
+     * next available id: 27
      * </pre>
      */
     public static final class Builder extends
@@ -1767,6 +1889,13 @@ public final class Journal {
             result.entry_ = deleteMountPointBuilder_.build();
           }
         }
+        if (entryCase_ == 25) {
+          if (deleteStoreBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = deleteStoreBuilder_.build();
+          }
+        }
         if (entryCase_ == 9) {
           if (inodeDirectoryBuilder_ == null) {
             result.entry_ = entry_;
@@ -1807,6 +1936,13 @@ public final class Journal {
             result.entry_ = entry_;
           } else {
             result.entry_ = lineageIdGeneratorBuilder_.build();
+          }
+        }
+        if (entryCase_ == 26) {
+          if (mergeStoreBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = mergeStoreBuilder_.build();
           }
         }
         if (entryCase_ == 15) {
@@ -1912,6 +2048,10 @@ public final class Journal {
             mergeDeleteMountPoint(other.getDeleteMountPoint());
             break;
           }
+          case DELETE_STORE: {
+            mergeDeleteStore(other.getDeleteStore());
+            break;
+          }
           case INODE_DIRECTORY: {
             mergeInodeDirectory(other.getInodeDirectory());
             break;
@@ -1934,6 +2074,10 @@ public final class Journal {
           }
           case LINEAGE_ID_GENERATOR: {
             mergeLineageIdGenerator(other.getLineageIdGenerator());
+            break;
+          }
+          case MERGE_STORE: {
+            mergeMergeStore(other.getMergeStore());
             break;
           }
           case PERSIST_DIRECTORY: {
@@ -3389,6 +3533,141 @@ public final class Journal {
       }
 
       private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.journal.KeyValue.DeleteStoreEntry, tachyon.proto.journal.KeyValue.DeleteStoreEntry.Builder, tachyon.proto.journal.KeyValue.DeleteStoreEntryOrBuilder> deleteStoreBuilder_;
+      /**
+       * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+       */
+      public boolean hasDeleteStore() {
+        return entryCase_ == 25;
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+       */
+      public tachyon.proto.journal.KeyValue.DeleteStoreEntry getDeleteStore() {
+        if (deleteStoreBuilder_ == null) {
+          if (entryCase_ == 25) {
+            return (tachyon.proto.journal.KeyValue.DeleteStoreEntry) entry_;
+          }
+          return tachyon.proto.journal.KeyValue.DeleteStoreEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 25) {
+            return deleteStoreBuilder_.getMessage();
+          }
+          return tachyon.proto.journal.KeyValue.DeleteStoreEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+       */
+      public Builder setDeleteStore(tachyon.proto.journal.KeyValue.DeleteStoreEntry value) {
+        if (deleteStoreBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          deleteStoreBuilder_.setMessage(value);
+        }
+        entryCase_ = 25;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+       */
+      public Builder setDeleteStore(
+          tachyon.proto.journal.KeyValue.DeleteStoreEntry.Builder builderForValue) {
+        if (deleteStoreBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          deleteStoreBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 25;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+       */
+      public Builder mergeDeleteStore(tachyon.proto.journal.KeyValue.DeleteStoreEntry value) {
+        if (deleteStoreBuilder_ == null) {
+          if (entryCase_ == 25 &&
+              entry_ != tachyon.proto.journal.KeyValue.DeleteStoreEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.journal.KeyValue.DeleteStoreEntry.newBuilder((tachyon.proto.journal.KeyValue.DeleteStoreEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 25) {
+            deleteStoreBuilder_.mergeFrom(value);
+          }
+          deleteStoreBuilder_.setMessage(value);
+        }
+        entryCase_ = 25;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+       */
+      public Builder clearDeleteStore() {
+        if (deleteStoreBuilder_ == null) {
+          if (entryCase_ == 25) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 25) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          deleteStoreBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+       */
+      public tachyon.proto.journal.KeyValue.DeleteStoreEntry.Builder getDeleteStoreBuilder() {
+        return getDeleteStoreFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+       */
+      public tachyon.proto.journal.KeyValue.DeleteStoreEntryOrBuilder getDeleteStoreOrBuilder() {
+        if ((entryCase_ == 25) && (deleteStoreBuilder_ != null)) {
+          return deleteStoreBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 25) {
+            return (tachyon.proto.journal.KeyValue.DeleteStoreEntry) entry_;
+          }
+          return tachyon.proto.journal.KeyValue.DeleteStoreEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.DeleteStoreEntry delete_store = 25;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.journal.KeyValue.DeleteStoreEntry, tachyon.proto.journal.KeyValue.DeleteStoreEntry.Builder, tachyon.proto.journal.KeyValue.DeleteStoreEntryOrBuilder> 
+          getDeleteStoreFieldBuilder() {
+        if (deleteStoreBuilder_ == null) {
+          if (!(entryCase_ == 25)) {
+            entry_ = tachyon.proto.journal.KeyValue.DeleteStoreEntry.getDefaultInstance();
+          }
+          deleteStoreBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.journal.KeyValue.DeleteStoreEntry, tachyon.proto.journal.KeyValue.DeleteStoreEntry.Builder, tachyon.proto.journal.KeyValue.DeleteStoreEntryOrBuilder>(
+                  (tachyon.proto.journal.KeyValue.DeleteStoreEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 25;
+        return deleteStoreBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.journal.File.InodeDirectoryEntry, tachyon.proto.journal.File.InodeDirectoryEntry.Builder, tachyon.proto.journal.File.InodeDirectoryEntryOrBuilder> inodeDirectoryBuilder_;
       /**
        * <code>optional .tachyon.proto.journal.InodeDirectoryEntry inode_directory = 9;</code>
@@ -4196,6 +4475,141 @@ public final class Journal {
         }
         entryCase_ = 14;
         return lineageIdGeneratorBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.journal.KeyValue.MergeStoreEntry, tachyon.proto.journal.KeyValue.MergeStoreEntry.Builder, tachyon.proto.journal.KeyValue.MergeStoreEntryOrBuilder> mergeStoreBuilder_;
+      /**
+       * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+       */
+      public boolean hasMergeStore() {
+        return entryCase_ == 26;
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+       */
+      public tachyon.proto.journal.KeyValue.MergeStoreEntry getMergeStore() {
+        if (mergeStoreBuilder_ == null) {
+          if (entryCase_ == 26) {
+            return (tachyon.proto.journal.KeyValue.MergeStoreEntry) entry_;
+          }
+          return tachyon.proto.journal.KeyValue.MergeStoreEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 26) {
+            return mergeStoreBuilder_.getMessage();
+          }
+          return tachyon.proto.journal.KeyValue.MergeStoreEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+       */
+      public Builder setMergeStore(tachyon.proto.journal.KeyValue.MergeStoreEntry value) {
+        if (mergeStoreBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          mergeStoreBuilder_.setMessage(value);
+        }
+        entryCase_ = 26;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+       */
+      public Builder setMergeStore(
+          tachyon.proto.journal.KeyValue.MergeStoreEntry.Builder builderForValue) {
+        if (mergeStoreBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          mergeStoreBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 26;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+       */
+      public Builder mergeMergeStore(tachyon.proto.journal.KeyValue.MergeStoreEntry value) {
+        if (mergeStoreBuilder_ == null) {
+          if (entryCase_ == 26 &&
+              entry_ != tachyon.proto.journal.KeyValue.MergeStoreEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.journal.KeyValue.MergeStoreEntry.newBuilder((tachyon.proto.journal.KeyValue.MergeStoreEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 26) {
+            mergeStoreBuilder_.mergeFrom(value);
+          }
+          mergeStoreBuilder_.setMessage(value);
+        }
+        entryCase_ = 26;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+       */
+      public Builder clearMergeStore() {
+        if (mergeStoreBuilder_ == null) {
+          if (entryCase_ == 26) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 26) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          mergeStoreBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+       */
+      public tachyon.proto.journal.KeyValue.MergeStoreEntry.Builder getMergeStoreBuilder() {
+        return getMergeStoreFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+       */
+      public tachyon.proto.journal.KeyValue.MergeStoreEntryOrBuilder getMergeStoreOrBuilder() {
+        if ((entryCase_ == 26) && (mergeStoreBuilder_ != null)) {
+          return mergeStoreBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 26) {
+            return (tachyon.proto.journal.KeyValue.MergeStoreEntry) entry_;
+          }
+          return tachyon.proto.journal.KeyValue.MergeStoreEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.journal.MergeStoreEntry merge_store = 26;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.journal.KeyValue.MergeStoreEntry, tachyon.proto.journal.KeyValue.MergeStoreEntry.Builder, tachyon.proto.journal.KeyValue.MergeStoreEntryOrBuilder> 
+          getMergeStoreFieldBuilder() {
+        if (mergeStoreBuilder_ == null) {
+          if (!(entryCase_ == 26)) {
+            entry_ = tachyon.proto.journal.KeyValue.MergeStoreEntry.getDefaultInstance();
+          }
+          mergeStoreBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.journal.KeyValue.MergeStoreEntry, tachyon.proto.journal.KeyValue.MergeStoreEntry.Builder, tachyon.proto.journal.KeyValue.MergeStoreEntryOrBuilder>(
+                  (tachyon.proto.journal.KeyValue.MergeStoreEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 26;
+        return mergeStoreBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilder<
@@ -5035,7 +5449,7 @@ public final class Journal {
     java.lang.String[] descriptorData = {
       "\n\rjournal.proto\022\025tachyon.proto.journal\032\013" +
       "block.proto\032\nfile.proto\032\017key_value.proto" +
-      "\032\rlineage.proto\"\322\014\n\014JournalEntry\022\027\n\017sequ" +
+      "\032\rlineage.proto\"\322\r\n\014JournalEntry\022\027\n\017sequ" +
       "ence_number\030\001 \001(\003\022D\n\017add_mount_point\030\002 \001" +
       "(\0132).tachyon.proto.journal.AddMountPoint" +
       "EntryH\000\022]\n\034block_container_id_generator\030" +
@@ -5054,29 +5468,32 @@ public final class Journal {
       "ge\030\007 \001(\0132).tachyon.proto.journal.DeleteL" +
       "ineageEntryH\000\022J\n\022delete_mount_point\030\010 \001(",
       "\0132,.tachyon.proto.journal.DeleteMountPoi" +
-      "ntEntryH\000\022E\n\017inode_directory\030\t \001(\0132*.tac" +
-      "hyon.proto.journal.InodeDirectoryEntryH\000" +
-      "\022]\n\034inode_directory_id_generator\030\n \001(\01325" +
-      ".tachyon.proto.journal.InodeDirectoryIdG" +
-      "eneratorEntryH\000\022;\n\ninode_file\030\013 \001(\0132%.ta" +
-      "chyon.proto.journal.InodeFileEntryH\000\022]\n\034" +
-      "inode_last_modification_time\030\014 \001(\01325.tac" +
-      "hyon.proto.journal.InodeLastModification" +
-      "TimeEntryH\000\0226\n\007lineage\030\r \001(\0132#.tachyon.p",
-      "roto.journal.LineageEntryH\000\022N\n\024lineage_i" +
-      "d_generator\030\016 \001(\0132..tachyon.proto.journa" +
-      "l.LineageIdGeneratorEntryH\000\022I\n\021persist_d" +
-      "irectory\030\017 \001(\0132,.tachyon.proto.journal.P" +
-      "ersistDirectoryEntryH\000\022P\n\025async_persist_" +
-      "request\030\020 \001(\0132/.tachyon.proto.journal.As" +
-      "yncPersistRequestEntryH\000\022I\n\021reinitialize" +
-      "_file\030\022 \001(\0132,.tachyon.proto.journal.Rein" +
-      "itializeFileEntryH\000\0224\n\006rename\030\023 \001(\0132\".ta" +
-      "chyon.proto.journal.RenameEntryH\000\0225\n\007set",
-      "_acl\030\030 \001(\0132\".tachyon.proto.journal.SetAc" +
-      "lEntryH\000\0229\n\tset_state\030\024 \001(\0132$.tachyon.pr" +
-      "oto.journal.SetStateEntryH\000B\007\n\005entryB\027\n\025" +
-      "tachyon.proto.journal"
+      "ntEntryH\000\022?\n\014delete_store\030\031 \001(\0132\'.tachyo" +
+      "n.proto.journal.DeleteStoreEntryH\000\022E\n\017in" +
+      "ode_directory\030\t \001(\0132*.tachyon.proto.jour" +
+      "nal.InodeDirectoryEntryH\000\022]\n\034inode_direc" +
+      "tory_id_generator\030\n \001(\01325.tachyon.proto." +
+      "journal.InodeDirectoryIdGeneratorEntryH\000" +
+      "\022;\n\ninode_file\030\013 \001(\0132%.tachyon.proto.jou" +
+      "rnal.InodeFileEntryH\000\022]\n\034inode_last_modi" +
+      "fication_time\030\014 \001(\01325.tachyon.proto.jour",
+      "nal.InodeLastModificationTimeEntryH\000\0226\n\007" +
+      "lineage\030\r \001(\0132#.tachyon.proto.journal.Li" +
+      "neageEntryH\000\022N\n\024lineage_id_generator\030\016 \001" +
+      "(\0132..tachyon.proto.journal.LineageIdGene" +
+      "ratorEntryH\000\022=\n\013merge_store\030\032 \001(\0132&.tach" +
+      "yon.proto.journal.MergeStoreEntryH\000\022I\n\021p" +
+      "ersist_directory\030\017 \001(\0132,.tachyon.proto.j" +
+      "ournal.PersistDirectoryEntryH\000\022P\n\025async_" +
+      "persist_request\030\020 \001(\0132/.tachyon.proto.jo" +
+      "urnal.AsyncPersistRequestEntryH\000\022I\n\021rein",
+      "itialize_file\030\022 \001(\0132,.tachyon.proto.jour" +
+      "nal.ReinitializeFileEntryH\000\0224\n\006rename\030\023 " +
+      "\001(\0132\".tachyon.proto.journal.RenameEntryH" +
+      "\000\0225\n\007set_acl\030\030 \001(\0132\".tachyon.proto.journ" +
+      "al.SetAclEntryH\000\0229\n\tset_state\030\024 \001(\0132$.ta" +
+      "chyon.proto.journal.SetStateEntryH\000B\007\n\005e" +
+      "ntryB\027\n\025tachyon.proto.journal"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -5099,7 +5516,7 @@ public final class Journal {
     internal_static_tachyon_proto_journal_JournalEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_JournalEntry_descriptor,
-        new java.lang.String[] { "SequenceNumber", "AddMountPoint", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "CompletePartition", "CompleteStore", "CreateStore", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "PersistDirectory", "AsyncPersistRequest", "ReinitializeFile", "Rename", "SetAcl", "SetState", "Entry", });
+        new java.lang.String[] { "SequenceNumber", "AddMountPoint", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "CompletePartition", "CompleteStore", "CreateStore", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "DeleteStore", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "MergeStore", "PersistDirectory", "AsyncPersistRequest", "ReinitializeFile", "Rename", "SetAcl", "SetState", "Entry", });
     tachyon.proto.journal.Block.getDescriptor();
     tachyon.proto.journal.File.getDescriptor();
     tachyon.proto.journal.KeyValue.getDescriptor();

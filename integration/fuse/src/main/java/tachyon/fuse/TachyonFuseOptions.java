@@ -17,9 +17,12 @@ package tachyon.fuse;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
- * Convenience class to pass around Tachyon-FUSE options
+ * Convenience class to pass around Tachyon-FUSE options.
  */
+@ThreadSafe
 final class TachyonFuseOptions {
   private final String mMountPoint;
   private final String mTachyonRoot;

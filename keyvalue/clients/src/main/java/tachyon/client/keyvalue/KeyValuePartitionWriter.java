@@ -31,6 +31,9 @@ import tachyon.exception.TachyonException;
  */
 public interface KeyValuePartitionWriter extends Closeable, Cancelable {
 
+  /**
+   * Factory for {@link KeyValuePartitionWriter}.
+   */
   class Factory {
     /**
      * Factory method to create a {@link KeyValuePartitionWriter} instance that writes key-value

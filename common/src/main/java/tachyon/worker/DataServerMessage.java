@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,7 @@ import tachyon.network.protocol.RPCResponse;
 /**
  * The message type used to send data request and response for remote data.
  */
+@NotThreadSafe
 public final class DataServerMessage {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

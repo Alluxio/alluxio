@@ -36,7 +36,6 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
-import tachyon.exception.TachyonExceptionType;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
 
@@ -86,7 +85,7 @@ public class FileSystemIntegrationTest {
     try {
       mTfs.createFile(uri, mWriteBoth);
     } catch (TachyonException e) {
-      Assert.assertEquals(e.getType(), TachyonExceptionType.FILE_ALREADY_EXISTS);
+      Assert.assertTrue(e instanceof FileAlreadyExistsException);
     }
   }
 
@@ -137,8 +136,8 @@ public class FileSystemIntegrationTest {
       try {
         mTfs.createDirectory(new TachyonURI(uniqPath + k), options);
         Assert.fail("mkdir should throw FileAlreadyExistsException");
-      } catch (FileAlreadyExistsException faee) {
-        Assert.assertEquals(faee.getMessage(),
+      } catch (FileAlreadyExistsException e) {
+        Assert.assertEquals(e.getMessage(),
             ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uniqPath + k));
       }
     }

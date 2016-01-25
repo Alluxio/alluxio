@@ -15,9 +15,12 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The exception thrown when Tachyon failed to create a checkpoint.
  */
+@ThreadSafe
 public class FailedToCheckpointException extends TachyonException {
   private static final long serialVersionUID = -3192642866222213537L;
 

@@ -43,7 +43,7 @@ import tachyon.worker.WorkerIdRegistry;
  * heartbeat. This class manages its own {@link BlockMasterClient}.
  *
  * When running, this task first requests a block report from the
- * {@link tachyon.worker.block.BlockDataManager}, then sends it to the master. The master may
+ * {@link tachyon.worker.block.BlockWorker}, then sends it to the master. The master may
  * respond to the heartbeat with a command which will be executed. After which, the task will wait
  * for the elapsed time since its last heartbeat has reached the heartbeat interval. Then the cycle
  * will continue.
@@ -54,8 +54,8 @@ import tachyon.worker.WorkerIdRegistry;
 public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
-  /** Block data manager responsible for interacting with Tachyon and UFS storage */
-  private final BlockDataManager mBlockDataManager;
+  /** BlockWorker responsible for interacting with Tachyon and UFS storage */
+  private final BlockWorker mBlockWorker;
   /** The net address of the worker */
   private final NetAddress mWorkerAddress;
   /** Milliseconds between heartbeats before a timeout */
@@ -72,13 +72,13 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /**
    * Creates a new instance of {@link BlockMasterSync}.
    *
-   * @param blockDataManager the {@link BlockDataManager} this syncer is updating to
+   * @param blockWorker the {@link BlockWorker} this syncer is updating to
    * @param workerAddress the net address of the worker
    * @param masterClient the Tachyon master client
    */
-  BlockMasterSync(BlockDataManager blockDataManager, NetAddress workerAddress,
+  BlockMasterSync(BlockWorker blockWorker, NetAddress workerAddress,
       BlockMasterClient masterClient) {
-    mBlockDataManager = blockDataManager;
+    mBlockWorker = blockWorker;
     mWorkerAddress = workerAddress;
     TachyonConf conf = WorkerContext.getConf();
     mMasterClient = masterClient;
@@ -87,9 +87,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     try {
       registerWithMaster();
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    } catch (IOException ioe) {
+    } catch (IOException e) {
       // If failed to register when the thread starts, no retry will happen.
-      throw new RuntimeException("Failed to register with master.", ioe);
+      throw new RuntimeException("Failed to register with master.", e);
     } catch (ConnectionFailedException e) {
       throw new RuntimeException("Failed to register with master.", e);
     }
@@ -103,15 +103,15 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @throws ConnectionFailedException if network connection failed
    */
   private void registerWithMaster() throws IOException, ConnectionFailedException {
-    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
     try {
       StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
       mMasterClient.register(WorkerIdRegistry.getWorkerId(),
           storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
-    } catch (IOException ioe) {
-      LOG.error("Failed to register with master.", ioe);
-      throw ioe;
+    } catch (IOException e) {
+      LOG.error("Failed to register with master.", e);
+      throw e;
     } catch (TachyonException e) {
       LOG.error("Failed to register with master.", e);
       throw new IOException(e);
@@ -124,8 +124,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   @Override
   public void heartbeat() {
     // Prepare metadata for the next heartbeat
-    BlockHeartbeatReport blockReport = mBlockDataManager.getReport();
-    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+    BlockHeartbeatReport blockReport = mBlockWorker.getReport();
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
 
     // Send the heartbeat and execute the response
     Command cmdFromMaster = null;
@@ -174,7 +174,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.data) {
-          mBlockRemovalService.execute(new BlockRemover(mBlockDataManager,
+          mBlockRemovalService.execute(new BlockRemover(mBlockWorker,
               Sessions.MASTER_COMMAND_SESSION_ID, block));
         }
         break;
@@ -199,19 +199,19 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * Thread to remove block from master.
    */
   private class BlockRemover implements Runnable {
-    private BlockDataManager mBlockDataManager;
+    private BlockWorker mBlockWorker;
     private long mSessionId;
     private long mBlockId;
 
     /**
      * Creates a new instance of {@link BlockRemover}.
      *
-     * @param blockDataManager a block data manager handle
+     * @param blockWorker block worker for data manager
      * @param sessionId the session id
      * @param blockId the block id
      */
-    public BlockRemover(BlockDataManager blockDataManager, long sessionId, long blockId) {
-      mBlockDataManager = blockDataManager;
+    public BlockRemover(BlockWorker blockWorker, long sessionId, long blockId) {
+      mBlockWorker = blockWorker;
       mSessionId = sessionId;
       mBlockId = blockId;
     }
@@ -219,14 +219,14 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     @Override
     public void run() {
       try {
-        mBlockDataManager.removeBlock(mSessionId, mBlockId);
+        mBlockWorker.removeBlock(mSessionId, mBlockId);
         LOG.info("Block {} removed at session {}", mBlockId, mSessionId);
-      } catch (IOException ioe) {
-        LOG.warn("Failed master free block cmd for: {} due to concurrent read.", mBlockId);
+      } catch (IOException e) {
+        LOG.warn("Failed master free block cmd for: {} due to concurrent read.", mBlockId, e);
       } catch (InvalidWorkerStateException e) {
-        LOG.warn("Failed master free block cmd for: {} due to block uncommitted.", mBlockId);
+        LOG.warn("Failed master free block cmd for: {} due to block uncommitted.", mBlockId, e);
       } catch (BlockDoesNotExistException e) {
-        LOG.warn("Failed master free block cmd for: {} due to block not found.", mBlockId);
+        LOG.warn("Failed master free block cmd for: {} due to block not found.", mBlockId, e);
       }
     }
   }

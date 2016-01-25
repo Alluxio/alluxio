@@ -15,6 +15,8 @@
 
 package tachyon.network.protocol;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 
@@ -28,6 +30,7 @@ import tachyon.network.protocol.databuffer.DataBuffer;
  * This is the main base class for all RPC messages to the DataServer. The message and type encoding
  * scheme is adapted from the implementation found in the streaming server in Apache Spark.
  */
+@ThreadSafe
 public abstract class RPCMessage implements EncodedMessage {
 
   /**

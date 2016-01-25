@@ -17,6 +17,8 @@ package tachyon.retry;
 
 import java.util.Random;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 /**
@@ -24,6 +26,7 @@ import com.google.common.base.Preconditions;
  * sleep gets much larger than the last. To make sure that this growth does not grow out of control,
  * a max sleep is used as a bounding.
  */
+@NotThreadSafe
 public class ExponentialBackoffRetry extends SleepingRetry {
   private final Random mRandom = new Random();
   private final int mBaseSleepTimeMs;
