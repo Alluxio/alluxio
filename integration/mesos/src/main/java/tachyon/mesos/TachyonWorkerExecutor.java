@@ -15,6 +15,8 @@
 
 package tachyon.mesos;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.MesosExecutorDriver;
@@ -28,6 +30,7 @@ import tachyon.worker.TachyonWorker;
  * {@link TachyonWorkerExecutor} is an implementation of a Mesos executor responsible for
  * starting the Tachyon worker.
  */
+@ThreadSafe
 public class TachyonWorkerExecutor implements Executor {
   @Override
   public void disconnected(ExecutorDriver driver) {
