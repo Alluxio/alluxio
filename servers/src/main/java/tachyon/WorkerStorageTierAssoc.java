@@ -17,11 +17,14 @@ package tachyon;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.conf.TachyonConf;
 
 /**
  * {@link StorageTierAssoc} for workers
  */
+@ThreadSafe
 public class WorkerStorageTierAssoc extends StorageTierAssoc {
   /**
    * Creates a new instance of {@link WorkerStorageTierAssoc} using a {@link TachyonConf}.
