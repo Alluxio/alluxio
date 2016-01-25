@@ -170,7 +170,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
           if (offsetParam != null) {
             relativeOffset = Long.parseLong(offsetParam);
           }
-        } catch (NumberFormatException nfe) {
+        } catch (NumberFormatException e) {
           relativeOffset = 0;
         }
         String endParam = request.getParameter("end");
@@ -189,7 +189,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         try {
           displayFile(new TachyonURI(currentFileInfo.getAbsolutePath()), request, offset);
         } catch (TachyonException e) {
-          throw new IOException(e.getMessage());
+          throw new IOException(e);
         }
         request.setAttribute("viewingOffset", offset);
         getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
@@ -197,22 +197,22 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       }
       setPathDirectories(currentPath, request);
       filesInfo = mMaster.getFileSystemMaster().getFileInfoList(currentPath);
-    } catch (FileDoesNotExistException fdne) {
-      request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
+    } catch (FileDoesNotExistException e) {
+      request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
-    } catch (InvalidPathException ipe) {
-      request.setAttribute("invalidPathError", "Error: Invalid Path " + ipe.getLocalizedMessage());
+    } catch (InvalidPathException e) {
+      request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
-    } catch (IOException ie) {
+    } catch (IOException e) {
       request.setAttribute("invalidPathError",
-          "Error: File " + currentPath + " is not available " + ie.getMessage());
+          "Error: File " + currentPath + " is not available " + e.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
-    } catch (AccessControlException ace) {
+    } catch (AccessControlException e) {
       request.setAttribute("invalidPathError",
-          "Error: File " + currentPath + " cannot be accessed " + ace.getMessage());
+          "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
     }
@@ -234,14 +234,14 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
           addrs.addAll(blockInfo.getUfsLocations());
           toAdd.setFileLocations(addrs);
         }
-      } catch (FileDoesNotExistException fdne) {
+      } catch (FileDoesNotExistException e) {
         request.setAttribute("FileDoesNotExistException",
-            "Error: non-existing file " + fdne.getMessage());
+            "Error: non-existing file " + e.getMessage());
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
         return;
-      } catch (InvalidPathException ipe) {
+      } catch (InvalidPathException e) {
         request.setAttribute("InvalidPathException",
-            "Error: invalid path " + ipe.getMessage());
+            "Error: invalid path " + e.getMessage());
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       }
       fileInfos.add(toAdd);
@@ -261,18 +261,18 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       int limit = Integer.parseInt(request.getParameter("limit"));
       List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
       request.setAttribute("fileInfos", sub);
-    } catch (NumberFormatException nfe) {
+    } catch (NumberFormatException e) {
       request.setAttribute("fatalError",
-          "Error: offset or limit parse error, " + nfe.getLocalizedMessage());
+          "Error: offset or limit parse error, " + e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
-    } catch (IndexOutOfBoundsException iobe) {
+    } catch (IndexOutOfBoundsException e) {
       request.setAttribute("fatalError",
-          "Error: offset or offset + limit is out of bound, " + iobe.getLocalizedMessage());
+          "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
-    } catch (IllegalArgumentException iae) {
-      request.setAttribute("fatalError", iae.getLocalizedMessage());
+    } catch (IllegalArgumentException e) {
+      request.setAttribute("fatalError", e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
     }

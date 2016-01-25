@@ -72,9 +72,9 @@ import tachyon.master.file.meta.TtlBucket;
 import tachyon.master.file.meta.TtlBucketList;
 import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.file.options.CompleteFileOptions;
-import tachyon.master.file.options.SetAclOptions;
-import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
+import tachyon.master.file.options.CreateFileOptions;
+import tachyon.master.file.options.SetAclOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
@@ -348,7 +348,7 @@ public final class FileSystemMaster extends MasterBase {
       Inode inode;
       try {
         inode = mInodeTree.getInodeById(id);
-      } catch (FileDoesNotExistException fne) {
+      } catch (FileDoesNotExistException e) {
         return false;
       }
       return inode.isDirectory();
@@ -566,8 +566,8 @@ public final class FileSystemMaster extends MasterBase {
     try {
       completeFileInternal(entry.getBlockIdsList(), entry.getId(), entry.getLength(),
           entry.getOpTimeMs());
-    } catch (FileDoesNotExistException fdnee) {
-      throw new RuntimeException(fdnee);
+    } catch (FileDoesNotExistException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -659,6 +659,7 @@ public final class FileSystemMaster extends MasterBase {
    * @param path the path of the file to get the next block id for
    * @return the next block id for the given file
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the given path is not valid
    */
   public long getNewBlockIdForFile(TachyonURI path)
       throws FileDoesNotExistException, InvalidPathException {
@@ -927,7 +928,7 @@ public final class FileSystemMaster extends MasterBase {
               resolvedHost = ipport[0];
               resolvedPort = Integer.parseInt(ipport[1]);
             }
-          } catch (NumberFormatException nfe) {
+          } catch (NumberFormatException e) {
             continue;
           }
           // The resolved port is the data transfer port not the rpc port
@@ -1054,10 +1055,10 @@ public final class FileSystemMaster extends MasterBase {
         LOG.debug("flushed journal for mkdir {}", path);
         MasterContext.getMasterSource().incDirectoriesCreated(1);
         return createResult;
-      } catch (BlockInfoException bie) {
+      } catch (BlockInfoException e) {
         // Since we are creating a directory, the block size is ignored, no such exception should
         // happen.
-        Throwables.propagate(bie);
+        Throwables.propagate(e);
       }
     }
     return null;
@@ -1099,6 +1100,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
    * @throws AccessControlException if permission checking fails
+   * @throws FileAlreadyExistsException if the file already exists
    */
   public void rename(TachyonURI srcPath, TachyonURI dstPath) throws FileAlreadyExistsException,
       FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
@@ -1277,6 +1279,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return true if the file was freed
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the given path is invalid
    */
   public boolean free(TachyonURI path, boolean recursive)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
@@ -1483,6 +1486,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileAlreadyExistsException if the path to be mounted already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
+   * @throws AccessControlException if the permission check fails
    */
   public void mount(TachyonURI tachyonPath, TachyonURI ufsPath)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AccessControlException {
@@ -1547,6 +1551,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException if the path to be mounted does not exist
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
+   * @throws AccessControlException if the permission check fails
    */
   public boolean unmount(TachyonURI tachyonPath)
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
@@ -1595,6 +1600,7 @@ public final class FileSystemMaster extends MasterBase {
    * @param fileId the id of the file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid for the id of the file
    */
   public void resetFile(long fileId)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
@@ -1614,6 +1620,7 @@ public final class FileSystemMaster extends MasterBase {
    * @param options attributes to be set, see {@link SetAttributeOptions}
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the given path is invalid
    */
   public void setState(TachyonURI path, SetAttributeOptions options)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException {
@@ -1645,6 +1652,7 @@ public final class FileSystemMaster extends MasterBase {
    * @param path the id of the file for persistence
    * @return the id of the worker that persistence is scheduled on
    * @throws FileDoesNotExistException when the file does not exist
+   * @throws InvalidPathException if the given path is invalid
    */
   public long scheduleAsyncPersistence(TachyonURI path)
       throws FileDoesNotExistException, InvalidPathException {

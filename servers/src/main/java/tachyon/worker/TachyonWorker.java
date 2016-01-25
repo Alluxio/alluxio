@@ -334,8 +334,8 @@ public final class TachyonWorker {
     TTransportFactory tTransportFactory;
     try {
       tTransportFactory = AuthenticationUtils.getServerTransportFactory(mTachyonConf);
-    } catch (IOException ioe) {
-      throw Throwables.propagate(ioe);
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
     }
     TThreadPoolServer.Args args = new TThreadPoolServer.Args(mThriftServerSocket)
         .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
@@ -358,9 +358,9 @@ public final class TachyonWorker {
     try {
       return new TServerSocket(
           NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, mTachyonConf));
-    } catch (TTransportException tte) {
-      LOG.error(tte.getMessage(), tte);
-      throw Throwables.propagate(tte);
+    } catch (TTransportException e) {
+      LOG.error(e.getMessage(), e);
+      throw Throwables.propagate(e);
     }
   }
 

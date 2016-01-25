@@ -73,7 +73,7 @@ public class JournalShutdownIntegrationTest {
           if (mOpType == 0) {
             try {
               mTfs.createFile(new TachyonURI(TEST_FILE_DIR + mSuccessNum)).close();
-            } catch (IOException ioe) {
+            } catch (IOException e) {
               break;
             }
           } else if (mOpType == 1) {

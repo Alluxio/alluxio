@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
-import com.google.common.collect.Lists;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -35,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -392,8 +392,8 @@ public class TachyonMaster {
     TTransportFactory transportFactory;
     try {
       transportFactory = AuthenticationUtils.getServerTransportFactory(MasterContext.getConf());
-    } catch (IOException ioe) {
-      throw Throwables.propagate(ioe);
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
     }
 
     // create master thrift service with the multiplexed processor.

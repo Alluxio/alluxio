@@ -115,7 +115,6 @@ public class SetAclOptions {
      * Builds a new instance of {@link SetAclOptions}.
      *
      * @return a {@link SetAclOptions} instance
-     * @throws IllegalArgumentException if the options are invalid
      */
     public SetAclOptions build() {
       SetAclOptions options = new SetAclOptions(this);

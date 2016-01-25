@@ -54,6 +54,9 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   /** BlockWorker handler for access block info */
   private final BlockWorker mBlockWorker;
 
+  /**
+   * @param blockWorker the {@link BlockWorker}
+   */
   public KeyValueWorkerClientServiceHandler(BlockWorker blockWorker) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
   }
@@ -69,6 +72,8 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
    * @param blockId block Id
    * @param key key to fetch
    * @return value or null if not found
+   * @throws TachyonTException if an exception in Tachyon occurs
+   * @throws ThriftIOException if a non-Tachyon related exception occurs
    */
   @Override
   public ByteBuffer get(long blockId, ByteBuffer key) throws TachyonTException, ThriftIOException {

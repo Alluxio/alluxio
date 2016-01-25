@@ -165,8 +165,8 @@ public class FileOutStream extends OutStreamBase {
           }
           canComplete = true;
         }
-      } catch (IOException ioe) {
-        handleCacheWriteException(ioe);
+      } catch (IOException e) {
+        handleCacheWriteException(e);
       }
     }
 
@@ -203,8 +203,8 @@ public class FileOutStream extends OutStreamBase {
           getNextBlock();
         }
         mCurrentBlockOutStream.write(b);
-      } catch (IOException ioe) {
-        handleCacheWriteException(ioe);
+      } catch (IOException e) {
+        handleCacheWriteException(e);
       }
     }
 
@@ -245,8 +245,8 @@ public class FileOutStream extends OutStreamBase {
             tLen -= currentBlockLeftBytes;
           }
         }
-      } catch (IOException ioe) {
-        handleCacheWriteException(ioe);
+      } catch (IOException e) {
+        handleCacheWriteException(e);
       }
     }
 
@@ -288,12 +288,12 @@ public class FileOutStream extends OutStreamBase {
     }
   }
 
-  protected void handleCacheWriteException(IOException ioe) throws IOException {
+  protected void handleCacheWriteException(IOException e) throws IOException {
     if (!mUnderStorageType.isSyncPersist()) {
-      throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(ioe.getMessage()), ioe);
+      throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.getMessage()), e);
     }
 
-    LOG.warn("Failed to write into TachyonStore, canceling write attempt.", ioe);
+    LOG.warn("Failed to write into TachyonStore, canceling write attempt.", e);
     if (mCurrentBlockOutStream != null) {
       mShouldCacheCurrentBlock = false;
       mCurrentBlockOutStream.cancel();

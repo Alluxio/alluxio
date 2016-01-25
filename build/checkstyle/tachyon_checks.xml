@@ -6,10 +6,10 @@
 <!--
 
     Checkstyle configurartion that checks the Google coding conventions from:
-    
+
     -  Google Java Style
        https://google-styleguide.googlecode.com/svn-history/r130/trunk/javaguide.html
-       
+
     Checkstyle is very configurable. Be sure to read the documentation at
     http://checkstyle.sf.net (or in your downloaded distribution).
 
@@ -18,7 +18,7 @@
     To completely disable a check, just comment it out or delete it from the file.
 
     Copied from https://github.com/checkstyle/checkstyle/blob/master/google_checks.xml
-    
+
  -->
 
 <module name = "Checker">
@@ -192,6 +192,10 @@
     </module>
     <module name="OverloadMethodsDeclarationOrder"/>
     <module name="CustomImportOrder">
+      <!-- The default of java|javax matches many packages which are not standard -->
+      <!-- TODO(andrew): checkstyle 2.17 fixes this but requires java 7, so we can
+           upgrade checkstyle and remove this line when we go to java 7. -->
+      <property name="standardPackageRegExp" value="^(java|javax)\..*"/>
       <property name="thirdPartyPackageRegExp" value="^com\..*|^org\..*|^io\..*"/>
       <property name="specialImportsRegExp" value="tachyon"/>
       <property name="sortImportsInGroupAlphabetically" value="false"/>

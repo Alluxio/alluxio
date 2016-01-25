@@ -125,16 +125,16 @@ public final class StorageDir {
         try {
           // TODO(calvin): Resolve this conflict in class names.
           org.apache.commons.io.FileUtils.deleteDirectory(path);
-        } catch (IOException ioe) {
-          LOG.error("can not delete directory {}", path.getAbsolutePath(), ioe);
+        } catch (IOException e) {
+          LOG.error("can not delete directory {}", path.getAbsolutePath(), e);
         }
       } else {
         try {
           long blockId = Long.parseLong(path.getName());
           addBlockMeta(new BlockMeta(blockId, path.length(), this));
-        } catch (NumberFormatException nfe) {
+        } catch (NumberFormatException e) {
           LOG.error("filename of {} in StorageDir can not be parsed into long",
-              path.getAbsolutePath());
+              path.getAbsolutePath(), e);
           if (path.delete()) {
             LOG.warn("file {} has been deleted", path.getAbsolutePath());
           } else {
