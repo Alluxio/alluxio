@@ -68,7 +68,7 @@ public final class JournalTailer {
     try {
       mReader.getCheckpointLastModifiedTimeMs();
       return true;
-    } catch (IOException ioe) {
+    } catch (IOException e) {
       return false;
     }
   }

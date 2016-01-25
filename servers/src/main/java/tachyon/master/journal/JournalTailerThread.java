@@ -80,9 +80,8 @@ public final class JournalTailerThread extends Thread {
     try {
       // Wait for the thread to finish.
       join();
-    } catch (InterruptedException ie) {
-      LOG.warn("{}: stopping the journal tailer caused exception: {}", mMaster.getName(),
-          ie.getMessage());
+    } catch (InterruptedException e) {
+      LOG.warn("{}: stopping the journal tailer caused an exception", mMaster.getName(), e);
     }
   }
 
@@ -150,9 +149,9 @@ public final class JournalTailerThread extends Thread {
         LOG.info("{}: The checkpoint is out of date. Will reload the checkpoint file.",
             mMaster.getName());
         CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
-      } catch (IOException ioe) {
+      } catch (IOException e) {
         // Log the error and continue the loop.
-        LOG.error(ioe.getMessage());
+        LOG.error("Error in journal tailer thread", e);
       }
     }
     LOG.info("{}: Journal tailer has been shutdown.", mMaster.getName());

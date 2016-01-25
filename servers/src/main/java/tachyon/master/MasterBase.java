@@ -207,8 +207,8 @@ public abstract class MasterBase implements Master {
     Preconditions.checkNotNull(mJournalWriter, "Cannot write entry: journal writer is null.");
     try {
       mJournalWriter.getEntryOutputStream().writeEntry(entry);
-    } catch (IOException ioe) {
-      throw new RuntimeException(ioe);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -219,8 +219,8 @@ public abstract class MasterBase implements Master {
     Preconditions.checkNotNull(mJournalWriter, "Cannot flush journal: journal writer is null.");
     try {
       mJournalWriter.getEntryOutputStream().flush();
-    } catch (IOException ioe) {
-      throw new RuntimeException(ioe);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

@@ -110,7 +110,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertFalse(mUfs.exists(testDirEmpty));
     try {
       mUfs.delete(testDirNonEmpty, false);
-    } catch (IOException ioe) {
+    } catch (IOException e) {
       // Some File systems may throw IOException
     }
     Assert.assertTrue(mUfs.exists(testDirNonEmpty));
