@@ -19,8 +19,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import tachyon.proto.journal.Journal.JournalEntry;
 import javax.annotation.concurrent.ThreadSafe;
+
+import tachyon.proto.journal.Journal.JournalEntry;
 
 /**
  * Reads and writes protocol buffer journal entries. The entries contain headers describing their

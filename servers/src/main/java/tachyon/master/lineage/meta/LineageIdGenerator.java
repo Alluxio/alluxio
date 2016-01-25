@@ -17,6 +17,8 @@ package tachyon.master.lineage.meta;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.master.journal.JournalEntryRepresentable;
 import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
@@ -24,6 +26,7 @@ import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
 /**
  * Generates the lineage id as sequence number.
  */
+@ThreadSafe
 public final class LineageIdGenerator implements JournalEntryRepresentable {
   private AtomicLong mSequenceNumber;
 
