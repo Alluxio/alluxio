@@ -280,7 +280,7 @@ public final class Constants {
   public static final String WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
       "tachyon.worker.filesystem.heartbeat.interval.ms";
   public static final String WORKER_FILE_PERSIST_POOL_SIZE =
-      "tachyon.worker.file.persiste.pool.size";
+      "tachyon.worker.file.persist.pool.size";
 
   public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
       "tachyon.worker.tieredstore.block.locks";
