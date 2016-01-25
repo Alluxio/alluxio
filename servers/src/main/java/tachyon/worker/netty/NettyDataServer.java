@@ -50,7 +50,7 @@ public final class NettyDataServer implements DataServer {
    * Creates a new instance of {@link NettyDataServer}.
    *
    * @param address the server address
-   * @param dataManager a block data manager handle
+   * @param blockWorker the block worker to use for data operations
    * @param tachyonConf Tachyon configuration
    */
   public NettyDataServer(final InetSocketAddress address, final BlockWorker blockWorker,
