@@ -34,7 +34,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.worker.WorkerContext;
 
 /**
- * A local Tachyon cluster with Multiple masters.
+ * A local Tachyon cluster with multiple masters.
  */
 @NotThreadSafe
 public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster {
@@ -102,7 +102,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   }
 
   /**
-   * Iterate over the masters in the order of master creation, kill the first standby master.
+   * Iterates over the masters in the order of master creation, kill the first standby master.
    *
    * @return true if a standby master is successfully killed, otherwise, false
    */
@@ -124,7 +124,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   }
 
   /**
-   * Iterate over the masters in the order of master creation, kill the leader master.
+   * Iterates over the masters in the order of master creation, kill the leader master.
    *
    * @return true if the leader master is successfully killed, false otherwise
    */

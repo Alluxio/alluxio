@@ -315,7 +315,7 @@ public abstract class AbstractLocalTachyonCluster {
   }
 
   /**
-   * Reset the {@link LoginUser}. This is called when the cluster is stopped.
+   * Resets the {@link LoginUser}. This is called when the cluster is stopped.
    *
    * @throws Exception when the operation fails
    */
