@@ -29,7 +29,7 @@ import com.google.common.collect.Lists;
 /**
  * Represents the delta of the block store within one heartbeat period. For now, newly committed
  * blocks do not pass through this master communication mechanism, instead it is synchronized
- * through {@link tachyon.worker.block.BlockDataManager#commitBlock(long, long)}.
+ * through {@link tachyon.worker.block.BlockWorker#commitBlock(long, long)}.
  */
 @ThreadSafe
 public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
