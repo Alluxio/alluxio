@@ -25,7 +25,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
@@ -70,7 +70,7 @@ import tachyon.util.network.NetworkAddressUtils;
  * The class only supports creation using {@code new TachyonConf(properties)} to override default
  * values.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class TachyonConf {
   /** File to set default properties */
   public static final String DEFAULT_PROPERTIES = "tachyon-default.properties";
