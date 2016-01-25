@@ -15,6 +15,8 @@
 
 package tachyon.master.lineage.checkpoint;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,7 @@ import tachyon.master.lineage.LineageMaster;
 /**
  * Schedules a checkpoint plan.
  */
+@NotThreadSafe
 public final class CheckpointSchedulingExcecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
