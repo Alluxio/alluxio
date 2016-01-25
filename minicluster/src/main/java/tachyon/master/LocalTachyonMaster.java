@@ -174,7 +174,7 @@ public final class LocalTachyonMaster {
   }
 
   /**
-   * Get the actual bind hostname on RPC service (used by unit test only).
+   * Gets the actual bind hostname on RPC service (used by unit test only).
    *
    * @return the RPC bind hostname
    */
@@ -183,7 +183,7 @@ public final class LocalTachyonMaster {
   }
 
   /**
-   * Get the actual port that the RPC service is listening on (used by unit test only)
+   * Gets the actual port that the RPC service is listening on (used by unit test only)
    *
    * @return the RPC local port
    */
@@ -192,7 +192,7 @@ public final class LocalTachyonMaster {
   }
 
   /**
-   * Get the actual bind hostname on web service (used by unit test only).
+   * Gets the actual bind hostname on web service (used by unit test only).
    *
    * @return the Web bind hostname
    */
@@ -201,7 +201,7 @@ public final class LocalTachyonMaster {
   }
 
   /**
-   * Get the actual port that the web service is listening on (used by unit test only)
+   * Gets the actual port that the web service is listening on (used by unit test only)
    *
    * @return the Web local port
    */
