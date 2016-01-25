@@ -15,9 +15,12 @@
 
 package tachyon.security.authorization;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * POSIX style file system actions, e.g. read, write, etc.
  */
+@ThreadSafe
 public enum FileSystemAction {
   NONE("---"),
   EXECUTE("--x"),

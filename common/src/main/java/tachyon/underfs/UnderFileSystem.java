@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
@@ -35,11 +37,12 @@ import tachyon.util.io.PathUtils;
  * Tachyon stores data into an under layer file system. Any file system implementing this interface
  * can be a valid under layer file system
  */
+@ThreadSafe
 public abstract class UnderFileSystem {
   protected final TachyonConf mTachyonConf;
 
   /**
-   * this variable indicates whether the underFS actually provides storage. Most UnderFS should
+   * This variable indicates whether the underFS actually provides storage. Most UnderFS should
    * provide storage, but a dummyFS for example does not.
    */
   private boolean mProvidesStorage = true;
@@ -149,7 +152,7 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * Checks whether the underFS provides storage
+   * Checks whether the underFS provides storage.
    *
    * @return true if the under filesystem provides storage, false otherwise
    */

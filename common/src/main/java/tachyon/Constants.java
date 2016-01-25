@@ -15,9 +15,12 @@
 
 package tachyon;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * System wide constants
  */
+@ThreadSafe
 public final class Constants {
   public static final int KB = 1024;
   public static final int MB = KB * 1024;

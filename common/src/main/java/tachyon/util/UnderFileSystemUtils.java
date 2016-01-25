@@ -18,6 +18,8 @@ package tachyon.util;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 
@@ -25,6 +27,7 @@ import tachyon.underfs.UnderFileSystem;
  * Utility functions for working with {@link tachyon.underfs.UnderFileSystem}.
  *
  */
+@ThreadSafe
 public final class UnderFileSystemUtils {
 
   /**
