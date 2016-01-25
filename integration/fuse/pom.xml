@@ -2,10 +2,10 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.tachyonproject</groupId>
-    <artifactId>tachyon-parent</artifactId>
+    <artifactId>tachyon-integration</artifactId>
     <version>0.9.0-SNAPSHOT</version>
   </parent>
-  <artifactId>tachyon-fuse</artifactId>
+  <artifactId>tachyon-integration-fuse</artifactId>
   <name>Tachyon FUSE FS</name>
   <description>Mount Tachyon as a FUSE file system</description>
 
