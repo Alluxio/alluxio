@@ -223,12 +223,16 @@
     </module>
     <module name="MissingDeprecated"/>
     <module name="EqualsHashCode"/>
+
+    <!-- Checks the Javadoc of a public method or constructor. Only applies to production code. -->
     <module name="JavadocMethod">
-      <property name="id" value="MethodNameRegular"/>
+      <property name="id" value="RegularScope"/>
       <property name="scope" value="public"/>
     </module>
+    <!-- Checks Javadoc comments for public class and interface definitions. Only applies to
+         production code -->
     <module name="JavadocType">
-      <property name="id" value="MethodNameRegular"/>
+      <property name="id" value="RegularScope"/>
       <property name="scope" value="public"/>
     </module>
   </module>
