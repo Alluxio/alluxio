@@ -15,6 +15,8 @@
 
 package tachyon.worker.block.allocator;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.worker.block.BlockMetadataManagerView;
@@ -26,6 +28,7 @@ import tachyon.worker.block.meta.StorageTierView;
  * A greedy allocator that returns the first Storage dir fitting the size of block to allocate. This
  * class serves as an example how to implement an allocator.
  */
+@NotThreadSafe
 public final class GreedyAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
 
