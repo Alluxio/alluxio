@@ -80,8 +80,8 @@ public class S3OutputStream extends OutputStream {
       mHash = MessageDigest.getInstance("MD5");
       mLocalOutputStream =
           new BufferedOutputStream(new DigestOutputStream(new FileOutputStream(mFile), mHash));
-    } catch (NoSuchAlgorithmException nsae) {
-      LOG.warn("Algorithm not available for MD5 hash.", nsae);
+    } catch (NoSuchAlgorithmException e) {
+      LOG.warn("Algorithm not available for MD5 hash.", e);
       mHash = null;
       mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
     }
@@ -128,9 +128,9 @@ public class S3OutputStream extends OutputStream {
       }
       mClient.putObject(mBucketName, obj);
       mFile.delete();
-    } catch (ServiceException se) {
+    } catch (ServiceException e) {
       LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
-      throw new IOException(se);
+      throw new IOException(e);
     }
   }
 }

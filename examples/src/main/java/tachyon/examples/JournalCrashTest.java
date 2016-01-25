@@ -271,7 +271,7 @@ public class JournalCrashTest {
       sTfs = FileSystem.Factory.get();
       try {
         sTfs.delete(new TachyonURI(sTestDir));
-      } catch (Exception ioe) {
+      } catch (Exception e) {
         // Test Directory not exist
       }
 
