@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +48,7 @@ import tachyon.worker.block.io.BlockReader;
  * The server to serve data file read requests from remote machines. The current implementation is
  * based on non-blocking NIO.
  */
+@NotThreadSafe
 public final class NIODataServer implements Runnable, DataServer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

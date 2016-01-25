@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
@@ -39,6 +41,7 @@ import tachyon.worker.block.BlockDataManager;
 /**
  * Runs a netty data server that responds to block requests.
  */
+@NotThreadSafe
 public final class NettyDataServer implements DataServer {
   private final ServerBootstrap mBootstrap;
   private final ChannelFuture mChannelFuture;

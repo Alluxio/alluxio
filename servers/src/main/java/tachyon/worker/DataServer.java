@@ -24,6 +24,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockDataManager;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Defines how to interact with a server running the data protocol.
@@ -33,6 +34,7 @@ public interface DataServer extends Closeable {
   /**
    * Factory for {@link DataServer}.
    */
+  @ThreadSafe
   class Factory {
     /**
      * Factory for {@link DataServer}.
