@@ -411,6 +411,13 @@ the port number.
   LFU; and larger value makes LRFU closer to LRU.</td>
 </tr>
 <tr>
+  <td>tachyon.worker.file.persist.pool.size</td>
+  <td>2</td>
+  <td>
+  The size of the thread pool per worker, in which the thread persists an ASYNC_THROUGH file to under storage.
+  </td>
+</tr>
+<tr>
   <td>tachyon.worker.filesystem.heartbeat.interval.ms</td>
   <td>1000</td>
   <td>
