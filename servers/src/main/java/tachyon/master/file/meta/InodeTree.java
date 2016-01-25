@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +61,7 @@ import tachyon.util.io.PathUtils;
 /**
  * Represents the tree of Inode's.
  */
+@NotThreadSafe
 public final class InodeTree implements JournalCheckpointStreamable {
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
