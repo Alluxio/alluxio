@@ -17,6 +17,8 @@ package tachyon.master.file.meta;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.exception.FileDoesNotExistException;
@@ -24,8 +26,9 @@ import tachyon.master.file.FileSystemMaster;
 import tachyon.thrift.FileInfo;
 
 /**
- * This class exposes a read-only view of {@link FileSystemMaster}. This class is thread-safe.
+ * This class exposes a read-only view of {@link FileSystemMaster}.
  */
+@ThreadSafe
 public final class FileSystemMasterView {
   private final FileSystemMaster mFileSystemMaster;
 

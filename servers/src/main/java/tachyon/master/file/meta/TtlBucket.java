@@ -18,6 +18,8 @@ package tachyon.master.file.meta;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Objects;
 
 import tachyon.Constants;
@@ -26,9 +28,8 @@ import tachyon.master.MasterContext;
 /**
  * A bucket with all files whose ttl value lies in the bucket's time interval. The bucket's time
  * interval starts at a specific time and lasts for {@link Constants#MASTER_TTLCHECKER_INTERVAL_MS}.
- *
- * Not thread-safe. Only for use related to {@link TtlBucketList}.
  */
+@NotThreadSafe
 public final class TtlBucket implements Comparable<TtlBucket> {
   /** The time interval of this bucket is the same as ttl checker's interval. */
   private static long sTtlIntervalMs = MasterContext.getConf().getInt(
