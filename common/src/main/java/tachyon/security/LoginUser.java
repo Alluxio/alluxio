@@ -18,6 +18,7 @@ package tachyon.security;
 import java.io.IOException;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.LoginContext;
@@ -37,6 +38,7 @@ import tachyon.security.login.TachyonJaasConfiguration;
  *
  * This singleton uses lazy initialization.
  */
+@ThreadSafe
 public final class LoginUser {
 
   /** User instance of the login user in Tachyon client process */

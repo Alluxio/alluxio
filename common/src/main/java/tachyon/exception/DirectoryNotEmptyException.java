@@ -15,10 +15,13 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Exception for situations where an operation fails because a directory is not empty. An example of
  * this would be deleting a nonempty directory without specifying 'recursive'.
  */
+@ThreadSafe
 public class DirectoryNotEmptyException extends TachyonException {
   private static final long serialVersionUID = -8411287237224325573L;
 

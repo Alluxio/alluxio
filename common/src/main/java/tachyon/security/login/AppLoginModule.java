@@ -18,6 +18,7 @@ package tachyon.security.login;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -36,6 +37,7 @@ import tachyon.security.User;
  * different identifies (for resource and data management), or if Tachyon clients running under
  * different OS user names want to get same identify.
  */
+@NotThreadSafe
 public final class AppLoginModule implements LoginModule {
   private Subject mSubject;
   private User mUser;
