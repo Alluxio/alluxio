@@ -28,14 +28,15 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Constructs an isolated master. Primary users of this class are the
- * {@link tachyon.master.LocalTachyonCluster} and
- * {@link tachyon.master.LocalTachyonClusterMultiMaster}.
+ * Constructs an isolated master. Primary users of this class are the {@link LocalTachyonCluster}
+ * and {@link LocalTachyonClusterMultiMaster}.
  *
  * Isolated is defined as having its own root directory, and port.
  */
+@NotThreadSafe
 public final class LocalTachyonMaster {
   private final String mHostname;
 

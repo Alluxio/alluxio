@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.curator.test.TestingServer;
 
 import com.google.common.base.Throwables;
@@ -32,8 +34,9 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.worker.WorkerContext;
 
 /**
- * A local Tachyon cluster with Multiple masters
+ * A local Tachyon cluster with Multiple masters.
  */
+@NotThreadSafe
 public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster {
 
   private TestingServer mCuratorServer = null;
