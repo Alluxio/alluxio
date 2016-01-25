@@ -122,6 +122,7 @@ public enum ExceptionMessage {
   LINEAGE_DOES_NOT_EXIST("The lineage {0} does not exist"),
   LINEAGE_INPUT_FILE_NOT_EXIST("The lineage input file {0} does not exist"),
   LINEAGE_OUTPUT_FILE_NOT_EXIST("No lineage has output file {0}"),
+  MISSING_REINITIALIZE_FILE("Cannot reinitialize file {0} because it does not exist"),
   UNKNOWN_LINEAGE_FILE_STATE("Unknown LineageFileState: {0}"),
 
   // client
