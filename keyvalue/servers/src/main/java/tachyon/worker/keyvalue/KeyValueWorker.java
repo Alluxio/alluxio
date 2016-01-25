@@ -41,7 +41,7 @@ import tachyon.worker.block.BlockWorker;
 public class KeyValueWorker extends WorkerBase {
   /** Configuration object */
   private final TachyonConf mTachyonConf;
-  /** Block data manager for access block info */
+  /** BlockWorker handle for access block info */
   private final BlockWorker mBlockWorker;
   /** Logic for handling key-value RPC requests. */
   private final KeyValueWorkerClientServiceHandler mKeyValueServiceHandler;
