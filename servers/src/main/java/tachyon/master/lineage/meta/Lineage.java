@@ -18,6 +18,8 @@ package tachyon.master.lineage.meta;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.google.common.base.Preconditions;
@@ -34,6 +36,7 @@ import tachyon.proto.journal.Lineage.LineageEntry;
  * A lineage tracks the dependencies imposed by a job, including the input files the job depends on,
  * and the output files the job generates.
  */
+@ThreadSafe
 public final class Lineage implements JournalEntryRepresentable {
   private final long mId;
   private final List<Long> mInputFiles;
@@ -90,21 +93,21 @@ public final class Lineage implements JournalEntryRepresentable {
   /**
    * @return the job
    */
-  public Job getJob() {
+  public synchronized Job getJob() {
     return mJob;
   }
 
   /**
    * @return the lineage id
    */
-  public long getId() {
+  public synchronized long getId() {
     return mId;
   }
 
   /**
    * @return the creation time
    */
-  public long getCreationTime() {
+  public synchronized long getCreationTime() {
     return mCreationTimeMs;
   }
 
