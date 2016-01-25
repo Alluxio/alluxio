@@ -311,6 +311,12 @@ public class TachyonFramework {
     return null;
   }
 
+  /**
+   * Starts the Tachyon framework.
+   *
+   * @param args command-line arguments
+   * @throws Exception if the Tachyon framework encounters an unrecoverable error
+   */
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
       usage();
