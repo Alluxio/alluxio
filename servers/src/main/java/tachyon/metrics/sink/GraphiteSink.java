@@ -18,6 +18,8 @@ package tachyon.metrics.sink;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
@@ -27,6 +29,7 @@ import tachyon.metrics.MetricsSystem;
 /**
  * A sink which publishes metric values to a Graphite server.
  */
+@NotThreadSafe
 public class GraphiteSink implements Sink {
   private static final int GRAPHITE_DEFAULT_PERIOD = 10;
   private static final String GRAPHITE_DEFAULT_UNIT = "SECONDS";

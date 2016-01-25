@@ -17,6 +17,8 @@ package tachyon.web;
 
 import java.net.InetSocketAddress;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.eclipse.jetty.servlet.ServletHolder;
 
 import com.google.common.base.Preconditions;
@@ -28,6 +30,7 @@ import tachyon.worker.block.BlockDataManager;
 /**
  * A worker's UI web server.
  */
+@NotThreadSafe
 public final class WorkerUIWebServer extends UIWebServer {
 
   /**

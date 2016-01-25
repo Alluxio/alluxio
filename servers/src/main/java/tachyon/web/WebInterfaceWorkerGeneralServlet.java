@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -36,6 +37,7 @@ import tachyon.worker.block.BlockStoreMeta;
 /**
  * Servlets that shows a worker's general information, including tiered storage details.
  */
+@ThreadSafe
 public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
   /**

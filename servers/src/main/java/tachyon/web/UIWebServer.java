@@ -18,6 +18,8 @@ package tachyon.web;
 import java.io.File;
 import java.net.InetSocketAddress;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -37,10 +39,10 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-
 /**
  * Class that bootstraps and starts the web server for the web interface.
  */
+@NotThreadSafe
 public abstract class UIWebServer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

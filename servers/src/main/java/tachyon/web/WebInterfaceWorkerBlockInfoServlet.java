@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -48,6 +49,7 @@ import tachyon.worker.block.meta.BlockMeta;
 /**
  * Servlet that provides data for displaying block info of a worker.
  */
+@ThreadSafe
 public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   private static final long serialVersionUID = 4148506607369321012L;
   private final transient BlockDataManager mBlockDataManager;

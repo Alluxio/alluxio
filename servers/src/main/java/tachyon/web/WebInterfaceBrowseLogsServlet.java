@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -35,6 +36,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Servlet that provides data for browsing log files.
  */
+@ThreadSafe
 public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
   private static final long serialVersionUID = 6589358568781503724L;
 
