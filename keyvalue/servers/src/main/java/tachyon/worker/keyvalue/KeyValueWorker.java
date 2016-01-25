@@ -49,7 +49,7 @@ public class KeyValueWorker extends WorkerBase {
   /**
    * Constructor of {@link KeyValueWorker}.
    *
-   * @param blockDataManager handler to the {@link BlockDataManager}
+   * @param blockWorker handler to the {@link BlockWorker}
    */
   public KeyValueWorker(BlockWorker blockWorker) {
     // TODO(binfan): figure out do we really need thread pool for key-value worker (and for what)

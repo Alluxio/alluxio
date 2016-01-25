@@ -210,7 +210,7 @@ public class WorkerSource implements Source {
   /**
    * Registers metric gauges.
    *
-    * @param blockDataManager a block data manager handle
+    * @param blockWorker the block worker handle
    */
   public void registerGauges(final BlockWorker blockWorker) {
     if (mGaugesRegistered) {

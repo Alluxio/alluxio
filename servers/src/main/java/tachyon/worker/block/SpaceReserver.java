@@ -52,7 +52,7 @@ public class SpaceReserver implements Runnable {
   /**
    * Creates a new instance of {@link SpaceReserver}.
    *
-   * @param blockManager a block manager handle
+   * @param blockWorker the block worker handle
    */
   public SpaceReserver(BlockWorker blockWorker) {
     mBlockWorker = blockWorker;

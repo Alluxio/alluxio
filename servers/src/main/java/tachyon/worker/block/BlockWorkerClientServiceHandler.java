@@ -38,7 +38,7 @@ import tachyon.worker.WorkerContext;
 public final class BlockWorkerClientServiceHandler implements BlockWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Block data manager that carries out most of the operations **/
+  /** Block Worker handle that carries out most of the operations **/
   private final BlockWorker mWorker;
   /** Association between storage tier aliases and ordinals ond this worker */
   private final StorageTierAssoc mStorageTierAssoc;
@@ -46,7 +46,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   /**
    * Creates a new instance of {@link BlockWorkerClientServiceHandler}.
    *
-   * @param worker block data manager handler
+   * @param worker block worker handler
    */
   public BlockWorkerClientServiceHandler(BlockWorker worker) {
     mWorker = worker;

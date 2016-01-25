@@ -39,8 +39,8 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.KeyValueWorkerClientService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
-import tachyon.worker.block.BlockWorker;
 import tachyon.util.io.BufferUtils;
+import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.io.BlockReader;
 
 /**
