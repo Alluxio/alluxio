@@ -20,10 +20,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
-import com.google.common.base.Throwables;
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -51,28 +54,38 @@ import tachyon.worker.file.FileSystemMasterClient;
  *
  * Logic: {@link BlockDataManager} (Logic for all block related storage operations)
  */
+@NotThreadSafe
 public final class BlockWorker extends WorkerBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Runnable responsible for heartbeating and registration with master. */
   private BlockMasterSync mBlockMasterSync;
+
   /** Runnable responsible for fetching pinlist from master. */
   private PinListSync mPinListSync;
+
   /** Runnable responsible for clean up potential zombie sessions. */
   private SessionCleaner mSessionCleanerThread;
+
   /** Logic for handling RPC requests. */
   private final BlockWorkerClientServiceHandler mServiceHandler;
+
   /** Logic for managing block store and under file system store. */
   private final BlockDataManager mBlockDataManager;
+
   /** Server for data requests and responses. */
   private final DataServer mDataServer;
-  /** Client for all block master communication */
+
+  /** Client for all block master communication. */
   private final BlockMasterClient mBlockMasterClient;
-  /** Client for all file system master communication */
+
+  /** Client for all file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterClient;
-  /** Configuration object */
+
+  /** Configuration object. */
   private final TachyonConf mTachyonConf;
-  /** Space reserver for the block data manager */
+
+  /** Space reserver for the block data manager. */
   private SpaceReserver mSpaceReserver = null;
 
   /**

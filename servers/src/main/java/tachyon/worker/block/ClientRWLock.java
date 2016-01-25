@@ -21,11 +21,14 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Read/write lock associated with clients rather than threads. Either its read lock or write lock
  * can be released by a thread different from the one acquiring them (but supposed to be requested
  * by the same client).
  */
+@ThreadSafe
 public final class ClientRWLock implements ReadWriteLock {
   // TODO(bin): Make this const a configurable.
   /** Total number of permits. This value decides the max number of concurrent readers */

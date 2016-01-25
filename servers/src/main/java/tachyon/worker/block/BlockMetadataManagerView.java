@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.exception.BlockDoesNotExistException;
@@ -33,7 +35,6 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.StorageTierView;
-
 /**
  * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors and Allocators,
  * filtering out un-evictable blocks and un-allocatable space internally, so that evictors and
@@ -42,20 +43,25 @@ import tachyon.worker.block.meta.StorageTierView;
  *
  * TODO(cc): Filter un-allocatable space.
  */
+@NotThreadSafe
 public class BlockMetadataManagerView {
 
-  /** The {@link BlockMetadataManager} this view is derived from */
+  /** The {@link BlockMetadataManager} this view is derived from. */
   private final BlockMetadataManager mMetadataManager;
+
   /**
    * A list of {@link StorageTierView}, derived from {@link StorageTier}s from the
-   * {@link BlockMetadataManager}
+   * {@link BlockMetadataManager}.
    */
   private List<StorageTierView> mTierViews = new ArrayList<StorageTierView>();
-  /** A list of pinned inodes */
+
+  /** A list of pinned inodes. */
   private final Set<Long> mPinnedInodes = new HashSet<Long>();
-  /** Indices of locks that are being used */
+
+  /** Indices of locks that are being used. */
   private final BitSet mInUseLocks = new BitSet();
-  /** A map from tier alias to {@link StorageTierView} */
+
+  /** A map from tier alias to {@link StorageTierView}. */
   private Map<String, StorageTierView> mAliasToTierViews = new HashMap<String, StorageTierView>();
 
   /**
@@ -218,7 +224,7 @@ public class BlockMetadataManagerView {
    *
    * @param blockId the block id
    * @return metadata of the block or null
-   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this blockId is found
+   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this block id is found
    */
   public BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException {
     if (isBlockEvictable(blockId)) {

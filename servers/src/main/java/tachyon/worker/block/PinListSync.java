@@ -17,6 +17,8 @@ package tachyon.worker.block;
 
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +31,7 @@ import tachyon.worker.file.FileSystemMasterClient;
  * inodes to the {@link BlockDataManager}.
  *
  */
+@NotThreadSafe
 public final class PinListSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -46,7 +49,6 @@ public final class PinListSync implements HeartbeatExecutor {
    */
   public PinListSync(BlockDataManager blockDataManager, FileSystemMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
-
     mMasterClient = masterClient;
   }
 

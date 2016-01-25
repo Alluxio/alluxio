@@ -15,6 +15,8 @@
 
 package tachyon.worker.block;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +29,7 @@ import tachyon.worker.WorkerContext;
  * and associated data when necessary. The syncing parameters (intervals) adopt directly from
  * worker-to-master heartbeat configurations.
  */
+@NotThreadSafe
 public final class SessionCleaner implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Block data manager responsible for interacting with Tachyon and UFS storage */

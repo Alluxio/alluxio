@@ -20,6 +20,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.worker.block.BlockMetadataManagerView;
@@ -29,6 +31,7 @@ import tachyon.worker.block.BlockStoreLocation;
  * This class is a wrapper of {@link StorageDir} to provide more limited access and a filtered list
  * of blocks.
  */
+@NotThreadSafe
 public final class StorageDirView {
 
   /** the {@link StorageDir} this view is derived from */

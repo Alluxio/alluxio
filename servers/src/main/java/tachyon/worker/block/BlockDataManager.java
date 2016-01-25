@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.Sessions;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
@@ -30,6 +32,7 @@ import tachyon.thrift.FileInfo;
 import tachyon.util.io.FileUtils;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
+import tachyon.worker.block.evictor.EvictionPlan;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
@@ -37,24 +40,31 @@ import tachyon.worker.block.meta.TempBlockMeta;
 import tachyon.worker.file.FileSystemMasterClient;
 
 /**
- * Class is responsible for managing the Tachyon {@link BlockStore} and Under FileSystem. This class
- * is thread-safe.
+ * Class is responsible for managing the Tachyon {@link BlockStore} and under file system.
  */
+@NotThreadSafe
+// TODO(jiri): Make this class actually thread-safe.
 public final class BlockDataManager {
-  /** Block store delta reporter for master heartbeat */
+
+  /** Block store delta reporter for master heartbeat. */
   private BlockHeartbeatReporter mHeartbeatReporter;
-  /** Block Store manager */
+
+  /** Block store manager. */
   private BlockStore mBlockStore;
-  /** {@link WorkerSource} for collecting worker metrics */
+
+  /** {@link WorkerSource} for collecting worker metrics. */
   private WorkerSource mWorkerSource;
-  /** Metrics reporter that listens on block events and increases metrics counters */
+
+  /** Metrics reporter that listens on block events and increases metrics counters. */
   private BlockMetricsReporter mMetricsReporter;
 
-  /** WorkerBlockMasterClient, only used to inform the master of a new block in commitBlock */
+  /** WorkerBlockMasterClient, only used to inform the master of a new block in commitBlock. */
   private BlockMasterClient mBlockMasterClient;
-  /** WorkerFileSystemMasterClient, only used to inform master of a new file in persistFile */
+
+  /** WorkerFileSystemMasterClient, only used to inform master of a new file in persistFile. */
   private FileSystemMasterClient mFileSystemMasterClient;
-  /** Session metadata, used to keep track of session heartbeats */
+
+  /** Session metadata, used to keep track of session heartbeats. */
   private Sessions mSessions = new Sessions();
 
   /**
@@ -86,9 +96,9 @@ public final class BlockDataManager {
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be aborted
-   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
+   * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block cannot be found
-   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
+   * @throws InvalidWorkerStateException if block id does not belong to getSessionId
    * @throws IOException if temporary block cannot be deleted
    */
   public void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
@@ -127,9 +137,9 @@ public final class BlockDataManager {
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to commit
-   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
+   * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block cannot be found
-   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
+   * @throws InvalidWorkerStateException if block id does not belong to getSessionId
    * @throws IOException if the block cannot be moved from temporary path to committed path
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
@@ -168,7 +178,7 @@ public final class BlockDataManager {
    *        {@link BlockStoreLocation#ANY_TIER} for any tier
    * @param initialBytes the initial amount of bytes to be allocated
    * @return a string representing the path to the local file
-   * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
+   * @throws BlockAlreadyExistsException if block id already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
@@ -189,7 +199,7 @@ public final class BlockDataManager {
    * @param blockId the id of the block to be created
    * @param tierAlias the alias of the tier to place the new block in
    * @param initialBytes the initial amount of bytes to be allocated
-   * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
+   * @throws BlockAlreadyExistsException if block id already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
@@ -259,12 +269,12 @@ public final class BlockDataManager {
   }
 
   /**
-   * Gets the metadata of a block given its blockId or throws IOException. This method does not
+   * Gets the metadata of a block given its block id or throws IOException. This method does not
    * require a lock id so the block is possible to be moved or removed after it returns.
    *
    * @param blockId the block id
    * @return metadata of the block
-   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this blockId is found
+   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this block id is found
    */
   public BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException {
     return mBlockStore.getVolatileBlockMeta(blockId);
@@ -286,7 +296,7 @@ public final class BlockDataManager {
    * @param sessionId the id of the client
    * @param blockId the id of the block to be locked
    * @return the lock id that uniquely identifies the lock obtained
-   * @throws BlockDoesNotExistException if blockId cannot be found, for example, evicted already
+   * @throws BlockDoesNotExistException if block id cannot be found, for example, evicted already
    */
   public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     return mBlockStore.lockBlock(sessionId, blockId);
@@ -300,10 +310,10 @@ public final class BlockDataManager {
    * @param sessionId the id of the client
    * @param blockId the id of the block to move
    * @param tierAlias the alias of the tier to move the block to
-   * @throws BlockDoesNotExistException if blockId cannot be found
-   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
+   * @throws BlockDoesNotExistException if block id cannot be found
+   * @throws BlockAlreadyExistsException if block id already exists in committed blocks of the
    *         newLocation
-   * @throws InvalidWorkerStateException if blockId has not been committed
+   * @throws InvalidWorkerStateException if block id has not been committed
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
    * @throws IOException if block cannot be moved from current location to newLocation
@@ -323,10 +333,10 @@ public final class BlockDataManager {
    * @param blockId the id of the block to read
    * @param lockId the id of the lock on this block
    * @return a string representing the path to this block in local storage
-   * @throws BlockDoesNotExistException if the blockId cannot be found in committed blocks or lockId
-   *         cannot be found
-   * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
-   *         LockRecord of lockId
+   * @throws BlockDoesNotExistException if the block id cannot be found in committed blocks or lock
+   *         id cannot be found
+   * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
+   *         LockRecord of lock id
    */
   public String readBlock(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException {
@@ -341,8 +351,8 @@ public final class BlockDataManager {
    * @param blockId the id of the block to read
    * @param lockId the id of the lock on this block
    * @return the block reader for the block
-   * @throws BlockDoesNotExistException if lockId is not found
-   * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
+   * @throws BlockDoesNotExistException if lock id is not found
+   * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
    *         LockRecord of lockId
    * @throws IOException if block cannot be read
    */
@@ -356,7 +366,7 @@ public final class BlockDataManager {
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be freed
-   * @throws InvalidWorkerStateException if blockId has not been committed
+   * @throws InvalidWorkerStateException if block id has not been committed
    * @throws BlockDoesNotExistException if block cannot be found
    * @throws IOException if block cannot be removed from current path
    */
@@ -372,11 +382,11 @@ public final class BlockDataManager {
    * @param sessionId the id of the client
    * @param blockId the id of the block to allocate space to
    * @param additionalBytes the amount of bytes to allocate
-   * @throws BlockDoesNotExistException if blockId can not be found, or some block in eviction plan
+   * @throws BlockDoesNotExistException if block id can not be found, or some block in eviction plan
    *         cannot be found
    * @throws WorkerOutOfSpaceException if requested space can not be satisfied
-   * @throws IOException if blocks in {@link tachyon.worker.block.evictor.EvictionPlan} fail to be
-   *         moved or deleted on file system
+   * @throws IOException if blocks in {@link EvictionPlan} fail to be moved or deleted on file
+   *         system
    */
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {

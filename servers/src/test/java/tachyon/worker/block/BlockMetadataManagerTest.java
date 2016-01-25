@@ -76,7 +76,7 @@ public final class BlockMetadataManagerTest {
     TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);
 
-    mMetaManager = BlockMetadataManager.newBlockMetadataManager();
+    mMetaManager = BlockMetadataManager.createBlockMetadataManager();
   }
 
   /**
@@ -199,7 +199,7 @@ public final class BlockMetadataManagerTest {
     mMetaManager.abortTempBlockMeta(tempBlockMeta);
     Assert.assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
     Assert.assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
-    // Add temp block with previous blockId
+    // Add temp block with previous block id
     mMetaManager.addTempBlockMeta(tempBlockMeta);
     Assert.assertTrue(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
     Assert.assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));

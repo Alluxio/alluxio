@@ -27,6 +27,8 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,6 +85,9 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * operations that may trigger this eviction (e.g., move, create, requestSpace), retry is used</li>
  * </ul>
  */
+@NotThreadSafe
+// TODO(jiri): This class should be thread safe but is not. For instance, getUpdatedView() returns a
+// reference to mPinnedInodes to the caller.
 public final class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // TODO(bin): Change maxRetry to be configurable.
@@ -93,17 +98,23 @@ public final class TieredBlockStore implements BlockStore {
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
   private final Evictor mEvictor;
+
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
-  /** A set of pinned inodes fetched from the master */
+
+  /** A set of pinned inodes fetched from the master. */
   private final Set<Long> mPinnedInodes = new HashSet<Long>();
-  /** Lock to guard metadata operations */
+
+  /** Lock to guard metadata operations. */
   private final ReentrantReadWriteLock mMetadataLock = new ReentrantReadWriteLock();
-  /** ReadLock provided by {@link #mMetadataReadLock} to guard metadata read operations */
+
+  /** ReadLock provided by {@link #mMetadataReadLock} to guard metadata read operations. */
   private final Lock mMetadataReadLock = mMetadataLock.readLock();
-  /** WriteLock provided by {@link #mMetadataReadLock} to guard metadata write operations */
+
+  /** WriteLock provided by {@link #mMetadataReadLock} to guard metadata write operations. */
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
-  /** Association between storage tier aliases and ordinals */
+
+  /** Association between storage tier aliases and ordinals. */
   private final StorageTierAssoc mStorageTierAssoc;
 
   /**
@@ -111,7 +122,7 @@ public final class TieredBlockStore implements BlockStore {
    */
   public TieredBlockStore() {
     mTachyonConf = WorkerContext.getConf();
-    mMetaManager = BlockMetadataManager.newBlockMetadataManager();
+    mMetaManager = BlockMetadataManager.createBlockMetadataManager();
     mLockManager = new BlockLockManager();
 
     BlockMetadataManagerView initManagerView = new BlockMetadataManagerView(mMetaManager,
@@ -405,11 +416,11 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * Checks if a blockId is available for a new temp block. This method must be enclosed by
+   * Checks if a block id is available for a new temp block. This method must be enclosed by
    * {@link #mMetadataLock}.
    *
    * @param blockId the id of block
-   * @throws BlockAlreadyExistsException if blockId already exists
+   * @throws BlockAlreadyExistsException if block id already exists
    */
   private void checkTempBlockIdAvailable(long blockId) throws BlockAlreadyExistsException {
     if (mMetaManager.hasTempBlockMeta(blockId)) {
@@ -421,14 +432,14 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * Checks if blockId is a temporary block and owned by sessionId. This method must be enclosed by
-   * {@link #mMetadataLock}.
+   * Checks if block id is a temporary block and owned by session id. This method must be enclosed
+   * by {@link #mMetadataLock}.
    *
    * @param sessionId the id of session
    * @param blockId the id of block
-   * @throws BlockDoesNotExistException if blockId can not be found in temporary blocks
-   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
-   * @throws InvalidWorkerStateException if blockId is not owned by sessionId
+   * @throws BlockDoesNotExistException if block id can not be found in temporary blocks
+   * @throws BlockAlreadyExistsException if block id already exists in committed blocks
+   * @throws InvalidWorkerStateException if block id is not owned by session id
    */
   private void checkTempBlockOwnedBySession(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException {
@@ -448,9 +459,9 @@ public final class TieredBlockStore implements BlockStore {
    *
    * @param sessionId the id of session
    * @param blockId the id of block
-   * @throws BlockDoesNotExistException if blockId can not be found in temporary blocks
-   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
-   * @throws InvalidWorkerStateException if blockId is not owned by sessionId
+   * @throws BlockDoesNotExistException if block id can not be found in temporary blocks
+   * @throws BlockAlreadyExistsException if block id already exists in committed blocks
+   * @throws InvalidWorkerStateException if block id is not owned by session id
    * @throws IOException if I/O errors occur when deleting the block file
    */
   private void abortBlockInternal(long sessionId, long blockId) throws BlockDoesNotExistException,
@@ -489,9 +500,9 @@ public final class TieredBlockStore implements BlockStore {
    *
    * @param sessionId the id of session
    * @param blockId the id of block
-   * @throws BlockDoesNotExistException if blockId can not be found in temporary blocks
-   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
-   * @throws InvalidWorkerStateException if blockId is not owned by sessionId
+   * @throws BlockDoesNotExistException if block id can not be found in temporary blocks
+   * @throws BlockAlreadyExistsException if block id already exists in committed blocks
+   * @throws InvalidWorkerStateException if block id is not owned by session id
    * @throws IOException if I/O errors occur when deleting the block file
    * @return destination location to move the block
    */
@@ -768,7 +779,7 @@ public final class TieredBlockStore implements BlockStore {
         mMetadataReadLock.unlock();
       }
 
-      if (!srcLocation.belongTo(oldLocation)) {
+      if (!srcLocation.belongsTo(oldLocation)) {
         throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION, blockId,
             oldLocation);
       }
@@ -785,7 +796,7 @@ public final class TieredBlockStore implements BlockStore {
 
       // When the dstLocation belongs to srcLocation, simply abort the tempBlockMeta just created
       // internally from the newLocation and return success with specific block location.
-      if (dstLocation.belongTo(srcLocation)) {
+      if (dstLocation.belongsTo(srcLocation)) {
         mMetaManager.abortTempBlockMeta(dstTempBlock);
         return new MoveBlockResult(true, blockSize, srcLocation, dstLocation);
       }
@@ -804,7 +815,7 @@ public final class TieredBlockStore implements BlockStore {
       } catch (BlockDoesNotExistException e) {
         throw Throwables.propagate(e); // we shall never reach here
       } catch (WorkerOutOfSpaceException e) {
-        // Only possible if sessionId gets cleaned between createBlockMetaInternal and
+        // Only possible if session id gets cleaned between createBlockMetaInternal and
         // moveBlockMeta.
         throw Throwables.propagate(e);
       } finally {
@@ -844,7 +855,7 @@ public final class TieredBlockStore implements BlockStore {
         mMetadataReadLock.unlock();
       }
 
-      if (!blockMeta.getBlockLocation().belongTo(location)) {
+      if (!blockMeta.getBlockLocation().belongsTo(location)) {
         throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION, blockId,
             location);
       }
