@@ -223,6 +223,14 @@
     </module>
     <module name="MissingDeprecated"/>
     <module name="EqualsHashCode"/>
+    <module name="JavadocMethod">
+      <property name="id" value="MethodNameRegular"/>
+      <property name="scope" value="public"/>
+    </module>
+    <module name="JavadocType">
+      <property name="id" value="MethodNameRegular"/>
+      <property name="scope" value="public"/>
+    </module>
   </module>
 
   <!-- always use Unix-style line separators -->
