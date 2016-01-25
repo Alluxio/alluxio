@@ -285,6 +285,9 @@ public final class LineageMaster extends MasterBase {
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
       throws InvalidPathException, FileDoesNotExistException, AccessControlException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
+    if (fileId == -1) {
+      throw new FileDoesNotExistException(ExceptionMessage.MISSING_REINITIALIZE_FILE.getMessage(path));
+    }
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     if (!fileInfo.isCompleted || mFileSystemMaster.getLostFiles().contains(fileId)) {
       LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
