@@ -50,12 +50,14 @@ import tachyon.network.protocol.databuffer.DataFileChannel;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class has the main logic of the read path to process {@link RPCRequest} messages and return
  * {@link RPCResponse} messages.
  */
 @ChannelHandler.Sharable
+@NotThreadSafe
 public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

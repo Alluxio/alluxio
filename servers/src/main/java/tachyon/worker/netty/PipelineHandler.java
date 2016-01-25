@@ -23,10 +23,12 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCMessageDecoder;
 import tachyon.network.protocol.RPCMessageEncoder;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Adds the block server's pipeline into the channel.
  */
+@ThreadSafe
 public final class PipelineHandler extends ChannelInitializer<SocketChannel> {
   private final DataServerHandler mDataServerHandler;
 
