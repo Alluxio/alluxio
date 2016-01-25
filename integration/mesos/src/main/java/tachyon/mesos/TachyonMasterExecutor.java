@@ -103,6 +103,12 @@ public class TachyonMasterExecutor implements Executor {
     // TODO(jiri): Implement.
   }
 
+  /**
+   * Starts the Tachyon master executor.
+   *
+   * @param args command-line arguments
+   * @throws Exception if the executor encounters an unrecoverable error
+   */
   public static void main(String[] args) throws Exception {
     MesosExecutorDriver driver = new MesosExecutorDriver(new TachyonMasterExecutor());
     System.exit(driver.run() == Protos.Status.DRIVER_STOPPED ? 0 : 1);
