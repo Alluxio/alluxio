@@ -64,7 +64,7 @@ import tachyon.worker.file.FileSystemMasterClient;
  *
  * Periodic Threads: {@link BlockMasterSync} (Worker to Master continuous communication)
  *
- * Logic: {@link BlockDataManager} (Logic for all block related storage operations)
+ * Logic: {@link BlockWorker} (Logic for all block related storage operations)
  */
 public final class BlockWorker extends WorkerBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

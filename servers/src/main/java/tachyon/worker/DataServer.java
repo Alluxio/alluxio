@@ -38,7 +38,7 @@ public interface DataServer extends Closeable {
      * Factory for {@link DataServer}.
      *
      * @param dataAddress the address of the data server
-     * @param blockDataManager block data manager to use
+     * @param blockWorker block worker handle
      * @param conf Tachyon configuration
      * @return the generated {@link DataServer}
      */

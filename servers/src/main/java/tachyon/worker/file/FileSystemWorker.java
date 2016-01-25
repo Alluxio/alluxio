@@ -53,7 +53,7 @@ public final class FileSystemWorker extends WorkerBase {
   /**
    * Creates a new instance of {@link FileSystemWorker}.
    *
-   * @param blockDataManager a block data manager handle
+   * @param blockWorker the block worker handle
    * @throws IOException if an I/O error occurs
    */
   public FileSystemWorker(BlockWorker blockWorker) throws IOException {

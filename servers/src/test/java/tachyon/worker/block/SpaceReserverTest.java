@@ -72,15 +72,15 @@ public class SpaceReserverTest {
     String baseDir = mTempFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);
-    BlockWorker blockDataManager = new BlockWorker();
-    mBlockStore = blockDataManager.getBlockStore();
+    BlockWorker blockWorker = new BlockWorker();
+    mBlockStore = blockWorker.getBlockStore();
     String reserveRatioProp =
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 0);
     WorkerContext.getConf().set(reserveRatioProp, "0.2");
     reserveRatioProp =
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 1);
     WorkerContext.getConf().set(reserveRatioProp, "0.3");
-    mSpaceReserver = new SpaceReserver(blockDataManager);
+    mSpaceReserver = new SpaceReserver(blockWorker);
   }
 
   /**

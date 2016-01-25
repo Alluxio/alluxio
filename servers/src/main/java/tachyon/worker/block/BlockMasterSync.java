@@ -43,7 +43,7 @@ import tachyon.worker.WorkerIdRegistry;
  * heartbeat. This class manages its own {@link BlockMasterClient}.
  *
  * When running, this task first requests a block report from the
- * {@link tachyon.worker.block.BlockDataManager}, then sends it to the master. The master may
+ * {@link tachyon.worker.block.BlockWorker}, then sends it to the master. The master may
  * respond to the heartbeat with a command which will be executed. After which, the task will wait
  * for the elapsed time since its last heartbeat has reached the heartbeat interval. Then the cycle
  * will continue.
