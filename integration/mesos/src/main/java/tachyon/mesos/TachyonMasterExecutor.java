@@ -15,6 +15,8 @@
 
 package tachyon.mesos;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.MesosExecutorDriver;
@@ -28,6 +30,7 @@ import tachyon.underfs.UnderFileSystemRegistry;
  * {@link TachyonMasterExecutor} is an implementation of a Mesos executor responsible for
  * starting the Tachyon master.
  */
+@ThreadSafe
 public class TachyonMasterExecutor implements Executor {
   @Override
   public void disconnected(ExecutorDriver driver) {

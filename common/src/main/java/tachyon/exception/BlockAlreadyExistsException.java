@@ -15,9 +15,12 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The exception thrown when a block already exists in Tachyon.
  */
+@ThreadSafe
 public class BlockAlreadyExistsException extends TachyonException {
   private static final long serialVersionUID = -127826899023625880L;
 

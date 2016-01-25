@@ -15,11 +15,14 @@
 
 package tachyon.security.login;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.util.OSUtils;
 
 /**
  * This class provides constants used in JAAS login.
  */
+@ThreadSafe
 public final class TachyonJaasProperties {
   /** Login module according to different OS type */
   public static final String OS_LOGIN_MODULE_NAME;

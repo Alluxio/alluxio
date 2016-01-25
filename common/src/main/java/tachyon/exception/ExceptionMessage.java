@@ -17,6 +17,8 @@ package tachyon.exception;
 
 import java.text.MessageFormat;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 /**
@@ -24,6 +26,7 @@ import com.google.common.base.Preconditions;
  *
  * Note: To minimize merge conflicts, please sort alphabetically in this section.
  */
+@ThreadSafe
 public enum ExceptionMessage {
   // general
   NOT_SUPPORTED("This method is not supported"),

@@ -136,8 +136,8 @@ public class FileSystemIntegrationTest {
       try {
         mTfs.createDirectory(new TachyonURI(uniqPath + k), options);
         Assert.fail("mkdir should throw FileAlreadyExistsException");
-      } catch (FileAlreadyExistsException faee) {
-        Assert.assertEquals(faee.getMessage(),
+      } catch (FileAlreadyExistsException e) {
+        Assert.assertEquals(e.getMessage(),
             ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uniqPath + k));
       }
     }

@@ -256,8 +256,8 @@ public final class InodeTreeTest {
     try {
       createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
       Assert.assertTrue("createPath should throw FileAlreadyExistsException", false);
-    } catch (FileAlreadyExistsException faee) {
-      Assert.assertEquals(faee.getMessage(),
+    } catch (FileAlreadyExistsException e) {
+      Assert.assertEquals(e.getMessage(),
           ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(NESTED_URI));
     }
 

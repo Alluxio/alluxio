@@ -21,14 +21,15 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 /**
  * This class provides read access to a block data file locally stored in managed storage.
- * <p>
- * This class does not provide thread-safety. Corresponding lock must be acquired.
  */
+@NotThreadSafe
 public final class LocalFileBlockReader implements BlockReader {
   private final String mFilePath;
   private final RandomAccessFile mLocalFile;
