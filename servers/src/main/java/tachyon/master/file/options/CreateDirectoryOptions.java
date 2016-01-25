@@ -15,6 +15,8 @@
 
 package tachyon.master.file.options;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 import tachyon.thrift.CreateDirectoryTOptions;
@@ -22,6 +24,7 @@ import tachyon.thrift.CreateDirectoryTOptions;
 /**
  * Method option for creating a directory.
  */
+@NotThreadSafe
 public final class CreateDirectoryOptions {
   /**
    * Builder for {@link CreateDirectoryOptions}.
