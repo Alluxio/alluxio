@@ -21,6 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.collect.Lists;
 
 import tachyon.worker.block.BlockMetadataManagerView;
@@ -34,6 +36,7 @@ import tachyon.worker.block.meta.StorageTierView;
  * Implementation of an evictor which follows the least recently used algorithm. It discards the
  * least recently used item based on its access.
  */
+@NotThreadSafe
 public class LRUEvictor extends EvictorBase {
   private static final int LINKED_HASH_MAP_INIT_CAPACITY = 200;
   private static final float LINKED_HASH_MAP_INIT_LOAD_FACTOR = 0.75f;
