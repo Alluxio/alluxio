@@ -87,9 +87,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     try {
       registerWithMaster();
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    } catch (IOException ioe) {
+    } catch (IOException e) {
       // If failed to register when the thread starts, no retry will happen.
-      throw new RuntimeException("Failed to register with master.", ioe);
+      throw new RuntimeException("Failed to register with master.", e);
     } catch (ConnectionFailedException e) {
       throw new RuntimeException("Failed to register with master.", e);
     }
@@ -109,9 +109,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       mMasterClient.register(WorkerIdRegistry.getWorkerId(),
           storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
-    } catch (IOException ioe) {
-      LOG.error("Failed to register with master.", ioe);
-      throw ioe;
+    } catch (IOException e) {
+      LOG.error("Failed to register with master.", e);
+      throw e;
     } catch (TachyonException e) {
       LOG.error("Failed to register with master.", e);
       throw new IOException(e);
@@ -221,12 +221,12 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       try {
         mBlockWorker.removeBlock(mSessionId, mBlockId);
         LOG.info("Block {} removed at session {}", mBlockId, mSessionId);
-      } catch (IOException ioe) {
-        LOG.warn("Failed master free block cmd for: {} due to concurrent read.", mBlockId);
+      } catch (IOException e) {
+        LOG.warn("Failed master free block cmd for: {} due to concurrent read.", mBlockId, e);
       } catch (InvalidWorkerStateException e) {
-        LOG.warn("Failed master free block cmd for: {} due to block uncommitted.", mBlockId);
+        LOG.warn("Failed master free block cmd for: {} due to block uncommitted.", mBlockId, e);
       } catch (BlockDoesNotExistException e) {
-        LOG.warn("Failed master free block cmd for: {} due to block not found.", mBlockId);
+        LOG.warn("Failed master free block cmd for: {} due to block not found.", mBlockId, e);
       }
     }
   }

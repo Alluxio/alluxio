@@ -85,19 +85,19 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         getServletContext().getRequestDispatcher("/worker/viewFileBlocks.jsp").forward(request,
             response);
         return;
-      } catch (FileDoesNotExistException fdne) {
-        request.setAttribute("fatalError", "Error: Invalid Path " + fdne.getMessage());
+      } catch (FileDoesNotExistException e) {
+        request.setAttribute("fatalError", "Error: Invalid Path " + e.getMessage());
         getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
             response);
         return;
-      } catch (IOException ie) {
+      } catch (IOException e) {
         request.setAttribute("invalidPathError",
-            "Error: File " + filePath + " is not available " + ie.getMessage());
+            "Error: File " + filePath + " is not available " + e.getMessage());
         getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
             response);
         return;
-      } catch (BlockDoesNotExistException bnfe) {
-        request.setAttribute("fatalError", "Error: block not found. " + bnfe.getMessage());
+      } catch (BlockDoesNotExistException e) {
+        request.setAttribute("fatalError", "Error: block not found. " + e.getMessage());
         getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
             response);
         return;
@@ -130,26 +130,26 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         uiFileInfos.add(getUiFileInfo(tFS, fileId));
       }
       request.setAttribute("fileInfos", uiFileInfos);
-    } catch (FileDoesNotExistException fdne) {
-      request.setAttribute("fatalError", "Error: Invalid FileId " + fdne.getMessage());
+    } catch (FileDoesNotExistException e) {
+      request.setAttribute("fatalError", "Error: Invalid FileId " + e.getMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
-    } catch (NumberFormatException nfe) {
+    } catch (NumberFormatException e) {
       request.setAttribute("fatalError",
-          "Error: offset or limit parse error, " + nfe.getLocalizedMessage());
+          "Error: offset or limit parse error, " + e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
-    } catch (IndexOutOfBoundsException iobe) {
+    } catch (IndexOutOfBoundsException e) {
       request.setAttribute("fatalError",
-          "Error: offset or offset + limit is out of bound, " + iobe.getLocalizedMessage());
+          "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
-    } catch (IllegalArgumentException iae) {
-      request.setAttribute("fatalError", iae.getLocalizedMessage());
+    } catch (IllegalArgumentException e) {
+      request.setAttribute("fatalError", e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
-    } catch (BlockDoesNotExistException bnfe) {
-      request.setAttribute("fatalError", bnfe.getLocalizedMessage());
+    } catch (BlockDoesNotExistException e) {
+      request.setAttribute("fatalError", e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
     } catch (TachyonException e) {

@@ -17,11 +17,11 @@ package tachyon.underfs.swift;
 
 import java.io.IOException;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -44,9 +44,9 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
       TachyonURI uri = new TachyonURI(path);
       try {
         return new SwiftUnderFileSystem(uri.getHost(), tachyonConf);
-      } catch (Exception se) {
-        LOG.error("Failed to create SwiftUnderFileSystem.", se);
-        throw Throwables.propagate(se);
+      } catch (Exception e) {
+        LOG.error("Failed to create SwiftUnderFileSystem.", e);
+        throw Throwables.propagate(e);
       }
     }
 
