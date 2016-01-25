@@ -17,6 +17,8 @@ package tachyon.client.keyvalue.hadoop;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
@@ -45,6 +47,7 @@ import tachyon.exception.TachyonException;
  * TODO(cc): Consider key distributions in each Reducer.
  */
 @PublicApi
+@ThreadSafe
 public class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, BytesWritable> {
   @Override
   public RecordWriter<BytesWritable, BytesWritable> getRecordWriter(FileSystem ignored,
