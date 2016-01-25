@@ -81,7 +81,6 @@ import tachyon.master.file.options.SetAclOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
-import tachyon.master.permission.FileSystemPermissionChecker;
 import tachyon.proto.journal.File.AddMountPointEntry;
 import tachyon.proto.journal.File.AsyncPersistRequestEntry;
 import tachyon.proto.journal.File.CompleteFileEntry;
@@ -2009,7 +2008,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   private void setOwner(TachyonURI path, SetAclOptions options)
       throws AccessControlException, InvalidPathException {
-    FileSystemPermissionChecker.checkSuperuser(getClientUser(), getGroups(getClientUser()));
+    PermissionChecker.checkSuperuser(getClientUser(), getGroups(getClientUser()));
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       Inode targetInode = mInodeTree.getInodeByPath(path);
@@ -2137,7 +2136,7 @@ public final class FileSystemMaster extends MasterBase {
     List<String> groups = getGroups(user);
 
     // checks the owner
-    FileSystemPermissionChecker.checkOwner(user, groups, path, fileInfos);
+    PermissionChecker.checkOwner(user, groups, path, fileInfos);
   }
 
   /**
@@ -2179,12 +2178,12 @@ public final class FileSystemMaster extends MasterBase {
           // Handle a special case where the path is a level under root "/" and checking write
           // permission on it. We simply assume user has write permission on the root "/",
           // with a limitation that the user must be the owner of the path.
-          FileSystemPermissionChecker.checkOwner(user, groups, path, fileInfos);
+          PermissionChecker.checkOwner(user, groups, path, fileInfos);
         } else {
-          FileSystemPermissionChecker.checkParentPermission(user, groups, action, path, fileInfos);
+          PermissionChecker.checkParentPermission(user, groups, action, path, fileInfos);
         }
       } else {
-        FileSystemPermissionChecker.checkPermission(user, groups, action, path, fileInfos);
+        PermissionChecker.checkPermission(user, groups, action, path, fileInfos);
       }
     } catch (InvalidPathException e) {
       LOG.warn("Invalid Path {} for checking permission: " + e.getMessage(), path);

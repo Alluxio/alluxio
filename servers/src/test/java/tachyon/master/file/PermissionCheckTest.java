@@ -50,10 +50,10 @@ import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
 
 /**
- * Unit test for {@link FileSystemMaster} when permission check is enabled by
- * configure tachyon.security.authorization.permission.enabled=true.
+ * Unit test for {@link FileSystemMaster} when permission check is enabled by configure
+ * tachyon.security.authorization.permission.enabled=true.
  */
-public class FileSystemMasterPermissionCheckTest {
+public class PermissionCheckTest {
   private static final String TEST_SUPER_GROUP = "test-supergroup";
 
   /**
