@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link WebUtils}.
  */
-public class UtilsTest {
+public class WebUtilsTest {
 
   /**
    * Tests the {@link WebUtils#convertMsToClockTime(long)} method.
@@ -53,7 +53,8 @@ public class UtilsTest {
   }
 
   /**
-   * Tests the {@link WebUtils#convertMsToClockTime(long)} method with one minute and thirty seconds.
+   * Tests the {@link WebUtils#convertMsToClockTime(long)} method with one minute and thirty 
+   * seconds.
    */
   @Test
   public void convertToClockTimeWithOneMinute30Seconds() {
@@ -94,8 +95,8 @@ public class UtilsTest {
   }
 
   /**
-   * Tests the {@link WebUtils#convertMsToClockTime(long)} method with one day, four hours, ten minutes
-   * and forty-five seconds.
+   * Tests the {@link WebUtils#convertMsToClockTime(long)} method with one day, four hours,
+   * ten minutes and forty-five seconds.
    */
   @Test
   public void convertToClockTimeWithOneDay4Hours10Minutes45Seconds() {
@@ -107,8 +108,8 @@ public class UtilsTest {
   }
 
   /**
-   * Tests the {@link WebUtils#convertMsToClockTime(long)} method with one day, four hours, ten minutes
-   * and forty-five seconds with a stopwatch.
+   * Tests the {@link WebUtils#convertMsToClockTime(long)} method with one day, four hours,
+   * ten minutes and forty-five seconds with a stopwatch.
    */
   @Test
   public void convertToClockTimeWithOneDay4Hours10Minutes45SecondsWithStopwatch() {
