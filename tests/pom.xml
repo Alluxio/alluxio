@@ -8,7 +8,7 @@
   <artifactId>tachyon-tests</artifactId>
   <packaging>jar</packaging>
   <name>Tachyon Integration Tests</name>
-  <description>Integration tests on different Tachyon modules</description>
+  <description>Integration tests for Tachyon</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -248,7 +248,7 @@
                 <!-- Change this endpoint for your oss service address for this test -->
                 <fs.oss.endpoint>http://oss-cn-hangzhou.aliyuncs.com</fs.oss.endpoint>
                 <!-- Change "your-bucket" to your oss bucket for this test -->
-                <ossBucket>oss://your-bucket/tachyon-integration-test/</ossBucket>
+                <ossBucket>oss://your-bucket/tachyon-test/</ossBucket>
               </systemPropertyVariables>
             </configuration>
           </plugin>
