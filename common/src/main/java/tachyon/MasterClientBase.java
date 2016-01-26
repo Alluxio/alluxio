@@ -18,6 +18,8 @@ package tachyon;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,7 @@ import tachyon.util.network.NetworkAddressUtils;
 /**
  * The base class for master clients.
  */
+@ThreadSafe
 public abstract class MasterClientBase extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

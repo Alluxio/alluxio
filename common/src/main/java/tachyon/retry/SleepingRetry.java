@@ -17,11 +17,14 @@ package tachyon.retry;
 
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 /**
  * A retry policy that uses thread sleeping for the delay.
  */
+@NotThreadSafe
 public abstract class SleepingRetry implements RetryPolicy {
   private final int mMaxRetries;
   private int mCount = 0;

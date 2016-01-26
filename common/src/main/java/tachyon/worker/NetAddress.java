@@ -15,6 +15,8 @@
 
 package tachyon.worker;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Objects;
 
 import tachyon.annotation.PublicApi;
@@ -24,6 +26,7 @@ import tachyon.thrift.WorkerNetAddress;
  * The network address of a worker.
  */
 @PublicApi
+@ThreadSafe
 public final class NetAddress {
   private final String mHost;
   private final int mRpcPort;

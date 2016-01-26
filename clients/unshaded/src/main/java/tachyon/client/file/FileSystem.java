@@ -33,6 +33,7 @@ import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenFileOptions;
 import tachyon.client.file.options.RenameOptions;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.client.file.options.UnmountOptions;
 import tachyon.client.lineage.LineageFileSystem;
@@ -50,6 +51,10 @@ import tachyon.exception.TachyonException;
  */
 @PublicApi
 public interface FileSystem {
+
+  /**
+   * Factory for {@link FileSystem}.
+   */
   class Factory {
     public static FileSystem get() {
       if (ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED)) {
@@ -191,6 +196,7 @@ public interface FileSystem {
    * @return the {@link URIStatus} of the file
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the path does not exist
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   URIStatus getStatus(TachyonURI path)
       throws FileDoesNotExistException, IOException, TachyonException;
@@ -203,6 +209,7 @@ public interface FileSystem {
    * @return the {@link URIStatus} of the file
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the path does not exist
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   URIStatus getStatus(TachyonURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException, TachyonException;
@@ -336,6 +343,17 @@ public interface FileSystem {
    */
   void rename(TachyonURI src, TachyonURI dst, RenameOptions options)
       throws FileDoesNotExistException, IOException, TachyonException;
+
+  /**
+   * Sets the acl of a file or directory.
+   *
+   * @param path to be set acl on
+   * @param options the acl option to be set
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException an I/O error occurs
+   */
+  public void setAcl(TachyonURI path, SetAclOptions options) throws TachyonException,
+      IOException;
 
   /**
    * Convenience method for {@link #setAttribute(TachyonURI, SetAttributeOptions)} with default

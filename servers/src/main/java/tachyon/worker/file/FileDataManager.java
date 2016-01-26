@@ -44,7 +44,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.io.BlockReader;
 
 /**
@@ -54,8 +54,8 @@ public final class FileDataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final UnderFileSystem mUfs;
-  /** Block data manager for access block info */
-  private final BlockDataManager mBlockDataManager;
+  /** Block worker handler for access block info */
+  private final BlockWorker mBlockWorker;
 
   // the file being persisted
   private final Set<Long> mPersistingInProgressFiles;
@@ -67,10 +67,10 @@ public final class FileDataManager {
   /**
    * Creates a new instance of {@link FileDataManager}.
    *
-   * @param blockDataManager a block data manager handle
+   * @param blockWorker the block worker handle
    */
-  public FileDataManager(BlockDataManager blockDataManager) {
-    mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
+  public FileDataManager(BlockWorker blockWorker) {
+    mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mPersistingInProgressFiles = Sets.newHashSet();
     mPersistedFiles = Sets.newHashSet();
     mTachyonConf = WorkerContext.getConf();
@@ -146,7 +146,7 @@ public final class FileDataManager {
    */
   private synchronized boolean fileExistsInUfs(long fileId) throws IOException {
     String ufsRoot = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
-    FileInfo fileInfo = mBlockDataManager.getFileInfo(fileId);
+    FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
 
     return mUfs.exists(dstPath);
@@ -173,7 +173,7 @@ public final class FileDataManager {
     try {
       // lock all the blocks to prevent any eviction
       for (long blockId : blockIds) {
-        long lockId = mBlockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
+        long lockId = mBlockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
         blockIdToLockId.put(blockId, lockId);
       }
 
@@ -182,7 +182,7 @@ public final class FileDataManager {
 
         // obtain block reader
         BlockReader reader =
-            mBlockDataManager.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
+            mBlockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
 
         // write content out
         ReadableByteChannel inputChannel = reader.getChannel();
@@ -197,9 +197,9 @@ public final class FileDataManager {
       // make sure all the locks are released
       for (long lockId : blockIdToLockId.values()) {
         try {
-          mBlockDataManager.unlockBlock(lockId);
-        } catch (BlockDoesNotExistException bdnee) {
-          errors.add(bdnee);
+          mBlockWorker.unlockBlock(lockId);
+        } catch (BlockDoesNotExistException e) {
+          errors.add(e);
         }
       }
 
@@ -232,7 +232,7 @@ public final class FileDataManager {
    */
   private String prepareUfsFilePath(long fileId) throws IOException {
     String ufsRoot = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
-    FileInfo fileInfo = mBlockDataManager.getFileInfo(fileId);
+    FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     TachyonURI uri = new TachyonURI(fileInfo.getPath());
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     LOG.info("persist file {} at {}", fileId, dstPath);

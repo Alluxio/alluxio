@@ -15,17 +15,22 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Precondition messages used across Tachyon.
  *
  * Note: To minimize merge conflicts, please sort alphabetically in this section.
  */
+@ThreadSafe
 public final class PreconditionMessage {
 
   public static final String CANNOT_READ_FOLDER = "Cannot read from a folder";
   public static final String CLIENT_CONTEXT_NOT_INITIALIZED = "Client Context not initialized";
   public static final String COMMAND_LINE_LINEAGE_ONLY =
       "Only command line jobs are supported by createLineage";
+  public static final String EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK =
+      "The passed-in file info list can not be empty when checking permission";
   public static final String ERR_BLOCK_INDEX = "Current block index exceeds max index";
   public static final String ERR_BLOCK_REMAINING =
       "The current block still has space left, no need to get new block";
@@ -44,6 +49,8 @@ public final class PreconditionMessage {
       "The location policy is not specified";
   public static final String INODE_TREE_UNINITIALIZED_IS_ROOT_ID =
       "Cannot call isRootId() before initializeRoot()";
+  public static final String INVALID_SET_ACL_OPTIONS =
+      "Invalid set acl options: %s, %s, %s";
   public static final String LINEAGE_DOES_NOT_EXIST = "Lineage id %s does not exist";
   public static final String LINEAGE_NO_OUTPUT_FILE =
       "The output file %s is not associated with any lineage";

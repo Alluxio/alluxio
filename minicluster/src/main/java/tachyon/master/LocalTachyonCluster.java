@@ -45,6 +45,11 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   private LocalTachyonMaster mMaster;
   private TachyonConf mClientConf;
 
+  /**
+   * @param workerCapacityBytes the capacity of the worker in bytes
+   * @param quotaUnitBytes the quota unit in bytes
+   * @param userBlockSize the block size for a user
+   */
   public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
     super(workerCapacityBytes, userBlockSize);
     mQuotaUnitBytes = quotaUnitBytes;
@@ -60,30 +65,51 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     return mMaster;
   }
 
+  /**
+   * @return the hostname of the master
+   */
   public String getMasterHostname() {
     return mHostname;
   }
 
+  /**
+   * @return the URI of the master
+   */
   public String getMasterUri() {
     return mMaster.getUri();
   }
 
+  /**
+   * @return the port of the master
+   */
   public int getMasterPort() {
     return mMaster.getRPCLocalPort();
   }
 
+  /**
+   * @return the home path to Tachyon
+   */
   public String getTachyonHome() {
     return mTachyonHome;
   }
 
+  /**
+   * @return the worker
+   */
   public TachyonWorker getWorker() {
     return mWorker;
   }
 
+  /**
+   * @return the configuration for Tachyon
+   */
   public TachyonConf getWorkerTachyonConf() {
     return mWorkerConf;
   }
 
+  /**
+   * @return the address of the worker
+   */
   public NetAddress getWorkerAddress() {
     return mWorker.getNetAddress();
   }

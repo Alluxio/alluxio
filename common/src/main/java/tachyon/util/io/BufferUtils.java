@@ -24,6 +24,8 @@ import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +36,8 @@ import tachyon.Constants;
 /**
  * Utilities related to buffers, not only {@link ByteBuffer}.
  */
+@NotThreadSafe
+// TODO(jsimsa): Make this class thread-safe.
 public final class BufferUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static Method sCleanerCleanMethod;

@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -43,6 +45,7 @@ import com.google.common.collect.Lists;
 /**
  * Utility methods for working with Yarn.
  */
+@ThreadSafe
 public final class YarnUtils {
   public static final String TACHYON_SETUP_SCRIPT = "tachyon-yarn-setup.sh";
 
@@ -80,6 +83,7 @@ public final class YarnUtils {
    * @param yarnConf YARN configuration
    * @param resourcePath known path of resource file on HDFS
    * @throws IOException if the file can not be found on HDFS
+   * @return the created local resource
    */
   public static LocalResource createLocalResourceOfFile(YarnConfiguration yarnConf,
       String resourcePath) throws IOException {
@@ -110,11 +114,20 @@ public final class YarnUtils {
       mName = name;
     }
 
+    /**
+     * @return the name of the container type
+     */
     public String getName() {
       return mName;
     }
   }
 
+  /**
+   * Convenience method for calling {@link #buildCommand(YarnContainerType, Map)} with no arguments.
+   *
+   * @param containerType the type of container to build the command for
+   * @return the built command string
+   */
   public static String buildCommand(YarnContainerType containerType) {
     return buildCommand(containerType, new HashMap<String, String>());
   }

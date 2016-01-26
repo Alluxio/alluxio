@@ -6,30 +6,26 @@
  */
 package tachyon.thrift;
 
-import org.apache.thrift.scheme.IScheme;
-import org.apache.thrift.scheme.SchemeFactory;
-import org.apache.thrift.scheme.StandardScheme;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import org.apache.thrift.scheme.TupleScheme;
-import org.apache.thrift.protocol.TTupleProtocol;
-import org.apache.thrift.protocol.TProtocolException;
+import javax.annotation.Generated;
+
 import org.apache.thrift.EncodingUtils;
 import org.apache.thrift.TException;
 import org.apache.thrift.async.AsyncMethodCallback;
-import org.apache.thrift.server.AbstractNonblockingServer.*;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.EnumMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.EnumSet;
-import java.util.Collections;
-import java.util.BitSet;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import javax.annotation.Generated;
+import org.apache.thrift.protocol.TTupleProtocol;
+import org.apache.thrift.scheme.IScheme;
+import org.apache.thrift.scheme.SchemeFactory;
+import org.apache.thrift.scheme.StandardScheme;
+import org.apache.thrift.scheme.TupleScheme;
+import org.apache.thrift.server.AbstractNonblockingServer.AsyncFrameBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,14 +37,14 @@ public class BlockWorkerClientService {
 
     /**
      * Accesses a block given the block id.
-     * 
+     *
      * @param blockId the id of the block being accessed
      */
     public void accessBlock(long blockId) throws org.apache.thrift.TException;
 
     /**
      * Asynchronously checkpoints a file: returns whether the checkpoint operation succeeded.
-     * 
+     *
      * @param fileId the id of the file being accessed
      */
     public boolean asyncCheckpoint(long fileId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
@@ -57,9 +53,9 @@ public class BlockWorkerClientService {
      * Used to cache a block into Tachyon space, worker will move the temporary block file from session
      * folder to data folder, and update the space usage information related. then update the block
      * information to master.
-     * 
+     *
      * @param sessionId the id of the current session
-     * 
+     *
      * @param blockId the id of the block being accessed
      */
     public void cacheBlock(long sessionId, long blockId) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
@@ -67,9 +63,9 @@ public class BlockWorkerClientService {
     /**
      * Used to cancel a block which is being written. worker will delete the temporary block file and
      * the location and space information related, then reclaim space allocated to the block.
-     * 
+     *
      * @param sessionId the id of the current session
-     * 
+     *
      * @param blockId the id of the block being accessed
      */
     public void cancelBlock(long sessionId, long blockId) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
@@ -78,9 +74,9 @@ public class BlockWorkerClientService {
      * Locks the file in Tachyon's space while the session is reading it. If lock succeeds, the path of
      * the block's file along with the internal lock id of locked block will be returned. If the block's file
      * is not found, FileDoesNotExistException will be thrown.
-     * 
+     *
      * @param blockId the id of the block being accessed
-     * 
+     *
      * @param sessionId the id of the current session
      */
     public LockBlockResult lockBlock(long blockId, long sessionId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
@@ -89,7 +85,7 @@ public class BlockWorkerClientService {
      * Used to promote block on under storage layer to top storage layer when there are more than one
      * storage layers in Tachyon's space. return true if the block is successfully promoted, false
      * otherwise.
-     * 
+     *
      * @param blockId the id of the block being accessed
      */
     public boolean promoteBlock(long blockId) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
@@ -100,11 +96,11 @@ public class BlockWorkerClientService {
      * temporary file path of the block file will be returned. if there is no enough space on Tachyon
      * storage OutOfSpaceException will be thrown, if the file is already being written by the session,
      * FileAlreadyExistsException will be thrown.
-     * 
+     *
      * @param sessionId the id of the current session
-     * 
+     *
      * @param blockId the id of the block being accessed
-     * 
+     *
      * @param initialBytes initial number of bytes requested
      */
     public String requestBlockLocation(long sessionId, long blockId, long initialBytes) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
@@ -113,11 +109,11 @@ public class BlockWorkerClientService {
      * Used to request space for some block file. return true if the worker successfully allocates
      * space for the block on block’s location, false if there is no enough space, if there is no
      * information of the block on worker, FileDoesNotExistException will be thrown.
-     * 
+     *
      * @param sessionId the id of the current session
-     * 
+     *
      * @param blockId the id of the block being accessed
-     * 
+     *
      * @param requestBytes the number of bytes requested
      */
     public boolean requestSpace(long sessionId, long blockId, long requestBytes) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
@@ -125,9 +121,9 @@ public class BlockWorkerClientService {
     /**
      * Local session send heartbeat to local worker to keep its temporary folder. It also sends client
      * metrics to the worker.
-     * 
+     *
      * @param sessionId the id of the current session
-     * 
+     *
      * @param metrics the client metrics
      */
     public void sessionHeartbeat(long sessionId, List<Long> metrics) throws org.apache.thrift.TException;
@@ -136,9 +132,9 @@ public class BlockWorkerClientService {
      * Used to unlock a block after the block is accessed, if the block is to be removed, delete the
      * block file. return true if successfully unlock the block, return false if the block is not
      * found or failed to delete the block.
-     * 
+     *
      * @param blockId the id of the block being accessed
-     * 
+     *
      * @param sessionId the id of the current session
      */
     public boolean unlockBlock(long blockId, long sessionId) throws org.apache.thrift.TException;
@@ -904,8 +900,8 @@ public class BlockWorkerClientService {
           iface.cacheBlock(args.sessionId, args.blockId);
         } catch (tachyon.thrift.TachyonTException e) {
           result.e = e;
-        } catch (tachyon.thrift.ThriftIOException ioe) {
-          result.ioe = ioe;
+        } catch (tachyon.thrift.ThriftIOException e) {
+          result.ioe = e;
         }
         return result;
       }
@@ -930,8 +926,8 @@ public class BlockWorkerClientService {
           iface.cancelBlock(args.sessionId, args.blockId);
         } catch (tachyon.thrift.TachyonTException e) {
           result.e = e;
-        } catch (tachyon.thrift.ThriftIOException ioe) {
-          result.ioe = ioe;
+        } catch (tachyon.thrift.ThriftIOException e) {
+          result.ioe = e;
         }
         return result;
       }
@@ -1117,7 +1113,7 @@ public class BlockWorkerClientService {
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
+        return new AsyncMethodCallback<Void>() {
           public void onComplete(Void o) {
             accessBlock_result result = new accessBlock_result();
             try {
@@ -1167,7 +1163,7 @@ public class BlockWorkerClientService {
 
       public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Boolean>() { 
+        return new AsyncMethodCallback<Boolean>() {
           public void onComplete(Boolean o) {
             asyncCheckpoint_result result = new asyncCheckpoint_result();
             result.success = o;
@@ -1189,7 +1185,7 @@ public class BlockWorkerClientService {
                         result.setEIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1225,7 +1221,7 @@ public class BlockWorkerClientService {
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
+        return new AsyncMethodCallback<Void>() {
           public void onComplete(Void o) {
             cacheBlock_result result = new cacheBlock_result();
             try {
@@ -1250,7 +1246,7 @@ public class BlockWorkerClientService {
                         result.setIoeIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1286,7 +1282,7 @@ public class BlockWorkerClientService {
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
+        return new AsyncMethodCallback<Void>() {
           public void onComplete(Void o) {
             cancelBlock_result result = new cancelBlock_result();
             try {
@@ -1311,7 +1307,7 @@ public class BlockWorkerClientService {
                         result.setIoeIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1347,7 +1343,7 @@ public class BlockWorkerClientService {
 
       public AsyncMethodCallback<LockBlockResult> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<LockBlockResult>() { 
+        return new AsyncMethodCallback<LockBlockResult>() {
           public void onComplete(LockBlockResult o) {
             lockBlock_result result = new lockBlock_result();
             result.success = o;
@@ -1368,7 +1364,7 @@ public class BlockWorkerClientService {
                         result.setEIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1404,7 +1400,7 @@ public class BlockWorkerClientService {
 
       public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Boolean>() { 
+        return new AsyncMethodCallback<Boolean>() {
           public void onComplete(Boolean o) {
             promoteBlock_result result = new promoteBlock_result();
             result.success = o;
@@ -1431,7 +1427,7 @@ public class BlockWorkerClientService {
                         result.setIoeIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1467,7 +1463,7 @@ public class BlockWorkerClientService {
 
       public AsyncMethodCallback<String> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<String>() { 
+        return new AsyncMethodCallback<String>() {
           public void onComplete(String o) {
             requestBlockLocation_result result = new requestBlockLocation_result();
             result.success = o;
@@ -1493,7 +1489,7 @@ public class BlockWorkerClientService {
                         result.setIoeIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1529,7 +1525,7 @@ public class BlockWorkerClientService {
 
       public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Boolean>() { 
+        return new AsyncMethodCallback<Boolean>() {
           public void onComplete(Boolean o) {
             requestSpace_result result = new requestSpace_result();
             result.success = o;
@@ -1551,7 +1547,7 @@ public class BlockWorkerClientService {
                         result.setEIsSet(true);
                         msg = result;
             }
-             else 
+             else
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1587,7 +1583,7 @@ public class BlockWorkerClientService {
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
+        return new AsyncMethodCallback<Void>() {
           public void onComplete(Void o) {
             sessionHeartbeat_result result = new sessionHeartbeat_result();
             try {
@@ -1637,7 +1633,7 @@ public class BlockWorkerClientService {
 
       public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Boolean>() { 
+        return new AsyncMethodCallback<Boolean>() {
           public void onComplete(Boolean o) {
             unlockBlock_result result = new unlockBlock_result();
             result.success = o;
@@ -1760,7 +1756,7 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(accessBlock_args.class, metaDataMap);
@@ -1978,7 +1974,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -1986,7 +1982,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.blockId = iprot.readI64();
                 struct.setBlockIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -2250,7 +2246,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -2376,7 +2372,7 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(asyncCheckpoint_args.class, metaDataMap);
@@ -2594,7 +2590,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -2602,7 +2598,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.fileId = iprot.readI64();
                 struct.setFileIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -2746,9 +2742,9 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(asyncCheckpoint_result.class, metaDataMap);
@@ -3035,7 +3031,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -3043,7 +3039,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
                 struct.success = iprot.readBool();
                 struct.setSuccessIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -3052,7 +3048,7 @@ public class BlockWorkerClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -3221,9 +3217,9 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cacheBlock_args.class, metaDataMap);
@@ -3517,7 +3513,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -3525,7 +3521,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.sessionId = iprot.readI64();
                 struct.setSessionIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -3533,7 +3529,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.blockId = iprot.readI64();
                 struct.setBlockIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -3688,9 +3684,9 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cacheBlock_result.class, metaDataMap);
@@ -3979,7 +3975,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -3988,7 +3984,7 @@ public class BlockWorkerClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -3997,7 +3993,7 @@ public class BlockWorkerClientService {
                 struct.ioe = new tachyon.thrift.ThriftIOException();
                 struct.ioe.read(iprot);
                 struct.setIoeIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -4167,9 +4163,9 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cancelBlock_args.class, metaDataMap);
@@ -4463,7 +4459,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -4471,7 +4467,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.sessionId = iprot.readI64();
                 struct.setSessionIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -4479,7 +4475,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.blockId = iprot.readI64();
                 struct.setBlockIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -4634,9 +4630,9 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cancelBlock_result.class, metaDataMap);
@@ -4925,7 +4921,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -4934,7 +4930,7 @@ public class BlockWorkerClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -4943,7 +4939,7 @@ public class BlockWorkerClientService {
                 struct.ioe = new tachyon.thrift.ThriftIOException();
                 struct.ioe.read(iprot);
                 struct.setIoeIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -5113,9 +5109,9 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(lockBlock_args.class, metaDataMap);
@@ -5409,7 +5405,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -5417,7 +5413,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.blockId = iprot.readI64();
                 struct.setBlockIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -5425,7 +5421,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.sessionId = iprot.readI64();
                 struct.setSessionIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -5580,9 +5576,9 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, LockBlockResult.class)));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(lockBlock_result.class, metaDataMap);
@@ -5874,7 +5870,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -5883,7 +5879,7 @@ public class BlockWorkerClientService {
                 struct.success = new LockBlockResult();
                 struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -5892,7 +5888,7 @@ public class BlockWorkerClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -6053,7 +6049,7 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(promoteBlock_args.class, metaDataMap);
@@ -6271,7 +6267,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -6279,7 +6275,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.blockId = iprot.readI64();
                 struct.setBlockIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -6428,11 +6424,11 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(promoteBlock_result.class, metaDataMap);
@@ -6794,7 +6790,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -6802,7 +6798,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
                 struct.success = iprot.readBool();
                 struct.setSuccessIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -6811,7 +6807,7 @@ public class BlockWorkerClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -6820,7 +6816,7 @@ public class BlockWorkerClientService {
                 struct.ioe = new tachyon.thrift.ThriftIOException();
                 struct.ioe.read(iprot);
                 struct.setIoeIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -7014,11 +7010,11 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.INITIAL_BYTES, new org.apache.thrift.meta_data.FieldMetaData("initialBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.INITIAL_BYTES, new org.apache.thrift.meta_data.FieldMetaData("initialBytes", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestBlockLocation_args.class, metaDataMap);
@@ -7388,7 +7384,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -7396,7 +7392,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.sessionId = iprot.readI64();
                 struct.setSessionIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -7404,7 +7400,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.blockId = iprot.readI64();
                 struct.setBlockIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -7412,7 +7408,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.initialBytes = iprot.readI64();
                 struct.setInitialBytesIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -7585,11 +7581,11 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestBlockLocation_result.class, metaDataMap);
@@ -7953,7 +7949,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -7961,7 +7957,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.success = iprot.readString();
                 struct.setSuccessIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -7970,7 +7966,7 @@ public class BlockWorkerClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -7979,7 +7975,7 @@ public class BlockWorkerClientService {
                 struct.ioe = new tachyon.thrift.ThriftIOException();
                 struct.ioe.read(iprot);
                 struct.setIoeIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -8173,11 +8169,11 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.REQUEST_BYTES, new org.apache.thrift.meta_data.FieldMetaData("requestBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.REQUEST_BYTES, new org.apache.thrift.meta_data.FieldMetaData("requestBytes", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestSpace_args.class, metaDataMap);
@@ -8547,7 +8543,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -8555,7 +8551,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.sessionId = iprot.readI64();
                 struct.setSessionIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -8563,7 +8559,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.blockId = iprot.readI64();
                 struct.setBlockIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -8571,7 +8567,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.requestBytes = iprot.readI64();
                 struct.setRequestBytesIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -8741,9 +8737,9 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestSpace_result.class, metaDataMap);
@@ -9030,7 +9026,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -9038,7 +9034,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
                 struct.success = iprot.readBool();
                 struct.setSuccessIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -9047,7 +9043,7 @@ public class BlockWorkerClientService {
                 struct.e = new tachyon.thrift.TachyonTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -9215,10 +9211,10 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.METRICS, new org.apache.thrift.meta_data.FieldMetaData("metrics", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+      tmpMap.put(_Fields.METRICS, new org.apache.thrift.meta_data.FieldMetaData("metrics", org.apache.thrift.TFieldRequirementType.DEFAULT,
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST,
               new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sessionHeartbeat_args.class, metaDataMap);
@@ -9533,7 +9529,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -9541,7 +9537,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.sessionId = iprot.readI64();
                 struct.setSessionIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -9559,7 +9555,7 @@ public class BlockWorkerClientService {
                   iprot.readListEnd();
                 }
                 struct.setMetricsIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -9860,7 +9856,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -9995,9 +9991,9 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(unlockBlock_args.class, metaDataMap);
@@ -10291,7 +10287,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -10299,7 +10295,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.blockId = iprot.readI64();
                 struct.setBlockIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -10307,7 +10303,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.sessionId = iprot.readI64();
                 struct.setSessionIdIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
@@ -10459,7 +10455,7 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(unlockBlock_result.class, metaDataMap);
@@ -10671,7 +10667,7 @@ public class BlockWorkerClientService {
         while (true)
         {
           schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
             break;
           }
           switch (schemeField.id) {
@@ -10679,7 +10675,7 @@ public class BlockWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
                 struct.success = iprot.readBool();
                 struct.setSuccessIsSet(true);
-              } else { 
+              } else {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;

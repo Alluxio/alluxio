@@ -18,6 +18,8 @@ package tachyon.client.file;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +54,7 @@ import tachyon.worker.NetAddress;
  * in the local machine, remote machines, or the under storage system.
  */
 @PublicApi
+@NotThreadSafe
 public class FileInStream extends InputStream implements BoundedStream, Seekable {
   /** Logger for this class */
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -128,8 +131,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (mShouldCacheCurrentBlock) {
       try {
         mCurrentCacheStream.write(data);
-      } catch (IOException ioe) {
-        LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), ioe);
+      } catch (IOException e) {
+        LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
         mShouldCacheCurrentBlock = false;
       }
     }
@@ -164,8 +167,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       if (bytesRead > 0 && mShouldCacheCurrentBlock) {
         try {
           mCurrentCacheStream.write(b, currentOffset, bytesRead);
-        } catch (IOException ioe) {
-          LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), ioe);
+        } catch (IOException e) {
+          LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
           mShouldCacheCurrentBlock = false;
         }
       }
@@ -239,8 +242,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
               mContext.getTachyonBlockStore().getWorkerInfoList(), blockSize);
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, blockSize, address);
-        } catch (IOException ioe) {
-          LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, ioe);
+        } catch (IOException e) {
+          LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e);
           mShouldCacheCurrentBlock = false;
         } catch (TachyonException e) {
           LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e);
@@ -312,8 +315,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
               mContext.getTachyonBlockStore().getWorkerInfoList(), blockSize);
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, blockSize, address);
-        } catch (IOException ioe) {
-          LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), ioe);
+        } catch (IOException e) {
+          LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
           mShouldCacheCurrentBlock = false;
         } catch (TachyonException e) {
           LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e);
@@ -341,21 +344,21 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       if (mTachyonStorageType.isPromote()) {
         try {
           mContext.getTachyonBlockStore().promote(blockId);
-        } catch (IOException ioe) {
+        } catch (IOException e) {
           // Failed to promote
-          LOG.warn("Promotion of block with ID {} failed.", blockId);
+          LOG.warn("Promotion of block with ID {} failed.", blockId, e);
         }
       }
       mCurrentBlockInStream = mContext.getTachyonBlockStore().getInStream(blockId);
       mShouldCacheCurrentBlock =
           !(mCurrentBlockInStream instanceof LocalBlockInStream) && mTachyonStorageType.isStore();
-    } catch (IOException ioe) {
+    } catch (IOException e) {
       LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}",
-          blockId, ioe);
-      if (!mFileInfo.isPersisted()) {
+          blockId, e);
+      if (!mFileInfo.isPersisted) {
         LOG.error("Could not obtain data for block with ID {} from Tachyon."
             + " The block will not be persisted in the under file storage.", blockId);
-        throw ioe;
+        throw e;
       }
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
       mCurrentBlockInStream =

@@ -40,7 +40,7 @@ import tachyon.thrift.KeyValueWorkerClientService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 import tachyon.util.io.BufferUtils;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.io.BlockReader;
 
 /**
@@ -51,11 +51,14 @@ import tachyon.worker.block.io.BlockReader;
 public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Block data manager for access block info */
-  private final BlockDataManager mBlockDataManager;
+  /** BlockWorker handler for access block info */
+  private final BlockWorker mBlockWorker;
 
-  public KeyValueWorkerClientServiceHandler(BlockDataManager blockDataManager) {
-    mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
+  /**
+   * @param blockWorker the {@link BlockWorker}
+   */
+  public KeyValueWorkerClientServiceHandler(BlockWorker blockWorker) {
+    mBlockWorker = Preconditions.checkNotNull(blockWorker);
   }
 
   @Override
@@ -69,6 +72,8 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
    * @param blockId block Id
    * @param key key to fetch
    * @return value or null if not found
+   * @throws TachyonTException if an exception in Tachyon occurs
+   * @throws ThriftIOException if a non-Tachyon related exception occurs
    */
   @Override
   public ByteBuffer get(long blockId, ByteBuffer key) throws TachyonTException, ThriftIOException {
@@ -103,21 +108,21 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   private ByteBuffer getInternal(long blockId, ByteBuffer keyBuffer)
       throws BlockDoesNotExistException, IOException {
     final long sessionId = Sessions.KEYVALUE_SESSION_ID;
-    final long lockId = mBlockDataManager.lockBlock(sessionId, blockId);
+    final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
     try {
       return getReader(sessionId, lockId, blockId).get(keyBuffer);
     } catch (InvalidWorkerStateException e) {
       // We shall never reach here
       LOG.error("Reaching invalid state to get a key", e);
     } finally {
-      mBlockDataManager.unlockBlock(lockId);
+      mBlockWorker.unlockBlock(lockId);
     }
     return null;
   }
 
   private ByteBufferKeyValuePartitionReader getReader(long sessionId, long lockId, long blockId)
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
-    BlockReader blockReader = mBlockDataManager.readBlockRemote(sessionId, blockId, lockId);
+    BlockReader blockReader = mBlockWorker.readBlockRemote(sessionId, blockId, lockId);
     ByteBuffer fileBuffer = blockReader.read(0, blockReader.getLength());
     ByteBufferKeyValuePartitionReader reader = new ByteBufferKeyValuePartitionReader(fileBuffer);
     // TODO(binfan): clean fileBuffer which is a direct byte buffer
@@ -129,7 +134,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
       throws TachyonTException, ThriftIOException {
     try {
       final long sessionId = Sessions.KEYVALUE_SESSION_ID;
-      final long lockId = mBlockDataManager.lockBlock(sessionId, blockId);
+      final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
       try {
         ByteBufferKeyValuePartitionReader reader = getReader(sessionId, lockId, blockId);
         Index index = reader.getIndex();
@@ -149,7 +154,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
         // We shall never reach here
         LOG.error("Reaching invalid state to get all keys", e);
       } finally {
-        mBlockDataManager.unlockBlock(lockId);
+        mBlockWorker.unlockBlock(lockId);
       }
       return Collections.emptyList();
     } catch (TachyonException e) {
@@ -164,14 +169,14 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   public int getSize(long blockId) throws TachyonTException, ThriftIOException {
     try {
       final long sessionId = Sessions.KEYVALUE_SESSION_ID;
-      final long lockId = mBlockDataManager.lockBlock(sessionId, blockId);
+      final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
       try {
         return getReader(sessionId, lockId, blockId).size();
       } catch (InvalidWorkerStateException e) {
         // We shall never reach here
         LOG.error("Reaching invalid state to get size", e);
       } finally {
-        mBlockDataManager.unlockBlock(lockId);
+        mBlockWorker.unlockBlock(lockId);
       }
       return 0;
     } catch (TachyonException e) {

@@ -16,7 +16,6 @@
 package tachyon.client.keyvalue;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -31,7 +30,6 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.file.FileSystem;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
@@ -46,8 +44,6 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final FileSystem mTfs = FileSystem.Factory.get();
-  private final TachyonConf mConf = ClientContext.getConf();
-  private final InetSocketAddress mMasterAddress = ClientContext.getMasterAddress();
   private final KeyValueMasterClient mMasterClient;
   private final TachyonURI mStoreUri;
 
@@ -72,7 +68,8 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
    */
   BaseKeyValueStoreWriter(TachyonURI uri) throws IOException, TachyonException {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
-    mMasterClient = new KeyValueMasterClient(mMasterAddress, mConf);
+    mMasterClient =
+        new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
 
     mStoreUri = Preconditions.checkNotNull(uri);
     mMasterClient.createStore(mStoreUri);

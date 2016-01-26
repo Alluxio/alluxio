@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,7 @@ import tachyon.util.CommonUtils;
 /**
  * Collection of utility methods to handle with {@link FileSystem} related objects
  */
+@ThreadSafe
 public final class FileSystemUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

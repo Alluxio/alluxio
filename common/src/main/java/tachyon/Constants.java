@@ -15,9 +15,12 @@
 
 package tachyon;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * System wide constants
  */
+@ThreadSafe
 public final class Constants {
   public static final int KB = 1024;
   public static final int MB = KB * 1024;
@@ -430,6 +433,14 @@ public final class Constants {
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
   // Group Mapping
   public static final String SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
+
+  // TODO(dong): TACHYON-1462. Document these security related properties in configuration page
+  public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
+      "tachyon.security.authorization.permission.enabled";
+  public static final String SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
+      "tachyon.security.authorization.permission.supergroup";
+
+  public static final short INVALID_PERMISSION = -1;
 
   private Constants() {} // prevent instantiation
 }

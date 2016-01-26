@@ -30,7 +30,7 @@ import org.powermock.reflect.Whitebox;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.client.ClientContext;
-import tachyon.client.worker.BlockWorkerClient;
+import tachyon.client.block.BlockWorkerClient;
 import tachyon.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
 import tachyon.worker.ClientMetrics;
 
@@ -57,7 +57,6 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
   @After
   public void after() throws Exception {
     clearLoginUser();
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
     mExecutorService.shutdownNow();
   }
 
@@ -108,6 +107,7 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
       blockWorkerClient.connect();
     } finally {
       blockWorkerClient.close();
+      ClientContext.reset();
     }
   }
 

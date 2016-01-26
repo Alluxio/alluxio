@@ -17,6 +17,8 @@ package tachyon.network.protocol;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +36,7 @@ import tachyon.Constants;
  * into individual encoded messages.
  */
 @ChannelHandler.Sharable
+@ThreadSafe
 public final class RPCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

@@ -17,6 +17,8 @@ package tachyon.client.file;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
@@ -29,6 +31,7 @@ import tachyon.thrift.FileInfo;
  * attributes documented as mutable may be out of date.
  */
 @PublicApi
+@ThreadSafe
 public class URIStatus {
   private final FileInfo mInfo;
 

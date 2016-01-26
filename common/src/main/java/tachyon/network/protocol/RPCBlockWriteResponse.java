@@ -15,6 +15,8 @@
 
 package tachyon.network.protocol;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
@@ -24,6 +26,7 @@ import io.netty.buffer.ByteBuf;
 /**
  * This represents the response to a {@link RPCBlockWriteRequest}.
  */
+@ThreadSafe
 public final class RPCBlockWriteResponse extends RPCResponse {
   private final long mSessionId;
   private final long mBlockId;

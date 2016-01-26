@@ -17,6 +17,8 @@ package tachyon.client.file.policy;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.collect.Lists;
 
 import tachyon.client.block.BlockWorkerInfo;
@@ -26,6 +28,7 @@ import tachyon.worker.NetAddress;
  * A policy that returns the worker with the most available bytes. The policy returns null if no
  * worker is qualified.
  */
+@ThreadSafe
 public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
 
   @Override

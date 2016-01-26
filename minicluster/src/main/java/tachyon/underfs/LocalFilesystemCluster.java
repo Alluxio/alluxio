@@ -26,6 +26,10 @@ import tachyon.underfs.UnderFileSystemCluster;
  */
 public class LocalFilesystemCluster extends UnderFileSystemCluster {
 
+  /**
+   * @param baseDir the base directory
+   * @param tachyonConf the configuration for Tachyon
+   */
   public LocalFilesystemCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
   }
