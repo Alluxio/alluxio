@@ -114,7 +114,7 @@ public abstract class UnderFileSystemCluster {
       }
     }
     System.out.println("Using default LocalFilesystemCluster for integration testing");
-    return new LocalFilesystemCluster(baseDir, tachyonConf);
+    return new LocalFileSystemCluster(baseDir, tachyonConf);
   }
 
   /**

@@ -18,19 +18,21 @@ package tachyon.underfs;
 import java.io.File;
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.conf.TachyonConf;
-import tachyon.underfs.UnderFileSystemCluster;
 
 /**
  * The mock cluster for local file system.
  */
-public class LocalFilesystemCluster extends UnderFileSystemCluster {
+@NotThreadSafe
+public class LocalFileSystemCluster extends UnderFileSystemCluster {
 
   /**
    * @param baseDir the base directory
    * @param tachyonConf the configuration for Tachyon
    */
-  public LocalFilesystemCluster(String baseDir, TachyonConf tachyonConf) {
+  public LocalFileSystemCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
   }
 
