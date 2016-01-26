@@ -32,10 +32,12 @@ import tachyon.exception.TachyonException;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Class for convenience methods used by {@link TfsShell}.
  */
+@ThreadSafe
 public class TfsShellUtils {
   /**
    * Removes {@link Constants#HEADER} / {@link Constants#HEADER_FT} and hostname:port information
@@ -86,7 +88,7 @@ public class TfsShellUtils {
   }
 
   /**
-   * Get all the {@link TachyonURI}s that match inputURI. If the path is a regular path, the
+   * Gets all the {@link TachyonURI}s that match inputURI. If the path is a regular path, the
    * returned list only contains the corresponding URI; Else if the path contains wildcards, the
    * returned list contains all the matched URIs It supports any number of wildcards in inputURI
    *
@@ -123,8 +125,8 @@ public class TfsShellUtils {
    * @throws IOException if any filesystem errors are encountered when expanding paths with
    *                     wildcards
    */
-  private static List<TachyonURI> getTachyonURIs(FileSystem tachyonClient,
-      TachyonURI inputURI, TachyonURI parentDir) throws IOException {
+  private static List<TachyonURI> getTachyonURIs(FileSystem tachyonClient, TachyonURI inputURI,
+      TachyonURI parentDir) throws IOException {
     List<TachyonURI> res = new LinkedList<TachyonURI>();
     List<URIStatus> statuses = null;
     try {
@@ -152,7 +154,7 @@ public class TfsShellUtils {
   }
 
   /**
-   * Get the Files (on the local filesystem) that matches input path.
+   * Gets the files (on the local filesystem) that match the given input path.
    * If the path is a regular path, the returned list only contains the corresponding file;
    * Else if the path contains wildcards, the returned list contains all the matched Files.
    *
