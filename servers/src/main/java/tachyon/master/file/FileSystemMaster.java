@@ -123,7 +123,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 /**
  * The master that handles all file system metadata management.
  */
-@NotThreadSafe
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
 public final class FileSystemMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
