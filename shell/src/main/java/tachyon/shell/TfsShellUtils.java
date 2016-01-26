@@ -21,6 +21,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -32,7 +34,6 @@ import tachyon.exception.TachyonException;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Class for convenience methods used by {@link TfsShell}.
