@@ -42,9 +42,9 @@ import tachyon.worker.WorkerContext;
 @NotThreadSafe
 public class SpaceReserver implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final BlockDataManager mBlockManager;
+  private final BlockWorker mBlockWorker;
 
-  /** Association between storage tier aliases and ordinals for the worker. */
+  /** Association between storage tier aliases and ordinals for the worker */
   private final StorageTierAssoc mStorageTierAssoc;
 
   /** Mapping from tier alias to space size to be reserved on the tier. */
@@ -59,12 +59,12 @@ public class SpaceReserver implements Runnable {
   /**
    * Creates a new instance of {@link SpaceReserver}.
    *
-   * @param blockManager a block manager handle
+   * @param blockWorker the block worker handle
    */
-  public SpaceReserver(BlockDataManager blockManager) {
-    mBlockManager = blockManager;
+  public SpaceReserver(BlockWorker blockWorker) {
+    mBlockWorker = blockWorker;
     mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
-    Map<String, Long> capOnTiers = blockManager.getStoreMeta().getCapacityBytesOnTiers();
+    Map<String, Long> capOnTiers = blockWorker.getStoreMeta().getCapacityBytesOnTiers();
     long lastTierReservedBytes = 0;
     for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal ++) {
       String tierReservedSpaceProp =
@@ -110,7 +110,7 @@ public class SpaceReserver implements Runnable {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long bytesReserved = mBytesToReserveOnTiers.get(tierAlias);
       try {
-        mBlockManager.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, bytesReserved, tierAlias);
+        mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, bytesReserved, tierAlias);
       } catch (WorkerOutOfSpaceException e) {
         LOG.warn(e.getMessage());
       } catch (BlockDoesNotExistException e) {

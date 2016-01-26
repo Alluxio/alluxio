@@ -17,6 +17,8 @@ package tachyon.util.network;
 
 import java.util.concurrent.ThreadFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -33,6 +35,7 @@ import tachyon.util.ThreadFactoryUtils;
 /**
  * Utility methods for working with Netty.
  */
+@ThreadSafe
 public final class NettyUtils {
   private NettyUtils() {}
 

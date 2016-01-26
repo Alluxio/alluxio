@@ -15,9 +15,12 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The excepton thrown when a dependency does not exist in Tachyon.
  */
+@ThreadSafe
 public class DependencyDoesNotExistException extends TachyonException {
   private static final long serialVersionUID = -8411287237224325573L;
 

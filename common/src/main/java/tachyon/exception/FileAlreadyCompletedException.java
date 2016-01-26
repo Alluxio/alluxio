@@ -15,9 +15,12 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The exception thrown when a file is already completed in Tachyon.
  */
+@ThreadSafe
 public class FileAlreadyCompletedException extends TachyonException {
   private static final long serialVersionUID = -623565413624572542L;
 

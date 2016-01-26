@@ -18,13 +18,14 @@ package tachyon.worker;
 import java.io.Closeable;
 import java.net.InetSocketAddress;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
-import tachyon.worker.block.BlockDataManager;
-import javax.annotation.concurrent.ThreadSafe;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * Defines how to interact with a server running the data protocol.
@@ -40,17 +41,17 @@ public interface DataServer extends Closeable {
      * Factory for {@link DataServer}.
      *
      * @param dataAddress the address of the data server
-     * @param blockDataManager block data manager to use
+     * @param blockWorker block worker handle
      * @param conf Tachyon configuration
      * @return the generated {@link DataServer}
      */
     public static DataServer create(final InetSocketAddress dataAddress,
-        final BlockDataManager blockDataManager, TachyonConf conf) {
+        final BlockWorker blockWorker, TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<DataServer>getClass(Constants.WORKER_DATA_SERVER),
-            new Class[] { InetSocketAddress.class, BlockDataManager.class, TachyonConf.class },
-            new Object[] { dataAddress, blockDataManager, conf });
+            new Class[] { InetSocketAddress.class, BlockWorker.class, TachyonConf.class },
+            new Object[] { dataAddress, blockWorker, conf });
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

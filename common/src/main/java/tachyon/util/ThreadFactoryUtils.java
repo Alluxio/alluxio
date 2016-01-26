@@ -17,11 +17,14 @@ package tachyon.util;
 
 import java.util.concurrent.ThreadFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * Utility methods for the {@link ThreadFactory} class.
  */
+@ThreadSafe
 public final class ThreadFactoryUtils {
   private ThreadFactoryUtils() {}
 

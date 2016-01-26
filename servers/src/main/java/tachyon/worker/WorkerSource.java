@@ -22,7 +22,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 
 import tachyon.metrics.source.Source;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * Worker source collects a worker's internal state.
@@ -213,38 +213,38 @@ public class WorkerSource implements Source {
   /**
    * Registers metric gauges.
    *
-    * @param blockDataManager a block data manager handle
+    * @param blockWorker the block worker handle
    */
-  public void registerGauges(final BlockDataManager blockDataManager) {
+  public void registerGauges(final BlockWorker blockWorker) {
     if (mGaugesRegistered) {
       return;
     }
     mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
       @Override
       public Long getValue() {
-        return blockDataManager.getStoreMeta().getCapacityBytes();
+        return blockWorker.getStoreMeta().getCapacityBytes();
       }
     });
 
     mMetricRegistry.register(MetricRegistry.name("CapacityUsed"), new Gauge<Long>() {
       @Override
       public Long getValue() {
-        return blockDataManager.getStoreMeta().getUsedBytes();
+        return blockWorker.getStoreMeta().getUsedBytes();
       }
     });
 
     mMetricRegistry.register(MetricRegistry.name("CapacityFree"), new Gauge<Long>() {
       @Override
       public Long getValue() {
-        return blockDataManager.getStoreMeta().getCapacityBytes()
-                - blockDataManager.getStoreMeta().getUsedBytes();
+        return blockWorker.getStoreMeta().getCapacityBytes()
+                - blockWorker.getStoreMeta().getUsedBytes();
       }
     });
 
     mMetricRegistry.register(MetricRegistry.name("BlocksCached"), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
-        return blockDataManager.getStoreMeta().getNumberOfBlocks();
+        return blockWorker.getStoreMeta().getNumberOfBlocks();
       }
     });
     mGaugesRegistered = true;

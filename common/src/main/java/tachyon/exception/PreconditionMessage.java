@@ -15,11 +15,14 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Precondition messages used across Tachyon.
  *
  * Note: To minimize merge conflicts, please sort alphabetically in this section.
  */
+@ThreadSafe
 public final class PreconditionMessage {
 
   public static final String CANNOT_READ_FOLDER = "Cannot read from a folder";

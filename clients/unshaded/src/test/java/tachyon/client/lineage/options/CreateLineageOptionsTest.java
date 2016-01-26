@@ -13,42 +13,22 @@
  * the License.
  */
 
-package tachyon.job;
+package tachyon.client.lineage.options;
 
-import java.io.Serializable;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * A Job that can run at Tachyon.
+ * Tests for {@link CreateLineageOptions}.
  */
-@SuppressWarnings("serial")
-@ThreadSafe
-public abstract class Job implements Serializable {
-  private final JobConf mJobConf;
+public final class CreateLineageOptionsTest {
 
   /**
-   * Constructs with job configuration.
-   *
-   * @param jobConf the job configuration
+   * Tests that building a {@link CreateLineageOptions} with the defaults works.
    */
-  public Job(JobConf jobConf) {
-    mJobConf = Preconditions.checkNotNull(jobConf);
+  @Test
+  public void defaultsTest() {
+    CreateLineageOptions options = CreateLineageOptions.defaults();
+    Assert.assertNotNull(options);
   }
-
-  /**
-   * @return the job configuration
-   */
-  public JobConf getJobConf() {
-    return mJobConf;
-  }
-
-  /**
-   * Runs the job.
-   *
-   * @return true if the run succeeds, false otherwise
-   */
-  public abstract boolean run();
 }

@@ -15,9 +15,12 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The exception thrown when a file does not exist in Tachyon.
  */
+@ThreadSafe
 public class FileDoesNotExistException extends TachyonException {
   private static final long serialVersionUID = -3162552529145071329L;
 

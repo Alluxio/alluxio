@@ -17,6 +17,8 @@ package tachyon.security.authorization;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -29,6 +31,7 @@ import tachyon.util.CommonUtils;
 /**
  * The permission status for a file or directory.
  */
+@ThreadSafe
 public final class PermissionStatus {
   private String mUserName;
   private String mGroupName;
