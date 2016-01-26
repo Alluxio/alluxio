@@ -17,6 +17,8 @@ package tachyon.underfs.glusterfs;
 
 import com.google.common.base.Preconditions;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
@@ -24,6 +26,7 @@ import tachyon.underfs.UnderFileSystemFactory;
 /**
  * Factory for creating {@link GlusterFSUnderFileSystem}.
  */
+@ThreadSafe
 public class GlusterFSUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
