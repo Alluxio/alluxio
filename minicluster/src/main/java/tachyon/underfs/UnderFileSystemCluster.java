@@ -128,7 +128,7 @@ public abstract class UnderFileSystemCluster {
         && sUnderFSClass.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster");
   }
 
-  protected final String mBaseDir;
+  protected String mBaseDir;
 
   protected final TachyonConf mTachyonConf;
 
