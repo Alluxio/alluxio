@@ -27,8 +27,6 @@ import tachyon.underfs.hdfs.HdfsUnderFileSystem;
  * <p>
  * Currently this implementation simply manages the extra configuration setup necessary to connect
  * to Gluster FS.
- * </p>
- *
  */
 public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
 
