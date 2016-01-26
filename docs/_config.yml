@@ -7,3 +7,40 @@ kramdown:
 # These allow the documentation to be updated with new releases of Tachyon.
 TACHYON_RELEASED_VERSION: 0.8.2
 TACHYON_MASTER_VERSION_SHORT: 0.9.0-SNAPSHOT
+
+# These attach the pages of different languages with different 'lang' attributes
+defaults:
+  -
+    scope:
+      path: en
+    values:
+      lang: en
+      languageName: English
+      languagePriority: 0
+  -
+    scope:
+      path: cn
+    values:
+      lang: cn
+      languageName: 中文
+      languagePriority: 1
+
+# Each language has a particular version of category names
+# When supporting a new language version, do not change the 'group' attribute in .md page files
+# Instead, just add the group name of that language below
+categories:
+  User Guide:
+    en: User Guide
+    cn: 用户指南
+  Features:
+    en: Features
+    cn: 特性
+  Frameworks:
+    en: Frameworks
+    cn: 计算框架
+  Under Stores:
+    en: Under Stores
+    cn: 底层存储系统
+  Dev Resources:
+    en: Dev Resources
+    cn: 开发者资源

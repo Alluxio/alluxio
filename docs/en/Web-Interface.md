@@ -25,7 +25,7 @@ The Tachyon master web interface contains several different pages, described bel
 
 The Tachyon master home page looks something like below:
 
-![Tachyon Master Home Page](./img/screenshot_overview.png)
+![Tachyon Master Home Page]({{site.data.img.screenshot_overview}})
 
 The home page gives an overview of the system status. It includes the following sections:
 
@@ -48,7 +48,7 @@ The home page gives an overview of the system status. It includes the following 
 To check the current system configuration information, click "System Configuration" in the 
 navigation bar on the top of the screen.
 
-![configurations](./img/screenshot_systemConfiguration.png)
+![configurations]({{site.data.img.screenshot_systemConfiguration}})
 
 The configuration page has two sections:
 
@@ -67,7 +67,7 @@ The configuration page has two sections:
 You can browse the Tachyon file system through the UI. When selecting the "Browse File System" tab
 in the navigation bar, you will see something like this:
 
-![browse](./img/screenshot_browseFileSystem.png)
+![browse]({{site.data.img.screenshot_browseFileSystem}})
 
 Files in the current folder are listed, with the file name, file size, size for each block, the
 percentage of in-memory data, creation time, and the modification time. To view the content of a
@@ -77,7 +77,7 @@ file, click on that file.
 
 To browse all in-memory files, click on the "In-Memory Files" tab in the navigation bar.
 
-![inMemFiles](./img/screenshot_inMemoryFiles.png)
+![inMemFiles]({{site.data.img.screenshot_inMemoryFiles}})
 
 Files currently in the memory tier are listed, with the file name, file size, size for each block,
 whether the file is pinned or not, the file creation time, and the file modification time.
@@ -86,7 +86,7 @@ whether the file is pinned or not, the file creation time, and the file modifica
 
 The master also shows all known Tachyon workers in the system and shows them in the "Workers" tab.
 
-![workers](./img/screenshot_workers.png)
+![workers]({{site.data.img.screenshot_workers}})
 
 The workers page gives an overview of all Tachyon worker nodes divided into two sections:
 
