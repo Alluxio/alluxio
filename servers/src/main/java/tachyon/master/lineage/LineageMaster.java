@@ -174,7 +174,7 @@ public final class LineageMaster extends MasterBase {
   /**
    * @return a lineage store view wrapping the contained lineage store
    */
-  public LineageStoreView getLineageStoreView() {
+  public synchronized LineageStoreView getLineageStoreView() {
     return new LineageStoreView(mLineageStore);
   }
 
