@@ -338,10 +338,12 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    */
   @Override
   public long getNewContainerId() {
-    long containerId = mBlockContainerIdGenerator.getNewContainerId();
-    writeJournalEntry(mBlockContainerIdGenerator.toJournalEntry());
-    flushJournal();
-    return containerId;
+    synchronized (mBlockContainerIdGenerator) {
+      long containerId = mBlockContainerIdGenerator.getNewContainerId();
+      writeJournalEntry(mBlockContainerIdGenerator.toJournalEntry());
+      flushJournal();
+      return containerId;
+    }
   }
 
   /**
