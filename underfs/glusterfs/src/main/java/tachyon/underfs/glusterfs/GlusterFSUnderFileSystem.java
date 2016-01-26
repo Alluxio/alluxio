@@ -17,6 +17,8 @@ package tachyon.underfs.glusterfs;
 
 import org.apache.hadoop.conf.Configuration;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
@@ -27,7 +29,9 @@ import tachyon.underfs.hdfs.HdfsUnderFileSystem;
  * <p>
  * Currently this implementation simply manages the extra configuration setup necessary to connect
  * to Gluster FS.
+ * </p>
  */
+@ThreadSafe
 public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
 
   /**
