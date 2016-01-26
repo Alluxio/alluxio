@@ -42,8 +42,7 @@ import tachyon.worker.file.FileSystemMasterClient;
 /**
  * Class is responsible for managing the Tachyon {@link BlockStore} and under file system.
  */
-@NotThreadSafe
-// TODO(jiri): Make this class actually thread-safe.
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
 public final class BlockDataManager {
 
   /** Block store delta reporter for master heartbeat. */
@@ -98,7 +97,7 @@ public final class BlockDataManager {
    * @param blockId the id of the block to be aborted
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block cannot be found
-   * @throws InvalidWorkerStateException if block id does not belong to getSessionId
+   * @throws InvalidWorkerStateException if block id does not belong to session id
    * @throws IOException if temporary block cannot be deleted
    */
   public void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
@@ -139,7 +138,7 @@ public final class BlockDataManager {
    * @param blockId the id of the block to commit
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block cannot be found
-   * @throws InvalidWorkerStateException if block id does not belong to getSessionId
+   * @throws InvalidWorkerStateException if block id does not belong to session id
    * @throws IOException if the block cannot be moved from temporary path to committed path
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */

@@ -54,7 +54,7 @@ import tachyon.worker.file.FileSystemMasterClient;
  *
  * Logic: {@link BlockDataManager} (Logic for all block related storage operations)
  */
-@NotThreadSafe
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
 public final class BlockWorker extends WorkerBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

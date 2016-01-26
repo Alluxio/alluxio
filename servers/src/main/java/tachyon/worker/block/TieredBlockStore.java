@@ -85,9 +85,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * operations that may trigger this eviction (e.g., move, create, requestSpace), retry is used</li>
  * </ul>
  */
-@NotThreadSafe
-// TODO(jiri): This class should be thread safe but is not. For instance, getUpdatedView() returns a
-// reference to mPinnedInodes to the caller.
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
 public final class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // TODO(bin): Change maxRetry to be configurable.
