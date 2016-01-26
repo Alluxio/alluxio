@@ -13,15 +13,15 @@
     <title>{{ page.title }} - Tachyon {{site.TACHYON_MASTER_VERSION_SHORT}} Documentation</title>
     <meta name="description" content="">
 
-    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="../css/bootstrap-responsive.min.css">
+    <link rel="stylesheet" href="../css/main.css">
 
-    <script src="js/vendor/modernizr-2.6.1-respond-1.1.0.min.js"></script>
+    <script src="../js/vendor/modernizr-2.6.1-respond-1.1.0.min.js"></script>
 
-    <link rel="stylesheet" href="css/pygments-default.css">
+    <link rel="stylesheet" href="../css/pygments-default.css">
 
     <script>
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -47,7 +47,7 @@
             <a href="index.html">
                 <div class="brand" style="display:table;">
                     <div style="position:relative;display:table-cell;vertical-align:middle;">
-                        <img src="img/logo-white.png" alt="Tachyon Logo" style="height:34px;"/>
+                        <img src="../img/logo-white.png" alt="Tachyon Logo" style="height:34px;"/>
                         <div style="position:absolute;right:0;top:30px;text-shadow:none;">
                             <span class="version">{{site.TACHYON_MASTER_VERSION_SHORT}}</span>
                         </div>
@@ -56,24 +56,26 @@
             </a>
             <ul class="nav">
                 {% if page.group == "Home" %}
-                    <li class="active"><a>Overview</a></li>
+                    <li class="active"><a>{{page.title}}</a></li>
                 {% else %}
-                    <li><a href="index.html">Overview</a></li>
+                    {% assign overviewPage = site.pages | where:'group',"Home" | where:'lang',page.lang %}
+                    <!-- overviewPage only has one element -->
+                    <li><a href="index.html">{{overviewPage[0].title}}</a></li>
                 {% endif %}
 
                 {% assign categories = "User Guide|Features|Frameworks|Under Stores|Dev Resources" | split: "|" %}
                 {% for groupName in categories %}
                     <li class="dropdown">
                         {% if page.group == groupName %}
-                            <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{groupName}}<b
+                            <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{site.categories.[groupName].[page.lang]}}<b
                                 class="caret"></b></a>
                         {% else %}
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{groupName}}<b
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{site.categories.[groupName].[page.lang]}}<b
                                 class="caret"></b></a>
                         {% endif %}
 
                         <ul class="dropdown-menu">
-                            {% assign currentGroup = site.pages | where:'group',groupName %}
+                            {% assign currentGroup = site.pages | where:'group',groupName | where:'lang',page.lang %}
                             {% assign currentGroup = currentGroup | sort:'priority' %}
                             {% for node in currentGroup %}
                                 {% if page.url == node.url %}
@@ -87,8 +89,8 @@
                                         </a>
                                     </li>
                                 {% else %}
-                                    <!-- trim the leading slash to make the path relative to preserve version links -->
-                                    <li><a href="{{ node.url | remove-first: '/' }}">
+                                    <!-- Use the prefix .. to change the absulote url to relative url -->
+                                    <li><a href="..{{ node.url }}">
                                         {% if node.nickname == null %}
                                             {{node.title}}
                                         {% else %}
@@ -110,6 +112,18 @@
                         </ul>
                     </li>
                 {% endfor %}
+
+                <!-- Generator the language selector at the right of the navigation bar -->
+                {% assign multiLanguagePages = site.pages | where:'name',page.name | sort:'languagePriority' %}
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{page.languageName}}<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        {% for singleLanguage in multiLanguagePages %}
+                            <!-- Use the prefix .. to change the absulote url to relative url -->
+                            <li><a href="..{{singleLanguage.url}}">{{singleLanguage.languageName}}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
             </ul>
         </div>
     </div>
@@ -117,7 +131,7 @@
 
 <div class="container" id="content">
     <h1 class="title">{{ page.title }}</h1>
-
+    
     {{ content }}
     <!-- Main hero unit for a primary marketing message or call to action -->
     <!--<div class="hero-unit">
@@ -157,9 +171,9 @@
 </div>
 <!-- /container -->
 
-<script src="js/vendor/jquery-1.8.0.min.js"></script>
-<script src="js/vendor/bootstrap.min.js"></script>
-<script src="js/main.js"></script>
+<script src="../js/vendor/jquery-1.8.0.min.js"></script>
+<script src="../js/vendor/bootstrap.min.js"></script>
+<script src="../js/main.js"></script>
 
 <!-- A script to fix internal hash links because we have an overlapping top bar.
      Based on https://github.com/twitter/bootstrap/issues/193#issuecomment-2281510 -->
@@ -183,7 +197,7 @@
     })
 </script>
 
-<script src="js/scrollspy.js"></script>
+<script src="../js/scrollspy.js"></script>
 
 </body>
 </html>

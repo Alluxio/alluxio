@@ -17,7 +17,7 @@ transparent naming and mounting API.
 Transparent naming maintains an identity between the Tachyon namespace and the underlying storage
 system namespace.
 
-![transparent](./img/screenshot_transparent.png)
+![transparent]({{site.data.img.screenshot_transparent}})
 
 When a user creates objects in the Tachyon namespace, they can choose whether these objects should
 be persisted in the underlying storage system. For objects that are persisted, Tachyon preserve the
@@ -40,7 +40,7 @@ use the `load` command of the Tachyon shell.
 Tachyon provides a mounting API that makes it possible to use Tachyon to access data across multiple
 data sources.
 
-![unified](./img/screenshot_unified.png)
+![unified]({{site.data.img.screenshot_unified}})
 
 By default, Tachyon namespace is mounted onto the directory specified by the
 `tachyon.underfs.address` property of Tachyon configuration; this directory identifies the

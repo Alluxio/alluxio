@@ -199,7 +199,7 @@ SPARK_LOCAL_HOSTNAME=simple30
 In either way, the Spark Worker addresses become hostnames and Locality Level becomes NODE_LOCAL as shown
 in Spark WebUI below.
 
-![hostname](./img/screenshot_datalocality_sparkwebui.png)
+![hostname]({{site.data.img.screenshot_datalocality_sparkwebui}})
 
-![locality](./img/screenshot_datalocality_tasklocality.png)
+![locality]({{site.data.img.screenshot_datalocality_tasklocality}})
 

@@ -25,7 +25,7 @@ under storage can back all the applications and frameworks running on top of Tac
 the potential to mount multiple under storage systems, Tachyon can serve as a unifying layer for any
 number of varied data sources.
 
-![Stack](./img/stack.png)
+![Stack]({{site.data.img.stack}})
 
 # Tachyon's Components
 
