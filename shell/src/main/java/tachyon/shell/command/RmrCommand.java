@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.DeleteOptions;
@@ -28,6 +30,7 @@ import tachyon.exception.TachyonException;
  * Removes the file or directory specified by args. Will remove all files and directories in the
  * directory if a directory is specified.
  */
+@ThreadSafe
 public final class RmrCommand extends WithWildCardPathCommand {
 
   /**

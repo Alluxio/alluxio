@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -25,6 +27,7 @@ import tachyon.exception.TachyonException;
 /**
  * Unmounts a Tachyon path.
  */
+@ThreadSafe
 public final class UnmountCommand extends AbstractTfsShellCommand {
   /**
    * @param conf the configuration for Tachyon
