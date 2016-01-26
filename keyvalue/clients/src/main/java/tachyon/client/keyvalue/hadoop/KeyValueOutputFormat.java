@@ -61,8 +61,7 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
    * @return the job's output path
    */
   public static TachyonURI getJobOutputURI(JobConf conf) {
-    return new TachyonURI(new TachyonURI(FileOutputFormat.getOutputPath(conf).toString())
-        .getPath());
+    return new TachyonURI(FileOutputFormat.getOutputPath(conf).toString());
   }
 
   @Override
