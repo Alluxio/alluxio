@@ -426,7 +426,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
-    fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
+    fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     TachyonURI path = mInodeTree.getPath(inode);
     TachyonURI resolvedPath;
     try {
@@ -949,20 +949,21 @@ public final class FileSystemMaster extends MasterBase {
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo)
       throws InvalidPathException {
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
-    fileBlockInfo.blockInfo = blockInfo;
-    fileBlockInfo.ufsLocations = new ArrayList<WorkerNetAddress>();
+    fileBlockInfo.setBlockInfo(blockInfo);
+    fileBlockInfo.setUfsLocations(new ArrayList<WorkerNetAddress>());
 
     // The sequence number part of the block id is the block index.
-    fileBlockInfo.offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.blockId);
+    long offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.getBlockId());
+    fileBlockInfo.setOffset(offset);
 
-    if (fileBlockInfo.blockInfo.locations.isEmpty() && file.isPersisted()) {
+    if (fileBlockInfo.getBlockInfo().getLocations().isEmpty() && file.isPersisted()) {
       // No tachyon locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
       String ufsPath = mMountTable.resolve(mInodeTree.getPath(file)).toString();
       UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
       List<String> locs;
       try {
-        locs = ufs.getFileLocations(ufsPath, fileBlockInfo.offset);
+        locs = ufs.getFileLocations(ufsPath, fileBlockInfo.getOffset());
       } catch (IOException e) {
         return fileBlockInfo;
       }
@@ -980,7 +981,8 @@ public final class FileSystemMaster extends MasterBase {
             continue;
           }
           // The resolved port is the data transfer port not the rpc port
-          fileBlockInfo.ufsLocations.add(new WorkerNetAddress(resolvedHost, -1, resolvedPort, -1));
+          fileBlockInfo.getUfsLocations().add(
+                  new WorkerNetAddress(resolvedHost, -1, resolvedPort, -1));
         }
       }
     }
@@ -1247,7 +1249,7 @@ public final class FileSystemMaster extends MasterBase {
 
     // If the source file is persisted, rename it in the UFS.
     FileInfo fileInfo = getFileInfoInternal(srcInode);
-    if (!replayed && fileInfo.isPersisted) {
+    if (!replayed && fileInfo.isPersisted()) {
       String ufsSrcPath = mMountTable.resolve(srcPath).toString();
       String ufsDstPath = mMountTable.resolve(dstPath).toString();
       UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath, MasterContext.getConf());
@@ -1440,7 +1442,7 @@ public final class FileSystemMaster extends MasterBase {
       List<Long> blockIds = Lists.newArrayList();
       try {
         for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(getPath(fileId))) {
-          blockIds.add(fileBlockInfo.blockInfo.blockId);
+          blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
         }
       } catch (InvalidPathException e) {
         LOG.info("Failed to get file info {}", fileId, e);
@@ -1805,18 +1807,18 @@ public final class FileSystemMaster extends MasterBase {
       blockInfoList = getFileBlockInfoList(path);
 
       for (FileBlockInfo fileBlockInfo : blockInfoList) {
-        for (BlockLocation blockLocation : fileBlockInfo.blockInfo.locations) {
-          if (workerBlockCounts.containsKey(blockLocation.workerId)) {
-            workerBlockCounts.put(blockLocation.workerId,
-                workerBlockCounts.get(blockLocation.workerId) + 1);
+        for (BlockLocation blockLocation : fileBlockInfo.getBlockInfo().getLocations()) {
+          if (workerBlockCounts.containsKey(blockLocation.getWorkerId())) {
+            workerBlockCounts.put(blockLocation.getWorkerId(),
+                workerBlockCounts.get(blockLocation.getWorkerId()) + 1);
           } else {
-            workerBlockCounts.put(blockLocation.workerId, 1);
+            workerBlockCounts.put(blockLocation.getWorkerId(), 1);
           }
 
           // TODO(yupeng) remove the requirement that all the blocks of a file must be stored on the
           // same worker, for now it returns the first worker that has all the blocks
-          if (workerBlockCounts.get(blockLocation.workerId) == blockInfoList.size()) {
-            return blockLocation.workerId;
+          if (workerBlockCounts.get(blockLocation.getWorkerId()) == blockInfoList.size()) {
+            return blockLocation.getWorkerId();
           }
         }
       }
@@ -1863,7 +1865,7 @@ public final class FileSystemMaster extends MasterBase {
           fileIdsToPersist.add(fileId);
           List<Long> blockIds = Lists.newArrayList();
           for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(mInodeTree.getPath(inode))) {
-            blockIds.add(fileBlockInfo.blockInfo.blockId);
+            blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
           }
 
           filesToPersist.add(new PersistFile(fileId, blockIds));

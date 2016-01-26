@@ -384,9 +384,9 @@ public final class KeyValueMaster extends MasterBase {
 
   private JournalEntry newCompletePartitionEntry(long fileId, PartitionInfo info) {
     CompletePartitionEntry completePartition =
-        CompletePartitionEntry.newBuilder().setStoreId(fileId).setBlockId(info.blockId)
-            .setKeyStartBytes(ByteString.copyFrom(info.keyStart))
-            .setKeyLimitBytes(ByteString.copyFrom(info.keyLimit)).build();
+        CompletePartitionEntry.newBuilder().setStoreId(fileId).setBlockId(info.getBlockId())
+            .setKeyStartBytes(ByteString.copyFrom(info.bufferForKeyStart()))
+            .setKeyLimitBytes(ByteString.copyFrom(info.bufferForKeyLimit())).build();
     return JournalEntry.newBuilder().setCompletePartition(completePartition).build();
   }
 

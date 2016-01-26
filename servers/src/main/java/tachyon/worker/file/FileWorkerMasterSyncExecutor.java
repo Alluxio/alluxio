@@ -98,17 +98,18 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     if (command == null) {
       LOG.error("The command sent from master is null");
       return;
-    } else if (command.commandType != CommandType.Persist) {
+    } else if (command.getCommandType() != CommandType.Persist) {
       LOG.error("The command sent from master should be PERSIST type, but was {}",
-          command.commandType);
+          command.getCommandType());
       return;
     }
 
-    for (PersistFile persistFile : command.getCommandOptions().getPersistOptions().persistFiles) {
-      long fileId = persistFile.fileId;
+    for (PersistFile persistFile : command.getCommandOptions().getPersistOptions()
+            .getPersistFiles()) {
+      long fileId = persistFile.getFileId();
       if (mFileDataManager.needPersistence(fileId)) {
         mPersistFileService
-            .execute(new FilePersister(mFileDataManager, fileId, persistFile.blockIds));
+            .execute(new FilePersister(mFileDataManager, fileId, persistFile.getBlockIds()));
       }
     }
   }

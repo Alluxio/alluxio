@@ -133,7 +133,6 @@ public class TieredStoreIntegrationTest {
 
     // Confirm the pin with master
     Assert.assertTrue(mTFS.getStatus(file).isPinned());
-
     // Try to create a file that cannot be stored unless the previous file is evicted, expect an
     // exception since worker cannot serve the request
     mThrown.expect(IOException.class);
@@ -158,7 +157,6 @@ public class TieredStoreIntegrationTest {
 
     // Confirm the pin with master
     Assert.assertTrue(mTFS.getStatus(file1).isPinned());
-
     // Unpin the file
     mTFS.setAttribute(file1, mSetUnpinned);
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
