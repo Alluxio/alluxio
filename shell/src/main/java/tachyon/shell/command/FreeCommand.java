@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.FreeOptions;
@@ -27,6 +29,7 @@ import tachyon.exception.TachyonException;
  * Frees the given file or folder from Tachyon in-memory (recursively freeing all children if a
  * folder).
  */
+@ThreadSafe
 public final class FreeCommand extends WithWildCardPathCommand {
 
   /**
