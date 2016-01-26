@@ -299,7 +299,7 @@ case ${COMMAND} in
   for thriftSrcPath in ${thriftSrcPaths[@]}; do
     rm -rf "${thriftSrcPath}/main/java/tachyon/thrift"
     for srcFile in $(ls "${thriftSrcPath}/thrift"); do
-      thrift -I "${BIN}/../common/src/thrift" --gen java -out "${thriftSrcPath}/main/java/." "${thriftSrcPath}/thrift/${srcFile}"
+      thrift -I "${BIN}/../common/src/thrift" --gen java:private-members -out "${thriftSrcPath}/main/java/." "${thriftSrcPath}/thrift/${srcFile}"
     done
   done
   exit 0
