@@ -28,8 +28,12 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.master.MasterContext;
 import tachyon.master.TachyonMaster;
+import tachyon.security.LoginUser;
+import tachyon.security.authentication.PlainSaslServer;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -59,6 +63,9 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    if (PlainSaslServer.AuthorizedClientUser.get() == null) {
+      PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(MasterContext.getConf()).getName());
+    }
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("fatalError", "");
 
@@ -73,9 +80,14 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
         if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {
           fileInfos.add(new UIFileInfo(fileInfo));
         }
-      } catch (FileDoesNotExistException fee) {
+      } catch (FileDoesNotExistException e) {
         request.setAttribute("fatalError",
-            "Error: File does not exist " + fee.getLocalizedMessage());
+            "Error: File does not exist " + e.getLocalizedMessage());
+        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+        return;
+      } catch (AccessControlException e) {
+        request.setAttribute("permissionError",
+            "Error: File " + file + " cannot be accessed " + e.getMessage());
         getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
         return;
       }
@@ -94,18 +106,18 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
       int limit = Integer.parseInt(request.getParameter("limit"));
       List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
       request.setAttribute("fileInfos", sub);
-    } catch (NumberFormatException nfe) {
+    } catch (NumberFormatException e) {
       request.setAttribute("fatalError",
-          "Error: offset or limit parse error, " + nfe.getLocalizedMessage());
+          "Error: offset or limit parse error, " + e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
       return;
-    } catch (IndexOutOfBoundsException iobe) {
+    } catch (IndexOutOfBoundsException e) {
       request.setAttribute("fatalError",
-          "Error: offset or offset + limit is out of bound, " + iobe.getLocalizedMessage());
+          "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
       return;
-    } catch (IllegalArgumentException iae) {
-      request.setAttribute("fatalError", iae.getLocalizedMessage());
+    } catch (IllegalArgumentException e) {
+      request.setAttribute("fatalError", e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
       return;
     }

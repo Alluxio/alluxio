@@ -76,6 +76,10 @@ public abstract class AbstractLocalTachyonCluster {
       Constants.LINEAGE_MASTER_NAME,
   };
 
+  /**
+   * @param workerCapacityBytes the capacity of the worker in bytes
+   * @param userBlockSize the block size for a user
+   */
   public AbstractLocalTachyonCluster(long workerCapacityBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
     mUserBlockSize = userBlockSize;
@@ -94,6 +98,7 @@ public abstract class AbstractLocalTachyonCluster {
   /**
    * Starts both master and a worker using the configurations in test conf respectively.
    *
+   * @param conf the configuration for Tachyon
    * @throws IOException if an I/O error occurs
    * @throws ConnectionFailedException if network connection failed
    */
@@ -442,7 +447,7 @@ public abstract class AbstractLocalTachyonCluster {
   protected abstract LocalTachyonMaster getMaster();
 
   /**
-   * Gets master's {@link tachyon.conf.TachyonConf}.
+   * @return the master's {@link tachyon.conf.TachyonConf}
    */
   public TachyonConf getMasterTachyonConf() {
     return mMasterConf;

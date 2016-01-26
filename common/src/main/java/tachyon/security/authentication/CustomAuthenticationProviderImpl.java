@@ -15,6 +15,7 @@
 
 package tachyon.security.authentication;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.sasl.AuthenticationException;
 
 import tachyon.conf.TachyonConf;
@@ -27,6 +28,7 @@ import tachyon.util.CommonUtils;
  * {@code tachyon.security.authentication.custom.provider} to be set in {@link TachyonConf
  * Configuration} to determine which provider to load.
  */
+@NotThreadSafe
 public class CustomAuthenticationProviderImpl implements AuthenticationProvider {
 
   private final AuthenticationProvider mCustomProvider;
@@ -40,7 +42,7 @@ public class CustomAuthenticationProviderImpl implements AuthenticationProvider 
     Class<?> customProviderClass;
     try {
       customProviderClass = Class.forName(providerName);
-    } catch (ClassNotFoundException cfe) {
+    } catch (ClassNotFoundException e) {
       throw new RuntimeException(providerName + " not found");
     }
 

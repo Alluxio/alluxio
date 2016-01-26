@@ -23,7 +23,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockReader;
-import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
 

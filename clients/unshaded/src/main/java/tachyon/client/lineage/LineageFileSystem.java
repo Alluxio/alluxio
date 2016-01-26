@@ -17,6 +17,8 @@ package tachyon.client.lineage;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.file.BaseFileSystem;
@@ -31,6 +33,7 @@ import tachyon.exception.TachyonException;
  * operations.
  */
 @PublicApi
+@ThreadSafe
 public class LineageFileSystem extends BaseFileSystem {
   private LineageContext mLineageContext;
 

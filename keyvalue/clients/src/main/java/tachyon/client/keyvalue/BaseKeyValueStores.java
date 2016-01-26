@@ -17,10 +17,15 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 
@@ -30,7 +35,10 @@ import tachyon.exception.TachyonException;
  * through {@link BaseKeyValueStoreReader} and {@link BaseKeyValueStoreWriter}.
  */
 @PublicApi
+@ThreadSafe
 public class BaseKeyValueStores implements KeyValueStores {
+  private final KeyValueMasterClient mMasterClient =
+      new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
 
   @Override
   public KeyValueStoreReader open(TachyonURI uri) throws IOException, TachyonException {
@@ -42,5 +50,16 @@ public class BaseKeyValueStores implements KeyValueStores {
   public KeyValueStoreWriter create(TachyonURI uri) throws IOException, TachyonException {
     Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
     return new BaseKeyValueStoreWriter(uri);
+  }
+
+  @Override
+  public void delete(TachyonURI uri)
+      throws IOException, InvalidPathException, FileDoesNotExistException, TachyonException {
+    mMasterClient.deleteStore(uri);
+  }
+
+  @Override
+  public void merge(TachyonURI fromUri, TachyonURI toUri) throws IOException, TachyonException {
+    mMasterClient.mergeStore(fromUri, toUri);
   }
 }

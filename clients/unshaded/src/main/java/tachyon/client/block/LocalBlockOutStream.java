@@ -27,7 +27,6 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.util.io.FileUtils;
@@ -69,9 +68,9 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       // Change the permission of the temporary file in order that the worker can move it.
       FileUtils.changeLocalFileToFullPermission(blockPath);
       LOG.info("LocalBlockOutStream created new file block, block path: {}", blockPath);
-    } catch (IOException ioe) {
+    } catch (IOException e) {
       mContext.releaseWorkerClient(mBlockWorkerClient);
-      throw ioe;
+      throw e;
     }
   }
 

@@ -18,6 +18,8 @@ package tachyon.util.io;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.commons.io.FilenameUtils;
 
 import com.google.common.base.CharMatcher;
@@ -25,12 +27,14 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
 import tachyon.util.OSUtils;
 
 /**
  * Utilities related to both Tachyon paths like {@link tachyon.TachyonURI} and local file paths.
  */
+@ThreadSafe
 public final class PathUtils {
 
   /**
@@ -175,7 +179,7 @@ public final class PathUtils {
     }
 
     if (invalid) {
-      throw new InvalidPathException("Path " + path + " is invalid.");
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path));
     }
   }
 

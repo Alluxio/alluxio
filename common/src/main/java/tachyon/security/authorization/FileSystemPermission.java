@@ -15,6 +15,8 @@
 
 package tachyon.security.authorization;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -22,6 +24,7 @@ import tachyon.exception.ExceptionMessage;
 /**
  * A class for file/directory permissions.
  */
+@NotThreadSafe
 public final class FileSystemPermission {
   //POSIX permission style
   private FileSystemAction mUseraction;
@@ -67,6 +70,14 @@ public final class FileSystemPermission {
   }
 
   /**
+   * @param permission the digital representation of a {@link FileSystemPermission}
+   * @return the user {@link FileSystemAction}
+   */
+  public static FileSystemAction createUserAction(short permission) {
+    return FileSystemAction.values()[(permission >>> 6) & 7];
+  }
+
+  /**
    * @return the group {@link FileSystemAction}
    */
   public FileSystemAction getGroupAction() {
@@ -74,10 +85,26 @@ public final class FileSystemPermission {
   }
 
   /**
+   * @param permission the digital representation of a {@link FileSystemPermission}
+   * @return the group {@link FileSystemAction}
+   */
+  public static FileSystemAction createGroupAction(short permission) {
+    return FileSystemAction.values()[(permission >>> 3) & 7];
+  }
+
+  /**
    * @return the other {@link FileSystemAction}
    */
   public FileSystemAction getOtherAction() {
     return mOtheraction;
+  }
+
+  /**
+   * @param permission the digital representation of a {@link FileSystemPermission}
+   * @return the other {@link FileSystemAction}
+   */
+  public static FileSystemAction createOtherAction(short permission) {
+    return FileSystemAction.values()[permission & 7];
   }
 
   private void set(FileSystemAction u, FileSystemAction g, FileSystemAction o) {
@@ -196,7 +223,7 @@ public final class FileSystemPermission {
     try {
       Integer.parseInt(value);
       return true;
-    } catch (NumberFormatException nfe) {
+    } catch (NumberFormatException e) {
       return false;
     }
   }

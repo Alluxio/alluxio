@@ -15,6 +15,7 @@
 
 package tachyon.security.login;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
@@ -25,11 +26,15 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
 /**
- * A callback handler for {@link AppLoginModule}
+ * A callback handler for {@link AppLoginModule}.
  */
+@NotThreadSafe
 public final class AppCallbackHandler implements CallbackHandler {
   private String mUserName;
 
+  /**
+   * @param conf the configuration for Tachyon
+   */
   public AppCallbackHandler(TachyonConf conf) {
     if (conf.containsKey(Constants.SECURITY_LOGIN_USERNAME)) {
       mUserName = conf.get(Constants.SECURITY_LOGIN_USERNAME);

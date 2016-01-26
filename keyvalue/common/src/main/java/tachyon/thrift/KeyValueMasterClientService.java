@@ -72,6 +72,22 @@ public class KeyValueMasterClientService {
      */
     public List<PartitionInfo> getPartitionInfo(String path) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
+    /**
+     * Deletes a completed key-value store.
+     * 
+     * @param path the path of the store
+     */
+    public void deleteStore(String path) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
+
+    /**
+     * Merges one completed key-value store to another completed key-value store.
+     * 
+     * @param fromPath the path of the store to be merged
+     * 
+     * @param toPath the path of the store to be merged to
+     */
+    public void mergeStore(String fromPath, String toPath) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
+
   }
 
   public interface AsyncIface extends tachyon.thrift.TachyonService .AsyncIface {
@@ -83,6 +99,10 @@ public class KeyValueMasterClientService {
     public void createStore(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void getPartitionInfo(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+
+    public void deleteStore(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+
+    public void mergeStore(String fromPath, String toPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -200,6 +220,59 @@ public class KeyValueMasterClientService {
         throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getPartitionInfo failed: unknown result");
+    }
+
+    public void deleteStore(String path) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException
+    {
+      send_deleteStore(path);
+      recv_deleteStore();
+    }
+
+    public void send_deleteStore(String path) throws org.apache.thrift.TException
+    {
+      deleteStore_args args = new deleteStore_args();
+      args.setPath(path);
+      sendBase("deleteStore", args);
+    }
+
+    public void recv_deleteStore() throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException
+    {
+      deleteStore_result result = new deleteStore_result();
+      receiveBase(result, "deleteStore");
+      if (result.e != null) {
+        throw result.e;
+      }
+      if (result.ioe != null) {
+        throw result.ioe;
+      }
+      return;
+    }
+
+    public void mergeStore(String fromPath, String toPath) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException
+    {
+      send_mergeStore(fromPath, toPath);
+      recv_mergeStore();
+    }
+
+    public void send_mergeStore(String fromPath, String toPath) throws org.apache.thrift.TException
+    {
+      mergeStore_args args = new mergeStore_args();
+      args.setFromPath(fromPath);
+      args.setToPath(toPath);
+      sendBase("mergeStore", args);
+    }
+
+    public void recv_mergeStore() throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException
+    {
+      mergeStore_result result = new mergeStore_result();
+      receiveBase(result, "mergeStore");
+      if (result.e != null) {
+        throw result.e;
+      }
+      if (result.ioe != null) {
+        throw result.ioe;
+      }
+      return;
     }
 
   }
@@ -351,6 +424,73 @@ public class KeyValueMasterClientService {
       }
     }
 
+    public void deleteStore(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      deleteStore_call method_call = new deleteStore_call(path, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class deleteStore_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String path;
+      public deleteStore_call(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.path = path;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("deleteStore", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        deleteStore_args args = new deleteStore_args();
+        args.setPath(path);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public void getResult() throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        (new Client(prot)).recv_deleteStore();
+      }
+    }
+
+    public void mergeStore(String fromPath, String toPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      mergeStore_call method_call = new mergeStore_call(fromPath, toPath, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class mergeStore_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String fromPath;
+      private String toPath;
+      public mergeStore_call(String fromPath, String toPath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.fromPath = fromPath;
+        this.toPath = toPath;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("mergeStore", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        mergeStore_args args = new mergeStore_args();
+        args.setFromPath(fromPath);
+        args.setToPath(toPath);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public void getResult() throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        (new Client(prot)).recv_mergeStore();
+      }
+    }
+
   }
 
   public static class Processor<I extends Iface> extends tachyon.thrift.TachyonService.Processor<I> implements org.apache.thrift.TProcessor {
@@ -368,6 +508,8 @@ public class KeyValueMasterClientService {
       processMap.put("completeStore", new completeStore());
       processMap.put("createStore", new createStore());
       processMap.put("getPartitionInfo", new getPartitionInfo());
+      processMap.put("deleteStore", new deleteStore());
+      processMap.put("mergeStore", new mergeStore());
       return processMap;
     }
 
@@ -467,6 +609,58 @@ public class KeyValueMasterClientService {
       }
     }
 
+    public static class deleteStore<I extends Iface> extends org.apache.thrift.ProcessFunction<I, deleteStore_args> {
+      public deleteStore() {
+        super("deleteStore");
+      }
+
+      public deleteStore_args getEmptyArgsInstance() {
+        return new deleteStore_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public deleteStore_result getResult(I iface, deleteStore_args args) throws org.apache.thrift.TException {
+        deleteStore_result result = new deleteStore_result();
+        try {
+          iface.deleteStore(args.path);
+        } catch (tachyon.thrift.TachyonTException e) {
+          result.e = e;
+        } catch (tachyon.thrift.ThriftIOException ioe) {
+          result.ioe = ioe;
+        }
+        return result;
+      }
+    }
+
+    public static class mergeStore<I extends Iface> extends org.apache.thrift.ProcessFunction<I, mergeStore_args> {
+      public mergeStore() {
+        super("mergeStore");
+      }
+
+      public mergeStore_args getEmptyArgsInstance() {
+        return new mergeStore_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public mergeStore_result getResult(I iface, mergeStore_args args) throws org.apache.thrift.TException {
+        mergeStore_result result = new mergeStore_result();
+        try {
+          iface.mergeStore(args.fromPath, args.toPath);
+        } catch (tachyon.thrift.TachyonTException e) {
+          result.e = e;
+        } catch (tachyon.thrift.ThriftIOException ioe) {
+          result.ioe = ioe;
+        }
+        return result;
+      }
+    }
+
   }
 
   public static class AsyncProcessor<I extends AsyncIface> extends tachyon.thrift.TachyonService.AsyncProcessor<I> {
@@ -484,6 +678,8 @@ public class KeyValueMasterClientService {
       processMap.put("completeStore", new completeStore());
       processMap.put("createStore", new createStore());
       processMap.put("getPartitionInfo", new getPartitionInfo());
+      processMap.put("deleteStore", new deleteStore());
+      processMap.put("mergeStore", new mergeStore());
       return processMap;
     }
 
@@ -709,6 +905,128 @@ public class KeyValueMasterClientService {
 
       public void start(I iface, getPartitionInfo_args args, org.apache.thrift.async.AsyncMethodCallback<List<PartitionInfo>> resultHandler) throws TException {
         iface.getPartitionInfo(args.path,resultHandler);
+      }
+    }
+
+    public static class deleteStore<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, deleteStore_args, Void> {
+      public deleteStore() {
+        super("deleteStore");
+      }
+
+      public deleteStore_args getEmptyArgsInstance() {
+        return new deleteStore_args();
+      }
+
+      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+        final org.apache.thrift.AsyncProcessFunction fcall = this;
+        return new AsyncMethodCallback<Void>() { 
+          public void onComplete(Void o) {
+            deleteStore_result result = new deleteStore_result();
+            try {
+              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
+              return;
+            } catch (Exception e) {
+              LOGGER.error("Exception writing to internal frame buffer", e);
+            }
+            fb.close();
+          }
+          public void onError(Exception e) {
+            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
+            org.apache.thrift.TBase msg;
+            deleteStore_result result = new deleteStore_result();
+            if (e instanceof tachyon.thrift.TachyonTException) {
+                        result.e = (tachyon.thrift.TachyonTException) e;
+                        result.setEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof tachyon.thrift.ThriftIOException) {
+                        result.ioe = (tachyon.thrift.ThriftIOException) e;
+                        result.setIoeIsSet(true);
+                        msg = result;
+            }
+             else 
+            {
+              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
+              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
+            }
+            try {
+              fcall.sendResponse(fb,msg,msgType,seqid);
+              return;
+            } catch (Exception ex) {
+              LOGGER.error("Exception writing to internal frame buffer", ex);
+            }
+            fb.close();
+          }
+        };
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public void start(I iface, deleteStore_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
+        iface.deleteStore(args.path,resultHandler);
+      }
+    }
+
+    public static class mergeStore<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, mergeStore_args, Void> {
+      public mergeStore() {
+        super("mergeStore");
+      }
+
+      public mergeStore_args getEmptyArgsInstance() {
+        return new mergeStore_args();
+      }
+
+      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+        final org.apache.thrift.AsyncProcessFunction fcall = this;
+        return new AsyncMethodCallback<Void>() { 
+          public void onComplete(Void o) {
+            mergeStore_result result = new mergeStore_result();
+            try {
+              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
+              return;
+            } catch (Exception e) {
+              LOGGER.error("Exception writing to internal frame buffer", e);
+            }
+            fb.close();
+          }
+          public void onError(Exception e) {
+            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
+            org.apache.thrift.TBase msg;
+            mergeStore_result result = new mergeStore_result();
+            if (e instanceof tachyon.thrift.TachyonTException) {
+                        result.e = (tachyon.thrift.TachyonTException) e;
+                        result.setEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof tachyon.thrift.ThriftIOException) {
+                        result.ioe = (tachyon.thrift.ThriftIOException) e;
+                        result.setIoeIsSet(true);
+                        msg = result;
+            }
+             else 
+            {
+              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
+              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
+            }
+            try {
+              fcall.sendResponse(fb,msg,msgType,seqid);
+              return;
+            } catch (Exception ex) {
+              LOGGER.error("Exception writing to internal frame buffer", ex);
+            }
+            fb.close();
+          }
+        };
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public void start(I iface, mergeStore_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
+        iface.mergeStore(args.fromPath, args.toPath,resultHandler);
       }
     }
 
@@ -3918,6 +4236,1809 @@ public class KeyValueMasterClientService {
           struct.e = new tachyon.thrift.TachyonTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class deleteStore_args implements org.apache.thrift.TBase<deleteStore_args, deleteStore_args._Fields>, java.io.Serializable, Cloneable, Comparable<deleteStore_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("deleteStore_args");
+
+    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new deleteStore_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new deleteStore_argsTupleSchemeFactory());
+    }
+
+    /**
+     * the path of the store
+     */
+    public String path; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      /**
+       * the path of the store
+       */
+      PATH((short)1, "path");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // PATH
+            return PATH;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(deleteStore_args.class, metaDataMap);
+    }
+
+    public deleteStore_args() {
+    }
+
+    public deleteStore_args(
+      String path)
+    {
+      this();
+      this.path = path;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public deleteStore_args(deleteStore_args other) {
+      if (other.isSetPath()) {
+        this.path = other.path;
+      }
+    }
+
+    public deleteStore_args deepCopy() {
+      return new deleteStore_args(this);
+    }
+
+    @Override
+    public void clear() {
+      this.path = null;
+    }
+
+    /**
+     * the path of the store
+     */
+    public String getPath() {
+      return this.path;
+    }
+
+    /**
+     * the path of the store
+     */
+    public deleteStore_args setPath(String path) {
+      this.path = path;
+      return this;
+    }
+
+    public void unsetPath() {
+      this.path = null;
+    }
+
+    /** Returns true if field path is set (has been assigned a value) and false otherwise */
+    public boolean isSetPath() {
+      return this.path != null;
+    }
+
+    public void setPathIsSet(boolean value) {
+      if (!value) {
+        this.path = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case PATH:
+        if (value == null) {
+          unsetPath();
+        } else {
+          setPath((String)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case PATH:
+        return getPath();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case PATH:
+        return isSetPath();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof deleteStore_args)
+        return this.equals((deleteStore_args)that);
+      return false;
+    }
+
+    public boolean equals(deleteStore_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_path = true && this.isSetPath();
+      boolean that_present_path = true && that.isSetPath();
+      if (this_present_path || that_present_path) {
+        if (!(this_present_path && that_present_path))
+          return false;
+        if (!this.path.equals(that.path))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_path = true && (isSetPath());
+      list.add(present_path);
+      if (present_path)
+        list.add(path);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(deleteStore_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("deleteStore_args(");
+      boolean first = true;
+
+      sb.append("path:");
+      if (this.path == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.path);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class deleteStore_argsStandardSchemeFactory implements SchemeFactory {
+      public deleteStore_argsStandardScheme getScheme() {
+        return new deleteStore_argsStandardScheme();
+      }
+    }
+
+    private static class deleteStore_argsStandardScheme extends StandardScheme<deleteStore_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, deleteStore_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // PATH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.path = iprot.readString();
+                struct.setPathIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, deleteStore_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.path != null) {
+          oprot.writeFieldBegin(PATH_FIELD_DESC);
+          oprot.writeString(struct.path);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class deleteStore_argsTupleSchemeFactory implements SchemeFactory {
+      public deleteStore_argsTupleScheme getScheme() {
+        return new deleteStore_argsTupleScheme();
+      }
+    }
+
+    private static class deleteStore_argsTupleScheme extends TupleScheme<deleteStore_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, deleteStore_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetPath()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetPath()) {
+          oprot.writeString(struct.path);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, deleteStore_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.path = iprot.readString();
+          struct.setPathIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class deleteStore_result implements org.apache.thrift.TBase<deleteStore_result, deleteStore_result._Fields>, java.io.Serializable, Cloneable, Comparable<deleteStore_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("deleteStore_result");
+
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new deleteStore_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new deleteStore_resultTupleSchemeFactory());
+    }
+
+    public tachyon.thrift.TachyonTException e; // required
+    public tachyon.thrift.ThriftIOException ioe; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      E((short)1, "e"),
+      IOE((short)2, "ioe");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // E
+            return E;
+          case 2: // IOE
+            return IOE;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(deleteStore_result.class, metaDataMap);
+    }
+
+    public deleteStore_result() {
+    }
+
+    public deleteStore_result(
+      tachyon.thrift.TachyonTException e,
+      tachyon.thrift.ThriftIOException ioe)
+    {
+      this();
+      this.e = e;
+      this.ioe = ioe;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public deleteStore_result(deleteStore_result other) {
+      if (other.isSetE()) {
+        this.e = new tachyon.thrift.TachyonTException(other.e);
+      }
+      if (other.isSetIoe()) {
+        this.ioe = new tachyon.thrift.ThriftIOException(other.ioe);
+      }
+    }
+
+    public deleteStore_result deepCopy() {
+      return new deleteStore_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.e = null;
+      this.ioe = null;
+    }
+
+    public tachyon.thrift.TachyonTException getE() {
+      return this.e;
+    }
+
+    public deleteStore_result setE(tachyon.thrift.TachyonTException e) {
+      this.e = e;
+      return this;
+    }
+
+    public void unsetE() {
+      this.e = null;
+    }
+
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
+    }
+
+    public void setEIsSet(boolean value) {
+      if (!value) {
+        this.e = null;
+      }
+    }
+
+    public tachyon.thrift.ThriftIOException getIoe() {
+      return this.ioe;
+    }
+
+    public deleteStore_result setIoe(tachyon.thrift.ThriftIOException ioe) {
+      this.ioe = ioe;
+      return this;
+    }
+
+    public void unsetIoe() {
+      this.ioe = null;
+    }
+
+    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
+    public boolean isSetIoe() {
+      return this.ioe != null;
+    }
+
+    public void setIoeIsSet(boolean value) {
+      if (!value) {
+        this.ioe = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case E:
+        if (value == null) {
+          unsetE();
+        } else {
+          setE((tachyon.thrift.TachyonTException)value);
+        }
+        break;
+
+      case IOE:
+        if (value == null) {
+          unsetIoe();
+        } else {
+          setIoe((tachyon.thrift.ThriftIOException)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case E:
+        return getE();
+
+      case IOE:
+        return getIoe();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case E:
+        return isSetE();
+      case IOE:
+        return isSetIoe();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof deleteStore_result)
+        return this.equals((deleteStore_result)that);
+      return false;
+    }
+
+    public boolean equals(deleteStore_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
+          return false;
+        if (!this.e.equals(that.e))
+          return false;
+      }
+
+      boolean this_present_ioe = true && this.isSetIoe();
+      boolean that_present_ioe = true && that.isSetIoe();
+      if (this_present_ioe || that_present_ioe) {
+        if (!(this_present_ioe && that_present_ioe))
+          return false;
+        if (!this.ioe.equals(that.ioe))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
+
+      boolean present_ioe = true && (isSetIoe());
+      list.add(present_ioe);
+      if (present_ioe)
+        list.add(ioe);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(deleteStore_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIoe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("deleteStore_result(");
+      boolean first = true;
+
+      sb.append("e:");
+      if (this.e == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.e);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ioe:");
+      if (this.ioe == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ioe);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class deleteStore_resultStandardSchemeFactory implements SchemeFactory {
+      public deleteStore_resultStandardScheme getScheme() {
+        return new deleteStore_resultStandardScheme();
+      }
+    }
+
+    private static class deleteStore_resultStandardScheme extends StandardScheme<deleteStore_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, deleteStore_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // E
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.e = new tachyon.thrift.TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // IOE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ioe = new tachyon.thrift.ThriftIOException();
+                struct.ioe.read(iprot);
+                struct.setIoeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, deleteStore_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ioe != null) {
+          oprot.writeFieldBegin(IOE_FIELD_DESC);
+          struct.ioe.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class deleteStore_resultTupleSchemeFactory implements SchemeFactory {
+      public deleteStore_resultTupleScheme getScheme() {
+        return new deleteStore_resultTupleScheme();
+      }
+    }
+
+    private static class deleteStore_resultTupleScheme extends TupleScheme<deleteStore_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, deleteStore_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetE()) {
+          optionals.set(0);
+        }
+        if (struct.isSetIoe()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
+        }
+        if (struct.isSetIoe()) {
+          struct.ioe.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, deleteStore_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.e = new tachyon.thrift.TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.ioe = new tachyon.thrift.ThriftIOException();
+          struct.ioe.read(iprot);
+          struct.setIoeIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class mergeStore_args implements org.apache.thrift.TBase<mergeStore_args, mergeStore_args._Fields>, java.io.Serializable, Cloneable, Comparable<mergeStore_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("mergeStore_args");
+
+    private static final org.apache.thrift.protocol.TField FROM_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("fromPath", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField TO_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("toPath", org.apache.thrift.protocol.TType.STRING, (short)2);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new mergeStore_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new mergeStore_argsTupleSchemeFactory());
+    }
+
+    /**
+     * the path of the store to be merged
+     */
+    public String fromPath; // required
+    /**
+     * the path of the store to be merged to
+     */
+    public String toPath; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      /**
+       * the path of the store to be merged
+       */
+      FROM_PATH((short)1, "fromPath"),
+      /**
+       * the path of the store to be merged to
+       */
+      TO_PATH((short)2, "toPath");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // FROM_PATH
+            return FROM_PATH;
+          case 2: // TO_PATH
+            return TO_PATH;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.FROM_PATH, new org.apache.thrift.meta_data.FieldMetaData("fromPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.TO_PATH, new org.apache.thrift.meta_data.FieldMetaData("toPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(mergeStore_args.class, metaDataMap);
+    }
+
+    public mergeStore_args() {
+    }
+
+    public mergeStore_args(
+      String fromPath,
+      String toPath)
+    {
+      this();
+      this.fromPath = fromPath;
+      this.toPath = toPath;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public mergeStore_args(mergeStore_args other) {
+      if (other.isSetFromPath()) {
+        this.fromPath = other.fromPath;
+      }
+      if (other.isSetToPath()) {
+        this.toPath = other.toPath;
+      }
+    }
+
+    public mergeStore_args deepCopy() {
+      return new mergeStore_args(this);
+    }
+
+    @Override
+    public void clear() {
+      this.fromPath = null;
+      this.toPath = null;
+    }
+
+    /**
+     * the path of the store to be merged
+     */
+    public String getFromPath() {
+      return this.fromPath;
+    }
+
+    /**
+     * the path of the store to be merged
+     */
+    public mergeStore_args setFromPath(String fromPath) {
+      this.fromPath = fromPath;
+      return this;
+    }
+
+    public void unsetFromPath() {
+      this.fromPath = null;
+    }
+
+    /** Returns true if field fromPath is set (has been assigned a value) and false otherwise */
+    public boolean isSetFromPath() {
+      return this.fromPath != null;
+    }
+
+    public void setFromPathIsSet(boolean value) {
+      if (!value) {
+        this.fromPath = null;
+      }
+    }
+
+    /**
+     * the path of the store to be merged to
+     */
+    public String getToPath() {
+      return this.toPath;
+    }
+
+    /**
+     * the path of the store to be merged to
+     */
+    public mergeStore_args setToPath(String toPath) {
+      this.toPath = toPath;
+      return this;
+    }
+
+    public void unsetToPath() {
+      this.toPath = null;
+    }
+
+    /** Returns true if field toPath is set (has been assigned a value) and false otherwise */
+    public boolean isSetToPath() {
+      return this.toPath != null;
+    }
+
+    public void setToPathIsSet(boolean value) {
+      if (!value) {
+        this.toPath = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case FROM_PATH:
+        if (value == null) {
+          unsetFromPath();
+        } else {
+          setFromPath((String)value);
+        }
+        break;
+
+      case TO_PATH:
+        if (value == null) {
+          unsetToPath();
+        } else {
+          setToPath((String)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case FROM_PATH:
+        return getFromPath();
+
+      case TO_PATH:
+        return getToPath();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case FROM_PATH:
+        return isSetFromPath();
+      case TO_PATH:
+        return isSetToPath();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof mergeStore_args)
+        return this.equals((mergeStore_args)that);
+      return false;
+    }
+
+    public boolean equals(mergeStore_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_fromPath = true && this.isSetFromPath();
+      boolean that_present_fromPath = true && that.isSetFromPath();
+      if (this_present_fromPath || that_present_fromPath) {
+        if (!(this_present_fromPath && that_present_fromPath))
+          return false;
+        if (!this.fromPath.equals(that.fromPath))
+          return false;
+      }
+
+      boolean this_present_toPath = true && this.isSetToPath();
+      boolean that_present_toPath = true && that.isSetToPath();
+      if (this_present_toPath || that_present_toPath) {
+        if (!(this_present_toPath && that_present_toPath))
+          return false;
+        if (!this.toPath.equals(that.toPath))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_fromPath = true && (isSetFromPath());
+      list.add(present_fromPath);
+      if (present_fromPath)
+        list.add(fromPath);
+
+      boolean present_toPath = true && (isSetToPath());
+      list.add(present_toPath);
+      if (present_toPath)
+        list.add(toPath);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(mergeStore_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetFromPath()).compareTo(other.isSetFromPath());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetFromPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fromPath, other.fromPath);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetToPath()).compareTo(other.isSetToPath());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetToPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.toPath, other.toPath);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("mergeStore_args(");
+      boolean first = true;
+
+      sb.append("fromPath:");
+      if (this.fromPath == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.fromPath);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("toPath:");
+      if (this.toPath == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.toPath);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class mergeStore_argsStandardSchemeFactory implements SchemeFactory {
+      public mergeStore_argsStandardScheme getScheme() {
+        return new mergeStore_argsStandardScheme();
+      }
+    }
+
+    private static class mergeStore_argsStandardScheme extends StandardScheme<mergeStore_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, mergeStore_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // FROM_PATH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.fromPath = iprot.readString();
+                struct.setFromPathIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // TO_PATH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.toPath = iprot.readString();
+                struct.setToPathIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, mergeStore_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.fromPath != null) {
+          oprot.writeFieldBegin(FROM_PATH_FIELD_DESC);
+          oprot.writeString(struct.fromPath);
+          oprot.writeFieldEnd();
+        }
+        if (struct.toPath != null) {
+          oprot.writeFieldBegin(TO_PATH_FIELD_DESC);
+          oprot.writeString(struct.toPath);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class mergeStore_argsTupleSchemeFactory implements SchemeFactory {
+      public mergeStore_argsTupleScheme getScheme() {
+        return new mergeStore_argsTupleScheme();
+      }
+    }
+
+    private static class mergeStore_argsTupleScheme extends TupleScheme<mergeStore_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, mergeStore_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetFromPath()) {
+          optionals.set(0);
+        }
+        if (struct.isSetToPath()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetFromPath()) {
+          oprot.writeString(struct.fromPath);
+        }
+        if (struct.isSetToPath()) {
+          oprot.writeString(struct.toPath);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, mergeStore_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.fromPath = iprot.readString();
+          struct.setFromPathIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.toPath = iprot.readString();
+          struct.setToPathIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class mergeStore_result implements org.apache.thrift.TBase<mergeStore_result, mergeStore_result._Fields>, java.io.Serializable, Cloneable, Comparable<mergeStore_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("mergeStore_result");
+
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new mergeStore_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new mergeStore_resultTupleSchemeFactory());
+    }
+
+    public tachyon.thrift.TachyonTException e; // required
+    public tachyon.thrift.ThriftIOException ioe; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      E((short)1, "e"),
+      IOE((short)2, "ioe");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // E
+            return E;
+          case 2: // IOE
+            return IOE;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(mergeStore_result.class, metaDataMap);
+    }
+
+    public mergeStore_result() {
+    }
+
+    public mergeStore_result(
+      tachyon.thrift.TachyonTException e,
+      tachyon.thrift.ThriftIOException ioe)
+    {
+      this();
+      this.e = e;
+      this.ioe = ioe;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public mergeStore_result(mergeStore_result other) {
+      if (other.isSetE()) {
+        this.e = new tachyon.thrift.TachyonTException(other.e);
+      }
+      if (other.isSetIoe()) {
+        this.ioe = new tachyon.thrift.ThriftIOException(other.ioe);
+      }
+    }
+
+    public mergeStore_result deepCopy() {
+      return new mergeStore_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.e = null;
+      this.ioe = null;
+    }
+
+    public tachyon.thrift.TachyonTException getE() {
+      return this.e;
+    }
+
+    public mergeStore_result setE(tachyon.thrift.TachyonTException e) {
+      this.e = e;
+      return this;
+    }
+
+    public void unsetE() {
+      this.e = null;
+    }
+
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
+    }
+
+    public void setEIsSet(boolean value) {
+      if (!value) {
+        this.e = null;
+      }
+    }
+
+    public tachyon.thrift.ThriftIOException getIoe() {
+      return this.ioe;
+    }
+
+    public mergeStore_result setIoe(tachyon.thrift.ThriftIOException ioe) {
+      this.ioe = ioe;
+      return this;
+    }
+
+    public void unsetIoe() {
+      this.ioe = null;
+    }
+
+    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
+    public boolean isSetIoe() {
+      return this.ioe != null;
+    }
+
+    public void setIoeIsSet(boolean value) {
+      if (!value) {
+        this.ioe = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case E:
+        if (value == null) {
+          unsetE();
+        } else {
+          setE((tachyon.thrift.TachyonTException)value);
+        }
+        break;
+
+      case IOE:
+        if (value == null) {
+          unsetIoe();
+        } else {
+          setIoe((tachyon.thrift.ThriftIOException)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case E:
+        return getE();
+
+      case IOE:
+        return getIoe();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case E:
+        return isSetE();
+      case IOE:
+        return isSetIoe();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof mergeStore_result)
+        return this.equals((mergeStore_result)that);
+      return false;
+    }
+
+    public boolean equals(mergeStore_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
+          return false;
+        if (!this.e.equals(that.e))
+          return false;
+      }
+
+      boolean this_present_ioe = true && this.isSetIoe();
+      boolean that_present_ioe = true && that.isSetIoe();
+      if (this_present_ioe || that_present_ioe) {
+        if (!(this_present_ioe && that_present_ioe))
+          return false;
+        if (!this.ioe.equals(that.ioe))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
+
+      boolean present_ioe = true && (isSetIoe());
+      list.add(present_ioe);
+      if (present_ioe)
+        list.add(ioe);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(mergeStore_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIoe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("mergeStore_result(");
+      boolean first = true;
+
+      sb.append("e:");
+      if (this.e == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.e);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ioe:");
+      if (this.ioe == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ioe);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class mergeStore_resultStandardSchemeFactory implements SchemeFactory {
+      public mergeStore_resultStandardScheme getScheme() {
+        return new mergeStore_resultStandardScheme();
+      }
+    }
+
+    private static class mergeStore_resultStandardScheme extends StandardScheme<mergeStore_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, mergeStore_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // E
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.e = new tachyon.thrift.TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // IOE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ioe = new tachyon.thrift.ThriftIOException();
+                struct.ioe.read(iprot);
+                struct.setIoeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, mergeStore_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ioe != null) {
+          oprot.writeFieldBegin(IOE_FIELD_DESC);
+          struct.ioe.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class mergeStore_resultTupleSchemeFactory implements SchemeFactory {
+      public mergeStore_resultTupleScheme getScheme() {
+        return new mergeStore_resultTupleScheme();
+      }
+    }
+
+    private static class mergeStore_resultTupleScheme extends TupleScheme<mergeStore_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, mergeStore_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetE()) {
+          optionals.set(0);
+        }
+        if (struct.isSetIoe()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
+        }
+        if (struct.isSetIoe()) {
+          struct.ioe.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, mergeStore_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.e = new tachyon.thrift.TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.ioe = new tachyon.thrift.ThriftIOException();
+          struct.ioe.read(iprot);
+          struct.setIoeIsSet(true);
         }
       }
     }

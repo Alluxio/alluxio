@@ -30,8 +30,11 @@ import org.mockito.Mockito;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import org.powermock.reflect.Whitebox;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
@@ -43,6 +46,7 @@ import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.master.permission.FileSystemPermissionChecker;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.util.CommonUtils;
 
@@ -85,7 +89,13 @@ public final class InodeTreeTest {
     mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
     blockMaster.start(true);
+
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup");
+    MasterContext.reset(conf);
     mTree.initializeRoot(TEST_PERMISSION_STATUS);
+    verifyPermissionChecker(true, TEST_PERMISSION_STATUS.getUserName(), "test-supergroup");
   }
 
   /**
@@ -118,6 +128,7 @@ public final class InodeTreeTest {
     Inode root = mTree.getInodeByPath(new TachyonURI("/"));
     // initializeRoot call does nothing
     mTree.initializeRoot(TEST_PERMISSION_STATUS);
+    verifyPermissionChecker(true, root.getUserName(), "test-supergroup");
     Inode newRoot = mTree.getInodeByPath(new TachyonURI("/"));
     Assert.assertEquals(root, newRoot);
   }
@@ -245,8 +256,8 @@ public final class InodeTreeTest {
     try {
       createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
       Assert.assertTrue("createPath should throw FileAlreadyExistsException", false);
-    } catch (FileAlreadyExistsException faee) {
-      Assert.assertEquals(faee.getMessage(),
+    } catch (FileAlreadyExistsException e) {
+      Assert.assertEquals(e.getMessage(),
           ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(NESTED_URI));
     }
 
@@ -588,5 +599,14 @@ public final class InodeTreeTest {
     for (Inode child : children) {
       Assert.assertTrue(childNames.contains(child.getName()));
     }
+  }
+
+  private void verifyPermissionChecker(boolean enabled, String owner, String group) {
+    Assert.assertEquals(enabled, Whitebox.getInternalState(FileSystemPermissionChecker.class,
+        "sPermissionCheckEnabled"));
+    Assert.assertEquals(owner, Whitebox.getInternalState(FileSystemPermissionChecker.class,
+        "sFileSystemOwner"));
+    Assert.assertEquals(group, Whitebox.getInternalState(FileSystemPermissionChecker.class,
+        "sFileSystemSuperGroup"));
   }
 }

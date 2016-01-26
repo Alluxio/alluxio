@@ -41,6 +41,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import tachyon.proto.journal.Block.BlockInfoEntry;
+import tachyon.proto.journal.File;
 import tachyon.proto.journal.File.AddMountPointEntry;
 import tachyon.proto.journal.File.AsyncPersistRequestEntry;
 import tachyon.proto.journal.File.CompleteFileEntry;
@@ -58,6 +59,8 @@ import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.KeyValue.CompletePartitionEntry;
 import tachyon.proto.journal.KeyValue.CompleteStoreEntry;
 import tachyon.proto.journal.KeyValue.CreateStoreEntry;
+import tachyon.proto.journal.KeyValue.DeleteStoreEntry;
+import tachyon.proto.journal.KeyValue.MergeStoreEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
@@ -234,6 +237,15 @@ public abstract class JournalFormatterTestBase {
                 .build())
         .add(
             JournalEntry.newBuilder()
+                .setSetAcl(File.SetAclEntry.newBuilder()
+                    .setId(TEST_FILE_ID)
+                    .setOpTimeMs(TEST_OP_TIME_MS)
+                    .setUserName(TEST_PERMISSION_STATUS.getUserName())
+                    .setGroupName(TEST_PERMISSION_STATUS.getGroupName())
+                    .setPermission(TEST_PERMISSION_STATUS.getPermission().toShort()))
+                .build())
+        .add(
+            JournalEntry.newBuilder()
                 .setCompletePartition(CompletePartitionEntry.newBuilder()
                     .setStoreId(TEST_FILE_ID)
                     .setBlockId(TEST_BLOCK_ID)
@@ -249,6 +261,17 @@ public abstract class JournalFormatterTestBase {
             JournalEntry.newBuilder()
                 .setCompleteStore(CompleteStoreEntry.newBuilder()
                     .setStoreId(TEST_FILE_ID))
+                .build())
+        .add(
+            JournalEntry.newBuilder()
+                .setDeleteStore(DeleteStoreEntry.newBuilder()
+                  .setStoreId(TEST_FILE_ID))
+                .build())
+        .add(
+            JournalEntry.newBuilder()
+                .setMergeStore(MergeStoreEntry.newBuilder()
+                  .setFromStoreId(TEST_FILE_ID)
+                  .setToStoreId(TEST_FILE_ID + 1))
                 .build())
         .build();
     // Add the test sequence number to every journal entry

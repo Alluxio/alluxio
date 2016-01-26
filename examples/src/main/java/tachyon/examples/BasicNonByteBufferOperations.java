@@ -55,6 +55,14 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private final boolean mDeleteIfExists;
   private final int mLength;
 
+  /**
+   * @param masterLocation the location of the master
+   * @param filePath the path for the files
+   * @param readType the {@link ReadType}
+   * @param writeType the {@link WriteType}
+   * @param deleteIfExists delete files if they already exist
+   * @param length the number of files
+   */
   public BasicNonByteBufferOperations(TachyonURI masterLocation, TachyonURI filePath, ReadType
       readType, WriteType writeType, boolean deleteIfExists, int length) {
     mMasterLocation = masterLocation;
@@ -121,6 +129,14 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     return true;
   }
 
+  /**
+   * Usage: {@code java -cp <TACHYON-VERSION> BasicNonByteBufferOperations <master address>
+   *   <file path> <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)>
+   *   <WriteType (MUST_CACHE | CACHE_THROUGH | THROUGH)> <delete file> <number of files>}
+   *
+   * @param args the parameters to run the example
+   * @throws IOException if the example fails to run
+   */
   public static void main(final String[] args) throws IOException {
     if (args.length < 2 || args.length > 6) {
       usage();

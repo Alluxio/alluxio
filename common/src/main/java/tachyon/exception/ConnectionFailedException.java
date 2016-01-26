@@ -15,11 +15,14 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Exception used when a network connection failure occurs. Examples include network connection
  * timeout, connection refuse, host unreachable.
  *
  */
+@ThreadSafe
 public final class ConnectionFailedException extends TachyonException {
   private static final long serialVersionUID = 3160271300708523896L;
 

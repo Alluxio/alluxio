@@ -41,6 +41,10 @@ public class BasicCheckpoint implements Callable<Boolean> {
   private final String mFileFolder;
   private final int mNumFiles;
 
+  /**
+   * @param fileFolder folder to use for the files
+   * @param numFiles the number of files
+   */
   public BasicCheckpoint(String fileFolder, int numFiles) {
     mFileFolder = fileFolder;
     mNumFiles = numFiles;
@@ -87,6 +91,13 @@ public class BasicCheckpoint implements Callable<Boolean> {
     }
   }
 
+  /**
+   * Example program for using checkpoints.
+   * Usage: {@code java -cp <TACHYON-VERSION> tachyon.examples.BasicCheckpoint <FileFolder> <Files>}
+   *
+   * @param args the folder for the files and the files to use
+   * @throws IOException if the example fails to run
+   */
   public static void main(String[] args) throws IOException {
     if (args.length != 2) {
       System.out.println("java -cp " + Version.TACHYON_JAR
