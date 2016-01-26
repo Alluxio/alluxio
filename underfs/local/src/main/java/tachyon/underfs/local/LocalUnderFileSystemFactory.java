@@ -17,6 +17,8 @@ package tachyon.underfs.local;
 
 import com.google.common.base.Preconditions;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
@@ -25,6 +27,7 @@ import tachyon.underfs.UnderFileSystemFactory;
 /**
  * Factory for creating {@link LocalUnderFileSystem}.
  */
+@ThreadSafe
 public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
