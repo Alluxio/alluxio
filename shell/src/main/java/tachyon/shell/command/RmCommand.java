@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -25,6 +27,7 @@ import tachyon.exception.TachyonException;
 /**
  * Removes the file specified by argv.
  */
+@ThreadSafe
 public final class RmCommand extends WithWildCardPathCommand {
 
   /**

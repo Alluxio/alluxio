@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Joiner;
 
 import tachyon.TachyonURI;
@@ -31,6 +33,7 @@ import tachyon.exception.TachyonException;
 /**
  * Persists a file or directory currently stored only in Tachyon to the UnderFileSystem
  */
+@ThreadSafe
 public final class PersistCommand extends AbstractTfsShellCommand {
 
   /**
