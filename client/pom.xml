@@ -5,14 +5,13 @@
     <artifactId>tachyon-parent</artifactId>
     <version>0.9.0-SNAPSHOT</version>
   </parent>
-  <artifactId>tachyon-clients</artifactId>
+  <artifactId>tachyon-client</artifactId>
   <packaging>pom</packaging>
   <name>Tachyon Clients</name>
-  <description>Parent POM for Tachyon clients</description>
+  <description>Parent POM for Tachyon client jars for distribution</description>
 
   <modules>
-    <module>unshaded</module>
-    <module>client</module>
+    <module>core</module>
   </modules>
 
   <properties>

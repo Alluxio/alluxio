@@ -5,10 +5,16 @@
     <artifactId>tachyon-parent</artifactId>
     <version>0.9.0-SNAPSHOT</version>
   </parent>
-  <artifactId>tachyon-shell</artifactId>
-  <packaging>jar</packaging>
-  <name>Tachyon Shell</name>
-  <description>A Linux shell-like interface to interact with Tachyon</description>
+  <artifactId>tachyon-core</artifactId>
+  <packaging>pom</packaging>
+  <name>Tachyon Core</name>
+  <description>Parent POM for Tachyon core</description>
+
+  <modules>
+    <module>common</module>
+    <module>client-internal</module>
+    <module>server</module>
+  </modules>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -16,23 +22,5 @@
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>
-    <failIfNoTests>false</failIfNoTests>
   </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.reflections</groupId>
-      <artifactId>reflections</artifactId>
-      <version>0.9.10</version>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-client-internal</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-  </dependencies>
 </project>

@@ -20,7 +20,7 @@
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-client-unshaded</artifactId>
+      <artifactId>tachyon-core-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
