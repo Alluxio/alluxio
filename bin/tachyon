@@ -5,6 +5,7 @@ LAUNCHER=
 if [[ $- == *x* ]]; then
   LAUNCHER="bash -x"
 fi
+BIN=$(cd "$( dirname "$0" )"; pwd)
 
 function printUsage {
   echo "Usage: tachyon COMMAND "
@@ -37,15 +38,13 @@ fi
 COMMAND=$1
 shift
 
-bin=`cd "$( dirname "$0" )"; pwd`
-
 function bootstrapConf {
   if [[ $# -ne 1 ]]; then
     echo "Usage: $0 bootstrap-conf TACHYON_MASTER_HOSTNAME"
     exit 1
   fi
 
-  TACHYON_CONF_DIR=$bin/../conf
+  TACHYON_CONF_DIR=${BIN}/../conf
   if [[ ! -e "${TACHYON_CONF_DIR}/tachyon-env.sh" ]]; then
     if [[ `uname -a` == Darwin* ]]; then
       # osx sed wants an argument to -i, use .bootstrap.bk
@@ -72,7 +71,7 @@ if [[ "${COMMAND}" == "bootstrap-conf" ]]; then
   exit 0
 fi
 
-DEFAULT_LIBEXEC_DIR="${bin}"/../libexec
+DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
 TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . ${TACHYON_LIBEXEC_DIR}/tachyon-config.sh
 
@@ -106,7 +105,7 @@ function runTest {
       exit 1
       ;;
   esac
-  ${LAUNCHER} ${bin}/tachyon tfs rmr ${file}
+  ${LAUNCHER} ${BIN}/tachyon tfs rmr ${file}
   ${JAVA} -cp ${CLASSPATH} ${TACHYON_JAVA_OPTS} ${class} tachyon://${MASTER_ADDRESS}:19998 ${file} $2 $3
 
   # If test process received a signal abort early
@@ -180,7 +179,6 @@ function copyDir {
     exit 1
   fi
 
-  bin=`cd "$( dirname "$0" )"; pwd`
   WORKERS=`cat ${TACHYON_CONF_DIR}/workers | grep -v '^#'`
 
   DIR=`readlink -f "$1"`
@@ -230,7 +228,7 @@ case ${COMMAND} in
     TACHYON_MASTER_ADDRESS=localhost
   fi
 
-  ${LAUNCHER} ${bin}/tachyon-workers.sh ${bin}/tachyon formatWorker
+  ${LAUNCHER} ${BIN}/tachyon-workers.sh ${BIN}/tachyon formatWorker
 
   echo "Formatting Tachyon Master @ ${TACHYON_MASTER_ADDRESS}"
   CLASS=tachyon.Format
@@ -259,8 +257,8 @@ case ${COMMAND} in
   for readType in ${readTypes[@]}; do
     for writeType in ${writeTypes[@]}; do
       for example in Basic BasicNonByteBuffer; do
-        echo ${LAUNCHER} ${bin}/tachyon runTest ${example} ${readType} ${writeType}
-        ${LAUNCHER} ${bin}/tachyon runTest ${example} ${readType} ${writeType}
+        echo ${LAUNCHER} ${BIN}/tachyon runTest ${example} ${readType} ${writeType}
+        ${LAUNCHER} ${BIN}/tachyon runTest ${example} ${readType} ${writeType}
         st=$?
 
         # If test process received a signal abort early
@@ -297,19 +295,19 @@ case ${COMMAND} in
   exit 0
 ;;
 "thriftGen")
-  declare -a thriftSrcPaths=("${bin}/../common/src" "${bin}/../keyvalue/common/src")
+  declare -a thriftSrcPaths=("${BIN}/../common/src" "${BIN}/../keyvalue/common/src")
   for thriftSrcPath in ${thriftSrcPaths[@]}; do
     rm -rf "${thriftSrcPath}/main/java/tachyon/thrift"
     for srcFile in $(ls "${thriftSrcPath}/thrift"); do
-      thrift -I "${bin}/../common/src/thrift" --gen java -out "${thriftSrcPath}/main/java/." "${thriftSrcPath}/thrift/${srcFile}"
+      thrift -I "${BIN}/../common/src/thrift" --gen java -out "${thriftSrcPath}/main/java/." "${thriftSrcPath}/thrift/${srcFile}"
     done
   done
   exit 0
 ;;
 "protoGen")
-  rm -rf ${bin}/../servers/src/main/java/tachyon/proto
-  for src_file in $(find ${bin}/../servers/src/proto -type f); do
-    protoc --java_out=${bin}/../servers/src/main/java --proto_path=`dirname ${src_file}` ${src_file}
+  rm -rf ${BIN}/../servers/src/main/java/tachyon/proto
+  for src_file in $(find ${BIN}/../servers/src/proto -type f); do
+    protoc --java_out=${BIN}/../servers/src/main/java --proto_path=`dirname ${src_file}` ${src_file}
   done
   exit 0
 ;;
