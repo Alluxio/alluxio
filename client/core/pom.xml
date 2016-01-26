@@ -2,14 +2,14 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.tachyonproject</groupId>
-    <artifactId>tachyon-clients</artifactId>
+    <artifactId>tachyon-client</artifactId>
     <version>0.9.0-SNAPSHOT</version>
   </parent>
   <groupId>org.tachyonproject</groupId>
-  <artifactId>tachyon-client</artifactId>
+  <artifactId>tachyon-client-core</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Clients - Distribution</name>
-  <description>Distribution of Tachyon client module with shaded packages in jar</description>
+  <name>Tachyon Client - Core</name>
+  <description>Distribution of client for Tachyon core</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -21,7 +21,7 @@
   </properties>
 
   <dependencies>
-    <!-- Compile dependencies copied from tachyon-common, except libthrift -->
+    <!-- Compile dependencies copied from tachyon-core-common, except libthrift -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -70,7 +70,8 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
 
-    <!-- Dependencies copied from tachyon-client-unshaded, not included in tachyon-common -->
+    <!-- Dependencies copied from tachyon-core-client-internal, not included in tachyon-core-common
+     -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
@@ -79,12 +80,7 @@
     <!-- Other Tachyon dependencies -->
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-client-unshaded</artifactId>
+      <artifactId>tachyon-core-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -99,7 +95,7 @@
       <exclusions>
         <exclusion>
           <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-common</artifactId>
+          <artifactId>tachyon-core-common</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -115,7 +111,7 @@
     <!--   <exclusions> -->
     <!--     <exclusion> -->
     <!--       <groupId>org.tachyonproject</groupId> -->
-    <!--       <artifactId>tachyon-common</artifactId> -->
+    <!--       <artifactId>tachyon-core-common</artifactId> -->
     <!--     </exclusion> -->
     <!--   </exclusions> -->
     <!-- </dependency> -->
@@ -126,7 +122,7 @@
       <exclusions>
         <exclusion>
           <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-common</artifactId>
+          <artifactId>tachyon-core-common</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -137,7 +133,7 @@
       <exclusions>
         <exclusion>
           <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-common</artifactId>
+          <artifactId>tachyon-core-common</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -178,8 +174,8 @@
             <configuration>
               <artifactSet>
                 <includes>
-                  <include>org.tachyonproject:tachyon-common</include>
-                  <include>org.tachyonproject:tachyon-client-unshaded</include>
+                  <include>org.tachyonproject:tachyon-core-common</include>
+                  <include>org.tachyonproject:tachyon-core-client-internal</include>
                   <include>org.tachyonproject:tachyon-keyvalue-client</include>
                   <include>org.apache.thrift:libthrift</include>
                 </includes>

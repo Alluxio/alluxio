@@ -7,7 +7,7 @@
   </parent>
   <artifactId>tachyon-tests</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Integration Tests</name>
+  <name>Tachyon Tests</name>
   <description>Integration tests for Tachyon</description>
 
   <properties>
@@ -60,14 +60,8 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-servers</artifactId>
+      <artifactId>tachyon-core-server</artifactId>
       <type>test-jar</type>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-common</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

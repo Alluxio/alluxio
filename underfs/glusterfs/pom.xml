@@ -33,11 +33,6 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-underfs-hdfs</artifactId>
       <version>${project.version}</version>
     </dependency>
