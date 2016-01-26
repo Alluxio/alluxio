@@ -59,7 +59,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     mBlockWorkerClient = mContext.acquireWorkerClient(location.getHostName());
 
     try {
-      mLockId = mBlockWorkerClient.lockBlock(blockId).lockId;
+      mLockId = mBlockWorkerClient.lockBlock(blockId).getLockId();
       if (mLockId == null) {
         throw new IOException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId));
       }

@@ -244,7 +244,7 @@ public class PermissionCheckTest {
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
         new TachyonURI("/notExistDir")));
     Assert.assertEquals("notExistDir", fileInfo.getName());
-    Assert.assertEquals(true, fileInfo.isFolder);
+    Assert.assertEquals(true, fileInfo.isFolder());
     Assert.assertEquals(TEST_USER_1.getUser(), fileInfo.getUserName());
   }
 
@@ -278,7 +278,7 @@ public class PermissionCheckTest {
         new TachyonURI(path)));
     String[] pathComponents = path.split("/");
     Assert.assertEquals(pathComponents[pathComponents.length - 1], fileInfo.getName());
-    Assert.assertEquals(true, fileInfo.isFolder);
+    Assert.assertEquals(true, fileInfo.isFolder());
     Assert.assertEquals(user.getUser(), fileInfo.getUserName());
   }
 
@@ -519,8 +519,8 @@ public class PermissionCheckTest {
     mFileSystemMaster.setState(new TachyonURI(path), options);
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(new TachyonURI(path));
-    return SetAttributeOptions.defaults().setPinned(fileInfo.isIsPinned())
-        .setTtl(fileInfo.getTtl()).setPersisted(fileInfo.isIsPersisted());
+    return SetAttributeOptions.defaults().setPinned(fileInfo.isPinned())
+        .setTtl(fileInfo.getTtl()).setPersisted(fileInfo.isPersisted());
   }
 
   @Test

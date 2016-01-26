@@ -56,7 +56,7 @@ public class PinCommandTest extends AbstractTfsShellTest {
   /**
    * Tests pinned files are not evicted when Tachyon reaches memory limit. This use cases
    * creates three files of size 5MB for each to be added to Tachyon. The first file is pinned
-   * and is not expected to be evected.Tachyon capacity is 10MB, hence once the third file is
+   * and is not expected to be evicted.Tachyon capacity is 10MB, hence once the third file is
    * added, Tachyon is forced to evict one file. Since the first file is pinned it will not be
    * evicted only the second file will be evicted
    */
@@ -71,8 +71,7 @@ public class PinCommandTest extends AbstractTfsShellTest {
     Assert.assertTrue(fileExist(filePathA));
     Assert.assertEquals(0, mFsShell.run("pin", filePathA.toString()));
 
-    TachyonFSTestUtils.createByteFile(mTfs, filePathB, WriteType.MUST_CACHE,
-        fileSize);
+    TachyonFSTestUtils.createByteFile(mTfs, filePathB, WriteType.MUST_CACHE, fileSize);
     Assert.assertTrue(fileExist(filePathB));
     Assert.assertEquals(0, mFsShell.run("unpin", filePathB.toString()));
 
