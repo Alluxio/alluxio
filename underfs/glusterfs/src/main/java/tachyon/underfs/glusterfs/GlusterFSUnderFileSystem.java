@@ -15,9 +15,9 @@
 
 package tachyon.underfs.glusterfs;
 
-import org.apache.hadoop.conf.Configuration;
-
 import javax.annotation.concurrent.ThreadSafe;
+
+import org.apache.hadoop.conf.Configuration;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;

@@ -24,6 +24,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.javaswift.joss.client.factory.AccountConfig;
@@ -43,7 +45,6 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.swift.http.SwiftDirectClient;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library.

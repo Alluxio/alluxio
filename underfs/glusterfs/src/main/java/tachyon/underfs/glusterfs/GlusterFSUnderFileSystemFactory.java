@@ -15,9 +15,9 @@
 
 package tachyon.underfs.glusterfs;
 
-import com.google.common.base.Preconditions;
-
 import javax.annotation.concurrent.ThreadSafe;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
