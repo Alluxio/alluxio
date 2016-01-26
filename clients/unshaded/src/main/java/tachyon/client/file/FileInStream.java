@@ -355,7 +355,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     } catch (IOException e) {
       LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}",
           blockId, e);
-      if (!mFileInfo.isPersisted) {
+      if (!mFileInfo.isPersisted()) {
         LOG.error("Could not obtain data for block with ID {} from Tachyon."
             + " The block will not be persisted in the under file storage.", blockId);
         throw e;

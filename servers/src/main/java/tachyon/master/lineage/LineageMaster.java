@@ -293,7 +293,7 @@ public final class LineageMaster extends MasterBase {
       throw new LineageDoesNotExistException(
           ExceptionMessage.MISSING_REINITIALIZE_FILE.getMessage(path));
     }
-    if (!fileInfo.isCompleted || mFileSystemMaster.getLostFiles().contains(fileId)) {
+    if (!fileInfo.isCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
       LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
       return mFileSystemMaster.reinitializeFile(new TachyonURI(path), blockSizeBytes, ttl);
     }
