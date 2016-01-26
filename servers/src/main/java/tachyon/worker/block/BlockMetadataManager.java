@@ -82,6 +82,11 @@ public final class BlockMetadataManager {
     }
   }
 
+  /**
+   * Creates a new instance of {@link BlockMetadataManager}.
+   *
+   * @return a {@link BlockMetadataManager} instance
+   */
   public static BlockMetadataManager createBlockMetadataManager() {
     return new BlockMetadataManager();
   }
