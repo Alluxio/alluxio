@@ -113,6 +113,9 @@ public final class Client {
   /** Command line options */
   private Options mOptions;
 
+  /**
+   * Constructs a new client for launching a Tachyon application master.
+   */
   public Client() {
     mOptions = new Options();
     mOptions.addOption("appname", true, "Application Name. Default 'Tachyon'");
