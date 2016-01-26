@@ -42,14 +42,14 @@ import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.io.BlockReader;
 
 /**
  * Tests {@link FileDataManager}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockDataManager.class, BufferUtils.class})
+@PrepareForTest({BlockWorker.class, BufferUtils.class})
 public final class FileDataManagerTest {
 
   /**
@@ -63,21 +63,21 @@ public final class FileDataManagerTest {
     long fileId = 1;
     List<Long> blockIds = Lists.newArrayList(1L, 2L);
 
-    // mock block data manager
-    BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
+    // mock block worker
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
     FileInfo fileInfo = new FileInfo();
     fileInfo.path = "test";
-    Mockito.when(blockDataManager.getFileInfo(fileId)).thenReturn(fileInfo);
+    Mockito.when(blockWorker.getFileInfo(fileId)).thenReturn(fileInfo);
     BlockReader reader = Mockito.mock(BlockReader.class);
     for (long blockId : blockIds) {
-      Mockito.when(blockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId))
+      Mockito.when(blockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId))
           .thenReturn(blockId);
       Mockito
-          .when(blockDataManager.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId))
+          .when(blockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId))
           .thenReturn(reader);
     }
 
-    FileDataManager manager = new FileDataManager(blockDataManager);
+    FileDataManager manager = new FileDataManager(blockWorker);
 
     // mock ufs
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
@@ -113,8 +113,8 @@ public final class FileDataManagerTest {
   @Test
   @SuppressWarnings("unchecked")
   public void clearPersistedFilesTest() {
-    BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
-    FileDataManager manager = new FileDataManager(blockDataManager);
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    FileDataManager manager = new FileDataManager(blockWorker);
     Set<Long> persistedFiles = Sets.newHashSet(1L, 2L);
 
     Whitebox.setInternalState(manager, "mPersistedFiles", Sets.newHashSet(persistedFiles));
@@ -138,19 +138,19 @@ public final class FileDataManagerTest {
     long fileId = 1;
     List<Long> blockIds = Lists.newArrayList(1L, 2L);
 
-    // mock block data manager
-    BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
+    // mock block worker
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
     FileInfo fileInfo = new FileInfo();
     fileInfo.path = "test";
-    Mockito.when(blockDataManager.getFileInfo(fileId)).thenReturn(fileInfo);
+    Mockito.when(blockWorker.getFileInfo(fileId)).thenReturn(fileInfo);
     for (long blockId : blockIds) {
-      Mockito.when(blockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId))
+      Mockito.when(blockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId))
           .thenReturn(blockId);
-      Mockito.doThrow(new InvalidWorkerStateException("invalid worker")).when(blockDataManager)
+      Mockito.doThrow(new InvalidWorkerStateException("invalid worker")).when(blockWorker)
           .readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId);
     }
 
-    FileDataManager manager = new FileDataManager(blockDataManager);
+    FileDataManager manager = new FileDataManager(blockWorker);
 
     // mock ufs
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
@@ -171,8 +171,8 @@ public final class FileDataManagerTest {
       Assert.assertEquals("the blocks of file1 are failed to persist\n"
           + "tachyon.exception.InvalidWorkerStateException: invalid worker\n", e.getMessage());
       // verify the locks are all unlocked
-      Mockito.verify(blockDataManager).unlockBlock(1L);
-      Mockito.verify(blockDataManager).unlockBlock(2L);
+      Mockito.verify(blockWorker).unlockBlock(1L);
+      Mockito.verify(blockWorker).unlockBlock(2L);
     }
   }
 }

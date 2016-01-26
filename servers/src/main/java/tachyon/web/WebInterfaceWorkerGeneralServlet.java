@@ -30,8 +30,8 @@ import tachyon.Constants;
 import tachyon.Version;
 import tachyon.collections.Pair;
 import tachyon.util.FormatUtils;
-import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.BlockStoreMeta;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * Servlets that shows a worker's general information, including tiered storage details.
@@ -135,19 +135,19 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   }
 
   private static final long serialVersionUID = 3735143768058466487L;
-  private final transient BlockDataManager mBlockDataManager;
+  private final transient BlockWorker mBlockWorker;
   private final UIWorkerInfo mUiWorkerInfo;
 
   /**
    * Creates a new instance of {@link WebInterfaceWorkerGeneralServlet}.
    *
-   * @param blockDataManager block data manager
-   * @param workerAddress worker address
+   * @param blockWorker block worker handle
+   * @param workerAddress  worker address
    * @param startTimeMs start time in milliseconds
    */
-  public WebInterfaceWorkerGeneralServlet(BlockDataManager blockDataManager,
+  public WebInterfaceWorkerGeneralServlet(BlockWorker blockWorker,
       InetSocketAddress workerAddress, long startTimeMs) {
-    mBlockDataManager = blockDataManager;
+    mBlockWorker = blockWorker;
     mUiWorkerInfo = new UIWorkerInfo(workerAddress.toString(), startTimeMs);
   }
 
@@ -167,7 +167,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("workerInfo", mUiWorkerInfo);
 
-    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
     long capacityBytes = 0L;
     long usedBytes = 0L;
     Map<String, Long> capacityBytesOnTiers = storeMeta.getCapacityBytesOnTiers();

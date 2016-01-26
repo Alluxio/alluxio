@@ -18,6 +18,7 @@ package tachyon.security.login;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.Configuration;
 
@@ -32,6 +33,7 @@ import tachyon.security.authentication.AuthType;
  * Then JAAS login framework use the selected array of AppConfigurationEntry to determine the login
  * modules to be used.
  */
+@ThreadSafe
 public final class TachyonJaasConfiguration extends Configuration {
 
   private static final Map<String, String> EMPTY_JAAS_OPTIONS = new HashMap<String, String>();

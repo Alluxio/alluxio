@@ -29,8 +29,8 @@ import tachyon.worker.WorkerContext;
  */
 public final class SessionCleaner implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  /** Block data manager responsible for interacting with Tachyon and UFS storage */
-  private final BlockDataManager mBlockDataManager;
+  /** Block worker handler responsible for interacting with Tachyon and UFS storage */
+  private final BlockWorker mBlockWorker;
   /** Milliseconds between each check */
   private final int mCheckIntervalMs;
 
@@ -40,10 +40,10 @@ public final class SessionCleaner implements Runnable {
   /**
    * Creates a new instance of {@link SessionCleaner}.
    *
-   * @param blockDataManager a block data manager handle
+   * @param blockWorker the block worker handle
    */
-  public SessionCleaner(BlockDataManager blockDataManager) {
-    mBlockDataManager = blockDataManager;
+  public SessionCleaner(BlockWorker blockWorker) {
+    mBlockWorker = blockWorker;
     mCheckIntervalMs =
         WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
 
@@ -67,7 +67,7 @@ public final class SessionCleaner implements Runnable {
       }
 
       // Check if any sessions have become zombies, if so clean them up
-      mBlockDataManager.cleanupSessions();
+      mBlockWorker.cleanupSessions();
       lastCheckMs = System.currentTimeMillis();
     }
   }

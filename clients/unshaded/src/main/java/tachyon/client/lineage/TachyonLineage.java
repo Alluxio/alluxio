@@ -56,7 +56,7 @@ public final class TachyonLineage extends AbstractLineageClient {
     return sTachyonLineage;
   }
 
-  private TachyonLineage() {
+  protected TachyonLineage() {
     super();
   }
 

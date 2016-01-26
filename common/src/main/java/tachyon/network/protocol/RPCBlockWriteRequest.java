@@ -17,6 +17,8 @@ package tachyon.network.protocol;
 
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.primitives.Longs;
 
 import io.netty.buffer.ByteBuf;
@@ -27,6 +29,7 @@ import tachyon.network.protocol.databuffer.DataByteBuffer;
 /**
  * This represents the request to write a block to a DataServer.
  */
+@ThreadSafe
 public final class RPCBlockWriteRequest extends RPCRequest {
   private final long mSessionId;
   private final long mBlockId;

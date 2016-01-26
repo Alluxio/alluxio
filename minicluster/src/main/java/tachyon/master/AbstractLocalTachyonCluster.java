@@ -272,7 +272,7 @@ public abstract class AbstractLocalTachyonCluster {
     // If we are using the LocalMiniDFSCluster or S3UnderStorageCluster or OSSUnderStorageCluster,
     // we need to update the UNDERFS_ADDRESS to point to the cluster's current address.
     // This must happen after UFS is started with UnderFileSystemCluster.get().
-    // TODO(andrew): Move logic to the integration-tests project so that we can use instanceof here
+    // TODO(andrew): Move logic to the tachyon-tests module so that we can use instanceof here
     // instead of comparing classnames.
     if (mUfsCluster.getClass().getSimpleName().equals("LocalMiniDFSCluster")
         || mUfsCluster.getClass().getSimpleName().equals("S3UnderStorageCluster")

@@ -18,19 +18,21 @@ package tachyon.collections;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.commons.lang.Validate;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-
 /**
- * Prefix list is used by PinList and WhiteList to do file filtering.
+ * Prefix list is used to do file filtering.
  */
+@ThreadSafe
 public final class PrefixList {
   private final List<String> mInnerList;
 
   /**
-   * Prefix list is used by PinList and WhiteList to do file filtering.
+   * Prefix list is used to do file filtering.
    *
    * @param prefixList the list of prefixes to create
    */
@@ -43,7 +45,7 @@ public final class PrefixList {
   }
 
   /**
-   * Prefix list is used by PinList and WhiteList to do file filtering.
+   * Prefix list is used to do file filtering.
    *
    * @param prefixes the prefixes with separators
    * @param separator the separator to split the prefixes

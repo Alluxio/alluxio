@@ -18,6 +18,8 @@ package tachyon.util.io;
 import java.io.File;
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +35,7 @@ import tachyon.util.ShellUtils;
  *
  * By convention, methods take file path strings as parameters.
  */
+@ThreadSafe
 public final class FileUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

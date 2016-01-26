@@ -18,9 +18,12 @@ package tachyon.network.protocol;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The base class for constructing RPC responses.
  */
+@ThreadSafe
 public abstract class RPCResponse extends RPCMessage {
 
   /**

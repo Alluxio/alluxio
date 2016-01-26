@@ -17,6 +17,8 @@ package tachyon.client.keyvalue.hadoop;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.hadoop.mapred.FileOutputCommitter;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobConf;
@@ -33,10 +35,11 @@ import tachyon.exception.TachyonException;
  * {@link KeyValueStores} in different phases of a job's or task's lifecycle is considered.
  * <p>
  * This committer is forced to be used in {@link KeyValueOutputFormat} (no matter what users have
- * set as the {@link org.apache.hadoop.mapred.OutputCommitter} in configration) to merge the
+ * set as the {@link org.apache.hadoop.mapred.OutputCommitter} in configuration) to merge the
  * key-value stores created by each Reducer into one key-value store under the MapReduce output
  * directory.
  */
+@ThreadSafe
 class KeyValueOutputCommitter extends FileOutputCommitter {
   private static final KeyValueStores KEY_VALUE_STORES = KeyValueStores.Factory.create();
 
@@ -44,8 +47,11 @@ class KeyValueOutputCommitter extends FileOutputCommitter {
     return new TachyonURI(FileOutputFormat.getOutputPath(conf).toString());
   }
 
-  private TachyonURI getTaskAttemptOutputURI(TaskAttemptContext context) throws IOException {
-    return new TachyonURI(getTaskAttemptPath(context).toString());
+  private TachyonURI getTaskTempOutputURI(TaskAttemptContext context) throws IOException {
+    // We specifically avoid using KeyValueOutputCommitter#getTaskAttemptPath, which exists in the
+    // hdfs2 API but not the hdfs1 API
+    return new TachyonURI(KeyValueOutputFormat.getTaskTempOutputDirectoryURI(context.getJobConf())
+        .toString());
   }
 
   /**
@@ -90,7 +96,7 @@ class KeyValueOutputCommitter extends FileOutputCommitter {
   @Override
   public void commitTask(TaskAttemptContext context) throws IOException {
     try {
-      KEY_VALUE_STORES.merge(getTaskAttemptOutputURI(context), getOutputURI(context.getJobConf()));
+      KEY_VALUE_STORES.merge(getTaskTempOutputURI(context), getOutputURI(context.getJobConf()));
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -105,7 +111,7 @@ class KeyValueOutputCommitter extends FileOutputCommitter {
   @Override
   public void abortTask(TaskAttemptContext context) throws IOException {
     try {
-      KEY_VALUE_STORES.delete(new TachyonURI(getTaskAttemptPath(context).toString()));
+      KEY_VALUE_STORES.delete(getTaskTempOutputURI(context));
     } catch (FileDoesNotExistException e) {
       // The goal of deleting the store is to cleanup directories before aborting the task, since
       // the key-value store directory does not exist, it meets the goal, nothing needs to be done.

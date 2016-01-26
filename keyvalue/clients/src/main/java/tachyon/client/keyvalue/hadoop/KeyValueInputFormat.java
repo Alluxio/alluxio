@@ -18,7 +18,7 @@ package tachyon.client.keyvalue.hadoop;
 import java.io.IOException;
 import java.util.List;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileInputFormat;
@@ -34,18 +34,19 @@ import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.keyvalue.KeyValueMasterClient;
+import tachyon.client.keyvalue.KeyValueStores;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.PartitionInfo;
 
 /**
  * Implementation of {@link org.apache.hadoop.mapred.InputFormat} for MapReduce programs to access
- * {@link tachyon.client.keyvalue.KeyValueStores}.
+ * {@link KeyValueStores}.
  * <p>
- * It takes a {@link tachyon.client.keyvalue.KeyValueStores} URI, and emits key-value pairs stored
- * in the KeyValueStore to {@link org.apache.hadoop.mapred.Mapper}s.
+ * It takes a {@link KeyValueStores} URI, and emits key-value pairs stored in the KeyValueStore to
+ * {@link org.apache.hadoop.mapred.Mapper}s.
  */
 @PublicApi
-@NotThreadSafe
+@ThreadSafe
 public final class KeyValueInputFormat implements InputFormat {
   private final KeyValueMasterClient mKeyValueMasterClient =
       new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());

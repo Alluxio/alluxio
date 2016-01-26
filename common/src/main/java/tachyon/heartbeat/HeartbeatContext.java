@@ -15,12 +15,15 @@
 
 package tachyon.heartbeat;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * This is a static class for storing and retrieving heartbeat related information.
  */
+@ThreadSafe
 public final class HeartbeatContext {
   private static Map<String, Class<? extends HeartbeatTimer>> sTimerClasses;
 

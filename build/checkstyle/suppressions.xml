@@ -1,0 +1,10 @@
+<!DOCTYPE suppressions PUBLIC "-//Puppy Crawl//DTD Suppressions 1.1//EN"
+        "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+<suppressions>
+    <!-- Supresses files in the src/test folder. To be used for rules which only apply to
+         production code. -->
+    <suppress files="[\\/]src[\\/]test[\\/].*" id="ProductionScope" />
+    <!-- Supresses files in the src/main folder. To be used for rules which only apply to test
+         code. -->
+    <suppress files="[\\/]src[\\/]main[\\/].*" id="TestScope" />
+</suppressions>

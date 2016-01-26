@@ -15,9 +15,12 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The exception thrown when a lineage does not exist in Tachyon.
  */
+@ThreadSafe
 public class LineageDoesNotExistException extends TachyonException {
   private static final long serialVersionUID = 6099440428939973308L;
 

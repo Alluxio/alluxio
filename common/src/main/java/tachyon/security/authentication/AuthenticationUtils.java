@@ -18,6 +18,7 @@ package tachyon.security.authentication;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.security.sasl.SaslException;
 
 import org.apache.thrift.transport.TFramedTransport;
@@ -35,6 +36,7 @@ import tachyon.util.network.NetworkAddressUtils;
  * authentication types specified in Tachyon configuration, it provides corresponding Thrift class
  * for authenticated connection between Client and Server.
  */
+@ThreadSafe
 public final class AuthenticationUtils {
   /**
    * For server side, this method returns a {@link TTransportFactory} based on the auth type. It is
