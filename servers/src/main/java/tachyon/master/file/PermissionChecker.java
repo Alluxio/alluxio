@@ -34,7 +34,7 @@ import tachyon.util.io.PathUtils;
 /**
  * Base class to provide permission check logic.
  */
-@NotThreadSafe
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
 public final class PermissionChecker {
   private static boolean sPermissionCheckEnabled;
 

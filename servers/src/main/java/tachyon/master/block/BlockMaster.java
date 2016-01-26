@@ -79,7 +79,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 /**
  * This master manages the metadata for all the blocks and block workers in Tachyon.
  */
-@NotThreadSafe
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
 public final class BlockMaster extends MasterBase implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
