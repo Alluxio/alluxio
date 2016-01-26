@@ -18,6 +18,8 @@ package tachyon.shell.command;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.URIStatus;
@@ -27,6 +29,7 @@ import tachyon.exception.TachyonException;
 /**
  * Displays the number of folders and files matching the specified prefix in args.
  */
+@ThreadSafe
 public final class CountCommand extends AbstractTfsShellCommand {
 
   /**

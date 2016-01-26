@@ -264,7 +264,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     for (int k = 0; k < blocks.size(); k ++) {
       FileBlockInfo info = blocks.get(k);
       long offset = info.getOffset();
-      long end = offset + info.blockInfo.getLength();
+      long end = offset + info.getBlockInfo().getLength();
       // Check if there is any overlapping between [start, start+len] and [offset, end]
       if (end >= start && offset <= start + len) {
         ArrayList<String> names = new ArrayList<String>();
@@ -278,13 +278,13 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
         addrs.addAll(info.getUfsLocations());
         for (WorkerNetAddress addr : addrs) {
           // Name format is "hostname:data transfer port"
-          String name = addr.host + ":" + addr.dataPort;
+          String name = addr.getHost() + ":" + addr.getDataPort();
           LOG.debug("getFileBlockLocations : adding name : {}", name);
           names.add(name);
-          hosts.add(addr.host);
+          hosts.add(addr.getHost());
         }
         blockLocations.add(new BlockLocation(CommonUtils.toStringArray(names),
-            CommonUtils.toStringArray(hosts), offset, info.blockInfo.getLength()));
+            CommonUtils.toStringArray(hosts), offset, info.getBlockInfo().getLength()));
       }
     }
 

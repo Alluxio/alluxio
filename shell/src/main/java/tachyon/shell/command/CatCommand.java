@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.ReadType;
 import tachyon.client.file.FileInStream;
@@ -30,6 +32,7 @@ import tachyon.exception.TachyonException;
 /**
  * Prints the file's contents to the console.
  */
+@ThreadSafe
 public final class CatCommand extends WithWildCardPathCommand {
 
   /**
