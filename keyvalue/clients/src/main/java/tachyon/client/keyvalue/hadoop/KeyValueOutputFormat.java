@@ -73,8 +73,8 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
   /**
    * {@inheritDoc}
    * <p>
-   * {@link KeyValueOutputCommitter} is forced to be used. An empty key-value store is created at
-   * the output path if the path does not exist yet.
+   * {@link KeyValueOutputCommitter} is forced to be used. If the output path exists, an exception
+   * is thrown, otherwise, an empty key-value store is created at the output path.
    * <p>
    * NOTE: This method is called immediately when job is submitted, so that modifications to the
    * {@link JobConf} are reflected in the whole job.

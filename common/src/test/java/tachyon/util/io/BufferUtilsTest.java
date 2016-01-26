@@ -367,7 +367,8 @@ public class BufferUtilsTest {
   }
 
   /**
-   * Tests the {@link BufferUtils#sliceByteBuffer(ByteBuffer, int, int)} method.
+   * Tests the {@link BufferUtils#sliceByteBuffer(ByteBuffer, int, int)} and the
+   * {@link BufferUtils#sliceByteBuffer(ByteBuffer, int)} methods.
    */
   @Test
   public void sliceByteBufferTest() {
@@ -382,16 +383,17 @@ public class BufferUtilsTest {
 
       // Slice a ByteBuffer from the target position to the end
       int slicedBufferLength = size - slicePosition;
-      slicedBuffer = BufferUtils.sliceByteBuffer(buf, slicePosition, slicedBufferLength);
-      ByteBuffer slicedBuffer1 = BufferUtils.sliceByteBuffer(buf, slicePosition);
-      Assert.assertEquals(0, slicedBuffer.position());
+      ByteBuffer slicedBuffer1 = BufferUtils.sliceByteBuffer(buf, slicePosition,
+          slicedBufferLength);
+      ByteBuffer slicedBuffer2 = BufferUtils.sliceByteBuffer(buf, slicePosition);
       Assert.assertEquals(0, slicedBuffer1.position());
-      Assert.assertEquals(slicedBufferLength, slicedBuffer.limit());
+      Assert.assertEquals(0, slicedBuffer2.position());
       Assert.assertEquals(slicedBufferLength, slicedBuffer1.limit());
-      Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(slicePosition, slicedBufferLength,
-          slicedBuffer));
+      Assert.assertEquals(slicedBufferLength, slicedBuffer2.limit());
       Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(slicePosition, slicedBufferLength,
           slicedBuffer1));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(slicePosition, slicedBufferLength,
+          slicedBuffer2));
     }
   }
 }

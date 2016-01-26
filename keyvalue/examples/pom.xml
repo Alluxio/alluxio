@@ -23,13 +23,11 @@
       <artifactId>tachyon-keyvalue-client</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <!-- for tachyon.examples.Utils -->
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-examples</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <!-- for FormatUtils#byteArrayToHexString -->
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-common</artifactId>

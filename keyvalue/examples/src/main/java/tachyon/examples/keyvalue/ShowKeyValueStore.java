@@ -27,7 +27,7 @@ import tachyon.util.io.BufferUtils;
 /**
  * Prints out (key, value) pairs, or only keys, or only values in a key-value store.
  */
-public class ShowKeyValueStore {
+public final class ShowKeyValueStore {
   private static void show(KeyValuePair pair, String scope) {
     String key = FormatUtils.byteArrayToHexString(BufferUtils.newByteArrayFromByteBuffer(
         pair.getKey()));
@@ -53,7 +53,7 @@ public class ShowKeyValueStore {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 2) {
-      System.out.println("java -cp " + Version.TACHYON_JAR + " "
+      System.out.println("Usage: java -cp " + Version.TACHYON_JAR + " "
           + ShowKeyValueStore.class.getName() + " <key-value store URI>"
           + " <scope, be one of key/value/all>");
       System.exit(-1);

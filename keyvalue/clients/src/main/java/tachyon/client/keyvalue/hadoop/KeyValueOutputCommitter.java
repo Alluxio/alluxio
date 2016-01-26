@@ -24,7 +24,6 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileOutputCommitter;
-import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobContext;
 import org.apache.hadoop.mapred.TaskAttemptContext;
@@ -34,7 +33,6 @@ import com.google.common.collect.Lists;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.keyvalue.KeyValueStores;
-import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
 
 /**
@@ -51,14 +49,14 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
 
   private List<TachyonURI> getTaskTemporaryStores(JobConf conf) throws IOException {
     TachyonURI taskOutputURI = KeyValueOutputFormat.getTaskOutputURI(conf);
-    Path outputPath = FileOutputFormat.getOutputPath(conf);
-    FileSystem fs = outputPath.getFileSystem(conf);
-    FileStatus[] subDirs = fs.listStatus(new Path(taskOutputURI.toString()));
-    List<TachyonURI> ret = Lists.newArrayListWithExpectedSize(subDirs.length);
+    Path taskOutputPath = new Path(taskOutputURI.toString());
+    FileSystem fs = taskOutputPath.getFileSystem(conf);
+    FileStatus[] subDirs = fs.listStatus(taskOutputPath);
+    List<TachyonURI> temporaryStores = Lists.newArrayListWithExpectedSize(subDirs.length);
     for (FileStatus subDir : subDirs) {
-      ret.add(taskOutputURI.join(subDir.getPath().getName()));
+      temporaryStores.add(taskOutputURI.join(subDir.getPath().getName()));
     }
-    return ret;
+    return temporaryStores;
   }
 
   /**
@@ -93,9 +91,6 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
     for (TachyonURI tempStoreUri : getTaskTemporaryStores(context.getJobConf())) {
       try {
         KEY_VALUE_STORES.delete(tempStoreUri);
-      } catch (FileDoesNotExistException e) {
-        // The goal of deleting the store is to cleanup directories before aborting the task, since
-        // the store directory does not exist, it meets the goal, nothing needs to be done.
       } catch (TachyonException e) {
         throw new IOException(e);
       }

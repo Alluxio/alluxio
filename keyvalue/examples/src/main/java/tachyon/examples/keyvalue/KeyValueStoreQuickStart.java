@@ -24,7 +24,7 @@ import tachyon.client.keyvalue.KeyValueStores;
 /**
  * A quick start tutorial for creating a key-value store, putting and getting some key-value pairs.
  */
-public class KeyValueStoreQuickStart {
+public final class KeyValueStoreQuickStart {
   /**
    * The main program.
    *
@@ -33,7 +33,7 @@ public class KeyValueStoreQuickStart {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
-      System.out.println("java -cp " + Version.TACHYON_JAR + " "
+      System.out.println("Usage: java -cp " + Version.TACHYON_JAR + " "
           + KeyValueStoreQuickStart.class.getName() + " <key-value store URI>");
       System.exit(-1);
     }
