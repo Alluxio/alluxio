@@ -15,11 +15,14 @@
 
 package tachyon.worker;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.conf.TachyonConf;
 
 /**
  * A {@link WorkerContext} object stores {@link TachyonConf}.
  */
+@NotThreadSafe
 public final class WorkerContext {
   private WorkerContext() {} // to prevent initialization
 
@@ -34,7 +37,7 @@ public final class WorkerContext {
    */
   private static WorkerSource sWorkerSource = new WorkerSource();
 
-  /** Net address of this worker */
+  /** Net address of this worker. */
   private static NetAddress sNetAddress;
 
   /**
