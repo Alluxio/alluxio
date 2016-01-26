@@ -114,6 +114,7 @@ public final class FileSystemUtils {
     long toSleep = 0;
 
     while (!completed && (timeout <= 0 || timeleft > 0)) {
+
       if (!tfs.exists(uri)) {
         LOG.debug("The file {} being waited upon does not exist yet. Waiting for it to be "
             + "created.", uri);

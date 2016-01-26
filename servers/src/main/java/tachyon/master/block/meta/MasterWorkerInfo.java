@@ -179,14 +179,14 @@ public final class MasterWorkerInfo {
    */
   public synchronized WorkerInfo generateClientWorkerInfo() {
     WorkerInfo ret = new WorkerInfo();
-    ret.id = mId;
-    ret.address = mWorkerAddress.toThrift();
-    ret.lastContactSec =
-        (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS);
-    ret.state = "In Service";
-    ret.capacityBytes = mCapacityBytes;
-    ret.usedBytes = mUsedBytes;
-    ret.startTimeMs = mStartTimeMs;
+    ret.setId(mId);
+    ret.setAddress(mWorkerAddress.toThrift());
+    ret.setLastContactSec(
+        (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS));
+    ret.setState("In Service");
+    ret.setCapacityBytes(mCapacityBytes);
+    ret.setUsedBytes(mUsedBytes);
+    ret.setStartTimeMs(mStartTimeMs);
     return ret;
   }
 
