@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Supplier;
 
 import tachyon.Constants;
@@ -28,7 +30,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Constructs an isolated master. Primary users of this class are the {@link LocalTachyonCluster}
