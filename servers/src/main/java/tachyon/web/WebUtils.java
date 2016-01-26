@@ -23,7 +23,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 
-final class Utils {
+final class WebUtils {
 
   /**
    * Converts a byte array to string.
@@ -55,8 +55,8 @@ final class Utils {
     long mins = (millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
     long secs = (millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
 
-    return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours,
-        mins, secs);
+    return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours, mins,
+        secs);
   }
 
   /**
@@ -87,5 +87,5 @@ final class Utils {
     return String.format("%d d, %d h, %d m, and %d s", days, hours, mins, secs);
   }
 
-  private Utils() {} // prevent instantiation
+  private WebUtils() {} // prevent instantiation
 }
