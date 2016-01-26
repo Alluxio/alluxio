@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 
 if [[ -n "$BASH_VERSION" ]]; then
-    BIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    BIN="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 elif [[ -n "$ZSH_VERSION" ]]; then
-    BIN_DIR="$( cd "$( dirname "${(%):-%x}" )" && pwd )"
+    BIN="$( cd "$( dirname "${(%):-%x}" )" && pwd )"
 else
     echo "Please, launch your scripts from zsh or bash only." >&2
     exit 1
 fi
 
 get_env () {
-  DEFAULT_LIBEXEC_DIR="$BIN_DIR"/../libexec
+  DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
   TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
   . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
   TACHYON_MASTER_PORT=${TACHYON_MASTER_PORT:-19998}
-  TACHYON_FUSE_JAR=${BIN_DIR}/../integration/fuse/target/tachyon-fuse-${VERSION}-jar-with-dependencies.jar
+  TACHYON_FUSE_JAR=${BIN}/../integration/fuse/target/tachyon-fuse-${VERSION}-jar-with-dependencies.jar
   FUSE_MAX_WRITE=131072
 }
 
