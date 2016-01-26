@@ -33,9 +33,9 @@ import tachyon.util.CommonUtils;
  */
 @ThreadSafe
 public final class PermissionStatus {
-  private String mUserName;
-  private String mGroupName;
-  private FileSystemPermission mPermission;
+  private final String mUserName;
+  private final String mGroupName;
+  private final FileSystemPermission mPermission;
 
   /**
    * Constructs an instance of {@link PermissionStatus}
