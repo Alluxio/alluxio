@@ -24,11 +24,11 @@ import org.apache.hadoop.util.Progressable;
 import org.apache.http.annotation.ThreadSafe;
 
 import tachyon.client.keyvalue.KeyValueStoreWriter;
+import tachyon.client.keyvalue.KeyValueStores;
 import tachyon.exception.TachyonException;
 
 /**
- * A {@link RecordWriter} to write key-value pairs output by Reducers to a
- * {@link tachyon.client.keyvalue.KeyValueStores}.
+ * A {@link RecordWriter} to write key-value pairs output by Reducers to a {@link KeyValueStores}.
  */
 @ThreadSafe
 class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable> {

@@ -17,11 +17,14 @@ package tachyon.client.keyvalue;
 
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 /**
  * A key-value pair.
  */
+@ThreadSafe
 public class KeyValuePair implements Comparable<KeyValuePair> {
   private ByteBuffer mKey;
   private ByteBuffer mValue;

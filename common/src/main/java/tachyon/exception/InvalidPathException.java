@@ -15,9 +15,12 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The exception thrown when the path in Tachyon is invalid.
  */
+@ThreadSafe
 public class InvalidPathException extends TachyonException {
   private static final long serialVersionUID = 880152286891141665L;
 

@@ -15,6 +15,8 @@
 
 package tachyon.network.protocol;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.primitives.Shorts;
 
 import io.netty.buffer.ByteBuf;
@@ -22,6 +24,7 @@ import io.netty.buffer.ByteBuf;
 /**
  * This represents a simple RPC response, containing an error.
  */
+@ThreadSafe
 public final class RPCErrorResponse extends RPCResponse {
   private final Status mStatus;
 

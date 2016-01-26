@@ -15,11 +15,14 @@
 
 package tachyon.network;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import io.netty.channel.epoll.Epoll;
 
 /**
  * What type of netty channel to use. {@link #NIO} and {@link #EPOLL} are supported currently.
  */
+@ThreadSafe
 public enum ChannelType {
   NIO,
   /**

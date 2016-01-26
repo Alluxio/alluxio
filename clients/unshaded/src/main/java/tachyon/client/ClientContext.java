@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.lineage.LineageContext;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.PreconditionMessage;
 import tachyon.util.ThreadFactoryUtils;
@@ -80,6 +81,7 @@ public final class ClientContext {
     if (sInitialized) {
       BlockStoreContext.INSTANCE.reset();
       FileSystemContext.INSTANCE.reset();
+      LineageContext.INSTANCE.reset();
     }
     sInitialized = true;
   }

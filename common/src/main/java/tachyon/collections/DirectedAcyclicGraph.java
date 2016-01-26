@@ -21,16 +21,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
- * A Directed Acyclic Graph (DAG). This class is NOT thread-safe.
+ * A Directed Acyclic Graph (DAG).
  *
  * @param <T> the payload of each node
  */
+@NotThreadSafe
 public class DirectedAcyclicGraph<T> {
   private final List<DirectedAcyclicGraphNode<T>> mRoots;
   private final Map<T, DirectedAcyclicGraphNode<T>> mIndex;
