@@ -15,9 +15,9 @@
 
 package tachyon.underfs.local;
 
-import com.google.common.base.Preconditions;
-
 import javax.annotation.concurrent.ThreadSafe;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;

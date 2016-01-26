@@ -17,6 +17,8 @@ package tachyon.underfs.swift;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +30,6 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory for creating {@link SwiftUnderFileSystem}.

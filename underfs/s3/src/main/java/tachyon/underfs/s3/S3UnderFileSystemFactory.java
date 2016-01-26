@@ -17,6 +17,8 @@ package tachyon.underfs.s3;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.jets3t.service.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,6 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory for creating {@link S3UnderFileSystem}. It will ensure AWS credentials are present before
