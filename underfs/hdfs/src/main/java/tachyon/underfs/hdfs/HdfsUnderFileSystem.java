@@ -31,7 +31,6 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.security.SecurityUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -279,19 +278,16 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   public long getSpace(String path, SpaceType type) throws IOException {
     // Ignoring the path given, will give information for entire cluster
     // as Tachyon can load/store data out of entire HDFS cluster
-    if (mFs instanceof DistributedFileSystem) {
-      switch (type) {
-        case SPACE_TOTAL:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
-        case SPACE_USED:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
-        case SPACE_FREE:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
-        default:
-          throw new IOException("Unknown getSpace parameter: " + type);
-      }
+    switch (type) {
+      case SPACE_TOTAL:
+        return mFs.getStatus().getCapacity();
+      case SPACE_USED:
+        return mFs.getStatus().getUsed();
+      case SPACE_FREE:
+        return mFs.getStatus().getRemaining();
+      default:
+        throw new IOException("Unknown getSpace parameter: " + type);
     }
-    return -1;
   }
 
   @Override
