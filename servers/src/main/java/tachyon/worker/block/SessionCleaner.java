@@ -70,8 +70,8 @@ public final class SessionCleaner implements Runnable {
       }
 
       // Check if any sessions have become zombies, if so clean them up
-      mBlockWorker.cleanupSessions();
       lastCheckMs = System.currentTimeMillis();
+      mBlockWorker.cleanupSessions();
     }
   }
 
