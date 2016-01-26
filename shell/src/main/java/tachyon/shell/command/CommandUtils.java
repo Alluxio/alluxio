@@ -20,6 +20,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
@@ -29,6 +31,7 @@ import tachyon.exception.TachyonException;
 /**
  * Common util methods for executing commands.
  */
+@ThreadSafe
 public final class CommandUtils {
 
   private CommandUtils() {
