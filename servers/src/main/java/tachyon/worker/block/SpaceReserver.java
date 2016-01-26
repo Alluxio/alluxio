@@ -93,6 +93,7 @@ public class SpaceReserver implements Runnable {
       } else {
         LOG.warn("Space reserver took: {}, expected: {}", lastIntervalMs, mCheckIntervalMs);
       }
+      lastCheckMs = System.currentTimeMillis();
       reserveSpace();
     }
   }
