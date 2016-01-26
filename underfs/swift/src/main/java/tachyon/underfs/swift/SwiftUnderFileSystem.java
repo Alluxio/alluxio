@@ -43,24 +43,30 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.swift.http.SwiftDirectClient;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library.
  */
+@ThreadSafe
 public class SwiftUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = "_$folder$";
+
   /** Value used to indicate nested structure in Swift. */
   private static final String PATH_SEPARATOR = "/";
 
   /** Swift account. */
   private final Account mAccount;
+
   /** Container name of user's configured Tachyon container. */
   private final String mContainerName;
+
   /** Prefix of the container, for example swift://my-container-name/ */
   private final String mContainerPrefix;
+
   /** JOSS access object. */
   private final Access mAccess;
 

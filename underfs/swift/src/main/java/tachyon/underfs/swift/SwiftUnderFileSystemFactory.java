@@ -28,10 +28,12 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory for creating {@link SwiftUnderFileSystem}.
  */
+@ThreadSafe
 public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
