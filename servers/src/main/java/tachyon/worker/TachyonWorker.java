@@ -50,8 +50,8 @@ import tachyon.worker.block.BlockWorkerClientServiceHandler;
 import tachyon.worker.file.FileSystemWorker;
 
 /**
- * Entry point for the Tachyon Worker. This class is responsible for initializing the different
- * workers that are configured to run.
+ * Entry point for the Tachyon worker program. This class is responsible for initializing the
+ * different workers that are configured to run.
  */
 @NotThreadSafe
 public final class TachyonWorker {

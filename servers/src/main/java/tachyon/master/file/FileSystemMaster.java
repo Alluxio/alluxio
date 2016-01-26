@@ -2062,8 +2062,8 @@ public final class FileSystemMaster extends MasterBase {
    * @param options acl option to be set
    * @throws AccessControlException if security is not enabled
    */
-  // TODO(jiri): Use setAclInternal to implement setAclFromEntry not the other way around to be
-  // consistent with the rest of the code base.
+  // TODO(jiri): To be consistent with the rest of the code base, use setAclInternal to implement
+  // setAclFromEntry, not the other way around.
   private void setAclInternal(Inode inode, long opTimeMs, SetAclOptions options)
       throws AccessControlException {
     // throws exception if security is not enabled.
