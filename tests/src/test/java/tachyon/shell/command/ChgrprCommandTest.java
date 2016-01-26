@@ -19,13 +19,11 @@ import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.WriteType;
 import tachyon.exception.TachyonException;
-import tachyon.security.LoginUser;
 import tachyon.shell.AbstractTfsShellTest;
 
 /**
@@ -35,7 +33,7 @@ public class ChgrprCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void chgrprTest() throws IOException, TachyonException {
-    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+    cleanLoginUser();
     mFsShell.run("mkdir", "/testFolder1");
     TachyonFSTestUtils.createByteFile(mTfs, "/testFolder1/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chgrpr", "group1", "/testFolder1");
