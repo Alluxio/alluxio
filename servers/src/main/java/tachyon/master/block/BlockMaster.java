@@ -30,7 +30,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -79,7 +79,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 /**
  * This master manages the metadata for all the blocks and block workers in Tachyon.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class BlockMaster extends MasterBase implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -195,9 +195,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   @Override
   public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
     // clear state before processing checkpoint.
-    synchronized (mBlocks) {
-      mBlocks.clear();
-    }
+    mBlocks.clear();
     super.processJournalCheckpoint(inputStream);
   }
 
@@ -210,10 +208,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
           .setNextContainerId(((BlockContainerIdGeneratorEntry) innerEntry).getNextContainerId());
     } else if (innerEntry instanceof BlockInfoEntry) {
       BlockInfoEntry blockInfoEntry = (BlockInfoEntry) innerEntry;
-      synchronized (mBlocks) {
-        mBlocks.put(blockInfoEntry.getBlockId(),
-            new MasterBlockInfo(blockInfoEntry.getBlockId(), blockInfoEntry.getLength()));
-      }
+      mBlocks.put(blockInfoEntry.getBlockId(), new MasterBlockInfo(blockInfoEntry.getBlockId(),
+          blockInfoEntry.getLength()));
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -222,14 +218,11 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     outputStream.writeEntry(mBlockContainerIdGenerator.toJournalEntry());
-    synchronized (mBlocks) {
-      for (MasterBlockInfo blockInfo : mBlocks.values()) {
-        BlockInfoEntry blockInfoEntry = BlockInfoEntry.newBuilder()
-            .setBlockId(blockInfo.getBlockId())
-            .setLength(blockInfo.getLength())
-            .build();
-        outputStream.writeEntry(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
-      }
+    for (MasterBlockInfo blockInfo : mBlocks.values()) {
+      BlockInfoEntry blockInfoEntry =
+          BlockInfoEntry.newBuilder().setBlockId(blockInfo.getBlockId())
+              .setLength(blockInfo.getLength()).build();
+      outputStream.writeEntry(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
     }
   }
 

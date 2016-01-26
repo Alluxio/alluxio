@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.thrift.TProcessor;
@@ -123,7 +123,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 /**
  * The master that handles all file system metadata management.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class FileSystemMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -220,108 +220,102 @@ public final class FileSystemMaster extends MasterBase {
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
     Message innerEntry = JournalProtoUtils.unwrap(entry);
-    synchronized (mInodeTree) {
-      if (innerEntry instanceof InodeFileEntry || innerEntry instanceof InodeDirectoryEntry) {
-        mInodeTree.addInodeFromJournal(entry);
-      } else if (innerEntry instanceof InodeLastModificationTimeEntry) {
-        InodeLastModificationTimeEntry modTimeEntry = (InodeLastModificationTimeEntry) innerEntry;
-        try {
-          Inode inode = mInodeTree.getInodeById(modTimeEntry.getId());
-          inode.setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs());
-        } catch (FileDoesNotExistException e) {
-          throw new RuntimeException(e);
-        }
-      } else if (innerEntry instanceof PersistDirectoryEntry) {
-        PersistDirectoryEntry typedEntry = (PersistDirectoryEntry) innerEntry;
-        try {
-          Inode inode = mInodeTree.getInodeById(typedEntry.getId());
-          inode.setPersistenceState(PersistenceState.PERSISTED);
-        } catch (FileDoesNotExistException e) {
-          throw new RuntimeException(e);
-        }
-      } else if (innerEntry instanceof CompleteFileEntry) {
-        try {
-          completeFileFromEntry((CompleteFileEntry) innerEntry);
-        } catch (InvalidPathException e) {
-          throw new RuntimeException(e);
-        } catch (InvalidFileSizeException e) {
-          throw new RuntimeException(e);
-        } catch (FileAlreadyCompletedException e) {
-          throw new RuntimeException(e);
-        }
-      } else if (innerEntry instanceof SetStateEntry) {
-        try {
-          setStateFromEntry((SetStateEntry) innerEntry);
-        } catch (FileDoesNotExistException e) {
-          throw new RuntimeException(e);
-        }
-      } else if (innerEntry instanceof DeleteFileEntry) {
-        deleteFileFromEntry((DeleteFileEntry) innerEntry);
-      } else if (innerEntry instanceof RenameEntry) {
-        renameFromEntry((RenameEntry) innerEntry);
-      } else if (innerEntry instanceof InodeDirectoryIdGeneratorEntry) {
-        mDirectoryIdGenerator.initFromJournalEntry((InodeDirectoryIdGeneratorEntry) innerEntry);
-      } else if (innerEntry instanceof ReinitializeFileEntry) {
-        resetBlockFileFromEntry((ReinitializeFileEntry) innerEntry);
-      } else if (innerEntry instanceof AddMountPointEntry) {
-        try {
-          mountFromEntry((AddMountPointEntry) innerEntry);
-        } catch (FileAlreadyExistsException e) {
-          throw new RuntimeException(e);
-        } catch (InvalidPathException e) {
-          throw new RuntimeException(e);
-        }
-      } else if (innerEntry instanceof DeleteMountPointEntry) {
-        try {
-          unmountFromEntry((DeleteMountPointEntry) innerEntry);
-        } catch (InvalidPathException e) {
-          throw new RuntimeException(e);
-        }
-      } else if (innerEntry instanceof AsyncPersistRequestEntry) {
-        try {
-          long fileId = ((AsyncPersistRequestEntry) innerEntry).getFileId();
-          scheduleAsyncPersistenceInternal(getPath(fileId));
-        } catch (FileDoesNotExistException e) {
-          throw new RuntimeException(e);
-        } catch (InvalidPathException e) {
-          throw new RuntimeException(e);
-        }
-      } else if (innerEntry instanceof SetAclEntry) {
-        try {
-          setAclFromEntry((SetAclEntry) innerEntry);
-        } catch (FileDoesNotExistException e) {
-          throw new RuntimeException(e);
-        }
-      } else {
-        throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
+    if (innerEntry instanceof InodeFileEntry || innerEntry instanceof InodeDirectoryEntry) {
+      mInodeTree.addInodeFromJournal(entry);
+    } else if (innerEntry instanceof InodeLastModificationTimeEntry) {
+      InodeLastModificationTimeEntry modTimeEntry = (InodeLastModificationTimeEntry) innerEntry;
+      try {
+        Inode inode = mInodeTree.getInodeById(modTimeEntry.getId());
+        inode.setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs());
+      } catch (FileDoesNotExistException e) {
+        throw new RuntimeException(e);
       }
+    } else if (innerEntry instanceof PersistDirectoryEntry) {
+      PersistDirectoryEntry typedEntry = (PersistDirectoryEntry) innerEntry;
+      try {
+        Inode inode = mInodeTree.getInodeById(typedEntry.getId());
+        inode.setPersistenceState(PersistenceState.PERSISTED);
+      } catch (FileDoesNotExistException e) {
+        throw new RuntimeException(e);
+      }
+    } else if (innerEntry instanceof CompleteFileEntry) {
+      try {
+        completeFileFromEntry((CompleteFileEntry) innerEntry);
+      } catch (InvalidPathException e) {
+        throw new RuntimeException(e);
+      } catch (InvalidFileSizeException e) {
+        throw new RuntimeException(e);
+      } catch (FileAlreadyCompletedException e) {
+        throw new RuntimeException(e);
+      }
+    } else if (innerEntry instanceof SetStateEntry) {
+      try {
+        setStateFromEntry((SetStateEntry) innerEntry);
+      } catch (FileDoesNotExistException e) {
+        throw new RuntimeException(e);
+      }
+    } else if (innerEntry instanceof DeleteFileEntry) {
+      deleteFileFromEntry((DeleteFileEntry) innerEntry);
+    } else if (innerEntry instanceof RenameEntry) {
+      renameFromEntry((RenameEntry) innerEntry);
+    } else if (innerEntry instanceof InodeDirectoryIdGeneratorEntry) {
+      mDirectoryIdGenerator.initFromJournalEntry((InodeDirectoryIdGeneratorEntry) innerEntry);
+    } else if (innerEntry instanceof ReinitializeFileEntry) {
+      resetBlockFileFromEntry((ReinitializeFileEntry) innerEntry);
+    } else if (innerEntry instanceof AddMountPointEntry) {
+      try {
+        mountFromEntry((AddMountPointEntry) innerEntry);
+      } catch (FileAlreadyExistsException e) {
+        throw new RuntimeException(e);
+      } catch (InvalidPathException e) {
+        throw new RuntimeException(e);
+      }
+    } else if (innerEntry instanceof DeleteMountPointEntry) {
+      try {
+        unmountFromEntry((DeleteMountPointEntry) innerEntry);
+      } catch (InvalidPathException e) {
+        throw new RuntimeException(e);
+      }
+    } else if (innerEntry instanceof AsyncPersistRequestEntry) {
+      try {
+        long fileId = ((AsyncPersistRequestEntry) innerEntry).getFileId();
+        scheduleAsyncPersistenceInternal(getPath(fileId));
+      } catch (FileDoesNotExistException e) {
+        throw new RuntimeException(e);
+      } catch (InvalidPathException e) {
+        throw new RuntimeException(e);
+      }
+    } else if (innerEntry instanceof SetAclEntry) {
+      try {
+        setAclFromEntry((SetAclEntry) innerEntry);
+      } catch (FileDoesNotExistException e) {
+        throw new RuntimeException(e);
+      }
+    } else {
+      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
     }
   }
 
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    synchronized (mInodeTree) {
-      mInodeTree.streamToJournalCheckpoint(outputStream);
-      outputStream.writeEntry(mDirectoryIdGenerator.toJournalEntry());
-    }
+    mInodeTree.streamToJournalCheckpoint(outputStream);
+    outputStream.writeEntry(mDirectoryIdGenerator.toJournalEntry());
   }
 
   @Override
   public void start(boolean isLeader) throws IOException {
     if (isLeader) {
-      synchronized (mInodeTree) {
-        // Only initialize root when isLeader because when initializing root, BlockMaster needs to
-        // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
-        // If it is standby, it should be able to load the inode tree from leader's checkpoint.
-        mInodeTree.initializeRoot(PermissionStatus.get(MasterContext.getConf(), false));
-        String defaultUFS = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
-        try {
-          mMountTable.add(new TachyonURI(MountTable.ROOT), new TachyonURI(defaultUFS));
-        } catch (FileAlreadyExistsException e) {
-          throw new IOException("Failed to mount the default UFS " + defaultUFS);
-        } catch (InvalidPathException e) {
-          throw new IOException("Failed to mount the default UFS " + defaultUFS);
-        }
+      // Only initialize root when isLeader because when initializing root, BlockMaster needs to
+      // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
+      // If it is standby, it should be able to load the inode tree from leader's checkpoint.
+      mInodeTree.initializeRoot(PermissionStatus.get(MasterContext.getConf(), false));
+      String defaultUFS = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
+      try {
+        mMountTable.add(new TachyonURI(MountTable.ROOT), new TachyonURI(defaultUFS));
+      } catch (FileAlreadyExistsException e) {
+        throw new IOException("Failed to mount the default UFS " + defaultUFS);
+      } catch (InvalidPathException e) {
+        throw new IOException("Failed to mount the default UFS " + defaultUFS);
       }
     }
     // Call super.start after mInodeTree is initialized because mInodeTree is needed to write

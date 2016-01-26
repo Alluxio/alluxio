@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ import tachyon.util.ThreadFactoryUtils;
  * mostly consists of journal operations, like initialization, journal tailing when in standby mode,
  * or journal writing when the master is the leader.
  */
-@ThreadSafe
+@NotThreadSafe
 public abstract class MasterBase implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -76,8 +76,7 @@ public abstract class MasterBase implements Master {
   }
 
   @Override
-  public synchronized void processJournalCheckpoint(JournalInputStream inputStream)
-      throws IOException {
+  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
     JournalEntry entry;
     try {
       while ((entry = inputStream.getNextEntry()) != null) {
@@ -89,7 +88,7 @@ public abstract class MasterBase implements Master {
   }
 
   @Override
-  public synchronized void start(boolean isLeader) throws IOException {
+  public void start(boolean isLeader) throws IOException {
     mIsLeader = isLeader;
     if (mExecutorService == null) {
       // mExecutorService starts as null and is reset to null when Master is stopped.
@@ -164,7 +163,7 @@ public abstract class MasterBase implements Master {
   }
 
   @Override
-  public synchronized void stop() throws IOException {
+  public void stop() throws IOException {
     LOG.info("{}: Stopping {} master.", getName(), mIsLeader ? "leader" : "standby");
     if (mIsLeader) {
       // Stop this leader master.
@@ -195,7 +194,7 @@ public abstract class MasterBase implements Master {
   }
 
   @Override
-  public synchronized void upgradeToReadWriteJournal(ReadWriteJournal journal) {
+  public void upgradeToReadWriteJournal(ReadWriteJournal journal) {
     mJournal = Preconditions.checkNotNull(journal);
   }
 
@@ -204,7 +203,7 @@ public abstract class MasterBase implements Master {
    *
    * @param entry the {@link JournalEntry} to write to the journal
    */
-  protected synchronized void writeJournalEntry(JournalEntry entry) {
+  protected void writeJournalEntry(JournalEntry entry) {
     Preconditions.checkNotNull(mJournalWriter, "Cannot write entry: journal writer is null.");
     try {
       mJournalWriter.getEntryOutputStream().writeEntry(entry);
@@ -216,7 +215,7 @@ public abstract class MasterBase implements Master {
   /**
    * Flushes the journal.
    */
-  protected synchronized void flushJournal() {
+  protected void flushJournal() {
     Preconditions.checkNotNull(mJournalWriter, "Cannot flush journal: journal writer is null.");
     try {
       mJournalWriter.getEntryOutputStream().flush();
@@ -228,7 +227,7 @@ public abstract class MasterBase implements Master {
   /**
    * @return the {@link ExecutorService} for this master
    */
-  protected synchronized ExecutorService getExecutorService() {
+  protected ExecutorService getExecutorService() {
     return mExecutorService;
   }
 }
