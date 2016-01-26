@@ -47,7 +47,7 @@ import tachyon.network.protocol.RPCResponse;
 import tachyon.network.protocol.databuffer.DataBuffer;
 import tachyon.network.protocol.databuffer.DataByteBuffer;
 import tachyon.network.protocol.databuffer.DataFileChannel;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -61,7 +61,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final BlockDataManager mDataManager;
+  private final BlockWorker mBlockWorker;
   private final TachyonConf mTachyonConf;
   private final StorageTierAssoc mStorageTierAssoc;
   private final FileTransferType mTransferType;
@@ -69,11 +69,11 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   /**
    * Creates a new instance of {@link DataServerHandler}.
    *
-   * @param dataManager a block data manager handle
+   * @param blockWorker the block worker handle
    * @param tachyonConf Tachyon configuration
    */
-  public DataServerHandler(final BlockDataManager dataManager, TachyonConf tachyonConf) {
-    mDataManager = Preconditions.checkNotNull(dataManager);
+  public DataServerHandler(final BlockWorker blockWorker, TachyonConf tachyonConf) {
+    mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mStorageTierAssoc = new WorkerStorageTierAssoc(mTachyonConf);
     mTransferType = mTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE,
@@ -116,7 +116,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
 
     BlockReader reader;
     try {
-      reader = mDataManager.readBlockRemote(sessionId, blockId, lockId);
+      reader = mBlockWorker.readBlockRemote(sessionId, blockId, lockId);
     } catch (BlockDoesNotExistException e) {
       throw new IOException(e);
     } catch (InvalidWorkerStateException e) {
@@ -132,7 +132,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(reader));
-      mDataManager.accessBlock(sessionId, blockId);
+      mBlockWorker.accessBlock(sessionId, blockId);
       LOG.info("Preparation for responding to remote block request for: {} done.", blockId);
     } catch (Exception e) {
       LOG.error("The file is not here : {}", e.getMessage(), e);
@@ -166,12 +166,12 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         // This is the first write to the block, so create the temp block file. The file will only
         // be created if the first write starts at offset 0. This allocates enough space for the
         // write.
-        mDataManager.createBlockRemote(sessionId, blockId, mStorageTierAssoc.getAlias(0), length);
+        mBlockWorker.createBlockRemote(sessionId, blockId, mStorageTierAssoc.getAlias(0), length);
       } else {
         // Allocate enough space in the existing temporary block for the write.
-        mDataManager.requestSpace(sessionId, blockId, length);
+        mBlockWorker.requestSpace(sessionId, blockId, length);
       }
-      writer = mDataManager.getTempBlockWriterRemote(sessionId, blockId);
+      writer = mBlockWorker.getTempBlockWriterRemote(sessionId, blockId);
       writer.append(buffer);
 
       RPCBlockWriteResponse resp =

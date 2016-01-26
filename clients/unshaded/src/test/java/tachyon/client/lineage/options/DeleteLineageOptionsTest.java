@@ -13,42 +13,31 @@
  * the License.
  */
 
-package tachyon.job;
+package tachyon.client.lineage.options;
 
-import java.io.Serializable;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * A Job that can run at Tachyon.
+ * Tests for {@link DeleteLineageOptions}.
  */
-@SuppressWarnings("serial")
-@ThreadSafe
-public abstract class Job implements Serializable {
-  private final JobConf mJobConf;
+public final class DeleteLineageOptionsTest {
 
   /**
-   * Constructs with job configuration.
-   *
-   * @param jobConf the job configuration
+   * Tests that building a {@link DeleteLineageOptions} works.
    */
-  public Job(JobConf jobConf) {
-    mJobConf = Preconditions.checkNotNull(jobConf);
+  @Test
+  public void builderTest() {
+    DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(true);
+    Assert.assertTrue(options.isCascade());
   }
 
   /**
-   * @return the job configuration
+   * Tests that building a {@link DeleteLineageOptions} with the defaults works.
    */
-  public JobConf getJobConf() {
-    return mJobConf;
+  @Test
+  public void defaultsTest() {
+    DeleteLineageOptions options = DeleteLineageOptions.defaults();
+    Assert.assertFalse(options.isCascade());
   }
-
-  /**
-   * Runs the job.
-   *
-   * @return true if the run succeeds, false otherwise
-   */
-  public abstract boolean run();
 }

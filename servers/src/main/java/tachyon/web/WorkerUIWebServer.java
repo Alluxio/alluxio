@@ -25,7 +25,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * A worker's UI web server.
@@ -38,22 +38,22 @@ public final class WorkerUIWebServer extends UIWebServer {
    *
    * @param serviceType the service type
    * @param webAddress the service address
-   * @param blockdataManager block data manager
+   * @param blockWorker block worker to manage blocks
    * @param workerAddress the worker address
    * @param startTimeMs start time milliseconds
    * @param conf Tachyon configuration
    */
   public WorkerUIWebServer(ServiceType serviceType, InetSocketAddress webAddress,
-      BlockDataManager blockdataManager, InetSocketAddress workerAddress, long startTimeMs,
+      BlockWorker blockWorker, InetSocketAddress workerAddress, long startTimeMs,
       TachyonConf conf) {
     super(serviceType, webAddress, conf);
-    Preconditions.checkNotNull(blockdataManager, "Block data manager cannot be null");
+    Preconditions.checkNotNull(blockWorker, "Block Worker cannot be null");
     Preconditions.checkNotNull(workerAddress, "Worker address cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerGeneralServlet(
-        blockdataManager, workerAddress, startTimeMs)), "/home");
+        blockWorker, workerAddress, startTimeMs)), "/home");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerBlockInfoServlet(
-        blockdataManager)), "/blockInfo");
+        blockWorker)), "/blockInfo");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDownloadLocalServlet()),
         "/downloadLocal");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(false)),

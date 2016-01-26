@@ -15,9 +15,12 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Thrown when permission checking fails.
  */
+@ThreadSafe
 public class AccessControlException extends TachyonException {
   private static final long serialVersionUID = 7147533331335543932L;
 

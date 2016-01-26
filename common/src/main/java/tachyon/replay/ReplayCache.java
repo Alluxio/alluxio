@@ -20,6 +20,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -59,6 +61,7 @@ import tachyon.thrift.ThriftIOException;
  *
  * @param <V> the type of value returned by this cache
  */
+@NotThreadSafe
 public final class ReplayCache<V> {
   /** The maximum number of keys that can be cached before old keys are evicted. */
   private static final long DEFAULT_MAX_SIZE = 10000;
