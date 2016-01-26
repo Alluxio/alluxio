@@ -329,8 +329,24 @@ class S3Version
 end
 
 class UfsVersion
-  def initialize(yaml_path)
+  def get_default_ufs(provider):
+    case provider
+    when 'vb':
+      puts 'use hadoop2 as default ufs'
+      return 'hadoop2'
+    when 'aws':
+      puts 'use s3 as default ufs'
+      return 's3'
+    else
+      return ''
+    end
+  end
+
+  def initialize(yaml_path, provider)
     @yml = YAML.load_file(yaml_path)
+    if @yml['Type'] == nil
+      @yml['Type'] = get_default_ufs(provider)
+    end
     puts @yml
 
     @hadoop = HadoopVersion.new(nil)

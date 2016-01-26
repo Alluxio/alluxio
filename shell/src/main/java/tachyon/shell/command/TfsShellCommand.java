@@ -17,8 +17,10 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import tachyon.shell.TfsShell;
+
 /**
- * An interface for all the commands that can be run from {@link tachyon.shell.TfsShell}.
+ * An interface for all the commands that can be run from {@link TfsShell}.
  */
 public interface TfsShellCommand {
 

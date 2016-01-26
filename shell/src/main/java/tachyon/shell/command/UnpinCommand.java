@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -25,6 +27,7 @@ import tachyon.conf.TachyonConf;
  * Unpins the given file or folder (recursively unpinning all children if a folder). Pinned files
  * are never evicted from memory, so this method will allow such files to be evicted.
  */
+@ThreadSafe
 public final class UnpinCommand extends WithWildCardPathCommand {
 
   /**
