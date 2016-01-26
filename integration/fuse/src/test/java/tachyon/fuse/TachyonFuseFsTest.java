@@ -129,7 +129,7 @@ public class TachyonFuseFsTest {
     // mocks set-up
     TachyonURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     FileInfo fi = new FileInfo();
-    fi.isFolder = false;
+    fi.setFolder(false);
     URIStatus status = new URIStatus(fi);
 
     when(mTFS.exists(expectedPath)).thenReturn(true);
@@ -162,7 +162,7 @@ public class TachyonFuseFsTest {
     // mocks set-up
     TachyonURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     FileInfo fi = new FileInfo();
-    fi.isFolder = false;
+    fi.setFolder(false);
     URIStatus status = new URIStatus(fi);
 
     when(mTFS.exists(expectedPath)).thenReturn(true);
