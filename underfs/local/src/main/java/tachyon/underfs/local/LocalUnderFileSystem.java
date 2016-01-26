@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
@@ -43,6 +45,7 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
  * system for that scenario.
  * </p>
  */
+@ThreadSafe
 public class LocalUnderFileSystem extends UnderFileSystem {
 
   /**
