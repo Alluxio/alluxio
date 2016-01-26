@@ -16,6 +16,7 @@
 package tachyon.client.keyvalue.hadoop;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.RecordWriter;
@@ -29,12 +30,10 @@ import tachyon.client.keyvalue.KeyValueStores;
 import tachyon.exception.TachyonException;
 
 /**
- * It writes key-value pairs into a temporary key-value store.
+ * A {@link RecordWriter} to write key-value pairs into a temporary key-value store.
  */
 @ThreadSafe
 class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable> {
-  private static final KeyValueStores KEY_VALUE_STORES = KeyValueStores.Factory.create();
-
   private final KeyValueStoreWriter mWriter;
   private final Progressable mProgress;
 
@@ -47,31 +46,20 @@ class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable>
    */
   public KeyValueRecordWriter(TachyonURI storeUri, Progressable progress) throws IOException {
     try {
-      mWriter = KEY_VALUE_STORES.create(storeUri);
+      mWriter = KeyValueStores.Factory.create().create(storeUri);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
     mProgress = progress;
   }
 
-  /**
-   * Copies a byte array of the specified length from the specified array, starting at offset 0.
-   *
-   * @param src the source array
-   * @param length the length of bytes to be copied
-   * @return the copied array
-   */
-  private byte[] copyBytes(byte[] src, int length) {
-    byte[] result = new byte[length];
-    System.arraycopy(src, 0, result, 0, length);
-    return result;
-  }
-
   @Override
   public synchronized void write(BytesWritable key, BytesWritable value) throws IOException {
     try {
-      mWriter.put(copyBytes(key.getBytes(), key.getLength()), copyBytes(value.getBytes(),
-          value.getLength()));
+      // NOTE: BytesWritable.getBytes() returns the internal byte array, whose length might not be
+      // the same as BytesWritable.getLength().
+      mWriter.put(Arrays.copyOf(key.getBytes(), key.getLength()),
+          Arrays.copyOf(value.getBytes(), value.getLength()));
       // Sends a progress to the job manager to inform it that the task is still running.
       mProgress.progress();
     } catch (TachyonException e) {

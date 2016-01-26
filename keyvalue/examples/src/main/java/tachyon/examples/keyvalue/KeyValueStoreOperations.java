@@ -41,12 +41,12 @@ import tachyon.util.io.BufferUtils;
  * This example illustrates how to create a key-value store, put key-value pairs into the store, and
  * read the store afterwards.
  */
-public class KeyValueStoreOperations implements Callable<Boolean> {
+public final class KeyValueStoreOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final int mPartitionLength = Constants.MB;
   private final int mValueLength = mPartitionLength / 2;
-  private final int mKeyValuePairsNumber = 10;
+  private final int mNumKeyValuePairs = 10;
 
   private TachyonURI mStoreUri;
   private Map<ByteBuffer, ByteBuffer> mKeyValuePairs = Maps.newHashMap();
@@ -82,7 +82,7 @@ public class KeyValueStoreOperations implements Callable<Boolean> {
   private void putKeyValuePairs(KeyValueStoreWriter writer) throws Exception {
     LOG.info("Putting key-value pairs...");
     // API: KeyValueStoreWriter#put
-    for (int i = 0; i < mKeyValuePairsNumber; i ++) {
+    for (int i = 0; i < mNumKeyValuePairs; i ++) {
       // Keys are 0, 1, 2, etc.
       byte[] key = ByteBuffer.allocate(4).putInt(i).array();
       // Values are byte arrays of length {@link #mValueLength}.
@@ -95,7 +95,7 @@ public class KeyValueStoreOperations implements Callable<Boolean> {
   private boolean getKeyValuePairs(KeyValueStoreReader reader) throws Exception {
     LOG.info("Getting key-value pairs...");
     // API: KeyValueStoreReader#size
-    if (reader.size() != mKeyValuePairsNumber) {
+    if (reader.size() != mNumKeyValuePairs) {
       LOG.error("The key-value store has the wrong numbers of key-value pairs");
       return false;
     }
@@ -133,7 +133,7 @@ public class KeyValueStoreOperations implements Callable<Boolean> {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
-      System.out.println("java -cp " + Version.TACHYON_JAR + " "
+      System.out.println("Usage: java -cp " + Version.TACHYON_JAR + " "
           + KeyValueStoreOperations.class.getName() + " <key-value store URI>");
       System.exit(-1);
     }

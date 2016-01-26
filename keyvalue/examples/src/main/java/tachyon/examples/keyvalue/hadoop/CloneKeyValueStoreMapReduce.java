@@ -37,7 +37,7 @@ import tachyon.client.keyvalue.hadoop.KeyValueOutputFormat;
 /**
  * This boring MapReduce job clones a key-value store to a different URI.
  */
-public class CloneKeyValueStore {
+public final class CloneKeyValueStoreMapReduce {
   /**
    * The mapper emits all key-value pairs it receives to reducers.
    */
@@ -70,7 +70,7 @@ public class CloneKeyValueStore {
    * @throws Exception if any exception happens
    */
   public static void main(String[] args) throws Exception {
-    JobConf conf = new JobConf(CloneKeyValueStore.class);
+    JobConf conf = new JobConf(CloneKeyValueStoreMapReduce.class);
     conf.setJobName("clone key-value store");
 
     conf.setOutputKeyClass(BytesWritable.class);

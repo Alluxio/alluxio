@@ -44,7 +44,8 @@ final class KeyValueInputSplit implements InputSplit {
   private long mBlockId;
 
   /**
-   * Default constructor, to be used in de-serialization of {@link KeyValueInputSplit}.
+   * Default constructor, to be used together with {@link #readFields(DataInput)} when
+   * de-serializing {@link KeyValueInputSplit}.
    */
   public KeyValueInputSplit() {
     mBlockStore = TachyonBlockStore.get();

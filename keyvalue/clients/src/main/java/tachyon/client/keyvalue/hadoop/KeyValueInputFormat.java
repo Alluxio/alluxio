@@ -67,8 +67,8 @@ public final class KeyValueInputFormat implements InputFormat {
     List<InputSplit> splits = Lists.newArrayList();
     try {
       for (Path path : paths) {
-        List<PartitionInfo> partitionInfos = mKeyValueMasterClient.getPartitionInfo(new TachyonURI(
-            path.toString()));
+        List<PartitionInfo> partitionInfos =
+            mKeyValueMasterClient.getPartitionInfo(new TachyonURI(path.toString()));
         for (PartitionInfo partitionInfo : partitionInfos) {
           splits.add(new KeyValueInputSplit(partitionInfo));
         }
