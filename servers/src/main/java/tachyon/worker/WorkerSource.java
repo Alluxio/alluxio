@@ -15,6 +15,8 @@
 
 package tachyon.worker;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
@@ -23,8 +25,9 @@ import tachyon.metrics.source.Source;
 import tachyon.worker.block.BlockDataManager;
 
 /**
- * A WorkerSource collects a Worker's internal state.
+ * Worker source collects a worker's internal state.
  */
+@NotThreadSafe
 public class WorkerSource implements Source {
   private static final String WORKER_SOURCE_NAME = "worker";
   private boolean mGaugesRegistered = false;
