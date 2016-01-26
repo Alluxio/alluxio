@@ -53,7 +53,7 @@ public class WebUtilsTest {
   }
 
   /**
-   * Tests the {@link WebUtils#convertMsToClockTime(long)} method with one minute and thirty 
+   * Tests the {@link WebUtils#convertMsToClockTime(long)} method with one minute and thirty
    * seconds.
    */
   @Test
