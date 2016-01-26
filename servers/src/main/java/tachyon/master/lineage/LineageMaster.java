@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -77,7 +77,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * The lineage master stores the lineage metadata in Tachyon, and it contains the components that
  * manage all lineage-related activities.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class LineageMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -135,7 +135,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   @Override
-  public synchronized void processJournalEntry(JournalEntry entry) throws IOException {
+  public void processJournalEntry(JournalEntry entry) throws IOException {
     Message innerEntry = JournalProtoUtils.unwrap(entry);
     if (innerEntry instanceof LineageEntry) {
       mLineageStore.addLineageFromJournal((LineageEntry) innerEntry);
@@ -149,7 +149,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   @Override
-  public synchronized void start(boolean isLeader) throws IOException {
+  public void start(boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
       mCheckpointExecutionService = getExecutorService()
@@ -308,7 +308,7 @@ public final class LineageMaster extends MasterBase {
    * @throws LineageDoesNotExistException if the lineage does not exist
    * @throws FileDoesNotExistException if any associated file does not exist
    */
-  public synchronized List<LineageInfo> getLineageInfoList()
+  public List<LineageInfo> getLineageInfoList()
       throws LineageDoesNotExistException, FileDoesNotExistException {
     List<LineageInfo> lineages = Lists.newArrayList();
 

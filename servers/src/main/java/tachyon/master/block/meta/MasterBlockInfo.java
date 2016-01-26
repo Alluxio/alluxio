@@ -22,12 +22,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The metadata for a Tachyon block, managed by the block master.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class MasterBlockInfo {
   /** The id of the block. */
   private final long mBlockId;
@@ -54,14 +54,14 @@ public final class MasterBlockInfo {
   /**
    * @return the length of the block
    */
-  public synchronized long getLength() {
+  public long getLength() {
     return mLength;
   }
 
   /**
    * @return the block id
    */
-  public synchronized long getBlockId() {
+  public long getBlockId() {
     return mBlockId;
   }
 
@@ -80,7 +80,7 @@ public final class MasterBlockInfo {
    *
    * @param workerId the worker id to remove
    */
-  public synchronized void removeWorker(long workerId) {
+  public void removeWorker(long workerId) {
     mWorkerIdToAlias.remove(workerId);
   }
 
@@ -94,7 +94,7 @@ public final class MasterBlockInfo {
   /**
    * @return the number of workers this block is on
    */
-  public synchronized int getNumLocations() {
+  public int getNumLocations() {
     return mWorkerIdToAlias.size();
   }
 

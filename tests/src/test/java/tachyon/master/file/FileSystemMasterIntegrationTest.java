@@ -265,9 +265,8 @@ public class FileSystemMasterIntegrationTest {
    * set this user for testing.
    */
   private static final String TEST_AUTHENTICATE_USER = "test-user";
-
   @Rule
-  public Timeout mGlobalTimeout = Timeout.seconds(10);
+  public Timeout mGlobalTimeout = Timeout.seconds(60);
 
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =

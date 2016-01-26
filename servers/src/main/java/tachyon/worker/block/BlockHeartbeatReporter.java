@@ -33,6 +33,8 @@ import com.google.common.collect.Lists;
  */
 @ThreadSafe
 public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
+  /** Lock for operations on the removed and added block collections. */
+  private final Object mLock;
 
   /** List of blocks that were removed in the last heartbeat period. */
   private final List<Long> mRemovedBlocks;
@@ -44,6 +46,7 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
    * Creates a new instance of {@link BlockHeartbeatReporter}.
    */
   public BlockHeartbeatReporter() {
+    mLock = new Object();
     mRemovedBlocks = new ArrayList<Long>(100);
     mAddedBlocks = new HashMap<String, List<Long>>(20);
   }
@@ -54,54 +57,64 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
    *
    * @return the block store delta report for the last heartbeat period
    */
-  public synchronized BlockHeartbeatReport generateReport() {
-    // Copy added and removed blocks
-    Map<String, List<Long>> addedBlocks = new HashMap<String, List<Long>>(mAddedBlocks);
-    List<Long> removedBlocks = new ArrayList<Long>(mRemovedBlocks);
-    // Clear added and removed blocks
-    mAddedBlocks.clear();
-    mRemovedBlocks.clear();
-    return new BlockHeartbeatReport(addedBlocks, removedBlocks);
-  }
-
-  @Override
-  public synchronized void onMoveBlockByClient(long sessionId, long blockId,
-      BlockStoreLocation oldLocation, BlockStoreLocation newLocation) {
-    // Remove the block from our list of added blocks in this heartbeat, if it was added, to
-    // prevent adding the block twice.
-    removeBlockFromAddedBlocks(blockId);
-    // Add the block back with the new tier
-    addBlockToAddedBlocks(blockId, newLocation.tierAlias());
-  }
-
-  @Override
-  public synchronized void onRemoveBlockByClient(long sessionId, long blockId) {
-    // Remove the block from list of added blocks, in case it was added in this heartbeat period.
-    removeBlockFromAddedBlocks(blockId);
-    // Add to the list of removed blocks in this heartbeat period.
-    if (!mRemovedBlocks.contains(blockId)) {
-      mRemovedBlocks.add(blockId);
+  public BlockHeartbeatReport generateReport() {
+    synchronized (mLock) {
+      // Copy added and removed blocks
+      Map<String, List<Long>> addedBlocks = new HashMap<String, List<Long>>(mAddedBlocks);
+      List<Long> removedBlocks = new ArrayList<Long>(mRemovedBlocks);
+      // Clear added and removed blocks
+      mAddedBlocks.clear();
+      mRemovedBlocks.clear();
+      return new BlockHeartbeatReport(addedBlocks, removedBlocks);
     }
   }
 
   @Override
-  public synchronized void onRemoveBlockByWorker(long sessionId, long blockId) {
-    // Remove the block from list of added blocks, in case it was added in this heartbeat period.
-    removeBlockFromAddedBlocks(blockId);
-    // Add to the list of removed blocks in this heartbeat period.
-    if (!mRemovedBlocks.contains(blockId)) {
-      mRemovedBlocks.add(blockId);
+  public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation) {
+    synchronized (mLock) {
+      // Remove the block from our list of added blocks in this heartbeat, if it was added, to
+      // prevent adding the block twice.
+      removeBlockFromAddedBlocks(blockId);
+      // Add the block back with the new tier
+      addBlockToAddedBlocks(blockId, newLocation.tierAlias());
     }
   }
 
   @Override
-  public synchronized void onMoveBlockByWorker(long sessionId, long blockId,
-      BlockStoreLocation oldLocation, BlockStoreLocation newLocation) {
-    // Remove the block from our list of added blocks in this heartbeat, if it was added, to
-    // prevent adding the block twice.
-    removeBlockFromAddedBlocks(blockId);
-    // Add the block back with the new storagedir.
-    addBlockToAddedBlocks(blockId, newLocation.tierAlias());
+  public void onRemoveBlockByClient(long sessionId, long blockId) {
+    synchronized (mLock) {
+      // Remove the block from list of added blocks, in case it was added in this heartbeat period.
+      removeBlockFromAddedBlocks(blockId);
+      // Add to the list of removed blocks in this heartbeat period.
+      if (!mRemovedBlocks.contains(blockId)) {
+        mRemovedBlocks.add(blockId);
+      }
+    }
+  }
+
+  @Override
+  public void onRemoveBlockByWorker(long sessionId, long blockId) {
+    synchronized (mLock) {
+      // Remove the block from list of added blocks, in case it was added in this heartbeat period.
+      removeBlockFromAddedBlocks(blockId);
+      // Add to the list of removed blocks in this heartbeat period.
+      if (!mRemovedBlocks.contains(blockId)) {
+        mRemovedBlocks.add(blockId);
+      }
+    }
+  }
+
+  @Override
+  public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation) {
+    synchronized (mLock) {
+      // Remove the block from our list of added blocks in this heartbeat, if it was added, to
+      // prevent adding the block twice.
+      removeBlockFromAddedBlocks(blockId);
+      // Add the block back with the new storagedir.
+      addBlockToAddedBlocks(blockId, newLocation.tierAlias());
+    }
   }
 
   /**

@@ -57,7 +57,7 @@ public class FileInStreamIntegrationTest {
   private static CreateFileOptions sWriteUnderStore;
 
   @Rule
-  public Timeout mGlobalTimeout = Timeout.seconds(10);
+  public Timeout mGlobalTimeout = Timeout.seconds(60);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();

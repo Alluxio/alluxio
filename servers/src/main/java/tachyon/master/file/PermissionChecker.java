@@ -17,7 +17,7 @@ package tachyon.master.file;
 
 import java.util.List;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Preconditions;
 
@@ -34,7 +34,7 @@ import tachyon.util.io.PathUtils;
 /**
  * Base class to provide permission check logic.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class PermissionChecker {
   private static boolean sPermissionCheckEnabled;
 
@@ -72,7 +72,7 @@ public final class PermissionChecker {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public static synchronized void checkParentPermission(String user, List<String> groups,
+  public static void checkParentPermission(String user, List<String> groups,
       FileSystemAction action, TachyonURI path, List<FileInfo> fileInfoList)
       throws AccessControlException, InvalidPathException {
     // root "/" has no parent, so return without checking
@@ -100,9 +100,9 @@ public final class PermissionChecker {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public static synchronized void checkPermission(String user, List<String> groups,
-      FileSystemAction action, TachyonURI path, List<FileInfo> fileInfoList)
-      throws AccessControlException, InvalidPathException {
+  public static void checkPermission(String user, List<String> groups, FileSystemAction action,
+      TachyonURI path, List<FileInfo> fileInfoList) throws AccessControlException,
+      InvalidPathException {
     String[] pathComponents = PathUtils.getPathComponents(path.getPath());
 
     for (int i = fileInfoList.size(); i < pathComponents.length; i ++) {
@@ -121,7 +121,7 @@ public final class PermissionChecker {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public static synchronized void checkOwner(String user, List<String> groups, TachyonURI path,
+  public static void checkOwner(String user, List<String> groups, TachyonURI path,
       List<FileInfo> fileInfoList) throws AccessControlException, InvalidPathException {
     String[] pathComponents = PathUtils.getPathComponents(path.getPath());
 
@@ -138,7 +138,7 @@ public final class PermissionChecker {
    * @param groups in which user belongs to
    * @throws AccessControlException if the user is not a super user
    */
-  public static synchronized void checkSuperuser(String user, List<String> groups) throws
+  public static void checkSuperuser(String user, List<String> groups) throws
       AccessControlException {
     if (sFileSystemOwner.equals(user) || groups.contains(sFileSystemSuperGroup)) {
       return;
