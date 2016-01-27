@@ -131,8 +131,8 @@ You can also monitor the instances state through
 Make sure you are in the console for the region you started the cluster.
 
 Here are some scenarios when you may want to check the console:
- - when ./create failed
- - after you call ./destroy
+ - when failed to create the cluster
+ - after destroying the cluster
  - when you no longer need the cluster
 
 
