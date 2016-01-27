@@ -21,17 +21,16 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapred.FileAlreadyExistsException;
+import org.apache.hadoop.mapred.FileOutputCommitter;
 import org.apache.hadoop.mapred.FileOutputFormat;
-import org.apache.hadoop.mapred.InvalidJobConfException;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputFormat;
 import org.apache.hadoop.mapred.RecordWriter;
+import org.apache.hadoop.mapred.TaskAttemptID;
 import org.apache.hadoop.util.Progressable;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.keyvalue.KeyValueStoreWriter;
 import tachyon.client.keyvalue.KeyValueStores;
 import tachyon.exception.TachyonException;
 
@@ -47,41 +46,47 @@ import tachyon.exception.TachyonException;
  */
 @PublicApi
 @ThreadSafe
-public class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, BytesWritable> {
+public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, BytesWritable> {
   /**
-   * @param conf the job configuration
-   * @return the temporary output directory for the given job configuration
-   * @throws IOException if the output directory cannot be determined
+   * @param conf MapReduce job configuration
+   * @return the task's temporary output path ${mapred.out.dir}/_temporary/_${taskid}
    */
-  public static TachyonURI getTaskTempOutputDirectoryURI(JobConf conf) throws IOException {
-    return new TachyonURI(FileOutputFormat.getTaskOutputPath(conf, "PLACE_HOLDER").toString())
-        .getParent();
+  public static TachyonURI getTaskOutputURI(JobConf conf) {
+    return getJobOutputURI(conf).join(FileOutputCommitter.TEMP_DIR_NAME).join("_"
+        + TaskAttemptID.forName(conf.get("mapred.task.id")).toString());
+  }
+
+  /**
+   * @param conf MapReduce job configuration
+   * @return the job's output path
+   */
+  public static TachyonURI getJobOutputURI(JobConf conf) {
+    return new TachyonURI(FileOutputFormat.getOutputPath(conf).toString());
   }
 
   @Override
   public RecordWriter<BytesWritable, BytesWritable> getRecordWriter(FileSystem ignored,
       JobConf conf, String name, Progressable progress) throws IOException {
-    KeyValueStores kvStore = KeyValueStores.Factory.create();
-    try {
-      KeyValueStoreWriter writer = kvStore.create(getTaskTempOutputDirectoryURI(conf).join(name));
-      return new KeyValueRecordWriter(writer, progress);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    }
+    return new KeyValueRecordWriter(getTaskOutputURI(conf).join(name), progress);
   }
 
   /**
    * {@inheritDoc}
    * <p>
-   * {@link KeyValueOutputCommitter} is forced to be used.
+   * {@link KeyValueOutputCommitter} is forced to be used. If the output path exists, an exception
+   * is thrown, otherwise, an empty key-value store is created at the output path.
    * <p>
    * NOTE: This method is called immediately when job is submitted, so that modifications to the
    * {@link JobConf} are reflected in the whole job.
    */
   @Override
-  public void checkOutputSpecs(FileSystem ignored, JobConf conf)
-      throws FileAlreadyExistsException, InvalidJobConfException, IOException {
+  public void checkOutputSpecs(FileSystem ignored, JobConf conf) throws IOException {
     super.checkOutputSpecs(ignored, conf);
     conf.setOutputCommitter(KeyValueOutputCommitter.class);
+    try {
+      KeyValueStores.Factory.create().create(KeyValueOutputFormat.getJobOutputURI(conf)).close();
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 }
