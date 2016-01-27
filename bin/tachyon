@@ -17,11 +17,11 @@ function printUsage {
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Tachyon."
   echo -e "  runClass      \t Run a Tachyon class with main method."
   echo -e "  runTest       \t Run a end-to-end test on a Tachyon cluster."
+  echo -e "  runKVTest     \t Run a test of key-value store operations."
   echo -e "  runTests      \t Run all end-to-end tests on a Tachyon cluster."
   echo -e "  journalCrashTest\t Test the Master Journal System in a crash scenario. Try 'tachyon journalCrashTest -help' for more help."
   echo -e "                  \t NOTE: This command will stop the existing server and creates a new one!"
   echo -e "  readJournal   \t Read a Tachyon journal file from stdin and write a human-readable version of it to stdout."
-  echo -e "  keyValueStoreTest\t Test the key-value store operations."
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
@@ -158,7 +158,7 @@ function readJournal {
   return ${RET}
 }
 
-function keyValueStoreTest {
+function runKVTest {
   runClass tachyon.examples.keyvalue.KeyValueStoreOperations /default_tests_files/KeyValueStoreOperations
 }
 
@@ -269,6 +269,10 @@ case ${COMMAND} in
   runTest $@
   exit $?
 ;;
+"runKVTest")
+  runKVTest $@
+  exit $?
+;;
 "runTests")
   declare -a writeTypes=(MUST_CACHE CACHE_THROUGH THROUGH ASYNC_THROUGH)
   declare -a readTypes=(CACHE_PROMOTE CACHE NO_CACHE)
@@ -304,10 +308,6 @@ case ${COMMAND} in
 ;;
 "readJournal")
   readJournal $@
-  exit $?
-;;
-"keyValueStoreTest")
-  keyValueStoreTest $@
   exit $?
 ;;
 "killAll")
