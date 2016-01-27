@@ -19,7 +19,7 @@ function printUsage {
   echo -e "  runTest       \t Run a end-to-end test on a Tachyon cluster."
   echo -e "  runKVTest     \t Run a test of key-value store operations."
   echo -e "  runTests      \t Run all end-to-end tests on a Tachyon cluster."
-  echo -e "  journalCrashTest\t Test the Master Journal System in a crash scenario. Try 'tachyon journalCrashTest -help' for more help."
+  echo -e "  runJournalCrashTest\t Test the Master Journal System in a crash scenario. Try 'tachyon runJournalCrashTest -help' for more help."
   echo -e "                  \t NOTE: This command will stop the existing server and creates a new one!"
   echo -e "  readJournal   \t Read a Tachyon journal file from stdin and write a human-readable version of it to stdout."
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
@@ -146,7 +146,7 @@ function runClass {
   return ${RET}
 }
 
-function journalCrashTest {
+function runJournalCrashTest {
   runClass tachyon.examples.JournalCrashTest $@
 }
 
@@ -302,8 +302,8 @@ case ${COMMAND} in
   fi
   exit ${failed}
 ;;
-"journalCrashTest")
-  journalCrashTest $@
+"runJournalCrashTest")
+  runJournalCrashTest $@
   exit $?
 ;;
 "readJournal")
