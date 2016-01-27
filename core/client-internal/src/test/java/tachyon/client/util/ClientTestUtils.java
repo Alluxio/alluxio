@@ -15,9 +15,15 @@
 
 package tachyon.client.util;
 
+import org.powermock.reflect.Whitebox;
+
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
+import tachyon.client.block.BlockStoreContext;
+import tachyon.client.file.FileSystemContext;
+import tachyon.client.lineage.LineageContext;
 
 /**
  * Utility methods for the client tests.
@@ -28,9 +34,38 @@ public final class ClientTestUtils {
    * Sets small buffer sizes so that Tachyon does not run out of heap space.
    */
   public static void setSmallBufferSizes() {
-    TachyonConf mConf = new TachyonConf();
-    mConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
-    mConf.set(Constants.USER_FILE_BUFFER_BYTES, "4KB");
-    ClientContext.reset(mConf);
+    ClientContext.getConf().set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
+    ClientContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, "4KB");
+  }
+
+  /**
+   * Resets the {@link ClientContext} singleton.
+   *
+   * This method should only be used as a cleanup mechanism between tests. It should not be used
+   * while any object may be using the {@link ClientContext}.
+   */
+  public static void resetClientContext() {
+    try {
+      Whitebox.invokeMethod(ClientContext.class, "reset");
+    } catch (Exception e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * Re-initializes the {@link ClientContext} singleton to pick up any configuration changes.
+   *
+   * This method is needed when the master address has been changed so that new clients will use the
+   * new address. It should not be used while any object may be using the {@link ClientContext}.
+   */
+  public static void reinitializeClientContext() {
+    try {
+      Whitebox.invokeMethod(ClientContext.class, "init");
+      BlockStoreContext.INSTANCE.reset();
+      FileSystemContext.INSTANCE.reset();
+      LineageContext.INSTANCE.reset();
+    } catch (Exception e) {
+      throw Throwables.propagate(e);
+    }
   }
 }
