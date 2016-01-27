@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.tachyonproject</groupId>
     <artifactId>tachyon-underfs</artifactId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>0.9.0-RC1</version>
   </parent>
   <artifactId>tachyon-underfs-oss</artifactId>
   <name>Tachyon Under File System - Aliyun OSS</name>
@@ -32,7 +32,7 @@
       <artifactId>aliyun-sdk-oss</artifactId>
       <version>2.0.7</version>
     </dependency>
-    <!-- This dependency here is because the oss sdk need it to 
+    <!-- This dependency here is because the oss sdk need it to
          contact the OSS service in the runtime -->
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
