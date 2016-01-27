@@ -33,7 +33,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.client.block.BlockMasterClient;
 import tachyon.client.file.FileOutStream;
@@ -206,14 +206,14 @@ public class BlockServiceHandlerIntegrationTest {
   public void evictionTest() throws Exception {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
     TachyonURI file1 = new TachyonURI("/file1");
-    TachyonFSTestUtils.createByteFile(mTfs, file1, WriteType.MUST_CACHE, blockSize);
+    FileSystemTestUtils.createByteFile(mTfs, file1, WriteType.MUST_CACHE, blockSize);
 
     // File should be in memory after it is written with MUST_CACHE
     URIStatus fileInfo1 = mTfs.getStatus(file1);
     Assert.assertEquals(100, fileInfo1.getInMemoryPercentage());
 
     TachyonURI file2 = new TachyonURI("/file2");
-    TachyonFSTestUtils.createByteFile(mTfs, file2, WriteType.MUST_CACHE, blockSize);
+    FileSystemTestUtils.createByteFile(mTfs, file2, WriteType.MUST_CACHE, blockSize);
 
     // Both file 1 and 2 should be in memory since the combined size is not larger than worker space
     fileInfo1 = mTfs.getStatus(file1);
@@ -222,7 +222,7 @@ public class BlockServiceHandlerIntegrationTest {
     Assert.assertEquals(100, fileInfo2.getInMemoryPercentage());
 
     TachyonURI file3 = new TachyonURI("/file3");
-    TachyonFSTestUtils.createByteFile(mTfs, file3, WriteType.MUST_CACHE, blockSize);
+    FileSystemTestUtils.createByteFile(mTfs, file3, WriteType.MUST_CACHE, blockSize);
 
     waitForHeartbeat();
 

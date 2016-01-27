@@ -29,7 +29,7 @@ import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.StreamOptionUtils;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.CreateFileOptions;
@@ -64,7 +64,7 @@ public final class FileInStreamConcurrencyIntegrationTest {
   @Test
   public void FileInStreamConcurrencyTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
-    TachyonFSTestUtils.createByteFile(sTfs, uniqPath, BLOCK_SIZE * 2, sWriteTachyon);
+    FileSystemTestUtils.createByteFile(sTfs, uniqPath, BLOCK_SIZE * 2, sWriteTachyon);
 
     List<Thread> threads = Lists.newArrayList();
     for (int i = 0; i < READ_THREADS_NUM; i ++) {

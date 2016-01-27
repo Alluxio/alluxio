@@ -20,7 +20,7 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.exception.TachyonException;
 import tachyon.shell.AbstractTfsShellTest;
@@ -50,7 +50,7 @@ public class CatCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void catTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("cat", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(10);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());

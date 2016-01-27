@@ -22,7 +22,7 @@ import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.exception.TachyonException;
 import tachyon.security.LoginUser;
@@ -36,7 +36,7 @@ public class ChmodCommandTest extends AbstractTfsShellTest {
   @Test
   public void chmodTest() throws IOException, TachyonException {
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chmod", "777", "/testFile");
     int permission = mTfs.getStatus(new TachyonURI("/testFile")).getPermission();
     Assert.assertEquals((short) 0777, permission);
