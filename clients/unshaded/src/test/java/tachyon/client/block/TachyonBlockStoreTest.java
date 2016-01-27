@@ -32,7 +32,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.client.ClientContext;
-import tachyon.client.worker.BlockWorkerClient;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
@@ -130,8 +129,7 @@ public final class TachyonBlockStoreTest {
 
     Assert.assertTrue(stream instanceof LocalBlockInStream);
     Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals(BLOCK_LENGTH,
-        Whitebox.getInternalState(stream, "mBlockSize"));
+    Assert.assertEquals(BLOCK_LENGTH, Whitebox.getInternalState(stream, "mBlockSize"));
     Mockito.verify(mBlockStoreContext).acquireMasterClient();
     Mockito.verify(mBlockStoreContext).releaseMasterClient(mMasterClient);
   }
@@ -152,8 +150,7 @@ public final class TachyonBlockStoreTest {
 
     Assert.assertTrue(stream instanceof RemoteBlockInStream);
     Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals(BLOCK_LENGTH,
-        Whitebox.getInternalState(stream, "mBlockSize"));
+    Assert.assertEquals(BLOCK_LENGTH, Whitebox.getInternalState(stream, "mBlockSize"));
     Assert.assertEquals(new InetSocketAddress(WORKER_HOSTNAME_REMOTE, WORKER_DATA_PORT),
         Whitebox.getInternalState(stream, "mLocation"));
     Mockito.verify(mBlockStoreContext).acquireMasterClient();

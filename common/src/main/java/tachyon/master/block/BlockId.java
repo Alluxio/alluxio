@@ -15,6 +15,8 @@
 
 package tachyon.master.block;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * This class provides a set of methods related to block Ids. Each block Id is a value of long with
  * the following two parts:
@@ -24,6 +26,7 @@ package tachyon.master.block;
  * container.</li>
  * </ul>
  */
+@ThreadSafe
 public final class BlockId {
 
   private static final int CONTAINER_ID_BITS = 40;

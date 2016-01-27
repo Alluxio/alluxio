@@ -26,6 +26,9 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
@@ -40,35 +43,37 @@ import tachyon.Constants;
 import tachyon.util.io.PathUtils;
 
 /**
- * This class creates a streaming interface for writing a file in OSS. The data will be persisted
- * to a temporary directory on local disk and copied as a complete file when the {@link #close()}
- * method is called.
+ * A stream for writing a file into OSS. The data will be persisted to a temporary directory on the
+ * local disk and copied as a complete file when the {@link #close()} method is called.
  */
+@NotThreadSafe
 public final class OSSOutputStream extends OutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Bucket name of the Tachyon OSS bucket */
+  /** Bucket name of the Tachyon OSS bucket. */
   private final String mBucketName;
-  /** Key of the file when it is uploaded to OSS */
+  /** Key of the file when it is uploaded to OSS. */
   private final String mKey;
-  /** The local file that will be uploaded when the stream is closed */
+  /** The local file that will be uploaded when the stream is closed. */
   private final File mFile;
-  /** The oss client for oss operations */
+  /** The oss client for OSS operations. */
   private final OSSClient mOssClient;
 
-  /** The outputstream to a local file where the file will be buffered until closed */
+  /** The outputstream to a local file where the file will be buffered until closed. */
   private OutputStream mLocalOutputStream;
-  /** The MD5 hash of the file */
+  /** The MD5 hash of the file. */
   private MessageDigest mHash;
 
-  /** Flag to indicate this stream has been closed, to ensure close is only done once */
-  private boolean mClosed;
+  /** Flag to indicate this stream has been closed, to ensure close is only done once. */
+  private AtomicBoolean mClosed = new AtomicBoolean(false);
 
   /**
+   * Creates a name instance of {@link OSSOutputStream}.
+   *
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the client for OSS
-   * @throws IOException if writing to a file fails
+   * @throws IOException if an I/O error occurs
    */
   public OSSOutputStream(String bucketName, String key, OSSClient client) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(),
@@ -91,16 +96,14 @@ public final class OSSOutputStream extends OutputStream {
       mHash = null;
       mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
     }
-    mClosed = false;
   }
 
   /**
-   * Writes the specified bytes to this output stream.  Before close, the bytes are all written to
-   * local file.
+   * Writes the given bytes to this output stream. Before close, the bytes are all written to local
+   * file.
    *
-   * @param b the {@code byte}
-   * @throws IOException if an I/O error occurs. In particular,  an {@code IOException} may be
-   *                     thrown if the output stream has been closed
+   * @param b the bytes to write
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public void write(int b) throws IOException {
@@ -108,10 +111,10 @@ public final class OSSOutputStream extends OutputStream {
   }
 
   /**
-   * Writes b.length bytes from the specified byte array to this output stream. Before close, the
-   * bytes are all writen to local file.
+   * Writes the given byte array to this output stream. Before close, the bytes are all written to
+   * local file.
    *
-   * @param b the data
+   * @param b the byte array
    * @throws IOException if an I/O error occurs
    */
   @Override
@@ -120,14 +123,13 @@ public final class OSSOutputStream extends OutputStream {
   }
 
   /**
-   * Writes len bytes from the specified byte array starting at offset off to this output stream.
-   * Before close, the bytes are all writen to local file.
+   * Writes the given number of bytes from the given byte array starting at the given offset to this
+   * output stream. Before close, the bytes are all written to local file.
    *
-   * @param b the data
+   * @param b the byte array
    * @param off the start offset in the data
    * @param len the number of bytes to write
-   * @throws IOException if an I/O error occurs. In particular, an {@code IOException} is
-   *                     thrown if the output stream is closed
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
@@ -146,18 +148,16 @@ public final class OSSOutputStream extends OutputStream {
   }
 
   /**
-   * Closing the {@link OSSOutputStream} is the place that does the real upload from local temp file
-   * to OSS Service. After closed, the file will uploaded to OSS and the local temp file will be
-   * deleted.
+   * Closes this output stream. When an output stream is closed, the local temporary file is
+   * uploaded to OSS Service. Once the file is uploaded, the temporary file is deleted.
    *
    * @throws IOException if an I/O error occurs
    */
   @Override
   public void close() throws IOException {
-    if (mClosed) {
+    if (mClosed.getAndSet(true)) {
       return;
     }
-    mClosed = true;
     mLocalOutputStream.close();
     try {
       BufferedInputStream in = new BufferedInputStream(

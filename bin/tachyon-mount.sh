@@ -9,6 +9,7 @@ LAUNCHER=
 if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
+BIN=$(cd "$( dirname "$0" )"; pwd)
 
 Usage="Usage: tachyon-mount.sh [Mount|SudoMount] [MACHINE]
 \nIf omitted, MACHINE is default to be 'local'. MACHINE is one of:\n
@@ -16,9 +17,7 @@ Usage="Usage: tachyon-mount.sh [Mount|SudoMount] [MACHINE]
   workers\t\tMount all the workers on worker nodes"
 
 function init_env() {
-  bin=`cd "$( dirname "$1" )"; pwd`
-
-  DEFAULT_LIBEXEC_DIR="$bin"/../libexec
+  DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
   TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
   . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
@@ -199,7 +198,7 @@ function mount_local() {
       DECL_INIT=`declare -f init_env`
       DECL_MEM_SIZE_TO_BYTES=`declare -f mem_size_to_bytes`
       DECL_MOUNT_LINUX=`declare -f mount_ramfs_linux`
-      sudo bash -O extglob -c "$DECL_INIT; $DECL_MEM_SIZE_TO_BYTES; $DECL_MOUNT_LINUX; mount_ramfs_linux $0"
+      sudo bash -O extglob -c "BIN=${BIN}; $DECL_INIT; $DECL_MEM_SIZE_TO_BYTES; $DECL_MOUNT_LINUX; mount_ramfs_linux $0"
     else
       mount_ramfs_linux $0
     fi
@@ -213,7 +212,7 @@ case "${1}" in
         mount_local $1
         ;;
       workers)
-        $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon-mount.sh $1
+        $LAUNCHER ${BIN}/tachyon-workers.sh ${BIN}/tachyon-mount.sh $1
         ;;
     esac
     ;;

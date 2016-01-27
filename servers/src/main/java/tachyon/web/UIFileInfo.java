@@ -92,7 +92,7 @@ public final class UIFileInfo {
   private final boolean mPinned;
   private final String mUserName;
   private final String mGroupName;
-  private final int mPermission;
+  private final String mPermission;
   private final String mPersistenceState;
   private List<String> mFileLocations;
 
@@ -113,14 +113,15 @@ public final class UIFileInfo {
     mSize = fileInfo.getLength();
     mCreationTimeMs = fileInfo.getCreationTimeMs();
     mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
-    mInMemory = (100 == fileInfo.inMemoryPercentage);
+    mInMemory = (100 == fileInfo.getInMemoryPercentage());
     mInMemoryPercent = fileInfo.getInMemoryPercentage();
-    mIsDirectory = fileInfo.isFolder;
-    mPinned = fileInfo.isPinned;
+    mIsDirectory = fileInfo.isFolder();
+    mPinned = fileInfo.isPinned();
     mUserName = fileInfo.getUserName();
     mGroupName = fileInfo.getGroupName();
-    mPermission = fileInfo.getPermission();
-    mPersistenceState = fileInfo.persistenceState;
+    mPermission =
+        FormatUtils.formatPermission((short) fileInfo.getPermission(), fileInfo.isFolder());
+    mPersistenceState = fileInfo.getPersistenceState();
     mFileLocations = new ArrayList<String>();
   }
 
@@ -143,7 +144,9 @@ public final class UIFileInfo {
     mPinned = false;
     mUserName = "";
     mGroupName = "";
-    mPermission = FileSystemPermission.getNoneFsPermission().toShort();
+    mPermission =
+        FormatUtils.formatPermission((short) FileSystemPermission.getNoneFsPermission()
+            .toShort(), true);
     mPersistenceState = PersistenceState.NOT_PERSISTED.name();
     mFileLocations = new ArrayList<String>();
   }
@@ -317,7 +320,7 @@ public final class UIFileInfo {
   /**
    * @return the permission of the file
    */
-  public int getPermission() {
+  public String getPermission() {
     return mPermission;
   }
 }

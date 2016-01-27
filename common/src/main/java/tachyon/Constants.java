@@ -15,9 +15,12 @@
 
 package tachyon;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * System wide constants
  */
+@ThreadSafe
 public final class Constants {
   public static final int KB = 1024;
   public static final int MB = KB * 1024;
@@ -35,15 +38,16 @@ public final class Constants {
   public static final String ANSI_CYAN = "\u001B[36m";
   public static final String ANSI_WHITE = "\u001B[37m";
 
+  public static final String LS_FORMAT_PERMISSION = "%-15s";
   public static final String LS_FORMAT_FILE_SIZE = "%-10s";
   public static final String LS_FORMAT_CREATE_TIME = "%-25s";
   public static final String LS_FORMAT_FILE_TYPE = "%-15s";
   public static final String LS_FORMAT_USER_NAME = "%-15s";
   public static final String LS_FORMAT_GROUP_NAME = "%-15s";
   public static final String LS_FORMAT_FILE_PATH = "%-5s";
-  public static final String COMMAND_FORMAT_LS = LS_FORMAT_FILE_SIZE + LS_FORMAT_CREATE_TIME
-      + LS_FORMAT_FILE_TYPE + LS_FORMAT_USER_NAME + LS_FORMAT_GROUP_NAME + LS_FORMAT_FILE_PATH
-      + "%n";
+  public static final String COMMAND_FORMAT_LS = LS_FORMAT_PERMISSION + LS_FORMAT_USER_NAME
+      + LS_FORMAT_GROUP_NAME + LS_FORMAT_FILE_SIZE + LS_FORMAT_CREATE_TIME + LS_FORMAT_FILE_TYPE
+      + LS_FORMAT_FILE_PATH + "%n";
 
   public static final String MESOS_RESOURCE_CPUS = "cpus";
   public static final String MESOS_RESOURCE_MEM = "mem";
@@ -54,6 +58,8 @@ public final class Constants {
   public static final int MINUTE_MS = SECOND_MS * 60;
   public static final int HOUR_MS = MINUTE_MS * 60;
   public static final int DAY_MS = HOUR_MS * 24;
+
+  public static final int BYTES_IN_INTEGER = 4;
 
   public static final String SCHEME = "tachyon";
   public static final String HEADER = SCHEME + "://";
@@ -83,14 +89,14 @@ public final class Constants {
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_WORKER_SERVICE_VERSION = 1;
-  public static final long RAW_TABLE_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long RAW_TABLE_MASTER_WORKER_SERVICE_VERSION = 1;
+  public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 1;
+  public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 1;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String LINEAGE_MASTER_NAME = "LineageMaster";
-  public static final String RAW_TABLE_MASTER_NAME = "RawTableMaster";
+  public static final String KEY_VALUE_MASTER_NAME = "KeyValueMaster";
 
   public static final String BLOCK_MASTER_CLIENT_SERVICE_NAME = "BlockMasterClient";
   public static final String BLOCK_MASTER_WORKER_SERVICE_NAME = "BlockMasterWorker";
@@ -98,9 +104,9 @@ public final class Constants {
   public static final String FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME = "FileSystemMasterWorker";
   public static final String LINEAGE_MASTER_CLIENT_SERVICE_NAME = "LineageMasterClient";
   public static final String LINEAGE_MASTER_WORKER_SERVICE_NAME = "LineageMasterWorker";
-  public static final String RAW_TABLE_MASTER_CLIENT_SERVICE_NAME = "RawTableMasterClient";
-  public static final String RAW_TABLE_MASTER_WORKER_SERVICE_NAME = "RawTableMasterWorker";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
+  public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
+  public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>
@@ -129,7 +135,6 @@ public final class Constants {
   public static final String UNDERFS_HDFS_IMPL = "tachyon.underfs.hdfs.impl";
   public static final String UNDERFS_HDFS_CONFIGURATION = "tachyon.underfs.hdfs.configuration";
   public static final String UNDERFS_HDFS_PREFIXS = "tachyon.underfs.hdfs.prefixes";
-  public static final String MAX_COLUMNS = "tachyon.max.columns";
   public static final String IN_TEST_MODE = "tachyon.test.mode";
   public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       "tachyon.network.host.resolution.timeout.ms";
@@ -152,7 +157,9 @@ public final class Constants {
   public static final String ZOOKEEPER_LEADER_PATH = "tachyon.zookeeper.leader.path";
   public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
       "tachyon.zookeeper.leader.inquiry.retry";
-  public static final String MAX_TABLE_METADATA_BYTE = "tachyon.max.table.metadata.bytes";
+  public static final String KEY_VALUE_ENABLED = "tachyon.keyvalue.enabled";
+  public static final String KEY_VALUE_PARTITION_SIZE_BYTES_MAX =
+      "tachyon.keyvalue.partition.size.bytes.max";
   public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
   public static final String FORMAT_FILE_PREFIX = "_format_";
 
@@ -343,8 +350,6 @@ public final class Constants {
   public static final String USER_LINEAGE_MASTER_CLIENT_THREADS =
       "tachyon.user.lineage.master.client.threads";
   public static final String USER_LINEAGE_ENABLED = "tachyon.user.lineage.enabled";
-  public static final String USER_RAW_TABLE_MASTER_CLIENT_THREADS =
-      "tachyon.user.raw.table.master.client.threads";
 
   public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
       "tachyon.user.file.waitcompleted.poll.ms";
@@ -428,6 +433,14 @@ public final class Constants {
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
   // Group Mapping
   public static final String SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
+
+  // TODO(dong): TACHYON-1462. Document these security related properties in configuration page
+  public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
+      "tachyon.security.authorization.permission.enabled";
+  public static final String SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
+      "tachyon.security.authorization.permission.supergroup";
+
+  public static final short INVALID_PERMISSION = -1;
 
   private Constants() {} // prevent instantiation
 }

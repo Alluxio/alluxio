@@ -17,14 +17,17 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
  * Displays information for all directories and files under the path specified in args
  * recursively.
  */
+@ThreadSafe
 public final class LsrCommand extends AbstractLsCommand {
 
   /**
@@ -34,7 +37,7 @@ public final class LsrCommand extends AbstractLsCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public LsrCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public LsrCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

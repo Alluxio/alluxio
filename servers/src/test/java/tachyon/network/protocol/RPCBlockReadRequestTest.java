@@ -61,11 +61,17 @@ public class RPCBlockReadRequestTest {
     }
   }
 
+  /**
+   * Sets up the buffer before a test runs.
+   */
   @Before
   public final void before() {
     mBuffer = Unpooled.buffer();
   }
 
+  /**
+   * Tests the {@link RPCBlockReadRequest#getEncodedLength()} method.
+   */
   @Test
   public void encodedLengthTest() {
     RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID,
@@ -75,6 +81,10 @@ public class RPCBlockReadRequestTest {
     Assert.assertEquals(encodedLength, mBuffer.readableBytes());
   }
 
+  /**
+   * Tests the {@link RPCBlockReadRequest#encode(ByteBuf)} and
+   * {@link RPCBlockReadRequest#decode(ByteBuf)} methods.
+   */
   @Test
   public void encodeDecodeTest() {
     RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID,
@@ -85,6 +95,9 @@ public class RPCBlockReadRequestTest {
     assertValid(BLOCK_ID, OFFSET, LENGTH, LOCK_ID, SESSION_ID, req2);
   }
 
+  /**
+   * Tests the {@link RPCBlockReadRequest#validate()} method.
+   */
   @Test
   public void validateTest() {
     RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID,
@@ -92,6 +105,10 @@ public class RPCBlockReadRequestTest {
     assertValid(req);
   }
 
+  /**
+   * Tests the {@link RPCBlockReadRequest#RPCBlockReadRequest(long, long, long, long, long)}
+   * constructor with a valid length.
+   */
   @Test
   public void validLengthTest() {
     RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, -1, LOCK_ID,
@@ -101,6 +118,10 @@ public class RPCBlockReadRequestTest {
     assertValid(req);
   }
 
+  /**
+   * Tests the {@link RPCBlockReadRequest#RPCBlockReadRequest(long, long, long, long, long)}
+   * constructor with a negative offset.
+   */
   @Test
   public void negativeOffsetTest() {
     RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, -1, LENGTH, LOCK_ID,
@@ -108,6 +129,10 @@ public class RPCBlockReadRequestTest {
     assertInvalid(req);
   }
 
+  /**
+   * Tests the {@link RPCBlockReadRequest#RPCBlockReadRequest(long, long, long, long, long)}
+   * constructor with an invalid length.
+   */
   @Test
   public void invalidLengthTest() {
     RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, -100, LOCK_ID,

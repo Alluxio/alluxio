@@ -19,6 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.internal.util.reflection.Whitebox;
 
+import tachyon.TachyonURI;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.options.OutStreamOptions;
 
@@ -34,7 +35,8 @@ public final class LineageFileOutStreamTest {
    */
   @Test
   public void outStreamCreationTest() throws Exception {
-    LineageFileOutStream stream = new LineageFileOutStream(0, OutStreamOptions.defaults());
+    LineageFileOutStream stream =
+        new LineageFileOutStream(new TachyonURI("/path"), OutStreamOptions.defaults());
     UnderStorageType underStorageType =
         (UnderStorageType) Whitebox.getInternalState(stream, "mUnderStorageType");
     Assert.assertEquals(UnderStorageType.ASYNC_PERSIST, underStorageType);

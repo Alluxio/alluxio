@@ -19,7 +19,10 @@ import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
+import tachyon.security.authorization.FileSystemPermission;
 
 /**
  * Utility methods to parse specific formats, print according to specific formats or transform among
@@ -27,6 +30,7 @@ import tachyon.Constants;
  * specific string format, parsing a specific string format back to objects and printing or logging
  * according to a specific format.
  */
+@ThreadSafe
 public final class FormatUtils {
   /**
    * Parses a list of {@code Objects} into a {@code String}.
@@ -67,6 +71,24 @@ public final class FormatUtils {
         sb.append(" ");
       }
       sb.append(buf.getInt());
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Parses a byte array into a space separated hex string where each byte is represented in the
+   * format {@code 0x%02X}.
+   *
+   * @param bytes the byte array to be transformed
+   * @return the string representation of the byte array
+   */
+  public static String byteArrayToHexString(byte[] bytes) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < bytes.length; i ++) {
+      sb.append(String.format("0x%02X", bytes[i]));
+      if (i != bytes.length - 1) {
+        sb.append(" ");
+      }
     }
     return sb.toString();
   }
@@ -164,6 +186,24 @@ public final class FormatUtils {
     } else {
       throw new IllegalArgumentException("Fail to parse " + ori + " to bytes");
     }
+  }
+
+  /**
+   * Formats file permission to human-readable version.
+   *
+   * @param permission file permission
+   * @param isDirectory if the path is a directory
+   * @return human-readable version of permission
+   */
+  public static String formatPermission(short permission, boolean isDirectory) {
+    StringBuffer permissionStr = new StringBuffer();
+    if (isDirectory) {
+      permissionStr.append("d");
+    } else {
+      permissionStr.append("-");
+    }
+    permissionStr.append(new FileSystemPermission(permission).toString());
+    return permissionStr.toString();
   }
 
   private FormatUtils() {} // prevent instantiation

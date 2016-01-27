@@ -15,48 +15,27 @@
 
 package tachyon.client.file.options;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.annotation.PublicApi;
-import tachyon.conf.TachyonConf;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * Method option for unmounting a path.
  */
 @PublicApi
+@NotThreadSafe
 public final class UnmountOptions {
-
-  /**
-   * Builder for {@link UnmountOptions}.
-   */
-  public static class Builder implements OptionsBuilder<UnmountOptions> {
-    /**
-     * Creates a new builder for {@link UnmountOptions}.
-     */
-    public Builder() {}
-
-    /**
-     * Creates a new builder for {@link UnmountOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {}
-
-    /**
-     * Builds a new instance of {@link UnmountOptions}.
-     *
-     * @return a {@link UnmountOptions} instance
-     */
-    @Override
-    public UnmountOptions build() {
-      return new UnmountOptions(this);
-    }
-  }
-
   /**
    * @return the default {@link UnmountOptions}
    */
+  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static UnmountOptions defaults() {
-    return new Builder().build();
+    return new UnmountOptions();
   }
 
-  private UnmountOptions(UnmountOptions.Builder builder) {}
+  private UnmountOptions() {
+    // No options currently
+  }
 }

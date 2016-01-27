@@ -17,17 +17,23 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
 /**
  * Unmounts a Tachyon path.
  */
+@ThreadSafe
 public final class UnmountCommand extends AbstractTfsShellCommand {
-
-  public UnmountCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
+  public UnmountCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -46,11 +52,8 @@ public final class UnmountCommand extends AbstractTfsShellCommand {
     TachyonURI inputPath = new TachyonURI(args[0]);
 
     try {
-      if (mTfs.unmount(inputPath)) {
-        System.out.println("Unmounted " + inputPath);
-      } else {
-        throw new IOException("unmount: Failed to unmount" + inputPath);
-      }
+      mTfs.unmount(inputPath);
+      System.out.println("Unmounted " + inputPath);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }

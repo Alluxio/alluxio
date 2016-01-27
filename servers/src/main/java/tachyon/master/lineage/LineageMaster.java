@@ -32,6 +32,7 @@ import com.google.protobuf.Message;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
@@ -46,7 +47,7 @@ import tachyon.job.Job;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.master.file.options.CreateOptions;
+import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
@@ -185,10 +186,11 @@ public final class LineageMaster extends MasterBase {
    * @throws FileAlreadyExistsException if the output file already exists
    * @throws BlockInfoException if fails to create the output file
    * @throws IOException if the creation of a file fails
+   * @throws AccessControlException if the permission check fails
    */
   public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
-      Job job)
-          throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
+      Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
+      IOException, AccessControlException {
     List<Long> inputTachyonFiles = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
       long fileId;
@@ -205,8 +207,9 @@ public final class LineageMaster extends MasterBase {
       long fileId;
       // TODO(yupeng): delete the placeholder files if the creation fails.
       // Create the file initialized with block size 1KB as placeholder.
-      CreateOptions options = new CreateOptions.Builder(MasterContext.getConf()).setRecursive(true)
-          .setBlockSizeBytes(Constants.KB).build();
+      CreateFileOptions options =
+          new CreateFileOptions.Builder(MasterContext.getConf()).setRecursive(true)
+              .setBlockSizeBytes(Constants.KB).build();
       fileId = mFileSystemMaster.create(outputFile, options);
       outputTachyonFiles.add(fileId);
     }
@@ -277,13 +280,20 @@ public final class LineageMaster extends MasterBase {
    * @param ttl the TTL
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws InvalidPathException the file path is invalid
-   * @throws FileDoesNotExistException when the file does not exist
+   * @throws LineageDoesNotExistException when the file does not exist
+   * @throws AccessControlException if permission checking fails
    */
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
-      throws InvalidPathException, FileDoesNotExistException {
+      throws InvalidPathException, LineageDoesNotExistException, AccessControlException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    if (!fileInfo.isCompleted || mFileSystemMaster.getLostFiles().contains(fileId)) {
+    FileInfo fileInfo;
+    try {
+      fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    } catch (FileDoesNotExistException e) {
+      throw new LineageDoesNotExistException(
+          ExceptionMessage.MISSING_REINITIALIZE_FILE.getMessage(path));
+    }
+    if (!fileInfo.isCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
       LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
       return mFileSystemMaster.reinitializeFile(new TachyonURI(path), blockSizeBytes, ttl);
     }
@@ -305,25 +315,25 @@ public final class LineageMaster extends MasterBase {
       for (Lineage parent : mLineageStore.getParents(lineage)) {
         parents.add(parent.getId());
       }
-      info.parents = parents;
+      info.setParents(parents);
       List<Long> children = Lists.newArrayList();
       for (Lineage child : mLineageStore.getChildren(lineage)) {
         children.add(child.getId());
       }
-      info.children = children;
-      info.id = lineage.getId();
+      info.setChildren(children);
+      info.setId(lineage.getId());
       List<String> inputFiles = Lists.newArrayList();
       for (long inputFileId : lineage.getInputFiles()) {
         inputFiles.add(mFileSystemMaster.getPath(inputFileId).toString());
       }
-      info.inputFiles = inputFiles;
+      info.setInputFiles(inputFiles);
       List<String> outputFiles = Lists.newArrayList();
       for (long outputFileId : lineage.getOutputFiles()) {
         outputFiles.add(mFileSystemMaster.getPath(outputFileId).toString());
       }
-      info.outputFiles = outputFiles;
-      info.creationTimeMs = lineage.getCreationTime();
-      info.job = ((CommandLineJob) lineage.getJob()).generateCommandLineJobInfo();
+      info.setOutputFiles(outputFiles);
+      info.setCreationTimeMs(lineage.getCreationTime());
+      info.setJob(((CommandLineJob) lineage.getJob()).generateCommandLineJobInfo());
 
       lineages.add(info);
     }
@@ -342,7 +352,13 @@ public final class LineageMaster extends MasterBase {
       Lineage lineage = mLineageStore.getLineage(lineageId);
       // schedule the lineage file for persistence
       for (long file : lineage.getOutputFiles()) {
-        mFileSystemMaster.scheduleAsyncPersistence(file);
+        try {
+          mFileSystemMaster.scheduleAsyncPersistence(mFileSystemMaster.getPath(file));
+        } catch (InvalidPathException e) {
+          // Shouldn't hit this case, since we are querying directly from the master
+          LOG.error("The file {} to persist had an invalid path associated with it.", file, e);
+          throw new FileDoesNotExistException(e.getMessage());
+        }
       }
     }
   }
@@ -352,8 +368,10 @@ public final class LineageMaster extends MasterBase {
    *
    * @param path the path to the file
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
    */
-  public synchronized void reportLostFile(String path) throws FileDoesNotExistException {
+  public synchronized void reportLostFile(String path) throws FileDoesNotExistException,
+      AccessControlException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
     mFileSystemMaster.reportLostFile(fileId);
   }

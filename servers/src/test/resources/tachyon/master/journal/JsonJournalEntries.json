@@ -133,23 +133,6 @@
       "tachyonPath":"/test/path"
     }
   },
-  "RAW_TABLE":{
-    "mSequenceNumber":1945,
-    "mType":"RAW_TABLE",
-    "mParameters":{
-      "metadata":"AAECAwQFBgcICQ==",
-      "columns":100,
-      "id":2015
-    }
-  },
-  "UPDATE_METADATA":{
-    "mSequenceNumber":1945,
-    "mType":"UPDATE_METADATA",
-    "mParameters":{
-      "metadata":"AAAAAAAAAAAAAA==",
-      "id":2015
-    }
-  },
   "REINITIALIZE_FILE":{
     "mSequenceNumber":1945,
     "mType":"REINITIALIZE_FILE",

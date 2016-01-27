@@ -21,10 +21,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Joiner;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.shell.TfsShellUtils;
 
@@ -34,9 +36,10 @@ import tachyon.shell.TfsShellUtils;
  *
  * It will first do a glob against the input pattern then run the command for each expanded path.
  */
+@ThreadSafe
 public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
 
-  protected WithWildCardPathCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  protected WithWildCardPathCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

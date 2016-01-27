@@ -17,22 +17,25 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.client.block.TachyonBlockStore;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Gets number of bytes used in the {@link TachyonFileSystem}.
+ * Gets number of bytes used in the {@link FileSystem}.
  */
+@ThreadSafe
 public final class GetUsedBytesCommand extends AbstractTfsShellCommand {
 
   /**
-   * Constructs a new instance to get the number of bytes used in the {@link TachyonFileSystem}.
+   * Constructs a new instance to get the number of bytes used in the {@link FileSystem}.
    *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public GetUsedBytesCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public GetUsedBytesCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

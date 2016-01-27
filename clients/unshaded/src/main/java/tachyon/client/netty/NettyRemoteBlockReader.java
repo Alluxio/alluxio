@@ -20,6 +20,8 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +41,7 @@ import tachyon.network.protocol.RPCResponse;
 /**
  * Read data from remote data server using Netty.
  */
+@NotThreadSafe
 public final class NettyRemoteBlockReader implements RemoteBlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

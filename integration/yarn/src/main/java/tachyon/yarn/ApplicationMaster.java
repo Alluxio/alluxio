@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
@@ -63,6 +65,7 @@ import tachyon.yarn.YarnUtils.YarnContainerType;
  * ApplicationMaster on an allocated container. The ApplicationMaster communicates with the YARN
  * cluster, and handles application execution. It performs operations asynchronously.
  */
+@NotThreadSafe
 public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -127,10 +130,23 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    */
   private CountDownLatch mOutstandingWorkerContainerRequestsLatch = null;
 
+  /**
+   * Convenience constructor which uses the default Tachyon configuration.
+   *
+   * @param numWorkers the number of workers to launch
+   * @param masterAddress the address at which to start the Tachyon master
+   * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
+   */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath) {
     this(numWorkers, masterAddress, resourcePath, new TachyonConf());
   }
 
+  /**
+   * @param numWorkers the number of workers to launch
+   * @param masterAddress the address at which to start the Tachyon master
+   * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
+   * @param conf Tachyon configuration
+   */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath,
       TachyonConf conf) {
     mMasterCpu = conf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
@@ -220,6 +236,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     return 0;
   }
 
+  /**
+   * Starts the application master.
+   *
+   * @throws IOException if registering the application master fails due to an IO error
+   * @throws YarnException if registering the application master fails due to an internal Yarn error
+   */
   public void start() throws IOException, YarnException {
     // create a client to talk to NodeManager
     mNMClient = NMClient.createNMClient();
@@ -242,6 +264,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     LOG.info("ApplicationMaster registered");
   }
 
+  /**
+   * Submits requests for containers until the master and all workers are launched, then waits for
+   * the application to be shut down.
+   *
+   * @throws Exception if an error occurs while requesting containers
+   */
   public void requestContainers() throws Exception {
     requestMasterContainer();
 
@@ -352,6 +380,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     return unusedHosts.toArray(new String[] {});
   }
 
+  /**
+   * Shuts down the application master, unregistering it from Yarn and stopping its clients.
+   */
   public void stop() {
     try {
       mRMClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");

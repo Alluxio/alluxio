@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
@@ -35,18 +37,19 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
- * Local node {@link UnderFileSystem} implementation.
+ * Local FS {@link UnderFileSystem} implementation.
  * <p>
- * This is primarily intended for local unit test and single machine mode. In principal it can also
- * be used on a system where a shared file system (e.g. NFS) is mounted at the same path on every
- * node of the system. However it is generally preferable to use a proper distributed file system
- * for that scenario.
+ * This is primarily intended for local unit testing and single machine mode. In principle, it can
+ * also be used on a system where a shared file system (e.g. NFS) is mounted at the same path on
+ * every node of the system. However, it is generally preferable to use a proper distributed file
+ * system for that scenario.
  * </p>
  */
+@ThreadSafe
 public class LocalUnderFileSystem extends UnderFileSystem {
 
   /**
-   * Constructs a new local node.
+   * Constructs a new {@link LocalUnderFileSystem}.
    *
    * @param conf the configuration for Tachyon
    */

@@ -28,6 +28,10 @@ import tachyon.master.MasterContext;
  * Unit tests for {@link CreatePathOptions}.
  */
 public class CreatePathOptionsTest {
+
+  /**
+   * Tests the {@link tachyon.master.file.meta.options.CreatePathOptions.Builder}.
+   */
   @Test
   public void builderTest() {
     Random random = new Random();
@@ -58,6 +62,9 @@ public class CreatePathOptionsTest {
     Assert.assertEquals(ttl, options.getTtl());
   }
 
+  /**
+   * Tests the {@link CreatePathOptions#defaults()} method.
+   */
   @Test
   public void defaultsTest() {
     TachyonConf conf = new TachyonConf();

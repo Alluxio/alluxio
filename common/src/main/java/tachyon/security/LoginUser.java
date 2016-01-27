@@ -18,13 +18,16 @@ package tachyon.security;
 import java.io.IOException;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
+import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.security.authentication.AuthType;
+import tachyon.security.login.AppCallbackHandler;
 import tachyon.security.login.TachyonJaasConfiguration;
 
 /**
@@ -35,6 +38,7 @@ import tachyon.security.login.TachyonJaasConfiguration;
  *
  * This singleton uses lazy initialization.
  */
+@ThreadSafe
 public final class LoginUser {
 
   /** User instance of the login user in Tachyon client process */
@@ -76,8 +80,14 @@ public final class LoginUser {
     try {
       Subject subject = new Subject();
 
+      CallbackHandler callbackHandler = null;
+      if (authType.equals(AuthType.SIMPLE) || authType.equals(AuthType.CUSTOM)) {
+        callbackHandler = new AppCallbackHandler(conf);
+      }
+
       LoginContext loginContext =
-          new LoginContext(authType.getAuthName(), subject, null, new TachyonJaasConfiguration());
+          new LoginContext(authType.getAuthName(), subject, callbackHandler,
+              new TachyonJaasConfiguration());
       loginContext.login();
 
       Set<User> userSet = subject.getPrincipals(User.class);

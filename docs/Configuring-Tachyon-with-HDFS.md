@@ -82,5 +82,5 @@ files named like: `/tachyon/data/default_tests_files/BasicFile_STORE_SYNC_PERSIS
 You can stop Tachyon any time by running:
 
 ```bash
-$ ./bin/tachyon-stop.sh
+$ ./bin/tachyon-stop.sh all
 ```

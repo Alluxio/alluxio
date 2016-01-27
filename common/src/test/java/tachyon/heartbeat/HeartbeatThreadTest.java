@@ -21,7 +21,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -59,7 +61,17 @@ public final class HeartbeatThreadTest {
 
   private static final int NUMBER_OF_THREADS = 10;
 
-  private final ExecutorService mExecutorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+  private static ExecutorService sExecutorService;
+
+  @BeforeClass
+  public static void beforeClass() {
+    sExecutorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    sExecutorService.shutdownNow();
+  }
 
   /**
    * This is a basic test of the heartbeat scheduler logic. It steps through the execution of a
@@ -117,7 +129,7 @@ public final class HeartbeatThreadTest {
         HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1);
 
         // Run the HeartbeatThread.
-        mExecutorService.submit(ht);
+        sExecutorService.submit(ht);
 
         // Wait for the DummyHeartbeatExecutor executor to be ready to execute its heartbeat.
         Assert.assertTrue("Initial wait failed.",
@@ -144,6 +156,11 @@ public final class HeartbeatThreadTest {
     @Override
     public void heartbeat() {
       mCounter ++;
+    }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
     }
 
     public int getCounter() {

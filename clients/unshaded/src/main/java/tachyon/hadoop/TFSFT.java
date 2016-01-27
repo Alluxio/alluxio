@@ -15,19 +15,22 @@
 
 package tachyon.hadoop;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.Constants;
+import tachyon.client.file.FileSystem;
 
 /**
  * A Tachyon client API compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
  * interface. Any program working with Hadoop HDFS can work with Tachyon transparently. Note that
  * the performance of using this TFSFT API may not be as efficient as the performance of using the
- * Tachyon native API defined in {@link tachyon.client.file.TachyonFileSystem}, which TFS is built
- * on top of.
+ * Tachyon native API defined in {@link FileSystem}, which TFS is built on top of.
  *
  * <p>
  * Unlike {@link TFS}, this class enables Zookeeper.
  * </p>
  */
+@NotThreadSafe
 public final class TFSFT extends AbstractTFS {
 
   @Override

@@ -17,17 +17,18 @@ package tachyon.client.block;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockWriter;
-import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.TachyonException;
 import tachyon.worker.NetAddress;
 
 /**
  * Provides a streaming API to write to a Tachyon block. This output stream will send the write
- * through a Tachyon worker which will then write the block to a file in Tachyon storage. The
- * instances of this class should only be used by one thread and are not thread safe.
+ * through a Tachyon worker which will then write the block to a file in Tachyon storage.
  */
+@NotThreadSafe
 public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   private final RemoteBlockWriter mRemoteWriter;
   private final BlockWorkerClient mBlockWorkerClient;

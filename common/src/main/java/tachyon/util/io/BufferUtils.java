@@ -24,6 +24,8 @@ import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +36,8 @@ import tachyon.Constants;
 /**
  * Utilities related to buffers, not only {@link ByteBuffer}.
  */
+@NotThreadSafe
+// TODO(jsimsa): Make this class thread-safe.
 public final class BufferUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static Method sCleanerCleanMethod;
@@ -74,7 +78,7 @@ public final class BufferUtils {
       final Object cleaner = sByteBufferCleanerMethod.invoke(buffer);
       if (cleaner == null) {
         if (buffer.capacity() > 0) {
-          LOG.error("Failed to get cleaner for ByteBuffer");
+          LOG.warn("Failed to get cleaner for ByteBuffer: {}", buffer.getClass().getName());
         }
         // The cleaner could be null when the buffer is initialized as zero capacity.
         return;
@@ -84,8 +88,9 @@ public final class BufferUtils {
       }
       sCleanerCleanMethod.invoke(cleaner);
     } catch (Exception e) {
-      LOG.warn("Fail to unmap direct buffer due to " + e.getMessage(), e);
+      LOG.warn("Failed to unmap direct ByteBuffer: {}", buffer.getClass().getName(), e);
     } finally {
+      // Force to drop reference to the buffer to clean
       buffer = null;
     }
   }
@@ -324,6 +329,52 @@ public final class BufferUtils {
     while (buffer.hasRemaining()) {
       dest.write(buffer);
     }
+  }
+
+  /**
+   * Creates a byte array from the given ByteBuffer, the position property of input
+   * {@link ByteBuffer} remains unchanged.
+   *
+   * @param buf source ByteBuffer
+   * @return a newly created byte array
+   */
+  public static byte[] newByteArrayFromByteBuffer(ByteBuffer buf) {
+    final int length = buf.remaining();
+    byte[] bytes = new byte[length];
+    // transfer bytes from this buffer into the given destination array
+    buf.duplicate().get(bytes, 0, length);
+    return bytes;
+  }
+
+  /**
+   * Creates a new ByteBuffer sliced from a given ByteBuffer. The new ByteBuffer shares the
+   * content of the existing one, but with independent position/mark/limit. After slicing, the
+   * new ByteBuffer has position 0, and the input ByteBuffer is unmodified.
+   *
+   * @param buffer source ByteBuffer to slice
+   * @param position position in the source ByteBuffer to slice
+   * @param length length of the sliced ByteBuffer
+   * @return the sliced ByteBuffer
+   */
+  public static ByteBuffer sliceByteBuffer(ByteBuffer buffer, int position, int length) {
+    ByteBuffer slicedBuffer = ((ByteBuffer) buffer.duplicate().position(position)).slice();
+    slicedBuffer.limit(length);
+    return slicedBuffer;
+  }
+
+  /**
+   * Convenience method for {@link #sliceByteBuffer(ByteBuffer, int, int)} where the last parameter
+   * is the number of remaining bytes in the new buffer.
+   *
+   * @param buffer source {@link ByteBuffer} to slice
+   * @param position position in the source {@link ByteBuffer} to slice
+   * @return the sliced {@link ByteBuffer}
+   */
+  public static ByteBuffer sliceByteBuffer(ByteBuffer buffer, int position) {
+    // The following is an optimization comparing to directly calling
+    // sliceByteBuffer(ByteBuffer, int, int) needs to compute the length of the sliced buffer and
+    // set the limit, but those operations should have been taken care of by the slice() method.
+    return ((ByteBuffer) buffer.duplicate().position(position)).slice();
   }
 
   private BufferUtils() {} // prevent instantiation

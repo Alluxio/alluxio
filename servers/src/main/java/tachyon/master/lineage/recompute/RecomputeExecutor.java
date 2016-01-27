@@ -26,11 +26,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.Futures;
 
 import tachyon.Constants;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageStateUtils;
+import tachyon.util.ThreadFactoryUtils;
 
 /**
  * A periodical executor that detects lost files and launches recompute jobs.
@@ -42,8 +45,9 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
   private final RecomputePlanner mPlanner;
   private final FileSystemMaster mFileSystemMaster;
   /** The thread pool to launch recompute jobs */
-  private final ExecutorService mFixedExecutionService =
-      Executors.newFixedThreadPool(DEFAULT_RECOMPUTE_LAUNCHER_POOL_SIZE);
+  private final ExecutorService mRecomputeLauncherService =
+      Executors.newFixedThreadPool(DEFAULT_RECOMPUTE_LAUNCHER_POOL_SIZE,
+          ThreadFactoryUtils.build("recompute-launcher-%d", true));
 
   /**
    * Creates a new instance of {@link RecomputeExecutor}.
@@ -61,6 +65,11 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
     heartbeatWithFuture();
   }
 
+  @Override
+  public void close() {
+    mRecomputeLauncherService.shutdown();
+  }
+
   /**
    * A version of {@code heartbeat} which returns a {@link Future} representing completion of the
    * recompute plan. This is especially useful for tests.
@@ -70,7 +79,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
   Future<?> heartbeatWithFuture() {
     RecomputePlan plan = mPlanner.plan();
     if (plan != null && !plan.isEmpty()) {
-      return mFixedExecutionService.submit(new RecomputeLauncher(plan));
+      return mRecomputeLauncherService.submit(new RecomputeLauncher(plan));
     }
     return Futures.<Void>immediateFuture(null);
   }
@@ -100,7 +109,11 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
             try {
               mFileSystemMaster.resetFile(fileId);
             } catch (FileDoesNotExistException e) {
+              LOG.error("the lost file {} does not exist", fileId, e);
+            } catch (InvalidPathException e) {
               LOG.error("the lost file {} is invalid", fileId, e);
+            } catch (AccessControlException e) {
+              LOG.error("the lost file {} cannot be accessed", fileId, e);
             }
           }
         } catch (FileDoesNotExistException e) {

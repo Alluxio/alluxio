@@ -36,6 +36,9 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
 
+/**
+ * Provides the basic implementation for every evictor.
+ */
 public abstract class EvictorBase extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   protected final Allocator mAllocator;
@@ -99,8 +102,8 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
                 block.getBlockSize());
           }
         }
-      } catch (BlockDoesNotExistException nfe) {
-        LOG.warn("Remove block {} from evictor cache because {}", blockId, nfe);
+      } catch (BlockDoesNotExistException e) {
+        LOG.warn("Remove block {} from evictor cache because {}", blockId, e);
         it.remove();
         onRemoveBlockFromIterator(blockId);
       }
@@ -127,7 +130,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
             plan.toEvict().add(new Pair<Long, BlockStoreLocation>(blockId,
                 candidateDirView.toBlockStoreLocation()));
           }
-        } catch (BlockDoesNotExistException nfe) {
+        } catch (BlockDoesNotExistException e) {
           continue;
         }
       }
@@ -157,7 +160,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
               nextDirView.toBlockStoreLocation()));
           candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
           nextDirView.markBlockMoveIn(blockId, block.getBlockSize());
-        } catch (BlockDoesNotExistException nfe) {
+        } catch (BlockDoesNotExistException e) {
           continue;
         }
       }

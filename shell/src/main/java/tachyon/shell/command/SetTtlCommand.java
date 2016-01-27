@@ -17,23 +17,26 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Sets a new TTL value for the file at path both of the TTL value and the path
- * are specified by args.
+ * Sets a new TTL value for the file at path both of the TTL value and the path are specified by
+ * args.
  */
+@ThreadSafe
 public final class SetTtlCommand extends AbstractTfsShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public SetTtlCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public SetTtlCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

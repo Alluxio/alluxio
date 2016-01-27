@@ -28,11 +28,9 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 
 /**
  * An example to show to how use Tachyon's API
@@ -43,6 +41,10 @@ public class BasicCheckpoint implements Callable<Boolean> {
   private final String mFileFolder;
   private final int mNumFiles;
 
+  /**
+   * @param fileFolder folder to use for the files
+   * @param numFiles the number of files
+   */
   public BasicCheckpoint(String fileFolder, int numFiles) {
     mFileFolder = fileFolder;
     mNumFiles = numFiles;
@@ -50,20 +52,19 @@ public class BasicCheckpoint implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    TachyonFileSystem tachyonClient = TachyonFileSystemFactory.get();
+    FileSystem tachyonClient = FileSystem.Factory.get();
     writeFile(tachyonClient);
     return readFile(tachyonClient);
   }
 
-  private boolean readFile(TachyonFileSystem tachyonClient) throws IOException, TachyonException {
+  private boolean readFile(FileSystem tachyonClient) throws IOException, TachyonException {
     boolean pass = true;
     for (int i = 0; i < mNumFiles; i ++) {
       TachyonURI filePath = new TachyonURI(mFileFolder + "/part-" + i);
       LOG.debug("Reading data from {}", filePath);
-      TachyonFile file = tachyonClient.open(filePath);
-      FileInStream is = tachyonClient.getInStream(file);
-      FileInfo info = tachyonClient.getInfo(file);
-      ByteBuffer buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
+      FileInStream is = tachyonClient.openFile(filePath);
+      URIStatus status = tachyonClient.getStatus(filePath);
+      ByteBuffer buf = ByteBuffer.allocate((int) status.getBlockSizeBytes());
       is.read(buf.array());
       buf.order(ByteOrder.nativeOrder());
       for (int k = 0; k < mNumFiles; k ++) {
@@ -74,7 +75,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
     return pass;
   }
 
-  private void writeFile(TachyonFileSystem tachyonClient) throws IOException, TachyonException {
+  private void writeFile(FileSystem tachyonClient) throws IOException, TachyonException {
     for (int i = 0; i < mNumFiles; i ++) {
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
@@ -84,12 +85,19 @@ public class BasicCheckpoint implements Callable<Boolean> {
       buf.flip();
       TachyonURI filePath = new TachyonURI(mFileFolder + "/part-" + i);
       LOG.debug("Writing data to {}", filePath);
-      OutputStream os = tachyonClient.getOutStream(filePath);
+      OutputStream os = tachyonClient.createFile(filePath);
       os.write(buf.array());
       os.close();
     }
   }
 
+  /**
+   * Example program for using checkpoints.
+   * Usage: {@code java -cp <TACHYON-VERSION> tachyon.examples.BasicCheckpoint <FileFolder> <Files>}
+   *
+   * @param args the folder for the files and the files to use
+   * @throws IOException if the example fails to run
+   */
   public static void main(String[] args) throws IOException {
     if (args.length != 2) {
       System.out.println("java -cp " + Version.TACHYON_JAR

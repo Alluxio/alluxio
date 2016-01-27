@@ -15,72 +15,27 @@
 
 package tachyon.client.file.options;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
 
 /**
  * Method option for loading the metadata.
  */
 @PublicApi
+@NotThreadSafe
 public final class LoadMetadataOptions {
-
-  /**
-   * Builder for {@link LoadMetadataOptions}.
-   */
-  public static class Builder implements OptionsBuilder<LoadMetadataOptions> {
-    private boolean mRecursive;
-
-    /**
-     * Creates a new builder for {@link LoadMetadataOptions}.
-     */
-    public Builder() {
-      this(ClientContext.getConf());
-    }
-
-    /**
-     * Creates a new builder for {@link LoadMetadataOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {
-      mRecursive = false;
-    }
-
-    /**
-     * Sets the recursive flag.
-     *
-     * @param recursive the recursive flag value to use; it specifies whether parent directories
-     *        should be created if they do not already exist
-     * @return the builder
-     */
-    public Builder setRecursive(boolean recursive) {
-      mRecursive = recursive;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link LoadMetadataOptions}.
-     *
-     * @return a {@link LoadMetadataOptions} instance
-     */
-    @Override
-    public LoadMetadataOptions build() {
-      return new LoadMetadataOptions(this);
-    }
-  }
+  private boolean mRecursive;
 
   /**
    * @return the default {@link LoadMetadataOptions}
    */
   public static LoadMetadataOptions defaults() {
-    return new Builder().build();
+    return new LoadMetadataOptions();
   }
 
-  private final boolean mRecursive;
-
-  private LoadMetadataOptions(LoadMetadataOptions.Builder builder) {
-    mRecursive = builder.mRecursive;
+  private LoadMetadataOptions() {
+    mRecursive = false;
   }
 
   /**
@@ -89,6 +44,18 @@ public final class LoadMetadataOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * Sets the recursive flag.
+   *
+   * @param recursive the recursive flag value to use; it specifies whether parent directories
+   *        should be created if they do not already exist
+   * @return the updated options object
+   */
+  public LoadMetadataOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
+    return this;
   }
 
   /**

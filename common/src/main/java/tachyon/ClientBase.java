@@ -19,6 +19,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
@@ -43,6 +45,7 @@ import tachyon.thrift.ThriftIOException;
 /**
  * The base class for clients.
  */
+@ThreadSafe
 public abstract class ClientBase implements Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -287,7 +290,8 @@ public abstract class ClientBase implements Closeable {
    *         been called before calling this method or during the retry
    * @throws ConnectionFailedException if network connection failed
    */
-  protected <V> V retryRPC(RpcCallable<V> rpc) throws IOException, ConnectionFailedException {
+  protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws IOException,
+      ConnectionFailedException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
@@ -315,7 +319,7 @@ public abstract class ClientBase implements Closeable {
    * @throws IOException when retries exceeds {@link #RPC_MAX_NUM_RETRY} or {@link #close()} has
    *         been called before calling this method or during the retry
    */
-  protected <V> V retryRPC(RpcCallableThrowsTachyonTException<V> rpc)
+  protected synchronized <V> V retryRPC(RpcCallableThrowsTachyonTException<V> rpc)
       throws TachyonException, IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {

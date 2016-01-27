@@ -17,9 +17,11 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
@@ -27,6 +29,7 @@ import tachyon.exception.TachyonException;
  * Creates a new directory specified by the path in args, including any parent folders that are
  * required. This command fails if a directory or file with the same path already exists.
  */
+@ThreadSafe
 public final class MkdirCommand extends AbstractTfsShellCommand {
 
   /**
@@ -35,7 +38,7 @@ public final class MkdirCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public MkdirCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public MkdirCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -51,24 +54,35 @@ public final class MkdirCommand extends AbstractTfsShellCommand {
 
   @Override
   public void run(String... args) throws IOException {
-    TachyonURI inputPath = new TachyonURI(args[0]);
+    for (String path : args) {
+      TachyonURI inputPath = new TachyonURI(path);
 
-    try {
-      MkdirOptions options = new MkdirOptions.Builder(mTachyonConf).setRecursive(true).build();
-      mTfs.mkdir(inputPath, options);
-      System.out.println("Successfully created directory " + inputPath);
-    } catch (TachyonException e) {
-      throw new IOException(e.getMessage());
+      try {
+        CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
+        mTfs.createDirectory(inputPath, options);
+        System.out.println("Successfully created directory " + inputPath);
+      } catch (TachyonException e) {
+        throw new IOException(e.getMessage());
+      }
     }
   }
 
   @Override
   public String getUsage() {
-    return "mkdir <path>";
+    return "mkdir <path1> [path2] ... [pathn]";
   }
 
   @Override
   public String getDescription() {
-    return "Creates the specified directory, including any parent directories that are required.";
+    return "Creates the specified directories, including any parent directories that are required.";
+  }
+
+  @Override
+  public boolean validateArgs(String... args) {
+    boolean valid = args.length >= getNumOfArgs();
+    if (!valid) {
+      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " argument at least\n");
+    }
+    return valid;
   }
 }

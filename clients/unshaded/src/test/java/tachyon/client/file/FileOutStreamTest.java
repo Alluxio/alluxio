@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,8 +37,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.block.BufferedBlockOutStream;
@@ -50,7 +53,7 @@ import tachyon.client.file.policy.LocalFirstPolicy;
 import tachyon.client.file.policy.RoundRobinPolicy;
 import tachyon.client.util.ClientMockUtils;
 import tachyon.client.util.ClientTestUtils;
-import tachyon.client.worker.BlockWorkerClient;
+import tachyon.client.block.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.FileInfo;
@@ -67,7 +70,7 @@ import tachyon.worker.NetAddress;
 public class FileOutStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;
-  private static final long FILE_ID = 20L;
+  private static final TachyonURI FILE_NAME = new TachyonURI("/file");
 
   private TachyonBlockStore mBlockStore;
   private BlockStoreContext mBlockStoreContext;
@@ -101,10 +104,11 @@ public class FileOutStreamTest {
     Mockito.when(mFileSystemContext.getTachyonBlockStore()).thenReturn(mBlockStore);
     Mockito.when(mBlockStoreContext.acquireWorkerClient()).thenReturn(mBlockWorkerClient);
     Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
-    Mockito.when(mFileSystemMasterClient.getFileInfo(Mockito.anyLong())).thenReturn(new FileInfo());
+    Mockito.when(mFileSystemMasterClient.getStatus(Mockito.any(TachyonURI.class))).thenReturn(
+        new URIStatus(new FileInfo()));
 
     // Return sequentially increasing numbers for new block ids
-    Mockito.when(mFileSystemMasterClient.getNewBlockIdForFile(FILE_ID))
+    Mockito.when(mFileSystemMasterClient.getNewBlockIdForFile(FILE_NAME))
         .thenAnswer(new Answer<Long>() {
           private long mCount = 0;
 
@@ -149,9 +153,18 @@ public class FileOutStreamTest {
     Mockito.when(mUnderFileSystem.create(Mockito.anyString(), Mockito.eq((int) BLOCK_LENGTH)))
         .thenReturn(mUnderStorageOutputStream);
 
-    OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setBlockSizeBytes(BLOCK_LENGTH).setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
-    mTestStream = createTestStream(FILE_ID, options);
+    OutStreamOptions options =
+        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+            .setWriteType(WriteType.CACHE_THROUGH);
+    mTestStream = createTestStream(FILE_NAME, options);
+  }
+
+  /**
+   * Resets the context after a test ran.
+   */
+  @After
+  public void after() {
+    ClientContext.reset();
   }
 
   /**
@@ -221,7 +234,7 @@ public class FileOutStreamTest {
       Assert.assertFalse(mTachyonOutStreamMap.get(streamIndex).isCanceled());
       Assert.assertTrue(mTachyonOutStreamMap.get(streamIndex).isClosed());
     }
-    Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_ID),
+    Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_NAME),
         Mockito.any(CompleteFileOptions.class));
   }
 
@@ -241,7 +254,7 @@ public class FileOutStreamTest {
       Assert.assertTrue(mTachyonOutStreamMap.get(streamIndex).isCanceled());
     }
     // Don't persist or complete the file if the stream was canceled
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_ID,
+    Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_NAME,
         CompleteFileOptions.defaults());
 
     Mockito.verify(mUnderFileSystem).delete(Mockito.anyString(), Mockito.eq(false));
@@ -268,9 +281,10 @@ public class FileOutStreamTest {
    */
   @Test
   public void cacheWriteExceptionNonSyncPersistTest() throws IOException {
-    OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setBlockSizeBytes(BLOCK_LENGTH).setUnderStorageType(UnderStorageType.NO_PERSIST).build();
-    mTestStream = createTestStream(FILE_ID, options);
+    OutStreamOptions options =
+        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+            .setWriteType(WriteType.MUST_CACHE);
+    mTestStream = createTestStream(FILE_NAME, options);
 
     BufferedBlockOutStream stream = Mockito.mock(BufferedBlockOutStream.class);
     Whitebox.setInternalState(mTestStream, "mCurrentBlockOutStream", stream);
@@ -371,17 +385,17 @@ public class FileOutStreamTest {
   @Test
   public void asyncWriteTest() throws Exception {
     OutStreamOptions options =
-        new OutStreamOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(BLOCK_LENGTH)
-            .setUnderStorageType(UnderStorageType.ASYNC_PERSIST).build();
-    mTestStream = createTestStream(FILE_ID, options);
+        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+            .setWriteType(WriteType.ASYNC_THROUGH);
+    mTestStream = createTestStream(FILE_NAME, options);
 
     Mockito.when(mUnderFileSystem.rename(Mockito.anyString(), Mockito.anyString()))
         .thenReturn(true);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
-    Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_ID),
+    Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_NAME),
         Mockito.any(CompleteFileOptions.class));
-    Mockito.verify(mFileSystemMasterClient).scheduleAsyncPersist(Mockito.eq(FILE_ID));
+    Mockito.verify(mFileSystemMasterClient).scheduleAsyncPersist(Mockito.eq(FILE_NAME));
   }
 
   /**
@@ -391,19 +405,18 @@ public class FileOutStreamTest {
    */
   @Test
   public void locationPolicyTest() throws IOException {
-    OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setBlockSizeBytes(BLOCK_LENGTH).setUnderStorageType(UnderStorageType.NO_PERSIST).build();
-    mTestStream = createTestStream(FILE_ID, options);
+    OutStreamOptions options =
+        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+            .setWriteType(WriteType.MUST_CACHE);
+    mTestStream = createTestStream(FILE_NAME, options);
 
     // by default local first policy used
     FileWriteLocationPolicy policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
     Assert.assertTrue(policy instanceof LocalFirstPolicy);
 
     // configure a different policy
-    options = new OutStreamOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(BLOCK_LENGTH)
-        .setUnderStorageType(UnderStorageType.NO_PERSIST)
-        .setLocationPolicy(new RoundRobinPolicy()).build();
-    mTestStream = createTestStream(FILE_ID, options);
+    options.setLocationPolicy(new RoundRobinPolicy());
+    mTestStream = createTestStream(FILE_NAME, options);
     policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
     Assert.assertTrue(policy instanceof RoundRobinPolicy);
   }
@@ -416,14 +429,32 @@ public class FileOutStreamTest {
   @Test
   public void missingLocationPolicyTest() throws IOException {
     OutStreamOptions options =
-        new OutStreamOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(BLOCK_LENGTH)
-            .setUnderStorageType(UnderStorageType.NO_PERSIST).setLocationPolicy(null).build();
+        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+            .setWriteType(WriteType.MUST_CACHE).setLocationPolicy(null);
     try {
-      mTestStream = createTestStream(FILE_ID, options);
+      mTestStream = createTestStream(FILE_NAME, options);
       Assert.fail("missing location policy should fail");
     } catch (NullPointerException e) {
       Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED,
           e.getMessage());
+    }
+  }
+
+  /**
+   * Tests that the number of bytes written is correct when the stream is created with different
+   * under storage types.
+   *
+   * @throws IOException if creating the test stream fails
+   */
+  @Test
+  public void getBytesWrittenWithDifferentUnderStorageTypeTest() throws IOException {
+    for (WriteType type : WriteType.values()) {
+      OutStreamOptions options =
+          OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH).setWriteType(type);
+      mTestStream = createTestStream(FILE_NAME, options);
+      mTestStream.write(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH));
+      mTestStream.flush();
+      Assert.assertEquals(BLOCK_LENGTH, mTestStream.getBytesWritten());
     }
   }
 
@@ -455,10 +486,11 @@ public class FileOutStreamTest {
         mUnderStorageOutputStream.toByteArray());
   }
 
-  private FileOutStream createTestStream(long fileId, OutStreamOptions options) throws IOException {
+  private FileOutStream createTestStream(TachyonURI path, OutStreamOptions options)
+      throws IOException {
     Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", mBlockStoreContext);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mFileSystemContext);
-    FileOutStream stream = new FileOutStream(FILE_ID, options);
+    FileOutStream stream = new FileOutStream(path, options);
     return stream;
   }
 }

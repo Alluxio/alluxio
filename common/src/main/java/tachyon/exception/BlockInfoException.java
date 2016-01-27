@@ -15,10 +15,13 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The exception thrown when something with the block goes wrong, i.e. the if an output file cannot
  * be created or the bytes of the block size are invalid.
  */
+@ThreadSafe
 public class BlockInfoException extends TachyonException {
   private static final long serialVersionUID = 3516332549351705198L;
 

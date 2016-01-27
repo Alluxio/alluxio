@@ -71,12 +71,12 @@ public final class BlockMetadataManager {
       ret.initBlockMetadataManager();
       // caller of newBlockMetadataManager should not be forced to catch and handle these exceptions
       // since it is the responsibility of BlockMetadataManager.
-    } catch (BlockAlreadyExistsException aee) {
-      throw new RuntimeException(aee);
-    } catch (IOException ioe) {
-      throw new RuntimeException(ioe);
-    } catch (WorkerOutOfSpaceException ooe) {
-      throw new RuntimeException(ooe);
+    } catch (BlockAlreadyExistsException e) {
+      throw new RuntimeException(e);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    } catch (WorkerOutOfSpaceException e) {
+      throw new RuntimeException(e);
     }
     return ret;
   }
@@ -160,11 +160,11 @@ public final class BlockMetadataManager {
   /**
    * Gets the amount of available space of given location in bytes. Master queries the total number
    * of bytes available on each tier of the worker, and Evictor/Allocator often cares about the
-   * bytes at a {@link StorageDir}.
+   * bytes at a {@link StorageDir}. Throws an {@link IllegalArgumentException} when the location
+   * does not belong to the tiered storage.
    *
    * @param location location the check available bytes
    * @return available bytes
-   * @throws IllegalArgumentException when location does not belong to tiered storage
    */
   public long getAvailableBytes(BlockStoreLocation location) {
     long spaceAvailable = 0;
@@ -208,12 +208,12 @@ public final class BlockMetadataManager {
 
   /**
    * Returns the path of a block given its location, or null if the location is not a specific
-   * {@link StorageDir}.
+   * {@link StorageDir}. Throws an {@link IllegalArgumentException} if the location is not a
+   * specific {@link StorageDir}.
    *
    * @param blockId the id of the block
    * @param location location of a particular {@link StorageDir} to store this block
    * @return the path of this block in this location
-   * @throws IllegalArgumentException if location is not a specific {@link StorageDir}
    */
   public String getBlockPath(long blockId, BlockStoreLocation location) {
     return BlockMetaBase.commitPath(getDir(location), blockId);
@@ -229,11 +229,12 @@ public final class BlockMetadataManager {
   }
 
   /**
-   * Gets the {@link StorageDir} given its location in the store.
+   * Gets the {@link StorageDir} given its location in the store. Throws an
+   * {@link IllegalArgumentException} if the location is not a specific dir or the location is
+   * invalid.
    *
    * @param location Location of the dir
    * @return the {@link StorageDir} object
-   * @throws IllegalArgumentException if location is not a specific dir or the location is invalid
    */
   public StorageDir getDir(BlockStoreLocation location) {
     if (location.equals(BlockStoreLocation.anyTier())
@@ -263,11 +264,11 @@ public final class BlockMetadataManager {
   }
 
   /**
-   * Gets the {@link StorageTier} given its tierAlias.
+   * Gets the {@link StorageTier} given its tierAlias. Throws an {@link IllegalArgumentException} if
+   * the tierAlias is not found.
    *
    * @param tierAlias the alias of this tier
    * @return the {@link StorageTier} object associated with the alias
-   * @throws IllegalArgumentException if tierAlias is not found
    */
   public StorageTier getTier(String tierAlias) {
     StorageTier tier = mAliasToTiers.get(tierAlias);
@@ -288,11 +289,11 @@ public final class BlockMetadataManager {
   }
 
   /**
-   * Gets the list of {@link StorageTier} below the tier with the given tierAlias.
+   * Gets the list of {@link StorageTier} below the tier with the given tierAlias. Throws an
+   * {@link IllegalArgumentException} if the tierAlias is not found.
    *
    * @param tierAlias the alias of a tier
    * @return the list of {@link StorageTier}
-   * @throws IllegalArgumentException if tierAlias is not found
    */
   public List<StorageTier> getTiersBelow(String tierAlias) {
     int ordinal = getTier(tierAlias).getTierOrdinal();
@@ -374,12 +375,12 @@ public final class BlockMetadataManager {
   }
 
   /**
-   * Moves the metadata of an existing block to another location or throws IOExceptions.
+   * Moves the metadata of an existing block to another location or throws IOExceptions. Throws an
+   * {@link IllegalArgumentException} if the newLocation is not in the tiered storage.
    *
    * @param blockMeta the meta data of the block to move
    * @param newLocation new location of the block
    * @return the new block metadata if success, absent otherwise
-   * @throws IllegalArgumentException when the newLocation is not in the tiered storage
    * @throws BlockDoesNotExistException when the block to move is not found
    * @throws BlockAlreadyExistsException when the block to move already exists in the destination
    * @throws WorkerOutOfSpaceException when destination have no extra space to hold the block to
@@ -388,7 +389,8 @@ public final class BlockMetadataManager {
    */
   @Deprecated
   public BlockMeta moveBlockMeta(BlockMeta blockMeta, BlockStoreLocation newLocation)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, WorkerOutOfSpaceException {
+      throws BlockDoesNotExistException, BlockAlreadyExistsException,
+             WorkerOutOfSpaceException {
     // If existing location belongs to the target location, simply return the current block meta.
     BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
     if (oldLocation.belongTo(newLocation)) {
@@ -448,5 +450,4 @@ public final class BlockMetadataManager {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.resizeTempBlockMeta(tempBlockMeta, newSize);
   }
-
 }

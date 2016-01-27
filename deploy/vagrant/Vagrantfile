@@ -18,7 +18,7 @@ ZookeeperV = ZookeeperVersion.new('conf/zookeeper.yml')
 MesosV = MesosVersion.new('conf/mesos.yml')
 TachyonV = TachyonVersion.new('conf/tachyon.yml')
 SparkV = SparkVersion.new('conf/spark.yml')
-UfsV = UfsVersion.new('conf/ufs.yml')
+UfsV = UfsVersion.new('conf/ufs.yml', Provider)
 
 require "./core/config_#{Provider}"
 

@@ -9,6 +9,24 @@ tfs \- command line interface for Tachyon provides users with basic file system 
 [\fBcat\fR \fIpath\fR]
 
 .B tfs
+[\fBchgrp\fR \fIgroup path\fR]
+
+.B tfs
+[\fBchgrpr\fR \fIgroup path\fR]
+
+.B tfs
+[\fBchmod\fR \fIpermission path\fR]
+
+.B tfs
+[\fBchmodr\fR \fIpermission path\fR]
+
+.B tfs
+[\fBchown\fR \fIowner path\fR]
+
+.B tfs
+[\fBchownr\fR \fIowner path\fR]
+
+.B tfs
 [\fBcopyFromLocal\fR \fIsourcePath remotePath\fR]
 
 .B tfs
@@ -21,7 +39,7 @@ tfs \- command line interface for Tachyon provides users with basic file system 
 [\fBdu\fR \fIpath\fR]
 
 .B tfs
-[\fBfileinfo\fR \fIpath\fR]
+[\fBfileInfo\fR \fIpath\fR]
 
 .B tfs
 [\fBfree\fR \fIpath\fR]
@@ -102,6 +120,36 @@ command line interface for Tachyon provides users with basic file system operati
 Print the content of the file to the console.
 
 .TP
+.BR chgrp
+\fIgroup path\fR
+Change the group of the directory or file.
+
+.TP
+.BR chgrpr
+\fIgroup path\fR
+Recursively change the group of the directory or file.
+
+.TP
+.BR chmod
+\fIpermission path\fR
+Change the permission of the directory or file.
+
+.TP
+.BR chmodr
+\fIpermission path\fR
+Recursively change the permission of the directory or file.
+
+.TP
+.BR chown
+\fIowner path\fR
+Change the owner of the directory or file.
+
+.TP
+.BR chownr
+\fIowner path\fR
+Recursively change the owner of the directory or file.
+
+.TP
 .BR copyFromLocal
 \fIsourcePath remotePath\fR
 Copy the specified file specified by "sourcePath" to the path specified by "remotePath". This
@@ -123,7 +171,7 @@ Display the number of folders and files matching the specified prefix in "path".
 Display the size of a file or a directory specified by the input path.
 
 .TP
-.BR fileinfo
+.BR fileInfo
 \fIpath\fR
 Print the information of the blocks of a specified file.
 

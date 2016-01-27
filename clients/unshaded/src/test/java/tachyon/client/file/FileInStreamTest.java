@@ -35,7 +35,7 @@ import org.powermock.reflect.Whitebox;
 import com.google.common.collect.Lists;
 
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.ReadType;
 import tachyon.client.block.BlockInStream;
 import tachyon.client.block.BufferedBlockInStream;
 import tachyon.client.block.TachyonBlockStore;
@@ -108,8 +108,8 @@ public class FileInStreamTest {
     mInfo.setBlockIds(blockIds);
 
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
-    mTestStream = new FileInStream(mInfo, new InStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(TachyonStorageType.PROMOTE).build());
+    mTestStream =
+        new FileInStream(mInfo, InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE));
   }
 
   /**
@@ -332,7 +332,7 @@ public class FileInStreamTest {
    */
   @Test
   public void failToUnderFsTest() throws IOException {
-    mInfo.setIsPersisted(true).setUfsPath("testUfsPath");
+    mInfo.setPersisted(true).setUfsPath("testUfsPath");
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
     mTestStream = new FileInStream(mInfo, InStreamOptions.defaults());
 
@@ -460,18 +460,17 @@ public class FileInStreamTest {
    */
   @Test
   public void locationPolicyTest() {
-    mTestStream = new FileInStream(mInfo, new InStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(TachyonStorageType.PROMOTE).build());
+    mTestStream =
+        new FileInStream(mInfo, InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE));
 
     // by default local first policy used
     FileWriteLocationPolicy policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
     Assert.assertTrue(policy instanceof LocalFirstPolicy);
 
     // configure a different policy
-    mTestStream = new FileInStream(mInfo,
-        new InStreamOptions.Builder(ClientContext.getConf())
-            .setTachyonStorageType(TachyonStorageType.STORE)
-            .setLocationPolicy(new RoundRobinPolicy()).build());
+    mTestStream =
+        new FileInStream(mInfo, InStreamOptions.defaults().setReadType(ReadType.CACHE)
+            .setLocationPolicy(new RoundRobinPolicy()));
     policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
     Assert.assertTrue(policy instanceof RoundRobinPolicy);
   }
@@ -482,8 +481,9 @@ public class FileInStreamTest {
   @Test
   public void missingLocationPolicyTest() {
     try {
-      mTestStream = new FileInStream(mInfo, new InStreamOptions.Builder(ClientContext.getConf())
-          .setTachyonStorageType(TachyonStorageType.STORE).setLocationPolicy(null).build());
+      mTestStream =
+          new FileInStream(mInfo, InStreamOptions.defaults().setReadType(ReadType.CACHE)
+              .setLocationPolicy(null));
     } catch (NullPointerException e) {
       Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED,
           e.getMessage());
