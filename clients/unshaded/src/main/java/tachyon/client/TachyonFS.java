@@ -15,38 +15,71 @@
 
 package tachyon.client;
 
-import tachyon.TachyonURI;
-import tachyon.client.file.FileSystem;
-
 import java.io.IOException;
 
+import tachyon.TachyonURI;
+import tachyon.client.file.FileSystem;
+import tachyon.conf.TachyonConf;
+
 /**
+ * @deprecated {@see FileSystem} for the supported API.
  * Represents a Tachyon File System, legacy API.
  */
-public class TachyonFS {
+@Deprecated
+public final class TachyonFS {
   private final FileSystem mFileSystem;
 
-  public static TachyonFS get() {
+  /**
+   * @param path path corresponding to the file system
+   * @param conf configuration to use
+   * @return an instance of TachyonFS
+   */
+  public static TachyonFS get(TachyonURI path, TachyonConf conf) {
     return new TachyonFS();
   }
 
-  public TachyonFS() {
+  private TachyonFS() {
     mFileSystem = FileSystem.Factory.get();
   }
 
+  /**
+   * Closes the TachyonFS.
+   */
   public void close() {
     // Do nothing
   }
 
+  /**
+   * Creates a file in Tachyon. Creates are done through {@link TachyonFile#getOutStream} so this
+   * method is a no-op to comply with past APIs.
+   * @param path the path to create
+   * @return the file id, in this case always -1
+   */
   public long createFile(TachyonURI path) {
     // Do nothing
     return -1;
   }
 
-  public TachyonFile getFile(TachyonURI path) {
-    return new TachyonFile(path, mFileSystem);
+  /**
+   * Deletes a file in Tachyon.
+   * @param path the path to delete
+   * @return true if the file was deleted
+   * @throws IOException if the file was unable to be deleted
+   */
+  public boolean delete(TachyonURI path) throws IOException {
+    try {
+      mFileSystem.delete(path);
+      return true;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
+  /**
+   * @param path the path to check for existence
+   * @return true if the path exists, false otherwise
+   * @throws IOException if an error occurs when interacting with a non Tachyon component
+   */
   public boolean exist(TachyonURI path) throws IOException {
     try {
       return mFileSystem.exists(path);
@@ -55,6 +88,19 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * @param path the path specifying the file to get
+   * @return the {@link TachyonFile} object referencing the resource at the path
+   */
+  public TachyonFile getFile(TachyonURI path) {
+    return new TachyonFile(path, mFileSystem);
+  }
+
+  /**
+   * @param path the path to make a directory at
+   * @return true if successful
+   * @throws IOException if the directory could not be created
+   */
   public boolean mkdir(TachyonURI path) throws IOException {
     try {
       mFileSystem.createDirectory(path);
