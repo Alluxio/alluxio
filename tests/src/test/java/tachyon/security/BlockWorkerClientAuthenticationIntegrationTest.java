@@ -99,7 +99,7 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
     try {
       Assert.assertFalse(blockWorkerClient.isConnected());
       // Using no-tachyon as loginUser to connect to Worker, the IOException will be thrown
-      LoginUserTestUtils.updateLoginUser(ClientContext.getConf(), "no-tachyon");
+      LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), "no-tachyon");
       blockWorkerClient.connect();
     } finally {
       blockWorkerClient.close();

@@ -43,7 +43,7 @@ public final class LoginUserTestUtils {
    * @param user the new user
    * @throws IOException if login fails
    */
-  public static void updateLoginUser(TachyonConf conf, String user) throws IOException {
+  public static void resetLoginUser(TachyonConf conf, String user) throws IOException {
     synchronized (LoginUser.class) {
       resetLoginUser();
       conf.set(Constants.SECURITY_LOGIN_USERNAME, user);

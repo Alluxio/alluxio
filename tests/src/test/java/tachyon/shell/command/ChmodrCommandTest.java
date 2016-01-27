@@ -33,7 +33,7 @@ public class ChmodrCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void chmodrTest() throws IOException, TachyonException {
-    cleanLoginUser();
+    clearLoginUser();
     mFsShell.run("mkdir", "/testFolder1");
     TachyonFSTestUtils.createByteFile(mTfs, "/testFolder1/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chmodr", "777", "/testFolder1");
