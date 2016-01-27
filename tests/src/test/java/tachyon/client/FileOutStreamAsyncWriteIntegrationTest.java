@@ -52,14 +52,14 @@ public final class FileOutStreamAsyncWriteIntegrationTest
 
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
     final int length = 2;
-    FileOutStream os = mTfs.createFile(filePath, mWriteAsync);
+    FileOutStream os = mFileSystem.createFile(filePath, mWriteAsync);
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
 
     CommonUtils.sleepMs(1);
     // check the file is completed but not persisted
-    URIStatus status = mTfs.getStatus(filePath);
+    URIStatus status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(), status.getPersistenceState());
     Assert.assertTrue(status.isCompleted());
 
@@ -74,7 +74,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
         TimeUnit.SECONDS));
 
-    status = mTfs.getStatus(filePath);
+    status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
     checkWrite(filePath, mWriteAsync.getUnderStorageType(), length, length);

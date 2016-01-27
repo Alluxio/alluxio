@@ -50,7 +50,7 @@ public class LocalBlockInStreamIntegrationTest {
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(Constants.MB, Constants.KB, Constants.MB);
-  private static FileSystem sTfs = null;
+  private static FileSystem sFileSystem = null;
   private static CreateFileOptions sWriteBoth;
   private static CreateFileOptions sWriteTachyon;
   private static OpenFileOptions sReadNoCache;
@@ -62,7 +62,7 @@ public class LocalBlockInStreamIntegrationTest {
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sTfs = sLocalTachyonClusterResource.get().getClient();
+    sFileSystem = sLocalTachyonClusterResource.get().getClient();
     sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
     sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(sTachyonConf);
     sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sTachyonConf);
@@ -79,9 +79,9 @@ public class LocalBlockInStreamIntegrationTest {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode());
-        FileSystemTestUtils.createByteFile(sTfs, uri, op, k);
+        FileSystemTestUtils.createByteFile(sFileSystem, uri, op, k);
 
-        FileInStream is = sTfs.openFile(uri, sReadNoCache);
+        FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
         byte[] ret = new byte[k];
         int value = is.read();
         int cnt = 0;
@@ -94,9 +94,9 @@ public class LocalBlockInStreamIntegrationTest {
         Assert.assertEquals(cnt, k);
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
-        Assert.assertTrue(sTfs.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
 
-        is = sTfs.openFile(uri, sReadCache);
+        is = sFileSystem.openFile(uri, sReadCache);
         ret = new byte[k];
         value = is.read();
         cnt = 0;
@@ -109,7 +109,7 @@ public class LocalBlockInStreamIntegrationTest {
         Assert.assertEquals(cnt, k);
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
-        Assert.assertTrue(sTfs.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
       }
     }
   }
@@ -123,21 +123,21 @@ public class LocalBlockInStreamIntegrationTest {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode());
-        FileSystemTestUtils.createByteFile(sTfs, uri, op, k);
+        FileSystemTestUtils.createByteFile(sFileSystem, uri, op, k);
 
-        FileInStream is = sTfs.openFile(uri, sReadNoCache);
+        FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
         byte[] ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
-        Assert.assertTrue(sTfs.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
 
-        is = sTfs.openFile(uri, sReadCache);
+        is = sFileSystem.openFile(uri, sReadCache);
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
-        Assert.assertTrue(sTfs.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
       }
     }
   }
@@ -151,21 +151,21 @@ public class LocalBlockInStreamIntegrationTest {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode());
-        FileSystemTestUtils.createByteFile(sTfs, uri, op, k);
+        FileSystemTestUtils.createByteFile(sFileSystem, uri, op, k);
 
-        FileInStream is = sTfs.openFile(uri, sReadNoCache);
+        FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
         byte[] ret = new byte[k / 2];
         Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k / 2, ret));
         is.close();
-        Assert.assertTrue(sTfs.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
 
-        is = sTfs.openFile(uri, sReadCache);
+        is = sFileSystem.openFile(uri, sReadCache);
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret, 0, k));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
-        Assert.assertTrue(sTfs.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
       }
     }
   }
@@ -185,9 +185,9 @@ public class LocalBlockInStreamIntegrationTest {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode());
-        FileSystemTestUtils.createByteFile(sTfs, uri, op, k);
+        FileSystemTestUtils.createByteFile(sFileSystem, uri, op, k);
 
-        FileInStream is = sTfs.openFile(uri, sReadNoCache);
+        FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
 
         try {
           is.seek(-1);
@@ -214,9 +214,9 @@ public class LocalBlockInStreamIntegrationTest {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode());
-        FileSystemTestUtils.createByteFile(sTfs, uri, op, k);
+        FileSystemTestUtils.createByteFile(sFileSystem, uri, op, k);
 
-        FileInStream is = sTfs.openFile(uri, sReadNoCache);
+        FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
         try {
           is.seek(k + 1);
         } finally {
@@ -238,9 +238,9 @@ public class LocalBlockInStreamIntegrationTest {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode());
-        FileSystemTestUtils.createByteFile(sTfs, uri, op, k);
+        FileSystemTestUtils.createByteFile(sFileSystem, uri, op, k);
 
-        FileInStream is = sTfs.openFile(uri, sReadNoCache);
+        FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
 
         is.seek(k / 3);
         Assert.assertEquals(k / 3, is.read());
@@ -262,22 +262,22 @@ public class LocalBlockInStreamIntegrationTest {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode());
-        FileSystemTestUtils.createByteFile(sTfs, uri, op, k);
+        FileSystemTestUtils.createByteFile(sFileSystem, uri, op, k);
 
-        FileInStream is = sTfs.openFile(uri, sReadNoCache);
+        FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
         Assert.assertEquals(k / 2, is.skip(k / 2));
         Assert.assertEquals(k / 2, is.read());
         is.close();
-        Assert.assertTrue(sTfs.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
 
-        is = sTfs.openFile(uri, sReadCache);
+        is = sFileSystem.openFile(uri, sReadCache);
         int t = k / 3;
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(t, is.read());
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(2 * t + 1, is.read());
         is.close();
-        Assert.assertTrue(sTfs.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
       }
     }
   }
