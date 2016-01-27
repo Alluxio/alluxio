@@ -22,6 +22,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closer;
@@ -42,6 +44,7 @@ import tachyon.util.io.PathUtils;
  * Copies the specified file specified by "source path" to the path specified by "remote path".
  * This command will fail if "remote path" already exists.
  */
+@ThreadSafe
 public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
 
   /**

@@ -19,6 +19,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Object;
@@ -28,19 +30,24 @@ import org.jets3t.service.model.S3Object;
  * the underlying implementation will read and discard bytes until the number to skip has been
  * reached. This input stream returns 0 when calling read with an empty buffer.
  */
+@NotThreadSafe
 public class S3InputStream extends InputStream {
 
   /** Bucket name of the Tachyon S3 bucket. */
   private final String mBucketName;
+
   /** Key of the file in S3 to read. */
   private final String mKey;
+
   /** The JetS3t client for S3 operations. */
   private final S3Service mClient;
 
   /** The storage object that will be updated on each large skip. */
   private S3Object mObject;
+
   /** The underlying input stream. */
   private BufferedInputStream mInputStream;
+
   /** Position of the stream. */
   private long mPos;
 
@@ -48,7 +55,7 @@ public class S3InputStream extends InputStream {
    * Creates a new instance of {@link S3InputStream}.
    *
    * @param bucketName the name of the bucket
-   * @param key the name of the bucket
+   * @param key the key of the file
    * @param client the client for S3
    * @throws ServiceException if a service exception occurs
    */

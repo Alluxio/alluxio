@@ -171,14 +171,14 @@ public class URIStatus {
    * @return whether the entity referenced by this uri can be stored in Tachyon space, mutable
    */
   public boolean isCacheable() {
-    return mInfo.isIsCacheable();
+    return mInfo.isCacheable();
   }
 
   /**
    * @return whether the entity referenced by this uri has been marked as completed, immutable
    */
   public boolean isCompleted() {
-    return mInfo.isIsCompleted();
+    return mInfo.isCompleted();
   }
 
   /**
@@ -186,7 +186,7 @@ public class URIStatus {
    */
   // TODO(calvin): Consider consolidating the terms directory and folder
   public boolean isFolder() {
-    return mInfo.isIsFolder();
+    return mInfo.isFolder();
   }
 
   /**
@@ -194,14 +194,14 @@ public class URIStatus {
    *         mutable
    */
   public boolean isPersisted() {
-    return mInfo.isIsPersisted();
+    return mInfo.isPersisted();
   }
 
   /**
    * @return whether the entity referenced by this uri is pinned, mutable
    */
   public boolean isPinned() {
-    return mInfo.isIsPinned();
+    return mInfo.isPinned();
   }
 
   @Override

@@ -18,6 +18,8 @@ package tachyon.shell.command;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.client.file.FileSystem;
 import tachyon.client.lineage.TachyonLineage;
 import tachyon.conf.TachyonConf;
@@ -26,6 +28,7 @@ import tachyon.thrift.LineageInfo;
 /**
  * Lists all the lineages.
  */
+@ThreadSafe
 public final class ListLineagesCommand extends AbstractTfsShellCommand {
 
   /**

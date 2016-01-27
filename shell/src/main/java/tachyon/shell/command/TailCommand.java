@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ReadType;
@@ -31,6 +33,7 @@ import tachyon.exception.TachyonException;
 /**
  * Prints the file's last 1KB of contents to the console.
  */
+@ThreadSafe
 public final class TailCommand extends WithWildCardPathCommand {
 
   /**

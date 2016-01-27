@@ -24,6 +24,9 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
@@ -41,25 +44,30 @@ import tachyon.util.io.PathUtils;
  * A stream for writing a file into S3. The data will be persisted to a temporary directory on the
  * local disk and copied as a complete file when the {@link #close()} method is called.
  */
+@NotThreadSafe
 public class S3OutputStream extends OutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Bucket name of the Tachyon S3 bucket. */
   private final String mBucketName;
+
   /** Key of the file when it is uploaded to S3. */
   private final String mKey;
+
   /** The local file that will be uploaded when the stream is closed. */
   private final File mFile;
+
   /** The JetS3t client for S3 operations. */
   private final S3Service mClient;
 
   /** The output stream to a local file where the file will be buffered until closed. */
   private OutputStream mLocalOutputStream;
+
   /** The MD5 hash of the file. */
   private MessageDigest mHash;
 
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
-  private boolean mClosed;
+  private AtomicBoolean mClosed = new AtomicBoolean(false);
 
   /**
    * Constructs a new stream for writing a file.
@@ -85,7 +93,6 @@ public class S3OutputStream extends OutputStream {
       mHash = null;
       mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
     }
-    mClosed = false;
   }
 
   @Override
@@ -110,10 +117,9 @@ public class S3OutputStream extends OutputStream {
 
   @Override
   public void close() throws IOException {
-    if (mClosed) {
+    if (mClosed.getAndSet(true)) {
       return;
     }
-    mClosed = true;
     mLocalOutputStream.close();
     try {
       S3Object obj = new S3Object(mKey);
