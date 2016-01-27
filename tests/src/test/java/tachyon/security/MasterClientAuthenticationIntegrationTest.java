@@ -15,8 +15,6 @@
 
 package tachyon.security;
 
-import java.lang.reflect.Field;
-
 import javax.security.sasl.AuthenticationException;
 
 import org.junit.After;
@@ -89,15 +87,14 @@ public class MasterClientAuthenticationIntegrationTest {
       Constants.SECURITY_LOGIN_USERNAME, "tachyon"})
   public void customAuthenticationDenyConnectTest() throws Exception {
     mThrown.expect(ConnectionFailedException.class);
-    // Using no-tachyon as loginUser to connect to Master, the IOException will be thrown
-    ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
+
     FileSystemMasterClient masterClient =
         new FileSystemMasterClient(mLocalTachyonClusterResource.get().getMaster().getAddress(),
             ClientContext.getConf());
     try {
       Assert.assertFalse(masterClient.isConnected());
-      // Clear the login user so that it will be reloaded and pick up our no-tachyon change
-      clearLoginUser();
+      // Using no-tachyon as loginUser to connect to Master, the IOException will be thrown
+      LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), "no-tachyon");
       masterClient.connect();
     } finally {
       masterClient.close();
@@ -125,10 +122,7 @@ public class MasterClientAuthenticationIntegrationTest {
   }
 
   private void clearLoginUser() throws Exception {
-    // User reflection to reset the private static member sLoginUser in LoginUser.
-    Field field = LoginUser.class.getDeclaredField("sLoginUser");
-    field.setAccessible(true);
-    field.set(null, null);
+    LoginUserTestUtils.resetLoginUser();
   }
 
   public static class NameMatchAuthenticationProvider implements AuthenticationProvider {

@@ -320,7 +320,6 @@ public abstract class AbstractLocalTachyonCluster {
    * @throws Exception when the operation fails
    */
   private void resetLoginUser() throws Exception {
-    // TODO(dong): use the util methods in TACHYON-1566 to reset login user.
     // Use reflection to reset the private static member sLoginUser in LoginUser.
     Field field = LoginUser.class.getDeclaredField("sLoginUser");
     field.setAccessible(true);
