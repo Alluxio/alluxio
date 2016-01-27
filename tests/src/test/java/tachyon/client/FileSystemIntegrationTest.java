@@ -102,7 +102,7 @@ public class FileSystemIntegrationTest {
 
     for (int k = 0; k < 5; k ++) {
       TachyonURI fileURI = new TachyonURI(uniqPath + k);
-      TachyonFSTestUtils.createByteFile(mTfs, fileURI.getPath(), k, mWriteBoth);
+      FileSystemTestUtils.createByteFile(mTfs, fileURI.getPath(), k, mWriteBoth);
       Assert.assertTrue(mTfs.getStatus(fileURI).getInMemoryPercentage() == 100);
       Assert.assertNotNull(mTfs.getStatus(fileURI));
     }
@@ -121,7 +121,7 @@ public class FileSystemIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
     TachyonURI uri = new TachyonURI(uniqPath);
-    TachyonFSTestUtils.createByteFile(mTfs, uri.getPath(), writeBytes, mWriteBoth);
+    FileSystemTestUtils.createByteFile(mTfs, uri.getPath(), writeBytes, mWriteBoth);
     Assert.assertTrue(mTfs.getStatus(uri).getInMemoryPercentage() == 100);
 
     Assert.assertTrue(mTfs.getStatus(uri).getPath().equals(uniqPath));

@@ -91,7 +91,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
     for (CreateFileOptions op : getOptionSet()) {
       URIStatus status = mTfs.getStatus(filePath);
       Assert.assertEquals(fileLen, status.getLength());
-      FileInStream is = mTfs.openFile(filePath, TachyonFSTestUtils.toOpenFileOptions(op));
+      FileInStream is = mTfs.openFile(filePath, FileSystemTestUtils.toOpenFileOptions(op));
       byte[] res = new byte[(int) status.getLength()];
       Assert.assertEquals((int) status.getLength(), is.read(res));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(increasingByteArrayLen, res));
