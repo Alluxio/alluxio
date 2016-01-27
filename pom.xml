@@ -143,7 +143,6 @@
 
   <modules>
     <module>underfs</module>
-    <module>client</module>
     <module>core</module>
     <module>keyvalue</module>
     <module>shell</module>

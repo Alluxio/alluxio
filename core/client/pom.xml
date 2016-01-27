@@ -2,13 +2,13 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.tachyonproject</groupId>
-    <artifactId>tachyon-client</artifactId>
+    <artifactId>tachyon-core</artifactId>
     <version>0.9.0-SNAPSHOT</version>
   </parent>
   <groupId>org.tachyonproject</groupId>
-  <artifactId>tachyon-client-core</artifactId>
+  <artifactId>tachyon-client</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Client - Core</name>
+  <name>Tachyon Core - Client</name>
   <description>Distribution of client for Tachyon core</description>
 
   <properties>
