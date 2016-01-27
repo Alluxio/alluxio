@@ -18,6 +18,8 @@ package tachyon.master.file.meta;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
@@ -30,6 +32,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Tachyon file system's directory representation in the file system master.
  */
+@ThreadSafe
 public final class InodeDirectory extends Inode {
 
   /**
@@ -98,26 +101,26 @@ public final class InodeDirectory extends Inode {
    * @return the generated {@link FileInfo}
    */
   @Override
-  public FileInfo generateClientFileInfo(String path) {
+  public synchronized FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
-    ret.fileId = getId();
-    ret.name = getName();
-    ret.path = path;
-    ret.length = 0;
-    ret.blockSizeBytes = 0;
-    ret.creationTimeMs = getCreationTimeMs();
-    ret.isCompleted = true;
-    ret.isFolder = true;
-    ret.isPinned = isPinned();
-    ret.isCacheable = false;
-    ret.isPersisted = isPersisted();
-    ret.blockIds = null;
-    ret.lastModificationTimeMs = getLastModificationTimeMs();
-    ret.ttl = Constants.NO_TTL;
-    ret.userName = getUserName();
-    ret.groupName = getGroupName();
-    ret.permission = getPermission();
-    ret.persistenceState = getPersistenceState().toString();
+    ret.setFileId(getId());
+    ret.setName(getName());
+    ret.setPath(path);
+    ret.setLength(0);
+    ret.setBlockSizeBytes(0);
+    ret.setCreationTimeMs(getCreationTimeMs());
+    ret.setCompleted(true);
+    ret.setFolder(true);
+    ret.setPinned(isPinned());
+    ret.setCacheable(false);
+    ret.setPersisted(isPersisted());
+    ret.setBlockIds(null);
+    ret.setLastModificationTimeMs(getLastModificationTimeMs());
+    ret.setTtl(Constants.NO_TTL);
+    ret.setUserName(getUserName());
+    ret.setGroupName(getGroupName());
+    ret.setPermission(getPermission());
+    ret.setPersistenceState(getPersistenceState().toString());
     return ret;
   }
 
@@ -183,8 +186,8 @@ public final class InodeDirectory extends Inode {
   }
 
   @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder("InodeFolder(");
+  public synchronized String toString() {
+    StringBuilder sb = new StringBuilder("InodeDirectory(");
     sb.append(super.toString()).append(",").append(getChildren()).append(")");
     return sb.toString();
   }

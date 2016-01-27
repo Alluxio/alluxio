@@ -15,13 +15,14 @@
 
 package tachyon.client.block;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.Utils;
-import tachyon.client.worker.BlockWorkerClient;
+import tachyon.client.ClientUtils;
 import tachyon.resource.ResourcePool;
 import tachyon.worker.NetAddress;
 
@@ -30,6 +31,7 @@ import tachyon.worker.NetAddress;
  * {@link ResourcePool#acquire()}, {@link ResourcePool#release(Object)} must be called when the
  * thread is done using the client.
  */
+@ThreadSafe
 final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /**
@@ -61,13 +63,13 @@ final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
     } catch (Exception e) {
       LOG.warn("Failed sending client metrics before releasing the worker client", e);
     }
-    blockWorkerClient.createNewSession(Utils.getRandomNonNegativeLong());
+    blockWorkerClient.createNewSession(ClientUtils.getRandomNonNegativeLong());
     super.release(blockWorkerClient);
   }
 
   @Override
   protected BlockWorkerClient createNewResource() {
-    long clientId = Utils.getRandomNonNegativeLong();
+    long clientId = ClientUtils.getRandomNonNegativeLong();
     return new BlockWorkerClient(mWorkerNetAddress, ClientContext.getExecutorService(),
         ClientContext.getConf(), clientId, true, ClientContext.getClientMetrics());
   }

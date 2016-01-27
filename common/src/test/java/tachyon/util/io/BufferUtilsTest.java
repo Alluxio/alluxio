@@ -365,4 +365,35 @@ public class BufferUtilsTest {
       Assert.fail("cleanDirectBuffer is causing memory leak." + ooe.getMessage());
     }
   }
+
+  /**
+   * Tests the {@link BufferUtils#sliceByteBuffer(ByteBuffer, int, int)} and the
+   * {@link BufferUtils#sliceByteBuffer(ByteBuffer, int)} methods.
+   */
+  @Test
+  public void sliceByteBufferTest() {
+    final int size = 100;
+    final ByteBuffer buf = BufferUtils.getIncreasingByteBuffer(size);
+    for (int slicePosition : new int[] {0, 1, size / 2, size - 1}) {
+      // Slice a ByteBuffer of length 1
+      ByteBuffer slicedBuffer = BufferUtils.sliceByteBuffer(buf, slicePosition, 1);
+      Assert.assertEquals(0, slicedBuffer.position());
+      Assert.assertEquals(1, slicedBuffer.limit());
+      Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(slicePosition, 1, slicedBuffer));
+
+      // Slice a ByteBuffer from the target position to the end
+      int slicedBufferLength = size - slicePosition;
+      ByteBuffer slicedBuffer1 = BufferUtils.sliceByteBuffer(buf, slicePosition,
+          slicedBufferLength);
+      ByteBuffer slicedBuffer2 = BufferUtils.sliceByteBuffer(buf, slicePosition);
+      Assert.assertEquals(0, slicedBuffer1.position());
+      Assert.assertEquals(0, slicedBuffer2.position());
+      Assert.assertEquals(slicedBufferLength, slicedBuffer1.limit());
+      Assert.assertEquals(slicedBufferLength, slicedBuffer2.limit());
+      Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(slicePosition, slicedBufferLength,
+          slicedBuffer1));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(slicePosition, slicedBufferLength,
+          slicedBuffer2));
+    }
+  }
 }

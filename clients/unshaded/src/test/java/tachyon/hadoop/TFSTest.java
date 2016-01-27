@@ -22,7 +22,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.Assert;
 import org.junit.Before;
@@ -42,7 +41,7 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.FileSystemMasterClient;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -72,7 +71,7 @@ public class TFSTest {
 
   private String getHadoopVersion() {
     try {
-      final URL url = getSourcePath(FileSystem.class);
+      final URL url = getSourcePath(org.apache.hadoop.fs.FileSystem.class);
       final File path = new File(url.toURI());
       final String[] splits = path.getName().split("-");
       final String last = splits[splits.length - 1];
@@ -112,12 +111,13 @@ public class TFSTest {
     ClientContext.reset(mTachyonConf);
     mockMasterClient();
 
-    final FileSystem fs = FileSystem.get(uri, conf);
+    final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
     Assert.assertTrue(fs instanceof TFSFT);
 
     PowerMockito.verifyStatic();
-    TachyonFileSystem.TachyonFileSystemFactory.get();
+    FileSystem.Factory.get();
+    ClientContext.reset();
   }
 
   /**
@@ -141,12 +141,13 @@ public class TFSTest {
     ClientContext.reset(mTachyonConf);
     mockMasterClient();
 
-    final FileSystem fs = FileSystem.get(uri, conf);
+    final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
     Assert.assertTrue(fs instanceof TFS);
 
     PowerMockito.verifyStatic();
-    TachyonFileSystem.TachyonFileSystemFactory.get();
+    FileSystem.Factory.get();
+    ClientContext.reset();
   }
 
   private boolean isHadoop1x() {

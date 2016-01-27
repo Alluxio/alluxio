@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +73,7 @@ import tachyon.conf.TachyonConf;
  * will have the first opportunity to indicate whether they support a requested path.
  * </p>
  */
+@NotThreadSafe
 public final class UnderFileSystemRegistry {
 
   private static final List<UnderFileSystemFactory> FACTORIES =
@@ -186,7 +189,8 @@ public final class UnderFileSystemRegistry {
 
     // Discover and register the available factories
     ServiceLoader<UnderFileSystemFactory> discoveredFactories =
-        ServiceLoader.load(UnderFileSystemFactory.class);
+        ServiceLoader.load(UnderFileSystemFactory.class,
+            UnderFileSystemFactory.class.getClassLoader());
     for (UnderFileSystemFactory factory : discoveredFactories) {
       LOG.debug("Discovered Under File System Factory implementation {} - {}", factory.getClass(),
           factory.toString());

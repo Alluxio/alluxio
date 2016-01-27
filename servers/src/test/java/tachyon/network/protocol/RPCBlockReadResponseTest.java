@@ -42,6 +42,7 @@ public class RPCBlockReadResponseTest {
 
   private static final RPCResponse.Status STATUS = RPCResponse.Status.SUCCESS;
 
+  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -64,11 +65,17 @@ public class RPCBlockReadResponseTest {
     }
   }
 
+  /**
+   * Sets up the buffer before a test runs.
+   */
   @Before
   public final void before() {
     mBuffer = Unpooled.buffer();
   }
 
+  /**
+   * Tests the {@link RPCBlockReadResponse#getEncodedLength()} method.
+   */
   @Test
   public void encodedLengthTest() {
     RPCBlockReadResponse resp = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, null, STATUS);
@@ -77,6 +84,10 @@ public class RPCBlockReadResponseTest {
     Assert.assertEquals(encodedLength, mBuffer.readableBytes());
   }
 
+  /**
+   * Tests the {@link RPCBlockReadResponse#encode(ByteBuf)} and
+   * {@link RPCBlockReadResponse#decode(ByteBuf)} methods.
+   */
   @Test
   public void encodeDecodeTest() {
     RPCBlockReadResponse resp = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, null, STATUS);
@@ -86,12 +97,18 @@ public class RPCBlockReadResponseTest {
     assertValid(BLOCK_ID, OFFSET, LENGTH, STATUS, resp2);
   }
 
+  /**
+   * Tests the {@link RPCBlockReadResponse#validate()} method.
+   */
   @Test
   public void validateTest() {
     RPCBlockReadResponse resp = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, null, STATUS);
     assertValid(resp);
   }
 
+  /**
+   * Tests the {@link RPCBlockReadResponse#getPayloadDataBuffer()} method.
+   */
   @Test
   public void getPayloadDataBufferTest() {
     int length = 10;
@@ -101,6 +118,11 @@ public class RPCBlockReadResponseTest {
     Assert.assertEquals(payload, resp.getPayloadDataBuffer());
   }
 
+  /**
+   * Tests the
+   * {@link RPCBlockReadResponse#createErrorResponse(RPCBlockReadRequest, RPCResponse.Status)}
+   * method.
+   */
   @Test
   public void createErrorResponseTest() {
     RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID,

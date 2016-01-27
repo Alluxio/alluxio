@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +41,7 @@ import tachyon.network.protocol.databuffer.DataByteArrayChannel;
 /**
  * Write data to a remote data server using Netty.
  */
+@NotThreadSafe
 public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

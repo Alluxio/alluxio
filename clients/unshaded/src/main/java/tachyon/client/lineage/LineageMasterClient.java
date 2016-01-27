@@ -19,12 +19,15 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
+import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.thrift.LineageInfo;
@@ -38,6 +41,7 @@ import tachyon.thrift.TachyonTException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
+@ThreadSafe
 public final class LineageMasterClient extends MasterClientBase {
   private LineageMasterClientService.Client mClient = null;
 
@@ -120,10 +124,11 @@ public final class LineageMasterClient extends MasterClientBase {
    * @param ttl the time to live for the file
    * @return the value of the lineage creation result
    * @throws IOException if a non-Tachyon exception occurs
+   * @throws LineageDoesNotExistException if the file does not exist
    * @throws TachyonException if a Tachyon exception occurs
    */
   public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
-      final long ttl) throws IOException, TachyonException {
+      final long ttl) throws IOException, LineageDoesNotExistException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
       public Long call() throws TachyonTException, TException {

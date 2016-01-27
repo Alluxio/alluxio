@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +45,8 @@ import tachyon.worker.block.BlockStoreLocation;
 /**
  * Represents a directory in a storage tier. It has a fixed capacity allocated to it on
  * instantiation. It contains the set of blocks currently in the storage directory.
- * <p>
- * This class does not guarantee thread safety.
  */
+@NotThreadSafe
 public final class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mCapacityBytes;
@@ -124,16 +125,16 @@ public final class StorageDir {
         try {
           // TODO(calvin): Resolve this conflict in class names.
           org.apache.commons.io.FileUtils.deleteDirectory(path);
-        } catch (IOException ioe) {
-          LOG.error("can not delete directory {}", path.getAbsolutePath(), ioe);
+        } catch (IOException e) {
+          LOG.error("can not delete directory {}", path.getAbsolutePath(), e);
         }
       } else {
         try {
           long blockId = Long.parseLong(path.getName());
           addBlockMeta(new BlockMeta(blockId, path.length(), this));
-        } catch (NumberFormatException nfe) {
+        } catch (NumberFormatException e) {
           LOG.error("filename of {} in StorageDir can not be parsed into long",
-              path.getAbsolutePath());
+              path.getAbsolutePath(), e);
           if (path.delete()) {
             LOG.warn("file {} has been deleted", path.getAbsolutePath());
           } else {
@@ -174,6 +175,9 @@ public final class StorageDir {
     return mCommittedBytes.get();
   }
 
+  /**
+   * @return the path of the directory
+   */
   public String getDirPath() {
     return mDirPath;
   }

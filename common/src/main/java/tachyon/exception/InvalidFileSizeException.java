@@ -15,9 +15,12 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The exception thrown when the file of a size is invalid.
  */
+@ThreadSafe
 public class InvalidFileSizeException extends TachyonException {
   private static final long serialVersionUID = -4913703614829472342L;
 

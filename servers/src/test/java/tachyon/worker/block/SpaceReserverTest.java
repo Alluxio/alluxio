@@ -24,14 +24,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.WorkerSource;
 import tachyon.worker.file.FileSystemMasterClient;
 
 /**
@@ -71,23 +69,18 @@ public class SpaceReserverTest {
    */
   @Before
   public void before() throws Exception {
-    FileSystemMasterClient workerFileSystemMasterClient =
-        PowerMockito.mock(FileSystemMasterClient.class);
-    WorkerSource workerSource = PowerMockito.mock(WorkerSource.class);
-    BlockMasterClient blockMasterClient = PowerMockito.mock(BlockMasterClient.class);
     String baseDir = mTempFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);
-    mBlockStore = new TieredBlockStore();
-    BlockDataManager blockDataManager = new BlockDataManager(workerSource, blockMasterClient,
-        workerFileSystemMasterClient, mBlockStore);
+    BlockWorker blockWorker = new BlockWorker();
+    mBlockStore = blockWorker.getBlockStore();
     String reserveRatioProp =
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 0);
     WorkerContext.getConf().set(reserveRatioProp, "0.2");
     reserveRatioProp =
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 1);
     WorkerContext.getConf().set(reserveRatioProp, "0.3");
-    mSpaceReserver = new SpaceReserver(blockDataManager);
+    mSpaceReserver = new SpaceReserver(blockWorker);
   }
 
   /**

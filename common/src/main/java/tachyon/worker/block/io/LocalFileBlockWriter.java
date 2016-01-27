@@ -18,8 +18,11 @@ package tachyon.worker.block.io;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -28,9 +31,8 @@ import tachyon.util.io.BufferUtils;
 
 /**
  * This class provides write access to a temp block data file locally stored in managed storage.
- * <p>
- * This class does not provide thread-safety. Corresponding lock must be acquired.
  */
+@NotThreadSafe
 public final class LocalFileBlockWriter implements BlockWriter {
   private final String mFilePath;
   private final RandomAccessFile mLocalFile;
@@ -74,7 +76,7 @@ public final class LocalFileBlockWriter implements BlockWriter {
    */
   private long write(long offset, ByteBuffer inputBuf) throws IOException {
     int inputBufLength = inputBuf.limit() - inputBuf.position();
-    ByteBuffer outputBuf =
+    MappedByteBuffer outputBuf =
         mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, offset, inputBufLength);
     outputBuf.put(inputBuf);
     int bytesWritten = outputBuf.limit();

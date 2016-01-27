@@ -18,6 +18,8 @@ package tachyon.client.block;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +27,6 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.util.io.FileUtils;
@@ -34,9 +35,9 @@ import tachyon.worker.block.io.LocalFileBlockWriter;
 
 /**
  * Provides a streaming API to write to a Tachyon block. This output stream will directly write the
- * input to a file in local Tachyon storage. The instances of this class should only be used by one
- * thread and are not thread safe.
+ * input to a file in local Tachyon storage.
  */
+@NotThreadSafe
 public final class LocalBlockOutStream extends BufferedBlockOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final Closer mCloser;
@@ -67,9 +68,9 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       // Change the permission of the temporary file in order that the worker can move it.
       FileUtils.changeLocalFileToFullPermission(blockPath);
       LOG.info("LocalBlockOutStream created new file block, block path: {}", blockPath);
-    } catch (IOException ioe) {
+    } catch (IOException e) {
       mContext.releaseWorkerClient(mBlockWorkerClient);
-      throw ioe;
+      throw e;
     }
   }
 

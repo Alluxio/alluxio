@@ -15,10 +15,14 @@
 
 package tachyon.exception;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Holds the different types of exceptions thrown by Tachyon.
  */
+@ThreadSafe
 public enum TachyonExceptionType {
+  ACCESS_CONTROL(AccessControlException.class),
   BLOCK_ALREADY_EXISTS(BlockAlreadyExistsException.class),
   BLOCK_DOES_NOT_EXIST(BlockDoesNotExistException.class),
   BLOCK_INFO(BlockInfoException.class),
@@ -35,9 +39,6 @@ public enum TachyonExceptionType {
   LINEAGE_DELETION(LineageDeletionException.class),
   LINEAGE_DOES_NOT_EXIST(LineageDoesNotExistException.class),
   NO_WORKER(NoWorkerException.class),
-  TABLE_COLUMN(TableColumnException.class),
-  TABLE_DOES_NOT_EXIST(TableDoesNotExistException.class),
-  TABLE_METADATA(TableMetadataException.class),
   WORKER_OUT_OF_SPACE(WorkerOutOfSpaceException.class)
   ;
 

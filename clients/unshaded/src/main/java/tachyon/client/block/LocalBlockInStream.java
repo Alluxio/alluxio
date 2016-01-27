@@ -18,10 +18,11 @@ package tachyon.client.block;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.io.Closer;
 
 import tachyon.client.ClientContext;
-import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.LockBlockResult;
@@ -31,9 +32,9 @@ import tachyon.worker.block.io.LocalFileBlockReader;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be directly read
- * from the local machine's storage. The instances of this class should only be used by one thread
- * and are not thread safe.
+ * from the local machine's storage.
  */
+@NotThreadSafe
 public final class LocalBlockInStream extends BufferedBlockInStream {
   /** Helper to manage closables. */
   private final Closer mCloser;
@@ -63,7 +64,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
       if (result == null) {
         throw new IOException(ExceptionMessage.BLOCK_NOT_LOCALLY_AVAILABLE.getMessage(mBlockId));
       }
-      mReader = new LocalFileBlockReader(result.blockPath);
+      mReader = new LocalFileBlockReader(result.getBlockPath());
       mCloser.register(mReader);
     } catch (IOException e) {
       mContext.releaseWorkerClient(mBlockWorkerClient);

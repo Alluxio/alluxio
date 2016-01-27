@@ -31,7 +31,6 @@ import tachyon.job.JobConf;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.meta.PersistenceState;
 import tachyon.master.file.meta.FileSystemMasterView;
-import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.lineage.meta.LineageIdGenerator;
 import tachyon.master.lineage.meta.LineageStore;
 
@@ -46,6 +45,9 @@ public final class RecomputePlannerTest {
   private Job mJob;
   private FileSystemMaster mFileSystemMaster;
 
+  /**
+   * Sets up the dependencies before a test runs.
+   */
   @Before
   public void before() {
     mLineageStore = new LineageStore(new LineageIdGenerator());
@@ -56,11 +58,15 @@ public final class RecomputePlannerTest {
     mPlanner = new RecomputePlanner(mLineageStore, mFileSystemMaster);
   }
 
+  /**
+   * Tests the {@link RecomputePlan#getLineageToRecompute()} method for one lost file.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void oneLineageTest() throws Exception {
     long l1 = mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
     mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
-    mFileSystemMaster.completeFile(1L, CompleteFileOptions.defaults());
     Mockito.when(mFileSystemMaster.getPersistenceState(1L))
         .thenReturn(PersistenceState.NOT_PERSISTED);
     Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L));
@@ -69,12 +75,15 @@ public final class RecomputePlannerTest {
     Assert.assertEquals(l1, plan.getLineageToRecompute().get(0).getId());
   }
 
+  /**
+   * Tests the {@link RecomputePlan#getLineageToRecompute()} method for two lost files.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void twoLostLineagesTest() throws Exception {
     long l1 = mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
     long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
-    mFileSystemMaster.completeFile(1L, CompleteFileOptions.defaults());
-    mFileSystemMaster.completeFile(2L, CompleteFileOptions.defaults());
     Mockito.when(mFileSystemMaster.getPersistenceState(1L))
         .thenReturn(PersistenceState.NOT_PERSISTED);
     Mockito.when(mFileSystemMaster.getPersistenceState(2L))
@@ -86,10 +95,14 @@ public final class RecomputePlannerTest {
     Assert.assertEquals(l2, plan.getLineageToRecompute().get(1).getId());
   }
 
+  /**
+   * Tests the {@link RecomputePlan#getLineageToRecompute()} method for one chechpointed lineage.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void oneCheckointedLineageTest() throws Exception {
     mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
-    mFileSystemMaster.completeFile(1L, CompleteFileOptions.defaults());
     Mockito.when(mFileSystemMaster.getPersistenceState(1L))
         .thenReturn(PersistenceState.PERSISTED);
     Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L));
@@ -97,12 +110,15 @@ public final class RecomputePlannerTest {
     Assert.assertEquals(0, plan.getLineageToRecompute().size());
   }
 
+  /**
+   * Tests the {@link RecomputePlan#getLineageToRecompute()} method for one lost lineage.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void oneLostLineageTest() throws Exception {
     mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
     long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
-    mFileSystemMaster.completeFile(1L, CompleteFileOptions.defaults());
-    mFileSystemMaster.completeFile(2L, CompleteFileOptions.defaults());
     Mockito.when(mFileSystemMaster.getPersistenceState(1L))
         .thenReturn(PersistenceState.NOT_PERSISTED);
     Mockito.when(mFileSystemMaster.getPersistenceState(2L))

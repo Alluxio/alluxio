@@ -57,6 +57,36 @@ should have the final escaped parameters (cat /\\*).
     <td>Print the content of the file to the console.</td>
   </tr>
   <tr>
+    <td>chgrp</td>
+    <td>chgrp "group" "path"</td>
+    <td>Change the group of the directory or file.</td>
+  </tr>
+  <tr>
+    <td>chgrpr</td>
+    <td>chgrpr "group" "path"</td>
+    <td>Recursively change the group of the directory or file.</td>
+  </tr>
+  <tr>
+    <td>chmod</td>
+    <td>chmod "permission" "path"</td>
+    <td>Change the permission of the directory or file.</td>
+  </tr>
+  <tr>
+    <td>chmodr</td>
+    <td>chmodr "permission" "path"</td>
+    <td>Recursively change the permission of the directory or file.</td>
+  </tr>
+  <tr>
+    <td>chown</td>
+    <td>chown "owner" "path"</td>
+    <td>Change the owner of the directory or file.</td>
+  </tr>
+  <tr>
+    <td>chownr</td>
+    <td>chownr "owner" "path"</td>
+    <td>Recursively change the owner of the directory or file.</td>
+  </tr>
+  <tr>
     <td>copyFromLocal</td>
     <td>copyFromLocal "source path" "remote path"</td>
     <td>Copy the specified file specified by "source path" to the path specified by "remote path".
@@ -79,8 +109,8 @@ should have the final escaped parameters (cat /\\*).
     <td>Display the size of a file or a directory specified by the input path.</td>
   </tr>
   <tr>
-    <td>fileinfo</td>
-    <td>fileinfo "path"</td>
+    <td>fileInfo</td>
+    <td>fileInfo "path"</td>
     <td>Print the information of the blocks of a specified file.</td>
   </tr>
   <tr>
@@ -128,9 +158,9 @@ should have the final escaped parameters (cat /\\*).
   </tr>
   <tr>
     <td>mkdir</td>
-    <td>mkdir "path"</td>
-    <td>Create a directory under the given path, along with any necessary parent directories. This
-    command will fail if the given path already exists.</td>
+    <td>mkdir "path1" ... "pathn" </td>
+    <td>Create directory(ies) under the given paths, along with any necessary parent directories. Multiple paths separated by spaces or tabs. This
+    command will fail if any of the given paths already exist.</td>
   </tr>
   <tr>
     <td>mount</td>
@@ -225,6 +255,107 @@ output:
 $ ./bin/tachyon tfs cat /output/part-00000
 ```
 
+## chgrp
+The `chgrp` command changes the group of the file or directory in Tachyon. Tachyon supports file
+authorization with Posix file permission. Group is an authorizable entity in Posix file permission
+model. The file owner or super-user can execute this command to change the group of the file or
+directory.
+
+For example, `chgrp` can be used as a quick way to change the group of file:
+```bash
+$ ./bin/tachyon tfs chgrp tachyon-group-new /input/file1
+```
+
+## chgrpr
+The `chgrpr` command is similar to `chgrp`, but it also recursively changes the group of child file
+and directory in Tachyon.
+
+For example, `chgrpr` can be used as a quick way to recursively change the group of directory:
+```bash
+$ ./bin/tachyon tfs chgrpr tachyon-group-new /input/directory1
+```
+
+## chmod
+The `chmod` command changes the permission of file or directory in Tachyon. Currently octal mode
+is supported: the numerical format accepts three octal digits which refer to permissions for the
+file owner, the group and other users. Here is number-permission mapping table:
+
+<table class="table table-striped">
+  <tr><th>Number</th><th>Permission</th><th>rwx</th></tr>
+  <tr>
+    <td>7</td>
+    <td>read, write and execute</td>
+    <td>rwx</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td>read and write</td>
+    <td>rw-</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>read and execute</td>
+    <td>r-x</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>read only</td>
+    <td>r--</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>write and execute</td>
+    <td>-wx</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>write only</td>
+    <td>-w-</td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>execute only</td>
+    <td>--x</td>
+  </tr>
+  <tr>
+    <td>0</td>
+    <td>none</td>
+    <td>---</td>
+  </tr>
+</table>
+
+For example, `chmod` can be used as a quick way to change the permission of file:
+```bash
+$ ./bin/tachyon tfs chmod 755 /input/file1
+```
+
+## chmodr
+The `chmodr` command is similar to `chmod`, but it also changes the permission of child file and
+child directory in Tachyon.
+
+For example, `chmodr` can be used as a quick way to recursively change the permission of directory:
+```bash
+$ ./bin/tachyon tfs chmodr 755 /input/directory1
+```
+
+## chown
+The `chown` command changes the owner of the file or directory in Tachyon. For obvious security
+reasons, the ownership of a file can only be altered by a super-user.
+
+For example, `chown` can be used as a quick way to change the owner of file:
+```bash
+$ ./bin/tachyon tfs chown tachyon-user /input/file1
+```
+
+## chownr
+The `chownr` command is similar to `chown`, but it also changes the owner of child file and child
+directory in Tachyon.
+
+For example, `chownr` can be used as a quick way to recursively change the owner of directory:
+```bash
+$ ./bin/tachyon tfs chownr tachyon-user /input/directory1
+```
+
 ## copyFromLocal
 The `copyFromLocal` command copies the contents of a file in your local file system into Tachyon.
 If the node you run the command from has a Tachyon worker, the data will be available on that
@@ -275,16 +406,16 @@ which folders are taking up the most space.
 $ ./bin/tachyon tfs du /\\*
 ```
 
-## fileinfo
-The `fileinfo` command dumps the FileInfo representation of a file to the console. It is primarily
+## fileInfo
+The `fileInfo` command dumps the FileInfo representation of a file to the console. It is primarily
 intended to assist powerusers in debugging their system. Generally viewing the file info in the UI
 will be much easier to understand.
 
-For example, `fileinfo` can be used to debug the block locations of a file. This is useful when
+For example, `fileInfo` can be used to debug the block locations of a file. This is useful when
 trying to achieve locality for compute workloads.
 
 ```bash
-$ ./bin/tachyon tfs fileinfo /data/2015/logs-1.txt
+$ ./bin/tachyon tfs fileInfo /data/2015/logs-1.txt
 ```
 
 ## free

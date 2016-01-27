@@ -26,14 +26,14 @@ import tachyon.worker.file.FileSystemMasterClient;
 
 /**
  * PinListSync periodically syncs the set of pinned inodes from master,  and saves the new pinned
- * inodes to the {@link BlockDataManager}.
+ * inodes to the {@link BlockWorker}.
  *
  */
 public final class PinListSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Block data manager responsible for interacting with Tachyon and UFS storage */
-  private final BlockDataManager mBlockDataManager;
+  /** Block worker handle responsible for interacting with Tachyon and UFS storage */
+  private final BlockWorker mBlockWorker;
 
   /** Client for all master communication */
   private FileSystemMasterClient mMasterClient;
@@ -41,11 +41,11 @@ public final class PinListSync implements HeartbeatExecutor {
   /**
    * Creates a new instance of {@link PinListSync}.
    *
-   * @param blockDataManager a block data manager handle
+   * @param blockWorker the block worker handle
    * @param masterClient the Tachyon master client
    */
-  public PinListSync(BlockDataManager blockDataManager, FileSystemMasterClient masterClient) {
-    mBlockDataManager = blockDataManager;
+  public PinListSync(BlockWorker blockWorker, FileSystemMasterClient masterClient) {
+    mBlockWorker = blockWorker;
 
     mMasterClient = masterClient;
   }
@@ -55,12 +55,17 @@ public final class PinListSync implements HeartbeatExecutor {
     // Send the sync
     try {
       Set<Long> pinList = mMasterClient.getPinList();
-      mBlockDataManager.updatePinList(pinList);
+      mBlockWorker.updatePinList(pinList);
     } catch (Exception e) {
       // An error occurred, retry after 1 second or error if sync timeout is reached
       LOG.error("Failed to receive pinlist.", e);
       // TODO(gene): Add this method to MasterClientBase.
       // mMasterClient.resetConnection();
     }
+  }
+
+  @Override
+  public void close() {
+    // Nothing to clean up
   }
 }

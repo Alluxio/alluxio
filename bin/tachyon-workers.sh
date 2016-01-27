@@ -5,6 +5,7 @@ LAUNCHER=
 if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
+BIN=$(cd "$( dirname "$0" )"; pwd)
 
 usage="Usage: tachyon-workers.sh command..."
 
@@ -14,8 +15,7 @@ if [ $# -le 0 ]; then
   exit 1
 fi
 
-bin=`cd "$( dirname "$0" )"; pwd`
-DEFAULT_LIBEXEC_DIR="$bin"/../libexec
+DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
 TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 

@@ -16,8 +16,12 @@
 package tachyon.worker.file;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import org.apache.thrift.TProcessor;
 
 import com.google.common.base.Preconditions;
 
@@ -30,7 +34,7 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * This class is responsible for managing all top level components of the file system worker.
@@ -49,19 +53,29 @@ public final class FileSystemWorker extends WorkerBase {
   /**
    * Creates a new instance of {@link FileSystemWorker}.
    *
-   * @param blockDataManager a block data manager handle
+   * @param blockWorker the block worker handle
    * @throws IOException if an I/O error occurs
    */
-  public FileSystemWorker(BlockDataManager blockDataManager) throws IOException {
+  public FileSystemWorker(BlockWorker blockWorker) throws IOException {
     super(Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
 
     mTachyonConf = WorkerContext.getConf();
-    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockDataManager));
+    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker));
 
     // Setup MasterClientBase
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * {@link FileSystemWorker} exposes no RPC service.
+   */
+  @Override
+  public Map<String, TProcessor> getServices() {
+    return new HashMap<String, TProcessor>();
   }
 
   /**

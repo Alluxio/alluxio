@@ -17,6 +17,7 @@ package tachyon.security.authentication;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
@@ -47,6 +48,7 @@ import tachyon.security.User;
  * {@link #evaluateResponse(byte[])}, it always assigns authentication ID to authorization ID
  * currently.
  */
+@NotThreadSafe
 // TODO(dong): Authorization ID and authentication ID could be different after supporting
 // impersonation.
 public final class PlainSaslServer implements SaslServer {

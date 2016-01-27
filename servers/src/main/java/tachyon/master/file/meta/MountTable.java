@@ -18,16 +18,22 @@ package tachyon.master.file.meta;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.InvalidPathException;
 import tachyon.util.io.PathUtils;
 
-/** This class is used for keeping track of Tachyon mount points. It is thread safe. */
+/**
+ * This class is used for keeping track of Tachyon mount points.
+ */
+@ThreadSafe
 public final class MountTable {
   public static final String ROOT = "/";
 
@@ -49,16 +55,16 @@ public final class MountTable {
    *
    * @param tachyonUri a Tachyon path URI
    * @param ufsUri a UFS path URI
-   * @return true if the operation succeeded, false otherwise
+   * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    */
-  public synchronized boolean add(TachyonURI tachyonUri, TachyonURI ufsUri)
-      throws InvalidPathException {
+  public synchronized void add(TachyonURI tachyonUri, TachyonURI ufsUri)
+      throws FileAlreadyExistsException, InvalidPathException {
     String tachyonPath = tachyonUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, tachyonPath);
     if (mMountTable.containsKey(tachyonPath)) {
-      LOG.warn(ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(tachyonPath));
-      return false;
+      throw new FileAlreadyExistsException(
+          ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(tachyonPath));
     }
     // Check all non-root mount points, to check if they're a prefix of the tachyonPath we're trying
     // to mount. Also make sure that the ufs path we're trying to mount is not a prefix or suffix of
@@ -68,9 +74,8 @@ public final class MountTable {
       TachyonURI mountedUfsUri = entry.getValue();
       if (!mountedTachyonPath.equals(ROOT)
           && PathUtils.hasPrefix(tachyonPath, mountedTachyonPath)) {
-        LOG.warn(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage(mountedTachyonPath,
-            tachyonPath));
-        return false;
+        throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage(
+            mountedTachyonPath, tachyonPath));
       } else if ((ufsUri.getScheme() == null || ufsUri.getScheme()
           .equals(mountedUfsUri.getScheme()))
           && (ufsUri.getAuthority() == null || ufsUri.getAuthority().equals(
@@ -78,18 +83,15 @@ public final class MountTable {
         String ufsPath = ufsUri.getPath();
         String mountedUfsPath = mountedUfsUri.getPath();
         if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
-          LOG.warn(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage(
+          throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage(
               mountedUfsUri.toString(), ufsUri.toString()));
-          return false;
         } else if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
-          LOG.warn(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage(ufsUri.toString(),
-              mountedUfsUri.toString()));
-          return false;
+          throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage(
+              ufsUri.toString(), mountedUfsUri.toString()));
         }
       }
     }
     mMountTable.put(tachyonPath, ufsUri);
-    return true;
   }
 
   /**

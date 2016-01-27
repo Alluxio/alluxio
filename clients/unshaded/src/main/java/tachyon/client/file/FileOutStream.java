@@ -20,18 +20,21 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
+import tachyon.client.ClientUtils;
+import tachyon.client.OutStreamBase;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
-import tachyon.client.Utils;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
@@ -39,7 +42,6 @@ import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.NetAddress;
@@ -47,12 +49,13 @@ import tachyon.worker.NetAddress;
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
  * blocks in the file and abstracts the switching between streams. The backing streams can write to
- * Tachyon space in the local machine or remote machines. If the
- * {@link UnderStorageType} is {@link UnderStorageType#SYNC_PERSIST}, another stream will write the
- * data to the under storage system.
+ * Tachyon space in the local machine or remote machines. If the {@link UnderStorageType} is
+ * {@link UnderStorageType#SYNC_PERSIST}, another stream will write the data to the under storage
+ * system.
  */
 @PublicApi
-public class FileOutStream extends OutputStream implements Cancelable {
+@NotThreadSafe
+public class FileOutStream extends OutStreamBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mBlockSize;
@@ -70,18 +73,18 @@ public class FileOutStream extends OutputStream implements Cancelable {
   protected BufferedBlockOutStream mCurrentBlockOutStream;
   protected List<BufferedBlockOutStream> mPreviousBlockOutStreams;
 
-  protected final long mFileId;
+  protected final TachyonURI mUri;
 
   /**
    * Creates a new file output stream.
    *
-   * @param fileId the file id
+   * @param path the file path
    * @param options the client options
    * @throws IOException if an I/O error occurs
    */
-  public FileOutStream(long fileId, OutStreamOptions options) throws IOException {
-    mFileId = fileId;
-    mNonce = Utils.getRandomNonNegativeLong();
+  public FileOutStream(TachyonURI path, OutStreamOptions options) throws IOException {
+    mUri = Preconditions.checkNotNull(path);
+    mNonce = ClientUtils.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();
     mUnderStorageType = options.getUnderStorageType();
@@ -89,7 +92,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
     if (mUnderStorageType.isSyncPersist()) {
       updateUfsPath();
-      String tmpPath = PathUtils.temporaryFileName(fileId, mNonce, mUfsPath);
+      String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
       UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
       // TODO(jiri): Implement collection of temporary files left behind by dead clients.
       mUnderStorageOutputStream = ufs.create(tmpPath, (int) mBlockSize);
@@ -100,6 +103,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mClosed = false;
     mCanceled = false;
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
+    mBytesWritten = 0;
     mLocationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
         PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
   }
@@ -120,9 +124,9 @@ public class FileOutStream extends OutputStream implements Cancelable {
     }
 
     Boolean canComplete = false;
-    CompleteFileOptions.Builder builder = new CompleteFileOptions.Builder(ClientContext.getConf());
+    CompleteFileOptions options = CompleteFileOptions.defaults();
     if (mUnderStorageType.isSyncPersist()) {
-      String tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
+      String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
       UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
       if (mCanceled) {
         // TODO(yupeng): Handle this special case in under storage integrations.
@@ -130,7 +134,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
         if (!ufs.exists(tmpPath)) {
           // Location of the temporary file has changed, recompute it.
           updateUfsPath();
-          tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
+          tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
         }
         ufs.delete(tmpPath, false);
       } else {
@@ -139,12 +143,12 @@ public class FileOutStream extends OutputStream implements Cancelable {
         if (!ufs.exists(tmpPath)) {
           // Location of the temporary file has changed, recompute it.
           updateUfsPath();
-          tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
+          tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
         }
         if (!ufs.rename(tmpPath, mUfsPath)) {
           throw new IOException("Failed to rename " + tmpPath + " to " + mUfsPath);
         }
-        builder.setUfsLength(ufs.getFileSize(mUfsPath));
+        options.setUfsLength(ufs.getFileSize(mUfsPath));
         canComplete = true;
       }
     }
@@ -161,15 +165,15 @@ public class FileOutStream extends OutputStream implements Cancelable {
           }
           canComplete = true;
         }
-      } catch (IOException ioe) {
-        handleCacheWriteException(ioe);
+      } catch (IOException e) {
+        handleCacheWriteException(e);
       }
     }
 
     if (canComplete) {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
-        masterClient.completeFile(mFileId, builder.build());
+        masterClient.completeFile(mUri, options);
       } catch (TachyonException e) {
         throw new IOException(e);
       } finally {
@@ -199,8 +203,8 @@ public class FileOutStream extends OutputStream implements Cancelable {
           getNextBlock();
         }
         mCurrentBlockOutStream.write(b);
-      } catch (IOException ioe) {
-        handleCacheWriteException(ioe);
+      } catch (IOException e) {
+        handleCacheWriteException(e);
       }
     }
 
@@ -208,6 +212,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
       mUnderStorageOutputStream.write(b);
       ClientContext.getClientMetrics().incBytesWrittenUfs(1);
     }
+    mBytesWritten ++;
   }
 
   @Override
@@ -240,8 +245,8 @@ public class FileOutStream extends OutputStream implements Cancelable {
             tLen -= currentBlockLeftBytes;
           }
         }
-      } catch (IOException ioe) {
-        handleCacheWriteException(ioe);
+      } catch (IOException e) {
+        handleCacheWriteException(e);
       }
     }
 
@@ -249,6 +254,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
       mUnderStorageOutputStream.write(b, off, len);
       ClientContext.getClientMetrics().incBytesWrittenUfs(len);
     }
+    mBytesWritten += len;
   }
 
   private void getNextBlock() throws IOException {
@@ -274,7 +280,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private long getNextBlockId() throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.getNewBlockIdForFile(mFileId);
+      return masterClient.getNewBlockIdForFile(mUri);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
@@ -282,12 +288,12 @@ public class FileOutStream extends OutputStream implements Cancelable {
     }
   }
 
-  protected void handleCacheWriteException(IOException ioe) throws IOException {
+  protected void handleCacheWriteException(IOException e) throws IOException {
     if (!mUnderStorageType.isSyncPersist()) {
-      throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(ioe.getMessage()), ioe);
+      throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.getMessage()), e);
     }
 
-    LOG.warn("Failed to write into TachyonStore, canceling write attempt.", ioe);
+    LOG.warn("Failed to write into TachyonStore, canceling write attempt.", e);
     if (mCurrentBlockOutStream != null) {
       mShouldCacheCurrentBlock = false;
       mCurrentBlockOutStream.cancel();
@@ -297,8 +303,8 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private void updateUfsPath() throws IOException {
     FileSystemMasterClient client = mContext.acquireMasterClient();
     try {
-      FileInfo fileInfo = client.getFileInfo(mFileId);
-      mUfsPath = fileInfo.getUfsPath();
+      URIStatus status = client.getStatus(mUri);
+      mUfsPath = status.getUfsPath();
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
@@ -314,7 +320,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   protected void scheduleAsyncPersist() throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      masterClient.scheduleAsyncPersist(mFileId);
+      masterClient.scheduleAsyncPersist(mUri);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {

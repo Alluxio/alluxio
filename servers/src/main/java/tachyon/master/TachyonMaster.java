@@ -17,7 +17,9 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
@@ -32,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -41,7 +44,6 @@ import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.master.lineage.LineageMaster;
-import tachyon.master.rawtable.RawTableMaster;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.underfs.UnderFileSystem;
@@ -94,18 +96,16 @@ public class TachyonMaster {
   protected BlockMaster mBlockMaster;
   /** The master managing all file system related metadata */
   protected FileSystemMaster mFileSystemMaster;
-  /** The master managing all raw table related metadata */
-  protected RawTableMaster mRawTableMaster;
   /** The master managing all lineage related metadata */
   protected LineageMaster mLineageMaster;
+  /** A list of extra masters to launch based on service loader */
+  protected List<Master> mAdditionalMasters;
 
   // The read-write journals for the masters
   /** The journal for the block master */
   protected final ReadWriteJournal mBlockMasterJournal;
   /** The journal for the file system master */
   protected final ReadWriteJournal mFileSystemMasterJournal;
-  /** The journal for the raw table master */
-  protected final ReadWriteJournal mRawTableMasterJournal;
   /** The journal for the lineage master */
   protected final ReadWriteJournal mLineageMasterJournal;
 
@@ -179,16 +179,26 @@ public class TachyonMaster {
       mBlockMasterJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(journalDirectory));
       mFileSystemMasterJournal =
           new ReadWriteJournal(FileSystemMaster.getJournalDirectory(journalDirectory));
-      mRawTableMasterJournal =
-          new ReadWriteJournal(RawTableMaster.getJournalDirectory(journalDirectory));
       mLineageMasterJournal =
           new ReadWriteJournal(LineageMaster.getJournalDirectory(journalDirectory));
 
       mBlockMaster = new BlockMaster(mBlockMasterJournal);
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
-      mRawTableMaster = new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal);
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
+      }
+
+      mAdditionalMasters = Lists.newArrayList();
+      List<? extends  Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
+      // Discover and register the available factories
+      // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader
+      ServiceLoader<MasterFactory> discoveredMasterFactories =
+          ServiceLoader.load(MasterFactory.class, MasterFactory.class.getClassLoader());
+      for (MasterFactory factory : discoveredMasterFactories) {
+        Master master = factory.create(masters, journalDirectory);
+        if (master != null) {
+          mAdditionalMasters.add(master);
+        }
       }
 
       MasterContext.getMasterSource().registerGauges(this);
@@ -249,13 +259,6 @@ public class TachyonMaster {
   }
 
   /**
-   * @return internal {@link RawTableMaster}, for unit test only
-   */
-  public RawTableMaster getRawTableMaster() {
-    return mRawTableMaster;
-  }
-
-  /**
    * @return internal {@link BlockMaster}, for unit test only
    */
   public BlockMaster getBlockMaster() {
@@ -309,9 +312,12 @@ public class TachyonMaster {
 
       mBlockMaster.start(isLeader);
       mFileSystemMaster.start(isLeader);
-      mRawTableMaster.start(isLeader);
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster.start(isLeader);
+      }
+      // start additional masters
+      for (Master master : mAdditionalMasters) {
+        master.start(isLeader);
       }
 
     } catch (IOException e) {
@@ -325,9 +331,12 @@ public class TachyonMaster {
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster.stop();
       }
+      // stop additional masters
+      for (Master master : mAdditionalMasters) {
+        master.stop();
+      }
       mBlockMaster.stop();
       mFileSystemMaster.stop();
-      mRawTableMaster.stop();
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -374,14 +383,17 @@ public class TachyonMaster {
     if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
       registerServices(processor, mLineageMaster.getServices());
     }
-    registerServices(processor, mRawTableMaster.getServices());
+    // register additional masters for RPC service
+    for (Master master : mAdditionalMasters) {
+      registerServices(processor, master.getServices());
+    }
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;
     try {
       transportFactory = AuthenticationUtils.getServerTransportFactory(MasterContext.getConf());
-    } catch (IOException ioe) {
-      throw Throwables.propagate(ioe);
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
     }
 
     // create master thrift service with the multiplexed processor.

@@ -17,12 +17,14 @@ package tachyon.master;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
-import tachyon.thrift.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 import tachyon.worker.TachyonWorker;
 import tachyon.worker.WorkerContext;
 
@@ -41,17 +43,23 @@ import tachyon.worker.WorkerContext;
  * localTachyonCluster.start(testConf);
  * </pre>
  */
+@NotThreadSafe
 public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   private LocalTachyonMaster mMaster;
   private TachyonConf mClientConf;
 
+  /**
+   * @param workerCapacityBytes the capacity of the worker in bytes
+   * @param quotaUnitBytes the quota unit in bytes
+   * @param userBlockSize the block size for a user
+   */
   public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
     super(workerCapacityBytes, userBlockSize);
     mQuotaUnitBytes = quotaUnitBytes;
   }
 
   @Override
-  public TachyonFileSystem getClient() throws IOException {
+  public FileSystem getClient() throws IOException {
     return mMaster.getClient();
   }
 
@@ -60,32 +68,53 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     return mMaster;
   }
 
+  /**
+   * @return the hostname of the master
+   */
   public String getMasterHostname() {
     return mHostname;
   }
 
+  /**
+   * @return the URI of the master
+   */
   public String getMasterUri() {
     return mMaster.getUri();
   }
 
+  /**
+   * @return the port of the master
+   */
   public int getMasterPort() {
     return mMaster.getRPCLocalPort();
   }
 
+  /**
+   * @return the home path to Tachyon
+   */
   public String getTachyonHome() {
     return mTachyonHome;
   }
 
+  /**
+   * @return the worker
+   */
   public TachyonWorker getWorker() {
     return mWorker;
   }
 
+  /**
+   * @return the configuration for Tachyon
+   */
   public TachyonConf getWorkerTachyonConf() {
     return mWorkerConf;
   }
 
-  public WorkerNetAddress getWorkerAddress() {
-    return mWorker.getWorkerNetAddress();
+  /**
+   * @return the address of the worker
+   */
+  public NetAddress getWorkerAddress() {
+    return mWorker.getNetAddress();
   }
 
   @Override
@@ -132,7 +161,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   }
 
   /**
-   * Cleanup the worker state from the master and stop the worker.
+   * Cleans up the worker state from the master and stops the worker.
    *
    * @throws Exception when the operation fails
    */

@@ -31,6 +31,7 @@ import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.PersistFile;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockMasterSync;
 
@@ -55,8 +56,8 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
   /** Client for communicating to file system master */
   private final FileSystemMasterClient mMasterClient;
   /** The thread pool to persist file */
-  private final ExecutorService mFixedExecutionService =
-      Executors.newFixedThreadPool(DEFAULT_FILE_PERSISTER_POOL_SIZE);
+  private final ExecutorService mPersistFileService = Executors.newFixedThreadPool(
+      DEFAULT_FILE_PERSISTER_POOL_SIZE, ThreadFactoryUtils.build("persist-file-service-%d", true));
 
   /**
    * Creates a new instance of {@link FileWorkerMasterSyncExecutor}.
@@ -94,19 +95,25 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     if (command == null) {
       LOG.error("The command sent from master is null");
       return;
-    } else if (command.commandType != CommandType.Persist) {
+    } else if (command.getCommandType() != CommandType.Persist) {
       LOG.error("The command sent from master should be PERSIST type, but was {}",
-          command.commandType);
+          command.getCommandType());
       return;
     }
 
-    for (PersistFile persistFile : command.getCommandOptions().getPersistOptions().persistFiles) {
-      long fileId = persistFile.fileId;
+    for (PersistFile persistFile : command.getCommandOptions().getPersistOptions()
+            .getPersistFiles()) {
+      long fileId = persistFile.getFileId();
       if (mFileDataManager.needPersistence(fileId)) {
-        mFixedExecutionService
-            .execute(new FilePersister(mFileDataManager, fileId, persistFile.blockIds));
+        mPersistFileService
+            .execute(new FilePersister(mFileDataManager, fileId, persistFile.getBlockIds()));
       }
     }
+  }
+
+  @Override
+  public void close() {
+    mPersistFileService.shutdown();
   }
 
   /**

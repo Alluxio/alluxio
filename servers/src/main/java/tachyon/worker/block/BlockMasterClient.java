@@ -20,6 +20,8 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,7 @@ import tachyon.thrift.WorkerNetAddress;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
+@ThreadSafe
 public final class BlockMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private BlockMasterWorkerService.Client mClient = null;
@@ -146,6 +149,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * @param totalBytesOnTiers mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers mapping from storage tier alias to used bytes
    * @param currentBlocksOnTiers mapping from storage tier alias to the list of list of blocks
+   * @throws TachyonException if registering the worker fails
    * @throws IOException if an I/O error occurs or the workerId doesn't exist
    */
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?

@@ -33,6 +33,9 @@ import tachyon.exception.BlockInfoException;
 public final class InodeFileTest extends AbstractInodeTest {
   private static final long LENGTH = 100;
 
+  /**
+   * Tests the {@link InodeFile#equals(Object)} method.
+   */
   @Test
   public void equalsTest() {
     InodeFile inode1 = createInodeFile(1);
@@ -45,19 +48,30 @@ public final class InodeFileTest extends AbstractInodeTest {
     Assert.assertFalse(inode1.equals(inode3));
   }
 
+  /**
+   * Tests the {@link InodeFile#getId()} method.
+   */
   @Test
   public void getIdTest() {
     InodeFile inode1 = createInodeFile(1);
     Assert.assertEquals(createInodeFileId(1), inode1.getId());
   }
 
+  /**
+   * Tests the {@link InodeFile#setLength(long)} method.
+   */
   @Test
-  public void setLengthTest() throws Exception {
+  public void setLengthTest() {
     InodeFile inodeFile = createInodeFile(1);
     inodeFile.setLength(LENGTH);
     Assert.assertEquals(LENGTH, inodeFile.getLength());
   }
 
+  /**
+   * Tests that an exception is thrown when trying to create a file with a negative length.
+   *
+   * @throws Exception if completing the file fails
+   */
   @Test
   public void setNegativeLengthTest() throws Exception {
     mThrown.expect(InvalidFileSizeException.class);
@@ -66,6 +80,11 @@ public final class InodeFileTest extends AbstractInodeTest {
     inodeFile.complete(-1);
   }
 
+  /**
+   * Tests that an exception is thrown when trying to complete a file twice.
+   *
+   * @throws Exception if completing the file fails
+   */
   @Test
   public void completeTwiceTest() throws Exception {
     mThrown.expect(FileAlreadyCompletedException.class);
@@ -75,12 +94,20 @@ public final class InodeFileTest extends AbstractInodeTest {
     inodeFile.complete(LENGTH);
   }
 
+  /**
+   * Tests the {@link InodeFile#getBlockSizeBytes()} method.
+   */
   @Test
   public void getBlockSizeBytesTest() {
     InodeFile inode1 = createInodeFile(1);
     Assert.assertEquals(Constants.KB, inode1.getBlockSizeBytes());
   }
 
+  /**
+   * Tests the {@link InodeFile#getBlockIdByIndex(int)} method.
+   *
+   * @throws Exception if getting the block id by its index fails
+   */
   @Test
   public void getBlockIdByIndexTest() throws Exception {
     InodeFile inodeFile = createInodeFile(1);
@@ -108,6 +135,9 @@ public final class InodeFileTest extends AbstractInodeTest {
     }
   }
 
+  /**
+   * Tests the {@link InodeFile#setCompleted(boolean)} method.
+   */
   @Test
   public void setCompletedTest() {
     InodeFile inode1 = createInodeFile(1);
@@ -117,6 +147,9 @@ public final class InodeFileTest extends AbstractInodeTest {
     Assert.assertTrue(inode1.isCompleted());
   }
 
+  /**
+   * Tests the {@link InodeFile#getPermission()} method.
+   */
   @Test
   public void permissionStatusTest() {
     InodeFile inode1 = createInodeFile(1);

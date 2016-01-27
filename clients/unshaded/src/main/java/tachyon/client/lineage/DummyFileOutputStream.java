@@ -17,6 +17,9 @@ package tachyon.client.lineage;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
+import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.options.OutStreamOptions;
 
@@ -24,17 +27,18 @@ import tachyon.client.file.options.OutStreamOptions;
  * A dummy file output stream that does nothing. This is used for lineage recomputation. When the
  * file is not lost on Tachyon, there's no need for the job to rewrite the file.
  */
+@NotThreadSafe
 public final class DummyFileOutputStream extends FileOutStream {
 
   /**
    * Constructs a new dummy file output stream.
    *
-   * @param fileId the id of the file
+   * @param path the path of the file
    * @param options the set of options specific to this operation
    * @throws IOException if an I/O error occurs
    */
-  public DummyFileOutputStream(long fileId, OutStreamOptions options) throws IOException {
-    super(fileId, options);
+  public DummyFileOutputStream(TachyonURI path, OutStreamOptions options) throws IOException {
+    super(path, options);
   }
 
   @Override

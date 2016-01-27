@@ -25,6 +25,8 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +70,7 @@ import tachyon.util.network.NetworkAddressUtils;
  * The class only supports creation using {@code new TachyonConf(properties)} to override default
  * values.
  */
+@NotThreadSafe
 public final class TachyonConf {
   /** File to set default properties */
   public static final String DEFAULT_PROPERTIES = "tachyon-default.properties";
@@ -501,7 +504,7 @@ public final class TachyonConf {
       }
       if (value != null) {
         LOG.debug("Replacing {} with {}", matcher.group(1), value);
-        resolved = resolved.replaceFirst(REGEX_STRING, value);
+        resolved = resolved.replaceFirst(REGEX_STRING, Matcher.quoteReplacement(value));
       }
     }
     return resolved;

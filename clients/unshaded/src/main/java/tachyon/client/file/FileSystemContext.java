@@ -15,14 +15,22 @@
 
 package tachyon.client.file;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.client.ClientContext;
 import tachyon.client.block.TachyonBlockStore;
 
 /**
  * A shared context in each client JVM for common file master client functionality such as a pool of
- * master clients. Any remote clients will be created and destroyed on a per use basis. This class
- * is thread safe.
+ * master clients. Any remote clients will be created and destroyed on a per use basis.
+ * <p>
+ * NOTE: The context maintains a pool of file system master clients that is already thread-safe.
+ * Synchronizing {@link FileSystemContext} methods could lead to deadlock: thread A attempts to
+ * acquire a client when there are no clients left in the pool and blocks holding a lock on the
+ * {@link FileSystemContext}, when thread B attempts to release a client it owns it is unable to do
+ * so, because thread A holds the lock on {@link FileSystemContext}.
  */
+@ThreadSafe
 public enum FileSystemContext {
   INSTANCE;
 
@@ -50,11 +58,6 @@ public enum FileSystemContext {
   /**
    * Releases a block master client into the block master client pool.
    *
-   * NOTE: the client pool is already thread-safe. Synchronizing on {@link FileSystemContext} will
-   * lead to deadlock: thread A acquired a client and awaits for {@link FileSystemContext} to
-   * release the client, while thread B holds the lock of {@link FileSystemContext} but waits for
-   * available clients.
-   *
    * @param masterClient a block master client to release
    */
   public void releaseMasterClient(FileSystemMasterClient masterClient) {
@@ -64,7 +67,7 @@ public enum FileSystemContext {
   /**
    * @return the Tachyon block store
    */
-  public synchronized TachyonBlockStore getTachyonBlockStore() {
+  public TachyonBlockStore getTachyonBlockStore() {
     return mTachyonBlockStore;
   }
 
@@ -72,7 +75,7 @@ public enum FileSystemContext {
    * Re-initializes the Block Store context. This method should only be used in
    * {@link ClientContext}.
    */
-  public synchronized void reset() {
+  public void reset() {
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(ClientContext.getMasterAddress());

@@ -15,11 +15,14 @@
 
 package tachyon.util;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.commons.lang3.SystemUtils;
 
 /**
- * OS related utility functions
+ * OS related utility functions.
  */
+@ThreadSafe
 public final class OSUtils {
   /** The OS name */
   public static final String OS_NAME = System.getProperty("os.name");

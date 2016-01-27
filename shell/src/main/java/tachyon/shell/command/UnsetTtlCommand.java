@@ -17,17 +17,23 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
  * Unsets the TTL value for the given path.
  */
+@ThreadSafe
 public final class UnsetTtlCommand extends AbstractTfsShellCommand {
-
-  public UnsetTtlCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
+  public UnsetTtlCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

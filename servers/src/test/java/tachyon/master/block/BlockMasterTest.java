@@ -49,23 +49,27 @@ import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.WorkerInfo;
-import tachyon.thrift.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 
 /**
  * Unit tests for {@link tachyon.master.block.BlockMaster}.
  */
 public class BlockMasterTest {
-  private static final WorkerNetAddress NET_ADDRESS_1 =
-      new WorkerNetAddress("localhost", 80, 81, 82);
-  private static final WorkerNetAddress NET_ADDRESS_2 =
-      new WorkerNetAddress("localhost", 83, 84, 85);
+  private static final NetAddress NET_ADDRESS_1 = new NetAddress("localhost", 80, 81, 82);
+  private static final NetAddress NET_ADDRESS_2 = new NetAddress("localhost", 83, 84, 85);
 
   private BlockMaster mMaster;
   private PrivateAccess mPrivateAccess;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /**
+   * Sets up the dependencies before a test runs.
+   *
+   * @throws Exception if the test folder cannot be created or the master fails to start
+   */
   @Before
   public void before() throws Exception {
     HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_LOST_WORKER_DETECTION,
@@ -76,11 +80,21 @@ public class BlockMasterTest {
     mPrivateAccess = new PrivateAccess(mMaster);
   }
 
+  /**
+   * Stops the master after a test ran.
+   *
+   * @throws Exception if the master fails to stop
+   */
   @After
   public void after() throws Exception {
     mMaster.stop();
   }
 
+  /**
+   * Tests the different different byte methods of the {@link BlockMaster}.
+   *
+   * @throws Exception if adding a worker fails
+   */
   @Test
   public void countBytesTest() throws Exception {
     Assert.assertEquals(0L, mMaster.getCapacityBytes());
@@ -108,8 +122,11 @@ public class BlockMasterTest {
         mMaster.getUsedBytesOnTiers());
   }
 
+  /**
+   * Tests the {@link BlockMaster#getLostWorkersInfo()} method.
+   */
   @Test
-  public void getLostWorkersInfoTest() throws Exception {
+  public void getLostWorkersInfoTest() {
     MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(1, NET_ADDRESS_1);
     MasterWorkerInfo workerInfo2 = new MasterWorkerInfo(2, NET_ADDRESS_2);
     mPrivateAccess.addLostWorker(workerInfo1);
@@ -123,9 +140,15 @@ public class BlockMasterTest {
     Assert.assertEquals(expected, mMaster.getLostWorkersInfo());
   }
 
+  /**
+   * Tests that after {@link PrivateAccess#addLostWorker(MasterWorkerInfo)} a worker can be
+   * registered via {@link BlockMaster#workerRegister(long, List, Map, Map, Map)}.
+   *
+   * @throws Exception if registering a worker fails
+   */
   @Test
   public void registerLostWorkerTest() throws Exception {
-    final WorkerNetAddress na = NET_ADDRESS_1;
+    final NetAddress na = NET_ADDRESS_1;
     final long expectedId = 1;
     final MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(expectedId, na);
 
@@ -145,6 +168,11 @@ public class BlockMasterTest {
         expectedBlocks, actualBlocks);
   }
 
+  /**
+   * Tests the {@link BlockMaster#removeBlocks(List)} method.
+   *
+   * @throws Exception if registering a worker fails
+   */
   @Test
   public void removeBlocksTest() throws Exception {
     long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
@@ -164,6 +192,12 @@ public class BlockMasterTest {
     mMaster.removeBlocks(workerBlocks);
   }
 
+  /**
+   * Tests the {@link BlockMaster#workerHeartbeat(long, Map, List, Map)} method where the master
+   * tells the worker to remove a block.
+   *
+   * @throws Exception if adding a worker fails
+   */
   @Test
   public void workerHeartbeatTest() throws Exception {
     long workerId = mMaster.getWorkerId(NET_ADDRESS_1);
@@ -211,6 +245,11 @@ public class BlockMasterTest {
         heartBeat3);
   }
 
+  /**
+   * Tests the {@link BlockMaster#workerHeartbeat(long, Map, List, Map)} method.
+   *
+   * @throws Exception if adding a worker fails
+   */
   @Test
   public void heartbeatStatusTest() throws Exception {
     long workerId = mMaster.getWorkerId(NET_ADDRESS_1);
@@ -235,12 +274,20 @@ public class BlockMasterTest {
     Assert.assertNotEquals(lastUpdatedTime1, workerInfo.getLastUpdatedTimeMs());
   }
 
+  /**
+   * Tests the {@link BlockMaster#workerHeartbeat(long, Map, List, Map)} with an unknown worker.
+   */
   @Test
-  public void unknownHeartbeatTest() throws Exception {
+  public void unknownHeartbeatTest() {
     Command heartBeat = mMaster.workerHeartbeat(0, null, null, null);
     Assert.assertEquals(new Command(CommandType.Register, ImmutableList.<Long>of()), heartBeat);
   }
 
+  /**
+   * Tests the {@link HeartbeatContext#MASTER_LOST_WORKER_DETECTION} to detect a lost worker.
+   *
+   * @throws Exception if waiting for the detector fails
+   */
   @Test
   public void detectLostWorkerTest() throws Exception {
     HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 5, TimeUnit.SECONDS);
@@ -286,6 +333,11 @@ public class BlockMasterTest {
     Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
   }
 
+  /**
+   * Tests the {@link BlockMaster#stop()} method.
+   *
+   * @throws Exception if stopping the master fails
+   */
   @Test
   public void stopTest() throws Exception {
     ExecutorService service =

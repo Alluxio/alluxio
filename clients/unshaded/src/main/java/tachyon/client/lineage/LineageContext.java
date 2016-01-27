@@ -15,13 +15,15 @@
 
 package tachyon.client.lineage;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.client.ClientContext;
 
 /**
  * A shared context in each client JVM for common lineage master client functionality such as a pool
  * of lineage master clients. Any remote clients will be created and destroyed on a per use basis.
- * This class is thread safe.
  */
+@ThreadSafe
 public enum LineageContext {
   INSTANCE;
 
@@ -31,7 +33,7 @@ public enum LineageContext {
    * Creates a new lineage context.
    */
   LineageContext() {
-    mLineageMasterClientPool = new LineageMasterClientPool(ClientContext.getMasterAddress());
+    reset();
   }
 
   /**
@@ -50,5 +52,16 @@ public enum LineageContext {
    */
   public void releaseMasterClient(LineageMasterClient masterClient) {
     mLineageMasterClientPool.release(masterClient);
+  }
+
+  /**
+   * Re-initializes the {@link LineageContext}. This method should only be used in
+   * {@link ClientContext}.
+   */
+  public void reset() {
+    if (mLineageMasterClientPool != null) {
+      mLineageMasterClientPool.close();
+    }
+    mLineageMasterClientPool = new LineageMasterClientPool(ClientContext.getMasterAddress());
   }
 }
