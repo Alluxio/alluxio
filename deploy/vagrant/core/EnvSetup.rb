@@ -329,12 +329,12 @@ class S3Version
 end
 
 class UfsVersion
-  def get_default_ufs(provider):
+  def get_default_ufs(provider)
     case provider
-    when 'vb':
+    when 'vb'
       puts 'use hadoop2 as default ufs'
       return 'hadoop2'
-    when 'aws':
+    when 'aws'
       puts 'use s3 as default ufs'
       return 's3'
     else
