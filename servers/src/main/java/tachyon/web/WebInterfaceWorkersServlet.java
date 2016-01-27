@@ -66,8 +66,8 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
         mUsedPercent = 0;
       }
       mFreePercent = 100 - mUsedPercent;
-      mUptimeClockTime =
-          Utils.convertMsToShortClockTime(System.currentTimeMillis() - workerInfo.getStartTimeMs());
+      mUptimeClockTime = WebUtils
+          .convertMsToShortClockTime(System.currentTimeMillis() - workerInfo.getStartTimeMs());
     }
 
     /**
