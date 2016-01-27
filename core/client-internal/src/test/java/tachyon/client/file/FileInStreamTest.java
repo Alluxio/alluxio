@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +33,6 @@ import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.Lists;
 
-import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
 import tachyon.client.block.BlockInStream;
 import tachyon.client.block.BufferedBlockInStream;
@@ -110,14 +108,6 @@ public class FileInStreamTest {
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
     mTestStream =
         new FileInStream(mInfo, InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE));
-  }
-
-  /**
-   * Resets the context after a test ran.
-   */
-  @After
-  public void after() {
-    ClientContext.reset();
   }
 
   /**

@@ -28,7 +28,7 @@ import tachyon.client.WriteType;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.client.file.policy.LocalFirstPolicy;
 import tachyon.client.file.policy.RoundRobinPolicy;
-import tachyon.conf.TachyonConf;
+import tachyon.client.util.ClientTestUtils;
 
 /**
  * Tests for the {@link OutStreamOptions} class.
@@ -41,10 +41,9 @@ public class OutStreamOptionsTest {
   public void defaultsTest() {
     TachyonStorageType tachyonType = TachyonStorageType.STORE;
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
-    conf.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
-    ClientContext.reset(conf);
+    ClientContext.getConf().set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
+    ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT,
+        WriteType.CACHE_THROUGH.toString());
 
     OutStreamOptions options = OutStreamOptions.defaults();
 
@@ -53,7 +52,7 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
-    ClientContext.reset();
+    ClientTestUtils.resetClientContext();
   }
 
   /**

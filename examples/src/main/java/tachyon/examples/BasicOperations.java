@@ -15,30 +15,6 @@
 
 package tachyon.examples;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.concurrent.Callable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import tachyon.Constants;
-import tachyon.TachyonURI;
-import tachyon.Version;
-import tachyon.client.ClientContext;
-import tachyon.client.ReadType;
-import tachyon.client.WriteType;
-import tachyon.client.file.FileInStream;
-import tachyon.client.file.FileOutStream;
-import tachyon.client.file.FileSystem;
-import tachyon.client.file.options.CreateFileOptions;
-import tachyon.client.file.options.OpenFileOptions;
-import tachyon.conf.TachyonConf;
-import tachyon.exception.TachyonException;
-import tachyon.util.CommonUtils;
-import tachyon.util.FormatUtils;
-
 /**
  * Example to show the basic operations of Tachyon.
  */
@@ -66,10 +42,9 @@ public class BasicOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    TachyonConf tachyonConf = ClientContext.getConf();
-    tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
-    tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
-    ClientContext.reset(tachyonConf);
+    ClientContext.getConf().set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
+    ClientContext.getConf().set(Constants.MASTER_RPC_PORT,
+        Integer.toString(mMasterLocation.getPort()));
     FileSystem fs = FileSystem.Factory.get();
     writeFile(fs);
     return readFile(fs);

@@ -31,7 +31,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
@@ -97,7 +96,6 @@ public final class TachyonBlockStoreTest {
   public void before() throws Exception {
     mTestFile = mTestFolder.newFile("testFile");
 
-    ClientContext.reset();
     mBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
     Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", mBlockStoreContext);
     mBlockStore = TachyonBlockStore.get();
