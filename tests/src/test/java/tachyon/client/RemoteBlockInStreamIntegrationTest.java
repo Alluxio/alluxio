@@ -122,7 +122,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
-      TachyonFSTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
+      FileSystemTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
 
       FileInStream is = mTfs.openFile(uri, mReadNoCache);
       byte[] ret = new byte[k];
@@ -183,7 +183,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
-      TachyonFSTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
+      FileSystemTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
 
       FileInStream is = mTfs.openFile(uri, mReadNoCache);
       byte[] ret = new byte[k];
@@ -220,7 +220,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
-      TachyonFSTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
+      FileSystemTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
 
       FileInStream is = mTfs.openFile(uri, mReadNoCache);
       byte[] ret = new byte[k / 2];
@@ -257,7 +257,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
-      TachyonFSTestUtils.createByteFile(mTfs, uri, mWriteTachyon, k);
+      FileSystemTestUtils.createByteFile(mTfs, uri, mWriteTachyon, k);
 
       long blockId = mTfs.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
@@ -289,7 +289,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
-      TachyonFSTestUtils.createByteFile(mTfs, uri, mWriteTachyon, k);
+      FileSystemTestUtils.createByteFile(mTfs, uri, mWriteTachyon, k);
 
       long blockId = mTfs.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
@@ -317,7 +317,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
-      TachyonFSTestUtils.createByteFile(mTfs, uri, mWriteTachyon, k);
+      FileSystemTestUtils.createByteFile(mTfs, uri, mWriteTachyon, k);
 
       long blockId = mTfs.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
@@ -345,7 +345,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
-      TachyonFSTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
+      FileSystemTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
 
       FileInStream is = mTfs.openFile(uri, mReadNoCache);
       byte[] ret = new byte[k];
@@ -371,7 +371,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
-      TachyonFSTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
+      FileSystemTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
 
       FileInStream is = mTfs.openFile(uri, mReadNoCache);
       try {
@@ -396,7 +396,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
-      TachyonFSTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
+      FileSystemTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
 
       FileInStream is = mTfs.openFile(uri, mReadNoCache);
       try {
@@ -418,7 +418,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
-      TachyonFSTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
+      FileSystemTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
 
       FileInStream is = mTfs.openFile(uri, mReadNoCache);
 
@@ -441,7 +441,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
-      TachyonFSTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
+      FileSystemTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, k);
 
       FileInStream is = mTfs.openFile(uri, mReadCache);
       Assert.assertEquals(k / 2, is.skip(k / 2));
@@ -470,7 +470,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     int len = 2;
     TachyonURI uri = new TachyonURI(uniqPath);
-    TachyonFSTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, len);
+    FileSystemTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, len);
 
     FileInStream is = mTfs.openFile(uri, mReadCache);
     for (int i = 0; i < len; ++ i) {
@@ -488,7 +488,7 @@ public class RemoteBlockInStreamIntegrationTest {
   public void incompleteFileReadCancelsRecache() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     TachyonURI uri = new TachyonURI(uniqPath);
-    TachyonFSTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, 2);
+    FileSystemTestUtils.createByteFile(mTfs, uri, mWriteUnderStore, 2);
 
     FileInStream is = mTfs.openFile(uri, mReadNoCache);
     Assert.assertEquals(0, is.read());
@@ -530,7 +530,7 @@ public class RemoteBlockInStreamIntegrationTest {
   public void seekAroundLocalBlock() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     // The number of bytes per remote block read should be set to 100 in the before function
-    TachyonFSTestUtils.createByteFile(mTfs, uniqPath, 200, mWriteTachyon);
+    FileSystemTestUtils.createByteFile(mTfs, uniqPath, 200, mWriteTachyon);
     FileInStream is = mTfs.openFile(new TachyonURI(uniqPath), mReadNoCache);
     Assert.assertEquals(0, is.read());
     is.seek(199);
@@ -548,7 +548,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
-      TachyonFSTestUtils.createByteFile(mTfs, uri, mWriteTachyon, k);
+      FileSystemTestUtils.createByteFile(mTfs, uri, mWriteTachyon, k);
 
       long blockId = mTfs.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = TachyonBlockStore.get().getInfo(blockId);

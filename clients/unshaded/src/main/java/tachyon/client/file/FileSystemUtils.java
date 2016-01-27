@@ -50,11 +50,11 @@ public final class FileSystemUtils {
   private FileSystemUtils() {}
 
   /**
-   * Shortcut for {@code waitCompleted(tfs, uri, -1, TimeUnit.MILLISECONDS)}, i.e., wait for an
+   * Shortcut for {@code waitCompleted(fs, uri, -1, TimeUnit.MILLISECONDS)}, i.e., wait for an
    * indefinite amount of time. Note that if a file is never completed, the thread will block
    * forever, so use with care.
    *
-   * @param tfs a {@link FileSystem} instance
+   * @param fs a {@link FileSystem} instance
    * @param uri the URI of the file on which the thread should wait
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
@@ -65,9 +65,9 @@ public final class FileSystemUtils {
    *         completion
    * @see #waitCompleted(FileSystem, TachyonURI, long, TimeUnit)
    */
-  public static boolean waitCompleted(FileSystem tfs, TachyonURI uri)
+  public static boolean waitCompleted(FileSystem fs, TachyonURI uri)
       throws IOException, TachyonException, InterruptedException {
-    return FileSystemUtils.waitCompleted(tfs, uri, -1, TimeUnit.MILLISECONDS);
+    return FileSystemUtils.waitCompleted(fs, uri, -1, TimeUnit.MILLISECONDS);
   }
 
   /**
@@ -91,7 +91,7 @@ public final class FileSystemUtils {
    * {@link Constants#USER_FILE_WAITCOMPLETED_POLL_MS} java property and defaults to a generous 1
    * second.
    *
-   * @param tfs an instance of {@link FileSystem}
+   * @param fs an instance of {@link FileSystem}
    * @param uri the URI of the file whose completion status is to be watied for
    * @param timeout maximum time the calling thread should be blocked on this call
    * @param tunit the @{link TimeUnit} instance describing the {@code timeout} parameter
@@ -102,7 +102,7 @@ public final class FileSystemUtils {
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
    */
-  public static boolean waitCompleted(final FileSystem tfs, final TachyonURI uri,
+  public static boolean waitCompleted(final FileSystem fs, final TachyonURI uri,
       final long timeout, final TimeUnit tunit)
           throws IOException, TachyonException, InterruptedException {
 
@@ -115,11 +115,11 @@ public final class FileSystemUtils {
 
     while (!completed && (timeout <= 0 || timeleft > 0)) {
 
-      if (!tfs.exists(uri)) {
+      if (!fs.exists(uri)) {
         LOG.debug("The file {} being waited upon does not exist yet. Waiting for it to be "
             + "created.", uri);
       } else {
-        completed = tfs.getStatus(uri).isCompleted();
+        completed = fs.getStatus(uri).isCompleted();
       }
 
       if (timeout == 0) {

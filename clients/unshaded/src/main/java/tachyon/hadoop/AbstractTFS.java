@@ -81,7 +81,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
   private URI mUri = null;
   private Path mWorkingDir = new Path(TachyonURI.SEPARATOR);
   private Statistics mStatistics = null;
-  private FileSystem mTFS = null;
+  private FileSystem mFS = null;
   private String mTachyonHeader = null;
   private final TachyonConf mTachyonConf = ClientContext.getConf();
 
@@ -94,8 +94,8 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     }
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
     try {
-      if (!mTFS.exists(path)) {
-        return new FSDataOutputStream(mTFS.createFile(path), mStatistics);
+      if (!mFS.exists(path)) {
+        return new FSDataOutputStream(mFS.createFile(path), mStatistics);
       } else {
         throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
       }
@@ -137,15 +137,15 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     // Check whether the file already exists, and delete it if overwrite is true
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
     try {
-      if (mTFS.exists(path)) {
+      if (mFS.exists(path)) {
         if (!overwrite) {
           throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(cPath.toString()));
         }
-        if (mTFS.getStatus(path).isFolder()) {
+        if (mFS.getStatus(path).isFolder()) {
           throw new IOException(
               ExceptionMessage.FILE_CREATE_IS_DIRECTORY.getMessage(cPath.toString()));
         }
-        mTFS.delete(path);
+        mFS.delete(path);
       }
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -154,7 +154,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     // The file no longer exists at this point, so we can create it
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(blockSize);
     try {
-      FileOutStream outStream = mTFS.createFile(path, options);
+      FileOutStream outStream = mFS.createFile(path, options);
       return new FSDataOutputStream(outStream, mStatistics);
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -223,7 +223,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
     DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
     try {
-      mTFS.delete(path, options);
+      mFS.delete(path, options);
       return true;
     } catch (InvalidPathException e) {
       LOG.info("delete failed: {}", e.getMessage());
@@ -254,7 +254,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(file.getPath()));
     URIStatus status;
     try {
-      status = mTFS.getStatus(path);
+      status = mFS.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -310,7 +310,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     }
     URIStatus fileStatus;
     try {
-      fileStatus = mTFS.getStatus(tPath);
+      fileStatus = mFS.getStatus(tPath);
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(e.getMessage());
     } catch (TachyonException e) {
@@ -353,7 +353,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
         ownerOrGroupChanged = true;
       }
       if (ownerOrGroupChanged) {
-        mTFS.setAcl(tPath, options);
+        mFS.setAcl(tPath, options);
       }
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -375,7 +375,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     try {
       SetAclOptions options =
           SetAclOptions.defaults().setPermission(permission.toShort()).setRecursive(false);
-      mTFS.setAcl(tPath, options);
+      mFS.setAcl(tPath, options);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -407,7 +407,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
   /**
    * {@inheritDoc}
    *
-   * Sets up a lazy connection to Tachyon through mTFS.
+   * Sets up a lazy connection to Tachyon through mFS.
    */
   @Override
   public void initialize(URI uri, Configuration conf) throws IOException {
@@ -432,7 +432,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
     ClientContext.reset(mTachyonConf);
 
-    mTFS = FileSystem.Factory.get();
+    mFS = FileSystem.Factory.get();
     mUri = URI.create(mTachyonHeader);
     mUnderFSAddress = getUfsAddress();
     LOG.info("{} {} {}", mTachyonHeader, mUri, mUnderFSAddress);
@@ -459,7 +459,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
 
     List<URIStatus> statuses;
     try {
-      statuses = mTFS.listStatus(tPath);
+      statuses = mFS.listStatus(tPath);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -493,7 +493,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     CreateDirectoryOptions options =
         CreateDirectoryOptions.defaults().setRecursive(true).setAllowExists(true);
     try {
-      mTFS.createDirectory(path, options);
+      mFS.createDirectory(path, options);
       return true;
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -532,7 +532,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     ensureExists(srcPath);
     URIStatus dstStatus;
     try {
-      dstStatus = mTFS.getStatus(dstPath);
+      dstStatus = mFS.getStatus(dstPath);
     } catch (IOException e) {
       dstStatus = null;
     } catch (TachyonException e) {
@@ -543,7 +543,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
       dstPath = dstPath.join(srcPath.getName());
     }
     try {
-      mTFS.rename(srcPath, dstPath);
+      mFS.rename(srcPath, dstPath);
       return true;
     } catch (IOException e) {
       LOG.error("Failed to rename {} to {}", src, dst, e);
@@ -573,7 +573,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
    */
   private void ensureExists(TachyonURI path) throws IOException {
     try {
-      mTFS.getStatus(path);
+      mFS.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e);
     }

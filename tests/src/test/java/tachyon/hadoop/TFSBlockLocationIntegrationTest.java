@@ -27,7 +27,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileSystem;
 
@@ -49,7 +49,7 @@ public class TFSBlockLocationIntegrationTest {
     conf.set("fs.tachyon.impl", TFS.class.getName());
 
     FileSystem tachyonFS = sLocalTachyonClusterResource.get().getClient();
-    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
+    FileSystemTestUtils.createByteFile(tachyonFS, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
 
     URI uri = URI.create(sLocalTachyonClusterResource.get().getMasterUri());
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);

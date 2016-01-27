@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.client.file.URIStatus;
 import tachyon.exception.TachyonException;
@@ -33,8 +33,8 @@ import tachyon.shell.AbstractTfsShellTest;
 public class LoadCommandTest extends AbstractTfsShellTest {
   @Test
   public void loadDirTest() throws IOException, TachyonException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.THROUGH, 10);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileB", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.THROUGH, 10);
+    FileSystemTestUtils.createByteFile(mTfs, "/testRoot/testFileB", WriteType.MUST_CACHE, 10);
     TachyonURI uriA = new TachyonURI("/testRoot/testFileA");
     TachyonURI uriB = new TachyonURI("/testRoot/testFileB");
 
@@ -52,7 +52,7 @@ public class LoadCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void loadFileTest() throws IOException, TachyonException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.THROUGH, 10);
+    FileSystemTestUtils.createByteFile(mTfs, "/testFile", WriteType.THROUGH, 10);
     TachyonURI uri = new TachyonURI("/testFile");
     URIStatus status = mTfs.getStatus(uri);
     Assert.assertFalse(status.getInMemoryPercentage() == 100);
