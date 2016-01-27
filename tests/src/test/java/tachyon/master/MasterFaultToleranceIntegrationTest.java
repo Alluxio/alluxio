@@ -28,7 +28,7 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileSystem;
@@ -96,7 +96,7 @@ public class MasterFaultToleranceIntegrationTest {
    */
   private void faultTestDataCheck(List<Pair<Long, TachyonURI>> answer) throws IOException,
       TachyonException {
-    List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
+    List<String> files = FileSystemTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
     Collections.sort(files);
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
@@ -165,7 +165,7 @@ public class MasterFaultToleranceIntegrationTest {
     for (int k = 0; k < clients; k ++) {
       mTfs.createFile(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
     }
-    List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
+    List<String> files = FileSystemTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
     Assert.assertEquals(clients, files.size());
     Collections.sort(files);
     for (int k = 0; k < clients; k ++) {
