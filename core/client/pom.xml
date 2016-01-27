@@ -85,6 +85,11 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-keyvalue-client</artifactId>
       <version>${project.version}</version>
     </dependency>

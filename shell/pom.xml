@@ -34,5 +34,10 @@
       <artifactId>tachyon-core-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 </project>

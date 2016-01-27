@@ -23,6 +23,11 @@
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-core-server</artifactId>
       <version>${project.version}</version>
     </dependency>
