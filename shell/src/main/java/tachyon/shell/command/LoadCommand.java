@@ -18,6 +18,8 @@ package tachyon.shell.command;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
@@ -33,6 +35,7 @@ import tachyon.exception.TachyonException;
 /**
  * Loads a file or directory in Tachyon space, makes it resident in memory.
  */
+@ThreadSafe
 public final class LoadCommand extends WithWildCardPathCommand {
 
   /**

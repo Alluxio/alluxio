@@ -362,5 +362,20 @@ public final class BufferUtils {
     return slicedBuffer;
   }
 
+  /**
+   * Convenience method for {@link #sliceByteBuffer(ByteBuffer, int, int)} where the last parameter
+   * is the number of remaining bytes in the new buffer.
+   *
+   * @param buffer source {@link ByteBuffer} to slice
+   * @param position position in the source {@link ByteBuffer} to slice
+   * @return the sliced {@link ByteBuffer}
+   */
+  public static ByteBuffer sliceByteBuffer(ByteBuffer buffer, int position) {
+    // The following is an optimization comparing to directly calling
+    // sliceByteBuffer(ByteBuffer, int, int) needs to compute the length of the sliced buffer and
+    // set the limit, but those operations should have been taken care of by the slice() method.
+    return ((ByteBuffer) buffer.duplicate().position(position)).slice();
+  }
+
   private BufferUtils() {} // prevent instantiation
 }
