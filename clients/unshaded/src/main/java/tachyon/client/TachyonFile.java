@@ -17,11 +17,13 @@ package tachyon.client;
 
 import com.google.common.collect.Lists;
 import tachyon.TachyonURI;
+import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.options.CreateFileOptions;
+import tachyon.client.file.options.OpenFileOptions;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.WorkerNetAddress;
@@ -39,14 +41,6 @@ public class TachyonFile {
   public TachyonFile(TachyonURI path, FileSystem fs) {
     mFileSystem = fs;
     mPath = path;
-  }
-
-  public FileOutStream getOutStream(WriteType writeType) throws IOException {
-    try {
-      return mFileSystem.createFile(mPath, CreateFileOptions.defaults().setWriteType(writeType));
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
   }
 
   public List<String> getLocationHosts() throws IOException {
@@ -73,6 +67,30 @@ public class TachyonFile {
       throw new IOException(e);
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(master);
+    }
+  }
+
+  public FileOutStream getOutStream(WriteType writeType) throws IOException {
+    try {
+      return mFileSystem.createFile(mPath, CreateFileOptions.defaults().setWriteType(writeType));
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  public FileInStream getInStream(ReadType readType) throws IOException {
+    try {
+      return mFileSystem.openFile(mPath, OpenFileOptions.defaults().setReadType(readType));
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  public long length() throws IOException {
+    try {
+      return mFileSystem.getStatus(mPath).getLength();
+    } catch (Exception e) {
+      throw new IOException(e);
     }
   }
 }
