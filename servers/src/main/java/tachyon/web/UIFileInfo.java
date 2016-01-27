@@ -209,14 +209,14 @@ public final class UIFileInfo {
     if (mCreationTimeMs == LocalFileInfo.EMPTY_CREATION_TIME) {
       return "";
     }
-    return Utils.convertMsToDate(mCreationTimeMs);
+    return WebUtils.convertMsToDate(mCreationTimeMs);
   }
 
   /**
    * @return the modification time (in milliseconds)
    */
   public String getModificationTime() {
-    return Utils.convertMsToDate(mLastModificationTimeMs);
+    return WebUtils.convertMsToDate(mLastModificationTimeMs);
   }
 
   /**
