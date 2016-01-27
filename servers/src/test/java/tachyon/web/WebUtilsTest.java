@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link WebUtils}.
  */
-public class WebUtilsTest {
+public final class WebUtilsTest {
 
   /**
    * Tests the {@link WebUtils#convertMsToClockTime(long)} method.
