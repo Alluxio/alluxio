@@ -15,7 +15,7 @@ Instance_Type: "t2.small"
 
 # tag to the instance name to avoid name conflict during multiple deployment.
 # specify this to illustrate the usage of your cluster, especially when you
-# share the EC2 with others, without tags, it's hard to tell which cluster is yours. 
+# share the EC2 with others, without tags, it's hard to tell which cluster is yours.
 #
 # The machines will be named to {Tag}-TachyonMaster, {Tag}-TachyonWorker1...
 Tag: "my"
@@ -35,7 +35,7 @@ Tag: "my"
 # If ufs is HDFS, all the /disk* will be used as HDFS's storage,
 # Otherwise, all the /disk* will be used as Tachyon's HDD Tiered Storage.
 #
-# Example: 
+# Example:
 # 1. Instance Extra Storage(If the Storage colume specified in instance type matrix
 #    http://aws.amazon.com/ec2/instance-types/ is not "EBS Only")
 # 2. EBS Storage
@@ -45,10 +45,10 @@ Block_Device_Mapping: []
 #    Ebs.VolumeSize: "100" #GB
 #    Ebs.DeleteOnTermination: "true"
 #  - DeviceName: "/dev/sdf" # Instance Extra Storage
-#    VirtualName: "ephemeral0" 
+#    VirtualName: "ephemeral0"
 #  - DeviceName: "/dev/sdg"
 #    VirtualName: "ephemeral1"
-#    # for 2 x 16 SSD, one is "ephemeral0", another is "ephemeral1", 
+#    # for 2 x 16 SSD, one is "ephemeral0", another is "ephemeral1",
 #    # for more, increase the count to "ephemeral2"...
 
 ############################################################################
@@ -59,16 +59,16 @@ Block_Device_Mapping: []
 #
 
 # If you want to use "Spot Instance"
-# (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html), 
+# (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html),
 # set this field like "0.2", unit is dollar
 # spot instances will be used if and only if the 'Spot_Price' is not empty.
 Spot_Price: ""
 
-# AMI: 
-#   image of the virtual machine's operating system, it can be ubuntu, centos, Amazon Linux, etc. 
+# AMI:
+#   image of the virtual machine's operating system, it can be ubuntu, centos, Amazon Linux, etc.
 #   Amazon Linux is a linux distribution by amazon.(http://aws.amazon.com/amazon-linux-ami/)
 #
-# PV/HVM: 
+# PV/HVM:
 #   different virtualization methods.(http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/virtualization_types.html)
 # Some Instance Type must need PV/HVM:
 #   http://aws.amazon.com/amazon-linux-ami/instance-type-matrix/
@@ -76,12 +76,12 @@ Spot_Price: ""
 # Even for the same kind of operating system, an AMI is bound to a specific region.
 # For different regions or different kinds of operating systems, you need to find its ID:
 #
-# To find different AMIs that does not need to support Spot Instance, 
+# To find different AMIs that does not need to support Spot Instance,
 # click on "Launch Instance" on your EC2 web console, then a list of available AMIs is shown,
 # and you can find the AMI you want.
 #
 # Not all AMIs support Spot Instance, to find different AMIs that supports Spot Request,
-# click "Spot Requests" on left panel in AWS EC2 console -> click "Request Spot Instances", 
+# click "Spot Requests" on left panel in AWS EC2 console -> click "Request Spot Instances",
 # then you can find the AMI you want.
 #
 # This Amazon Linux AMI in region us-east-1 is HVM and supports Spot Instance.
@@ -93,7 +93,7 @@ AMI: "ami-1ecae776"
 # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html
 #
 # If `Security_Group` doesn't exist or doesn't contain rule,
-# it will be automatically set up in the given region and, 
+# it will be automatically set up in the given region and,
 # all outbound traffic and all tcp/udp inbound traffic will be allowed
 # Otherwise, it's your responsibility to make sure the `Security_Group`
 # is appropriate.
@@ -107,7 +107,7 @@ Availability_Zone: "us-east-1a"
 #
 # http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/default-vpc.html#default-vpc-basics
 # Some users do not have access to default VPC in all regions, and creating them involves contacting Amazon support.
-# This particular AMI would not launch under ec2-classic mode, it requires a VPC. 
+# This particular AMI would not launch under ec2-classic mode, it requires a VPC.
 # If you do not have a default VPC, you may need to create one for your region, and enable the VPC and Subnet
 # settings to specify where you will launch your instance.
 #
