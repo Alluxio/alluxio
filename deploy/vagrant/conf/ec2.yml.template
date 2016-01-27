@@ -101,7 +101,7 @@ Security_Group: "tachyon-vagrant-test"
 
 Region: "us-east-1"
 
-Availability_Zone: "us-east-1a"
+Availability_Zone: "us-east-1b"
 
 # VPC and Subnet ID
 #
