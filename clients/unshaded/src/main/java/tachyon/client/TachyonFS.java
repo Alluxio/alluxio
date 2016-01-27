@@ -18,6 +18,8 @@ package tachyon.client;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 
+import java.io.IOException;
+
 /**
  * Represents a Tachyon File System, legacy API.
  */
@@ -32,7 +34,33 @@ public class TachyonFS {
     mFileSystem = FileSystem.Factory.get();
   }
 
+  public void close() {
+    // Do nothing
+  }
+
+  public long createFile(TachyonURI path) {
+    // Do nothing
+    return -1;
+  }
+
   public TachyonFile getFile(TachyonURI path) {
     return new TachyonFile(path, mFileSystem);
+  }
+
+  public boolean exist(TachyonURI path) throws IOException {
+    try {
+      return mFileSystem.exists(path);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  public boolean mkdir(TachyonURI path) throws IOException {
+    try {
+      mFileSystem.createDirectory(path);
+      return true;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 }
