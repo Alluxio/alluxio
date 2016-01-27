@@ -305,9 +305,10 @@ case ${COMMAND} in
   exit 0
 ;;
 "protoGen")
-  rm -rf ${BIN}/../servers/src/main/java/tachyon/proto
-  for src_file in $(find ${BIN}/../servers/src/proto -type f); do
-    protoc --java_out=${BIN}/../servers/src/main/java --proto_path=`dirname ${src_file}` ${src_file}
+  rm -rf ${BIN}/../core/server/src/main/java/tachyon/proto
+  for src_file in $(find ${BIN}/../core/server/src/proto -type f); do
+    protoc --java_out=${BIN}/../core/server/src/main/java --proto_path=`dirname ${src_file}`
+    ${src_file}
   done
   exit 0
 ;;
