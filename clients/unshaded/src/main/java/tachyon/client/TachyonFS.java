@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
+import tachyon.client.file.options.DeleteOptions;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -69,6 +70,22 @@ public final class TachyonFS {
   public boolean delete(TachyonURI path) throws IOException {
     try {
       mFileSystem.delete(path);
+      return true;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  /**
+   * Deletes a file in Tachyon.
+   * @param path the path to delete
+   * @param recursive if true will delete all children of the path as well
+   * @return true if the file was deleted
+   * @throws IOException if the file was unable to be deleted
+   */
+  public boolean delete(TachyonURI path, boolean recursive) throws IOException {
+    try {
+      mFileSystem.delete(path, DeleteOptions.defaults().setRecursive(recursive));
       return true;
     } catch (Exception e) {
       throw new IOException(e);
