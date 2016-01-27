@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.LoadMetadataOptions;
@@ -26,6 +28,7 @@ import tachyon.exception.TachyonException;
 /**
  * Loads metadata for the given Tachyon path from UFS.
  */
+@ThreadSafe
 public final class LoadMetadataCommand extends AbstractTfsShellCommand {
 
   /**

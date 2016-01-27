@@ -17,6 +17,8 @@ package tachyon.underfs.oss;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +34,7 @@ import tachyon.underfs.UnderFileSystemFactory;
 /**
  * Factory for creating {@link OSSUnderFileSystem}.
  */
+@ThreadSafe
 public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

@@ -86,13 +86,13 @@ $ ./bin/tachyon-stop.sh all
 ```
 # Running functional test with IBM SoftLayer
 
-Configure your Swift or SoftLayer account in the `integration-tests/pom.xml`, where `authMethodKey` should be `keystone` or `tempauth` or `swiftauth`. 
+Configure your Swift or SoftLayer account in the `tests/pom.xml`, where `authMethodKey` should be `keystone` or `tempauth` or `swiftauth`.
 To run functional tests execute
 
 ```bash
-$ mvn test -PswiftTest -pl integration-tests
+$ mvn test -PswiftTest -pl tests
 ```
-In case of failures, logs located under `integration-tests/target/logs`. You may also activate heap dump via
+In case of failures, logs located under `tests/target/logs`. You may also activate heap dump via
 
 	<argLine>-XX:+HeapDumpOnOutOfMemoryError 
 		-XX:HeapDumpPath=/location/dump</argLine>
