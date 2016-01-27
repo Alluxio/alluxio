@@ -32,7 +32,7 @@ import tachyon.shell.AbstractTfsShellTest;
 public class ChgrpCommandTest extends AbstractTfsShellTest {
   @Test
   public void chgrpTest() throws IOException, TachyonException {
-    cleanLoginUser();
+    clearLoginUser();
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chgrp", "group1", "/testFile");
     String group = mTfs.getStatus(new TachyonURI("/testFile")).getGroupName();

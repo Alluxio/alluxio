@@ -79,7 +79,7 @@ public abstract class AbstractTfsShellTest {
 
   @Before
   public final void before() throws Exception {
-    cleanLoginUser();
+    clearLoginUser();
     mLocalTachyonCluster = mLocalTachyonClusterResource.get();
     mTfs = mLocalTachyonCluster.getClient();
     mFsShell = new TfsShell(new TachyonConf());
@@ -158,12 +158,12 @@ public abstract class AbstractTfsShellTest {
     return null;
   }
 
-  protected void cleanLoginUser() {
+  protected void clearLoginUser() {
     LoginUserTestUtils.resetLoginUser();
   }
 
-  protected void cleanAndLogin(String user) throws IOException {
-    LoginUserTestUtils.updateLoginUser(ClientContext.getConf(), user);
+  protected void clearAndLogin(String user) throws IOException {
+    LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), user);
   }
 
   protected byte[] readContent(TachyonURI uri, int length) throws IOException, TachyonException {

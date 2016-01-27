@@ -42,7 +42,7 @@ public class LsCommandTest extends AbstractTfsShellTest {
 
     URIStatus[] files = new URIStatus[4];
     String testUser = "test_user_ls";
-    cleanAndLogin(testUser);
+    clearAndLogin(testUser);
 
     TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     files[0] = mTfs.getStatus(new TachyonURI("/testRoot/testFileA"));
@@ -72,7 +72,7 @@ public class LsCommandTest extends AbstractTfsShellTest {
     MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
     String testUser = "test_user_lsWildcard";
-    cleanAndLogin(testUser);
+    clearAndLogin(testUser);
 
     TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
 

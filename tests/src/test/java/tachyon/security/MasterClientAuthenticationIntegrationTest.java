@@ -94,7 +94,7 @@ public class MasterClientAuthenticationIntegrationTest {
     try {
       Assert.assertFalse(masterClient.isConnected());
       // Using no-tachyon as loginUser to connect to Master, the IOException will be thrown
-      LoginUserTestUtils.updateLoginUser(ClientContext.getConf(), "no-tachyon");
+      LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), "no-tachyon");
       masterClient.connect();
     } finally {
       masterClient.close();

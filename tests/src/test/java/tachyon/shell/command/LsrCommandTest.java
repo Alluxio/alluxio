@@ -41,7 +41,7 @@ public class LsrCommandTest extends AbstractTfsShellTest {
 
     URIStatus[] files = new URIStatus[4];
     String testUser = "test_user_lsr";
-    cleanAndLogin(testUser);
+    clearAndLogin(testUser);
 
     TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     files[0] = mTfs.getStatus(new TachyonURI("/testRoot/testFileA"));

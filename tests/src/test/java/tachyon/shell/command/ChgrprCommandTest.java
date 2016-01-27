@@ -33,7 +33,7 @@ public class ChgrprCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void chgrprTest() throws IOException, TachyonException {
-    cleanLoginUser();
+    clearLoginUser();
     mFsShell.run("mkdir", "/testFolder1");
     TachyonFSTestUtils.createByteFile(mTfs, "/testFolder1/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chgrpr", "group1", "/testFolder1");
