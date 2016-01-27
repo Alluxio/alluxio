@@ -20,7 +20,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.shell.AbstractTfsShellTest;
 
@@ -32,7 +32,7 @@ public class UnsetTtlTest extends AbstractTfsShellTest {
   public void unsetTtlTest() throws Exception {
     String filePath = "/testFile";
     TachyonURI uri = new TachyonURI("/testFile");
-    TachyonFSTestUtils.createByteFile(mTfs, filePath, WriteType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(mTfs, filePath, WriteType.MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL, mTfs.getStatus(uri).getTtl());
 
     // unsetTTL on a file originally with no TTL will leave the TTL unchanged.

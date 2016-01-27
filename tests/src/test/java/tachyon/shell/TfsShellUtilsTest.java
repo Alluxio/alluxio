@@ -31,7 +31,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -95,10 +95,10 @@ public class TfsShellUtilsTest {
     tfs.createDirectory(new TachyonURI("/testWildCards/foo"));
     tfs.createDirectory(new TachyonURI("/testWildCards/bar"));
 
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar1", WriteType.MUST_CACHE, 10);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar2", WriteType.MUST_CACHE, 20);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/bar/foobar3", WriteType.MUST_CACHE, 30);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foobar4", WriteType.MUST_CACHE, 40);
+    FileSystemTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar1", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar2", WriteType.MUST_CACHE, 20);
+    FileSystemTestUtils.createByteFile(tfs, "/testWildCards/bar/foobar3", WriteType.MUST_CACHE, 30);
+    FileSystemTestUtils.createByteFile(tfs, "/testWildCards/foobar4", WriteType.MUST_CACHE, 40);
     return "/testWildCards";
   }
 
