@@ -23,7 +23,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 
-final class Utils {
+final class WebUtils {
 
   /**
    * Converts a byte array to string.
@@ -87,5 +87,5 @@ final class Utils {
     return String.format("%d d, %d h, %d m, and %d s", days, hours, mins, secs);
   }
 
-  private Utils() {} // prevent instantiation
+  private WebUtils() {} // prevent instantiation
 }
