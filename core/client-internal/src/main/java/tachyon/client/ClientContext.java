@@ -44,11 +44,17 @@ public final class ClientContext {
   }
 
   /**
-   * Initializes the client context singleton.
+   * Resets to the default Tachyon configuration and initializes the client context singleton.
    */
   private static void reset() {
     sTachyonConf = new TachyonConf();
+    init();
+  }
 
+  /**
+   * Initializes the client context singleton.
+   */
+  private static void init() {
     String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
     int masterPort = sTachyonConf.getInt(Constants.MASTER_RPC_PORT);
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
