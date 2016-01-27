@@ -360,7 +360,7 @@ public abstract class AbstractLocalTachyonCluster {
 
     testConf.set(Constants.WEB_THREAD_COUNT, "1");
     testConf.set(Constants.WEB_RESOURCES,
-        PathUtils.concatPath(System.getProperty("user.dir"), "../servers/src/main/webapp"));
+        PathUtils.concatPath(System.getProperty("user.dir"), "../core/server/src/main/webapp"));
 
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default tachyon storage is STORE, and under storage is SYNC_PERSIST for tests.
