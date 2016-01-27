@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;
 
@@ -39,6 +41,7 @@ import tachyon.shell.TfsShellUtils;
 /**
  * Copies a file or a directory from the Tachyon filesystem to the local filesystem.
  */
+@ThreadSafe
 public final class CopyToLocalCommand extends AbstractTfsShellCommand {
 
   /**

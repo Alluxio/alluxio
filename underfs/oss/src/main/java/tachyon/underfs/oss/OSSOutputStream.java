@@ -26,6 +26,9 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
@@ -43,6 +46,7 @@ import tachyon.util.io.PathUtils;
  * A stream for writing a file into OSS. The data will be persisted to a temporary directory on the
  * local disk and copied as a complete file when the {@link #close()} method is called.
  */
+@NotThreadSafe
 public final class OSSOutputStream extends OutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -61,7 +65,7 @@ public final class OSSOutputStream extends OutputStream {
   private MessageDigest mHash;
 
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
-  private boolean mClosed;
+  private AtomicBoolean mClosed = new AtomicBoolean(false);
 
   /**
    * Creates a name instance of {@link OSSOutputStream}.
@@ -92,7 +96,6 @@ public final class OSSOutputStream extends OutputStream {
       mHash = null;
       mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
     }
-    mClosed = false;
   }
 
   /**
@@ -152,10 +155,9 @@ public final class OSSOutputStream extends OutputStream {
    */
   @Override
   public void close() throws IOException {
-    if (mClosed) {
+    if (mClosed.getAndSet(true)) {
       return;
     }
-    mClosed = true;
     mLocalOutputStream.close();
     try {
       BufferedInputStream in = new BufferedInputStream(

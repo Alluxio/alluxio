@@ -84,7 +84,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        mClient.completePartition(path.toString(), info);
+        mClient.completePartition(path.getPath(), info);
         return null;
       }
     });
@@ -102,7 +102,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        mClient.completeStore(path.toString());
+        mClient.completeStore(path.getPath());
         return null;
       }
     });
@@ -119,7 +119,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        mClient.createStore(path.toString());
+        mClient.createStore(path.getPath());
         return null;
       }
     });
@@ -138,7 +138,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<List<PartitionInfo>>() {
       @Override
       public List<PartitionInfo> call() throws TachyonTException, TException {
-        return mClient.getPartitionInfo(path.toString());
+        return mClient.getPartitionInfo(path.getPath());
       }
     });
   }
@@ -154,7 +154,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        mClient.deleteStore(path.toString());
+        mClient.deleteStore(path.getPath());
         return null;
       }
     });
@@ -171,7 +171,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        mClient.mergeStore(fromPath.toString(), toPath.toString());
+        mClient.mergeStore(fromPath.getPath(), toPath.getPath());
         return null;
       }
     });
