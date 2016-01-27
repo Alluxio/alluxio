@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -39,7 +39,7 @@ public class ComplexCommandTest extends AbstractTfsShellTest {
   public void createCacheInsertInUfsThenloadMetadataTest() throws IOException, TachyonException {
     // Construct a situation where the directory exists in the inode tree and the UFS, but is not
     // marked as persisted.
-    TachyonFSTestUtils.createByteFile(mTfs, "/testDir/testFileA", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mTfs, "/testDir/testFileA", WriteType.MUST_CACHE, 10);
     Assert.assertFalse(mTfs.getStatus(new TachyonURI("/testDir")).isPersisted());
     TachyonConf conf = mLocalTachyonCluster.getMasterTachyonConf();
     String ufsRoot = conf.get(Constants.UNDERFS_ADDRESS);

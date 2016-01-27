@@ -46,7 +46,7 @@ public final class UfsUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Builds a new path relative to a given mTachyonFS root by retrieving the given path relative to
+   * Builds a new path relative to a given root by retrieving the given path relative to
    * the ufsRootPath.
    *
    * @param tfsRootPath the destination point in mTachyonFS to load the under FS path onto
