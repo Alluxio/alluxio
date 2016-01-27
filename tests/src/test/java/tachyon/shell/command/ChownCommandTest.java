@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.exception.TachyonException;
 import tachyon.shell.AbstractTfsShellTest;
@@ -34,7 +34,7 @@ public class ChownCommandTest extends AbstractTfsShellTest {
   @Test
   public void chownTest() throws IOException, TachyonException {
     clearLoginUser();
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chown", "user1", "/testFile");
     String owner = mTfs.getStatus(new TachyonURI("/testFile")).getUserName();
     Assert.assertEquals("user1", owner);

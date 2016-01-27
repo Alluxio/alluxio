@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.commons.lang.StringUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -40,6 +42,7 @@ import tachyon.util.CommonUtils;
 /**
  * Class for handling command line inputs.
  */
+@NotThreadSafe
 public class TfsShell implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -107,7 +110,7 @@ public class TfsShell implements Closeable {
     SortedSet<String> sortedCmds = new TreeSet<String>(mCommands.keySet());
     for (String cmd : sortedCmds) {
       System.out.format("%-60s%-95s%n", "       [" + mCommands.get(cmd).getUsage() + "]   ",
-                      mCommands.get(cmd).getDescription());
+          mCommands.get(cmd).getDescription());
     }
   }
 

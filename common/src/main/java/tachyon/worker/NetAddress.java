@@ -54,10 +54,10 @@ public final class NetAddress {
    * @param netAddress the thrift net address
    */
   public NetAddress(WorkerNetAddress netAddress) {
-    mHost = netAddress.host;
-    mRpcPort = netAddress.rpcPort;
-    mDataPort = netAddress.dataPort;
-    mWebPort = netAddress.webPort;
+    mHost = netAddress.getHost();
+    mRpcPort = netAddress.getRpcPort();
+    mDataPort = netAddress.getDataPort();
+    mWebPort = netAddress.getWebPort();
   }
 
   /**

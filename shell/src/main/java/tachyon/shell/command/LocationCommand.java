@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileSystem;
@@ -28,6 +30,7 @@ import tachyon.thrift.BlockLocation;
 /**
  * Displays a list of hosts that have the file specified in args stored.
  */
+@ThreadSafe
 public final class LocationCommand extends WithWildCardPathCommand {
 
   /**

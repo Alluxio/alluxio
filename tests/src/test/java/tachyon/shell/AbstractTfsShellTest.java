@@ -34,7 +34,7 @@ import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileSystem;
@@ -90,7 +90,7 @@ public abstract class AbstractTfsShellTest {
   }
 
   protected void copyToLocalWithBytes(int bytes) throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, bytes);
+    FileSystemTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, bytes);
     mFsShell.run("copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile");
     Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",

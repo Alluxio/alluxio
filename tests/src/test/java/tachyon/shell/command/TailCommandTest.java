@@ -20,7 +20,7 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.exception.TachyonException;
 import tachyon.shell.AbstractTfsShellTest;
@@ -33,14 +33,14 @@ import tachyon.util.io.BufferUtils;
 public class TailCommandTest extends AbstractTfsShellTest {
   @Test
   public void tailEmptyFileTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/emptyFile", WriteType.MUST_CACHE, 0);
+    FileSystemTestUtils.createByteFile(mTfs, "/emptyFile", WriteType.MUST_CACHE, 0);
     int ret = mFsShell.run("tail", "/emptyFile");
     Assert.assertEquals(0, ret);
   }
 
   @Test
   public void tailLargeFileTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 2048);
+    FileSystemTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 2048);
     mFsShell.run("tail", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(1024, 1024);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
@@ -54,7 +54,7 @@ public class TailCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void tailSmallFileTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("tail", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(10);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());

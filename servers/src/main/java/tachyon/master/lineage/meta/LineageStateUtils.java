@@ -42,7 +42,7 @@ public final class LineageStateUtils {
       throws FileDoesNotExistException {
     for (long outputFile : lineage.getOutputFiles()) {
       FileInfo fileInfo = fileSystemMasterView.getFileInfo(outputFile);
-      if (!fileInfo.isCompleted) {
+      if (!fileInfo.isCompleted()) {
         return false;
       }
     }
