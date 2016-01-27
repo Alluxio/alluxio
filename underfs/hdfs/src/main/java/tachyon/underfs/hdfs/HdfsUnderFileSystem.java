@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
@@ -47,15 +49,16 @@ import tachyon.underfs.UnderFileSystem;
 /**
  * HDFS {@link UnderFileSystem} implementation.
  */
+@ThreadSafe
 public class HdfsUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_TRY = 5;
-
-  private FileSystem mFs = null;
-  private String mUfsPrefix = null;
   // TODO(hy): Add a sticky bit and narrow down the permission in hadoop 2.
   private static final FsPermission PERMISSION = new FsPermission((short) 0777)
       .applyUMask(FsPermission.createImmutable((short) 0000));
+
+  private final FileSystem mFileSystem;
+  private final String mUfsPrefix;
 
   /**
    * Constructs a new HDFS {@link UnderFileSystem}.
@@ -79,7 +82,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
     Path path = new Path(mUfsPrefix);
     try {
-      mFs = path.getFileSystem(tConf);
+      mFileSystem = path.getFileSystem(tConf);
     } catch (IOException e) {
       LOG.error("Exception thrown when trying to get FileSystem for {}", mUfsPrefix, e);
       throw Throwables.propagate(e);
@@ -93,7 +96,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   /**
    * Prepares the Hadoop configuration necessary to successfully obtain a {@link FileSystem}
-   * instance that can access the provided path
+   * instance that can access the provided path.
    * <p>
    * Derived implementations that work with specialised Hadoop {@linkplain FileSystem} API
    * compatible implementations can override this method to add implementation specific
@@ -125,7 +128,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public void close() throws IOException {
-    // Don't close mFs; FileSystems are singletons so closing it here could break other users
+    // Don't close; file systems are singletons and closing it here could break other users
   }
 
   @Override
@@ -135,7 +138,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     while (retryPolicy.attemptRetry()) {
       try {
         LOG.debug("Creating HDFS file at {}", path);
-        return FileSystem.create(mFs, new Path(path), PERMISSION);
+        return FileSystem.create(mFileSystem, new Path(path), PERMISSION);
       } catch (IOException e) {
         LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
         te = e;
@@ -155,7 +158,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
     // TODO(hy): Fix this.
-    // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeBytes);
+    // return create(path, (short) Math.min(3, mFileSystem.getDefaultReplication()),
+    // blockSizeBytes);
     return create(path);
   }
 
@@ -163,14 +167,15 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   public FSDataOutputStream create(String path, short replication, int blockSizeByte)
       throws IOException {
     // TODO(hy): Fix this.
-    // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeBytes);
+    // return create(path, (short) Math.min(3, mFileSystem.getDefaultReplication()),
+    // blockSizeBytes);
     return create(path);
     // LOG.info("{} {} {}", path, replication, blockSizeBytes);
     // IOException te = null;
     // int cnt = 0;
     // while (cnt < MAX_TRY) {
     // try {
-    // return mFs.create(new Path(path), true, 4096, replication, blockSizeBytes);
+    // return mFileSystem.create(new Path(path), true, 4096, replication, blockSizeBytes);
     // } catch (IOException e) {
     // cnt ++;
     // LOG.error("{} : {}", cnt, e.getMessage(), e);
@@ -188,7 +193,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        return mFs.delete(new Path(path), recursive);
+        return mFileSystem.delete(new Path(path), recursive);
       } catch (IOException e) {
         LOG.error("Retry count {} : {}", retryPolicy.getRetryCount(), e.getMessage(), e);
         te = e;
@@ -203,7 +208,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        return mFs.exists(new Path(path));
+        return mFileSystem.exists(new Path(path));
       } catch (IOException e) {
         LOG.error("{} try to check if {} exists : {}", retryPolicy.getRetryCount(), path,
             e.getMessage(), e);
@@ -216,16 +221,16 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public long getBlockSizeByte(String path) throws IOException {
     Path tPath = new Path(path);
-    if (!mFs.exists(tPath)) {
+    if (!mFileSystem.exists(tPath)) {
       throw new FileNotFoundException(path);
     }
-    FileStatus fs = mFs.getFileStatus(tPath);
+    FileStatus fs = mFileSystem.getFileStatus(tPath);
     return fs.getBlockSize();
   }
 
   @Override
   public Object getConf() {
-    return mFs.getConf();
+    return mFileSystem.getConf();
   }
 
   @Override
@@ -237,8 +242,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   public List<String> getFileLocations(String path, long offset) throws IOException {
     List<String> ret = new ArrayList<String>();
     try {
-      FileStatus fStatus = mFs.getFileStatus(new Path(path));
-      BlockLocation[] bLocations = mFs.getFileBlockLocations(fStatus, offset, 1);
+      FileStatus fStatus = mFileSystem.getFileStatus(new Path(path));
+      BlockLocation[] bLocations = mFileSystem.getFileBlockLocations(fStatus, offset, 1);
       if (bLocations.length > 0) {
         String[] names = bLocations[0].getNames();
         Collections.addAll(ret, names);
@@ -255,7 +260,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        FileStatus fs = mFs.getFileStatus(tPath);
+        FileStatus fs = mFileSystem.getFileStatus(tPath);
         return fs.getLen();
       } catch (IOException e) {
         LOG.error("{} try to get file size for {} : {}", retryPolicy.getRetryCount(), path,
@@ -268,10 +273,10 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public long getModificationTimeMs(String path) throws IOException {
     Path tPath = new Path(path);
-    if (!mFs.exists(tPath)) {
+    if (!mFileSystem.exists(tPath)) {
       throw new FileNotFoundException(path);
     }
-    FileStatus fs = mFs.getFileStatus(tPath);
+    FileStatus fs = mFileSystem.getFileStatus(tPath);
     return fs.getModificationTime();
   }
 
@@ -279,14 +284,14 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   public long getSpace(String path, SpaceType type) throws IOException {
     // Ignoring the path given, will give information for entire cluster
     // as Tachyon can load/store data out of entire HDFS cluster
-    if (mFs instanceof DistributedFileSystem) {
+    if (mFileSystem instanceof DistributedFileSystem) {
       switch (type) {
         case SPACE_TOTAL:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
+          return ((DistributedFileSystem) mFileSystem).getDiskStatus().getCapacity();
         case SPACE_USED:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
+          return ((DistributedFileSystem) mFileSystem).getDiskStatus().getDfsUsed();
         case SPACE_FREE:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
+          return ((DistributedFileSystem) mFileSystem).getDiskStatus().getRemaining();
         default:
           throw new IOException("Unknown getSpace parameter: " + type);
       }
@@ -296,14 +301,14 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    return mFs.isFile(new Path(path));
+    return mFileSystem.isFile(new Path(path));
   }
 
   @Override
   public String[] list(String path) throws IOException {
     FileStatus[] files;
     try {
-      files = mFs.listStatus(new Path(path));
+      files = mFileSystem.listStatus(new Path(path));
     } catch (FileNotFoundException e) {
       return null;
     }
@@ -361,7 +366,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     while (retryPolicy.attemptRetry()) {
       try {
         Path hdfsPath = new Path(path);
-        if (mFs.exists(hdfsPath)) {
+        if (mFileSystem.exists(hdfsPath)) {
           LOG.debug("Trying to create existing directory at {}", path);
           return false;
         }
@@ -370,12 +375,12 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         Stack<Path> dirsToMake = new Stack<Path>();
         dirsToMake.push(hdfsPath);
         Path parent = hdfsPath.getParent();
-        while (!mFs.exists(parent)) {
+        while (!mFileSystem.exists(parent)) {
           dirsToMake.push(parent);
           parent = parent.getParent();
         }
         while (!dirsToMake.empty()) {
-          if (!FileSystem.mkdirs(mFs, dirsToMake.pop(), PERMISSION)) {
+          if (!FileSystem.mkdirs(mFileSystem, dirsToMake.pop(), PERMISSION)) {
             return false;
           }
         }
@@ -395,7 +400,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        return mFs.open(new Path(path));
+        return mFileSystem.open(new Path(path));
       } catch (IOException e) {
         LOG.error("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage(), e);
         te = e;
@@ -421,7 +426,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        return mFs.rename(new Path(src), new Path(dst));
+        return mFileSystem.rename(new Path(src), new Path(dst));
       } catch (IOException e) {
         LOG.error("{} try to rename {} to {} : {}", retryPolicy.getRetryCount(), src, dst,
             e.getMessage(), e);
@@ -433,17 +438,17 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public void setConf(Object conf) {
-    mFs.setConf((Configuration) conf);
+    mFileSystem.setConf((Configuration) conf);
   }
 
   @Override
   public void setPermission(String path, String posixPerm) throws IOException {
     try {
-      FileStatus fileStatus = mFs.getFileStatus(new Path(path));
+      FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
       LOG.info("Changing file '{}' permissions from: {} to {}", fileStatus.getPath(),
           fileStatus.getPermission(), posixPerm);
       FsPermission perm = new FsPermission(Short.parseShort(posixPerm));
-      mFs.setPermission(fileStatus.getPath(), perm);
+      mFileSystem.setPermission(fileStatus.getPath(), perm);
     } catch (IOException e) {
       LOG.error("Fail to set permission for {} with perm {}", path, posixPerm, e);
       throw e;

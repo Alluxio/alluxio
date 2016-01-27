@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.SetAclOptions;
@@ -26,6 +28,7 @@ import tachyon.exception.TachyonException;
 /**
  * Parent class for commands: chown, chownr, chgrp, chgrpr, chmod and chmodr.
  */
+@ThreadSafe
 public abstract class AbstractAclCommand extends AbstractTfsShellCommand {
 
   protected AbstractAclCommand(TachyonConf conf, FileSystem tfs) {

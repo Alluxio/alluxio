@@ -64,7 +64,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
   protected CreateFileOptions mWriteUnderStore;
 
   protected TachyonConf mTestConf;
-  protected FileSystem mTfs = null;
+  protected FileSystem mFileSystem = null;
 
   @Before
   public void before() throws Exception {
@@ -74,7 +74,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
     mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(mTestConf);
     mWriteLocal = StreamOptionUtils.getCreateFileOptionsWriteLocal(mTestConf);
     mWriteAsync = StreamOptionUtils.getCreateFileOptionsAsync(mTestConf);
-    mTfs = mLocalTachyonClusterResource.get().getClient();
+    mFileSystem = mLocalTachyonClusterResource.get().getClient();
   }
 
   /**
@@ -89,9 +89,9 @@ public abstract class AbstractFileOutStreamIntegrationTest {
   protected void checkWrite(TachyonURI filePath, UnderStorageType underStorageType, int fileLen,
       int increasingByteArrayLen) throws IOException, TachyonException {
     for (CreateFileOptions op : getOptionSet()) {
-      URIStatus status = mTfs.getStatus(filePath);
+      URIStatus status = mFileSystem.getStatus(filePath);
       Assert.assertEquals(fileLen, status.getLength());
-      FileInStream is = mTfs.openFile(filePath, TachyonFSTestUtils.toOpenFileOptions(op));
+      FileInStream is = mFileSystem.openFile(filePath, FileSystemTestUtils.toOpenFileOptions(op));
       byte[] res = new byte[(int) status.getLength()];
       Assert.assertEquals((int) status.getLength(), is.read(res));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(increasingByteArrayLen, res));
@@ -99,7 +99,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
     }
 
     if (underStorageType.isSyncPersist() || underStorageType.isAsyncPersist()) {
-      URIStatus status = mTfs.getStatus(filePath);
+      URIStatus status = mFileSystem.getStatus(filePath);
       String checkpointPath = status.getUfsPath();
       UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, mTestConf);
 

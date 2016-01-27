@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.exception.TachyonException;
 import tachyon.shell.AbstractTfsShellTest;
@@ -35,7 +35,7 @@ public class ChgrprCommandTest extends AbstractTfsShellTest {
   public void chgrprTest() throws IOException, TachyonException {
     clearLoginUser();
     mFsShell.run("mkdir", "/testFolder1");
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFolder1/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mTfs, "/testFolder1/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chgrpr", "group1", "/testFolder1");
     String group = mTfs.getStatus(new TachyonURI("/testFolder1/testFile")).getGroupName();
     Assert.assertEquals("group1", group);

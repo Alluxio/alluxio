@@ -29,7 +29,7 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileSystem;
@@ -81,7 +81,7 @@ public class TieredStoreIntegrationTest {
   @Test
   public void deleteWhileReadTest() throws IOException, TachyonException {
     TachyonURI file = new TachyonURI("/test1");
-    TachyonFSTestUtils.createByteFile(mTFS, file, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    FileSystemTestUtils.createByteFile(mTFS, file, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
@@ -110,7 +110,7 @@ public class TieredStoreIntegrationTest {
 
     // After the file is closed, the master's delete should go through and new files can be created
     TachyonURI newFile = new TachyonURI("/test2");
-    TachyonFSTestUtils.createByteFile(mTFS, newFile, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    FileSystemTestUtils.createByteFile(mTFS, newFile, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
     Assert.assertTrue(mTFS.getStatus(newFile).getInMemoryPercentage() == 100);
   }
@@ -125,7 +125,7 @@ public class TieredStoreIntegrationTest {
   public void pinFileTest() throws IOException, TachyonException {
     // Create a file that fills the entire Tachyon store
     TachyonURI file = new TachyonURI("/test1");
-    TachyonFSTestUtils.createByteFile(mTFS, file, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    FileSystemTestUtils.createByteFile(mTFS, file, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
     // Pin the file
     mTFS.setAttribute(file, mSetPinned);
@@ -133,11 +133,10 @@ public class TieredStoreIntegrationTest {
 
     // Confirm the pin with master
     Assert.assertTrue(mTFS.getStatus(file).isPinned());
-
     // Try to create a file that cannot be stored unless the previous file is evicted, expect an
     // exception since worker cannot serve the request
     mThrown.expect(IOException.class);
-    TachyonFSTestUtils.createByteFile(mTFS, "/test2", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    FileSystemTestUtils.createByteFile(mTFS, "/test2", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
   }
 
   /**
@@ -150,7 +149,7 @@ public class TieredStoreIntegrationTest {
   public void unpinFileTest() throws IOException, TachyonException {
     // Create a file that fills the entire Tachyon store
     TachyonURI file1 = new TachyonURI("/test1");
-    TachyonFSTestUtils.createByteFile(mTFS, file1, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    FileSystemTestUtils.createByteFile(mTFS, file1, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
     // Pin the file
     mTFS.setAttribute(file1, mSetPinned);
@@ -158,7 +157,6 @@ public class TieredStoreIntegrationTest {
 
     // Confirm the pin with master
     Assert.assertTrue(mTFS.getStatus(file1).isPinned());
-
     // Unpin the file
     mTFS.setAttribute(file1, mSetUnpinned);
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
@@ -169,7 +167,7 @@ public class TieredStoreIntegrationTest {
     // Try to create a file that cannot be stored unless the previous file is evicted, this
     // should succeed
     TachyonURI file2 = new TachyonURI("/test2");
-    TachyonFSTestUtils.createByteFile(mTFS, file2, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    FileSystemTestUtils.createByteFile(mTFS, file2, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
     // File 2 should be in memory and File 1 should be evicted
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
@@ -188,9 +186,9 @@ public class TieredStoreIntegrationTest {
     TachyonURI uri1 = new TachyonURI("/file1");
     TachyonURI uri2 = new TachyonURI("/file2");
     TachyonURI uri3 = new TachyonURI("/file3");
-    TachyonFSTestUtils.createByteFile(mTFS, uri1, WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES / 6);
-    TachyonFSTestUtils.createByteFile(mTFS, uri2, WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES / 2);
-    TachyonFSTestUtils.createByteFile(mTFS, uri3, WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES / 2);
+    FileSystemTestUtils.createByteFile(mTFS, uri1, WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES / 6);
+    FileSystemTestUtils.createByteFile(mTFS, uri2, WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES / 2);
+    FileSystemTestUtils.createByteFile(mTFS, uri3, WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES / 2);
 
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 

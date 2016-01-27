@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +47,7 @@ import tachyon.worker.WorkerIdRegistry;
 /**
  * Local Tachyon cluster.
  */
+@NotThreadSafe
 public abstract class AbstractLocalTachyonCluster {
   protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -312,7 +315,7 @@ public abstract class AbstractLocalTachyonCluster {
   }
 
   /**
-   * Reset the {@link LoginUser}. This is called when the cluster is stopped.
+   * Resets the {@link LoginUser}. This is called when the cluster is stopped.
    *
    * @throws Exception when the operation fails
    */

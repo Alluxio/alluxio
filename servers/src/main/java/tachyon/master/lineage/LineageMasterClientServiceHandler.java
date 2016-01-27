@@ -67,7 +67,7 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
     }
 
     CommandLineJob job =
-        new CommandLineJob(jobInfo.command, new JobConf(jobInfo.getConf().outputFile));
+        new CommandLineJob(jobInfo.getCommand(), new JobConf(jobInfo.getConf().getOutputFile()));
     try {
       return mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job);
     } catch (TachyonException e) {

@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -24,6 +26,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Changes the group of a file or directory specified by args.
  */
+@ThreadSafe
 public final class ChgrpCommand extends AbstractAclCommand {
 
   /**
