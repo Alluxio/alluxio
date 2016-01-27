@@ -94,9 +94,12 @@ Note: the keypair is associated with a sepcific zone. If you ran into permission
 Using spot instance is a way to reduce EC2 cost. Spot instances are non-guaranteed instances which are priced with bidding.
 Note that spot instances may be taken away from you if someone bids more, and there are no more spot instances available.
 However, for short-term testing, spot instances are very appropriate, because it is rare that spot instances are taken from you.
+
 By default, the deploy scripts DO NOT use spot instances. Therefore, you have to enable deploy scripts to use spot instances.
+
 In order to enable spot instances, you have to modify the file: deploy/vagrant/conf/ec2.yml:
-    Spot_Price: “X.XX”
+
+    `Spot_Price: “X.XX”`
 
 Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running
 the script under `deploy/vagrant`:
@@ -125,7 +128,6 @@ Visit `http://{MASTER_IP}:{PORT}` in the browser to access the Web UIs.
 
 You can also monitor the instances state through
 [AWS web console](https://console.aws.amazon.com/console).
-
 Make sure you are in the console for the region you started the cluster.
 
 Here are some scenarios when you may want to check the console:
