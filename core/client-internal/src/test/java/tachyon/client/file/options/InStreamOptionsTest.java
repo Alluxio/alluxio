@@ -24,7 +24,7 @@ import tachyon.client.ReadType;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.client.file.policy.RoundRobinPolicy;
-import tachyon.conf.TachyonConf;
+import tachyon.client.util.ClientTestUtils;
 
 /**
  * Tests for the {@link InStreamOptions} class.
@@ -57,15 +57,18 @@ public class InStreamOptionsTest {
 
   /**
    * Tests that building a {@link InStreamOptions} with a modified configuration works.
+   * @throws Exception
    */
   @Test
   public void modifiedConfTest() {
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE.toString());
-    ClientContext.reset(conf);
-
-    InStreamOptions options = InStreamOptions.defaults();
-    Assert.assertEquals(ReadType.NO_CACHE.getTachyonStorageType(), options.getTachyonStorageType());
-    ClientContext.reset();
+    ClientContext.getConf().set(Constants.USER_FILE_READ_TYPE_DEFAULT,
+        ReadType.NO_CACHE.toString());
+    try {
+      InStreamOptions options = InStreamOptions.defaults();
+      Assert.assertEquals(ReadType.NO_CACHE.getTachyonStorageType(),
+          options.getTachyonStorageType());
+    } finally {
+      ClientTestUtils.resetClientContext();
+    }
   }
 }

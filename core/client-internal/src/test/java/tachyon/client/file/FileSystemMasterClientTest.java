@@ -26,7 +26,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
-import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.FileSystemMasterClientService;
 
@@ -44,9 +43,6 @@ public class FileSystemMasterClientTest {
    */
   @Test
   public void unsupportedVersionTest() throws Exception {
-    // Client context needs to be initialized before the file system context can be used.
-    ClientContext.reset();
-
     FileSystemMasterClientService.Client mock =
         PowerMockito.mock(FileSystemMasterClientService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
