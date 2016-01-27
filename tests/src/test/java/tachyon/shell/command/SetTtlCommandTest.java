@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.shell.AbstractTfsShellTest;
 
@@ -33,7 +33,7 @@ public class SetTtlCommandTest extends AbstractTfsShellTest {
   @Test
   public void setTtlTest() throws Exception {
     String filePath = "/testFile";
-    TachyonFSTestUtils.createByteFile(mTfs, filePath, WriteType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(mTfs, filePath, WriteType.MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL, mTfs.getStatus(new TachyonURI("/testFile")).getTtl());
     long[] ttls = new long[] { 0L, 1000L };
     for (long ttl : ttls) {
@@ -44,7 +44,7 @@ public class SetTtlCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void setTtlNegativeTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 1);
     mException.expect(IllegalArgumentException.class);
     mException.expectMessage("TTL value must be >= 0");
     mFsShell.run("setTtl", "/testFile", "-1");
