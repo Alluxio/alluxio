@@ -174,7 +174,7 @@ public final class LineageMaster extends MasterBase {
   /**
    * @return a lineage store view wrapping the contained lineage store
    */
-  public synchronized LineageStoreView getLineageStoreView() {
+  public LineageStoreView getLineageStoreView() {
     return new LineageStoreView(mLineageStore);
   }
 
@@ -308,7 +308,7 @@ public final class LineageMaster extends MasterBase {
    * @throws LineageDoesNotExistException if the lineage does not exist
    * @throws FileDoesNotExistException if any associated file does not exist
    */
-  public List<LineageInfo> getLineageInfoList()
+  public synchronized List<LineageInfo> getLineageInfoList()
       throws LineageDoesNotExistException, FileDoesNotExistException {
     List<LineageInfo> lineages = Lists.newArrayList();
 
