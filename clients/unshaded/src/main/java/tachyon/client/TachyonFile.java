@@ -15,7 +15,11 @@
 
 package tachyon.client;
 
+import java.io.IOException;
+import java.util.List;
+
 import com.google.common.collect.Lists;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
@@ -28,21 +32,24 @@ import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.WorkerNetAddress;
 
-import java.io.IOException;
-import java.util.List;
-
 /**
+ * @deprecated {@see FileSystem} for the supported API.
  * Represents a Tachyon File, legacy API.
  */
-public class TachyonFile {
+@Deprecated
+public final class TachyonFile {
   private final FileSystem mFileSystem;
   private final TachyonURI mPath;
 
-  public TachyonFile(TachyonURI path, FileSystem fs) {
+  protected TachyonFile(TachyonURI path, FileSystem fs) {
     mFileSystem = fs;
     mPath = path;
   }
 
+  /**
+   * @return a list of hostnames which contain blocks of the file
+   * @throws IOException if an error occurs resolving the file
+   */
   public List<String> getLocationHosts() throws IOException {
     List<String> locations = Lists.newArrayList();
 
@@ -70,14 +77,11 @@ public class TachyonFile {
     }
   }
 
-  public FileOutStream getOutStream(WriteType writeType) throws IOException {
-    try {
-      return mFileSystem.createFile(mPath, CreateFileOptions.defaults().setWriteType(writeType));
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
+  /**
+   * @param readType the {@link ReadType} to use
+   * @return a {@link FileInStream} which provides a stream interface to read from the file
+   * @throws IOException if an error occurs opening the file
+   */
   public FileInStream getInStream(ReadType readType) throws IOException {
     try {
       return mFileSystem.openFile(mPath, OpenFileOptions.defaults().setReadType(readType));
@@ -86,6 +90,32 @@ public class TachyonFile {
     }
   }
 
+  /**
+   * Creates a file and provides a stream interface to write to the file.
+   *
+   * @param writeType the {@link WriteType} to use
+   * @return a {@link FileOutStream} which can be used to write data to a file
+   * @throws IOException if an error occurs creating the file
+   */
+  public FileOutStream getOutStream(WriteType writeType) throws IOException {
+    try {
+      return mFileSystem.createFile(mPath, CreateFileOptions.defaults().setWriteType(writeType));
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  /**
+   * @return the path of this file
+   */
+  public String getPath() {
+    return mPath.getPath();
+  }
+
+  /**
+   * @return the length in bytes of the file
+   * @throws IOException if an error occurs resolving the file
+   */
   public long length() throws IOException {
     try {
       return mFileSystem.getStatus(mPath).getLength();
