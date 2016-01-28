@@ -57,7 +57,7 @@ public final class LoadMetadataCommand extends AbstractTfsShellCommand {
 
     try {
       LoadMetadataOptions options = LoadMetadataOptions.defaults().setRecursive(true);
-      mTfs.loadMetadata(inputPath, options);
+      mFileSystem.loadMetadata(inputPath, options);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }

@@ -55,7 +55,7 @@ public final class SetTtlCommand extends AbstractTfsShellCommand {
     long ttlMs = Long.parseLong(args[1]);
     Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
     TachyonURI path = new TachyonURI(args[0]);
-    CommandUtils.setTtl(mTfs, path, ttlMs);
+    CommandUtils.setTtl(mFileSystem, path, ttlMs);
     System.out.println("TTL of file '" + path + "' was successfully set to " + ttlMs
         + " milliseconds.");
   }

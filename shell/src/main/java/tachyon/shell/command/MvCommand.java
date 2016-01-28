@@ -53,7 +53,7 @@ public final class MvCommand extends AbstractTfsShellCommand {
     TachyonURI srcPath = new TachyonURI(args[0]);
     TachyonURI dstPath = new TachyonURI(args[1]);
     try {
-      mTfs.rename(srcPath, dstPath);
+      mFileSystem.rename(srcPath, dstPath);
       System.out.println("Renamed " + srcPath + " to " + dstPath);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());

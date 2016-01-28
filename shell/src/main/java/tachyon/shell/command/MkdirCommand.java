@@ -59,7 +59,7 @@ public final class MkdirCommand extends AbstractTfsShellCommand {
 
       try {
         CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
-        mTfs.createDirectory(inputPath, options);
+        mFileSystem.createDirectory(inputPath, options);
         System.out.println("Successfully created directory " + inputPath);
       } catch (TachyonException e) {
         throw new IOException(e.getMessage());

@@ -53,7 +53,7 @@ public final class LocationCommand extends WithWildCardPathCommand {
   void runCommand(TachyonURI path) throws IOException {
     URIStatus status;
     try {
-      status = mTfs.getStatus(path);
+      status = mFileSystem.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
