@@ -49,9 +49,9 @@ HTML files compiled from markdown files.
 
 In addition to generating the site as HTML from the markdown files, jekyll can serve the site via
 a webserver. To build and run a webserver, use the command `jekyll serve` and then visit the site 
-at http://localhost:4000.
+at [http://localhost:4000](http://localhost:4000).
 
 ## Multi-lauguage Support
 
-The markdown files in different language are stored in separate folders. For example,
-documentation files in English are put in `docs/en` and files in Chinese are in `docs/cn`.
+The markdown files for Tachyon documentation in different languages are stored in separate
+directories, e.g., `docs/en` for English documentation and `docs/cn` for Chinese documentation.
