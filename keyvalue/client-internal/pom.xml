@@ -5,9 +5,9 @@
     <artifactId>tachyon-keyvalue</artifactId>
     <version>0.9.0-SNAPSHOT</version>
   </parent>
-  <artifactId>tachyon-keyvalue-servers</artifactId>
-  <name>Tachyon Key Value Store - Servers</name>
-  <description>Servers of Tachyon Key Value Store</description>
+  <artifactId>tachyon-keyvalue-client-internal</artifactId>
+  <name>Tachyon Key Value - Client Implementation</name>
+  <description>Client implementation of Tachyon key value store</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -20,17 +20,12 @@
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-core-client-internal</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-keyvalue-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-client</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-server</artifactId>
       <version>${project.version}</version>
     </dependency>
 
