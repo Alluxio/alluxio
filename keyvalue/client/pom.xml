@@ -9,7 +9,7 @@
   <artifactId>tachyon-keyvalue-client</artifactId>
   <packaging>jar</packaging>
   <name>Tachyon Key Value Store - Client Distribution</name>
-  <description>Distribution of client for Tachyon core</description>
+  <description>Distribution of client for Tachyon Key Value Store</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
