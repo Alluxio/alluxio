@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -24,16 +26,17 @@ import tachyon.conf.TachyonConf;
 /**
  * Changes the owner of a file or directory specified by args.
  */
+@ThreadSafe
 public final class ChownCommand extends AbstractAclCommand {
 
   /**
    * Creates a new instance of {@link ChownCommand}.
    *
    * @param conf a Tachyon configuration
-   * @param tfs a Tachyon file system handle
+   * @param fs a Tachyon file system handle
    */
-  public ChownCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public ChownCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

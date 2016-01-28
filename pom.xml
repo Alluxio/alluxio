@@ -142,14 +142,12 @@
   </properties>
 
   <modules>
-    <module>common</module>
     <module>underfs</module>
-    <module>clients</module>
-    <module>servers</module>
+    <module>core</module>
     <module>keyvalue</module>
     <module>shell</module>
     <module>examples</module>
-    <module>integration-tests</module>
+    <module>tests</module>
     <module>integration</module>
     <module>assembly</module>
     <module>minicluster</module>
@@ -443,6 +441,8 @@
         <version>2.13</version>
         <configuration>
           <configLocation>${checkstyle.path}tachyon_checks.xml</configLocation>
+          <suppressionsLocation>${checkstyle.path}suppressions.xml</suppressionsLocation>
+          <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
           <excludes>**/org/apache/jsp/**,**/tachyon/thrift/**,**/tachyon/proto/**</excludes>
           <encoding>UTF-8</encoding>
@@ -655,7 +655,7 @@
         <jdk>[1.8,)</jdk> <!-- 1.8 or newer -->
       </activation>
       <modules>
-        <module>fuse</module>
+        <module>integration/fuse</module>
       </modules>
     </profile>
   </profiles>

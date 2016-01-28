@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
@@ -44,6 +46,7 @@ import tachyon.util.io.PathUtils;
  * The current resource allocation policy uses a configurable Tachyon master allocation, while the
  * workers use the maximum available allocation.
  */
+@NotThreadSafe
 public class TachyonFramework {
   static class TachyonScheduler implements Scheduler {
     private static TachyonConf sConf = new TachyonConf();
@@ -311,6 +314,12 @@ public class TachyonFramework {
     return null;
   }
 
+  /**
+   * Starts the Tachyon framework.
+   *
+   * @param args command-line arguments
+   * @throws Exception if the Tachyon framework encounters an unrecoverable error
+   */
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
       usage();
