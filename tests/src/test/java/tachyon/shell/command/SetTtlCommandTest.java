@@ -34,8 +34,9 @@ public class SetTtlCommandTest extends AbstractTfsShellTest {
   public void setTtlTest() throws Exception {
     String filePath = "/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
-    Assert.assertEquals(Constants.NO_TTL, mFileSystem.getStatus(new TachyonURI("/testFile")).getTtl());
-    long[] ttls = new long[] { 0L, 1000L };
+    Assert.assertEquals(Constants.NO_TTL, mFileSystem.getStatus(new TachyonURI("/testFile"))
+        .getTtl());
+    long[] ttls = new long[] {0L, 1000L};
     for (long ttl : ttls) {
       Assert.assertEquals(0, mFsShell.run("setTtl", filePath, String.valueOf(ttl)));
       Assert.assertEquals(ttl, mFileSystem.getStatus(new TachyonURI("/testFile")).getTtl());

@@ -93,7 +93,7 @@ public class TfsShell implements Closeable {
         try {
           cmd = CommonUtils.createNewClassInstance(cls,
               new Class[] { TachyonConf.class, FileSystem.class },
-              new Object[] { mTachyonConf, mFileSystem});
+              new Object[] { mTachyonConf, mFileSystem });
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }

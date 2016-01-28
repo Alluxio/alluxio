@@ -40,7 +40,8 @@ public class FreeCommandTest extends AbstractTfsShellTest {
     mFsShell.run("free", "/testFile");
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     CommonUtils.sleepMs(tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
-    Assert.assertFalse(mFileSystem.getStatus(new TachyonURI("/testFile")).getInMemoryPercentage() == 100);
+    Assert.assertFalse(
+        mFileSystem.getStatus(new TachyonURI("/testFile")).getInMemoryPercentage() == 100);
   }
 
   @Test

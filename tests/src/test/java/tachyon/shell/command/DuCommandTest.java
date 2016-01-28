@@ -31,9 +31,10 @@ import tachyon.shell.AbstractTfsShellTest;
 public class DuCommandTest extends AbstractTfsShellTest {
   @Test
   public void duTest() throws IOException {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
+        .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
+        WriteType.MUST_CACHE, 20);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testDir/testFileC",
         WriteType.MUST_CACHE, 30);
 

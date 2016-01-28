@@ -38,7 +38,8 @@ public class PersistCommandTest extends AbstractTfsShellTest {
   public void persistTest() throws IOException, TachyonException {
     String testFilePath = "/testPersist/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WriteType.MUST_CACHE, 10);
-    Assert.assertFalse(mFileSystem.getStatus(new TachyonURI("/testPersist/testFile")).isPersisted());
+    Assert
+        .assertFalse(mFileSystem.getStatus(new TachyonURI("/testPersist/testFile")).isPersisted());
 
     int ret = mFsShell.run("persist", testFilePath);
     Assert.assertEquals(0, ret);
@@ -84,7 +85,8 @@ public class PersistCommandTest extends AbstractTfsShellTest {
     // Persisting an already-persisted file is okay
     String testFilePath = "/testPersist/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WriteType.MUST_CACHE, 10);
-    Assert.assertFalse(mFileSystem.getStatus(new TachyonURI("/testPersist/testFile")).isPersisted());
+    Assert
+        .assertFalse(mFileSystem.getStatus(new TachyonURI("/testPersist/testFile")).isPersisted());
     int ret = mFsShell.run("persist", testFilePath);
     Assert.assertEquals(0, ret);
     ret = mFsShell.run("persist", testFilePath);

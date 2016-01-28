@@ -44,10 +44,11 @@ public class MkdirCommandTest extends AbstractTfsShellTest {
   @Test
   public void mkdirComplexPathTest() throws IOException, TachyonException {
     mFsShell.run("mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File");
-    URIStatus status = mFileSystem.getStatus(new TachyonURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
+    URIStatus status =
+        mFileSystem.getStatus(new TachyonURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
     Assert.assertNotNull(status);
-    Assert.assertEquals(getCommandOutput(new String[]{"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,"
-        + ".?/File"}), mOutput.toString());
+    Assert.assertEquals(getCommandOutput(new String[] {"mkdir",
+        "/Complex!@#$%^&*()-_=+[]{};\"'<>," + ".?/File"}), mOutput.toString());
     Assert.assertTrue(status.isFolder());
   }
 

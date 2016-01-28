@@ -44,10 +44,11 @@ public class LsCommandTest extends AbstractTfsShellTest {
     String testUser = "test_user_ls";
     clearAndLogin(testUser);
 
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     files[0] = mFileSystem.getStatus(new TachyonURI("/testRoot/testFileA"));
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE,
-        20);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
+        WriteType.MUST_CACHE, 20);
     files[1] = mFileSystem.getStatus(new TachyonURI("/testRoot/testDir"));
     files[2] = mFileSystem.getStatus(new TachyonURI("/testRoot/testDir/testFileB"));
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WriteType.THROUGH, 30);

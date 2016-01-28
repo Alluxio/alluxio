@@ -35,7 +35,8 @@ public class ChgrprCommandTest extends AbstractTfsShellTest {
   public void chgrprTest() throws IOException, TachyonException {
     clearLoginUser();
     mFsShell.run("mkdir", "/testFolder1");
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFolder1/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFolder1/testFile", WriteType.MUST_CACHE,
+        10);
     mFsShell.run("chgrpr", "group1", "/testFolder1");
     String group = mFileSystem.getStatus(new TachyonURI("/testFolder1/testFile")).getGroupName();
     Assert.assertEquals("group1", group);
