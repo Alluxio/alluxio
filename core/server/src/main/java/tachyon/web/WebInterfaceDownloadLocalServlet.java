@@ -21,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
@@ -34,8 +35,9 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 
 /**
- * Servlet for downloading a local file
+ * Servlet for downloading a local file.
  */
+@ThreadSafe
 public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
   private static final long serialVersionUID = 7260819317567193560L;
 

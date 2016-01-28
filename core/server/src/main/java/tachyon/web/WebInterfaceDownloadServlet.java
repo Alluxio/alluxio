@@ -17,6 +17,7 @@ package tachyon.web;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
@@ -42,8 +43,9 @@ import tachyon.security.authentication.PlainSaslServer;
 import tachyon.thrift.FileInfo;
 
 /**
- * Servlet for downloading a file
+ * Servlet for downloading a file.
  */
+@ThreadSafe
 public final class WebInterfaceDownloadServlet extends HttpServlet {
   private static final long serialVersionUID = 7329267100965731815L;
 

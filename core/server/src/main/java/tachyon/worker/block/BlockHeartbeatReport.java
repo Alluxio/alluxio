@@ -19,9 +19,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Container for the delta information in each worker to master heartbeat.
  */
+@ThreadSafe
 public final class BlockHeartbeatReport {
   /** Map of storage tier alias to a list of blocks ids added in the last heartbeat period */
   private final Map<String, List<Long>> mAddedBlocks;

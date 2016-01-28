@@ -15,6 +15,8 @@
 
 package tachyon.master.file.options;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
@@ -23,7 +25,7 @@ import tachyon.thrift.CreateFileTOptions;
 /**
  * Method option for creating a file.
  */
-
+@NotThreadSafe
 public final class CreateFileOptions {
   /**
    * Builder for {@link CreateFileOptions}.

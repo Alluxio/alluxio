@@ -15,11 +15,14 @@
 
 package tachyon.master;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.conf.TachyonConf;
 
 /**
  * A MasterContext object stores {@link TachyonConf}.
  */
+@ThreadSafe
 public final class MasterContext {
   private MasterContext() {} // to prevent initialization
 

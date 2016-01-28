@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.collections.Pair;
 import tachyon.worker.block.meta.StorageDirView;
 
@@ -33,6 +35,7 @@ import tachyon.worker.block.meta.StorageDirView;
  *
  * Example usage can be found in {@link LRUEvictor#freeSpaceWithView}.
  */
+@NotThreadSafe
 class EvictionDirCandidates {
   /**
    * Map from {@link StorageDirView} to pair of list of candidate blockIds and their total size in

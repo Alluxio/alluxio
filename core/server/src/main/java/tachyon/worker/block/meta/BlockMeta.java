@@ -17,9 +17,12 @@ package tachyon.worker.block.meta;
 
 import java.io.File;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Represents the metadata of a block in Tachyon managed storage.
  */
+@ThreadSafe
 public final class BlockMeta extends BlockMetaBase {
   private final long mBlockSize;
 

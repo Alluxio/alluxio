@@ -17,6 +17,8 @@ package tachyon.worker.block.evictor;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.collections.Pair;
@@ -25,6 +27,7 @@ import tachyon.worker.block.BlockStoreLocation;
 /**
  * This class provides information about the blocks that need to be moved when evicting.
  */
+@ThreadSafe
 public final class EvictionPlan {
   /** A list of block transfer information, with block id, source and destination location */
   private final List<BlockTransferInfo> mToMove;

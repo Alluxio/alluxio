@@ -15,6 +15,8 @@
 
 package tachyon.master.file.options;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 import tachyon.thrift.CompleteFileTOptions;
@@ -22,6 +24,7 @@ import tachyon.thrift.CompleteFileTOptions;
 /**
  * Method option for completing a file.
  */
+@NotThreadSafe
 public final class CompleteFileOptions {
 
   /**

@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +77,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * The lineage master stores the lineage metadata in Tachyon, and it contains the components that
  * manage all lineage-related activities.
  */
+@NotThreadSafe
 public final class LineageMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

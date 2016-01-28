@@ -17,16 +17,18 @@ package tachyon.worker;
 
 import java.util.concurrent.ExecutorService;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-
 /**
  * This is the base class for all workers, and contains common functionality.
  */
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
 public abstract class WorkerBase implements Worker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The executor service for the master sync */

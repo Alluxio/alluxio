@@ -15,6 +15,8 @@
 
 package tachyon.master.journal;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.master.MasterContext;
 
@@ -27,6 +29,7 @@ import tachyon.master.MasterContext;
  * order. The entry file most recently being written to is in the base journal folder, where the
  * completed entry files are in the "completed/" sub-directory.
  */
+@ThreadSafe
 public abstract class Journal {
   /** The log number for the first completed log file. */
   public static final long FIRST_COMPLETED_LOG_NUMBER = 1L;

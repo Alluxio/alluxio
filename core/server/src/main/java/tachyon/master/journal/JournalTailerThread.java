@@ -17,6 +17,8 @@ package tachyon.master.journal;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +34,7 @@ import tachyon.util.CommonUtils;
  * This thread continually tails the journal and applies it to the master, until the master
  * initiates the shutdown of the thread.
  */
+@NotThreadSafe
 public final class JournalTailerThread extends Thread {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

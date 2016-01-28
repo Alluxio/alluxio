@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -54,8 +57,9 @@ import tachyon.web.MasterUIWebServer;
 import tachyon.web.UIWebServer;
 
 /**
- * Entry point for the Master program.
+ * Entry point for the Tachyon master program.
  */
+@NotThreadSafe
 public class TachyonMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -78,51 +82,62 @@ public class TachyonMaster {
     }
   }
 
-  /** Maximum number of threads to serve the rpc server */
+  /** Maximum number of threads to serve the rpc server. */
   private final int mMaxWorkerThreads;
-  /** Minimum number of threads to serve the rpc server */
+
+  /** Minimum number of threads to serve the rpc server. */
   private final int mMinWorkerThreads;
-  /** The port for the RPC server */
+
+  /** The port for the RPC server. */
   private final int mPort;
-  /** The socket for thrift rpc server */
+
+  /** The socket for thrift rpc server. */
   private final TServerSocket mTServerSocket;
-  /** The address for the rpc server */
+
+  /** The address for the rpc server. */
   private final InetSocketAddress mMasterAddress;
-  /** The master metrics system */
+
+  /** The master metrics system. */
   private final MetricsSystem mMasterMetricsSystem;
 
-  // The masters
-  /** The master managing all block metadata */
+  /** The master managing all block metadata. */
   protected BlockMaster mBlockMaster;
-  /** The master managing all file system related metadata */
+
+  /** The master managing all file system related metadata. */
   protected FileSystemMaster mFileSystemMaster;
-  /** The master managing all lineage related metadata */
+
+  /** The master managing all lineage related metadata. */
   protected LineageMaster mLineageMaster;
-  /** A list of extra masters to launch based on service loader */
+
+  /** A list of extra masters to launch based on service loader. */
   protected List<Master> mAdditionalMasters;
 
-  // The read-write journals for the masters
-  /** The journal for the block master */
+  /** The journal for the block master. */
   protected final ReadWriteJournal mBlockMasterJournal;
-  /** The journal for the file system master */
+
+  /** The journal for the file system master. */
   protected final ReadWriteJournal mFileSystemMasterJournal;
-  /** The journal for the lineage master */
+
+  /** The journal for the lineage master. */
   protected final ReadWriteJournal mLineageMasterJournal;
 
-  /** The web ui server */
+  /** The web ui server. */
   private UIWebServer mWebServer = null;
-  /** The RPC server */
+
+  /** The RPC server. */
   private TServer mMasterServiceServer = null;
 
-  /** is true if the master is serving the RPC server */
+  /** is true if the master is serving the RPC server. */
   private boolean mIsServing = false;
-  /** The start time for when the master started serving the RPC server */
+
+  /** The start time for when the master started serving the RPC server. */
   private long mStartTimeMs = -1;
 
   /**
    * Factory for creating {@link TachyonMaster} or {@link TachyonMasterFaultTolerant} based on
    * {@link TachyonConf}.
    */
+  @ThreadSafe
   public static final class Factory {
     /**
      * @return {@link TachyonMasterFaultTolerant} if tachyonConf is set to use zookeeper, otherwise,

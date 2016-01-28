@@ -15,6 +15,8 @@
 
 package tachyon.master.journal;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.protobuf.Message;
 
 import tachyon.exception.ExceptionMessage;
@@ -23,6 +25,7 @@ import tachyon.proto.journal.Journal.JournalEntry;
 /**
  * Utils for working with the journal.
  */
+@ThreadSafe
 public final class JournalProtoUtils {
   /**
    * Returns the journal entry wrapped by the given {@link JournalEntry}.

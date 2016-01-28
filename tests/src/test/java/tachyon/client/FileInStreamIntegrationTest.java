@@ -25,6 +25,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.Timeout;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
@@ -54,6 +55,9 @@ public class FileInStreamIntegrationTest {
   private static CreateFileOptions sWriteBoth;
   private static CreateFileOptions sWriteTachyon;
   private static CreateFileOptions sWriteUnderStore;
+
+  @Rule
+  public Timeout mGlobalTimeout = Timeout.seconds(60);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();

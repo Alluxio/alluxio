@@ -21,15 +21,18 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.conf.TachyonConf;
 
 /**
- * Validate the {@link TachyonConf} object.
+ * Validate the Tachyon configuration.
  *
  */
+@ThreadSafe
 public final class ValidateConf {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

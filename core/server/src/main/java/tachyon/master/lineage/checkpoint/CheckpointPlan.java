@@ -17,6 +17,8 @@ package tachyon.master.lineage.checkpoint;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
@@ -24,6 +26,7 @@ import com.google.common.base.Preconditions;
  * A plan for checkpointing lineage. It essentially contains a list of lineages to checkpoint in
  * order.
  */
+@ThreadSafe
 public final class CheckpointPlan {
   /** A list of lineage ids to checkpoint */
   private final List<Long> mToCheckPoint;

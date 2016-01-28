@@ -20,6 +20,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
@@ -30,6 +32,7 @@ import tachyon.thrift.WorkerNetAddress;
 /**
  * Contains information for displaying a file block in the UI.
  */
+@ThreadSafe
 public final class UIFileBlockInfo {
   private final List<String> mLocations = new ArrayList<String>();
   private final Set<String> mTierAliases = new HashSet<String>();

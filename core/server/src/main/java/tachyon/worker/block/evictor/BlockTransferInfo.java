@@ -15,11 +15,14 @@
 
 package tachyon.worker.block.evictor;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.worker.block.BlockStoreLocation;
 
 /**
  * Provides information about the transfer of a block.
  */
+@ThreadSafe
 public class BlockTransferInfo {
   private final long mBlockId;
   private final BlockStoreLocation mSrcLocation;

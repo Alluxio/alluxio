@@ -22,6 +22,9 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,34 +40,40 @@ import tachyon.worker.WorkerContext;
 
 /**
  * Handle all block locks.
- * <p>
- * This class is thread-safe.
  */
+@ThreadSafe
 public final class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** The number of locks, larger value leads to finer locking granularity, but more space. */
-  private static int sNumLocks =
+  private static final int NUM_LOCKS =
       WorkerContext.getConf().getInt(Constants.WORKER_TIERED_STORE_BLOCK_LOCKS);
 
-  /** The unique id of each lock */
+  /** The unique id of each lock. */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
-  /** A hashing function to map blockId to one of the locks */
+
+  /** A hashing function to map block id to one of the locks. */
   private static final HashFunction HASH_FUNC = Hashing.murmur3_32();
 
-  /** A map from a block id to its lock */
-  private final ClientRWLock[] mLockArray = new ClientRWLock[sNumLocks];
-  /** A map from a session id to all the locks hold by this session */
+  /** An array of read write locks. */
+  private final ClientRWLock[] mLockArray = new ClientRWLock[NUM_LOCKS];
+
+  /** A map from a session id to all the locks hold by this session. */
+  @GuardedBy("mSharedMapsLock")
   private final Map<Long, Set<Long>> mSessionIdToLockIdsMap = new HashMap<Long, Set<Long>>();
-  /** A map from a lock id to the lock record of it */
+
+  /** A map from a lock id to the lock record of it. */
+  @GuardedBy("mSharedMapsLock")
   private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
-  /** To guard access on {@link #mLockIdToRecordMap} and {@link #mSessionIdToLockIdsMap} */
+
+  /** To guard access on {@link #mLockIdToRecordMap} and {@link #mSessionIdToLockIdsMap}. */
   private final Object mSharedMapsLock = new Object();
 
   /**
    * Creates a new instance of {@link BlockLockManager}.
    */
   public BlockLockManager() {
-    for (int i = 0; i < sNumLocks; i ++) {
+    for (int i = 0; i < NUM_LOCKS; i ++) {
       mLockArray[i] = new ClientRWLock();
     }
   }
@@ -76,7 +85,7 @@ public final class BlockLockManager {
    * @return hash index of the lock
    */
   public static int blockHashIndex(long blockId) {
-    return Math.abs(HASH_FUNC.hashLong(blockId).asInt()) % sNumLocks;
+    return Math.abs(HASH_FUNC.hashLong(blockId).asInt()) % NUM_LOCKS;
   }
 
   /**
@@ -89,7 +98,7 @@ public final class BlockLockManager {
    * @return lock id
    */
   public long lockBlock(long sessionId, long blockId, BlockLockType blockLockType) {
-    // hashing blockId into the range of [0, sNumLocks - 1]
+    // hashing block id into the range of [0, NUM_LOCKS - 1]
     int index = blockHashIndex(blockId);
     ClientRWLock blockLock = mLockArray[index];
     Lock lock;
@@ -126,8 +135,8 @@ public final class BlockLockManager {
         throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
             lockId);
       }
-      long sessionId = record.sessionId();
-      lock = record.lock();
+      long sessionId = record.getSessionId();
+      lock = record.getLock();
       mLockIdToRecordMap.remove(lockId);
       Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
       sessionLockIds.remove(lockId);
@@ -155,13 +164,13 @@ public final class BlockLockManager {
           throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
               lockId);
         }
-        if (blockId == record.blockId()) {
+        if (blockId == record.getBlockId()) {
           mLockIdToRecordMap.remove(lockId);
           sessionLockIds.remove(lockId);
           if (sessionLockIds.isEmpty()) {
             mSessionIdToLockIdsMap.remove(sessionId);
           }
-          Lock lock = record.lock();
+          Lock lock = record.getLock();
           lock.unlock();
           return;
         }
@@ -177,9 +186,9 @@ public final class BlockLockManager {
    * @param sessionId the session id
    * @param blockId the block id
    * @param lockId the lock id
-   * @throws BlockDoesNotExistException when no lock record can be found for lockId
-   * @throws InvalidWorkerStateException when sessionId or blockId is not consistent with that in
-   *         the lock record for lockId
+   * @throws BlockDoesNotExistException when no lock record can be found for lock id
+   * @throws InvalidWorkerStateException when session id or block id is not consistent with that
+   *         in the lock record for lock id
    */
   public void validateLock(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException {
@@ -189,13 +198,13 @@ public final class BlockLockManager {
         throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
             lockId);
       }
-      if (sessionId != record.sessionId()) {
+      if (sessionId != record.getSessionId()) {
         throw new InvalidWorkerStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_SESSION,
-            lockId, record.sessionId(), sessionId);
+            lockId, record.getSessionId(), sessionId);
       }
-      if (blockId != record.blockId()) {
+      if (blockId != record.getBlockId()) {
         throw new InvalidWorkerStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_BLOCK, lockId,
-            record.blockId(), blockId);
+            record.getBlockId(), blockId);
       }
     }
   }
@@ -217,7 +226,7 @@ public final class BlockLockManager {
           LOG.error(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId));
           continue;
         }
-        Lock lock = record.lock();
+        Lock lock = record.getLock();
         lock.unlock();
         mLockIdToRecordMap.remove(lockId);
       }
@@ -234,7 +243,7 @@ public final class BlockLockManager {
     synchronized (mSharedMapsLock) {
       Set<Long> set = new HashSet<Long>();
       for (LockRecord lockRecord : mLockIdToRecordMap.values()) {
-        set.add(lockRecord.blockId());
+        set.add(lockRecord.getBlockId());
       }
       return set;
     }
@@ -243,6 +252,7 @@ public final class BlockLockManager {
   /**
    * Inner class to keep record of a lock.
    */
+  @ThreadSafe
   private static final class LockRecord {
     private final long mSessionId;
     private final long mBlockId;
@@ -263,21 +273,21 @@ public final class BlockLockManager {
     /**
      * @return the session id
      */
-    long sessionId() {
+    long getSessionId() {
       return mSessionId;
     }
 
     /**
      * @return the block id
      */
-    long blockId() {
+    long getBlockId() {
       return mBlockId;
     }
 
     /**
      * @return the lock
      */
-    Lock lock() {
+    Lock getLock() {
       return mLock;
     }
   }

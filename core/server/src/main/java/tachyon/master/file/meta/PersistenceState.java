@@ -15,9 +15,12 @@
 
 package tachyon.master.file.meta;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The persistence state of a file in the under-storage system.
  */
+@ThreadSafe
 public enum PersistenceState {
   NOT_PERSISTED, // file not persisted in the under FS
   IN_PROGRESS, // used for async persistence, the async persistence is scheduled and in progress

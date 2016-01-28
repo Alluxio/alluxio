@@ -15,9 +15,12 @@
 
 package tachyon.worker.block.meta;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * Represents the metadata of an uncommitted block in Tachyon managed storage.
  */
+@NotThreadSafe
 public class TempBlockMeta extends BlockMetaBase {
   private final long mSessionId;
   private long mTempBlockSize;

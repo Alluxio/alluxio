@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +34,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.metrics.sink.MetricsServlet;
 import tachyon.metrics.sink.Sink;
 import tachyon.metrics.source.Source;
-
 /**
  * A MetricsSystem is created by a specific instance(master, worker). It polls the metrics sources
  * periodically and pass the data to the sinks.
@@ -40,6 +41,7 @@ import tachyon.metrics.source.Source;
  * The syntax of the metrics configuration file is:
  * [instance].[sink|source].[name].[options]=[value]
  */
+@NotThreadSafe
 public class MetricsSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

@@ -15,6 +15,8 @@
 
 package tachyon.master.file.meta.options;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
@@ -23,6 +25,7 @@ import tachyon.security.authorization.PermissionStatus;
 /**
  * Method option for creating a path.
  */
+@NotThreadSafe
 public final class CreatePathOptions {
 
   /**
