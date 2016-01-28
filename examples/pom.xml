@@ -35,17 +35,17 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-servers</artifactId>
+      <artifactId>tachyon-core-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-client-unshaded</artifactId>
+      <artifactId>tachyon-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-common</artifactId>
+      <artifactId>tachyon-keyvalue-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
