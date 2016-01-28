@@ -7,7 +7,7 @@
   </parent>
   <artifactId>tachyon-keyvalue</artifactId>
   <packaging>pom</packaging>
-  <name>Tachyon Key Value Store</name>
+  <name>Tachyon Key Value</name>
   <description>Parent POM for Tachyon Key Value Store</description>
 
   <modules>

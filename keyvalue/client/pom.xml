@@ -8,7 +8,7 @@
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-keyvalue-client</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Key Value Store - Client Distribution</name>
+  <name>Tachyon Key Value - Client Distribution</name>
   <description>Distribution of client for Tachyon Key Value Store</description>
 
   <properties>
