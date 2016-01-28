@@ -15,9 +15,11 @@ function printUsage {
   echo -e "  bootstrap-conf\t Generate a config file if one doesn't exist"
   echo -e "  tfs           \t Command line input for generic filesystem user client."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Tachyon."
+  echo -e "  runClass      \t Run a Tachyon class with main method."
   echo -e "  runTest       \t Run a end-to-end test on a Tachyon cluster."
+  echo -e "  runKVTest     \t Run a test of key-value store operations."
   echo -e "  runTests      \t Run all end-to-end tests on a Tachyon cluster."
-  echo -e "  journalCrashTest\t Test the Master Journal System in a crash scenario. Try 'tachyon journalCrashTest -help' for more help."
+  echo -e "  runJournalCrashTest\t Test the Master Journal System in a crash scenario. Try 'tachyon runJournalCrashTest -help' for more help."
   echo -e "                  \t NOTE: This command will stop the existing server and creates a new one!"
   echo -e "  readJournal   \t Read a Tachyon journal file from stdin and write a human-readable version of it to stdout."
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
@@ -118,24 +120,34 @@ function runTest {
   return ${RET}
 }
 
-function journalCrashTest {
+function runClass {
+  if [[ $# -lt 1 ]]; then
+    echo "runClass <class name> <main method parameters>"
+    exit
+  fi
+
   MASTER_ADDRESS=${TACHYON_MASTER_ADDRESS}
   if [[ -z ${TACHYON_MASTER_ADDRESS} ]]; then
     MASTER_ADDRESS=localhost
   fi
 
-  local class="tachyon.examples.JournalCrashTest"
+  local class="$1"
+  shift
 
-  ${JAVA} -cp ${CLASSPATH} -Dtachyon.home=${TACHYON_HOME} -Dtachyon.master.hostname=${MASTER_ADDRESS} -Dtachyon.logs.dir=${TACHYON_LOGS_DIR} -Dtachyon.logger.type=USER_LOGGER ${TACHYON_JAVA_OPTS} ${class} $@
+  ${JAVA} -cp ${CLASSPATH} -Dtachyon.home=${TACHYON_HOME} -Dtachyon.master.hostname=${MASTER_ADDRESS} ${TACHYON_JAVA_OPTS} ${class} $@
   RET=$?
 
   # If test process received a signal abort early
   # Exit Codes for signals terminating a JVM are 128 + signal
   if [[ ${RET} -gt 128 ]]; then
-    echo "Test process was terminated due to signal"
+    echo "Process was terminated due to signal"
     exit ${RET}
   fi
   return ${RET}
+}
+
+function runJournalCrashTest {
+  runClass tachyon.examples.JournalCrashTest $@
 }
 
 function readJournal {
@@ -144,6 +156,10 @@ function readJournal {
   ${JAVA} -cp ${CLASSPATH} -Dtachyon.home=${TACHYON_HOME} -Dtachyon.master.hostname=${MASTER_ADDRESS} -Dtachyon.logs.dir=${TACHYON_LOGS_DIR} -Dtachyon.logger.type=USER_LOGGER ${TACHYON_JAVA_OPTS} ${class} $@
   RET=$?
   return ${RET}
+}
+
+function runKVTest {
+  runClass tachyon.examples.keyvalue.KeyValueStoreOperations /default_tests_files/KeyValueStoreOperations
 }
 
 function killAll {
@@ -245,8 +261,16 @@ case ${COMMAND} in
 "loadufs")
   CLASS=tachyon.client.UfsUtils
 ;;
+"runClass")
+  runClass $@
+  exit $?
+;;
 "runTest")
   runTest $@
+  exit $?
+;;
+"runKVTest")
+  runKVTest $@
   exit $?
 ;;
 "runTests")
@@ -278,8 +302,8 @@ case ${COMMAND} in
   fi
   exit ${failed}
 ;;
-"journalCrashTest")
-  journalCrashTest $@
+"runJournalCrashTest")
+  runJournalCrashTest $@
   exit $?
 ;;
 "readJournal")
