@@ -16,6 +16,7 @@
       <% if (request.getAttribute("useWorkerHeader") != null) { %>
         <li id="returnmaster-li"><a href="http://<%=request.getAttribute("masterHost") %>:<%= request.getAttribute("masterPort") %>">Return to Master</a></li>
       <% } %>
+      <li id="metricsui-li"><a href="./metricsui">Metrics</a></li>
     </ul>
   </div>
 </div>
