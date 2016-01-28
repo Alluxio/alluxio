@@ -41,6 +41,7 @@ import tachyon.master.file.FileSystemMaster;
 import tachyon.security.LoginUser;
 import tachyon.security.authentication.PlainSaslServer;
 import tachyon.thrift.FileInfo;
+import tachyon.util.SecurityUtils;
 
 /**
  * Servlet for downloading a file.
@@ -71,7 +72,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (PlainSaslServer.AuthorizedClientUser.get() == null) {
+    if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())
+        && PlainSaslServer.AuthorizedClientUser.get(MasterContext.getConf()) == null) {
       PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(MasterContext.getConf()).getName());
     }
     String requestPath = request.getParameter("path");

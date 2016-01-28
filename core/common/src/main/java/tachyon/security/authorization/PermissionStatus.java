@@ -128,7 +128,7 @@ public final class PermissionStatus {
     }
     if (remote) {
       // get the username through the authentication mechanism
-      User user = PlainSaslServer.AuthorizedClientUser.get();
+      User user = PlainSaslServer.AuthorizedClientUser.get(conf);
       if (user == null) {
         throw new IOException(ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
       }
