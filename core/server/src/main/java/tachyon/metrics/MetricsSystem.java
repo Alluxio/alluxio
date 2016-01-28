@@ -31,6 +31,7 @@ import com.codahale.metrics.MetricRegistry;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.metrics.sink.CsvSink;
 import tachyon.metrics.sink.MetricsServlet;
 import tachyon.metrics.sink.Sink;
 import tachyon.metrics.source.Source;
@@ -53,7 +54,7 @@ public class MetricsSystem {
   private String mInstance;
   private List<Sink> mSinks = new ArrayList<Sink>();
   private List<Source> mSources = new ArrayList<Source>();
-  private MetricRegistry mMetricRegistry = new MetricRegistry();
+  private TachyonMetricRegistry mMetricRegistry = new TachyonMetricRegistry();
   private MetricsConfig mMetricsConfig;
   private boolean mRunning = false;
   private TachyonConf mTachyonConf;
@@ -176,10 +177,18 @@ public class MetricsSystem {
       String classPath = entry.getValue().getProperty("class");
       if (classPath != null) {
         try {
+
+          Class<? extends Sink> clazz = Class.forName(classPath).asSubclass(Sink.class);
+
           Sink sink =
-              (Sink) Class.forName(classPath)
-                  .getConstructor(Properties.class, MetricRegistry.class)
-                  .newInstance(entry.getValue(), mMetricRegistry);
+                  clazz.getConstructor(Properties.class, MetricRegistry.class)
+                          .newInstance(entry.getValue(), mMetricRegistry);
+
+          if (clazz.equals(CsvSink.class)) {
+            mMetricRegistry.setHistoryEnabled(true);
+            mMetricRegistry.setCsvPath(((CsvSink) sink).getPollDir());
+          }
+
           if (entry.getKey().equals("servlet")) {
             mMetricsServlet = (MetricsServlet) sink;
           } else {
@@ -239,5 +248,12 @@ public class MetricsSystem {
     } else {
       LOG.warn("Stopping a MetricsSystem that is not running");
     }
+  }
+
+  /**
+   * @return the metric registry
+   */
+  public TachyonMetricRegistry getMetricRegistry() {
+    return mMetricRegistry;
   }
 }
