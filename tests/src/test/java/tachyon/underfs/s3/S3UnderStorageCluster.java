@@ -20,6 +20,10 @@ import java.util.UUID;
 
 import com.google.common.base.Preconditions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.PreconditionMessage;
 import tachyon.underfs.UnderFileSystem;
@@ -34,23 +38,23 @@ import tachyon.util.io.PathUtils;
  * manual means.
  */
 public class S3UnderStorageCluster extends UnderFileSystemCluster {
-
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String INTEGRATION_S3_BUCKET = "s3Bucket";
 
+  private boolean mStarted;
   private String mS3Bucket;
 
   public S3UnderStorageCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
-    mS3Bucket = System.getProperty(INTEGRATION_S3_BUCKET);
+    mS3Bucket = PathUtils.concatPath(System.getProperty(INTEGRATION_S3_BUCKET), UUID.randomUUID());
     Preconditions.checkState(mS3Bucket != null && mS3Bucket != "",
         PreconditionMessage.S3_BUCKET_MUST_BE_SET, INTEGRATION_S3_BUCKET);
     mBaseDir = PathUtils.concatPath(mS3Bucket, UUID.randomUUID());
+    mStarted = false;
   }
 
   @Override
   public void cleanup() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mTachyonConf);
-    ufs.delete(mBaseDir, true);
     mBaseDir = PathUtils.concatPath(mS3Bucket, UUID.randomUUID());
   }
 
@@ -61,12 +65,18 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
 
   @Override
   public boolean isStarted() {
-    return true;
+    return mStarted;
   }
 
   @Override
-  public void shutdown() throws IOException {}
+  public void shutdown() throws IOException {
+    LOG.info("Shutting down S3 testing cluster, deleting bucket contents in: " + mS3Bucket);
+    UnderFileSystem ufs = UnderFileSystem.get(mS3Bucket, mTachyonConf);
+    ufs.delete(mS3Bucket, true);
+  }
 
   @Override
-  public void start() throws IOException {}
+  public void start() throws IOException {
+    mStarted = true;
+  }
 }
