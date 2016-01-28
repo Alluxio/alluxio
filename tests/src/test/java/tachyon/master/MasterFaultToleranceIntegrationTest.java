@@ -48,7 +48,7 @@ public class MasterFaultToleranceIntegrationTest {
   private static final int MASTERS = 5;
 
   private LocalTachyonClusterMultiMaster mLocalTachyonClusterMultiMaster = null;
-  private FileSystem mTfs = null;
+  private FileSystem mFileSystem = null;
 
   @After
   public final void after() throws Exception {
@@ -65,7 +65,7 @@ public class MasterFaultToleranceIntegrationTest {
     mLocalTachyonClusterMultiMaster =
         new LocalTachyonClusterMultiMaster(WORKER_CAPACITY_BYTES, MASTERS, BLOCK_SIZE);
     mLocalTachyonClusterMultiMaster.start();
-    mTfs = mLocalTachyonClusterMultiMaster.getClient();
+    mFileSystem = mLocalTachyonClusterMultiMaster.getClient();
   }
 
   /**
@@ -77,14 +77,15 @@ public class MasterFaultToleranceIntegrationTest {
    */
   private void faultTestDataCreation(TachyonURI folderName, List<Pair<Long, TachyonURI>> answer)
       throws IOException, TachyonException {
-    mTfs.createDirectory(folderName);
-    answer.add(new Pair<Long, TachyonURI>(mTfs.getStatus(folderName).getFileId(), folderName));
+    mFileSystem.createDirectory(folderName);
+    answer
+        .add(new Pair<Long, TachyonURI>(mFileSystem.getStatus(folderName).getFileId(), folderName));
 
     for (int k = 0; k < 10; k ++) {
       TachyonURI path =
           new TachyonURI(PathUtils.concatPath(folderName, folderName.toString().substring(1) + k));
-      mTfs.createFile(path).close();
-      answer.add(new Pair<Long, TachyonURI>(mTfs.getStatus(path).getFileId(), path));
+      mFileSystem.createFile(path).close();
+      answer.add(new Pair<Long, TachyonURI>(mFileSystem.getStatus(path).getFileId(), path));
     }
   }
 
@@ -96,14 +97,14 @@ public class MasterFaultToleranceIntegrationTest {
    */
   private void faultTestDataCheck(List<Pair<Long, TachyonURI>> answer) throws IOException,
       TachyonException {
-    List<String> files = FileSystemTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
+    List<String> files = FileSystemTestUtils.listFiles(mFileSystem, TachyonURI.SEPARATOR);
     Collections.sort(files);
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
       Assert.assertEquals(answer.get(k).getSecond().toString(),
-          mTfs.getStatus(answer.get(k).getSecond()).getPath());
+          mFileSystem.getStatus(answer.get(k).getSecond()).getPath());
       Assert.assertEquals(answer.get(k).getFirst().longValue(),
-          mTfs.getStatus(answer.get(k).getSecond()).getFileId());
+          mFileSystem.getStatus(answer.get(k).getSecond()).getFileId());
     }
   }
 
@@ -137,10 +138,11 @@ public class MasterFaultToleranceIntegrationTest {
 
         faultTestDataCheck(answer);
 
-        // We can not call mTfs.delete(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR))) because root
-        // node can not be deleted.
-        for (URIStatus file : mTfs.listStatus(new TachyonURI(TachyonURI.SEPARATOR))) {
-          mTfs.delete(new TachyonURI(file.getPath()), DeleteOptions.defaults().setRecursive(true));
+        // We can not call mFileSystem.delete(mFileSystem.open(new
+        // TachyonURI(TachyonURI.SEPARATOR))) because root node can not be deleted.
+        for (URIStatus file : mFileSystem.listStatus(new TachyonURI(TachyonURI.SEPARATOR))) {
+          mFileSystem.delete(new TachyonURI(file.getPath()),
+              DeleteOptions.defaults().setRecursive(true));
         }
         answer.clear();
         faultTestDataCheck(answer);
@@ -163,9 +165,9 @@ public class MasterFaultToleranceIntegrationTest {
     CreateFileOptions option =
         CreateFileOptions.defaults().setBlockSizeBytes(1024).setWriteType(WriteType.THROUGH);
     for (int k = 0; k < clients; k ++) {
-      mTfs.createFile(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
+      mFileSystem.createFile(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
     }
-    List<String> files = FileSystemTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
+    List<String> files = FileSystemTestUtils.listFiles(mFileSystem, TachyonURI.SEPARATOR);
     Assert.assertEquals(clients, files.size());
     Collections.sort(files);
     for (int k = 0; k < clients; k ++) {

@@ -142,6 +142,7 @@ public enum ExceptionMessage {
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
+  AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
   PERMISSION_DENIED("Permission denied: {0}"),

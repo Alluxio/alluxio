@@ -220,7 +220,7 @@ public final class KeyValueStoresIntegrationTest {
     final int keyLength = 4; // 4Byte key
     final int valueLength = 500 * Constants.KB; // 500KB value
 
-    FileSystem tfs = FileSystem.Factory.get();
+    FileSystem fs = FileSystem.Factory.get();
 
     ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
         String.valueOf(maxPartitionSize));
@@ -232,7 +232,7 @@ public final class KeyValueStoresIntegrationTest {
     }
     mWriter.close();
 
-    List<URIStatus> files = tfs.listStatus(mStoreUri);
+    List<URIStatus> files = fs.listStatus(mStoreUri);
     Assert.assertEquals(numKeys, files.size());
     for (URIStatus info : files) {
       Assert.assertTrue(info.getLength() <= maxPartitionSize);

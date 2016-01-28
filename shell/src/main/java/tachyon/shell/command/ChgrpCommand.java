@@ -33,10 +33,10 @@ public final class ChgrpCommand extends AbstractAclCommand {
    * Creates a new instance of {@link ChgrpCommand}.
    *
    * @param conf a Tachyon configuration
-   * @param tfs a Tachyon file system handle
+   * @param fs a Tachyon file system handle
    */
-  public ChgrpCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public ChgrpCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

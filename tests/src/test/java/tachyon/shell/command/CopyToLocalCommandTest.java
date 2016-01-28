@@ -31,7 +31,7 @@ import tachyon.shell.TfsShellUtilsTest;
 public class CopyToLocalCommandTest extends AbstractTfsShellTest {
   @Test
   public void copyToLocalDirTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
     int ret =
         mFsShell.run("copyToLocal", "/testWildCards/", mLocalTachyonCluster.getTachyonHome()
             + "/testDir");
@@ -54,7 +54,7 @@ public class CopyToLocalCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void copyToLocalWildcardExistingDirTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
 
     new File(mLocalTachyonCluster.getTachyonHome() + "/testDir").mkdir();
 
@@ -69,7 +69,7 @@ public class CopyToLocalCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void copyToLocalWildcardHierTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
     int ret =
         mFsShell.run("copyToLocal", "/testWildCards/*", mLocalTachyonCluster.getTachyonHome()
             + "/testDir");
@@ -82,7 +82,7 @@ public class CopyToLocalCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void copyToLocalWildcardNotDirTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
     new File(mLocalTachyonCluster.getTachyonHome() + "/testDir").mkdir();
     new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testFile").createNewFile();
 
@@ -94,7 +94,7 @@ public class CopyToLocalCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void copyToLocalWildcardTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
     int ret =
         mFsShell.run("copyToLocal", "/testWildCards/*/foo*", mLocalTachyonCluster.getTachyonHome()
             + "/testDir");
