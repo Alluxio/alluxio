@@ -105,7 +105,7 @@ public final class PermissionStatus {
    */
   public static PermissionStatus getDirDefault() {
     return new PermissionStatus("", "", new FileSystemPermission(Constants
-        .DEFAULT_TFS_FULL_PERMISSION));
+        .DEFAULT_FS_FULL_PERMISSION));
   }
 
   /**
