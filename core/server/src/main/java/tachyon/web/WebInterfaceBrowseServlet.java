@@ -137,7 +137,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     if (SecurityUtils.isSecurityEnabled(mTachyonConf)
-        && PlainSaslServer.AuthorizedClientUser.get() == null) {
+        && PlainSaslServer.AuthorizedClientUser.get(mTachyonConf) == null) {
       PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(mTachyonConf).getName());
     }
     request.setAttribute("debug", Constants.DEBUG);
