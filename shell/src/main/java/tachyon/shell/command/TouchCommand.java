@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileSystem;
@@ -27,14 +29,15 @@ import tachyon.exception.TachyonException;
 /**
  * Creates a 0 byte file specified by argv. The file will be written to UnderFileSystem.
  */
+@ThreadSafe
 public final class TouchCommand extends AbstractTfsShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public TouchCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public TouchCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -52,8 +55,8 @@ public final class TouchCommand extends AbstractTfsShellCommand {
     TachyonURI inputPath = new TachyonURI(args[0]);
 
     try {
-      mTfs.createFile(inputPath, CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH))
-          .close();
+      mFileSystem.createFile(inputPath,
+          CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)).close();
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }

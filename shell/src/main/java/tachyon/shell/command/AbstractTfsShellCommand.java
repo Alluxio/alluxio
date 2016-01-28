@@ -15,6 +15,8 @@
 
 package tachyon.shell.command;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
@@ -22,14 +24,15 @@ import tachyon.conf.TachyonConf;
  * The base class for all the {@link TfsShellCommand} classes. It provides a default argument
  * validation method and a place to hold the {@link FileSystem} client.
  */
+@ThreadSafe
 public abstract class AbstractTfsShellCommand implements TfsShellCommand {
 
   protected TachyonConf mTachyonConf;
-  protected FileSystem mTfs;
+  protected FileSystem mFileSystem;
 
-  protected AbstractTfsShellCommand(TachyonConf conf, FileSystem tfs) {
+  protected AbstractTfsShellCommand(TachyonConf conf, FileSystem fs) {
     mTachyonConf = conf;
-    mTfs = tfs;
+    mFileSystem = fs;
   }
 
   /**

@@ -18,6 +18,8 @@ package tachyon.shell.command;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -33,14 +35,15 @@ import tachyon.job.JobConf;
 /**
  * Creates a lineage for the given input files, output files, and command line job.
  */
+@ThreadSafe
 public final class CreateLineageCommand extends AbstractTfsShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public CreateLineageCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public CreateLineageCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

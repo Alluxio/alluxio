@@ -6,7 +6,7 @@
     <version>0.9.0-RC1</version>
   </parent>
   <artifactId>tachyon-keyvalue-common</artifactId>
-  <name>Tachyon Key Value Store - Common</name>
+  <name>Tachyon Key Value - Common Utilities</name>
   <description>Clients of Tachyon Key Value Store</description>
 
   <properties>
@@ -20,7 +20,7 @@
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-common</artifactId>
+      <artifactId>tachyon-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
 

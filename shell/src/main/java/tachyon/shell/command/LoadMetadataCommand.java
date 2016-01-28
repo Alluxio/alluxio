@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.LoadMetadataOptions;
@@ -26,16 +28,17 @@ import tachyon.exception.TachyonException;
 /**
  * Loads metadata for the given Tachyon path from UFS.
  */
+@ThreadSafe
 public final class LoadMetadataCommand extends AbstractTfsShellCommand {
 
   /**
    * Constructs a new instance to load metadata for the given Tachyon path from UFS.
    *
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public LoadMetadataCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public LoadMetadataCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -54,7 +57,7 @@ public final class LoadMetadataCommand extends AbstractTfsShellCommand {
 
     try {
       LoadMetadataOptions options = LoadMetadataOptions.defaults().setRecursive(true);
-      mTfs.loadMetadata(inputPath, options);
+      mFileSystem.loadMetadata(inputPath, options);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }

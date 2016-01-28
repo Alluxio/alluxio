@@ -17,6 +17,8 @@ package tachyon.underfs.s3;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.jets3t.service.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,7 @@ import tachyon.underfs.UnderFileSystemFactory;
  * Factory for creating {@link S3UnderFileSystem}. It will ensure AWS credentials are present before
  * returning a client. The validity of the credentials is checked by the client.
  */
+@ThreadSafe
 public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -46,9 +49,9 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
       TachyonURI uri = new TachyonURI(path);
       try {
         return new S3UnderFileSystem(uri.getHost(), tachyonConf);
-      } catch (ServiceException se) {
-        LOG.error("Failed to create S3UnderFileSystem.", se);
-        throw Throwables.propagate(se);
+      } catch (ServiceException e) {
+        LOG.error("Failed to create S3UnderFileSystem.", e);
+        throw Throwables.propagate(e);
       }
     }
 

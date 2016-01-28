@@ -34,8 +34,8 @@ import tachyon.client.WriteType;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.TachyonException;
-import tachyon.exception.TachyonExceptionType;
 import tachyon.util.CommonUtils;
 
 /**
@@ -122,31 +122,31 @@ public class JournalCrashTest {
         try {
           TachyonURI testURI = new TachyonURI(mWorkDir + mSuccessNum);
           if (ClientOpType.CREATE_FILE == mOpType) {
-            sTfs.createFile(testURI, sCreateFileOptions).close();
+            sFileSystem.createFile(testURI, sCreateFileOptions).close();
           } else if (ClientOpType.CREATE_DELETE_FILE == mOpType) {
             try {
-              sTfs.createFile(testURI, sCreateFileOptions).close();
+              sFileSystem.createFile(testURI, sCreateFileOptions).close();
             } catch (TachyonException e) {
               // If file already exists, ignore it.
-              if (e.getType() != TachyonExceptionType.FILE_ALREADY_EXISTS) {
+              if (!(e instanceof FileAlreadyExistsException)) {
                 throw e;
               }
             } catch (Exception e) {
               throw e;
             }
-            sTfs.delete(testURI);
+            sFileSystem.delete(testURI);
           } else if (ClientOpType.CREATE_RENAME_FILE == mOpType) {
             try {
-              sTfs.createFile(testURI, sCreateFileOptions).close();
+              sFileSystem.createFile(testURI, sCreateFileOptions).close();
             } catch (TachyonException e) {
               // If file already exists, ignore it.
-              if (e.getType() != TachyonExceptionType.FILE_ALREADY_EXISTS) {
+              if (!(e instanceof FileAlreadyExistsException)) {
                 throw e;
               }
             } catch (Exception e) {
               throw e;
             }
-            sTfs.rename(testURI, new TachyonURI(testURI + "-rename"));
+            sFileSystem.rename(testURI, new TachyonURI(testURI + "-rename"));
           }
         } catch (Exception e) {
           // Since master may crash/restart for several times, so this exception is expected.
@@ -180,7 +180,7 @@ public class JournalCrashTest {
   private static long sMaxAliveTimeMs;
   private static String sTestDir;
   /** The Tachyon Client. This can be shared by all the threads. */
-  private static FileSystem sTfs = null;
+  private static FileSystem sFileSystem = null;
   /** The total time to run this test. */
   private static long sTotalTimeMs;
 
@@ -195,18 +195,18 @@ public class JournalCrashTest {
       for (int s = 0; s < successNum; s ++) {
         TachyonURI checkURI = new TachyonURI(workDir + s);
         if (ClientOpType.CREATE_FILE == opType) {
-          if (!sTfs.exists(checkURI)) {
+          if (!sFileSystem.exists(checkURI)) {
             // File not exist. This is unexpected for CREATE_FILE.
             LOG.error("File not exist for create test. Check failed! File: {}", checkURI);
             return false;
           }
         } else if (ClientOpType.CREATE_DELETE_FILE == opType) {
-          if (sTfs.exists(checkURI)) {
+          if (sFileSystem.exists(checkURI)) {
             LOG.error("File exists for create/delete test. Check failed! File: {}", checkURI);
             return false;
           }
         } else if (ClientOpType.CREATE_RENAME_FILE == opType) {
-          if (!sTfs.exists(new TachyonURI(checkURI + "-rename"))) {
+          if (!sFileSystem.exists(new TachyonURI(checkURI + "-rename"))) {
             // File not exist. This is unexpected for CREATE_FILE.
             LOG.error("File not exist for create/rename test. Check failed! File: {}-rename",
                 checkURI);
@@ -268,10 +268,10 @@ public class JournalCrashTest {
       LOG.info("Round {}: Planning Master Alive Time {}ms.", rounds, aliveTimeMs);
 
       System.out.println("Round " + rounds + " : Launch Clients...");
-      sTfs = FileSystem.Factory.get();
+      sFileSystem = FileSystem.Factory.get();
       try {
-        sTfs.delete(new TachyonURI(sTestDir));
-      } catch (Exception ioe) {
+        sFileSystem.delete(new TachyonURI(sTestDir));
+      } catch (Exception e) {
         // Test Directory not exist
       }
 

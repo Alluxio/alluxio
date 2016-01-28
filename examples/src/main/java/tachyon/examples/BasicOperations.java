@@ -70,9 +70,9 @@ public class BasicOperations implements Callable<Boolean> {
     tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.reset(tachyonConf);
-    FileSystem tFS = FileSystem.Factory.get();
-    writeFile(tFS);
-    return readFile(tFS);
+    FileSystem fs = FileSystem.Factory.get();
+    writeFile(fs);
+    return readFile(fs);
   }
 
   private void writeFile(FileSystem fileSystem)

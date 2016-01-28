@@ -15,6 +15,8 @@
 
 package tachyon.underfs.hdfs;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.hadoop.conf.Configuration;
 
 import tachyon.Constants;
@@ -24,6 +26,7 @@ import tachyon.underfs.UnderFileSystem;
 /**
  * Utility methods for the HDFS implementation of the {@link UnderFileSystem}.
  */
+@ThreadSafe
 public class HdfsUnderFileSystemUtils {
   /**
    * Replaces default key with user provided key.
