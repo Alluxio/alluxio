@@ -39,7 +39,7 @@ public class FileInfoCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void fileinfoWildCardTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
 
     mFsShell.run("fileInfo", "/testWildCards/*");
     String res1 = mOutput.toString();

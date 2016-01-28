@@ -36,16 +36,17 @@ import tachyon.util.CommonUtils;
 public class FreeCommandTest extends AbstractTfsShellTest {
   @Test
   public void freeTest() throws IOException, TachyonException {
-    FileSystemTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("free", "/testFile");
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     CommonUtils.sleepMs(tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
-    Assert.assertFalse(mTfs.getStatus(new TachyonURI("/testFile")).getInMemoryPercentage() == 100);
+    Assert.assertFalse(
+        mFileSystem.getStatus(new TachyonURI("/testFile")).getInMemoryPercentage() == 100);
   }
 
   @Test
   public void freeWildCardTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
 
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
 

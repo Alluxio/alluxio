@@ -31,8 +31,8 @@ import tachyon.exception.TachyonException;
 @ThreadSafe
 public abstract class AbstractAclCommand extends AbstractTfsShellCommand {
 
-  protected AbstractAclCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  protected AbstractAclCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   /**
@@ -46,7 +46,7 @@ public abstract class AbstractAclCommand extends AbstractTfsShellCommand {
   protected void chown(TachyonURI path, String owner, boolean recursive) throws IOException {
     try {
       SetAclOptions options = SetAclOptions.defaults().setOwner(owner).setRecursive(recursive);
-      mTfs.setAcl(path, options);
+      mFileSystem.setAcl(path, options);
       System.out.println("Changed owner of " + path + " to " + owner);
     } catch (TachyonException e) {
       throw new IOException("Failed to changed owner of " + path + " to " + owner + " : "
@@ -65,7 +65,7 @@ public abstract class AbstractAclCommand extends AbstractTfsShellCommand {
   protected void chgrp(TachyonURI path, String group, boolean recursive) throws IOException {
     try {
       SetAclOptions options = SetAclOptions.defaults().setGroup(group).setRecursive(recursive);
-      mTfs.setAcl(path, options);
+      mFileSystem.setAcl(path, options);
       System.out.println("Changed group of " + path + " to " + group);
     } catch (TachyonException e) {
       throw new IOException("Failed to changed group of " + path + " to " + group + " : "
@@ -87,7 +87,7 @@ public abstract class AbstractAclCommand extends AbstractTfsShellCommand {
       newPermission = Short.parseShort(modeStr, 8);
       SetAclOptions options =
           SetAclOptions.defaults().setPermission(newPermission).setRecursive(recursive);
-      mTfs.setAcl(path, options);
+      mFileSystem.setAcl(path, options);
       System.out.println("Changed permission of " + path + " to "
           + Integer.toOctalString(newPermission));
     } catch (Exception e) {

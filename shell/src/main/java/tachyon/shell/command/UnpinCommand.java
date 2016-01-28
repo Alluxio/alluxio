@@ -32,10 +32,10 @@ public final class UnpinCommand extends WithWildCardPathCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public UnpinCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public UnpinCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -45,7 +45,7 @@ public final class UnpinCommand extends WithWildCardPathCommand {
 
   @Override
   void runCommand(TachyonURI path) throws IOException {
-    CommandUtils.setPinned(mTfs, path, false);
+    CommandUtils.setPinned(mFileSystem, path, false);
     System.out.println("File '" + path + "' was successfully unpinned.");
   }
 
