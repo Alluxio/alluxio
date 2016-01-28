@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -24,6 +26,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Gets number of bytes used in the {@link FileSystem}.
  */
+@ThreadSafe
 public final class GetUsedBytesCommand extends AbstractTfsShellCommand {
 
   /**

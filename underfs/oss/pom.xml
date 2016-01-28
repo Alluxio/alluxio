@@ -24,7 +24,7 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-common</artifactId>
+      <artifactId>tachyon-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -32,7 +32,7 @@
       <artifactId>aliyun-sdk-oss</artifactId>
       <version>2.0.7</version>
     </dependency>
-    <!-- This dependency here is because the oss sdk need it to 
+    <!-- This dependency here is because the oss sdk need it to
          contact the OSS service in the runtime -->
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>

@@ -26,6 +26,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
@@ -47,22 +49,26 @@ import tachyon.util.io.PathUtils;
 /**
  * S3 FS {@link UnderFileSystem} implementation based on the jets3t library.
  */
+@ThreadSafe
 public class S3UnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = "_$folder$";
+
   /** Value used to indicate folder structure in S3. */
   private static final String PATH_SEPARATOR = "/";
 
+  private static final byte[] DIR_HASH;
+
   /** Jets3t S3 client. */
   private final S3Service mClient;
+
   /** Bucket name of user's configured Tachyon bucket. */
   private final String mBucketName;
+
   /** Prefix of the bucket, for example s3n://my-bucket-name/ */
   private final String mBucketPrefix;
-
-  private static final byte[] DIR_HASH;
 
   static {
     try {

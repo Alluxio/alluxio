@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -24,6 +26,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Gets the capacity of the {@link FileSystem}.
  */
+@ThreadSafe
 public final class GetCapacityBytesCommand extends AbstractTfsShellCommand {
 
   /**
