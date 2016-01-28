@@ -21,8 +21,11 @@ import java.util.LinkedList;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -30,11 +33,18 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
+
 import tachyon.Sessions;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.util.io.PathUtils;
+import tachyon.worker.DataServer;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
-import tachyon.worker.WorkerSource;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.TempBlockMeta;
@@ -49,56 +59,61 @@ import tachyon.worker.file.FileSystemMasterClient;
     BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, TachyonConf.class,
     UnderFileSystem.class, BlockWorker.class})
 public class BlockWorkerTest {
-  private TestHarness mHarness;
 
-  private class TestHarness {
-    BlockMasterClient mBlockMasterClient;
-    BlockStore mBlockStore;
-    FileSystemMasterClient mFileSystemMasterClient;
-    BlockHeartbeatReporter mHeartbeatReporter;
-    BlockMetricsReporter mMetricsReporter;
-    Random mRandom;
-    Sessions mSessions;
-    long mWorkerId;
-    WorkerSource mWorkerSource;
-    BlockWorker mBlockWorker;
+  /** Rule to create a new temporary folder during each test. */
+  @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
 
-    public TestHarness() throws IOException {
-      mRandom = new Random();
-
-      mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
-      mBlockStore = PowerMockito.mock(BlockStore.class);
-      mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-      mHeartbeatReporter = PowerMockito.mock(BlockHeartbeatReporter.class);
-      mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
-      mSessions = PowerMockito.mock(Sessions.class);
-      mWorkerId = mRandom.nextLong();
-      ((AtomicLong) Whitebox.getInternalState(WorkerIdRegistry.class, "sWorkerId")).set(mWorkerId);
-      mWorkerSource = PowerMockito.mock(WorkerSource.class);
-
-      mBlockWorker = PowerMockito.mock(BlockWorker.class);
-
-      Whitebox.setInternalState(mBlockWorker, "mBlockMasterClient", mBlockMasterClient);
-      Whitebox.setInternalState(mBlockWorker, "mFileSystemMasterClient", mFileSystemMasterClient);
-      Whitebox.setInternalState(mBlockWorker, "mBlockStore", mBlockStore);
-      Whitebox.setInternalState(mBlockWorker, "mHeartbeatReporter", mHeartbeatReporter);
-      Whitebox.setInternalState(mBlockWorker, "mMetricsReporter", mMetricsReporter);
-      Whitebox.setInternalState(mBlockWorker, "mSessions", mSessions);
-    }
-  }
-
-  // TODO(luoli523): Finish this unit test correctly
+  private BlockMasterClient mBlockMasterClient;
+  private BlockStore mBlockStore;
+  private FileSystemMasterClient mFileSystemMasterClient;
+  private BlockHeartbeatReporter mHeartbeatReporter;
+  private BlockMetricsReporter mMetricsReporter;
+  private Random mRandom;
+  private Sessions mSessions;
+  private long mWorkerId;
+  private BlockWorker mBlockWorker;
 
   /**
    * Sets up all dependencies before a test runs.
    *
-   * @throws IOException if creating the test harness fails
+   * @throws IOException if initialize fails
    */
   @Before
-  public void initialize() throws IOException {
-    mHarness = new TestHarness();
+  public void before() throws IOException {
+    mRandom = new Random();
+
+    mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
+    mBlockStore = PowerMockito.mock(BlockStore.class);
+    mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
+    mHeartbeatReporter = PowerMockito.mock(BlockHeartbeatReporter.class);
+    mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
+    mSessions = PowerMockito.mock(Sessions.class);
+    mWorkerId = mRandom.nextLong();
+    ((AtomicLong) Whitebox.getInternalState(WorkerIdRegistry.class, "sWorkerId")).set(mWorkerId);
+
+    TachyonConf conf = WorkerContext.getConf();
+    conf.set("tachyon.worker.tieredstore.level0.dirs.path",
+        mFolder.newFolder().getAbsolutePath());
+    mBlockWorker = new BlockWorker();
+
+    Whitebox.setInternalState(mBlockWorker, "mBlockMasterClient", mBlockMasterClient);
+    Whitebox.setInternalState(mBlockWorker, "mFileSystemMasterClient", mFileSystemMasterClient);
+    Whitebox.setInternalState(mBlockWorker, "mBlockStore", mBlockStore);
+    Whitebox.setInternalState(mBlockWorker, "mHeartbeatReporter", mHeartbeatReporter);
+    Whitebox.setInternalState(mBlockWorker, "mMetricsReporter", mMetricsReporter);
+    Whitebox.setInternalState(mBlockWorker, "mSessions", mSessions);
   }
 
+  /**
+   * Stop the DataServer to clean up
+   *
+   * @throws IOException if clean up fails
+   */
+  @After
+  public void after() throws IOException {
+    ((DataServer) Whitebox.getInternalState(mBlockWorker, "mDataServer")).close();
+  }
   /**
    * Tests the {@link BlockDataManager#abortBlock(long, long)} method.
    *
@@ -106,10 +121,8 @@ public class BlockWorkerTest {
    */
   @Test
   public void abortBlockTest() throws Exception {
-    long blockId = mHarness.mRandom.nextLong();
-    long sessionId = mHarness.mRandom.nextLong();
-    mHarness.mBlockWorker.abortBlock(sessionId, blockId);
-    //Mockito.verify(mHarness.mBlockStore).abortBlock(sessionId, blockId);
+    mBlockWorker.abortBlock(anyLong(), anyLong());
+    verify(mBlockStore).abortBlock(anyLong(), anyLong());
   }
 
   /**
@@ -119,10 +132,8 @@ public class BlockWorkerTest {
    */
   @Test
   public void accessBlockTest() throws Exception {
-    long blockId = mHarness.mRandom.nextLong();
-    long sessionId = mHarness.mRandom.nextLong();
-    mHarness.mBlockWorker.accessBlock(sessionId, blockId);
-    //Mockito.verify(mHarness.mBlockStore).accessBlock(sessionId, blockId);
+    mBlockWorker.accessBlock(anyLong(), anyLong());
+    verify(mBlockStore).accessBlock(anyLong(), anyLong());
   }
 
   /**
@@ -134,10 +145,10 @@ public class BlockWorkerTest {
     LinkedList<Long> sessions = new LinkedList<Long>();
     sessions.add(sessionId);
 
-    //Mockito.when(mHarness.mSessions.getTimedOutSessions()).thenReturn(sessions);
-    mHarness.mBlockWorker.cleanupSessions();
-    //Mockito.verify(mHarness.mSessions).removeSession(sessionId);
-    //Mockito.verify(mHarness.mBlockStore).cleanupSession(sessionId);
+    when(mSessions.getTimedOutSessions()).thenReturn(sessions);
+    mBlockWorker.cleanupSessions();
+    verify(mSessions).removeSession(sessionId);
+    verify(mBlockStore).cleanupSession(sessionId);
   }
 
   /**
@@ -147,11 +158,11 @@ public class BlockWorkerTest {
    */
   @Test
   public void commitBlockTest() throws Exception {
-    long blockId = mHarness.mRandom.nextLong();
-    long length = mHarness.mRandom.nextLong();
-    long lockId = mHarness.mRandom.nextLong();
-    long sessionId = mHarness.mRandom.nextLong();
-    long usedBytes = mHarness.mRandom.nextLong();
+    long blockId = mRandom.nextLong();
+    long length = mRandom.nextLong();
+    long lockId = mRandom.nextLong();
+    long sessionId = mRandom.nextLong();
+    long usedBytes = mRandom.nextLong();
     String tierAlias = "MEM";
     HashMap<String, Long> usedBytesOnTiers = new HashMap<String, Long>();
     usedBytesOnTiers.put(tierAlias, usedBytes);
@@ -159,21 +170,19 @@ public class BlockWorkerTest {
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
     BlockStoreMeta blockStoreMeta = PowerMockito.mock(BlockStoreMeta.class);
 
-    /*
-    Mockito.when(mHarness.mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
-    Mockito.when(mHarness.mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(
+    when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
+    when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(
         blockMeta);
-    Mockito.when(mHarness.mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
-    Mockito.when(blockMeta.getBlockLocation()).thenReturn(blockStoreLocation);
-    Mockito.when(blockStoreLocation.tierAlias()).thenReturn(tierAlias);
-    Mockito.when(blockMeta.getBlockSize()).thenReturn(length);
-    Mockito.when(blockStoreMeta.getUsedBytesOnTiers()).thenReturn(usedBytesOnTiers);
+    when(mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
+    when(blockMeta.getBlockLocation()).thenReturn(blockStoreLocation);
+    when(blockStoreLocation.tierAlias()).thenReturn(tierAlias);
+    when(blockMeta.getBlockSize()).thenReturn(length);
+    when(blockStoreMeta.getUsedBytesOnTiers()).thenReturn(usedBytesOnTiers);
 
-    mHarness.mBlockWorker.commitBlock(sessionId, blockId);
-    Mockito.verify(mHarness.mBlockMasterClient).commitBlock(mHarness.mWorkerId, usedBytes,
+    mBlockWorker.commitBlock(sessionId, blockId);
+    verify(mBlockMasterClient).commitBlock(mWorkerId, usedBytes,
         tierAlias, blockId, length);
-    Mockito.verify(mHarness.mBlockStore).unlockBlock(lockId);
-    */
+    verify(mBlockStore).unlockBlock(lockId);
   }
 
   /**
@@ -183,21 +192,19 @@ public class BlockWorkerTest {
    */
   @Test
   public void createBlockTest() throws Exception {
-    long blockId = mHarness.mRandom.nextLong();
-    long initialBytes = mHarness.mRandom.nextLong();
-    long sessionId = mHarness.mRandom.nextLong();
+    long blockId = mRandom.nextLong();
+    long initialBytes = mRandom.nextLong();
+    long sessionId = mRandom.nextLong();
     String tierAlias = "MEM";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    /*
-    Mockito.when(mHarness.mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes))
+    when(mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes))
         .thenReturn(meta);
-    Mockito.when(storageDir.getDirPath()).thenReturn("/tmp");
-    Assert.assertEquals(PathUtils.concatPath("/tmp", sessionId, blockId),
-        mHarness.mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
-    */
+    when(storageDir.getDirPath()).thenReturn("/tmp");
+    assertEquals(PathUtils.concatPath("/tmp", sessionId, blockId),
+        mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
   }
 
 }
