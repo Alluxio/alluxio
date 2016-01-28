@@ -66,8 +66,9 @@ Tachyon uses two different storage types: Tachyon managed storage and under stor
 storage is the memory, SSD, and/or HDD allocated to Tachyon workers. Under storage is the storage
 resource managed by the underlying storage system, such as S3, Swift or HDFS. Users can specify the
 interaction with the Tachyon's native storage and under storage through `ReadType` and `WriteType`.
-`ReadType` specifies whether the data should be written concurrently to Tachyon storage during a
-read opertion. `WriteType` specifies the data write behavior when writing a new file.
+`ReadType` specifies the data read behavior when writing a new file, ie. whether the data should be
+saved in Tachyon Storage. `WriteType` specifies the data write behavior when writing a new file, ie.
+whether the data should be written in Tachyon Storage.
 
 Below is a table of the expected behaviors of `ReadType`. Reads will always prefer Tachyon storage
 over the under storage system.
@@ -103,8 +104,8 @@ Below is a table of the expected behaviors of `WriteType`
 </tr>
 <tr>
   <td>MUST_CACHE</td>
-  <td>Data is written synchronously to a Tachyon worker. No data will written to the under storage.
-  This is the default write type.</td>
+  <td>Data is written synchronously to a Tachyon worker. No data will be written to the under
+  storage. This is the default write type.</td>
 </tr>
 <tr>
   <td>THROUGH</td>
@@ -152,8 +153,10 @@ With the TachyonURI, the user may use any of the methods of `FileSystem` to acce
 
 ### Reading Data
 
-After creating a `TachyonURI`, the user may modify the file metadata (for example, ttl or pin state
-or get an input stream to read the file. For example:
+A `TachyonURI` can be used to perform Tachyon FileSystem operations, such as modifying the file
+metadata, ie. ttl or pin state, or getting an input stream to read the file.
+
+For example, to read a file:
 
 ```java
 FileSystem fs = FileSystem.Factory.get();
