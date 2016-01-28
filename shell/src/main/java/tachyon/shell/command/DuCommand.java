@@ -34,10 +34,10 @@ public final class DuCommand extends WithWildCardPathCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public DuCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public DuCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -47,7 +47,7 @@ public final class DuCommand extends WithWildCardPathCommand {
 
   @Override
   void runCommand(TachyonURI path) throws IOException {
-    long sizeInBytes = getFileOrFolderSize(mTfs, path);
+    long sizeInBytes = getFileOrFolderSize(mFileSystem, path);
     System.out.println(path + " is " + sizeInBytes + " bytes");
   }
 

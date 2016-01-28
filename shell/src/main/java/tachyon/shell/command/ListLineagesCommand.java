@@ -35,10 +35,10 @@ public final class ListLineagesCommand extends AbstractTfsShellCommand {
    * Constructs a new instance to list all the lineages.
    *
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public ListLineagesCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public ListLineagesCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

@@ -31,10 +31,10 @@ import tachyon.exception.TachyonException;
 public final class UnmountCommand extends AbstractTfsShellCommand {
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public UnmountCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public UnmountCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -52,7 +52,7 @@ public final class UnmountCommand extends AbstractTfsShellCommand {
     TachyonURI inputPath = new TachyonURI(args[0]);
 
     try {
-      mTfs.unmount(inputPath);
+      mFileSystem.unmount(inputPath);
       System.out.println("Unmounted " + inputPath);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());

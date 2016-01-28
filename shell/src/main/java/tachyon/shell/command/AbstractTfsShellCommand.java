@@ -28,11 +28,11 @@ import tachyon.conf.TachyonConf;
 public abstract class AbstractTfsShellCommand implements TfsShellCommand {
 
   protected TachyonConf mTachyonConf;
-  protected FileSystem mTfs;
+  protected FileSystem mFileSystem;
 
-  protected AbstractTfsShellCommand(TachyonConf conf, FileSystem tfs) {
+  protected AbstractTfsShellCommand(TachyonConf conf, FileSystem fs) {
     mTachyonConf = conf;
-    mTfs = tfs;
+    mFileSystem = fs;
   }
 
   /**
