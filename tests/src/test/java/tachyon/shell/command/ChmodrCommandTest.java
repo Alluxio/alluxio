@@ -35,7 +35,8 @@ public class ChmodrCommandTest extends AbstractTfsShellTest {
   public void chmodrTest() throws IOException, TachyonException {
     clearLoginUser();
     mFsShell.run("mkdir", "/testFolder1");
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFolder1/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFolder1/testFile", WriteType.MUST_CACHE,
+        10);
     mFsShell.run("chmodr", "777", "/testFolder1");
     int permission = mFileSystem.getStatus(new TachyonURI("/testFolder1")).getPermission();
     Assert.assertEquals((short) 0777, permission);

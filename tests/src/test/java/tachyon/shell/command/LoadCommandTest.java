@@ -34,7 +34,8 @@ public class LoadCommandTest extends AbstractTfsShellTest {
   @Test
   public void loadDirTest() throws IOException, TachyonException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.THROUGH, 10);
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileB", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, "/testRoot/testFileB", WriteType.MUST_CACHE, 10);
     TachyonURI uriA = new TachyonURI("/testRoot/testFileA");
     TachyonURI uriB = new TachyonURI("/testRoot/testFileB");
 
