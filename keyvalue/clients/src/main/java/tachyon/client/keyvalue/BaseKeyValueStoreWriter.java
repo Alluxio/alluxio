@@ -43,7 +43,7 @@ import tachyon.util.io.BufferUtils;
 class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final FileSystem mTfs = FileSystem.Factory.get();
+  private final FileSystem mFileSystem = FileSystem.Factory.get();
   private final KeyValueMasterClient mMasterClient;
   private final TachyonURI mStoreUri;
 
@@ -174,7 +174,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
       return;
     }
     mWriter.close();
-    List<Long> blockIds = mTfs.getStatus(getPartitionName()).getBlockIds();
+    List<Long> blockIds = mFileSystem.getStatus(getPartitionName()).getBlockIds();
     long blockId = blockIds.get(0);
     PartitionInfo info = new PartitionInfo(mKeyStart, mKeyLimit, blockId);
     mMasterClient.completePartition(mStoreUri, info);
