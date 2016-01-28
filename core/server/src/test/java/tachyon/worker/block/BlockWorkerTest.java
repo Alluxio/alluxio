@@ -115,7 +115,7 @@ public class BlockWorkerTest {
     ((DataServer) Whitebox.getInternalState(mBlockWorker, "mDataServer")).close();
   }
   /**
-   * Tests the {@link BlockDataManager#abortBlock(long, long)} method.
+   * Tests the {@link BlockWorker#abortBlock(long, long)} method.
    *
    * @throws Exception if aborting the block fails
    */
@@ -126,7 +126,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockDataManager#accessBlock(long, long)} method.
+   * Tests the {@link BlockWorker#accessBlock(long, long)} method.
    *
    * @throws Exception if accessing the block fails
    */
@@ -137,7 +137,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockDataManager#cleanupSessions()} method.
+   * Tests the {@link BlockWorker#cleanupSessions()} method.
    */
   @Test
   public void cleanupSessionsTest() {
@@ -152,7 +152,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockDataManager#commitBlock(long, long)} method.
+   * Tests the {@link BlockWorker#commitBlock(long, long)} method.
    *
    * @throws Exception if a block operation fails
    */
@@ -186,7 +186,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockDataManager#createBlock(long, long, String, long)} method.
+   * Tests the {@link BlockWorker#createBlock(long, long, String, long)} method.
    *
    * @throws Exception if the creation of the block or its metadata fails
    */
