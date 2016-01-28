@@ -14,7 +14,6 @@
     <module>common</module>
     <module>client-internal</module>
     <module>client</module>
-    <module>examples</module>
     <module>server</module>
   </modules>
 
