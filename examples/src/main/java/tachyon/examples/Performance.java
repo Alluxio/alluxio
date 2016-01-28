@@ -306,7 +306,8 @@ public class Performance {
         LOG.info("Verifying the reading data...");
 
         for (int pId = mLeft; pId < mRight; pId ++) {
-          InputStream is = mFileSystem.openFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
+          InputStream is =
+              mFileSystem.openFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
           is.read(buf.array());
           buf.order(ByteOrder.nativeOrder());
           for (int i = 0; i < sBlocksPerFile; i ++) {
