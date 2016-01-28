@@ -34,10 +34,10 @@ public final class SetTtlCommand extends AbstractTfsShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public SetTtlCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public SetTtlCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

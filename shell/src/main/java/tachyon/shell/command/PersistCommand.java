@@ -38,10 +38,10 @@ public final class PersistCommand extends AbstractTfsShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public PersistCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public PersistCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

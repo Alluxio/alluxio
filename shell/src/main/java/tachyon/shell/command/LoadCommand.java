@@ -42,10 +42,10 @@ public final class LoadCommand extends WithWildCardPathCommand {
    * Constructs a new instance to load a file or directory in Tachyon space.
    *
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public LoadCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public LoadCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

@@ -32,10 +32,10 @@ public final class MountCommand extends AbstractTfsShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public MountCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public MountCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

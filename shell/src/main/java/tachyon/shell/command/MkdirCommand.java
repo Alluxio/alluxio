@@ -36,10 +36,10 @@ public final class MkdirCommand extends AbstractTfsShellCommand {
    * Constructs a new instance to create a new directory.
    *
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public MkdirCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public MkdirCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

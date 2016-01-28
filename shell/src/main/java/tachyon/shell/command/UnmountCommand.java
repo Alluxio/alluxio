@@ -31,10 +31,10 @@ import tachyon.exception.TachyonException;
 public final class UnmountCommand extends AbstractTfsShellCommand {
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public UnmountCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public UnmountCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

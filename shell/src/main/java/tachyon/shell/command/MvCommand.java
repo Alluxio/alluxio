@@ -32,10 +32,10 @@ public final class MvCommand extends AbstractTfsShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public MvCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public MvCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

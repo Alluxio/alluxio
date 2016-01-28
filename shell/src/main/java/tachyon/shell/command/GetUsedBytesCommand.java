@@ -33,10 +33,10 @@ public final class GetUsedBytesCommand extends AbstractTfsShellCommand {
    * Constructs a new instance to get the number of bytes used in the {@link FileSystem}.
    *
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public GetUsedBytesCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public GetUsedBytesCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
