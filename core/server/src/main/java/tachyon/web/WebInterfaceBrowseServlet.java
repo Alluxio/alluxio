@@ -47,6 +47,7 @@ import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.WorkerNetAddress;
+import tachyon.util.SecurityUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -137,7 +138,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (PlainSaslServer.AuthorizedClientUser.get() == null) {
+    if (SecurityUtils.isSecurityEnabled(mTachyonConf)
+        && PlainSaslServer.AuthorizedClientUser.get(mTachyonConf) == null) {
       PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(mTachyonConf).getName());
     }
     request.setAttribute("debug", Constants.DEBUG);
