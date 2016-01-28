@@ -31,7 +31,7 @@ $ bin/tachyon thriftGen
 ### Change a Protocol Buffer Message
 
 Tachyon uses protocol buffers to read and write journal messages. The `.proto` files
-defined in `servers/src/proto/journal/` are used to auto-generate Java definitions for
+defined in `core/server/src/proto/journal/` are used to auto-generate Java definitions for
 the protocol buffer messages. To change one of these messages, first read about
 [updating a message type](https://developers.google.com/protocol-buffers/docs/proto#updating)
 to make sure your change will not break backwards compatibility. Next,

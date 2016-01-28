@@ -28,12 +28,12 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-common</artifactId>
+      <artifactId>tachyon-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-servers</artifactId>
+      <artifactId>tachyon-core-server</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
