@@ -47,13 +47,13 @@ public final class FileInStreamConcurrencyIntegrationTest {
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE);
-  private static FileSystem sTfs = null;
+  private static FileSystem sFileSystem = null;
   private static TachyonConf sTachyonConf;
   private static CreateFileOptions sWriteTachyon;
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sTfs = sLocalTachyonClusterResource.get().getClient();
+    sFileSystem = sLocalTachyonClusterResource.get().getClient();
     sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
     sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sTachyonConf);
   }
@@ -64,7 +64,7 @@ public final class FileInStreamConcurrencyIntegrationTest {
   @Test
   public void FileInStreamConcurrencyTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
-    FileSystemTestUtils.createByteFile(sTfs, uniqPath, BLOCK_SIZE * 2, sWriteTachyon);
+    FileSystemTestUtils.createByteFile(sFileSystem, uniqPath, BLOCK_SIZE * 2, sWriteTachyon);
 
     List<Thread> threads = Lists.newArrayList();
     for (int i = 0; i < READ_THREADS_NUM; i ++) {
@@ -84,7 +84,7 @@ public final class FileInStreamConcurrencyIntegrationTest {
     @Override
     public void run() {
       try {
-        FileInStream stream = sTfs.openFile(mUri);
+        FileInStream stream = sFileSystem.openFile(mUri);
         stream.read();
         stream.close();
       } catch (Exception e) {

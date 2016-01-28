@@ -47,7 +47,7 @@ public final class KeyValuePartitionIntegrationTest {
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
-  private static FileSystem sTfs;
+  private static FileSystem sFileSystem;
   private KeyValuePartitionWriter mKeyValuePartitionWriter;
   private KeyValuePartitionReader mKeyValuePartitionReader;
   private TachyonURI mPartitionUri;
@@ -78,7 +78,7 @@ public final class KeyValuePartitionIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sTfs = sLocalTachyonClusterResource.get().getClient();
+    sFileSystem = sLocalTachyonClusterResource.get().getClient();
   }
 
   private TachyonURI getUniqURI() {
@@ -105,7 +105,7 @@ public final class KeyValuePartitionIntegrationTest {
     mKeyValuePartitionWriter.put(KEY2, VALUE2);
     mKeyValuePartitionWriter.close();
     // Expect the key-value partition exists as a Tachyon file
-    Assert.assertTrue(sTfs.exists(mPartitionUri));
+    Assert.assertTrue(sFileSystem.exists(mPartitionUri));
     mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri);
     Assert.assertArrayEquals(VALUE1, mKeyValuePartitionReader.get(KEY1));
     Assert.assertArrayEquals(VALUE2, mKeyValuePartitionReader.get(KEY2));

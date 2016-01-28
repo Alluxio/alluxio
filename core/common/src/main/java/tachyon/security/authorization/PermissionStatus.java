@@ -105,7 +105,7 @@ public final class PermissionStatus {
    */
   public static PermissionStatus getDirDefault() {
     return new PermissionStatus("", "", new FileSystemPermission(Constants
-        .DEFAULT_TFS_FULL_PERMISSION));
+        .DEFAULT_FS_FULL_PERMISSION));
   }
 
   /**
@@ -128,7 +128,7 @@ public final class PermissionStatus {
     }
     if (remote) {
       // get the username through the authentication mechanism
-      User user = PlainSaslServer.AuthorizedClientUser.get();
+      User user = PlainSaslServer.AuthorizedClientUser.get(conf);
       if (user == null) {
         throw new IOException(ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
       }

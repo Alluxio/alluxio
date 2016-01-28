@@ -19,23 +19,39 @@ with the source code and be captured by revision control (currently git). This w
 automatically includes the version of the documentation that is relevant regardless of which version
 or release you have checked out or downloaded.
 
-In this directory you will find textfiles formatted using Markdown, with an ".md" suffix. You can
-read those text files directly if you want. Start with index.md.
+In directories like `docs/en` or `docs/cn`, you will find text files with an ".md" suffix formatted
+using [Github flavor Markdown syntax]
+(https://help.github.com/articles/basic-writing-and-formatting-syntax/). You can read those text
+files directly if you want. Start with `index.md`.
 
 ## Generating the Documentation HTML
 
 To make the documentation more visually appealing and easier to navigate, you can generate the HTML
-version of the documentation. To do this, you will need to have Jekyll installed; the easiest way to 
-do this is via a Ruby Gem (see the [jekyll installation instructions]
+version of the documentation. To do this, you will need to have `Jekyll` installed; the easiest
+way to do this is via a Ruby Gem (see the [jekyll installation instructions]
 (http://jekyllrb.com/docs/installation/)).
 
-Before running `jekyll`, please run `mvn javadoc:javadoc` followed by `mvn javadoc:aggregate` or 
-`mvn site:site` to generate JavaDoc.
+Before running `jekyll`, please run mvn to generate Java doc.
 
-Next, build the HTML documentation using `SKIP_SCALADOC=1 jekyll build`, which skips building and 
-copying over the Scala documentation which can be time-consuming. This will create a directory 
-called `_site` containing index.html as well as the rest of the compiled files.
+```bash
+$ mvn javadoc:javadoc
+$ mvn javadoc:aggregate
+```
+
+Then use jekyll to build the HTML documentation.
+
+```bash
+$ jekyll build
+```
+
+This will create a directory called `_site` containing `index.html` as well as the rest of the
+HTML files compiled from markdown files.
 
 In addition to generating the site as HTML from the markdown files, jekyll can serve the site via
 a webserver. To build and run a webserver, use the command `jekyll serve` and then visit the site 
-at http://localhost:4000.
+at [http://localhost:4000](http://localhost:4000).
+
+## Multi-lauguage Support
+
+The markdown files for Tachyon documentation in different languages are stored in separate
+directories, e.g., `docs/en` for English documentation and `docs/cn` for Chinese documentation.

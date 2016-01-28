@@ -47,6 +47,7 @@ import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.WorkerNetAddress;
+import tachyon.util.SecurityUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -82,12 +83,12 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void displayFile(TachyonURI path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException, TachyonException {
-    FileSystem tFS = FileSystem.Factory.get();
+    FileSystem fs = FileSystem.Factory.get();
     String fileData = null;
-    URIStatus status = tFS.getStatus(path);
+    URIStatus status = fs.getStatus(path);
     if (status.isCompleted()) {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-      FileInStream is = tFS.openFile(path, options);
+      FileInStream is = fs.openFile(path, options);
       try {
         int len = (int) Math.min(5 * Constants.KB, status.getLength() - offset);
         byte[] data = new byte[len];
@@ -137,7 +138,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (PlainSaslServer.AuthorizedClientUser.get() == null) {
+    if (SecurityUtils.isSecurityEnabled(mTachyonConf)
+        && PlainSaslServer.AuthorizedClientUser.get(mTachyonConf) == null) {
       PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(mTachyonConf).getName());
     }
     request.setAttribute("debug", Constants.DEBUG);

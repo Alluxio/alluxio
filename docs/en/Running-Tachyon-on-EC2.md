@@ -19,19 +19,13 @@ Download [Vagrant](https://www.vagrantup.com/downloads.html)
 
 Install AWS Vagrant plugin:
 
-```bash
-$ vagrant plugin install vagrant-aws
-$ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
-```
+{% include Running-Tachyon-on-EC2/install-aws-vagrant-plugin.md %}
 
 **Install Tachyon**
 
 Download Tachyon to your local machine, and unzip it:
 
-```bash
-$ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
-$ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
-```
+{% include Running-Tachyon-on-EC2/download-tachyon.md %}
 
 **Install python library dependencies**
 
@@ -39,16 +33,12 @@ Install [python>=2.7](https://www.python.org/), not python3.
 
 Under `deploy/vagrant` directory in your home directory, run:
 
-```bash
-$ sudo bash bin/install.sh
-```
+{% include Running-Tachyon-on-EC2/install-vagrant.md %}
 
 Alternatively, you can manually install [pip](https://pip.pypa.io/en/latest/installing/), and then
 in `deploy/vagrant` run:
 
-```bash
-$ sudo pip install -r pip-req.txt
-```
+{% include Running-Tachyon-on-EC2/install-pip.md %}
 
 # Launch a Cluster
 
@@ -60,24 +50,17 @@ If you are not familiar with Amazon EC2, you can read [this tutorial](http://doc
 Then create [access keys](https://aws.amazon.com/developers/access-keys/) and set shell environment
 variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` by:
 
-```bash
-$ export AWS_ACCESS_KEY_ID=<your access key>
-$ export AWS_SECRET_ACCESS_KEY=<your secret access key>
-```
+{% include Running-Tachyon-on-EC2/access-key.md %}
 
 Next generate your EC2
 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). Make sure to set
 the permissions of your private key file that only you can read it:
 
-```bash
-$ chmod 400 <your key pair>.pem
-```
+{% include Running-Tachyon-on-EC2/generate-key-pair.md %}
 
 Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml` by:
 
-```bash
-$ cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
-```
+{% include Running-Tachyon-on-EC2/copy-ec2.md %}
 
 In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
 name and `Key_Path` to the path to the pem key.
@@ -105,9 +88,7 @@ In order to enable spot instances, you have to modify the file: `deploy/vagrant/
 Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running
 the script under `deploy/vagrant`:
 
-```bash
-$ ./create <number of machines> aws
-```
+{% include Running-Tachyon-on-EC2/launch-cluster.md %}
 
 Each node of the cluster runs a Tachyon worker, and the `TachyonMaster` runs the Tachyon master.
 
@@ -118,8 +99,7 @@ Each node of the cluster runs a Tachyon worker, and the `TachyonMaster` runs the
 After the command `./create <number of machines> aws` succeeds, you can see two green lines like
 below shown at the end of the shell output:
 
-    >>> TachyonMaster public IP is xxx, visit xxx:19999 for Tachyon web UI<<<
-    >>> visit default port of the web UI of what you deployed <<<
+{% include Running-Tachyon-on-EC2/shell-output.md %}
 
 Default port for Tachyon Web UI is **19999**.
 
@@ -142,24 +122,18 @@ The nodes set up are named to `TachyonMaster`, `TachyonWorker1`, `TachyonWorker2
 
 To ssh into a node, run:
 
-```bash
-$ vagrant ssh <node name>
-```
+{% include Running-Tachyon-on-EC2/ssh.md %}
 
 For example, you can ssh into `TachyonMaster` with:
 
-```bash
-$ vagrant ssh TachyonMaster
-```
+{% include Running-Tachyon-on-EC2/ssh-TachyonMaster.md %}
 
 All software is installed under the root directory, e.g. Tachyon is installed in `/tachyon`,
 and Hadoop is installed in `/hadoop`.
 
 On the `TachyonMaster` node, you can run tests against Tachyon to check its health:
 
-```bash
-$ /tachyon/bin/tachyon runTests
-```
+{% include Running-Tachyon-on-EC2/runTests.md %}
 
 After the tests finish, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse
 File System` in the navigation bar, and you should see the files written to Tachyon by the above
@@ -167,17 +141,13 @@ tests.
 
 From a node in the cluster, you can ssh to other nodes in the cluster without password with:
 
-```bash
-$ ssh TachyonWorker1
-```
+{% include Running-Tachyon-on-EC2/ssh-other-node.md %}
 
 # Destroy the cluster
 
 Under `deploy/vagrant` directory, you can run:
 
-```bash
-$ ./destroy
-```
+{% include Running-Tachyon-on-EC2/destroy.md %}
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
 command succeeds, the EC2 instances are terminated.

@@ -34,10 +34,10 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public FileInfoCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public FileInfoCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -49,7 +49,7 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
   void runCommand(TachyonURI path) throws IOException {
     URIStatus status;
     try {
-      status = mTfs.getStatus(path);
+      status = mFileSystem.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }

@@ -47,8 +47,8 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
     public static KeyValuePartitionWriter create(TachyonURI uri)
         throws TachyonException, IOException {
       Preconditions.checkNotNull(uri);
-      FileSystem tfs = FileSystem.Factory.get();
-      FileOutStream fileOutStream = tfs.createFile(uri);
+      FileSystem fs = FileSystem.Factory.get();
+      FileOutStream fileOutStream = fs.createFile(uri);
       return new BaseKeyValuePartitionWriter(fileOutStream);
     }
   }

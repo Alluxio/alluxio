@@ -39,8 +39,8 @@ import tachyon.shell.TfsShellUtils;
 @ThreadSafe
 public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
 
-  protected WithWildCardPathCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  protected WithWildCardPathCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   /**
@@ -60,7 +60,7 @@ public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
   public void run(String... args) throws IOException {
     TachyonURI inputPath = new TachyonURI(args[0]);
 
-    List<TachyonURI> paths = TfsShellUtils.getTachyonURIs(mTfs, inputPath);
+    List<TachyonURI> paths = TfsShellUtils.getTachyonURIs(mFileSystem, inputPath);
     if (paths.size() == 0) { // A unified sanity check on the paths
       throw new IOException(inputPath + " does not exist.");
     }
