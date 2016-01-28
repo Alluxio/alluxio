@@ -55,7 +55,7 @@ $ sudo pip install -r pip-req.txt
 To run a Tachyon cluster on EC2, first sign up for an Amazon EC2 account
 on the [Amazon Web Services site](http://aws.amazon.com/).
 
-If you are not familiar with Aamazon EC2, you can read [this tutorial](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html) first.
+If you are not familiar with Amazon EC2, you can read [this tutorial](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html) first.
 
 Then create [access keys](https://aws.amazon.com/developers/access-keys/) and set shell environment
 variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` by:
@@ -88,11 +88,11 @@ named *tachyon-vagrant-test* at
 [Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
 The security group will be set up automatically in the region with all inbound/outbound network
 traffic opened. You can change the *security group*, *region* and *availability zone* in `ec2.yml`. Sometimes the default zone can be unavailable.
-Note: the keypair is associated with a sepcific zone. If you ran into permission/connection errors, please first check the zone.
+Note: the keypair is associated with a specific region. For example, if you created a keypair in us-east-1, the keypair is invalid in other regions (like us-west-1).  If you ran into permission/connection errors, please first check the region/zone.
 
 **Spot instances**
 
-Using spot instance is a way to reduce EC2 cost. Spot instances are non-guaranteed instances which are priced with bidding.
+Using spot instances is a way to reduce EC2 cost. Spot instances are non-guaranteed instances which are priced with bidding.
 Note that spot instances may be taken away from you if someone bids more, and there are no more spot instances available.
 However, for short-term testing, spot instances are very appropriate, because it is rare that spot instances are taken from you.
 
@@ -132,10 +132,9 @@ You can also monitor the instances state through
 Make sure you are in the console for the region you started the cluster.
 
 Here are some scenarios when you may want to check the console:
- - when failed to create the cluster
- - after destroying the cluster
+ - when the cluster creation fails
+ - after the cluster is destroyed
  - when you no longer need the cluster
-
 
 **Access with ssh**
 
