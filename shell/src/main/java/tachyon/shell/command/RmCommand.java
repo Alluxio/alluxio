@@ -47,13 +47,13 @@ public final class RmCommand extends WithWildCardPathCommand {
   void runCommand(TachyonURI path) throws IOException {
     // TODO(calvin): Remove explicit state checking.
     try {
-      if (!mTfs.exists(path)) {
+      if (!mFileSystem.exists(path)) {
         throw new IOException("Path " + path + " does not exist");
       }
-      if (mTfs.getStatus(path).isFolder()) {
+      if (mFileSystem.getStatus(path).isFolder()) {
         throw new IOException("rm: cannot remove a directory, please try rmr <path>");
       }
-      mTfs.delete(path);
+      mFileSystem.delete(path);
       System.out.println(path + " has been removed");
     } catch (TachyonException e) {
       throw new IOException(e);

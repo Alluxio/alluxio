@@ -45,7 +45,7 @@ public final class UnpinCommand extends WithWildCardPathCommand {
 
   @Override
   void runCommand(TachyonURI path) throws IOException {
-    CommandUtils.setPinned(mTfs, path, false);
+    CommandUtils.setPinned(mFileSystem, path, false);
     System.out.println("File '" + path + "' was successfully unpinned.");
   }
 

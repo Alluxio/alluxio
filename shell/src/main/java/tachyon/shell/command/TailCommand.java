@@ -53,7 +53,7 @@ public final class TailCommand extends WithWildCardPathCommand {
   void runCommand(TachyonURI path) throws IOException {
     URIStatus status;
     try {
-      status = mTfs.getStatus(path);
+      status = mFileSystem.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
@@ -62,7 +62,7 @@ public final class TailCommand extends WithWildCardPathCommand {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream is = null;
       try {
-        is = mTfs.openFile(path, options);
+        is = mFileSystem.openFile(path, options);
         byte[] buf = new byte[Constants.KB];
         long bytesToRead = 0L;
         if (status.getLength() > Constants.KB) {

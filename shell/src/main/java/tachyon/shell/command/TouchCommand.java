@@ -55,7 +55,7 @@ public final class TouchCommand extends AbstractTfsShellCommand {
     TachyonURI inputPath = new TachyonURI(args[0]);
 
     try {
-      mTfs.createFile(inputPath, CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH))
+      mFileSystem.createFile(inputPath, CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH))
           .close();
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());

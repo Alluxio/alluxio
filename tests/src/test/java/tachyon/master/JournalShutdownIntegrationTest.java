@@ -78,7 +78,7 @@ public class JournalShutdownIntegrationTest {
             }
           } else if (mOpType == 1) {
             // TODO(gene): Add this back when there is new RawTable client API.
-            // if (mTfs.createRawTable(new TachyonURI(TEST_TABLE_DIR + mSuccessNum), 1) == -1) {
+            // if (mFileSystem.createRawTable(new TachyonURI(TEST_TABLE_DIR + mSuccessNum), 1) == -1) {
             // break;
             // }
           }

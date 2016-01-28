@@ -45,7 +45,7 @@ public final class PinCommand extends WithWildCardPathCommand {
 
   @Override
   void runCommand(TachyonURI path) throws IOException {
-    CommandUtils.setPinned(mTfs, path, true);
+    CommandUtils.setPinned(mFileSystem, path, true);
     System.out.println("File '" + path + "' was successfully pinned.");
   }
 

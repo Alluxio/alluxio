@@ -50,7 +50,7 @@ public final class UnsetTtlCommand extends AbstractTfsShellCommand {
   @Override
   public void run(String... args) throws IOException {
     TachyonURI inputPath = new TachyonURI(args[0]);
-    CommandUtils.setTtl(mTfs, inputPath, Constants.NO_TTL);
+    CommandUtils.setTtl(mFileSystem, inputPath, Constants.NO_TTL);
     System.out.println("TTL of file '" + inputPath + "' was successfully removed.");
   }
 
