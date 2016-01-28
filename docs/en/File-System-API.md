@@ -66,8 +66,8 @@ Tachyon uses two different storage types: Tachyon managed storage and under stor
 storage is the memory, SSD, and/or HDD allocated to Tachyon workers. Under storage is the storage
 resource managed by the underlying storage system, such as S3, Swift or HDFS. Users can specify the
 interaction with the Tachyon's native storage and under storage through `ReadType` and `WriteType`.
-Both these enums are responsible for controlling the behavior of any write operations. In the case
-of `ReadType`, it specifies whether the data should be written concurrently to Tachyon storage.
+`ReadType` specifies whether the data should be written concurrently to Tachyon storage during a
+read opertion. `WriteType` specifies the data write behavior when writing a new file.
 
 Below is a table of the expected behaviors of `ReadType`.
 
@@ -95,7 +95,7 @@ Below is a table of the expected behaviors of `ReadType`.
 Below is a table of the expected behaviors of `WriteType`
 
 <table class="table table-striped">
-<tr><th>Read Type</th><th>Behavior</th>
+<tr><th>Write Type</th><th>Behavior</th>
 </tr>
 <tr>
   <td>CACHE_THROUGH</td>
@@ -112,8 +112,8 @@ Below is a table of the expected behaviors of `WriteType`
 </tr>
 <tr>
   <td>ASYNC_THROUGH</td>
-  <td>Data is written synchronously to a Tachyon worker, it will be asynchronously written to the
-  under storage system. Experimental.</td>
+  <td>Data is written synchronously to a Tachyon worker and asynchronously to the under storage
+  system. Experimental.</td>
 </tr>
 </table>
 
@@ -152,8 +152,8 @@ With the TachyonURI, the user may use any of the methods of `FileSystem` to acce
 
 ### Reading Data
 
-After creating a `TachyonURI`, the user may modify the file metadata or get an input stream
-to read the file. For example:
+After creating a `TachyonURI`, the user may modify the file metadata (for example, ttl or pin state
+or get an input stream to read the file. For example:
 
 ```java
 FileSystem fs = FileSystem.Factory.get();
