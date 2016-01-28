@@ -142,10 +142,8 @@
   </properties>
 
   <modules>
-    <module>common</module>
     <module>underfs</module>
-    <module>clients</module>
-    <module>servers</module>
+    <module>core</module>
     <module>keyvalue</module>
     <module>shell</module>
     <module>examples</module>

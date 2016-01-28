@@ -2,20 +2,20 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.tachyonproject</groupId>
-    <artifactId>tachyon-parent</artifactId>
+    <artifactId>tachyon-core</artifactId>
     <version>0.9.0-SNAPSHOT</version>
   </parent>
-  <artifactId>tachyon-common</artifactId>
+  <artifactId>tachyon-core-common</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Common</name>
-  <description>Common utilities shared by different tachyon modules</description>
+  <name>Tachyon Core - Common</name>
+  <description>Common utilities shared in Tachyon core modules</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
-    <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
-    <checkstyle.path>${project.parent.basedir}/build/checkstyle/</checkstyle.path>
-    <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>
+    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
     <failIfNoTests>false</failIfNoTests>
   </properties>
 

@@ -2,13 +2,13 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.tachyonproject</groupId>
-    <artifactId>tachyon-clients</artifactId>
+    <artifactId>tachyon-core</artifactId>
     <version>0.9.0-SNAPSHOT</version>
   </parent>
-  <artifactId>tachyon-client-unshaded</artifactId>
+  <artifactId>tachyon-core-client-internal</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Clients - Implementation</name>
-  <description>Implementation of Tachyon client module</description>
+  <name>Tachyon Core - Internal Client Implementation</name>
+  <description>Client implementation of Tachyon core</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -39,7 +39,7 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-common</artifactId>
+      <artifactId>tachyon-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
 
