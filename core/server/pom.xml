@@ -7,7 +7,7 @@
   </parent>
   <artifactId>tachyon-core-server</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Core - Server</name>
+  <name>Tachyon Core - Server Implementation</name>
   <description>Server implementation of Tachyon core</description>
 
   <properties>
