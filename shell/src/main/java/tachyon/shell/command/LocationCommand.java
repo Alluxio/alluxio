@@ -38,10 +38,10 @@ public final class LocationCommand extends WithWildCardPathCommand {
    * stored.
    *
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public LocationCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public LocationCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

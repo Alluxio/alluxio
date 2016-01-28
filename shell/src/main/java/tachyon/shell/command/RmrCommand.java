@@ -35,10 +35,10 @@ public final class RmrCommand extends WithWildCardPathCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public RmrCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public RmrCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

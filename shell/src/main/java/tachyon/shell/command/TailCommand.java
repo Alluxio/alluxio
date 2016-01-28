@@ -38,10 +38,10 @@ public final class TailCommand extends WithWildCardPathCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public TailCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public TailCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

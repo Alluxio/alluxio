@@ -39,8 +39,8 @@ import tachyon.shell.TfsShellUtils;
 @ThreadSafe
 public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
 
-  protected WithWildCardPathCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  protected WithWildCardPathCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   /**
