@@ -25,7 +25,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
@@ -90,9 +89,6 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
       NameMatchAuthenticationProvider.FULL_CLASS_NAME,
       Constants.SECURITY_LOGIN_USERNAME, "tachyon"})
   public void customAuthenticationDenyConnectTest() throws Exception {
-    // Using no-tachyon as loginUser to connect to Worker, the IOException will be thrown
-    ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
-
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Failed to connect to the worker");
 
@@ -102,8 +98,8 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
         1 /* fake session id */, true, new ClientMetrics());
     try {
       Assert.assertFalse(blockWorkerClient.isConnected());
-      // Clear the login user so that it will be reloaded and pick up our no-tachyon change
-      clearLoginUser();
+      // Using no-tachyon as loginUser to connect to Worker, the IOException will be thrown
+      LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), "no-tachyon");
       blockWorkerClient.connect();
     } finally {
       blockWorkerClient.close();
@@ -130,6 +126,6 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
   }
 
   private void clearLoginUser() throws Exception {
-    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (User) null);
+    LoginUserTestUtils.resetLoginUser();
   }
 }

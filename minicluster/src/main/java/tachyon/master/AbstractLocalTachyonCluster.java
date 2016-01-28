@@ -320,7 +320,6 @@ public abstract class AbstractLocalTachyonCluster {
    * @throws Exception when the operation fails
    */
   private void resetLoginUser() throws Exception {
-    // TODO(dong): use the util methods in TACHYON-1566 to reset login user.
     // Use reflection to reset the private static member sLoginUser in LoginUser.
     Field field = LoginUser.class.getDeclaredField("sLoginUser");
     field.setAccessible(true);
@@ -363,7 +362,7 @@ public abstract class AbstractLocalTachyonCluster {
 
     testConf.set(Constants.WEB_THREAD_COUNT, "1");
     testConf.set(Constants.WEB_RESOURCES,
-        PathUtils.concatPath(System.getProperty("user.dir"), "../servers/src/main/webapp"));
+        PathUtils.concatPath(System.getProperty("user.dir"), "../core/server/src/main/webapp"));
 
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default tachyon storage is STORE, and under storage is SYNC_PERSIST for tests.

@@ -28,7 +28,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
-import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
@@ -44,7 +43,7 @@ import tachyon.client.file.options.OpenFileOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.security.LoginUser;
+import tachyon.security.LoginUserTestUtils;
 import tachyon.security.authentication.AuthType;
 import tachyon.shell.command.CommandUtils;
 import tachyon.util.FormatUtils;
@@ -80,7 +79,7 @@ public abstract class AbstractTfsShellTest {
 
   @Before
   public final void before() throws Exception {
-    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+    clearLoginUser();
     mLocalTachyonCluster = mLocalTachyonClusterResource.get();
     mTfs = mLocalTachyonCluster.getClient();
     mFsShell = new TfsShell(new TachyonConf());
@@ -159,13 +158,12 @@ public abstract class AbstractTfsShellTest {
     return null;
   }
 
-  protected void cleanAndLogin(String user) throws IOException {
-    // clear the loginUser and re-login with new user
-    synchronized (LoginUser.class) {
-      Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
-      ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, user);
-      LoginUser.get(ClientContext.getConf());
-    }
+  protected void clearLoginUser() {
+    LoginUserTestUtils.resetLoginUser();
+  }
+
+  protected void clearAndLogin(String user) throws IOException {
+    LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), user);
   }
 
   protected byte[] readContent(TachyonURI uri, int length) throws IOException, TachyonException {
