@@ -102,6 +102,9 @@ In order to enable spot instances, you have to modify the file: `deploy/vagrant/
 
     Spot_Price: “X.XX”
 
+For AWS EC2, the default underfs is S3. For other providers, it is hadoop2. You can config the ufs type in `deploy/vagrant/conf/ufs.yml`.
+The following example uses hadoop2 as under filesystem.
+
 Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running
 the script under `deploy/vagrant`:
 
