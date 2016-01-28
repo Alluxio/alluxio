@@ -98,9 +98,9 @@ However, for short-term testing, spot instances are very appropriate, because it
 
 By default, the deploy scripts DO NOT use spot instances. Therefore, you have to enable deploy scripts to use spot instances.
 
-In order to enable spot instances, you have to modify the file: deploy/vagrant/conf/ec2.yml:
+In order to enable spot instances, you have to modify the file: `deploy/vagrant/conf/ec2.yml`:
 
-    `Spot_Price: “X.XX”`
+    Spot_Price: “X.XX”
 
 Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running
 the script under `deploy/vagrant`:
