@@ -69,7 +69,8 @@ interaction with the Tachyon's native storage and under storage through `ReadTyp
 `ReadType` specifies whether the data should be written concurrently to Tachyon storage during a
 read opertion. `WriteType` specifies the data write behavior when writing a new file.
 
-Below is a table of the expected behaviors of `ReadType`.
+Below is a table of the expected behaviors of `ReadType`. Reads will always prefer Tachyon storage
+over the under storage system.
 
 <table class="table table-striped">
 <tr><th>Read Type</th><th>Behavior</th>
@@ -87,8 +88,7 @@ Below is a table of the expected behaviors of `ReadType`.
 </tr>
 <tr>
   <td>NO_CACHE</td>
-  <td>Data is read preferrably from Tachyon storage, then under storage. No replicas will be
-  created.</td>
+  <td>No replicas will be created.</td>
 </tr>
 </table>
 
