@@ -47,10 +47,7 @@ By default, Tachyon namespace is mounted onto the directory specified by the
 "primary storage" for Tachyon. In addition, users can use the mounting API to add new and remove
 existing data sources:
 
-```java
-bool mount(String tachyonPath, String ufsPath);
-bool unmount(String tachyonPath);
-```
+{% include Unified-and-Transparent-Namespace/mounting-API.md %}
 
 For example, the primary storage could be HDFS and contains user directories; the `Data` directory
 might be stored in an S3 bucket, which is mounted to the Tachyon namespace through the
@@ -63,66 +60,32 @@ exists in the `${TACHYON_HOME}` directory and that there is an instance of Tachy
 
 First, let's create a temporary directory in the local file system that will use for the example:
 
-```bash
-$ cd /tmp
-$ mkdir tachyon-demo
-$ touch tachyon-demo/hello
-```
+{% include Unified-and-Transparent-Namespace/mkdir.md %}
 
 Next, let's mount the directory created above into Tachyon and verify the mounted directory
 appears in Tachyon:
 
-```bash
-$ ${TACHYON_HOME}/bin/tachyon tfs mount /demo /tmp/tachyon-demo
-> Mounted /tmp/tachyon-demo at /demo
-$ ${TACHYON_HOME}/bin/tachyon tfs lsr /
-... # should contain /demo but not /demo/hello
-```
+{% include Unified-and-Transparent-Namespace/mount-demo.md %}
 
 Next, let's verify that the metadata for content not created through Tachyon is loaded into Tachyon
 the first time the content is accessed:
 
-```bash
-$ ${TACHYON_HOME}/bin/tachyon tfs ls /demo/hello
-... # should contain /demo/hello
-```
+{% include Unified-and-Transparent-Namespace/ls-demo-hello.md %}
 
 Next, let's create a file under the mounted directory and verify the file is created in the underlying
 file system:
 
-```bash
-$ ${TACHYON_HOME}/bin/tachyon tfs touch /demo/hello2
-> /demo/hello2 has been created
-$ ls /tmp/tachyon-demo
-> hello hello2
-```
+{% include Unified-and-Transparent-Namespace/create-file.md %}
 
 Next, let's rename a file in Tachyon and verify the file is renamed in the underlying file system:
 
-```bash
-$ ${TACHYON_HOME}/bin/tachyon tfs mv /demo/hello2 /demo/world
-> Renamed /demo/hello2 to /demo/world
-$ ls /tmp/tachyon-demo
-> hello world
-```
+{% include Unified-and-Transparent-Namespace/rename.md %}
 
 Next, let's delete a file in Tachyon and verify the file is deleted in the underlying file system:
 
-```bash
-$ ${TACHYON_HOME}/bin/tachyon tfs rm /demo/world
-> /demo/world has been removed
-$ ls /tmp/tachyon-demo
-> hello
-```
+{% include Unified-and-Transparent-Namespace/delete.md %}
 
 Finally, let's unmount the mounted directory and verify that the directory is removed from the
 Tachyon namespace, but its content is preserved in the underlying file system:
 
-```bash
-${TACHYON_HOME}/bin/tachyon tfs unmount /demo
-> Unmounted /demo
-$ ${TACHYON_HOME}/bin/tachyon tfs lsr /
-... # should not contain /demo
-$ ls /tmp/tachyon-demo
-> hello
-```
+{% include Unified-and-Transparent-Namespace/unmount.md %}
