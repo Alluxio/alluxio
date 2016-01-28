@@ -17,11 +17,14 @@ package tachyon;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.conf.TachyonConf;
 
 /**
  * {@link StorageTierAssoc} for masters.
  */
+@ThreadSafe
 public class MasterStorageTierAssoc extends StorageTierAssoc {
 
   /**

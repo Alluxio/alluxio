@@ -309,6 +309,7 @@ public final class JournalWriter {
    * This is the output stream for the journal entries after the checkpoint. This output stream
    * handles rotating full log files, and creating the next log file.
    */
+  @ThreadSafe
   private class EntryOutputStream implements JournalOutputStream {
     /** The direct output stream created by {@link UnderFileSystem} */
     private OutputStream mRawOutputStream;

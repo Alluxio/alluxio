@@ -438,7 +438,7 @@ final class TachyonFuseFs extends FuseStubFS {
     LOG.trace("readdir({}) [Tachyon: {}]", path, turi);
 
     try {
-      if (mFileSystem.exists(turi)) {
+      if (!mFileSystem.exists(turi)) {
         return -ErrorCodes.ENOENT();
       }
       final URIStatus status = mFileSystem.getStatus(turi);

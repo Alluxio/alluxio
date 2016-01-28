@@ -23,14 +23,16 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-
 /**
  * Configurations used by the metrics system.
  */
+@NotThreadSafe
 public final class MetricsConfig {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

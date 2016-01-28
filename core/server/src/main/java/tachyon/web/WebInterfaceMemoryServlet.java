@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -35,10 +36,12 @@ import tachyon.master.TachyonMaster;
 import tachyon.security.LoginUser;
 import tachyon.security.authentication.PlainSaslServer;
 import tachyon.thrift.FileInfo;
+import tachyon.util.SecurityUtils;
 
 /**
  * Servlet that provides data for displaying which files are currently in memory.
  */
+@ThreadSafe
 public final class WebInterfaceMemoryServlet extends HttpServlet {
   private static final long serialVersionUID = 4293149962399443914L;
   private final transient TachyonMaster mMaster;
@@ -63,7 +66,8 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (PlainSaslServer.AuthorizedClientUser.get() == null) {
+    if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())
+        && PlainSaslServer.AuthorizedClientUser.get(MasterContext.getConf()) == null) {
       PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(MasterContext.getConf()).getName());
     }
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());

@@ -15,6 +15,8 @@
 
 package tachyon.master.lineage.checkpoint;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,7 @@ import tachyon.master.lineage.meta.LineageStoreView;
  * This class tries to checkpoint the latest created lineage that is ready for persistence. This
  * class serves as an example to implement a planner.
  */
+@ThreadSafe
 public final class CheckpointLatestPlanner implements CheckpointPlanner {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

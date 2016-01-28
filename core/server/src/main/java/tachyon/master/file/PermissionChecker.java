@@ -13,9 +13,11 @@
  * the License.
  */
 
-package tachyon.master.permission;
+package tachyon.master.file;
 
 import java.util.List;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Preconditions;
 
@@ -32,7 +34,8 @@ import tachyon.util.io.PathUtils;
 /**
  * Base class to provide permission check logic.
  */
-public final class FileSystemPermissionChecker {
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
+public final class PermissionChecker {
   private static boolean sPermissionCheckEnabled;
 
   /** The owner of root directory. */
@@ -48,8 +51,8 @@ public final class FileSystemPermissionChecker {
    * @param owner the user of root directory, who is seen as the super user
    * @param superGroup the super group of the whole Tachyon file system
    */
-  public static synchronized void initializeFileSystem(boolean permissionCheckEnabled, String owner,
-      String superGroup) {
+  public static synchronized void initializeFileSystem(boolean permissionCheckEnabled,
+      String owner, String superGroup) {
     sPermissionCheckEnabled = permissionCheckEnabled;
     sFileSystemOwner = owner;
     sFileSystemSuperGroup = superGroup;
@@ -69,9 +72,9 @@ public final class FileSystemPermissionChecker {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public static void checkParentPermission(String user, List<String> groups, FileSystemAction
-      action, TachyonURI path, List<FileInfo> fileInfoList) throws AccessControlException,
-      InvalidPathException {
+  public static void checkParentPermission(String user, List<String> groups,
+      FileSystemAction action, TachyonURI path, List<FileInfo> fileInfoList)
+      throws AccessControlException, InvalidPathException {
     // root "/" has no parent, so return without checking
     if (PathUtils.isRoot(path.getPath())) {
       return;
@@ -119,8 +122,7 @@ public final class FileSystemPermissionChecker {
    * @throws InvalidPathException if the path is invalid
    */
   public static void checkOwner(String user, List<String> groups, TachyonURI path,
-      List<FileInfo> fileInfoList) throws
-      AccessControlException, InvalidPathException {
+      List<FileInfo> fileInfoList) throws AccessControlException, InvalidPathException {
     String[] pathComponents = PathUtils.getPathComponents(path.getPath());
 
     for (int i = fileInfoList.size(); i < pathComponents.length; i ++) {

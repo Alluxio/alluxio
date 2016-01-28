@@ -17,6 +17,7 @@ package tachyon.web;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
@@ -40,10 +41,12 @@ import tachyon.master.file.FileSystemMaster;
 import tachyon.security.LoginUser;
 import tachyon.security.authentication.PlainSaslServer;
 import tachyon.thrift.FileInfo;
+import tachyon.util.SecurityUtils;
 
 /**
- * Servlet for downloading a file
+ * Servlet for downloading a file.
  */
+@ThreadSafe
 public final class WebInterfaceDownloadServlet extends HttpServlet {
   private static final long serialVersionUID = 7329267100965731815L;
 
@@ -69,7 +72,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (PlainSaslServer.AuthorizedClientUser.get() == null) {
+    if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())
+        && PlainSaslServer.AuthorizedClientUser.get(MasterContext.getConf()) == null) {
       PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(MasterContext.getConf()).getName());
     }
     String requestPath = request.getParameter("path");

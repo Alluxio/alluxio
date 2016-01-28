@@ -15,6 +15,8 @@
 
 package tachyon.worker.block.evictor;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.allocator.Allocator;
@@ -27,6 +29,7 @@ import tachyon.worker.block.meta.StorageDirView;
  * but PartialLRU select one StorageDir with maximum free space first and evict old blocks in the
  * selected StorageDir by LRU
  */
+@NotThreadSafe
 public class PartialLRUEvictor extends LRUEvictor {
 
   /**

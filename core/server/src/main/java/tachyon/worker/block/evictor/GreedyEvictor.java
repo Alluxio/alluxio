@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +41,7 @@ import tachyon.worker.block.meta.StorageTierView;
  * as an example to implement an Evictor. It does not use the block metadata information or the
  * allocation policy to determine which blocks should be evicted.
  */
+@ThreadSafe
 public final class GreedyEvictor implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

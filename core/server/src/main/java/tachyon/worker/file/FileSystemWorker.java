@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.thrift.TProcessor;
 
 import com.google.common.base.Preconditions;
@@ -39,6 +41,7 @@ import tachyon.worker.block.BlockWorker;
 /**
  * This class is responsible for managing all top level components of the file system worker.
  */
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
 public final class FileSystemWorker extends WorkerBase {
   /** Logic for managing file persistence */
   private final FileDataManager mFileDataManager;

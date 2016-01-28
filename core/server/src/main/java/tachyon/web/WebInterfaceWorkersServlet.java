@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -37,6 +38,7 @@ import tachyon.util.FormatUtils;
 /**
  * Servlet that provides data for displaying detail info of all workers.
  */
+@ThreadSafe
 public final class WebInterfaceWorkersServlet extends HttpServlet {
   /**
    * Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association by

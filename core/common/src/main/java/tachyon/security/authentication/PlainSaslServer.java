@@ -30,7 +30,10 @@ import javax.security.sasl.SaslServer;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.security.User;
+import tachyon.util.SecurityUtils;
 
 /**
  * This class provides PLAIN SASL authentication.
@@ -245,9 +248,14 @@ public final class PlainSaslServer implements SaslServer {
     /**
      * Gets the {@link User} from the {@link ThreadLocal} variable.
      *
+     * @param conf the runtime configuration of Tachyon Master
      * @return the client user
+     * @throws IOException if authentication is not enabled
      */
-    public static User get() {
+    public static User get(TachyonConf conf) throws IOException {
+      if (!SecurityUtils.isAuthenticationEnabled(conf)) {
+        throw new IOException(ExceptionMessage.AUTHENTICATION_IS_NOT_ENABLED.getMessage());
+      }
       return sUserThreadLocal.get();
     }
 

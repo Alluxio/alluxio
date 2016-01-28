@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,8 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.worker.WorkerContext;
+import tachyon.worker.block.allocator.Allocator;
+import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.BlockMetaBase;
 import tachyon.worker.block.meta.StorageDir;
@@ -43,34 +47,32 @@ import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
  * Manages the metadata of all blocks in managed space. This information is used by the
- * {@link TieredBlockStore}, {@link tachyon.worker.block.allocator.Allocator} and
- * {@link tachyon.worker.block.evictor.Evictor}.
+ * {@link TieredBlockStore}, {@link Allocator} and {@link Evictor}.
  * <p>
- * This class is NOT thread-safe. All operations on block metadata such as {@link StorageTier},
- * {@link StorageDir} should go through this class.
+ * All operations on block metadata such as {@link StorageTier}, {@link StorageDir} should go
+ * through this class.
  */
+@NotThreadSafe
 // TODO(bin): consider how to better expose information to Evictor and Allocator.
 public final class BlockMetadataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** A list of managed {@link StorageTier}, in order from lowest tier ordinal to greatest */
-  private List<StorageTier> mTiers;
-  /** A map from tier alias to {@link StorageTier} */
-  private Map<String, StorageTier> mAliasToTiers;
+  /** A list of managed {@link StorageTier}, in order from lowest tier ordinal to greatest. */
+  private final List<StorageTier> mTiers;
 
-  private BlockMetadataManager() {}
+  /** A map from tier alias to {@link StorageTier}. */
+  private final Map<String, StorageTier> mAliasToTiers;
 
-  /**
-   * Factory method to create {@link BlockMetadataManager}.
-   *
-   * @return the new created {@link BlockMetadataManager}
-   */
-  public static BlockMetadataManager newBlockMetadataManager() {
-    BlockMetadataManager ret = new BlockMetadataManager();
+  private BlockMetadataManager() {
     try {
-      ret.initBlockMetadataManager();
-      // caller of newBlockMetadataManager should not be forced to catch and handle these exceptions
-      // since it is the responsibility of BlockMetadataManager.
+      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
+      mAliasToTiers = new HashMap<String, StorageTier>(storageTierAssoc.size());
+      mTiers = new ArrayList<StorageTier>(storageTierAssoc.size());
+      for (int tierOrdinal = 0; tierOrdinal < storageTierAssoc.size(); tierOrdinal++) {
+        StorageTier tier = StorageTier.newStorageTier(storageTierAssoc.getAlias(tierOrdinal));
+        mTiers.add(tier);
+        mAliasToTiers.put(tier.getTierAlias(), tier);
+      }
     } catch (BlockAlreadyExistsException e) {
       throw new RuntimeException(e);
     } catch (IOException e) {
@@ -78,20 +80,15 @@ public final class BlockMetadataManager {
     } catch (WorkerOutOfSpaceException e) {
       throw new RuntimeException(e);
     }
-    return ret;
   }
 
-  private void initBlockMetadataManager()
-      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
-    // Initialize storage tiers
-    StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
-    mAliasToTiers = new HashMap<String, StorageTier>(storageTierAssoc.size());
-    mTiers = new ArrayList<StorageTier>(storageTierAssoc.size());
-    for (int tierOrdinal = 0; tierOrdinal < storageTierAssoc.size(); tierOrdinal ++) {
-      StorageTier tier = StorageTier.newStorageTier(storageTierAssoc.getAlias(tierOrdinal));
-      mTiers.add(tier);
-      mAliasToTiers.put(tier.getTierAlias(), tier);
-    }
+  /**
+   * Creates a new instance of {@link BlockMetadataManager}.
+   *
+   * @return a {@link BlockMetadataManager} instance
+   */
+  public static BlockMetadataManager createBlockMetadataManager() {
+    return new BlockMetadataManager();
   }
 
   /**
@@ -189,11 +186,11 @@ public final class BlockMetadataManager {
   }
 
   /**
-   * Gets the metadata of a block given its blockId.
+   * Gets the metadata of a block given its block id.
    *
    * @param blockId the block id
    * @return metadata of the block
-   * @throws BlockDoesNotExistException if no BlockMeta for this blockId is found
+   * @throws BlockDoesNotExistException if no BlockMeta for this block id is found
    */
   public BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException {
     for (StorageTier tier : mTiers) {
@@ -250,7 +247,7 @@ public final class BlockMetadataManager {
    *
    * @param blockId the id of the temp block
    * @return metadata of the block or null
-   * @throws BlockDoesNotExistException when blockId can not be found
+   * @throws BlockDoesNotExistException when block id can not be found
    */
   public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
     for (StorageTier tier : mTiers) {
@@ -393,7 +390,7 @@ public final class BlockMetadataManager {
              WorkerOutOfSpaceException {
     // If existing location belongs to the target location, simply return the current block meta.
     BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
-    if (oldLocation.belongTo(newLocation)) {
+    if (oldLocation.belongsTo(newLocation)) {
       LOG.info("moveBlockMeta: moving {} to {} is a noop", oldLocation, newLocation);
       return blockMeta;
     }

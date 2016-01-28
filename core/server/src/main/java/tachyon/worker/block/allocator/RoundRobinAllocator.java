@@ -17,6 +17,8 @@ package tachyon.worker.block.allocator;
 
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
@@ -31,6 +33,7 @@ import tachyon.worker.block.meta.StorageTierView;
  * next tier when there is not enough space. The allocator only considers non-specific writes in its
  * RR policy (the location is either AnyTier or AnyDirInTier).
  */
+@NotThreadSafe
 public final class RoundRobinAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
 

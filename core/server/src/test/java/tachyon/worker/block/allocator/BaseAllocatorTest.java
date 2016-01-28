@@ -94,7 +94,7 @@ public class BaseAllocatorTest {
     String tachyonHome = mTestFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(tachyonHome, TIER_LEVEL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);
-    mManager = BlockMetadataManager.newBlockMetadataManager();
+    mManager = BlockMetadataManager.createBlockMetadataManager();
   }
 
   /**

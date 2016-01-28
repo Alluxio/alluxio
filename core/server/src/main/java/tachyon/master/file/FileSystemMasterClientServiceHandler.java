@@ -18,6 +18,8 @@ package tachyon.master.file;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
@@ -41,10 +43,11 @@ import tachyon.thrift.SetAttributeTOptions;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
-//TODO(dong): server side should use a separate SetAttributeOptions in tachyon.master.file.options
 /**
  * This class is a Thrift handler for file system master RPCs invoked by a Tachyon client.
  */
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
+//TODO(dong): server side should use a separate SetAttributeOptions in tachyon.master.file.options
 public final class FileSystemMasterClientServiceHandler implements
     FileSystemMasterClientService.Iface {
   private final FileSystemMaster mFileSystemMaster;

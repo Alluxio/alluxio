@@ -7,7 +7,7 @@
   </parent>
   <artifactId>tachyon-core-common</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Core - Common</name>
+  <name>Tachyon Core - Common Utilities</name>
   <description>Common utilities shared in Tachyon core modules</description>
 
   <properties>

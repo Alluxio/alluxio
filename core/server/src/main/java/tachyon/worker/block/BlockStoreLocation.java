@@ -17,19 +17,25 @@ package tachyon.worker.block;
 
 import java.util.Arrays;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Where to store a block within a block store. Currently, this is a wrapper on an integer
  * representing the tier to put this block.
  */
+@ThreadSafe
 public final class BlockStoreLocation {
-  /** Special value to indicate any tier */
+
+  /** Special value to indicate any tier. */
   private static final String ANY_TIER = "";
-  /** Special value to indicate any dir */
+
+  /** Special value to indicate any dir. */
   private static final int ANY_DIR = -1;
 
-  /** Alias of the storage tier */
+  /** Alias of the storage tier. */
   private final String mTierAlias;
-  /** Index of the directory in its tier, 0 indexed */
+
+  /** Index of the directory in its tier, 0 indexed. */
   private final int mDirIndex;
 
   /**
@@ -88,7 +94,7 @@ public final class BlockStoreLocation {
    * @param location the target BlockStoreLocation
    * @return true when this BlockStoreLocation belongs to the target, otherwise false
    */
-  public boolean belongTo(BlockStoreLocation location) {
+  public boolean belongsTo(BlockStoreLocation location) {
     boolean tierInRange =
         tierAlias().equals(location.tierAlias()) || location.tierAlias().equals(ANY_TIER);
     boolean dirInRange = (dir() == location.dir()) || (location.dir() == ANY_DIR);

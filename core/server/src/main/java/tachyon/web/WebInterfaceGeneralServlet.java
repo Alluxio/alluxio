@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -36,6 +37,7 @@ import tachyon.util.FormatUtils;
 /**
  * Servlet that provides data for viewing the general status of the filesystem.
  */
+@ThreadSafe
 public final class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * Class to make referencing tiered storage information more intuitive.
