@@ -7,7 +7,7 @@
   </parent>
   <artifactId>tachyon-core-client-internal</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Core - Internal Client Implementation</name>
+  <name>Tachyon Core - Client Implementation</name>
   <description>Client implementation of Tachyon core</description>
 
   <properties>

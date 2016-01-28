@@ -72,13 +72,13 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-client</artifactId>
+      <artifactId>tachyon-keyvalue-client-internal</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-servers</artifactId>
+      <artifactId>tachyon-keyvalue-server</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

@@ -5,9 +5,9 @@
     <artifactId>tachyon-keyvalue</artifactId>
     <version>0.9.0-SNAPSHOT</version>
   </parent>
-  <artifactId>tachyon-keyvalue-client</artifactId>
-  <name>Tachyon Key Value Store - Clients</name>
-  <description>Common utilities shared by Tachyon key-value store</description>
+  <artifactId>tachyon-keyvalue-client-internal</artifactId>
+  <name>Tachyon Key Value Store - Client Implementation</name>
+  <description>Client implementation of Tachyon key value store</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
