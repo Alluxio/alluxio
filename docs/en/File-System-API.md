@@ -9,11 +9,12 @@ priority: 1
 * Table of Contents
 {:toc}
 
-Tachyon provides access to data through a filesystem interface. Files in Tachyon offer the write-once
-semantics: they become immutable after they have been written in their entirety. Tachyon provides two
-different Filesystem APIs, a native API and a Hadoop compatible API. The native API provides better
-performance, while the Hadoop compatible API gives users the flexibility of leveraging Tachyon without
-having to modify existing code written using Hadoop's API.
+Tachyon provides access to data through a filesystem interface. Files in Tachyon offer write-once
+semantics: they become immutable after they have been written in their entirety and cannot be read
+before being completed. Tachyon provides two different Filesystem APIs, a native API and a Hadoop
+compatible API. The native API provides better performance, while the Hadoop compatible API gives
+users the flexibility of leveraging Tachyon without having to modify existing code written using
+Hadoop's API.
 
 # Native API
 
@@ -68,10 +69,10 @@ interaction with the Tachyon's native storage and under storage through `ReadTyp
 Both these enums are responsible for controlling the behavior of any write operations. In the case
 of `ReadType`, it specifies whether the data should be written concurrently to Tachyon storage.
 
-Below is a table of the expected behaviors of `ReadType`s.
+Below is a table of the expected behaviors of `ReadType`.
 
 <table class="table table-striped">
-<tr><th>Read Type</th><th>Read Behavior</th>
+<tr><th>Read Type</th><th>Behavior</th>
 </tr>
 <tr>
   <td>CACHE_PROMOTE</td>
@@ -91,10 +92,10 @@ Below is a table of the expected behaviors of `ReadType`s.
 </tr>
 </table>
 
-Below is a table of the expected behaviors of `WriteType`s
+Below is a table of the expected behaviors of `WriteType`
 
 <table class="table table-striped">
-<tr><th>Read Type</th><th>Read Behavior</th>
+<tr><th>Read Type</th><th>Behavior</th>
 </tr>
 <tr>
   <td>CACHE_THROUGH</td>
@@ -103,7 +104,7 @@ Below is a table of the expected behaviors of `WriteType`s
 <tr>
   <td>MUST_CACHE</td>
   <td>Data is written synchronously to a Tachyon worker. No data will written to the under storage.
-  </td>
+  This is the default write type.</td>
 </tr>
 <tr>
   <td>THROUGH</td>
@@ -112,7 +113,7 @@ Below is a table of the expected behaviors of `WriteType`s
 <tr>
   <td>ASYNC_THROUGH</td>
   <td>Data is written synchronously to a Tachyon worker, it will be asynchronously written to the
-  under storage system.</td>
+  under storage system. Experimental.</td>
 </tr>
 </table>
 
