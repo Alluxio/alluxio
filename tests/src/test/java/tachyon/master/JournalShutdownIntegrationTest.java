@@ -51,9 +51,9 @@ public class JournalShutdownIntegrationTest {
     private final int mOpType; // 0: create file
     private final FileSystem mFileSystem;
 
-    public ClientThread(int opType, FileSystem tfs) {
+    public ClientThread(int opType, FileSystem fs) {
       mOpType = opType;
-      mFileSystem = tfs;
+      mFileSystem = fs;
     }
 
     public int getSuccessNum() {

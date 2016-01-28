@@ -33,18 +33,18 @@ public class SetTtlCommandTest extends AbstractTfsShellTest {
   @Test
   public void setTtlTest() throws Exception {
     String filePath = "/testFile";
-    FileSystemTestUtils.createByteFile(mTfs, filePath, WriteType.MUST_CACHE, 1);
-    Assert.assertEquals(Constants.NO_TTL, mTfs.getStatus(new TachyonURI("/testFile")).getTtl());
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
+    Assert.assertEquals(Constants.NO_TTL, mFileSystem.getStatus(new TachyonURI("/testFile")).getTtl());
     long[] ttls = new long[] { 0L, 1000L };
     for (long ttl : ttls) {
       Assert.assertEquals(0, mFsShell.run("setTtl", filePath, String.valueOf(ttl)));
-      Assert.assertEquals(ttl, mTfs.getStatus(new TachyonURI("/testFile")).getTtl());
+      Assert.assertEquals(ttl, mFileSystem.getStatus(new TachyonURI("/testFile")).getTtl());
     }
   }
 
   @Test
   public void setTtlNegativeTest() throws IOException {
-    FileSystemTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 1);
     mException.expect(IllegalArgumentException.class);
     mException.expectMessage("TTL value must be >= 0");
     mFsShell.run("setTtl", "/testFile", "-1");
