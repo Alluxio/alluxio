@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.master.keyvalue.KeyValueMaster;
 import tachyon.worker.Worker;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerFactory;
@@ -45,11 +44,11 @@ public final class KeyValueWorkerFactory implements WorkerFactory {
 
     for (Worker worker : workers) {
       if (worker instanceof BlockWorker) {
-        LOG.info("{} is created", KeyValueMaster.class.getName());
+        LOG.info("{} is created", KeyValueWorker.class.getName());
         return new KeyValueWorker(((BlockWorker) worker));
       }
     }
-    LOG.error("Fail to create {} due to missing {}", KeyValueMaster.class.getName(),
+    LOG.error("Fail to create {} due to missing {}", KeyValueWorker.class.getName(),
         BlockWorker.class.getName());
     return null;
   }

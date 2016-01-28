@@ -24,6 +24,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,26 +46,33 @@ import tachyon.util.io.PathUtils;
 /**
  * Aliyun OSS {@link UnderFileSystem} implementation.
  */
+@ThreadSafe
 public final class OSSUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = "_$folder$";
+
   /** Value used to indicate folder structure in OSS. */
   private static final String PATH_SEPARATOR = "/";
 
   /** Aliyun OSS client. */
-  private OSSClient mOssClient;
-  /** the accessId to connect OSS. */
+  private final OSSClient mOssClient;
+
+  /** The accessId to connect OSS. */
   private final String mAccessId;
-  /** the accessKey to connect OSS. */
+
+  /** The accessKey to connect OSS. */
   private final String mAccessKey;
+
   /** Bucket name of user's configured Tachyon bucket. */
   private final String mBucketName;
+
   /** Prefix of the bucket, for example oss://bucket-name/ */
   private final String mBucketPrefix;
+
   /** The OSS endpoint. */
-  private String mEndPoint;
+  private final String mEndPoint;
 
   protected OSSUnderFileSystem(String bucketName, TachyonConf tachyonConf) throws Exception {
     super(tachyonConf);

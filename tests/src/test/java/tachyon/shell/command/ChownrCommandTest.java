@@ -19,13 +19,11 @@ import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.exception.TachyonException;
-import tachyon.security.LoginUser;
 import tachyon.shell.AbstractTfsShellTest;
 
 /**
@@ -34,9 +32,9 @@ import tachyon.shell.AbstractTfsShellTest;
 public class ChownrCommandTest extends AbstractTfsShellTest {
   @Test
   public void chownrTest() throws IOException, TachyonException {
-    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+    clearLoginUser();
     mFsShell.run("mkdir", "/testFolder1");
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFolder1/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mTfs, "/testFolder1/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chownr", "user1", "/testFolder1");
     String owner = mTfs.getStatus(new TachyonURI("/testFolder1/testFile")).getUserName();
     Assert.assertEquals("user1", owner);

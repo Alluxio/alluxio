@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileSystem;
@@ -27,6 +29,7 @@ import tachyon.exception.TachyonException;
 /**
  * Displays the file's all blocks info.
  */
+@ThreadSafe
 public final class FileInfoCommand extends WithWildCardPathCommand {
 
   /**

@@ -42,6 +42,10 @@ out-of-the-box.
   <td> 1.5.x </td>
   <td> v0.7.1 </td>
 </tr>
+<tr>
+  <td> 1.6.x </td>
+  <td> v0.8.2 </td>
+</tr>
 </table>
 
 If the version of Spark is not supported by your Tachyon installation by default (e.g., you are
