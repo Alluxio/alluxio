@@ -72,7 +72,7 @@ information about support for other distributions.
 
 After the compilation succeeds, the new Tachyon client jar can be found at:
 
-    clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
+    core/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
 
 This is the jar that you should use for the rest of this guide.
 
@@ -82,7 +82,7 @@ In order for the Tachyon client jar to be available to the JobClient, you can mo
 `HADOOP_CLASSPATH` by changing `hadoop-env.sh` to:
 
 ```bash
-$ export HADOOP_CLASSPATH=/<PATH_TO_TACHYON>/clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
+$ export HADOOP_CLASSPATH=/<PATH_TO_TACHYON>/core/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
 ```
 
 This allows the code that creates and submits the Job to use URIs with Tachyon scheme.
@@ -103,18 +103,18 @@ Below are instructions for the 2 main alternatives:
 1. **Using the -libjars command line option.**
 You can run a job by using the `-libjars` command line option when using `hadoop jar ...`, 
 specifying
-`/<PATH_TO_TACHYON>/clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`
+`/<PATH_TO_TACHYON>/core/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`
 as the argument. This will place the jar in the Hadoop DistributedCache, making it available to all
 the nodes. For example, the following command adds the Tachyon client jar to the `-libjars` option:
 
 ```bash
-$ hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar <INPUT FILES> <OUTPUT DIRECTORY>`
+$ hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/core/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar <INPUT FILES> <OUTPUT DIRECTORY>`
 ```
 
 1. **Distributing the jars to all nodes manually.**
 For installing Tachyon on each node, you must place the client jar
 `tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`
-(located in the `/<PATH_TO_TACHYON>/clients/client/target/` directory), in the `$HADOOP_HOME/lib`
+(located in the `/<PATH_TO_TACHYON>/core/client/target/` directory), in the `$HADOOP_HOME/lib`
 (may be `$HADOOP_HOME/share/hadoop/common/lib` for different versions of Hadoop) directory of every
 MapReduce node, and then restart all of the TaskTrackers. One caveat of this approach is that the
 jars must be installed again for each update to a new release. On the other hand, when the jar is 
@@ -162,7 +162,7 @@ This command will copy the `LICENSE` file into the Tachyon namespace with the pa
 Now we can run a MapReduce job for wordcount.
 
 ```bash
-$ bin/hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar -Dtachyon.user.file.understoragetype.default=SYNC_PERSIST tachyon://localhost:19998/wordcount/input.txt tachyon://localhost:19998/wordcount/output
+$ bin/hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/core/client/target/tachyon-core-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar -Dtachyon.user.file.understoragetype.default=SYNC_PERSIST tachyon://localhost:19998/wordcount/input.txt tachyon://localhost:19998/wordcount/output
 ```
 
 After this job completes, the result of the wordcount will be in the `/wordcount/output` directory

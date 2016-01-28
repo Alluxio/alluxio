@@ -135,7 +135,7 @@ The common configuration contains constants shared by different components.
 </tr>
 <tr>
   <td>tachyon.web.resources</td>
-  <td>${tachyon.home}/servers/src/main/webapp</td>
+  <td>${tachyon.home}/core/server/src/main/webapp</td>
   <td>Path to the web application resources.</td>
 </tr>
 <tr>
