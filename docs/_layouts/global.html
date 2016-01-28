@@ -63,7 +63,7 @@
                     <li><a href="index.html">{{overviewPage[0].title}}</a></li>
                 {% endif %}
 
-                {% assign categories = "User Guide|Features|Frameworks|Under Stores|Dev Resources" | split: "|" %}
+                {% assign categories = "User Guide|Features|Frameworks|Under Store|Dev Resources" | split: "|" %}
                 {% for groupName in categories %}
                     <li class="dropdown">
                         {% if page.group == groupName %}

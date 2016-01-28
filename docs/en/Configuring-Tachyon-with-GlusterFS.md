@@ -2,7 +2,7 @@
 layout: global
 title: Configuring Tachyon with GlusterFS
 nickname: Tachyon with GlusterFS
-group: Under Stores
+group: Under Store
 priority: 2
 ---
 
@@ -23,7 +23,8 @@ $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
 
 # Configuring Tachyon
 
-Assuming the GlusterFS bricks are co-located with Tachyon nodes, the GlusterFS volume is mounted at `/tachyon_vol`, the following environment variable assignment needs to be added to
+Assuming the GlusterFS bricks are co-located with Tachyon nodes, the GlusterFS volume is mounted at
+`/tachyon_vol`, the following environment variable assignment needs to be added to 
 `conf/tachyon-env.sh`:
 
 ```bash
