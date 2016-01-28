@@ -63,7 +63,7 @@
                     <li><a href="index.html">{{overviewPage[0].title}}</a></li>
                 {% endif %}
 
-                {% assign categories = "User Guide|Features|Frameworks|Under Store|Dev Resources" | split: "|" %}
+                {% assign categories = "User Guide|Features|Frameworks|Under Store|Resources" | split: "|" %}
                 {% for groupName in categories %}
                     <li class="dropdown">
                         {% if page.group == groupName %}
@@ -99,10 +99,11 @@
                                     </a></li>
                                 {% endif %}
                             {% endfor %}
-                            {% if groupName == "Dev Resources" %}
+                            {% if groupName == "Resources" %}
                                 <li><a href="https://tachyon.atlassian.net/browse/TACHYON">Reporting Issues (JIRA)</a></li>
                                 <li class="divider"></li>
                                 <li><p>Presentations</p></li>
+                                <li><a href="http://www.slideshare.net/TachyonNexus/tachyon-presentation-at-ampcamp-6-november-2015">AMPCamp 6</a></li>
                                 <li><a href="http://goo.gl/kcKeTp">Strata and Hadoop World 2015</a></li>
                                 <li><a href="http://goo.gl/0HpqeS">Tachyon Workshop 2015</a></li>
                                 <li><a href="http://goo.gl/fP9qkF">Strata and Hadoop World 2014</a></li>

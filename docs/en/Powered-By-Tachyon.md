@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Powered By Tachyon
-group: Dev Resources
+group: Resources
 ---
 
 There are many companies and organizations that use Tachyon. Here is a list of some of the Tachyon
