@@ -20,7 +20,7 @@ automatically includes the version of the documentation that is relevant regardl
 or release you have checked out or downloaded.
 
 In directories like `docs/en` or `docs/cn`, you will find text files with an ".md" suffix formatted
-using [Github flaver Markdown syntax]
+using [Github flavor Markdown syntax]
 (https://help.github.com/articles/basic-writing-and-formatting-syntax/). You can read those text
 files directly if you want. Start with `index.md`.
 
@@ -41,11 +41,11 @@ $ mvn javadoc:aggregate
 Then use jekyll to build the HTML documentation.
 
 ```bash
-$ SKIP_SCALADOC=1 jekyll build
+$ jekyll build
 ```
 
-This skips building and copying over the Scala documentation which can be time-consuming. This will
-create a directory called `_site` containing index.html as well as the rest of the compiled files.
+This will create a directory called `_site` containing `index.html` as well as the rest of the
+HTML files compiled from markdown files.
 
 In addition to generating the site as HTML from the markdown files, jekyll can serve the site via
 a webserver. To build and run a webserver, use the command `jekyll serve` and then visit the site 
