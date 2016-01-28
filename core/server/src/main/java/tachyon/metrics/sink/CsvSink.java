@@ -20,6 +20,8 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.MetricRegistry;
 
@@ -28,6 +30,7 @@ import tachyon.metrics.MetricsSystem;
 /**
  * A sink which creates a CSV file of the metric values.
  */
+@NotThreadSafe
 public class CsvSink implements Sink {
   private static final int CSV_DEFAULT_PERIOD = 10;
   private static final String CSV_DEFAULT_UNIT = "SECONDS";

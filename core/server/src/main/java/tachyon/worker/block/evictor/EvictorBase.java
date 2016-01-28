@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +41,7 @@ import tachyon.worker.block.meta.StorageTierView;
 /**
  * Provides the basic implementation for every evictor.
  */
+@NotThreadSafe
 public abstract class EvictorBase extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   protected final Allocator mAllocator;
@@ -95,7 +98,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       try {
         BlockMeta block = mManagerView.getBlockMeta(blockId);
         if (block != null) { // might not present in this view
-          if (block.getBlockLocation().belongTo(location)) {
+          if (block.getBlockLocation().belongsTo(location)) {
             String tierAlias = block.getParentDir().getParentTier().getTierAlias();
             int dirIndex = block.getParentDir().getDirIndex();
             dirCandidates.add(mManagerView.getTierView(tierAlias).getDirView(dirIndex), blockId,

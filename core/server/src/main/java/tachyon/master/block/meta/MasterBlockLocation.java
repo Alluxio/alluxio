@@ -15,9 +15,12 @@
 
 package tachyon.master.block.meta;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The location of a Tachyon block.
  */
+@ThreadSafe
 public final class MasterBlockLocation {
   /** The id of the Tachyon worker. */
   private final long mWorkerId;

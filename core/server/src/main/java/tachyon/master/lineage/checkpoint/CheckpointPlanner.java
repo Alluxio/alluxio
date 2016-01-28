@@ -24,7 +24,7 @@ import tachyon.master.lineage.meta.LineageStoreView;
 import tachyon.util.CommonUtils;
 
 /**
- * Generates plans for Lineage checkpointing.
+ * Generates plans for lineage checkpointing.
  */
 public interface CheckpointPlanner {
 

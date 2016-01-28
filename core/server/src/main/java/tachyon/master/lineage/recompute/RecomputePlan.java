@@ -17,6 +17,8 @@ package tachyon.master.lineage.recompute;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
@@ -29,6 +31,7 @@ import tachyon.master.lineage.meta.Lineage;
  * TODO(yupeng): in this version it simply returns a list of jobs to execute in sequence. In the
  * future, we will explore the possibility of executing jobs in in parallel.
  */
+@ThreadSafe
 public class RecomputePlan {
   /** A list of lineages to recompute */
   private final List<Lineage> mToRecompute;

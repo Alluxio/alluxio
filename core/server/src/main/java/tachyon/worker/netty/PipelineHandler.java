@@ -15,6 +15,8 @@
 
 package tachyon.worker.netty;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -27,6 +29,7 @@ import tachyon.network.protocol.RPCMessageEncoder;
 /**
  * Adds the block server's pipeline into the channel.
  */
+@ThreadSafe
 public final class PipelineHandler extends ChannelInitializer<SocketChannel> {
   private final DataServerHandler mDataServerHandler;
 

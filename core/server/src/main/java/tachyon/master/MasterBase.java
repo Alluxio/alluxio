@@ -43,7 +43,7 @@ import tachyon.util.ThreadFactoryUtils;
  * mostly consists of journal operations, like initialization, journal tailing when in standby mode,
  * or journal writing when the master is the leader.
  */
-@NotThreadSafe
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
 public abstract class MasterBase implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

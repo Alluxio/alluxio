@@ -18,6 +18,8 @@ package tachyon.master.block;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
@@ -31,6 +33,7 @@ import tachyon.worker.NetAddress;
 /**
  * This class is a Thrift handler for block master RPCs invoked by a Tachyon worker.
  */
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
 public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService.Iface {
   private final BlockMaster mBlockMaster;
 

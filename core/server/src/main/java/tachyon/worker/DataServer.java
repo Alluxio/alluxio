@@ -18,6 +18,8 @@ package tachyon.worker;
 import java.io.Closeable;
 import java.net.InetSocketAddress;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -33,6 +35,7 @@ public interface DataServer extends Closeable {
   /**
    * Factory for {@link DataServer}.
    */
+  @ThreadSafe
   class Factory {
     /**
      * Factory for {@link DataServer}.

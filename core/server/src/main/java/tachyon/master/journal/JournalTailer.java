@@ -17,6 +17,8 @@ package tachyon.master.journal;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,7 @@ import tachyon.proto.journal.Journal.JournalEntry;
  * This class tails the journal for a master. It will process the journal checkpoint file, and then
  * process all existing completed log files.
  */
+@NotThreadSafe
 public final class JournalTailer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

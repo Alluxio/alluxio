@@ -18,6 +18,8 @@ package tachyon;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +31,9 @@ import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Format Tachyon File System.
+ * Format Tachyon file system.
  */
+@ThreadSafe
 public final class Format {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String USAGE = String.format("java -cp %s tachyon.Format <MASTER/WORKER>",

@@ -33,12 +33,13 @@ import com.google.common.collect.Lists;
  */
 @ThreadSafe
 public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
-  /** Lock for operations on the removed and added block collections */
+  /** Lock for operations on the removed and added block collections. */
   private final Object mLock;
 
-  /** List of blocks that were removed in the last heartbeat period */
+  /** List of blocks that were removed in the last heartbeat period. */
   private final List<Long> mRemovedBlocks;
-  /** Map of storage tier alias to a list of blocks that were added in the last heartbeat period */
+
+  /** Map of storage tier alias to a list of blocks that were added in the last heartbeat period. */
   private final Map<String, List<Long>> mAddedBlocks;
 
   /**
@@ -145,7 +146,7 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
         if (blockList.isEmpty()) {
           iterator.remove();
         }
-        // exit the loop when already find and remove blockId from mAddedBlocks
+        // exit the loop when already find and remove block id from mAddedBlocks
         break;
       }
     }

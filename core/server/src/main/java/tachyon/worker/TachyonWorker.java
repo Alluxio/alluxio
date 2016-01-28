@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -48,39 +50,49 @@ import tachyon.worker.block.BlockWorkerClientServiceHandler;
 import tachyon.worker.file.FileSystemWorker;
 
 /**
- * Entry point for the Tachyon Worker. This class is responsible for initializing the different
- * workers that are configured to run.
- * <p>
- * This class is not thread-safe.
+ * Entry point for the Tachyon worker program. This class is responsible for initializing the
+ * different workers that are configured to run.
  */
+@NotThreadSafe
 public final class TachyonWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private TachyonConf mTachyonConf;
-  // The workers
-  /** The worker serving blocks */
+
+  /** The worker serving blocks. */
   private BlockWorker mBlockWorker;
-  /** The worker serving file system operations */
+
+  /** The worker serving file system operations. */
   private FileSystemWorker mFileSystemWorker;
-  /** A list of extra workers to launch based on service loader */
+
+  /** A list of extra workers to launch based on service loader. */
   private List<Worker> mAdditionalWorkers;
-  /** is true if the worker is serving the RPC server */
+
+  /** Whether the worker is serving the RPC server. */
   private boolean mIsServingRPC = false;
-  /** Worker metrics system */
+
+  /** Worker metrics system. */
   private MetricsSystem mWorkerMetricsSystem;
-  /** Worker Web UI server */
+
+  /** Worker Web UI server. */
   private UIWebServer mWebServer;
-  /** Thread pool for thrift */
+
+  /** Thread pool for thrift. */
   private TThreadPoolServer mThriftServer;
-  /** Server socket for thrift */
+
+  /** Server socket for thrift. */
   private TServerSocket mThriftServerSocket;
-  /** RPC local port for thrift */
+
+  /** RPC local port for thrift. */
   private int mRPCPort;
-  /** The address for the rpc server */
+
+  /** The address for the rpc server. */
   private InetSocketAddress mWorkerAddress;
-  /** Net address of this worker */
+
+  /** Net address of this worker. */
   private NetAddress mNetAddress;
-  /** Worker start time in milliseconds */
+
+  /** Worker start time in milliseconds. */
   private long mStartTimeMs;
 
   /**

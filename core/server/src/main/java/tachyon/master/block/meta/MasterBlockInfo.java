@@ -22,9 +22,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * The metadata for a Tachyon block, managed by the block master.
  */
+@NotThreadSafe
 public final class MasterBlockInfo {
   /** The id of the block. */
   private final long mBlockId;

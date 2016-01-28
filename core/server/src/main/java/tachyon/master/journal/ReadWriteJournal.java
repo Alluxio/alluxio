@@ -15,9 +15,12 @@
 
 package tachyon.master.journal;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The read-write journal. This allows both reads and writes to the journal.
  */
+@ThreadSafe
 public class ReadWriteJournal extends ReadOnlyJournal {
   /**
    * @param directory the base directory for the journal

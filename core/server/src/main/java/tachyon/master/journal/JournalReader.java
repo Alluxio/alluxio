@@ -17,6 +17,8 @@ package tachyon.master.journal;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,7 @@ import tachyon.underfs.UnderFileSystem;
  * 2. Afterwards, completed entries are read in order. Only completed logs are read, so the last log
  * currently being written is not read until it is marked as complete.
  */
+@NotThreadSafe
 public class JournalReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

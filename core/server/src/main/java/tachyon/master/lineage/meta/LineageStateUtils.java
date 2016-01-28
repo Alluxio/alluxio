@@ -17,6 +17,8 @@ package tachyon.master.lineage.meta;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.collect.Lists;
 
 import tachyon.exception.FileDoesNotExistException;
@@ -27,6 +29,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Utility methods for checking the state of lineage files.
  */
+@ThreadSafe
 public final class LineageStateUtils {
   private LineageStateUtils() {} // prevent instantiation
 

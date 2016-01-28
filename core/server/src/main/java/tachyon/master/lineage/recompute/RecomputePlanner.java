@@ -18,6 +18,8 @@ package tachyon.master.lineage.recompute;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +38,7 @@ import tachyon.master.lineage.meta.LineageStore;
  * Plans the recompute strategy. It takes a list of lost files as input and outputs a recompute
  * plan.
  */
+@ThreadSafe
 public class RecomputePlanner {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

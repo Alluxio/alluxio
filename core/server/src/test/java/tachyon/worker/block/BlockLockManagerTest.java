@@ -115,7 +115,7 @@ public class BlockLockManagerTest {
     mThrown.expect(InvalidWorkerStateException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_SESSION.getMessage(lockId,
         TEST_SESSION_ID, wrongSessionId));
-    // Validate an existing lockId with wrong sessionId, expect to see IOException
+    // Validate an existing lockId with wrong session id, expect to see IOException
     mLockManager.validateLock(wrongSessionId, TEST_BLOCK_ID, lockId);
   }
 
@@ -132,7 +132,7 @@ public class BlockLockManagerTest {
     mThrown.expect(InvalidWorkerStateException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_BLOCK.getMessage(lockId,
         TEST_BLOCK_ID, wrongBlockId));
-    // Validate an existing lockId with wrong blockId, expect to see IOException
+    // Validate an existing lockId with wrong block id, expect to see IOException
     mLockManager.validateLock(TEST_SESSION_ID, wrongBlockId, lockId);
   }
 

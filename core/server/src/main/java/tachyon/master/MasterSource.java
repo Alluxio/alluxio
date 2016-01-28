@@ -17,6 +17,8 @@ package tachyon.master;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,10 +33,11 @@ import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 
 /**
- * A MasterSource collects a Master's internal state. Metrics like *Ops are used to record how many
- * times that operation was attempted so the counter is incremented no matter if it is successful or
- * not.
+ * Master source collects information about master's internal state. Metrics like *Ops are used to
+ * record how many times that operation was attempted so the counter is incremented no matter if it
+ * is successful or not.
  */
+@NotThreadSafe
 public class MasterSource implements Source {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String MASTER_SOURCE_NAME = "master";

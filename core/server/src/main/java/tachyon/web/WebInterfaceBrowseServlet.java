@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -46,11 +47,13 @@ import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.WorkerNetAddress;
+import tachyon.util.SecurityUtils;
 import tachyon.util.io.PathUtils;
 
 /**
  * Servlet that provides data for browsing the file system.
  */
+@ThreadSafe
 public final class WebInterfaceBrowseServlet extends HttpServlet {
 
   private static final long serialVersionUID = 6121623049981468871L;
@@ -135,7 +138,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (PlainSaslServer.AuthorizedClientUser.get() == null) {
+    if (SecurityUtils.isSecurityEnabled(mTachyonConf)
+        && PlainSaslServer.AuthorizedClientUser.get(mTachyonConf) == null) {
       PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(mTachyonConf).getName());
     }
     request.setAttribute("debug", Constants.DEBUG);

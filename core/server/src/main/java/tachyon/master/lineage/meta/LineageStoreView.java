@@ -17,16 +17,19 @@ package tachyon.master.lineage.meta;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.exception.LineageDoesNotExistException;
 
 /**
- * This class exposes a readonly view of {@link LineageStore} to checkpoint schedulers and recompute
- * planners.
+ * This class exposes a read-only view of {@link LineageStore} to checkpoint schedulers and
+ * recompute planners.
  *
  * TODO(yupeng): return a lineage view for protection
  */
+@ThreadSafe
 public final class LineageStoreView {
   /** The LineageStore this view is derived from */
   private final LineageStore mLineageStore;

@@ -217,7 +217,7 @@ public class TieredBlockStoreTestUtils {
    */
   public static BlockMetadataManager defaultMetadataManager(String baseDir) throws Exception {
     setupTachyonConfDefault(baseDir);
-    return BlockMetadataManager.newBlockMetadataManager();
+    return BlockMetadataManager.createBlockMetadataManager();
   }
 
   /**

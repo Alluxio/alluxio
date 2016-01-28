@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
@@ -34,6 +36,7 @@ import tachyon.util.FormatUtils;
 /**
  * Contains information about a file to be displayed in the UI.
  */
+@ThreadSafe
 public final class UIFileInfo {
   /**
    * Provides ordering of {@link UIFileInfo} based off a string comparison of the
@@ -48,6 +51,7 @@ public final class UIFileInfo {
       });
 
   // Simple class for describing a file on the local filesystem.
+  @ThreadSafe
   static class LocalFileInfo {
     public static final long EMPTY_CREATION_TIME = 0;
 
@@ -94,7 +98,7 @@ public final class UIFileInfo {
   private final String mGroupName;
   private final String mPermission;
   private final String mPersistenceState;
-  private List<String> mFileLocations;
+  private final List<String> mFileLocations;
 
   private final Map<String, List<UIFileBlockInfo>> mBlocksOnTier =
       new HashMap<String, List<UIFileBlockInfo>>();
