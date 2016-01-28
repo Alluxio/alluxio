@@ -18,6 +18,8 @@ package tachyon.metrics.sink;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
 
@@ -26,6 +28,7 @@ import tachyon.metrics.MetricsSystem;
 /**
  * A sink which outputs metric values to the console.
  */
+@NotThreadSafe
 public final class ConsoleSink implements Sink {
   private static final int CONSOLE_DEFAULT_PERIOD = 10;
   private static final String CONSOLE_DEFAULT_UNIT = "SECONDS";

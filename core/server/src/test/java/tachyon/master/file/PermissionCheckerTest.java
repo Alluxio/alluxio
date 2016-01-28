@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.permission;
+package tachyon.master.file;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,9 +48,9 @@ import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
 /**
- * Unit tests for {@link FileSystemPermissionChecker}
+ * Unit tests for {@link PermissionChecker}.
  */
-public class FileSystemPermissionCheckerTest {
+public class PermissionCheckerTest {
   private static final String TEST_SUPER_GROUP = "test-supergroup";
 
   /**
@@ -186,11 +186,11 @@ public class FileSystemPermissionCheckerTest {
   }
 
   private static void verifyPermissionChecker(boolean enabled, String owner, String group) {
-    Assert.assertEquals(enabled, Whitebox.getInternalState(FileSystemPermissionChecker.class,
+    Assert.assertEquals(enabled, Whitebox.getInternalState(PermissionChecker.class,
         "sPermissionCheckEnabled"));
-    Assert.assertEquals(owner, Whitebox.getInternalState(FileSystemPermissionChecker.class,
+    Assert.assertEquals(owner, Whitebox.getInternalState(PermissionChecker.class,
         "sFileSystemOwner"));
-    Assert.assertEquals(group, Whitebox.getInternalState(FileSystemPermissionChecker.class,
+    Assert.assertEquals(group, Whitebox.getInternalState(PermissionChecker.class,
         "sFileSystemSuperGroup"));
   }
 
@@ -287,21 +287,21 @@ public class FileSystemPermissionCheckerTest {
     List<FileInfo> fileInfos = Lists.newArrayList();
     mThrown.expect(InvalidPathException.class);
 
-    FileSystemPermissionChecker.checkPermission(TEST_USER_2.getUser(),
+    PermissionChecker.checkPermission(TEST_USER_2.getUser(),
         Lists.newArrayList(TEST_USER_2.getGroups().split(",")), FileSystemAction.WRITE,
         new TachyonURI(""), fileInfos);
   }
 
   private void checkSelfPermission(TestUser user, FileSystemAction action, String path)
       throws Exception {
-    FileSystemPermissionChecker.checkPermission(user.getUser(),
+    PermissionChecker.checkPermission(user.getUser(),
         Lists.newArrayList(user.getGroups().split(",")), action, new TachyonURI(path),
         collectFileInfos(new TachyonURI(path)));
   }
 
   private void checkParentOrAncestorPermission(TestUser user, FileSystemAction action, String path)
       throws Exception {
-    FileSystemPermissionChecker.checkParentPermission(user.getUser(), Lists.newArrayList(user
+    PermissionChecker.checkParentPermission(user.getUser(), Lists.newArrayList(user
         .getGroups().split(",")), action, new TachyonURI(path),
         collectFileInfos(new TachyonURI(path)));
   }

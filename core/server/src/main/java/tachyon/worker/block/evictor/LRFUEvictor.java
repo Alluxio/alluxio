@@ -25,6 +25,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
@@ -51,6 +53,7 @@ import tachyon.worker.block.meta.StorageTierView;
  * {@link #mStepFactor} is close to 0, LRFU is close to LFU. Conversely, LRFU is close to LRU
  * when {@link #mStepFactor} is close to 1.
  */
+@NotThreadSafe
 public final class LRFUEvictor extends EvictorBase {
   // Map from block id to the last updated logic time count
   private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMap<Long, Long>();

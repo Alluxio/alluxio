@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -36,6 +38,7 @@ import tachyon.proto.journal.Lineage.LineageEntry;
  *
  * TODO(yupeng): relax locking
  */
+@ThreadSafe
 public final class LineageStore implements JournalCheckpointStreamable {
   private final LineageIdGenerator mLineageIdGenerator;
   private final DirectedAcyclicGraph<Lineage> mLineageDAG;
@@ -64,7 +67,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    */
   public synchronized void addLineageFromJournal(LineageEntry entry) {
     Lineage lineage = Lineage.fromJournalEntry(entry);
-    addLineageInternal(lineage);
+    createLineageInternal(lineage);
   }
 
   /**
@@ -79,11 +82,11 @@ public final class LineageStore implements JournalCheckpointStreamable {
       List<Long> outputFiles, Job job) {
     long lineageId = mLineageIdGenerator.generateId();
     Lineage lineage = new Lineage(lineageId, inputFiles, outputFiles, job);
-    addLineageInternal(lineage);
+    createLineageInternal(lineage);
     return lineageId;
   }
 
-  private void addLineageInternal(Lineage lineage) {
+  private void createLineageInternal(Lineage lineage) {
     List<Lineage> parentLineages = Lists.newArrayList();
     for (long inputFile : lineage.getInputFiles()) {
       if (mOutputFileIndex.containsKey(inputFile)) {
@@ -218,7 +221,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * @return true if there's a lineage in the store that has the output file of the given id, false
    *         otherwise
    */
-  public boolean hasOutputFile(long fileId) {
+  public synchronized boolean hasOutputFile(long fileId) {
     return mOutputFileIndex.containsKey(fileId);
   }
 }

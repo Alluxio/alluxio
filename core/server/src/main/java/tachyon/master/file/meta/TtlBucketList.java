@@ -18,16 +18,17 @@ package tachyon.master.file.meta;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 
 /**
  * A list of non-empty {@link TtlBucket}s sorted by ttl interval start time of each bucket.
- * <p/>
+ * <p>
  * Two adjacent buckets may not have adjacent intervals since there may be no files with ttl value
  * in the skipped intervals.
- * <p/>
- * Thread-safety is guaranteed by {@link ConcurrentSkipListSet}.
  */
+@ThreadSafe
 public final class TtlBucketList {
   /**
    * List of buckets sorted by interval start time. SkipList is used for O(logn) insertion and

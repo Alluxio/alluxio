@@ -46,7 +46,7 @@ import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.ReadWriteJournal;
-import tachyon.master.permission.FileSystemPermissionChecker;
+import tachyon.master.file.PermissionChecker;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.util.CommonUtils;
 
@@ -602,11 +602,11 @@ public final class InodeTreeTest {
   }
 
   private void verifyPermissionChecker(boolean enabled, String owner, String group) {
-    Assert.assertEquals(enabled, Whitebox.getInternalState(FileSystemPermissionChecker.class,
+    Assert.assertEquals(enabled, Whitebox.getInternalState(PermissionChecker.class,
         "sPermissionCheckEnabled"));
-    Assert.assertEquals(owner, Whitebox.getInternalState(FileSystemPermissionChecker.class,
+    Assert.assertEquals(owner, Whitebox.getInternalState(PermissionChecker.class,
         "sFileSystemOwner"));
-    Assert.assertEquals(group, Whitebox.getInternalState(FileSystemPermissionChecker.class,
+    Assert.assertEquals(group, Whitebox.getInternalState(PermissionChecker.class,
         "sFileSystemSuperGroup"));
   }
 }

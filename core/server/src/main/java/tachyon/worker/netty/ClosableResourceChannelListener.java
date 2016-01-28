@@ -17,6 +17,8 @@ package tachyon.worker.netty;
 
 import java.io.Closeable;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 
@@ -24,6 +26,7 @@ import io.netty.channel.ChannelFutureListener;
  * A listener that will close the given resource when the operation completes. This class accepts
  * null resources.
  */
+@ThreadSafe
 final class ClosableResourceChannelListener implements ChannelFutureListener {
   private final Closeable mResource;
 

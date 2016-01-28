@@ -15,9 +15,12 @@
 
 package tachyon.master.journal;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The read-only journal. It prevents access to a {@link JournalWriter}.
  */
+@ThreadSafe
 public class ReadOnlyJournal extends Journal {
   /**
    * @param directory the base directory for the journal

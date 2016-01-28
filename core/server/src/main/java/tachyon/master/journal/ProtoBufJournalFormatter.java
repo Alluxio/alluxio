@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.proto.journal.Journal.JournalEntry;
 
 /**
@@ -26,6 +28,7 @@ import tachyon.proto.journal.Journal.JournalEntry;
  * length. This framing is handled entirely by {@link JournalEntry#writeDelimitedTo(OutputStream)}
  * and {@link JournalEntry#parseDelimitedFrom(InputStream)}. This class is thread-safe.
  */
+@ThreadSafe
 public final class ProtoBufJournalFormatter implements JournalFormatter {
   @Override
   public void serialize(JournalEntry entry, OutputStream outputStream) throws IOException {

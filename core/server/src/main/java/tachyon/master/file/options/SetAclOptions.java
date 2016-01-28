@@ -15,6 +15,8 @@
 
 package tachyon.master.file.options;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -24,6 +26,7 @@ import tachyon.thrift.SetAclTOptions;
 /**
  * Method option for setting the acl.
  */
+@NotThreadSafe
 public class SetAclOptions {
 
   /**

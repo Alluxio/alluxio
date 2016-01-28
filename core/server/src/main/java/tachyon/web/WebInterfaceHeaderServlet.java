@@ -17,6 +17,7 @@ package tachyon.web;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -30,6 +31,7 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 /**
  * Servlet that provides data for the header navigation bar.
  */
+@ThreadSafe
 public final class WebInterfaceHeaderServlet extends HttpServlet {
   private static final long serialVersionUID = -2466055439220042703L;
 

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +52,7 @@ import tachyon.master.journal.JournalProtoUtils;
 import tachyon.proto.journal.File.InodeDirectoryEntry;
 import tachyon.proto.journal.File.InodeFileEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
-import tachyon.master.permission.FileSystemPermissionChecker;
+import tachyon.master.file.PermissionChecker;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
@@ -59,6 +61,8 @@ import tachyon.util.io.PathUtils;
 /**
  * Represents the tree of Inode's.
  */
+@NotThreadSafe
+// TODO(jiri): Make this class thread-safe.
 public final class InodeTree implements JournalCheckpointStreamable {
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
@@ -128,7 +132,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       mInodes.add(mRoot);
       mCachedInode = mRoot;
     }
-    FileSystemPermissionChecker.initializeFileSystem(
+    PermissionChecker.initializeFileSystem(
         MasterContext.getConf().getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED),
         mRoot.getUserName(),
         MasterContext.getConf().get(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP));

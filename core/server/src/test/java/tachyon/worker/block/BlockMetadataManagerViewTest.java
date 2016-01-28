@@ -142,7 +142,7 @@ public final class BlockMetadataManagerViewTest {
    * Tests that an exception is thrown in the {@link BlockMetadataManagerView#getBlockMeta(long)}
    * method when the block does not exist.
    *
-   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this blockId is found
+   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this block id is found
    */
   @Test
   public void getBlockMetaNotExistingTest() throws BlockDoesNotExistException {

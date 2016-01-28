@@ -15,11 +15,14 @@
 
 package tachyon;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 /**
  * Represent one session in the worker daemon.
  */
+@ThreadSafe
 public class SessionInfo {
   private final long mSessionId;
 

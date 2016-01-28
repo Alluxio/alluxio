@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * A sink that exposes metrics data in JSON format by HTTP.
  */
+@NotThreadSafe
 public class MetricsServlet implements Sink {
   private static final String SERVLET_KEY_PATH = "path";
 

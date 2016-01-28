@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,8 +30,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.worker.WorkerContext;
 
 /**
- * {@code Sessions} represents and manages all session contacting a worker.
+ * {@code Sessions} represents and manages all sessions contacting a worker.
  */
+@ThreadSafe
 public class Sessions {
   public static final int DATASERVER_SESSION_ID = -1;
   public static final int CHECKPOINT_SESSION_ID = -2;
