@@ -6,7 +6,7 @@
     <version>0.9.0-SNAPSHOT</version>
   </parent>
   <artifactId>tachyon-keyvalue-client-internal</artifactId>
-  <name>Tachyon Key Value Store - Client Implementation</name>
+  <name>Tachyon Key Value - Client Implementation</name>
   <description>Client implementation of Tachyon key value store</description>
 
   <properties>
