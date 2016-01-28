@@ -91,6 +91,7 @@ traffic opened. You can change the *security group*, *region* and *availability 
 Note: the keypair is associated with a sepcific zone. If you ran into permission/connection errors, please first check the zone.
 
 **Spot instances**
+
 Using spot instance is a way to reduce EC2 cost. Spot instances are non-guaranteed instances which are priced with bidding.
 Note that spot instances may be taken away from you if someone bids more, and there are no more spot instances available.
 However, for short-term testing, spot instances are very appropriate, because it is rare that spot instances are taken from you.
