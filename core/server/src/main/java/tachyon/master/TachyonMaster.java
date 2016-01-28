@@ -477,4 +477,11 @@ public class TachyonMaster {
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, conf);
     ufs.connectFromMaster(conf, NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, conf));
   }
+
+  /**
+   * @return the master metric system reference
+   */
+  public MetricsSystem getMasterMetricsSystem() {
+    return mMasterMetricsSystem;
+  }
 }
