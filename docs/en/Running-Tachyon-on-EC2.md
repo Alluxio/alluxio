@@ -129,12 +129,12 @@ Visit `http://{MASTER_IP}:{PORT}` in the browser to access the Web UIs.
 
 You can also monitor the instances state through
 [AWS web console](https://console.aws.amazon.com/console).
-Make sure you are in the console for the region you started the cluster.
+Make sure that you are in the console for the region where you started the cluster.
 
 Here are some scenarios when you may want to check the console:
- - when the cluster creation fails
- - after the cluster is destroyed
- - when you no longer need the cluster
+ - When the cluster creation fails, check EC2 instances status/logs.
+ - After the cluster is destroyed, confirm EC2 instances are terminated.
+ - When you no longer need the cluster, make sure EC2 instances and S3 buckets are NOT costing you extra money.
 
 **Access with ssh**
 
