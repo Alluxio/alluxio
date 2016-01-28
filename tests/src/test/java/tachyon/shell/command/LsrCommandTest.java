@@ -43,14 +43,14 @@ public class LsrCommandTest extends AbstractTfsShellTest {
     String testUser = "test_user_lsr";
     clearAndLogin(testUser);
 
-    FileSystemTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
-    files[0] = mTfs.getStatus(new TachyonURI("/testRoot/testFileA"));
-    FileSystemTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE,
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    files[0] = mFileSystem.getStatus(new TachyonURI("/testRoot/testFileA"));
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE,
         20);
-    files[1] = mTfs.getStatus(new TachyonURI("/testRoot/testDir"));
-    files[2] = mTfs.getStatus(new TachyonURI("/testRoot/testDir/testFileB"));
-    FileSystemTestUtils.createByteFile(mTfs, "/testRoot/testFileC", WriteType.THROUGH, 30);
-    files[3] = mTfs.getStatus(new TachyonURI("/testRoot/testFileC"));
+    files[1] = mFileSystem.getStatus(new TachyonURI("/testRoot/testDir"));
+    files[2] = mFileSystem.getStatus(new TachyonURI("/testRoot/testDir/testFileB"));
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WriteType.THROUGH, 30);
+    files[3] = mFileSystem.getStatus(new TachyonURI("/testRoot/testFileC"));
     mFsShell.run("lsr", "/testRoot");
     String expected = "";
     expected +=

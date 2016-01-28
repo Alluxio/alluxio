@@ -128,9 +128,8 @@ public final class LineageMasterIntegrationTest {
       CreateFileOptions options =
           CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
               .setBlockSizeBytes(BLOCK_SIZE_BYTES);
-      LineageFileSystem tfs =
-          (LineageFileSystem) mLocalTachyonClusterResource.get().getClient();
-      FileOutStream outputStream = tfs.createFile(new TachyonURI(OUT_FILE), options);
+      LineageFileSystem fs = (LineageFileSystem) mLocalTachyonClusterResource.get().getClient();
+      FileOutStream outputStream = fs.createFile(new TachyonURI(OUT_FILE), options);
       outputStream.write(1);
       outputStream.close();
 

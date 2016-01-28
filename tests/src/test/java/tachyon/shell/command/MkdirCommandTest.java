@@ -34,7 +34,7 @@ public class MkdirCommandTest extends AbstractTfsShellTest {
     String qualifiedPath = "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
         + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
     mFsShell.run("mkdir", qualifiedPath);
-    URIStatus status = mTfs.getStatus(new TachyonURI("/root/testFile1"));
+    URIStatus status = mFileSystem.getStatus(new TachyonURI("/root/testFile1"));
     Assert.assertNotNull(status);
     Assert
         .assertEquals(getCommandOutput(new String[] {"mkdir", qualifiedPath}), mOutput.toString());
@@ -44,7 +44,7 @@ public class MkdirCommandTest extends AbstractTfsShellTest {
   @Test
   public void mkdirComplexPathTest() throws IOException, TachyonException {
     mFsShell.run("mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File");
-    URIStatus status = mTfs.getStatus(new TachyonURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
+    URIStatus status = mFileSystem.getStatus(new TachyonURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
     Assert.assertNotNull(status);
     Assert.assertEquals(getCommandOutput(new String[]{"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,"
         + ".?/File"}), mOutput.toString());
@@ -69,15 +69,15 @@ public class MkdirCommandTest extends AbstractTfsShellTest {
     String path3 = "/testDir2/testDir2.1";
     Assert.assertEquals(0, mFsShell.run("mkdir", path1, path2, path3));
 
-    URIStatus status = mTfs.getStatus(new TachyonURI(path1));
+    URIStatus status = mFileSystem.getStatus(new TachyonURI(path1));
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isFolder());
 
-    status = mTfs.getStatus(new TachyonURI(path2));
+    status = mFileSystem.getStatus(new TachyonURI(path2));
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isFolder());
 
-    status = mTfs.getStatus(new TachyonURI(path3));
+    status = mFileSystem.getStatus(new TachyonURI(path3));
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isFolder());
 
@@ -86,7 +86,7 @@ public class MkdirCommandTest extends AbstractTfsShellTest {
   @Test
   public void mkdirShortPathTest() throws IOException, TachyonException {
     mFsShell.run("mkdir", "/root/testFile1");
-    URIStatus status = mTfs.getStatus(new TachyonURI("/root/testFile1"));
+    URIStatus status = mFileSystem.getStatus(new TachyonURI("/root/testFile1"));
     Assert.assertNotNull(status);
     Assert.assertEquals(getCommandOutput(new String[]{"mkdir", "/root/testFile1"}),
         mOutput.toString());

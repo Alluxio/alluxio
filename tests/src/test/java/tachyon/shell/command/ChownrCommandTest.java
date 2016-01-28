@@ -34,12 +34,12 @@ public class ChownrCommandTest extends AbstractTfsShellTest {
   public void chownrTest() throws IOException, TachyonException {
     clearLoginUser();
     mFsShell.run("mkdir", "/testFolder1");
-    FileSystemTestUtils.createByteFile(mTfs, "/testFolder1/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFolder1/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chownr", "user1", "/testFolder1");
-    String owner = mTfs.getStatus(new TachyonURI("/testFolder1/testFile")).getUserName();
+    String owner = mFileSystem.getStatus(new TachyonURI("/testFolder1/testFile")).getUserName();
     Assert.assertEquals("user1", owner);
     mFsShell.run("chownr", "user2", "/testFolder1");
-    owner = mTfs.getStatus(new TachyonURI("/testFolder1/testFile")).getUserName();
+    owner = mFileSystem.getStatus(new TachyonURI("/testFolder1/testFile")).getUserName();
     Assert.assertEquals("user2", owner);
   }
 }

@@ -49,11 +49,11 @@ public class CapacityUsageIntegrationTest {
           String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 1),
           String.valueOf(DISK_CAPACITY_BYTES), Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS,
           String.valueOf(HEARTBEAT_INTERVAL_MS));
-  private FileSystem mTFS = null;
+  private FileSystem mFileSystem = null;
 
   @Before
   public final void before() throws Exception {
-    mTFS = mLocalTachyonClusterResource.get().getClient();
+    mFileSystem = mLocalTachyonClusterResource.get().getClient();
   }
 
   private void createAndWriteFile(TachyonURI filePath, WriteType writeType, int len)
@@ -65,7 +65,7 @@ public class CapacityUsageIntegrationTest {
     }
 
     CreateFileOptions options = CreateFileOptions.defaults().setWriteType(writeType);
-    FileOutStream os = mTFS.createFile(filePath, options);
+    FileOutStream os = mFileSystem.createFile(filePath, options);
     os.write(buf.array());
     os.close();
   }
@@ -74,15 +74,15 @@ public class CapacityUsageIntegrationTest {
     final TachyonURI fileName1 = new TachyonURI("/file" + i + "_1");
     final TachyonURI fileName2 = new TachyonURI("/file" + i + "_2");
     createAndWriteFile(fileName1, WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES);
-    URIStatus fileStatus1 = mTFS.getStatus(fileName1);
+    URIStatus fileStatus1 = mFileSystem.getStatus(fileName1);
     Assert.assertTrue(fileStatus1.getInMemoryPercentage() == 100);
     // Deleting file1, command will be sent by master to worker asynchronously
-    mTFS.delete(fileName1);
+    mFileSystem.delete(fileName1);
     // Meanwhile creating file2. If creation arrives earlier than deletion, it will evict file1
     createAndWriteFile(fileName2, WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES / 4);
-    URIStatus fileStatus2 = mTFS.getStatus(fileName2);
+    URIStatus fileStatus2 = mFileSystem.getStatus(fileName2);
     Assert.assertTrue(fileStatus2.getInMemoryPercentage() == 100);
-    mTFS.delete(fileName2);
+    mFileSystem.delete(fileName2);
   }
 
   // TODO(calvin): Rethink the approach of this test and what it should be testing.

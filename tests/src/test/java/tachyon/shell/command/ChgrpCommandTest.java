@@ -33,12 +33,12 @@ public class ChgrpCommandTest extends AbstractTfsShellTest {
   @Test
   public void chgrpTest() throws IOException, TachyonException {
     clearLoginUser();
-    FileSystemTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chgrp", "group1", "/testFile");
-    String group = mTfs.getStatus(new TachyonURI("/testFile")).getGroupName();
+    String group = mFileSystem.getStatus(new TachyonURI("/testFile")).getGroupName();
     Assert.assertEquals("group1", group);
     mFsShell.run("chgrp", "group2", "/testFile");
-    group = mTfs.getStatus(new TachyonURI("/testFile")).getGroupName();
+    group = mFileSystem.getStatus(new TachyonURI("/testFile")).getGroupName();
     Assert.assertEquals("group2", group);
   }
 }
