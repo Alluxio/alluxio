@@ -2,7 +2,7 @@
 layout: global
 title: Contributing to Tachyon
 nickname: Contributor Guide
-group: Dev Resources
+group: Resources
 ---
 
 * Table of Contents

@@ -2,7 +2,7 @@
 layout: global
 title: Configuring Tachyon with Amazon S3
 nickname: Tachyon with S3
-group: Under Stores
+group: Under Store
 priority: 0
 ---
 

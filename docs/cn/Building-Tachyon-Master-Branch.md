@@ -2,7 +2,7 @@
 layout: global
 title: 构建Tachyon主分支
 nickname: 构建主分支
-group: Dev Resources
+group: Resources
 ---
 
 * 内容列表
