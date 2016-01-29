@@ -51,7 +51,7 @@ public enum BlockStoreContext {
   private BlockMasterClientPool mBlockMasterClientPool;
   private BlockWorkerClientPool mLocalBlockWorkerClientPool;
 
-  private static boolean sLocalBlockWorkerClientPoolInitialized = false;
+  private boolean mLocalBlockWorkerClientPoolInitialized = false;
 
   /**
    * Creates a new block store context.
@@ -65,7 +65,7 @@ public enum BlockStoreContext {
    * manner.
    */
   private synchronized void initializeLocalBlockWorkerClientPool() {
-    if (!sLocalBlockWorkerClientPoolInitialized) {
+    if (!mLocalBlockWorkerClientPoolInitialized) {
       NetAddress localWorkerAddress =
           getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
       // If the local worker is not available, do not initialize the local worker client pool.
@@ -74,7 +74,7 @@ public enum BlockStoreContext {
       } else {
         mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
       }
-      sLocalBlockWorkerClientPoolInitialized = true;
+      mLocalBlockWorkerClientPoolInitialized = true;
     }
   }
 
@@ -278,6 +278,6 @@ public enum BlockStoreContext {
       mLocalBlockWorkerClientPool.close();
     }
     mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
-    BlockStoreContext.sLocalBlockWorkerClientPoolInitialized = false;
+    mLocalBlockWorkerClientPoolInitialized = false;
   }
 }
