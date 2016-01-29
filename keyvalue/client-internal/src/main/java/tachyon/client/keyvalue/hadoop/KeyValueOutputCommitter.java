@@ -62,6 +62,23 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
   /**
    * {@inheritDoc}
    * <p>
+   * The task needs to be committed if and only if
+   * {@link KeyValueOutputFormat#getTaskOutputURI(JobConf)} exists.
+   *
+   * NOTE: {@link KeyValueOutputFormat#getTaskOutputURI(JobConf)} is the same as the directory
+   * {@link FileOutputCommitter#needsTaskCommit(TaskAttemptContext)} checked in MapReduce API 1, but
+   * is different from the directory checked in that method of MapReduce API 2.
+   */
+  @Override
+  public boolean needsTaskCommit(TaskAttemptContext context) throws IOException {
+    JobConf conf = context.getJobConf();
+    Path taskOutputPath = new Path(KeyValueOutputFormat.getTaskOutputURI(conf).toString());
+    return taskOutputPath.getFileSystem(conf).exists(taskOutputPath);
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
    * Merges the completed key-value stores under the task's temporary output directory to the
    * key-value store created in {@link #setupJob(JobContext)}, then calls
    * {@link FileOutputCommitter#commitTask(TaskAttemptContext)}.
