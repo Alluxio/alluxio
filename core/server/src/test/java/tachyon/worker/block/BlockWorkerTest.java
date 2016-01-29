@@ -80,7 +80,7 @@ public class BlockWorkerTest {
   /**
    * Sets up all dependencies before a test runs.
    *
-   * @throws IOException if initialize fails
+   * @throws IOException if initialization fails
    */
   @Before
   public void before() throws IOException {
@@ -109,7 +109,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Stop the DataServer to clean up
+   * stop the DataServer to clean up
    *
    * @throws IOException if clean up fails
    */
