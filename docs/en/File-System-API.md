@@ -66,7 +66,7 @@ Tachyon uses two different storage types: Tachyon managed storage and under stor
 storage is the memory, SSD, and/or HDD allocated to Tachyon workers. Under storage is the storage
 resource managed by the underlying storage system, such as S3, Swift or HDFS. Users can specify the
 interaction with the Tachyon's native storage and under storage through `ReadType` and `WriteType`.
-`ReadType` specifies the data read behavior when writing a new file, ie. whether the data should be
+`ReadType` specifies the data read behavior when reading a new file, ie. whether the data should be
 saved in Tachyon Storage. `WriteType` specifies the data write behavior when writing a new file, ie.
 whether the data should be written in Tachyon Storage.
 
