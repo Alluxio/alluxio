@@ -30,7 +30,7 @@ public class FileBlockInfo {
   @JsonProperty("offset")
   private long mOffset;
   @JsonProperty("ufsLocations")
-  private List<WorkerNetAddress> mUfsLocations;
+  private List<WorkerNetAddress> mUfsLocations = new ArrayList<WorkerNetAddress>();
 
   /**
    * Creates a new instance of {@link FileBlockInfo}.
@@ -128,7 +128,8 @@ public class FileBlockInfo {
     }
     FileBlockInfo that = (FileBlockInfo) o;
     return mBlockInfo.equals(that.mBlockInfo) && mOffset == that.mOffset
-        && mUfsLocations.equals(that.mUfsLocations);
+        && ((mUfsLocations == null && that.mUfsLocations == null) || mUfsLocations
+            .equals(that.mUfsLocations));
   }
 
   @Override
@@ -138,7 +139,7 @@ public class FileBlockInfo {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("blockInfo", mBlockInfo.toString())
-        .add("offset", mOffset).add("ufsLocations", mUfsLocations.toString()).toString();
+    return Objects.toStringHelper(this).add("blockInfo", mBlockInfo).add("offset", mOffset)
+        .add("ufsLocations", mUfsLocations).toString();
   }
 }

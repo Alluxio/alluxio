@@ -16,6 +16,7 @@
 package tachyon.web;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -61,6 +62,7 @@ public final class WorkerUIWebServer extends UIWebServer {
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet(conf)), "/header");
 
     // REST configuration
-    mWebAppContext.setDefaultsDescriptor("core/server/src/main/webapp/WEB-INF/worker.xml");
+    mWebAppContext.setOverrideDescriptors(Arrays
+        .asList("core/server/src/main/webapp/WEB-INF/worker.xml"));
   }
 }

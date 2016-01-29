@@ -30,7 +30,7 @@ public class BlockInfo {
   @JsonProperty("length")
   private long mLength;
   @JsonProperty("locations")
-  private List<BlockLocation> mLocations;
+  private List<BlockLocation> mLocations = new ArrayList<BlockLocation>();
 
   /**
    * Creates a new instance of {@link BlockInfo}.
@@ -127,7 +127,7 @@ public class BlockInfo {
     }
     BlockInfo that = (BlockInfo) o;
     return mBlockId == that.mBlockId && mLength == that.mLength
-        && mLocations.equals(that.mLocations);
+        && ((mLocations == null && that.mLocations == null) || mLocations.equals(that.mLocations));
   }
 
   @Override
@@ -138,6 +138,6 @@ public class BlockInfo {
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("id", mBlockId).add("length", mLength)
-        .add("locations", mLocations.toString()).toString();
+        .add("locations", mLocations).toString();
   }
 }

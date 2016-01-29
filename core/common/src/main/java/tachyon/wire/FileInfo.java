@@ -15,6 +15,7 @@
 
 package tachyon.wire;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.base.Objects;
@@ -35,7 +36,7 @@ public class FileInfo {
   private boolean mPinned;
   private boolean mCacheable;
   private boolean mPersisted;
-  private List<Long> mBlockIds;
+  private List<Long> mBlockIds = new ArrayList<Long>();
   private int mInMemoryPercentage;
   private long mLastModificationTimeMs;
   private long mTtl;
@@ -381,7 +382,8 @@ public class FileInfo {
         && mBlockSizeBytes == that.mBlockSizeBytes && mCreationTimeMs == that.mCreationTimeMs
         && mCompleted == that.mCompleted && mFolder == that.mFolder && mPinned == that.mPinned
         && mCacheable == that.mCacheable && mPersisted == that.mPersisted
-        && mBlockIds.equals(that.mBlockIds) && mInMemoryPercentage == that.mInMemoryPercentage
+        && ((mBlockIds == null && that.mBlockIds == null) || mBlockIds.equals(that.mBlockIds))
+        && mInMemoryPercentage == that.mInMemoryPercentage
         && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl
         && mUserName.equals(that.mUserName) && mGroupName.equals(that.mGroupName)
         && mPermission == that.mPermission && mPersistenceState.equals(that.mPersistenceState);
@@ -402,7 +404,7 @@ public class FileInfo {
         .add("blockSizeBytes", mBlockSizeBytes).add("creationTimeMs", mCreationTimeMs)
         .add("completed", mCompleted).add("folder", mFolder).add("pinned", mPinned)
         .add("cacheable", mCacheable).add("persisted", mPersisted)
-        .add("blockIds", mBlockIds.toString()).add("inMemoryPercentage", mInMemoryPercentage)
+        .add("blockIds", mBlockIds).add("inMemoryPercentage", mInMemoryPercentage)
         .add("lastModificationTimesMs", mLastModificationTimeMs).add("ttl", mTtl)
         .add("userName", mUserName).add("groupName", mGroupName).add("permission", mPermission)
         .add("persistanceState", mPersistenceState).toString();

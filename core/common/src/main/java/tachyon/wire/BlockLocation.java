@@ -116,8 +116,9 @@ public class BlockLocation {
       return false;
     }
     BlockLocation that = (BlockLocation) o;
-    return mWorkerId == that.mWorkerId && mWorkerAddress.equals(that.mWorkerAddress)
-        && mTierAlias.equals(that.mTierAlias);
+    return mWorkerId == that.mWorkerId
+        && ((mWorkerAddress == null && that.mWorkerAddress == null) || mWorkerAddress
+            .equals(that.mWorkerAddress)) && mTierAlias.equals(that.mTierAlias);
   }
 
   @Override
@@ -127,7 +128,7 @@ public class BlockLocation {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("workerId", mWorkerId)
-        .add("address", mWorkerAddress.toString()).add("tierAlias", mTierAlias).toString();
+    return Objects.toStringHelper(this).add("workerId", mWorkerId).add("address", mWorkerAddress)
+        .add("tierAlias", mTierAlias).toString();
   }
 }

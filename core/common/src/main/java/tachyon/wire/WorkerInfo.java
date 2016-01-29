@@ -54,7 +54,7 @@ public class WorkerInfo {
    * @param startTimeMs the worker start time (in milliseconds) to use
    */
   public WorkerInfo(long id, WorkerNetAddress address, int lastContactSec, String state,
-                    long capacityBytes, long usedBytes, long startTimeMs) {
+      long capacityBytes, long usedBytes, long startTimeMs) {
     mId = id;
     mAddress = address;
     mLastContactSec = lastContactSec;
@@ -208,7 +208,7 @@ public class WorkerInfo {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("id", mId).add("address", mAddress.toString())
+    return Objects.toStringHelper(this).add("id", mId).add("address", mAddress)
         .add("lastContactSec", mLastContactSec).add("state", mState)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("startTimeMs", mStartTimeMs).toString();
