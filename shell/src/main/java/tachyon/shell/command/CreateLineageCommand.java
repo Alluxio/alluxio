@@ -22,6 +22,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.collect.Lists;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
@@ -67,7 +69,8 @@ public final class CreateLineageCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     TachyonLineage tl = TachyonLineage.get();
     // TODO(yupeng) more validation
     List<TachyonURI> inputFiles = Lists.newArrayList();

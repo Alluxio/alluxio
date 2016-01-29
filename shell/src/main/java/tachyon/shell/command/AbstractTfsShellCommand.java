@@ -17,6 +17,12 @@ package tachyon.shell.command;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
@@ -50,5 +56,26 @@ public abstract class AbstractTfsShellCommand implements TfsShellCommand {
           + args.length + "\n");
     }
     return valid;
+  }
+
+  @Override
+  public CommandLine parseAndValidateArgs(String... args) {
+    CommandLineParser parser = new BasicParser();
+    Options options = new Options();
+    // Add R option for recursively.
+    // TODO(ifcharming): extend more options as needed.
+    options.addOption("R", false /* default to false */, "recursively");
+    CommandLine cmd;
+    try {
+      cmd = parser.parse(options, args);
+    } catch (ParseException e) {
+      System.err.println("Unable to parse input args: " + e.getMessage());
+      return null;
+    }
+
+    if (!validateArgs(cmd.getArgs())) {
+      return null;
+    }
+    return cmd;
   }
 }
