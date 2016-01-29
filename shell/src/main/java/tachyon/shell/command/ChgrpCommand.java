@@ -19,6 +19,12 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -51,18 +57,40 @@ public final class ChgrpCommand extends AbstractAclCommand {
 
   @Override
   public void run(String... args) throws IOException {
-    String group = args[0];
-    TachyonURI path = new TachyonURI(args[1]);
-    chgrp(path, group, false);
+    CommandLineParser parser = new BasicParser();
+    Options options = new Options();
+    // Add R option or chgrp recursively.
+    options.addOption("R", false, "recursively");
+    CommandLine cmd;
+    try {
+      cmd = parser.parse(options, args);
+    } catch (ParseException e) {
+      System.err.println("Unable to parse input args" + e.getMessage());
+      return;
+    }
+
+    String group = cmd.getArgs()[0];
+    TachyonURI path = new TachyonURI(cmd.getArgs()[1]);
+
+    chgrp(path, group, cmd.hasOption("R"));
   }
 
   @Override
   public String getUsage() {
-    return "chgrp <group> <path>";
+    return "chgrp [-R] <group> <path>";
   }
 
   @Override
   public String getDescription() {
     return "Changes the group of a file or directory specified by args.";
+  }
+
+  @Override
+  public boolean validateArgs(String... args) {
+    boolean valid = args.length >= getNumOfArgs();
+    if (!valid) {
+      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " argument at least\n");
+    }
+    return valid;
   }
 }
