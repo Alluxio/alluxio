@@ -47,7 +47,6 @@ import tachyon.worker.WorkerContext;
 @NotThreadSafe
 public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   private LocalTachyonMaster mMaster;
-  private TachyonConf mClientConf;
 
   /**
    * @param workerCapacityBytes the capacity of the worker in bytes
