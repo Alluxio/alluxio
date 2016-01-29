@@ -18,7 +18,7 @@ Tachyon master Web界面包含若干不同页面，描述如下：
 
 ## 主页
 
-Tachyon master 主页看起来如下:
+Tachyon master 主页如下所示:
 
 ![Tachyon Master Home Page]({{site.data.img.screenshot_overview}})
 
@@ -30,7 +30,7 @@ Tachyon master 主页看起来如下:
 
 * **集群使用概要**
 
-    Tachyon使用信息和底层存储信息。Tachyon的存储使用可以接近100%，但底层的存储使用不应该接近100%。
+    Tachyon存储信息和底层存储信息。Tachyon的存储使用可以接近100%，但底层的存储使用不应该接近100%。
 
 * **存储使用概要**
 
@@ -50,7 +50,7 @@ Tachyon master 主页看起来如下:
 
 * **白名单**
 
-    包含所有符合要求的可以存储在Tachyon上的Tachyon路径前缀。用户可以请求路径前缀不在白名单上的文件。只有白名单中的文件可以存储在Tachyon上。
+    包含所有符合要求的可以存储在Tachyon上的Tachyon路径前缀。用户可以访问路径前缀不在白名单上的文件。只有白名单中的文件可以存储在Tachyon上。
 
 ## 浏览文件系统页面
 
