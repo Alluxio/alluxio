@@ -82,7 +82,8 @@ public final class ChgrpCommand extends AbstractAclCommand {
 
   @Override
   public String getDescription() {
-    return "Changes the group of a file or directory specified by args.";
+    return "Changes the group of a file or directory specified by args.\n"
+        + "Specify -R to change the group recursively.";
   }
 
   @Override
