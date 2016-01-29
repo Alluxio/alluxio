@@ -278,6 +278,6 @@ public enum BlockStoreContext {
       mLocalBlockWorkerClientPool.close();
     }
     mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
-    sLocalBlockWorkerClientPoolInitialized = false;
+    BlockStoreContext.sLocalBlockWorkerClientPoolInitialized = false;
   }
 }
