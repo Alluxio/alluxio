@@ -2,7 +2,7 @@
 layout: global
 title: Configuring Tachyon with OSS
 nickname: Tachyon with OSS
-group: Under Stores
+group: Under Store
 priority: 4
 ---
 
