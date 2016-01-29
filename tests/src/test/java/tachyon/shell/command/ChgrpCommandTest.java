@@ -56,7 +56,7 @@ public class ChgrpCommandTest extends AbstractTfsShellTest {
     mFsShell.run("chgrp", "-R", "group2", "/testDir");
     group = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getGroupName();
     Assert.assertEquals("group2", group);
-    // Also test "chgrp group3 /testDir -R"
+    // Test that the "-R" option still works when it comes after the arguments.
     mFsShell.run("chgrp", "group3", "/testDir", "-R");
     group = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getGroupName();
     Assert.assertEquals("group3", group);
