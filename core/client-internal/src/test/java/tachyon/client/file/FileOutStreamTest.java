@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -155,6 +156,11 @@ public class FileOutStreamTest {
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.CACHE_THROUGH);
     mTestStream = createTestStream(FILE_NAME, options);
+  }
+
+  @After
+  public void after() {
+    ClientTestUtils.resetClientContext();
   }
 
   /**
