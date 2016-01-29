@@ -42,14 +42,12 @@ public abstract class AbstractTfsShellCommand implements TfsShellCommand {
   }
 
   /**
-   * Gets the expected number of arguments of the command.
+   * Checks if the arguments are valid.
    *
-   * @return the number of arguments
+   * @param args the arguments for the command, excluding the command name and options
+   * @return whether the args are valid
    */
-  abstract int getNumOfArgs();
-
-  @Override
-  public boolean validateArgs(String... args) {
+  protected boolean validateArgs(String... args) {
     boolean valid = args.length == getNumOfArgs();
     if (!valid) {
       System.out.println(getCommandName() + " takes " + getNumOfArgs() + " arguments, " + " not "
@@ -57,6 +55,13 @@ public abstract class AbstractTfsShellCommand implements TfsShellCommand {
     }
     return valid;
   }
+
+  /**
+   * Gets the expected number of arguments of the command.
+   *
+   * @return the number of arguments
+   */
+  abstract int getNumOfArgs();
 
   @Override
   public CommandLine parseAndValidateArgs(String... args) {

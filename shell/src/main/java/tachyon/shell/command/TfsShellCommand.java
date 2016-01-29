@@ -34,14 +34,6 @@ public interface TfsShellCommand {
   String getCommandName();
 
   /**
-   * Checks if the arguments are valid.
-   *
-   * @param args the arguments for the command, excluding the command name and options
-   * @return whether the args are valid
-   */
-  boolean validateArgs(String... args);
-
-  /**
    * Parses and validates the arguments.
    *
    * @param args the arguments for the command, excluding the command name
