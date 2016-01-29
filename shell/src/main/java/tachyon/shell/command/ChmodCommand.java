@@ -56,7 +56,7 @@ public final class ChmodCommand extends AbstractAclCommand {
     String[] args = cl.getArgs();
     String modeStr = args[0];
     TachyonURI path = new TachyonURI(args[1]);
-    chmod(path, modeStr, false);
+    chmod(path, modeStr, cl.hasOption("R"));
   }
 
   @Override
