@@ -1,15 +1,12 @@
 tachyon.fuse.maxwrite.bytes:
-  The desired granularity of FUSE write upcalls in bytes. Note that 128K is currently an upper
-  bound imposed by the linux kernel.
+  FUSE写操作的粒度（bytes），注意目前128KB是linux内核限制的上界。
 tachyon.fuse.debug.enabled:
-  Enable FUSE debug output. This output will be redirected in a `fuse.out` log file inside
-  `tachyon.logs.dir`.
+  允许FUSE调试输出， 该输出会被重定向到`tachyon.logs.dir`指定目录中的`fuse.out`日志文件。
 tachyon.fuse.cachedpaths.max:
-  Defines the size of the internal Tachyon-FUSE cache that maintains the most frequently used
-  translations between local file system paths and Tachyon file URIs.
+  定义Tachyon-FUSE内部缓存的大小，该缓存用于存储最频繁使用的本地文件系统路径与Tachyon文件URI的对应关系。
 tachyon.fuse.mount.default:
-  Default mount point, only used when the user does not specify something else at mount time.
+  默认挂载点，只有当用户在挂载时未指定其他值时使用。
 tachyon.fuse.fs.root:
-  Path, within the Tachyon namespace, that will be used as the root of the FUSE mount.
+  Tachyon文件系统中的路径，该路径被当作FUSE挂载的根路径。
 tachyon.fuse.fs.name:
-  Descriptive name used by FUSE to mount the file system.
+  FUSE挂载文件系统使用的描述性名称。
