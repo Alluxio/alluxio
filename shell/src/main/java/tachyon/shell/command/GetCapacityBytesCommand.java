@@ -19,6 +19,8 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -50,7 +52,7 @@ public final class GetCapacityBytesCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
     long capacityBytes = TachyonBlockStore.get().getCapacityBytes();
     System.out.println("Capacity Bytes: " + capacityBytes);
   }

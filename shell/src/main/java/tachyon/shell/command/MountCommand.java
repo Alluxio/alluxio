@@ -19,6 +19,8 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -49,7 +51,9 @@ public final class MountCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     TachyonURI tachyonPath = new TachyonURI(args[0]);
     TachyonURI ufsPath = new TachyonURI(args[1]);
     try {
