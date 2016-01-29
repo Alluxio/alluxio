@@ -65,7 +65,7 @@ public final class ChgrpCommand extends AbstractAclCommand {
     try {
       cmd = parser.parse(options, args);
     } catch (ParseException e) {
-      System.err.println("Unable to parse input args" + e.getMessage());
+      System.err.println("Unable to parse input args: " + e.getMessage());
       return;
     }
 
