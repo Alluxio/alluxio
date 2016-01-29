@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import tachyon.WorkerNetAddress;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.master.block.BlockMaster;
 import tachyon.thrift.Command;
@@ -59,7 +60,7 @@ public final class WorkerIdRegistry {
    * @throws ConnectionFailedException if network connection failed
    */
   public static void registerWithBlockMaster(BlockMasterClient masterClient,
-      NetAddress workerAddress) throws IOException, ConnectionFailedException {
+      WorkerNetAddress workerAddress) throws IOException, ConnectionFailedException {
     sWorkerId.set(masterClient.getId(workerAddress.toThrift()));
   }
 

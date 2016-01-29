@@ -20,7 +20,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
-import tachyon.worker.NetAddress;
+import tachyon.WorkerNetAddress;
 
 /**
  * Information of an active block worker.
@@ -28,7 +28,7 @@ import tachyon.worker.NetAddress;
 @PublicApi
 @ThreadSafe
 public final class BlockWorkerInfo {
-  private final NetAddress mNetAddress;
+  private final WorkerNetAddress mNetAddress;
   private final long mCapacityBytes;
   private final long mUsedBytes;
 
@@ -39,7 +39,7 @@ public final class BlockWorkerInfo {
    * @param capacityBytes the capacity of the worker in bytes
    * @param usedBytes the used bytes of the worker
    */
-  public BlockWorkerInfo(NetAddress netAddress, long capacityBytes, long usedBytes) {
+  public BlockWorkerInfo(WorkerNetAddress netAddress, long capacityBytes, long usedBytes) {
     mNetAddress = Preconditions.checkNotNull(netAddress);
     mCapacityBytes = capacityBytes;
     mUsedBytes = usedBytes;
@@ -48,7 +48,7 @@ public final class BlockWorkerInfo {
   /**
    * @return the address of the worker
    */
-  public NetAddress getNetAddress() {
+  public WorkerNetAddress getNetAddress() {
     return mNetAddress;
   }
 

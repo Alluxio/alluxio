@@ -17,9 +17,9 @@ package tachyon.master.file.meta;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import tachyon.FileInfo;
 import tachyon.master.journal.JournalEntryRepresentable;
 import tachyon.security.authorization.PermissionStatus;
-import tachyon.thrift.FileInfo;
 
 /**
  * {@link Inode} is an abstract class, with information shared by all types of Inodes.

@@ -34,6 +34,7 @@ import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.Lists;
 
+import tachyon.FileInfo;
 import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
 import tachyon.client.block.BlockInStream;
@@ -49,10 +50,9 @@ import tachyon.client.util.ClientMockUtils;
 import tachyon.client.util.ClientTestUtils;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
-import tachyon.worker.NetAddress;
+import tachyon.WorkerNetAddress;
 
 /**
  * Tests for the {@link FileInStream} class.
@@ -80,7 +80,9 @@ public class FileInStreamTest {
    */
   @Before
   public void before() throws IOException {
-    mInfo = new FileInfo().setBlockSizeBytes(BLOCK_LENGTH).setLength(FILE_LENGTH);
+    mInfo = new FileInfo();
+    mInfo.setBlockSizeBytes(BLOCK_LENGTH);
+    mInfo.setLength(FILE_LENGTH);
 
     ClientTestUtils.setSmallBufferSizes();
 
@@ -103,7 +105,7 @@ public class FileInStreamTest {
       });
 
       Mockito.when(mBlockStore.getOutStream(Mockito.eq((long) i), Mockito.anyLong(),
-          Mockito.any(NetAddress.class))).thenReturn(mCacheStreams.get(i));
+          Mockito.any(WorkerNetAddress.class))).thenReturn(mCacheStreams.get(i));
     }
     mInfo.setBlockIds(blockIds);
 
@@ -332,7 +334,8 @@ public class FileInStreamTest {
    */
   @Test
   public void failToUnderFsTest() throws IOException {
-    mInfo.setPersisted(true).setUfsPath("testUfsPath");
+    mInfo.setPersisted(true);
+    mInfo.setUfsPath("testUfsPath");
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
     mTestStream = new FileInStream(mInfo, InStreamOptions.defaults());
 

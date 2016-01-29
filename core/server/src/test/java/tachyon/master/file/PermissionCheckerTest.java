@@ -29,6 +29,7 @@ import org.junit.rules.TemporaryFolder;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
+import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AccessControlException;
@@ -45,7 +46,6 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.authorization.PermissionStatus;
-import tachyon.thrift.FileInfo;
 
 /**
  * Unit tests for {@link PermissionChecker}.

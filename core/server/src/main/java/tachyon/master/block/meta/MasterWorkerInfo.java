@@ -33,10 +33,10 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.StorageTierAssoc;
+import tachyon.WorkerInfo;
 import tachyon.WorkerStorageTierAssoc;
-import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
-import tachyon.worker.NetAddress;
+import tachyon.WorkerNetAddress;
 
 /**
  * Metadata for a Tachyon worker.
@@ -45,7 +45,7 @@ import tachyon.worker.NetAddress;
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Worker's address */
-  private final NetAddress mWorkerAddress;
+  private final WorkerNetAddress mWorkerAddress;
   /** The id of the worker */
   private final long mId;
   /** Start time of the worker in ms */
@@ -76,7 +76,7 @@ public final class MasterWorkerInfo {
    * @param id the worker id to use
    * @param address the worker address to use
    */
-  public MasterWorkerInfo(long id, NetAddress address) {
+  public MasterWorkerInfo(long id, WorkerNetAddress address) {
     mWorkerAddress = Preconditions.checkNotNull(address);
     mId = id;
     mStartTimeMs = System.currentTimeMillis();
@@ -178,22 +178,15 @@ public final class MasterWorkerInfo {
    * @return generated {@link WorkerInfo} for this worker
    */
   public synchronized WorkerInfo generateClientWorkerInfo() {
-    WorkerInfo ret = new WorkerInfo();
-    ret.setId(mId);
-    ret.setAddress(mWorkerAddress.toThrift());
-    ret.setLastContactSec(
-        (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS));
-    ret.setState("In Service");
-    ret.setCapacityBytes(mCapacityBytes);
-    ret.setUsedBytes(mUsedBytes);
-    ret.setStartTimeMs(mStartTimeMs);
-    return ret;
+    return new WorkerInfo(mId, mWorkerAddress,
+        (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS),
+        "In Service", mCapacityBytes, mUsedBytes, mStartTimeMs);
   }
 
   /**
    * @return the worker's address
    */
-  public synchronized NetAddress getWorkerAddress() {
+  public synchronized WorkerNetAddress getWorkerAddress() {
     return mWorkerAddress;
   }
 

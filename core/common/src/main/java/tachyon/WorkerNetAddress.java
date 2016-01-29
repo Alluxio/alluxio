@@ -13,35 +13,39 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
 import tachyon.annotation.PublicApi;
-import tachyon.thrift.WorkerNetAddress;
 
 /**
  * The network address of a worker.
  */
 @PublicApi
 @ThreadSafe
-public final class NetAddress {
+public final class WorkerNetAddress {
+  @JsonProperty("host")
   private final String mHost;
+  @JsonProperty("rpcPort")
   private final int mRpcPort;
+  @JsonProperty("dataPort")
   private final int mDataPort;
+  @JsonProperty("webPort")
   private final int mWebPort;
 
   /**
-   * Constructs the worker net address.
+   * Creates a new instance of {@WorkerNetAddress}.
    *
-   * @param host the host of the worker
-   * @param rpcPort the RPC port
-   * @param dataPort the data port
-   * @param webPort the web port
+   * @param host the host to use
+   * @param rpcPort the RPC port to use
+   * @param dataPort the data port to use
+   * @param webPort the web port to use
    */
-  public NetAddress(String host, int rpcPort, int dataPort, int webPort) {
+  public WorkerNetAddress(String host, int rpcPort, int dataPort, int webPort) {
     mHost = host;
     mRpcPort = rpcPort;
     mDataPort = dataPort;
@@ -49,15 +53,15 @@ public final class NetAddress {
   }
 
   /**
-   * Constructs the worker net address from thrift construct.
+   * Creates a new instance of {@WorkerNetAddress} from thrift representation.
    *
-   * @param netAddress the thrift net address
+   * @param workerNetAddress the thrift net address
    */
-  public NetAddress(WorkerNetAddress netAddress) {
-    mHost = netAddress.getHost();
-    mRpcPort = netAddress.getRpcPort();
-    mDataPort = netAddress.getDataPort();
-    mWebPort = netAddress.getWebPort();
+  public WorkerNetAddress(tachyon.thrift.WorkerNetAddress workerNetAddress) {
+    mHost = workerNetAddress.getHost();
+    mRpcPort = workerNetAddress.getRpcPort();
+    mDataPort = workerNetAddress.getDataPort();
+    mWebPort = workerNetAddress.getWebPort();
   }
 
   /**
@@ -91,8 +95,8 @@ public final class NetAddress {
   /**
    * @return a net address of thrift construct
    */
-  public WorkerNetAddress toThrift() {
-    return new WorkerNetAddress(mHost, mRpcPort, mDataPort, mWebPort);
+  public tachyon.thrift.WorkerNetAddress toThrift() {
+    return new tachyon.thrift.WorkerNetAddress(mHost, mRpcPort, mDataPort, mWebPort);
   }
 
   @Override
@@ -100,10 +104,10 @@ public final class NetAddress {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof NetAddress)) {
+    if (!(o instanceof WorkerNetAddress)) {
       return false;
     }
-    NetAddress that = (NetAddress) o;
+    WorkerNetAddress that = (WorkerNetAddress) o;
     return mHost.equals(that.mHost) && mRpcPort == that.mRpcPort && mDataPort == that.mDataPort
         && mWebPort == that.mWebPort;
   }

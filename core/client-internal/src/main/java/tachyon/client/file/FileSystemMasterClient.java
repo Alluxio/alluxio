@@ -25,6 +25,8 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
+import tachyon.FileBlockInfo;
+import tachyon.FileInfo;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.CompleteFileOptions;
@@ -38,8 +40,6 @@ import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
@@ -190,7 +190,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<List<FileBlockInfo>>() {
       @Override
       public List<FileBlockInfo> call() throws TachyonTException, TException {
-        return mClient.getFileBlockInfoList(path.getPath());
+        List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
+        for (tachyon.thrift.FileBlockInfo fileBlockInfo :
+            mClient.getFileBlockInfoList(path.getPath())) {
+          result.add(new FileBlockInfo(fileBlockInfo));
+        }
+        return result;
       }
     });
   }
@@ -206,7 +211,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<URIStatus>() {
       @Override
       public URIStatus call() throws TachyonTException, TException {
-        return new URIStatus(mClient.getStatus(path.getPath()));
+        return new URIStatus(new FileInfo(mClient.getStatus(path.getPath())));
       }
     });
   }
@@ -225,7 +230,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<URIStatus>() {
       @Override
       public URIStatus call() throws TachyonTException, TException {
-        return new URIStatus(mClient.getStatusInternal(fileId));
+        return new URIStatus(new FileInfo(mClient.getStatusInternal(fileId)));
       }
     });
   }
@@ -271,12 +276,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws TachyonTException, TException {
-        List<FileInfo> statuses = mClient.listStatus(path.getPath());
-        List<URIStatus> ret = new ArrayList<URIStatus>(statuses.size());
-        for (FileInfo status : statuses) {
-          ret.add(new URIStatus(status));
+        List<URIStatus> result = new ArrayList<URIStatus>();
+        for (tachyon.thrift.FileInfo fileInfo : mClient.listStatus(path.getPath())) {
+          result.add(new URIStatus(new FileInfo(fileInfo)));
         }
-        return ret;
+        return result;
       }
     });
   }

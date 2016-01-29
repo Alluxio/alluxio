@@ -28,8 +28,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.collect.Lists;
 
+import tachyon.BlockLocation;
 import tachyon.Constants;
+import tachyon.FileBlockInfo;
+import tachyon.FileInfo;
 import tachyon.TachyonURI;
+import tachyon.WorkerNetAddress;
 import tachyon.client.ReadType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileSystem;
@@ -43,10 +47,6 @@ import tachyon.exception.TachyonException;
 import tachyon.master.TachyonMaster;
 import tachyon.security.LoginUser;
 import tachyon.security.authentication.PlainSaslServer;
-import tachyon.thrift.BlockLocation;
-import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.FileInfo;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.SecurityUtils;
 import tachyon.util.io.PathUtils;
 

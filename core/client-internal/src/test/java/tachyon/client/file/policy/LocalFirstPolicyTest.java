@@ -26,7 +26,7 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.NetAddress;
+import tachyon.WorkerNetAddress;
 
 /**
  * Tests {@link LocalFirstPolicy}.
@@ -43,8 +43,8 @@ public final class LocalFirstPolicyTest {
     LocalFirstPolicy policy = new LocalFirstPolicy();
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
     workerInfoList.add(
-        new BlockWorkerInfo(new NetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new NetAddress(localhostName, PORT, PORT, PORT),
+        new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress(localhostName, PORT, PORT, PORT),
         Constants.GB, 0));
     Assert.assertEquals(localhostName,
         policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
@@ -59,8 +59,8 @@ public final class LocalFirstPolicyTest {
     LocalFirstPolicy policy = new LocalFirstPolicy();
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
     workerInfoList.add(
-        new BlockWorkerInfo(new NetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new NetAddress(localhostName, PORT, PORT, PORT),
+        new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress(localhostName, PORT, PORT, PORT),
         Constants.MB, Constants.MB));
     Assert.assertEquals("worker1",
         policy.getWorkerForNextBlock(workerInfoList, Constants.GB).getHost());

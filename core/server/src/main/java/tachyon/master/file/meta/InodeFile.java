@@ -24,6 +24,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.FileInfo;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.InvalidFileSizeException;
@@ -32,7 +33,6 @@ import tachyon.proto.journal.File.InodeFileEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.security.authorization.FileSystemPermission;
 import tachyon.security.authorization.PermissionStatus;
-import tachyon.thrift.FileInfo;
 
 /**
  * Tachyon file system's file representation in the file system master.

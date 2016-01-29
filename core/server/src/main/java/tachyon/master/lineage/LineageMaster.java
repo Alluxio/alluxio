@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import com.google.protobuf.Message;
 
 import tachyon.Constants;
+import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AccessControlException;
@@ -65,7 +66,6 @@ import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterClientService;
 import tachyon.util.IdUtils;

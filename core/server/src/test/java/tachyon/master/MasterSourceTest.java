@@ -31,6 +31,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.Constants;
+import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.ExceptionMessage;
@@ -46,9 +47,8 @@ import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.worker.NetAddress;
+import tachyon.WorkerNetAddress;
 
 /**
  * Unit tests for {@link MasterSource}.
@@ -101,7 +101,7 @@ public final class MasterSourceTest {
     mFileSystemMaster.start(true);
 
     // set up worker
-    mWorkerId = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81, 82));
+    mWorkerId = mBlockMaster.getWorkerId(new WorkerNetAddress("localhost", 80, 81, 82));
     mBlockMaster.workerRegister(mWorkerId, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),

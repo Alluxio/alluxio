@@ -29,6 +29,7 @@ import org.junit.rules.TemporaryFolder;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
@@ -46,7 +47,6 @@ import tachyon.master.journal.ReadWriteJournal;
 import tachyon.security.authentication.PlainSaslServer;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.group.GroupMappingService;
-import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
 
 /**

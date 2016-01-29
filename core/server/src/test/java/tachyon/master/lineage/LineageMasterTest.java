@@ -32,6 +32,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.Lists;
 
+import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
@@ -44,7 +45,6 @@ import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.LineageInfo;
 
 /**

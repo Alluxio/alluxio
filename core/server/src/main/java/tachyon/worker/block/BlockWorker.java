@@ -49,7 +49,7 @@ import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.DataServer;
-import tachyon.worker.NetAddress;
+import tachyon.WorkerNetAddress;
 import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
@@ -194,7 +194,7 @@ public final class BlockWorker extends WorkerBase {
    */
   @Override
   public void start() throws IOException {
-    NetAddress netAddress;
+    WorkerNetAddress netAddress;
     try {
       netAddress = WorkerContext.getNetAddress();
       WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, netAddress);

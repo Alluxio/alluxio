@@ -21,10 +21,10 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.collect.Lists;
 
+import tachyon.FileInfo;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.master.file.meta.PersistenceState;
-import tachyon.thrift.FileInfo;
 
 /**
  * Utility methods for checking the state of lineage files.

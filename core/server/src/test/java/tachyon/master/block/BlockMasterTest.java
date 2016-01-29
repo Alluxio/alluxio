@@ -38,6 +38,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import tachyon.WorkerInfo;
 import tachyon.collections.IndexedSet;
 import tachyon.exception.TachyonException;
 import tachyon.heartbeat.HeartbeatContext;
@@ -48,15 +49,16 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
-import tachyon.thrift.WorkerInfo;
-import tachyon.worker.NetAddress;
+import tachyon.WorkerNetAddress;
 
 /**
  * Unit tests for {@link tachyon.master.block.BlockMaster}.
  */
 public class BlockMasterTest {
-  private static final NetAddress NET_ADDRESS_1 = new NetAddress("localhost", 80, 81, 82);
-  private static final NetAddress NET_ADDRESS_2 = new NetAddress("localhost", 83, 84, 85);
+  private static final WorkerNetAddress NET_ADDRESS_1 =
+      new WorkerNetAddress("localhost", 80, 81, 82);
+  private static final WorkerNetAddress NET_ADDRESS_2 =
+      new WorkerNetAddress("localhost", 83, 84, 85);
 
   private BlockMaster mMaster;
   private PrivateAccess mPrivateAccess;
@@ -148,7 +150,7 @@ public class BlockMasterTest {
    */
   @Test
   public void registerLostWorkerTest() throws Exception {
-    final NetAddress na = NET_ADDRESS_1;
+    final WorkerNetAddress na = NET_ADDRESS_1;
     final long expectedId = 1;
     final MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(expectedId, na);
 

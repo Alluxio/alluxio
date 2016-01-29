@@ -36,6 +36,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
+import tachyon.FileInfo;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
@@ -53,7 +54,6 @@ import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.PlainSaslServer.AuthorizedClientUser;
-import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.IdUtils;
 

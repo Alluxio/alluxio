@@ -18,10 +18,12 @@ package tachyon.master.block;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import tachyon.Constants;
+import tachyon.exception.TachyonException;
 import tachyon.master.TachyonMaster;
 
 /**
@@ -36,7 +38,7 @@ public class BlockMasterRestServiceHandler {
   @GET
   @Path("block/service_name")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response name() {
+  public Response getServiceName() {
     return Response.ok(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME).build();
   }
 
@@ -46,18 +48,56 @@ public class BlockMasterRestServiceHandler {
   @GET
   @Path("block/service_version")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response version() {
+  public Response getServiceVersion() {
     return Response.ok(Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION).build();
+  }
+
+  /**
+   * @param blockId the block id
+   * @return the response object
+   */
+  @GET
+  @Path("block/block_info")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getBlockInfo(@QueryParam("blockId") long blockId) {
+    BlockMaster master = TachyonMaster.get().getBlockMaster();
+    try {
+      return Response.ok(master.getBlockInfo(blockId)).build();
+    } catch (TachyonException e) {
+      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    }
   }
 
   /**
    * @return the response object
    */
   @GET
-  @Path("block/test")
+  @Path("block/capacity_bytes")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response test() {
+  public Response getCapacityBytes() {
     BlockMaster master = TachyonMaster.get().getBlockMaster();
-    return Response.ok().build();
+    return Response.ok(master.getCapacityBytes()).build();
+  }
+
+  /**
+   * @return the response object
+   */
+  @GET
+  @Path("block/used_bytes")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getUsedBytes() {
+    BlockMaster master = TachyonMaster.get().getBlockMaster();
+    return Response.ok(master.getUsedBytes()).build();
+  }
+
+  /**
+   * @return the response object
+   */
+  @GET
+  @Path("block/worker_info_list")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getWorkerInfoList() {
+    BlockMaster master = TachyonMaster.get().getBlockMaster();
+    return Response.ok(master.getWorkerInfoList()).build();
   }
 }

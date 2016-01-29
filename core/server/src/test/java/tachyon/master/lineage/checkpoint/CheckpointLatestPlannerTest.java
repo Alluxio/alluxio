@@ -25,6 +25,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.Lists;
 
+import tachyon.FileInfo;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
@@ -34,7 +35,6 @@ import tachyon.master.file.meta.PersistenceState;
 import tachyon.master.lineage.meta.LineageIdGenerator;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.meta.LineageStoreView;
-import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 
 /**

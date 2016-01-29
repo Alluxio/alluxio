@@ -30,9 +30,9 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Objects;
 
 import tachyon.Constants;
+import tachyon.WorkerInfo;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
-import tachyon.thrift.WorkerInfo;
 import tachyon.util.FormatUtils;
 
 /**

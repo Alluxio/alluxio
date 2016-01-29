@@ -21,6 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.exception.AccessControlException;
 import tachyon.exception.ExceptionMessage;
@@ -28,7 +29,6 @@ import tachyon.exception.InvalidPathException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.authorization.FileSystemPermission;
-import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
 
 /**

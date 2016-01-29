@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.exception.AccessControlException;
 import tachyon.exception.FileDoesNotExistException;
@@ -35,7 +36,6 @@ import tachyon.master.MasterContext;
 import tachyon.master.TachyonMaster;
 import tachyon.security.LoginUser;
 import tachyon.security.authentication.PlainSaslServer;
-import tachyon.thrift.FileInfo;
 import tachyon.util.SecurityUtils;
 
 /**

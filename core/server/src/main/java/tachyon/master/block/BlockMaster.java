@@ -39,9 +39,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Message;
 
+import tachyon.BlockInfo;
+import tachyon.BlockLocation;
 import tachyon.Constants;
 import tachyon.MasterStorageTierAssoc;
 import tachyon.StorageTierAssoc;
+import tachyon.WorkerInfo;
 import tachyon.collections.IndexedSet;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
@@ -62,17 +65,14 @@ import tachyon.master.journal.JournalProtoUtils;
 import tachyon.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import tachyon.proto.journal.Block.BlockInfoEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
-import tachyon.thrift.BlockInfo;
-import tachyon.thrift.BlockLocation;
 import tachyon.thrift.BlockMasterClientService;
 import tachyon.thrift.BlockMasterWorkerService;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
-import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.NetAddress;
+import tachyon.WorkerNetAddress;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -484,10 +484,10 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   /**
    * Returns a worker id for the given worker.
    *
-   * @param workerNetAddress the worker {@link NetAddress}
+   * @param workerNetAddress the worker {@link WorkerNetAddress}
    * @return the worker id for this worker
    */
-  public long getWorkerId(NetAddress workerNetAddress) {
+  public long getWorkerId(WorkerNetAddress workerNetAddress) {
     // TODO(gene): This NetAddress cloned in case thrift re-uses the object. Does thrift re-use it?
     synchronized (mWorkers) {
       if (mWorkers.contains(mAddressIndex, workerNetAddress)) {
@@ -690,7 +690,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
           mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
       if (workerInfo != null) {
         ret.add(new BlockLocation(masterBlockLocation.getWorkerId(),
-            workerInfo.getWorkerAddress().toThrift(), masterBlockLocation.getTierAlias()));
+            workerInfo.getWorkerAddress(), masterBlockLocation.getTierAlias()));
       }
     }
     return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), ret);

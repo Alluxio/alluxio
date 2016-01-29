@@ -21,9 +21,9 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.FileInfo;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.thrift.FileInfo;
 
 /**
  * This class exposes a read-only view of {@link FileSystemMaster}.

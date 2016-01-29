@@ -22,7 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Preconditions;
 
 import tachyon.client.block.BlockWorkerInfo;
-import tachyon.worker.NetAddress;
+import tachyon.WorkerNetAddress;
 
 /**
  * Always returns a worker with the specified hostname. Returns null if no active worker on that
@@ -42,8 +42,8 @@ public final class SpecificHostPolicy implements FileWriteLocationPolicy {
   }
 
   @Override
-  public NetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
-      long blockSizeBytes) {
+  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+                                                long blockSizeBytes) {
     // find the first worker matching the host name
     for (BlockWorkerInfo info : workerInfoList) {
       if (info.getNetAddress().getHost().equals(mHostname)) {

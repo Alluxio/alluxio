@@ -37,6 +37,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.Constants;
+import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
@@ -56,10 +57,9 @@ import tachyon.client.util.ClientTestUtils;
 import tachyon.client.block.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
-import tachyon.worker.NetAddress;
+import tachyon.WorkerNetAddress;
 
 /**
  * Tests for the {@link FileOutStream} class.
@@ -121,7 +121,7 @@ public class FileOutStreamTest {
     // Set up out streams. When they are created, add them to outStreamMap
     final Map<Long, TestBufferedBlockOutStream> outStreamMap = Maps.newHashMap();
     Mockito.when(mBlockStore.getOutStream(Mockito.anyLong(), Mockito.eq(BLOCK_LENGTH),
-        Mockito.any(NetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
+        Mockito.any(WorkerNetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
           @Override
           public BufferedBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
             Long blockId = invocation.getArgumentAt(0, Long.class);
@@ -134,7 +134,7 @@ public class FileOutStreamTest {
           }
         });
     BlockWorkerInfo workerInfo =
-        new BlockWorkerInfo(new NetAddress("localhost", 1, 2, 3), Constants.GB, 0);
+        new BlockWorkerInfo(new WorkerNetAddress("localhost", 1, 2, 3), Constants.GB, 0);
     Mockito.when(mBlockStore.getWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
     mTachyonOutStreamMap = outStreamMap;
 

@@ -26,11 +26,11 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 
+import tachyon.FileInfo;
 import tachyon.TachyonURI;
+import tachyon.WorkerNetAddress;
 import tachyon.master.file.meta.PersistenceState;
 import tachyon.security.authorization.FileSystemPermission;
-import tachyon.thrift.FileInfo;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.FormatUtils;
 
 /**

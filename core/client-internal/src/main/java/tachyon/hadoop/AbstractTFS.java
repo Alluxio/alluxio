@@ -38,7 +38,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.FileBlockInfo;
 import tachyon.TachyonURI;
+import tachyon.WorkerNetAddress;
 import tachyon.client.ClientContext;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystem;
@@ -56,8 +58,6 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
 
 /**
@@ -271,7 +271,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
         ArrayList<String> hosts = new ArrayList<String>();
         List<WorkerNetAddress> addrs = Lists.newArrayList();
         // add the existing in-memory block locations first
-        for (tachyon.thrift.BlockLocation location : info.getBlockInfo().getLocations()) {
+        for (tachyon.BlockLocation location : info.getBlockInfo().getLocations()) {
           addrs.add(location.getWorkerAddress());
         }
         // then add under file system location
