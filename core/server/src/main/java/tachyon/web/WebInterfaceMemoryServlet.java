@@ -36,6 +36,7 @@ import tachyon.master.TachyonMaster;
 import tachyon.security.LoginUser;
 import tachyon.security.authentication.PlainSaslServer;
 import tachyon.thrift.FileInfo;
+import tachyon.util.SecurityUtils;
 
 /**
  * Servlet that provides data for displaying which files are currently in memory.
@@ -65,7 +66,8 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (PlainSaslServer.AuthorizedClientUser.get() == null) {
+    if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())
+        && PlainSaslServer.AuthorizedClientUser.get(MasterContext.getConf()) == null) {
       PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(MasterContext.getConf()).getName());
     }
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());

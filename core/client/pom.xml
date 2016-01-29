@@ -8,7 +8,7 @@
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-client</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Core - Client</name>
+  <name>Tachyon Core - Client Distribution</name>
   <description>Distribution of client for Tachyon core</description>
 
   <properties>
@@ -86,11 +86,6 @@
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-core-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-client</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -181,7 +176,6 @@
                 <includes>
                   <include>org.tachyonproject:tachyon-core-common</include>
                   <include>org.tachyonproject:tachyon-core-client-internal</include>
-                  <include>org.tachyonproject:tachyon-keyvalue-client</include>
                   <include>org.apache.thrift:libthrift</include>
                 </includes>
               </artifactSet>

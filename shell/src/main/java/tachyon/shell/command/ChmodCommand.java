@@ -33,10 +33,10 @@ public final class ChmodCommand extends AbstractAclCommand {
    * Creates a new instance of {@link ChmodCommand}.
    *
    * @param conf a Tachyon configuration
-   * @param tfs a Tachyon file system handle
+   * @param fs a Tachyon file system handle
    */
-  public ChmodCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public ChmodCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
