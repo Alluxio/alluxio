@@ -42,4 +42,21 @@ public class ChownCommandTest extends AbstractTfsShellTest {
     owner = mFileSystem.getStatus(new TachyonURI("/testFile")).getUserName();
     Assert.assertEquals("user2", owner);
   }
+
+  @Test
+  public void chownRecursiveTest() throws IOException, TachyonException {
+    clearLoginUser();
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile", WriteType.MUST_CACHE, 10);
+    mFsShell.run("chown", "-R", "user1", "/testDir");
+    String owner = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getUserName();
+    Assert.assertEquals("user1", owner);
+    owner = mFileSystem.getStatus(new TachyonURI("/testDir")).getUserName();
+    Assert.assertEquals("user1", owner);
+    mFsShell.run("chown", "-R", "user2", "/testDir");
+    owner = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getUserName();
+    Assert.assertEquals("user2", owner);
+    mFsShell.run("chown", "user3", "/testDir", "-R");
+    owner = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getUserName();
+    Assert.assertEquals("user3", owner);
+  }
 }
