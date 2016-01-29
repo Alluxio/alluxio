@@ -66,7 +66,7 @@ public final class ChmodCommand extends AbstractAclCommand {
 
   @Override
   public String getDescription() {
-    return "Changes the permission of a file or directory specified by args."
+    return "Changes the permission of a file or directory specified by args. "
         + " Specify -R to change the permission recursively.";
   }
 }
