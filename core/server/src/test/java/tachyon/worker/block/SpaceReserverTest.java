@@ -15,6 +15,7 @@
 
 package tachyon.worker.block;
 
+import java.net.InetSocketAddress;
 import java.util.Map;
 
 import org.junit.After;
@@ -24,19 +25,22 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+import tachyon.worker.DataServer;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.file.FileSystemMasterClient;
 
 /**
  * Unit tests for {@link SpaceReserver}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemMasterClient.class, BlockMasterClient.class})
+@PrepareForTest({DataServer.Factory.class})
 public class SpaceReserverTest {
   private static final long SESSION_ID = 1;
   private static final long BLOCK_SIZE = 100;
@@ -72,6 +76,15 @@ public class SpaceReserverTest {
     String baseDir = mTempFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);
+
+    // Mock away data server creation which would otherwise happen in BlockWorker construction.
+    // We shouldn't need to bind net addresses in unit tests
+    PowerMockito.mockStatic(DataServer.Factory.class);
+    PowerMockito
+        .when(DataServer.Factory.create(Mockito.<InetSocketAddress>any(),
+            Mockito.<BlockWorker>any(), Mockito.<TachyonConf>any()))
+        .thenReturn(Mockito.mock(DataServer.class));
+
     BlockWorker blockWorker = new BlockWorker();
     mBlockStore = blockWorker.getBlockStore();
     String reserveRatioProp =
