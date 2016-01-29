@@ -18,34 +18,12 @@ out-of-the-box.
 
 <table class="table table-striped">
 <tr><th>Spark Version</th><th>Tachyon Version</th></tr>
+{% for version in site.data.table.versions-of-Spark-and-Tachyon %}
 <tr>
-  <td> 1.0.x and Below </td>
-  <td> v0.4.1 </td>
+  <td>{{version.Spark-Version}}</td>
+  <td>{{version.Tachyon-Version}}</td>
 </tr>
-<tr>
-  <td> 1.1.x </td>
-  <td> v0.5.0 </td>
-</tr>
-<tr>
-  <td> 1.2.x </td>
-  <td> v0.5.0 </td>
-</tr>
-<tr>
-  <td> 1.3.x </td>
-  <td> v0.5.0 </td>
-</tr>
-<tr>
-  <td> 1.4.x </td>
-  <td> v0.6.4 </td>
-</tr>
-<tr>
-  <td> 1.5.x </td>
-  <td> v0.7.1 </td>
-</tr>
-<tr>
-  <td> 1.6.x </td>
-  <td> v0.8.2 </td>
-</tr>
+{% endfor %}
 </table>
 
 If the version of Spark is not supported by your Tachyon installation by default (e.g., you are
@@ -54,14 +32,7 @@ by updating the correct version of tachyon-client in Spark dependency. To do tha
 `spark/core/pom.xml` and change the dependency version of `tachyon-client` to
 `your_tachyon_version`:
 
-```xml
-<dependency>
-  <groupId>org.tachyonproject</groupId>
-  <artifactId>tachyon-client</artifactId>
-  <version>your_tachyon_version</version>
-  ...
-</dependency>
-```
+{% include Running-Spark-on-Tachyon/your_tachyon_version.md %}
 
 ## Prerequisites
 
@@ -72,42 +43,22 @@ by updating the correct version of tachyon-client in Spark dependency. To do tha
 * If Spark version is earlier than `1.0.0`, please add the following line to
 `spark/conf/spark-env.sh`.
 
-```bash
-export SPARK_CLASSPATH=/pathToTachyon/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar:$SPARK_CLASSPATH
-```
+{% include Running-Spark-on-Tachyon/earlier-spark-version-bash.md %}
 
 * If Tachyon is run on top of a Hadoop 1.x cluster, create a new file `spark/conf/core-site.xml`
 with the following content:
 
-```xml
-<configuration>
-  <property>
-    <name>fs.tachyon.impl</name>
-    <value>tachyon.hadoop.TFS</value>
-  </property>
-</configuration>
-```
+{% include Running-Spark-on-Tachyon/Hadoop-1.x-configuration.md %}
 
 
 * If you are running tachyon in fault tolerant mode with zookeeper and the Hadoop cluster is a 1.x,
 add the following additionally entry to the previously created `spark/conf/core-site.xml`:
 
-```xml
-<property>
-  <name>fs.tachyon-ft.impl</name>
-  <value>tachyon.hadoop.TFSFT</value>
-</property>
-```
+{% include Running-Spark-on-Tachyon/fault-tolerant-mode-with-zookeeper-xml.md %}
 
 and the following line to `spark/conf/spark-env.sh`:
 
-```bash
-export SPARK_JAVA_OPTS="
-  -Dtachyon.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 \
-  -Dtachyon.zookeeper.enabled=true \
-  $SPARK_JAVA_OPTS
-"
-```
+{% include Running-Spark-on-Tachyon/fault-tolerant-mode-with-zookeeper-bash.md %}
 
 ## Use Tachyon as Input and Output
 
@@ -115,28 +66,18 @@ This section shows how to use Tachyon as input and output sources for your Spark
 
 Put a file `foo` into HDFS, assuming namenode is running on `localhost`:
 
-```bash
-$ hadoop fs -put -f foo hdfs://localhost:9000/foo
-```
+{% include Running-Spark-on-Tachyon/foo.md %}
 
 Run the following commands from `spark-shell`, assuming Tachyon Master is running on `localhost`:
 
-```scala
-> val s = sc.textFile("tachyon://localhost:19998/foo")
-> val double = s.map(line => line + line)
-> double.saveAsTextFile("tachyon://localhost:19998/bar")
-```
+{% include Running-Spark-on-Tachyon/Tachyon-In-Out-Scala.md %}
 
 Open your browser and check [http://localhost:19999](http://localhost:19999). There should be an
 output file `bar` which doubles each line in the file `foo`.
 
 When running Tachyon with fault tolerant mode, you can point to any Tachyon master:
 
-```scala
-> val s = sc.textFile("tachyon-ft://stanbyHost:19998/foo")
-> val double = s.map(line => line + line)
-> double.saveAsTextFile("tachyon-ft://activeHost:19998/bar")
-```
+{% include Running-Spark-on-Tachyon/any-Tachyon-master.md %}
 
 ## Persist Spark RDDs into Tachyon
 
@@ -156,11 +97,7 @@ RDDs. It can be a comma-separated list of multiple directories in Tachyon. By de
 To persist an RDD into Tachyon, you need to pass the `StorageLevel.OFF_HEAP` parameter. The
 following is an example with Spark shell:
 
-```bash
-$ ./spark-shell
-> val rdd = sc.textFile(inputPath)
-> rdd.persist(StorageLevel.OFF_HEAP)
-```
+{% include Running-Spark-on-Tachyon/off-heap-Spark-shell.md %}
 
 Check the `spark.externalBlockStore.baseDir` using Tachyon's web UI (the default URI is
 [http://localhost:19999](http://localhost:19999)), when the Spark application is running. You should
@@ -183,22 +120,16 @@ There is a workaround when launching Spark to achieve data locality. Users can e
 hostnames by using the following script offered in Spark. Start Spark Worker in each slave node with
 slave-hostname:
 
-```bash
-$ $SPARK_HOME/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
-```
+{% include Running-Spark-on-Tachyon/slave-hostname.md %}
 
 For example:
 
-```bash
-$ $SPARK_HOME/sbin/start-slave.sh -h simple30 spark://simple27:7077
-```
+{% include Running-Spark-on-Tachyon/slave-hostname-example.md %}
 
 You can also set the `SPARK_LOCAL_HOSTNAME` in `$SPARK_HOME/conf/spark-env.sh` to achieve this. For
 example:
 
-```bash
-SPARK_LOCAL_HOSTNAME=simple30
-```
+{% include Running-Spark-on-Tachyon/spark-local-hostname-example.md %}
 
 In either way, the Spark Worker addresses become hostnames and Locality Level becomes NODE_LOCAL as shown
 in Spark WebUI below.
