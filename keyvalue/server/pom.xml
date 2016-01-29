@@ -33,14 +33,5 @@
       <artifactId>tachyon-core-server</artifactId>
       <version>${project.version}</version>
     </dependency>
-
-    <!-- Other projects' test-jars -->
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-client-unshaded</artifactId>
-      <version>${project.version}</version>
-      <type>test-jar</type>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 </project>
