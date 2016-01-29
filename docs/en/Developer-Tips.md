@@ -2,7 +2,7 @@
 layout: global
 title: Developer Tips
 nickname: Developer Tips
-group: Dev Resources
+group: Resources
 ---
 
 * Table of Contents

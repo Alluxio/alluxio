@@ -2,7 +2,7 @@
 layout: global
 title: Configuring Tachyon with HDFS
 nickname: Tachyon with HDFS
-group: Under Stores
+group: Under Store
 priority: 3
 ---
 
