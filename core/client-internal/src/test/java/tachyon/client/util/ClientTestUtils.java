@@ -47,6 +47,7 @@ public final class ClientTestUtils {
   public static void resetClientContext() {
     try {
       Whitebox.invokeMethod(ClientContext.class, "reset");
+      resetContexts();
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
@@ -61,11 +62,15 @@ public final class ClientTestUtils {
   public static void reinitializeClientContext() {
     try {
       Whitebox.invokeMethod(ClientContext.class, "init");
-      BlockStoreContext.INSTANCE.reset();
-      FileSystemContext.INSTANCE.reset();
-      LineageContext.INSTANCE.reset();
+      resetContexts();
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
+  }
+
+  private static void resetContexts() {
+    BlockStoreContext.INSTANCE.reset();
+    FileSystemContext.INSTANCE.reset();
+    LineageContext.INSTANCE.reset();
   }
 }
