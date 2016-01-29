@@ -35,10 +35,10 @@ public final class LsrCommand extends AbstractLsCommand {
    * specified in args recursively.
    *
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public LsrCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public LsrCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

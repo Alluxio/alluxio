@@ -2191,12 +2191,16 @@ public final class FileSystemMaster extends MasterBase {
    * @throws AccessControlException if the client user information cannot be accessed
    */
   private String getClientUser() throws AccessControlException {
-    User authorizedUser = PlainSaslServer.AuthorizedClientUser.get();
-    if (authorizedUser == null) {
-      throw new AccessControlException(
-          ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
+    try {
+      User authorizedUser = PlainSaslServer.AuthorizedClientUser.get(MasterContext.getConf());
+      if (authorizedUser == null) {
+        throw new AccessControlException(
+            ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
+      }
+      return authorizedUser.getName();
+    } catch (IOException e) {
+      throw new AccessControlException(e.getMessage());
     }
-    return authorizedUser.getName();
   }
 
   /**

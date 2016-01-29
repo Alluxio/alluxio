@@ -428,8 +428,8 @@ public final class Constants {
   // Authorization
   public static final String SECURITY_AUTHORIZATION_PERMISSIONS_UMASK =
       "tachyon.security.authorization.permission.umask";
-  public static final int DEFAULT_TFS_PERMISSIONS_UMASK = 0022;
-  public static final short DEFAULT_TFS_FULL_PERMISSION = (short) 0777;
+  public static final int DEFAULT_FS_PERMISSIONS_UMASK = 0022;
+  public static final short DEFAULT_FS_FULL_PERMISSION = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
   // Group Mapping
   public static final String SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";

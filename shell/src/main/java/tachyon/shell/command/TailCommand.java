@@ -38,10 +38,10 @@ public final class TailCommand extends WithWildCardPathCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public TailCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public TailCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -53,7 +53,7 @@ public final class TailCommand extends WithWildCardPathCommand {
   void runCommand(TachyonURI path) throws IOException {
     URIStatus status;
     try {
-      status = mTfs.getStatus(path);
+      status = mFileSystem.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
@@ -62,7 +62,7 @@ public final class TailCommand extends WithWildCardPathCommand {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream is = null;
       try {
-        is = mTfs.openFile(path, options);
+        is = mFileSystem.openFile(path, options);
         byte[] buf = new byte[Constants.KB];
         long bytesToRead = 0L;
         if (status.getLength() > Constants.KB) {

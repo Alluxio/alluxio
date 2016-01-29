@@ -7,7 +7,7 @@
   </parent>
   <artifactId>tachyon-core-client-internal</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Core - Internal Client Implementation</name>
+  <name>Tachyon Core - Client Implementation</name>
   <description>Client implementation of Tachyon core</description>
 
   <properties>
@@ -41,33 +41,6 @@
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-core-common</artifactId>
       <version>${project.version}</version>
-    </dependency>
-
-    <!-- Test Dependencies -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-module-junit4</artifactId>
-      <scope>test</scope>
     </dependency>
 
     <!-- Dependency for findbugs (SuppressFBWarnings) -->

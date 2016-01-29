@@ -65,14 +65,14 @@ public class TfsShell implements Closeable {
 
   private final Map<String, TfsShellCommand> mCommands = Maps.newHashMap();
   private final TachyonConf mTachyonConf;
-  private final FileSystem mTfs;
+  private final FileSystem mFileSystem;
 
   /**
    * @param tachyonConf the configuration for Tachyon
    */
   public TfsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mTfs = FileSystem.Factory.get();
+    mFileSystem = FileSystem.Factory.get();
     loadCommands();
   }
 
@@ -93,7 +93,7 @@ public class TfsShell implements Closeable {
         try {
           cmd = CommonUtils.createNewClassInstance(cls,
               new Class[] { TachyonConf.class, FileSystem.class },
-              new Object[] { mTachyonConf, mTfs });
+              new Object[] { mTachyonConf, mFileSystem });
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }

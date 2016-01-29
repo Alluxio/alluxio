@@ -7,7 +7,7 @@
   </parent>
   <artifactId>tachyon-core-server</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Core - Server</name>
+  <name>Tachyon Core - Server Implementation</name>
   <description>Server implementation of Tachyon core</description>
 
   <properties>
@@ -117,22 +117,6 @@
       <artifactId>commons-httpclient</artifactId>
       <version>3.0.1</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-module-junit4</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
