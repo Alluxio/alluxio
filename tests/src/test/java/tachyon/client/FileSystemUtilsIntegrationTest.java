@@ -15,7 +15,28 @@
 
 package tachyon.client;
 
-import src.test.java.tachyon.LocalTachyonClusterResource;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
+import tachyon.TachyonURI;
+import tachyon.client.file.FileOutStream;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.FileSystemUtils;
+import tachyon.client.file.options.CreateFileOptions;
+import tachyon.client.util.ClientTestUtils;
+import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
+import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * Tests for {@link tachyon.client.file.FileSystemUtils}.

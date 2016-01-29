@@ -33,6 +33,7 @@ import tachyon.client.keyvalue.KeyValuePair;
 import tachyon.client.keyvalue.KeyValueStoreReader;
 import tachyon.client.keyvalue.KeyValueStoreWriter;
 import tachyon.client.keyvalue.KeyValueStores;
+import tachyon.client.util.ClientTestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.examples.Utils;
 import tachyon.util.io.BufferUtils;
@@ -64,7 +65,7 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
     TachyonConf tachyonConf = ClientContext.getConf();
     tachyonConf.set(Constants.KEY_VALUE_ENABLED, String.valueOf(true));
     tachyonConf.set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(mPartitionLength));
-    ClientContext.reset(tachyonConf);
+    ClientTestUtils.resetClientContext();
 
     KeyValueStores kvStores = KeyValueStores.Factory.create();
 

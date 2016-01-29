@@ -93,14 +93,17 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Failed to connect to the worker");
 
+    BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
+        mLocalTachyonClusterResource.get().getWorkerAddress(),
+        mExecutorService, ClientContext.getConf(),
+        1 /* fake session id */, true, new ClientMetrics());
+    try {
       Assert.assertFalse(blockWorkerClient.isConnected());
       // Using no-tachyon as loginUser to connect to Worker, the IOException will be thrown
       LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), "no-tachyon");
       blockWorkerClient.connect();
     } finally {
-      if (blockWorkerClient != null) {
-        blockWorkerClient.close();
-      }
+      blockWorkerClient.close();
       ClientTestUtils.resetClientContext();
     }
   }
