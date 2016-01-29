@@ -17,7 +17,6 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -32,6 +31,8 @@ import tachyon.thrift.WorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
 import tachyon.worker.NetAddress;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * A shared context in each client JVM for common block master client functionality such as a pool
@@ -52,7 +53,7 @@ public enum BlockStoreContext {
   private BlockMasterClientPool mBlockMasterClientPool;
   private BlockWorkerClientPool mLocalBlockWorkerClientPool;
 
-  private AtomicBoolean mLocalBlockWorkerClientPoolInitialized = new AtomicBoolean();
+  private boolean mLocalBlockWorkerClientPoolInitialized = false;
 
   /**
    * Creates a new block store context.
@@ -65,8 +66,8 @@ public enum BlockStoreContext {
    * Initializes {@link #mLocalBlockWorkerClientPool}. This method is supposed be called in a lazy
    * manner.
    */
-  private void initializeLocalBlockWorkerClientPool() {
-    if (!mLocalBlockWorkerClientPoolInitialized.getAndSet(true)) {
+  private synchronized void initializeLocalBlockWorkerClientPool() {
+    if (!mLocalBlockWorkerClientPoolInitialized) {
       NetAddress localWorkerAddress =
           getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
       // If the local worker is not available, do not initialize the local worker client pool.
@@ -75,6 +76,7 @@ public enum BlockStoreContext {
       } else {
         mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
       }
+      mLocalBlockWorkerClientPoolInitialized = true;
     }
   }
 
@@ -270,6 +272,7 @@ public enum BlockStoreContext {
    * Re-initializes the {@link BlockStoreContext}. This method should only be used in
    * {@link ClientContext}.
    */
+  @SuppressFBWarnings
   public void reset() {
     if (mBlockMasterClientPool != null) {
       mBlockMasterClientPool.close();
@@ -278,6 +281,6 @@ public enum BlockStoreContext {
       mLocalBlockWorkerClientPool.close();
     }
     mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
-    mLocalBlockWorkerClientPoolInitialized.set(false);
+    mLocalBlockWorkerClientPoolInitialized = false;
   }
 }
