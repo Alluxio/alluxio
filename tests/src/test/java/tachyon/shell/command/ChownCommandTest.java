@@ -56,7 +56,6 @@ public class ChownCommandTest extends AbstractTfsShellTest {
     owner = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getUserName();
     Assert.assertEquals("user2", owner);
     mFsShell.run("chown", "user3", "/testDir", "-R");
-    owner = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getUserName();
-    Assert.assertEquals("user3", owner);
+    mException.expect(IllegalArgumentException.class);
   }
 }
