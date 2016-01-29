@@ -17,7 +17,6 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -52,7 +51,7 @@ public enum BlockStoreContext {
   private BlockMasterClientPool mBlockMasterClientPool;
   private BlockWorkerClientPool mLocalBlockWorkerClientPool;
 
-  private AtomicBoolean mLocalBlockWorkerClientPoolInitialized = new AtomicBoolean();
+  private static boolean sLocalBlockWorkerClientPoolInitialized = false;
 
   /**
    * Creates a new block store context.
@@ -65,18 +64,17 @@ public enum BlockStoreContext {
    * Initializes {@link #mLocalBlockWorkerClientPool}. This method is supposed be called in a lazy
    * manner.
    */
-  private void initializeLocalBlockWorkerClientPool() {
-    if (!mLocalBlockWorkerClientPoolInitialized.getAndSet(true)) {
-      synchronized (mLocalBlockWorkerClientPoolInitialized) {
-        NetAddress localWorkerAddress =
-            getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
-        // If the local worker is not available, do not initialize the local worker client pool.
-        if (localWorkerAddress == null) {
-          mLocalBlockWorkerClientPool = null;
-        } else {
-          mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
-        }
+  private synchronized void initializeLocalBlockWorkerClientPool() {
+    if (!sLocalBlockWorkerClientPoolInitialized) {
+      NetAddress localWorkerAddress =
+          getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
+      // If the local worker is not available, do not initialize the local worker client pool.
+      if (localWorkerAddress == null) {
+        mLocalBlockWorkerClientPool = null;
+      } else {
+        mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
       }
+      sLocalBlockWorkerClientPoolInitialized = true;
     }
   }
 
