@@ -57,7 +57,6 @@ public class InStreamOptionsTest {
 
   /**
    * Tests that building a {@link InStreamOptions} with a modified configuration works.
-   * @throws Exception
    */
   @Test
   public void modifiedConfTest() {
