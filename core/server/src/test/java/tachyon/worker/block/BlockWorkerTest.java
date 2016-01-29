@@ -116,6 +116,7 @@ public class BlockWorkerTest {
   @After
   public void after() throws IOException {
     ((DataServer) Whitebox.getInternalState(mBlockWorker, "mDataServer")).close();
+    WorkerContext.reset();
   }
   /**
    * Tests the {@link BlockWorker#abortBlock(long, long)} method.
