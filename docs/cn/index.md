@@ -36,7 +36,7 @@ Tachyon与Hadoop兼容。这意味着已有的Spark和MapReduce程序可以不�
 
 * **[统一命名空间](Unified-and-Transparent-Namespace.html)** Tachyon通过挂载功能在不同的存储系统之间实现高效的数据管理。并且，透明命名在持久化这些对象到底层存储系统时可以保留这些对象的文件名和目录层次结构
 
-* **[世系](Lineage-API.html)** 通过世系，Tachyon可以不受容错的限制实现高吞吐的写入，丢失的输出可以通过重新执行创建这一输出的任务来恢复。应用将输出写入内存，Tachyon以异步方式定期备份数据到底层文件系统。写入失败时，Tachyon启动任务重执行恢复丢失的文件。
+* **[世系(Lineage)](Lineage-API.html)** 通过世系(Lineage)，Tachyon可以不受容错的限制实现高吞吐的写入，丢失的输出可以通过重新执行创建这一输出的任务来恢复。应用将输出写入内存，Tachyon以异步方式定期备份数据到底层文件系统。写入失败时，Tachyon启动任务重执行恢复丢失的文件。
 
 * **[网页UI](Web-Interface.html) & [命令行](Command-Line-Interface.html)** 用户可以通过网页UI浏览文件系统。在调试模式下，管理员可以查看每一个文件的详细信息，包括存放位置，检查点路径等等。用户也可以通过``./bin/tachyon tfs``与Tachyon交互，例如：将数据从文件系统拷入拷出。
 
