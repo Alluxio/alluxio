@@ -128,7 +128,7 @@ public final class TachyonWorker {
       // Setup web server
       mWebServer =
           new WorkerUIWebServer(ServiceType.WORKER_WEB, NetworkAddressUtils.getBindAddress(
-              ServiceType.WORKER_WEB, mTachyonConf), mBlockWorker,
+              ServiceType.WORKER_WEB, mTachyonConf), this, mBlockWorker,
               NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mTachyonConf),
               mStartTimeMs, mTachyonConf);
 
@@ -386,5 +386,12 @@ public final class TachyonWorker {
       LOG.info("Usage: java TachyonWorker");
       System.exit(-1);
     }
+  }
+
+  /**
+   * @return the master metric system reference
+   */
+  public MetricsSystem getWorkerMetricsSystem() {
+    return mWorkerMetricsSystem;
   }
 }
