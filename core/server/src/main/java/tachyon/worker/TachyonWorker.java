@@ -46,7 +46,6 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
 import tachyon.worker.block.BlockWorker;
-import tachyon.worker.block.BlockWorkerClientServiceHandler;
 import tachyon.worker.file.FileSystemWorker;
 
 /**
@@ -56,6 +55,39 @@ import tachyon.worker.file.FileSystemWorker;
 @NotThreadSafe
 public final class TachyonWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  private static TachyonWorker sTachyonWorker = null;
+  /**
+   * Main method for Tachyon Worker. A Block Worker will be started and the Tachyon Worker will
+   * continue to run until the Block Worker thread exits.
+   *
+   * @param args command line arguments, should be empty
+   */
+  public static void main(String[] args) {
+    checkArgs(args);
+    sTachyonWorker = new TachyonWorker();
+    try {
+      sTachyonWorker.start();
+    } catch (Exception e) {
+      LOG.error("Uncaught exception while running worker, stopping it and exiting.", e);
+      try {
+        sTachyonWorker.stop();
+      } catch (Exception ex) {
+        // continue to exit
+        LOG.error("Uncaught exception while stopping worker, simply exiting.", ex);
+      }
+      System.exit(-1);
+    }
+  }
+
+  /**
+   * Returns a handle to the Tachyon worker instance.
+   *
+   * @return Tachyon master handle
+   */
+  public static TachyonWorker get() {
+    return sTachyonWorker;
+  }
 
   private TachyonConf mTachyonConf;
 
@@ -150,29 +182,6 @@ public final class TachyonWorker {
   }
 
   /**
-   * Main method for Tachyon Worker. A Block Worker will be started and the Tachyon Worker will
-   * continue to run until the Block Worker thread exits.
-   *
-   * @param args command line arguments, should be empty
-   */
-  public static void main(String[] args) {
-    checkArgs(args);
-    TachyonWorker worker = new TachyonWorker();
-    try {
-      worker.start();
-    } catch (Exception e) {
-      LOG.error("Uncaught exception while running worker, stopping it and exiting.", e);
-      try {
-        worker.stop();
-      } catch (Exception ex) {
-        // continue to exit
-        LOG.error("Uncaught exception while stopping worker, simply exiting.", ex);
-      }
-      System.exit(-1);
-    }
-  }
-
-  /**
    * @return the worker RPC service bind host
    */
   public String getRPCBindHost() {
@@ -218,8 +227,8 @@ public final class TachyonWorker {
   /**
    * @return the worker service handler (used by unit test only)
    */
-  public BlockWorkerClientServiceHandler getBlockWorkerServiceHandler() {
-    return mBlockWorker.getWorkerServiceHandler();
+  public BlockWorker getBlockWorker() {
+    return mBlockWorker;
   }
 
   /**

@@ -44,7 +44,7 @@ public final class MasterUIWebServer extends UIWebServer {
   public MasterUIWebServer(ServiceType service, InetSocketAddress address, TachyonMaster master,
       TachyonConf conf) {
     super(service, address, conf);
-    Preconditions.checkNotNull(master, "TachyonMaster cannot be null");
+    Preconditions.checkNotNull(master, "Tachyon Master cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(master)), "/home");
     mWebAppContext.addServlet(new ServletHolder(
@@ -63,5 +63,8 @@ public final class MasterUIWebServer extends UIWebServer {
         "/browseLogs");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet(conf)),
         "/header");
+
+    // REST configuration
+    mWebAppContext.setDefaultsDescriptor("core/server/src/main/webapp/WEB-INF/master.xml");
   }
 }

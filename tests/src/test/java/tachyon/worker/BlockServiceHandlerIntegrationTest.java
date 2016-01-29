@@ -87,7 +87,7 @@ public class BlockServiceHandlerIntegrationTest {
     mMasterTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
     mBlockWorkerServiceHandler =
-        mLocalTachyonClusterResource.get().getWorker().getBlockWorkerServiceHandler();
+        mLocalTachyonClusterResource.get().getWorker().getBlockWorker().getWorkerServiceHandler();
 
     mBlockMasterClient = new BlockMasterClient(
         new InetSocketAddress(mLocalTachyonClusterResource.get().getMasterHostname(),
