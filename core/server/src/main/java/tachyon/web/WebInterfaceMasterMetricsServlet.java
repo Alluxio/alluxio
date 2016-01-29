@@ -43,18 +43,18 @@ import tachyon.metrics.TachyonMetricRegistry;
 /**
  * Servlet that provides data for viewing the metrics values
  */
-public final class WebInterfaceMetricsServlet extends HttpServlet {
+public final class WebInterfaceMasterMetricsServlet extends HttpServlet {
 
   private static final long serialVersionUID = -1481253168100363787L;
   private final transient TachyonMaster mMaster;
   private ObjectMapper mObjectMapper;
 
   /**
-   * Creates a new instance of {@link WebInterfaceMetricsServlet}.
+   * Creates a new instance of {@link WebInterfaceMasterMetricsServlet}.
    *
    * @param master Tachyon master
    */
-  public WebInterfaceMetricsServlet(TachyonMaster master) {
+  public WebInterfaceMasterMetricsServlet(TachyonMaster master) {
     mObjectMapper = new ObjectMapper().registerModule(new MetricsModule(TimeUnit.SECONDS,
             TimeUnit.MILLISECONDS, false));
     mMaster = master;
