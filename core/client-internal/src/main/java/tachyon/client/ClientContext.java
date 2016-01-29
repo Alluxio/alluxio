@@ -45,6 +45,8 @@ public final class ClientContext {
 
   /**
    * Resets to the default Tachyon configuration and initializes the client context singleton.
+   *
+   * This method is useful for undoing changes to TachyonConf made by unit tests.
    */
   private static void reset() {
     sTachyonConf = new TachyonConf();
@@ -52,7 +54,11 @@ public final class ClientContext {
   }
 
   /**
-   * Initializes the client context singleton.
+   * Initializes the client context singleton, bringing all non-TachyonConf state into sync with
+   * the current TachyonConf.
+   *
+   * This method is useful for updating parts of {@link ClientContext} which depend on
+   * {@link TachyonConf} when {@link TachyonConf} is changed, e.g. the master hostname or port.
    */
   private static void init() {
     String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
