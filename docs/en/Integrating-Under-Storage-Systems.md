@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Integrating Under Storage Systems
-group: Dev Resources
+group: Resources
 ---
 
 Tachyon exposes a
