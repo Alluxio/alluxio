@@ -20,11 +20,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import tachyon.WorkerNetAddress;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.master.block.BlockMaster;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
+import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.block.BlockMasterClient;
 import tachyon.worker.block.BlockMasterSync;
 

@@ -31,7 +31,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.Constants;
-import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.ExceptionMessage;
@@ -43,12 +42,13 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.options.CompleteFileOptions;
-import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
+import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Unit tests for {@link MasterSource}.

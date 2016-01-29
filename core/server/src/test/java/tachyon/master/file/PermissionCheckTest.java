@@ -29,7 +29,6 @@ import org.junit.rules.TemporaryFolder;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
@@ -48,6 +47,7 @@ import tachyon.security.authentication.PlainSaslServer;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.group.GroupMappingService;
 import tachyon.util.io.PathUtils;
+import tachyon.wire.FileInfo;
 
 /**
  * Unit test for {@link FileSystemMaster} when permission check is enabled by configure

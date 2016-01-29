@@ -37,10 +37,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.Constants;
-import tachyon.FileInfo;
 import tachyon.TachyonURI;
-import tachyon.conf.TachyonConf;
 import tachyon.client.file.options.SetAttributeOptions;
+import tachyon.conf.TachyonConf;
 import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
@@ -60,7 +59,8 @@ import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.FileSystemCommand;
 import tachyon.util.IdUtils;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Unit tests for {@link FileSystemMaster}.

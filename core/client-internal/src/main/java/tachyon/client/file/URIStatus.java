@@ -21,8 +21,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.FileInfo;
 import tachyon.annotation.PublicApi;
+import tachyon.wire.FileInfo;
 
 /**
  * Wrapper around {@link FileInfo}. Represents the metadata about a file or directory in Tachyon.

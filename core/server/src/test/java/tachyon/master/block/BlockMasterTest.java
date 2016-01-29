@@ -38,7 +38,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import tachyon.WorkerInfo;
 import tachyon.collections.IndexedSet;
 import tachyon.exception.TachyonException;
 import tachyon.heartbeat.HeartbeatContext;
@@ -49,7 +48,8 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Unit tests for {@link tachyon.master.block.BlockMaster}.

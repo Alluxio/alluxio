@@ -26,12 +26,12 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 
-import tachyon.FileInfo;
 import tachyon.TachyonURI;
-import tachyon.WorkerNetAddress;
 import tachyon.master.file.meta.PersistenceState;
 import tachyon.security.authorization.FileSystemPermission;
 import tachyon.util.FormatUtils;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Contains information about a file to be displayed in the UI.

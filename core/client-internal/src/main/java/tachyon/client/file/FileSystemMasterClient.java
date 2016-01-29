@@ -25,8 +25,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
-import tachyon.FileBlockInfo;
-import tachyon.FileInfo;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.CompleteFileOptions;
@@ -43,6 +41,8 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
+import tachyon.wire.FileBlockInfo;
+import tachyon.wire.FileInfo;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by tachyon clients.

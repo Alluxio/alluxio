@@ -30,7 +30,6 @@ import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.Lists;
 
-import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.file.options.CreateDirectoryOptions;
@@ -45,6 +44,7 @@ import tachyon.client.file.options.OpenFileOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.client.file.options.UnmountOptions;
+import tachyon.wire.FileInfo;
 
 /**
 * Unit test for functionality in {@link BaseFileSystem}.

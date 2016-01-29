@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.wire;
 
 import javax.annotation.concurrent.ThreadSafe;
 

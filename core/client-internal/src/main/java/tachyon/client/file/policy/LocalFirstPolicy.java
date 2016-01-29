@@ -23,7 +23,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import tachyon.client.ClientContext;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 /**
  * A policy that returns local host first, and if the local worker doesn't have enough availability,
  * it randomly picks a worker from the active workers list for each block write.

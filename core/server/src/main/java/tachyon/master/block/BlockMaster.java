@@ -39,12 +39,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Message;
 
-import tachyon.BlockInfo;
-import tachyon.BlockLocation;
 import tachyon.Constants;
 import tachyon.MasterStorageTierAssoc;
 import tachyon.StorageTierAssoc;
-import tachyon.WorkerInfo;
 import tachyon.collections.IndexedSet;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
@@ -72,7 +69,10 @@ import tachyon.thrift.CommandType;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.BlockInfo;
+import tachyon.wire.BlockLocation;
+import tachyon.wire.WorkerInfo;
+import tachyon.wire.WorkerNetAddress;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 

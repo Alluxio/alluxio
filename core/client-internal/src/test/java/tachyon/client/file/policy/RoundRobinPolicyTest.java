@@ -24,7 +24,7 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.client.block.BlockWorkerInfo;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Tests {@link RoundRobinPolicy}.

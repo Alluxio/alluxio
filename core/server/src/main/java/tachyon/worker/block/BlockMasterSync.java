@@ -36,7 +36,7 @@ import tachyon.exception.TachyonException;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.Command;
 import tachyon.util.ThreadFactoryUtils;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 

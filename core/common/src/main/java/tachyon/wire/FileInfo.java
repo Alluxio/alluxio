@@ -13,9 +13,11 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.wire;
 
 import java.util.List;
+
+import com.google.common.base.Objects;
 
 /**
  * The file descriptor.
@@ -363,5 +365,46 @@ public class FileInfo {
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mUserName, mGroupName, mPermission,
         mPersistenceState);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof FileInfo)) {
+      return false;
+    }
+    FileInfo that = (FileInfo) o;
+    return mFileId == that.mFileId && mName.equals(that.mName) && mPath.equals(that.mPath)
+        && mUfsPath.equals(that.mUfsPath) && mLength == that.mLength
+        && mBlockSizeBytes == that.mBlockSizeBytes && mCreationTimeMs == that.mCreationTimeMs
+        && mCompleted == that.mCompleted && mFolder == that.mFolder && mPinned == that.mPinned
+        && mCacheable == that.mCacheable && mPersisted == that.mPersisted
+        && mBlockIds.equals(that.mBlockIds) && mInMemoryPercentage == that.mInMemoryPercentage
+        && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl
+        && mUserName.equals(that.mUserName) && mGroupName.equals(that.mGroupName)
+        && mPermission == that.mPermission && mPersistenceState.equals(that.mPersistenceState);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
+        mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
+        mInMemoryPercentage, mLastModificationTimeMs, mTtl, mUserName, mGroupName, mPermission,
+        mPersistenceState);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("fileId", mFileId).add("name", mName)
+        .add("path", mPath).add("ufsPath", mUfsPath).add("length", mLength)
+        .add("blockSizeBytes", mBlockSizeBytes).add("creationTimeMs", mCreationTimeMs)
+        .add("completed", mCompleted).add("folder", mFolder).add("pinned", mPinned)
+        .add("cacheable", mCacheable).add("persisted", mPersisted)
+        .add("blockIds", mBlockIds.toString()).add("inMemoryPercentage", mInMemoryPercentage)
+        .add("lastModificationTimesMs", mLastModificationTimeMs).add("ttl", mTtl)
+        .add("userName", mUserName).add("groupName", mGroupName).add("permission", mPermission)
+        .add("persistanceState", mPersistenceState).toString();
   }
 }

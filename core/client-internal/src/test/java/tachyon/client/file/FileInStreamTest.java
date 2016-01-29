@@ -34,7 +34,6 @@ import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.Lists;
 
-import tachyon.FileInfo;
 import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
 import tachyon.client.block.BlockInStream;
@@ -52,7 +51,8 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Tests for the {@link FileInStream} class.

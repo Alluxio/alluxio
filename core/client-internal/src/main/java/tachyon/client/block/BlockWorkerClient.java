@@ -36,8 +36,8 @@ import tachyon.ClientBase;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
-import tachyon.exception.TachyonException;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.TachyonException;
 import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
@@ -48,8 +48,8 @@ import tachyon.thrift.LockBlockResult;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.ClientMetrics;
-import tachyon.WorkerNetAddress;
 
 /**
  * The client talks to a block worker server. It keeps sending keep alive message to the worker

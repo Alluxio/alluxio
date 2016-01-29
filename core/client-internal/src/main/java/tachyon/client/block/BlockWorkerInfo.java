@@ -20,7 +20,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Information of an active block worker.

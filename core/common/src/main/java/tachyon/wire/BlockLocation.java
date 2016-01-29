@@ -13,9 +13,10 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.wire;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Objects;
 
 /**
  * The location of a block.
@@ -104,5 +105,29 @@ public class BlockLocation {
    */
   public tachyon.thrift.BlockLocation toThrift() {
     return new tachyon.thrift.BlockLocation(mWorkerId, mWorkerAddress.toThrift(), mTierAlias);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof BlockLocation)) {
+      return false;
+    }
+    BlockLocation that = (BlockLocation) o;
+    return mWorkerId == that.mWorkerId && mWorkerAddress.equals(that.mWorkerAddress)
+        && mTierAlias.equals(that.mTierAlias);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mWorkerId, mWorkerAddress, mTierAlias);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("workerId", mWorkerId)
+        .add("address", mWorkerAddress.toString()).add("tierAlias", mTierAlias).toString();
   }
 }

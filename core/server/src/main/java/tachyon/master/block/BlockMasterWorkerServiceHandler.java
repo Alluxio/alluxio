@@ -27,7 +27,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockMasterWorkerService;
 import tachyon.thrift.Command;
 import tachyon.thrift.TachyonTException;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * This class is a Thrift handler for block master RPCs invoked by a Tachyon worker.

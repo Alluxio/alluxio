@@ -27,6 +27,7 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.thrift.transport.TServerSocket;
@@ -40,7 +41,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.util.OSUtils;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Common network address related utilities shared by all components in Tachyon.

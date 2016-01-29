@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.FileInfo;
 import tachyon.annotation.PublicApi;
 import tachyon.client.BoundedStream;
 import tachyon.client.Seekable;
@@ -41,7 +40,8 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * A streaming API to read a file. This API represents a file as a stream of bytes and provides a

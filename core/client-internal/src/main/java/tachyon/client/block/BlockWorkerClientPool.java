@@ -24,7 +24,7 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.ClientUtils;
 import tachyon.resource.ResourcePool;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Class for managing local block worker clients. After obtaining a client with

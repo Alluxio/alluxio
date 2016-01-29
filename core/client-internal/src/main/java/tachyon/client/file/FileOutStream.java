@@ -44,7 +44,7 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the

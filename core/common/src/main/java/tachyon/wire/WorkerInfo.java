@@ -13,9 +13,10 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.wire;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Objects;
 
 /**
  * The worker descriptor.
@@ -183,4 +184,34 @@ public class WorkerInfo {
     return new tachyon.thrift.WorkerInfo(mId, mAddress.toThrift(), mLastContactSec, mState,
         mCapacityBytes, mUsedBytes, mStartTimeMs);
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof WorkerInfo)) {
+      return false;
+    }
+    WorkerInfo that = (WorkerInfo) o;
+    return mId == that.mId && mAddress.equals(that.mAddress)
+        && mLastContactSec == that.mLastContactSec && mState.equals(that.mState)
+        && mCapacityBytes == that.mCapacityBytes && mUsedBytes == that.mUsedBytes
+        && mStartTimeMs == that.mStartTimeMs;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mId, mAddress, mLastContactSec, mState, mCapacityBytes, mUsedBytes,
+        mStartTimeMs);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("id", mId).add("address", mAddress.toString())
+        .add("lastContactSec", mLastContactSec).add("state", mState)
+        .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
+        .add("startTimeMs", mStartTimeMs).toString();
+  }
+
 }

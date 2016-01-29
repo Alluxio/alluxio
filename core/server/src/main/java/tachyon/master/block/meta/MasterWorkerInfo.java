@@ -33,10 +33,10 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.StorageTierAssoc;
-import tachyon.WorkerInfo;
 import tachyon.WorkerStorageTierAssoc;
 import tachyon.util.CommonUtils;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Metadata for a Tachyon worker.

@@ -24,7 +24,7 @@ import tachyon.client.ClientContext;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.TachyonWorker;
 import tachyon.worker.WorkerContext;
 

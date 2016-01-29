@@ -33,7 +33,7 @@ import tachyon.thrift.KeyValueWorkerClientService;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Client for talking to a key-value worker server.

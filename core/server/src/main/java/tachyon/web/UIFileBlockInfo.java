@@ -25,9 +25,9 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
-import tachyon.BlockLocation;
-import tachyon.FileBlockInfo;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.BlockLocation;
+import tachyon.wire.FileBlockInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Contains information for displaying a file block in the UI.

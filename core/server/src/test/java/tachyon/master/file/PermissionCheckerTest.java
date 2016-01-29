@@ -18,7 +18,6 @@ package tachyon.master.file;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -28,8 +27,9 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.powermock.reflect.Whitebox;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
-import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AccessControlException;
@@ -46,6 +46,7 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.authorization.PermissionStatus;
+import tachyon.wire.FileInfo;
 
 /**
  * Unit tests for {@link PermissionChecker}.

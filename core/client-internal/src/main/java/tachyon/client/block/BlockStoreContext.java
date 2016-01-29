@@ -29,8 +29,8 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.ClientMetrics;
-import tachyon.WorkerNetAddress;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 

@@ -28,10 +28,10 @@ import tachyon.Sessions;
 import tachyon.StorageTierAssoc;
 import tachyon.WorkerStorageTierAssoc;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.BlockWorkerClientService;
 import tachyon.thrift.LockBlockResult;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
-import tachyon.thrift.BlockWorkerClientService;
 import tachyon.worker.WorkerContext;
 
 /**

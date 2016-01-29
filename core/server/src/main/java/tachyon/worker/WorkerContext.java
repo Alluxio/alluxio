@@ -17,8 +17,8 @@ package tachyon.worker;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import tachyon.WorkerNetAddress;
 import tachyon.conf.TachyonConf;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * A {@link WorkerContext} object stores {@link TachyonConf}.

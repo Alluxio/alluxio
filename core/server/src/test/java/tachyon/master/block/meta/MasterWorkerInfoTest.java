@@ -32,8 +32,8 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.MasterStorageTierAssoc;
 import tachyon.StorageTierAssoc;
-import tachyon.WorkerInfo;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Unit tests for {@link MasterWorkerInfo}.
@@ -137,7 +137,7 @@ public final class MasterWorkerInfoTest {
   public void workerInfoGenerationTest() {
     WorkerInfo workerInfo = mInfo.generateClientWorkerInfo();
     Assert.assertEquals(mInfo.getId(), workerInfo.getId());
-    Assert.assertEquals(mInfo.getWorkerAddress().toThrift(), workerInfo.getAddress());
+    Assert.assertEquals(mInfo.getWorkerAddress(), workerInfo.getAddress());
     Assert.assertEquals("In Service", workerInfo.getState());
     Assert.assertEquals(mInfo.getCapacityBytes(), workerInfo.getCapacityBytes());
     Assert.assertEquals(mInfo.getUsedBytes(), workerInfo.getUsedBytes());

@@ -13,12 +13,13 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.wire;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Objects;
 
 /**
  * The file block descriptor.
@@ -115,5 +116,29 @@ public class FileBlockInfo {
       ufsLocations.add(ufsLocation.toThrift());
     }
     return new tachyon.thrift.FileBlockInfo(mBlockInfo.toThrift(), mOffset, ufsLocations);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof FileBlockInfo)) {
+      return false;
+    }
+    FileBlockInfo that = (FileBlockInfo) o;
+    return mBlockInfo.equals(that.mBlockInfo) && mOffset == that.mOffset
+        && mUfsLocations.equals(that.mUfsLocations);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mBlockInfo, mOffset, mUfsLocations);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("blockInfo", mBlockInfo.toString())
+        .add("offset", mOffset).add("ufsLocations", mUfsLocations.toString()).toString();
   }
 }

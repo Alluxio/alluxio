@@ -22,7 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.collect.Lists;
 
 import tachyon.client.block.BlockWorkerInfo;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * A policy that returns the worker with the most available bytes. The policy returns null if no

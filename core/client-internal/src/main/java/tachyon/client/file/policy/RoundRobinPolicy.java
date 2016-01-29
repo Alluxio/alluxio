@@ -21,7 +21,7 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import tachyon.client.block.BlockWorkerInfo;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * A policy that chooses the worker for the next block in a round-robin manner and skips workers

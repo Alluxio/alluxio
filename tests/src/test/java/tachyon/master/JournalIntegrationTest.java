@@ -29,7 +29,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.Constants;
-import tachyon.FileInfo;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
@@ -54,6 +53,7 @@ import tachyon.security.group.GroupMappingService;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.wire.FileInfo;
 
 /**
  * Test master journal, including checkpoint and entry log. Most tests will test entry log first,

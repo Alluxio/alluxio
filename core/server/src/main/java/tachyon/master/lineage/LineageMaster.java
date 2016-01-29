@@ -32,7 +32,6 @@ import com.google.common.collect.Lists;
 import com.google.protobuf.Message;
 
 import tachyon.Constants;
-import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AccessControlException;
@@ -70,6 +69,7 @@ import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterClientService;
 import tachyon.util.IdUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.wire.FileInfo;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 

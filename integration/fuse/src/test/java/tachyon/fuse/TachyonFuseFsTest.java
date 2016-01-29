@@ -27,7 +27,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import tachyon.Constants;
-import tachyon.FileInfo;
+import tachyon.wire.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;

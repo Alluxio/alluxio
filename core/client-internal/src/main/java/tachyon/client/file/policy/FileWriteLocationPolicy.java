@@ -20,7 +20,7 @@ import java.util.List;
 import tachyon.annotation.PublicApi;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.file.FileOutStream;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * <p>

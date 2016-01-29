@@ -54,7 +54,7 @@ public class BlockMasterClientServiceHandler implements BlockMasterClientService
   @Override
   public List<WorkerInfo> getWorkerInfoList() {
     List<WorkerInfo> workerInfos = new ArrayList<WorkerInfo>();
-    for (tachyon.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
+    for (tachyon.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
       workerInfos.add(workerInfo.toThrift());
     }
     return workerInfos;

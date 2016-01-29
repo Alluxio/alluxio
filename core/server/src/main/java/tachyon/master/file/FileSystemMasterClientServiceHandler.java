@@ -114,7 +114,7 @@ public final class FileSystemMasterClientServiceHandler implements
   public List<FileBlockInfo> getFileBlockInfoList(String path) throws TachyonTException {
     try {
       List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
-      for (tachyon.FileBlockInfo fileBlockInfo :
+      for (tachyon.wire.FileBlockInfo fileBlockInfo :
           mFileSystemMaster.getFileBlockInfoList(new TachyonURI(path))) {
         result.add(fileBlockInfo.toThrift());
       }
@@ -160,7 +160,8 @@ public final class FileSystemMasterClientServiceHandler implements
   public List<FileInfo> listStatus(String path) throws TachyonTException {
     try {
       List<FileInfo> result = new ArrayList<FileInfo>();
-      for (tachyon.FileInfo fileInfo : mFileSystemMaster.getFileInfoList(new TachyonURI(path))) {
+      for (tachyon.wire.FileInfo fileInfo :
+          mFileSystemMaster.getFileInfoList(new TachyonURI(path))) {
         result.add(fileInfo.toThrift());
       }
       return result;

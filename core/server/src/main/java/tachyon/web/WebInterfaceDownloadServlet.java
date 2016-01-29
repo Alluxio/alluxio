@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
 
-import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.client.ReadType;
 import tachyon.client.file.FileInStream;
@@ -42,6 +41,7 @@ import tachyon.master.file.FileSystemMaster;
 import tachyon.security.LoginUser;
 import tachyon.security.authentication.PlainSaslServer;
 import tachyon.util.SecurityUtils;
+import tachyon.wire.FileInfo;
 
 /**
  * Servlet for downloading a file.

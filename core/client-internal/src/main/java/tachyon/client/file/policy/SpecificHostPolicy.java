@@ -22,7 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Preconditions;
 
 import tachyon.client.block.BlockWorkerInfo;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Always returns a worker with the specified hostname. Returns null if no active worker on that

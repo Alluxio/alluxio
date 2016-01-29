@@ -40,13 +40,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 
-import tachyon.BlockInfo;
-import tachyon.BlockLocation;
 import tachyon.Constants;
-import tachyon.FileBlockInfo;
-import tachyon.FileInfo;
 import tachyon.TachyonURI;
-import tachyon.WorkerNetAddress;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
@@ -117,6 +112,11 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
 import tachyon.util.SecurityUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.wire.BlockInfo;
+import tachyon.wire.BlockLocation;
+import tachyon.wire.FileBlockInfo;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 

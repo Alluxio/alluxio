@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockWriter;
 import tachyon.exception.TachyonException;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Provides a streaming API to write to a Tachyon block. This output stream will send the write

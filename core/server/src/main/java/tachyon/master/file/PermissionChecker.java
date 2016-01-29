@@ -21,7 +21,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.exception.AccessControlException;
 import tachyon.exception.ExceptionMessage;
@@ -30,6 +29,7 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.authorization.FileSystemPermission;
 import tachyon.util.io.PathUtils;
+import tachyon.wire.FileInfo;
 
 /**
  * Base class to provide permission check logic.

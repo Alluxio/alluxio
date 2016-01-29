@@ -37,12 +37,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.Constants;
-import tachyon.FileInfo;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.client.block.BlockStoreContext;
+import tachyon.client.block.BlockWorkerClient;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.TachyonBlockStore;
@@ -54,12 +54,12 @@ import tachyon.client.file.policy.LocalFirstPolicy;
 import tachyon.client.file.policy.RoundRobinPolicy;
 import tachyon.client.util.ClientMockUtils;
 import tachyon.client.util.ClientTestUtils;
-import tachyon.client.block.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Tests for the {@link FileOutStream} class.

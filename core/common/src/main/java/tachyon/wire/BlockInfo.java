@@ -13,12 +13,13 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.wire;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Objects;
 
 /**
  * The block descriptor.
@@ -114,5 +115,29 @@ public class BlockInfo {
       locations.add(location.toThrift());
     }
     return new tachyon.thrift.BlockInfo(mBlockId, mLength, locations);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof BlockInfo)) {
+      return false;
+    }
+    BlockInfo that = (BlockInfo) o;
+    return mBlockId == that.mBlockId && mLength == that.mLength
+        && mLocations.equals(that.mLocations);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mBlockId, mLength, mLocations);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("id", mBlockId).add("length", mLength)
+        .add("locations", mLocations.toString()).toString();
   }
 }

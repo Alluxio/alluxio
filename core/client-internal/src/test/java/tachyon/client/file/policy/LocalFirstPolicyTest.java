@@ -26,7 +26,7 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Tests {@link LocalFirstPolicy}.

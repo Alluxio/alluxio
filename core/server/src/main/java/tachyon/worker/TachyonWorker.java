@@ -38,7 +38,6 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.Version;
-import tachyon.WorkerNetAddress;
 import tachyon.conf.TachyonConf;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
@@ -46,6 +45,7 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
+import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.block.BlockWorker;
 import tachyon.worker.file.FileSystemWorker;
 
