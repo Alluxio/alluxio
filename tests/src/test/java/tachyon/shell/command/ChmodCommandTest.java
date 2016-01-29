@@ -53,10 +53,10 @@ public class ChmodCommandTest extends AbstractTfsShellTest {
     permission = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getPermission();
     Assert.assertEquals((short) 0777, permission);
     mFsShell.run("chmod", "-R", "755", "/testDir");
-    permission = mFileSystem.getStatus(new TachyonURI("/testFile")).getPermission();
+    permission = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getPermission();
     Assert.assertEquals((short) 0755, permission);
     mFsShell.run("chmod", "777", "/testDir", "-R");
-    permission = mFileSystem.getStatus(new TachyonURI("/testFile")).getPermission();
+    permission = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getPermission();
     Assert.assertEquals((short) 0777, permission);
   }
 
