@@ -32,6 +32,8 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
 import tachyon.worker.NetAddress;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * A shared context in each client JVM for common block master client functionality such as a pool
  * of master clients and a pool of local worker clients. Any remote clients will be created and
@@ -270,6 +272,7 @@ public enum BlockStoreContext {
    * Re-initializes the {@link BlockStoreContext}. This method should only be used in
    * {@link ClientContext}.
    */
+  @SuppressFBWarnings
   public void reset() {
     if (mBlockMasterClientPool != null) {
       mBlockMasterClientPool.close();
