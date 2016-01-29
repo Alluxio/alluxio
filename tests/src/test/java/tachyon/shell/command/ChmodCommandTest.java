@@ -55,8 +55,6 @@ public class ChmodCommandTest extends AbstractTfsShellTest {
     mFsShell.run("chmod", "-R", "755", "/testDir");
     permission = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getPermission();
     Assert.assertEquals((short) 0755, permission);
-    mFsShell.run("chmod", "777", "/testDir", "-R");
-    mException.expect(IllegalArgumentException.class);
   }
 
 }
