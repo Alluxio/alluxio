@@ -41,4 +41,21 @@ public class ChgrpCommandTest extends AbstractTfsShellTest {
     group = mFileSystem.getStatus(new TachyonURI("/testFile")).getGroupName();
     Assert.assertEquals("group2", group);
   }
+
+  @Test
+  public void chgrpRecursiveTest() throws IOException, TachyonException {
+    clearLoginUser();
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile", WriteType.MUST_CACHE, 10);
+    // "chgrp -R group1 /testDir" should apply to child file
+    mFsShell.run("chgrp", "-R", "group1", "/testDir");
+    String group = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getGroupName();
+    Assert.assertEquals("group1", group);
+    mFsShell.run("chgrp", "-R", "group2", "/testDir");
+    group = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getGroupName();
+    Assert.assertEquals("group2", group);
+    // Also test "chgrp group3 /testDir -R"
+    mFsShell.run("chgrp", "group3", "/testDir", "-R");
+    group = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getGroupName();
+    Assert.assertEquals("group3", group);
+  }
 }
