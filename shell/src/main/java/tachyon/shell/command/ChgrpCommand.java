@@ -59,7 +59,7 @@ public final class ChgrpCommand extends AbstractAclCommand {
   public void run(String... args) throws IOException {
     CommandLineParser parser = new BasicParser();
     Options options = new Options();
-    // Add R option or chgrp recursively.
+    // Add R option for chgrp recursively.
     options.addOption("R", false, "recursively");
     CommandLine cmd;
     try {
