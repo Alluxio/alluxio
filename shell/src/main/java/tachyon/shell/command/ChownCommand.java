@@ -56,7 +56,7 @@ public final class ChownCommand extends AbstractAclCommand {
     String[] args = cl.getArgs();
     String owner = args[0];
     TachyonURI path = new TachyonURI(args[1]);
-    chown(path, owner, false);
+    chown(path, owner, cl.hasOption("R"));
   }
 
   @Override
