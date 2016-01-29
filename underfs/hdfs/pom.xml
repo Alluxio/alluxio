@@ -39,11 +39,5 @@
       <artifactId>tachyon-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
-
-    <!-- Test Dependencies -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
   </dependencies>
 </project>

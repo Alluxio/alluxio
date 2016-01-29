@@ -149,7 +149,7 @@ Tiered storage can be enabled in Tachyon using
 [configuration parameters](Configuration-Settings.html). By default, Tachyon only enables a single,
 memory tier. To specify additional tiers for Tachyon, use the following configuration parameters:
 
-    tachyon.worker.tieredstore.level.max
+    tachyon.worker.tieredstore.levels
     tachyon.worker.tieredstore.level{x}.alias
     tachyon.worker.tieredstore.level{x}.dirs.quota
     tachyon.worker.tieredstore.level{x}.dirs.path
@@ -158,7 +158,7 @@ memory tier. To specify additional tiers for Tachyon, use the following configur
 For example, if you wanted to configure Tachyon to have two tiers -- memory and hard disk drive --
 you could use a configuration similar to:
 
-    tachyon.worker.tieredstore.level.max=2
+    tachyon.worker.tieredstore.levels
     tachyon.worker.tieredstore.level0.alias=MEM
     tachyon.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
     tachyon.worker.tieredstore.level0.dirs.quota=100GB
@@ -170,7 +170,7 @@ you could use a configuration similar to:
 
 Here is the explanation of the example configuration:
 
-* `tachyon.worker.tieredstore.level.max=2` configures 2 tiers in Tachyon
+* `tachyon.worker.tieredstore.levels=2` configures 2 tiers in Tachyon
 * `tachyon.worker.tieredstore.level0.alias=MEM` configures the first (top) tier to be a memory tier
 * `tachyon.worker.tieredstore.level0.dirs.path=/mnt/ramdisk` defines `/mnt/ramdisk` to be the file
 path to the first tier
@@ -186,8 +186,8 @@ file paths of the second tier
 the second layer to be 0.1
 
 There are a few restrictions to defining the tiers. First of all, there can be at most 3 tiers.
-Also, at most 1 tier can refer to a specific alias. For example, at most 1 tier can have the 
-alias HDD. If you want Tachyon to use multiple hard drives for the HDD tier, you can configure that 
+Also, at most 1 tier can refer to a specific alias. For example, at most 1 tier can have the
+alias HDD. If you want Tachyon to use multiple hard drives for the HDD tier, you can configure that
 by using multiple paths for `tachyon.worker.tieredstore.level{x}.dirs.path`.
 
 Additionally, the specific evictor and allocator strategies can be configured. Those configuration
@@ -207,7 +207,7 @@ These are the configuration parameters for tiered storage.
 <table class="table table-striped">
 <tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
 <tr>
-  <td>tachyon.worker.tieredstore.level.max</td>
+  <td>tachyon.worker.tieredstore.levels</td>
   <td>1</td>
   <td>
   The maximum number of storage tiers in Tachyon. Currently, Tachyon supports 1, 2, or 3 tiers.
