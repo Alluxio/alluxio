@@ -149,7 +149,7 @@ public class JournalShutdownIntegrationTest {
   private LocalTachyonCluster setupSingleMasterCluster()
       throws IOException, ConnectionFailedException {
     // Setup and start the local tachyon cluster.
-    LocalTachyonCluster cluster = new LocalTachyonCluster(100, 100, TEST_BLOCK_SIZE);
+    LocalTachyonCluster cluster = new LocalTachyonCluster(100, TEST_BLOCK_SIZE);
     cluster.start();
     mMasterTachyonConf = cluster.getMasterTachyonConf();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
