@@ -125,8 +125,6 @@ public final class TachyonBlockStoreTest {
     Assert.assertTrue(stream instanceof LocalBlockInStream);
     Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
     Assert.assertEquals(BLOCK_LENGTH, Whitebox.getInternalState(stream, "mBlockSize"));
-    Mockito.verify(sBlockStoreContext).acquireMasterClient();
-    Mockito.verify(sBlockStoreContext).releaseMasterClient(sMasterClient);
   }
 
   /**
@@ -148,7 +146,5 @@ public final class TachyonBlockStoreTest {
     Assert.assertEquals(BLOCK_LENGTH, Whitebox.getInternalState(stream, "mBlockSize"));
     Assert.assertEquals(new InetSocketAddress(WORKER_HOSTNAME_REMOTE, WORKER_DATA_PORT),
         Whitebox.getInternalState(stream, "mLocation"));
-    Mockito.verify(sBlockStoreContext).acquireMasterClient();
-    Mockito.verify(sBlockStoreContext).releaseMasterClient(sMasterClient);
   }
 }
