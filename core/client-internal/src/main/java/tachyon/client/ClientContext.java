@@ -58,7 +58,8 @@ public final class ClientContext {
    * the current TachyonConf.
    *
    * This method is useful for updating parts of {@link ClientContext} which depend on
-   * {@link TachyonConf} when {@link TachyonConf} is changed, e.g. the master hostname or port.
+   * {@link TachyonConf} when {@link TachyonConf} is changed, e.g. the master hostname or port. This
+   * method requires that {@link sTachyonConf} has been initialized.
    */
   private static void init() {
     String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
