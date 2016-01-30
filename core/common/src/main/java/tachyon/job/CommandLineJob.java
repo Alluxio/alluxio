@@ -30,8 +30,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
-import tachyon.thrift.CommandLineJobInfo;
-import tachyon.thrift.JobConfInfo;
+import tachyon.wire.CommandLineJobInfo;
+import tachyon.wire.JobConfInfo;
 
 /**
  * A job that wraps a programmed run by command line. This job's caller should ensure the execution

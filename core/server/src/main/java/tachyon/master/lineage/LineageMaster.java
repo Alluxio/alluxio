@@ -65,11 +65,11 @@ import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
-import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterClientService;
 import tachyon.util.IdUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.wire.FileInfo;
+import tachyon.wire.LineageInfo;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 

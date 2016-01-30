@@ -16,6 +16,7 @@
 package tachyon.master.lineage;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -111,7 +112,11 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   @Override
   public List<LineageInfo> getLineageInfoList() throws TachyonTException {
     try {
-      return mLineageMaster.getLineageInfoList();
+      List<LineageInfo> lineageInfos = new ArrayList<LineageInfo>();
+      for (tachyon.wire.LineageInfo lineageInfo : mLineageMaster.getLineageInfoList()) {
+        lineageInfos.add(lineageInfo.toThrift());
+      }
+      return lineageInfos;
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }

@@ -92,7 +92,7 @@ public final class LineageMasterClient extends MasterClientBase {
       @Override
       public Long call() throws TachyonTException, TException {
         return mClient.createLineage(inputFiles, outputFiles,
-            job.generateCommandLineJobInfo());
+            job.generateCommandLineJobInfo().toThrift());
       }
     });
   }
