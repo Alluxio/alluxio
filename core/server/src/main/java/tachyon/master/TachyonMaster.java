@@ -134,6 +134,28 @@ public class TachyonMaster {
   private long mStartTimeMs = -1;
 
   /**
+   * @return a list of the enabled master services' names
+   */
+  public static List<String> getNames() {
+    List<String> names = Lists.newArrayList();
+    names.add(Constants.BLOCK_MASTER_NAME);
+    names.add(Constants.FILE_SYSTEM_MASTER_NAME);
+    names.add(Constants.LINEAGE_MASTER_NAME);
+
+    // Discover the available master factories.
+    // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader.
+    ServiceLoader<MasterFactory> discoveredMasterFactories =
+        ServiceLoader.load(MasterFactory.class, MasterFactory.class.getClassLoader());
+    for (MasterFactory factory : discoveredMasterFactories) {
+      if (factory.isEnabled()) {
+        names.add(factory.getName());
+      }
+    }
+
+    return names;
+  }
+
+  /**
    * Factory for creating {@link TachyonMaster} or {@link TachyonMasterFaultTolerant} based on
    * {@link TachyonConf}.
    */
