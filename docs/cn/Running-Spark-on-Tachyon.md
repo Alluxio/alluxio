@@ -13,12 +13,12 @@ priority: 0
 如果Spark和Tachyon的版本符合如下的配对关系，它们之间的兼容性将达到最佳。
 
 <table class="table table-striped">
-<tr><th>Spark Version</th><th>Tachyon Version</th></tr>
-{% for version in site.data.table.versions-of-Spark-and-Tachyon %}
+<tr><th>Spark版本</th><th>Tachyon版本</th></tr>
+{% for item in site.data.table.versions-of-Spark-and-Tachyon %}
 
 <tr>
-  <td>{{version.Spark-Version}}</td>
-  <td>{{version.Tachyon-Version}}</td>
+  <td>{{item.Spark-Version}}</td>
+  <td>{{item.Tachyon-Version}}</td>
 </tr>
 {% endfor %}
 </table>
