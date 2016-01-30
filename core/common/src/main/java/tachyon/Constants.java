@@ -321,7 +321,6 @@ public final class Constants {
 
   public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
       "tachyon.user.failed.space.request.limits";
-  public static final String USER_QUOTA_UNIT_BYTES = "tachyon.user.quota.unit.bytes";
   public static final String USER_FILE_BUFFER_BYTES = "tachyon.user.file.buffer.bytes";
   public static final String USER_HEARTBEAT_INTERVAL_MS = "tachyon.user.heartbeat.interval.ms";
   public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
