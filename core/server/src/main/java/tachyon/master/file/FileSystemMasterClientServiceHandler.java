@@ -25,7 +25,6 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
@@ -33,6 +32,7 @@ import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.file.options.SetAclOptions;
+import tachyon.master.file.options.SetAttributeOptions;
 import tachyon.thrift.CompleteFileTOptions;
 import tachyon.thrift.CreateDirectoryTOptions;
 import tachyon.thrift.CreateFileTOptions;
@@ -242,8 +242,7 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public void setAttribute(String path, SetAttributeTOptions options) throws TachyonTException {
     try {
-      mFileSystemMaster.setState(new TachyonURI(path),
-          SetAttributeOptions.fromThriftOptions(options));
+      mFileSystemMaster.setState(new TachyonURI(path), new SetAttributeOptions(options));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
