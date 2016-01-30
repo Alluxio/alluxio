@@ -11,7 +11,7 @@ priority: 4
 
 Tachyon-FUSE是一个新的处于实验阶段的特性，该特性允许在一台Linux机器上的本地文件系统中挂载一个Tachyon分布式文件系统。通过使用该特性，标注的工具（例如`ls`、 `cat`以及`echo`）和传统的POSIX应用程序都能够访问Tachyon分布式文件系统中的数据。
 
-由于Tachyon固有的属性，例如它的write-once/read-many-times文件数据模型，该挂载的文件系统并不完全符合POSIX标准，有一定的局限性。因此，在使用该特性之前，请先阅读本页面余下的内容，从而了解该特性的作业以及局限。
+由于Tachyon固有的属性，例如它的write-once/read-many-times文件数据模型，该挂载的文件系统并不完全符合POSIX标准，有一定的局限性。因此，在使用该特性之前，请先阅读本页面余下的内容，从而了解该特性的作用以及局限。
 
 # 安装依赖
 
@@ -68,7 +68,7 @@ Tachyon-FUSE是基于标准的tachyon-client进行操作的。你也许想像使
 ## `open(const char* pathname, int flags, mode_t mode)`
 (see also `man 2 open`)
 
-如果`pathname`为一个Tachyon中不存在的文件，那么open操作只有在一下条件满足时才会成功：
+如果`pathname`为一个Tachyon中不存在的文件，那么open操作只有在以下条件满足时才会成功：
 
 1. `pathname`的基目录在Tachyon中存在;
 2. `O_CREAT`和`O_WRONLY`被传递到`flags`位字段中。
@@ -76,6 +76,7 @@ Tachyon-FUSE是基于标准的tachyon-client进行操作的。你也许想像使
 同样的，当(1)满足并且`pathname`不存在时，`creat(const char* pathname )`操作会成功。
 
 如果`pathname`为一个Tachyon中存在的文件，那么open操作只有当以下条件满足时才会成功：
+
 1. `O_RDONLY`被传递到`flags`位字段中。
 
 注意，无论哪种情况，目前Tachyon-FUSE会忽略`mode`参数。
@@ -97,7 +98,7 @@ Seek操作只支持用于读的文件，即在指定`O_RDONLY` flags方式下被
 
 # 性能考虑
 
-由于FUSE和JNR的配合使用，与直接使用tachyon-client相比，使用挂载文件系统的性能会相当差。也就是说，如果你在乎的更多是性能而不是这个功能，那么不应当使用Tachyon-FUSE。
+由于FUSE和JNR的配合使用，与直接使用tachyon-client相比，使用挂载文件系统的性能会相对较差。也就是说，如果你在乎的更多是性能而不是这个功能，那么不应当使用Tachyon-FUSE。
 
 大多数性能问题的原因在于，每次进行`read`或`write`操作时，内存中都存在若干个副本，并且FUSE将写操作的最大粒度设置为128KB。其性能可以利用kernel 3.15引入的FUSE回写(write-backs)缓存策略从而得到大幅提高（但该特性目前尚不被libfuse 2.x用户空间库支持）。
 
