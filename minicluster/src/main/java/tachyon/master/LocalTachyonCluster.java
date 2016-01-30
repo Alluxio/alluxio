@@ -50,12 +50,10 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
 
   /**
    * @param workerCapacityBytes the capacity of the worker in bytes
-   * @param quotaUnitBytes the quota unit in bytes
    * @param userBlockSize the block size for a user
    */
-  public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
+  public LocalTachyonCluster(long workerCapacityBytes, int userBlockSize) {
     super(workerCapacityBytes, userBlockSize);
-    mQuotaUnitBytes = quotaUnitBytes;
   }
 
   @Override
