@@ -9,7 +9,7 @@ Flink）下编写的集群任务提供可靠的内存级数据共享。在大数
 
 Tachyon与Hadoop兼容。这意味着已有的Spark和MapReduce程序可以不修改代码直接在Tachyon上运行。Tachyon是开源项目
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE))，已在多家公司部署。Tachyon是发展最快的开源大数据项目之一。自2013年4月开源以来， 已有超过50个组织机构的
-[200多贡献者](https://github.com/amplab/tachyon/graphs/contributors)参与到Tachyon的开发中。包括 [阿里巴巴](http://www.alibaba.com), [百度](https://www.baidu.com), [CMU](https://www.cmu.edu/)，[IBM](https://www.ibm.com)， [Intel](http://www.intel.com/),[ Red Hat](https://www.redhat.com/)，[Tachyon Nexus](http://www.tachyonnexus.com/), [UC Berkeley](https://amplab.cs.berkeley.edu/)，and [Yahoo](https://www.yahoo.com/)。Tachyon处于伯克利数据分析栈
+[200多贡献者](https://github.com/amplab/tachyon/graphs/contributors)参与到Tachyon的开发中。包括 [阿里巴巴](http://www.alibaba.com), [百度](https://www.baidu.com), [CMU](https://www.cmu.edu/)，[IBM](https://www.ibm.com)， [Intel](http://www.intel.com/),[ Red Hat](https://www.redhat.com/)，[Tachyon Nexus](http://www.tachyonnexus.com/), [UC Berkeley](https://amplab.cs.berkeley.edu/)和[Yahoo](https://www.yahoo.com/)。Tachyon处于伯克利数据分析栈
 ([BDAS](https://amplab.cs.berkeley.edu/bdas/))的存储层，也是[Fedora发行版](https://fedoraproject.org/wiki/SIGs/bigdata/packaging)的一部分
 
 [Github ](https://github.com/amplab/tachyon/) |
