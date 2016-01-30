@@ -99,7 +99,7 @@ https://issues.apache.org/jira/browse/SPARK-10149)获取更多细节（这里可
 
 {% include Running-Spark-on-Tachyon/spark-local-hostname-example.md %}
 
-用以上任何一种方法，Spark Worker的地址变为主机名并且局部性等级变为NODE——LOCAL，如下Spark WebUI所示：
+用以上任何一种方法，Spark Worker的地址变为主机名并且局部性等级变为NODE_LOCAL，如下Spark WebUI所示：
 
 ![hostname]({{site.data.img.screenshot_datalocality_sparkwebui}})
 
