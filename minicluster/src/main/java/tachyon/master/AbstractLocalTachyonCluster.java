@@ -58,7 +58,6 @@ public abstract class AbstractLocalTachyonCluster {
 
   protected long mWorkerCapacityBytes;
   protected int mUserBlockSize;
-  protected int mQuotaUnitBytes = 1000;
 
   protected TachyonConf mMasterConf;
   protected TachyonConf mWorkerConf;
@@ -339,7 +338,6 @@ public abstract class AbstractLocalTachyonCluster {
 
     testConf.set(Constants.IN_TEST_MODE, "true");
     testConf.set(Constants.TACHYON_HOME, mTachyonHome);
-    testConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
     testConf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
     testConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
     testConf.set(Constants.MASTER_HOSTNAME, mHostname);

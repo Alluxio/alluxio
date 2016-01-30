@@ -71,8 +71,6 @@ public class LocalTachyonClusterResource implements TestRule {
 
   /** The capacity of the worker in bytes */
   private final long mWorkerCapacityBytes;
-  /** The quota of space each user can request */
-  private final int mQuotaUnitBytes;
   /** Block size for a user */
   private final int mUserBlockSize;
   /**
@@ -102,7 +100,6 @@ public class LocalTachyonClusterResource implements TestRule {
       int userBlockSize, boolean startCluster, String... confParams) {
     Preconditions.checkArgument(confParams.length % 2 == 0);
     mWorkerCapacityBytes = workerCapacityBytes;
-    mQuotaUnitBytes = quotaUnitBytes;
     mUserBlockSize = userBlockSize;
     mStartCluster = startCluster;
     mConfParams = confParams;
@@ -157,7 +154,7 @@ public class LocalTachyonClusterResource implements TestRule {
   @Override
   public Statement apply(final Statement statement, Description description) {
     mLocalTachyonCluster =
-        new LocalTachyonCluster(mWorkerCapacityBytes, mQuotaUnitBytes, mUserBlockSize);
+        new LocalTachyonCluster(mWorkerCapacityBytes, mUserBlockSize);
     try {
       mTestConf = mLocalTachyonCluster.newTestConf();
       // Override the configuration parameters with mConfParams
