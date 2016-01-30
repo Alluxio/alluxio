@@ -33,10 +33,10 @@ import org.powermock.reflect.Whitebox;
 
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.LockBlockResult;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.wire.BlockInfo;
 import tachyon.wire.BlockLocation;
+import tachyon.wire.LockBlockResult;
 import tachyon.wire.WorkerNetAddress;
 
 /**
@@ -113,7 +113,7 @@ public final class TachyonBlockStoreTest {
 
     mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
     Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
-        new LockBlockResult(LOCK_ID, mTestFile.getAbsolutePath()));
+        new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
     Mockito.when(mBlockStoreContext.acquireWorkerClient(Mockito.anyString()))
         .thenReturn(mBlockWorkerClient);
   }

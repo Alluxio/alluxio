@@ -44,10 +44,10 @@ import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.BlockWorkerClientService;
-import tachyon.thrift.LockBlockResult;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.wire.LockBlockResult;
 import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.ClientMetrics;
 
@@ -283,7 +283,7 @@ public final class BlockWorkerClient extends ClientBase {
       return retryRPC(new RpcCallableThrowsTachyonTException<LockBlockResult>() {
         @Override
         public LockBlockResult call() throws TachyonTException, TException {
-          return mClient.lockBlock(blockId, mSessionId);
+          return new LockBlockResult(mClient.lockBlock(blockId, mSessionId));
         }
       });
     } catch (TachyonException e) {
