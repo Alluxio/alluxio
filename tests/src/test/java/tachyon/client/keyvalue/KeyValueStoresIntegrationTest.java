@@ -69,6 +69,11 @@ public final class KeyValueStoresIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
+    // A JVM may be shared among different test suites, and a new Tachyon cluster is started
+    // in this test suite, then the Tachyon master address in the static instance of
+    // {@link KeyValueStores} cached by {@link KeyValueStores#Factory} may be out-dated. So we call
+    // {@code reset} here to create a new internal instance of {@link KeyValueStores}.
+    KeyValueStores.Factory.reset();
     sKVStores = KeyValueStores.Factory.create();
   }
 

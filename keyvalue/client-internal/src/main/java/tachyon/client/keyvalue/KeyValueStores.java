@@ -38,13 +38,23 @@ public interface KeyValueStores {
     private Factory() {} // to prevent initialization
 
     /**
-     * @return a {@link KeyValueStores} instance
+     * @return a (cached) {@link KeyValueStores} instance
      */
     public static synchronized KeyValueStores create() {
       if (sKeyValueStores == null) {
-        sKeyValueStores = new BaseKeyValueStores();
+        reset();
       }
       return sKeyValueStores;
+    }
+
+    /**
+     * {@link tachyon.client.ClientContext} may be reset in different tests running in the same JVM,
+     * in this case, the cached {@link KeyValueStores} needs to be updated.
+     *
+     * @return a newly created {@link KeyValueStores}
+     */
+    public static synchronized void reset() {
+      sKeyValueStores = new BaseKeyValueStores();
     }
   }
 

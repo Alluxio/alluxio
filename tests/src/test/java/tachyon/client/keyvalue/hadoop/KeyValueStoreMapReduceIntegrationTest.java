@@ -47,6 +47,7 @@ public final class KeyValueStoreMapReduceIntegrationTest {
   private static final int KEY_VALUE_PARTITION_SIZE = Constants.MB;
 
   private static Configuration sHadoopConf;
+
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE,
