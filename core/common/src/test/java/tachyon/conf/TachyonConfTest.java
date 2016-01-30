@@ -237,10 +237,7 @@ public class TachyonConfTest {
     intValue = sDefaultTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
     Assert.assertEquals(Constants.SECOND_MS, intValue);
 
-    long longValue = sDefaultTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES);
-    Assert.assertEquals(8 * Constants.MB, longValue);
-
-    longValue = sDefaultTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    long longValue = sDefaultTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     Assert.assertEquals(Constants.MB, longValue);
 
     longValue = sDefaultTachyonConf.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
