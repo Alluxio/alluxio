@@ -53,9 +53,8 @@ public final class KeyValueWorkerClient extends ClientBase {
    * @param workerNetAddress location of the worker to connect to
    * @param conf Tachyon configuration
    */
-  public KeyValueWorkerClient(tachyon.thrift.WorkerNetAddress workerNetAddress, TachyonConf conf) {
-    super(NetworkAddressUtils.getRpcPortSocketAddress(new WorkerNetAddress(workerNetAddress)), conf,
-        "key-value-worker");
+  public KeyValueWorkerClient(WorkerNetAddress workerNetAddress, TachyonConf conf) {
+    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "key-value-worker");
   }
 
   @Override

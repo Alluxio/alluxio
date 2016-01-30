@@ -27,8 +27,8 @@ import tachyon.client.ClientContext;
 import tachyon.client.ClientUtils;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
-import tachyon.thrift.WorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.wire.WorkerInfo;
 import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.ClientMetrics;
 
@@ -92,11 +92,11 @@ public enum BlockStoreContext {
       List<WorkerInfo> workers = masterClient.getWorkerInfoList();
       if (hostname.isEmpty() && !workers.isEmpty()) {
         // TODO(calvin): Do this in a more defined way.
-        return new WorkerNetAddress(workers.get(0).getAddress());
+        return workers.get(0).getAddress();
       }
       for (WorkerInfo worker : workers) {
         if (worker.getAddress().getHost().equals(hostname)) {
-          return new WorkerNetAddress(worker.getAddress());
+          return worker.getAddress();
         }
       }
     } catch (Exception e) {

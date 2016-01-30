@@ -29,28 +29,18 @@ import tachyon.annotation.PublicApi;
 @ThreadSafe
 public final class WorkerNetAddress {
   @JsonProperty("host")
-  private final String mHost;
+  private String mHost;
   @JsonProperty("rpcPort")
-  private final int mRpcPort;
+  private int mRpcPort;
   @JsonProperty("dataPort")
-  private final int mDataPort;
+  private int mDataPort;
   @JsonProperty("webPort")
-  private final int mWebPort;
+  private int mWebPort;
 
   /**
    * Creates a new instance of {@WorkerNetAddress}.
-   *
-   * @param host the host to use
-   * @param rpcPort the RPC port to use
-   * @param dataPort the data port to use
-   * @param webPort the web port to use
    */
-  public WorkerNetAddress(String host, int rpcPort, int dataPort, int webPort) {
-    mHost = host;
-    mRpcPort = rpcPort;
-    mDataPort = dataPort;
-    mWebPort = webPort;
-  }
+  public WorkerNetAddress() {}
 
   /**
    * Creates a new instance of {@WorkerNetAddress} from thrift representation.
@@ -90,6 +80,42 @@ public final class WorkerNetAddress {
    */
   public int getWebPort() {
     return mWebPort;
+  }
+
+  /**
+   * @param host the host to use
+   * @return the worker net address
+   */
+  public WorkerNetAddress setHost(String host) {
+    mHost = host;
+    return this;
+  }
+
+  /**
+   * @param rpcPort the rpc port to use
+   * @return the worker net address
+   */
+  public WorkerNetAddress setRpcPort(int rpcPort) {
+    mRpcPort = rpcPort;
+    return this;
+  }
+
+  /**
+   * @param dataPort the data port to use
+   * @return the worker net address
+   */
+  public WorkerNetAddress setDataPort(int dataPort) {
+    mDataPort = dataPort;
+    return this;
+  }
+
+  /**
+   * @param webPort the web port to use
+   * @return the worker net address
+   */
+  public WorkerNetAddress setWebPort(int webPort) {
+    mWebPort = webPort;
+    return this;
   }
 
   /**

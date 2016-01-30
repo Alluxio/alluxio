@@ -18,12 +18,15 @@ package tachyon.wire;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
 /**
  * The file block descriptor.
  */
+@NotThreadSafe
 public class FileBlockInfo {
   @JsonProperty("blockInfo")
   private BlockInfo mBlockInfo;
@@ -38,22 +41,9 @@ public class FileBlockInfo {
   public FileBlockInfo() {}
 
   /**
-   * Creates a new instance of {@link FileBlockInfo}.
-   *
-   * @param blockInfo the block info to use
-   * @param offset the offset to use
-   * @param ufsLocations the UFS locations to use
-   */
-  public FileBlockInfo(BlockInfo blockInfo, long offset, List<WorkerNetAddress> ufsLocations) {
-    mBlockInfo = blockInfo;
-    mOffset = offset;
-    mUfsLocations = ufsLocations;
-  }
-
-  /**
    * Creates a new instance of {@link FileBlockInfo} from a thrift representation.
    *
-   * @param fileBlockInfo the thrift representation of a block descriptor
+   * @param fileBlockInfo the thrift representation of a file block descriptor
    */
   public FileBlockInfo(tachyon.thrift.FileBlockInfo fileBlockInfo) {
     mBlockInfo = new BlockInfo(fileBlockInfo.getBlockInfo());
@@ -87,27 +77,33 @@ public class FileBlockInfo {
 
   /**
    * @param blockInfo the block info to use
+   * @return the file block descriptor
    */
-  public void setBlockInfo(BlockInfo blockInfo) {
+  public FileBlockInfo setBlockInfo(BlockInfo blockInfo) {
     mBlockInfo = blockInfo;
+    return this;
   }
 
   /**
    * @param offset the offset to use
+   * @return the file block descriptor
    */
-  public void setOffset(long offset) {
+  public FileBlockInfo setOffset(long offset) {
     mOffset = offset;
+    return this;
   }
 
   /**
    * @param ufsLocations the UFS locations to use
+   * @return the file block descriptor
    */
-  public void setUfsLocations(List<WorkerNetAddress> ufsLocations) {
+  public FileBlockInfo setUfsLocations(List<WorkerNetAddress> ufsLocations) {
     mUfsLocations = ufsLocations;
+    return this;
   }
 
   /**
-   * @return thrift representation of the block descriptor
+   * @return thrift representation of the file block descriptor
    */
   public tachyon.thrift.FileBlockInfo toThrift() {
     List<tachyon.thrift.WorkerNetAddress> ufsLocations =

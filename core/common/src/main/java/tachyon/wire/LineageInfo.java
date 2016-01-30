@@ -17,13 +17,19 @@ package tachyon.wire;
 
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+
+import tachyon.annotation.PublicApi;
 
 /**
  * The lineage descriptor.
  */
-public class LineageInfo {
+@NotThreadSafe
+@PublicApi
+public final class LineageInfo {
   @JsonProperty("id")
   private long mId;
   @JsonProperty("inputFiles")
@@ -111,7 +117,7 @@ public class LineageInfo {
 
   /**
    * @param id the lineage id to use
-   * @return the lineage
+   * @return the lineage descriptor
    */
   public LineageInfo setId(long id) {
     mId = id;
@@ -120,7 +126,7 @@ public class LineageInfo {
 
   /**
    * @param inputFiles the input files to use
-   * @return the lineage
+   * @return the lineage descriptor
    */
   public LineageInfo setInputFiles(List<String> inputFiles) {
     mInputFiles = inputFiles;
@@ -129,7 +135,7 @@ public class LineageInfo {
 
   /**
    * @param outputFiles the output files to use
-   * @return the lineage
+   * @return the lineage descriptor
    */
   public LineageInfo setOutputFiles(List<String> outputFiles) {
     mOutputFiles = outputFiles;
@@ -138,7 +144,7 @@ public class LineageInfo {
 
   /**
    * @param job the command-line job to use
-   * @return the lineage
+   * @return the lineage descriptor
    */
   public LineageInfo setJob(CommandLineJobInfo job) {
     mJob = job;
@@ -147,7 +153,7 @@ public class LineageInfo {
 
   /**
    * @param creationTimeMs the creation time (in milliseconds) to use
-   * @return the lineage
+   * @return the lineage descriptor
    */
   public LineageInfo setCreationTimeMs(long creationTimeMs) {
     mCreationTimeMs = creationTimeMs;
@@ -156,7 +162,7 @@ public class LineageInfo {
 
   /**
    * @param parents the lineage parents
-   * @return the lineage
+   * @return the lineage descriptor
    */
   public LineageInfo setParents(List<Long> parents) {
     mParents = parents;
@@ -165,7 +171,7 @@ public class LineageInfo {
 
   /**
    * @param children the lineage children
-   * @return the lineage
+   * @return the lineage descriptor
    */
   public LineageInfo setChildren(List<Long> children) {
     mChildren = children;

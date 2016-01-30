@@ -41,7 +41,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
 
   @Override
   public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
-                                                long blockSizeBytes) {
+      long blockSizeBytes) {
     // first try the local host
     for (BlockWorkerInfo workerInfo : workerInfoList) {
       if (workerInfo.getNetAddress().getHost().equals(mLocalHostName)

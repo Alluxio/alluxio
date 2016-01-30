@@ -28,7 +28,7 @@ import tachyon.worker.TachyonWorker;
  * This class is a REST handler for block worker requests.
  */
 @Path("/")
-public class BlockWorkerRestServiceHandler {
+public final class BlockWorkerRestServiceHandler {
 
   /**
    * @return the response object

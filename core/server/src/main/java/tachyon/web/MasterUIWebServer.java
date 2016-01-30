@@ -45,7 +45,7 @@ public final class MasterUIWebServer extends UIWebServer {
   public MasterUIWebServer(ServiceType service, InetSocketAddress address, TachyonMaster master,
       TachyonConf conf) {
     super(service, address, conf);
-    Preconditions.checkNotNull(master, "Tachyon Master cannot be null");
+    Preconditions.checkNotNull(master, "Tachyon master cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(master)), "/home");
     mWebAppContext.addServlet(new ServletHolder(

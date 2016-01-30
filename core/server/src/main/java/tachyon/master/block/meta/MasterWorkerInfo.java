@@ -178,9 +178,13 @@ public final class MasterWorkerInfo {
    * @return generated {@link WorkerInfo} for this worker
    */
   public synchronized WorkerInfo generateClientWorkerInfo() {
-    return new WorkerInfo(mId, mWorkerAddress,
-        (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS),
-        "In Service", mCapacityBytes, mUsedBytes, mStartTimeMs);
+    return new WorkerInfo()
+        .setId(mId)
+        .setAddress(mWorkerAddress)
+        .setLastContactSec(
+            (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS))
+        .setState("In Service").setCapacityBytes(mCapacityBytes).setUsedBytes(mUsedBytes)
+        .setStartTimeMs(mStartTimeMs);
   }
 
   /**

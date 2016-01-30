@@ -55,10 +55,10 @@ import tachyon.wire.WorkerNetAddress;
  * Unit tests for {@link tachyon.master.block.BlockMaster}.
  */
 public class BlockMasterTest {
-  private static final WorkerNetAddress NET_ADDRESS_1 =
-      new WorkerNetAddress("localhost", 80, 81, 82);
-  private static final WorkerNetAddress NET_ADDRESS_2 =
-      new WorkerNetAddress("localhost", 83, 84, 85);
+  private static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress().setHost("localhost")
+      .setRpcPort(80).setDataPort(81).setWebPort(82);
+  private static final WorkerNetAddress NET_ADDRESS_2 = new WorkerNetAddress().setHost("localhost")
+      .setRpcPort(83).setDataPort(84).setWebPort(85);
 
   private BlockMaster mMaster;
   private PrivateAccess mPrivateAccess;

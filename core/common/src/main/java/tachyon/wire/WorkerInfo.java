@@ -15,12 +15,15 @@
 
 package tachyon.wire;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
 /**
  * The worker descriptor.
  */
+@NotThreadSafe
 public class WorkerInfo {
   @JsonProperty("id")
   private long mId;
@@ -41,28 +44,6 @@ public class WorkerInfo {
    * Creates a new instance of {@link WorkerInfo}.
    */
   public WorkerInfo() {}
-
-  /**
-   * Creates a new instance of {@link WorkerInfo}.
-   *
-   * @param id the worker id to use
-   * @param address the worker address to use
-   * @param lastContactSec the worker last contact (in seconds) to use
-   * @param state the worker state to use
-   * @param capacityBytes the worker total capacity (in bytes) to use
-   * @param usedBytes the worker used capacity (in bytes) to use
-   * @param startTimeMs the worker start time (in milliseconds) to use
-   */
-  public WorkerInfo(long id, WorkerNetAddress address, int lastContactSec, String state,
-      long capacityBytes, long usedBytes, long startTimeMs) {
-    mId = id;
-    mAddress = address;
-    mLastContactSec = lastContactSec;
-    mState = state;
-    mCapacityBytes = capacityBytes;
-    mUsedBytes = usedBytes;
-    mStartTimeMs = startTimeMs;
-  }
 
   /**
    * Creates a new instance of {@link WorkerInfo} from a thrift representation.
@@ -130,55 +111,69 @@ public class WorkerInfo {
 
   /**
    * @param id the worker id to use
+   * @return the worker descriptor
    */
-  public void setId(long id) {
+  public WorkerInfo setId(long id) {
     mId = id;
+    return this;
   }
 
   /**
    * @param address the worker address to use
+   * @return the worker descriptor
    */
-  public void setAddress(WorkerNetAddress address) {
+  public WorkerInfo setAddress(WorkerNetAddress address) {
     mAddress = address;
+    return this;
   }
 
   /**
    * @param lastContactSec the worker last contact (in seconds) to use
+   * @return the worker descriptor
    */
-  public void setLastContactSec(int lastContactSec) {
+  public WorkerInfo setLastContactSec(int lastContactSec) {
     mLastContactSec = lastContactSec;
+    return this;
   }
 
   /**
    * @param state the worker state to use
+   * @return the worker descriptor
    */
-  public void setState(String state) {
+  public WorkerInfo setState(String state) {
     mState = state;
+    return this;
   }
 
   /**
    * @param capacityBytes the worker total capacity (in bytes) to use
+   * @return the worker descriptor
    */
-  public void setCapacityBytes(long capacityBytes) {
+  public WorkerInfo setCapacityBytes(long capacityBytes) {
     mCapacityBytes = capacityBytes;
+    return this;
   }
 
   /**
    * @param usedBytes the worker used capacity (in bytes) to use
+   * @return the worker descriptor
    */
-  public void setUsedBytes(long usedBytes) {
+  public WorkerInfo setUsedBytes(long usedBytes) {
     mUsedBytes = usedBytes;
+    return this;
   }
 
   /**
    * @param startTimeMs the worker start time (in milliseconds) to use
+   * @return the worker descriptor
    */
-  public void setStartTimeMs(long startTimeMs) {
+  public WorkerInfo setStartTimeMs(long startTimeMs) {
     mStartTimeMs = startTimeMs;
+    return this;
   }
 
   /**
-   * @return thrift representation of the block descriptor
+   * @return thrift representation of the worker descriptor
    */
   public tachyon.thrift.WorkerInfo toThrift() {
     return new tachyon.thrift.WorkerInfo(mId, mAddress.toThrift(), mLastContactSec, mState,

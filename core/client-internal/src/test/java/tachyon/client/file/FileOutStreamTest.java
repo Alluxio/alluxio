@@ -134,7 +134,8 @@ public class FileOutStreamTest {
           }
         });
     BlockWorkerInfo workerInfo =
-        new BlockWorkerInfo(new WorkerNetAddress("localhost", 1, 2, 3), Constants.GB, 0);
+        new BlockWorkerInfo(new WorkerNetAddress().setHost("localhost").setRpcPort(1)
+            .setDataPort(2).setWebPort(3), Constants.GB, 0);
     Mockito.when(mBlockStore.getWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
     mTachyonOutStreamMap = outStreamMap;
 

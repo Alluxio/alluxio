@@ -30,7 +30,7 @@ import tachyon.master.TachyonMaster;
  * This class is a REST handler for block master requests.
  */
 @Path("/")
-public class BlockMasterRestServiceHandler {
+public final class BlockMasterRestServiceHandler {
 
   /**
    * @return the response object

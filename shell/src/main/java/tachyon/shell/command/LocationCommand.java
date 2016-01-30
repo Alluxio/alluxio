@@ -25,7 +25,7 @@ import tachyon.client.file.FileSystem;
 import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.BlockLocation;
+import tachyon.wire.BlockLocation;
 
 /**
  * Displays a list of hosts that have the file specified in args stored.

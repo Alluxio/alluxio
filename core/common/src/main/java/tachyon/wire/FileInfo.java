@@ -18,12 +18,16 @@ package tachyon.wire;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Objects;
 
 /**
  * The file descriptor.
  */
-public class FileInfo {
+@NotThreadSafe
+// TODO(jiri): Consolidate with URIStatus
+public final class FileInfo {
   private long mFileId;
   private String mName;
   private String mPath;
@@ -53,7 +57,7 @@ public class FileInfo {
   /**
    * Creates a new instance of {@link FileInfo} from thrift representation.
    *
-   * @param fileInfo the thrift representation to use
+   * @param fileInfo the thrift representation of a file descriptor
    */
   public FileInfo(tachyon.thrift.FileInfo fileInfo) {
     mFileId = fileInfo.getFileId();
@@ -220,142 +224,182 @@ public class FileInfo {
 
   /**
    * @param fileId the file id to use
+   * @return the file descriptor
    */
-  public void setFileId(long fileId) {
+  public FileInfo setFileId(long fileId) {
     mFileId = fileId;
+    return this;
   }
 
   /**
    * @param name the file name to use
+   * @return the file descriptor
    */
-  public void setName(String name) {
+  public FileInfo setName(String name) {
     mName = name;
+    return this;
   }
 
   /**
    * @param path the file path to use
+   * @return the file descriptor
    */
-  public void setPath(String path) {
+  public FileInfo setPath(String path) {
     mPath = path;
+    return this;
   }
 
   /**
    * @param ufsPath the file UFS path to use
+   * @return the file descriptor
    */
-  public void setUfsPath(String ufsPath) {
+  public FileInfo setUfsPath(String ufsPath) {
     mUfsPath = ufsPath;
+    return this;
   }
 
   /**
    * @param length the file length to use
+   * @return the file descriptor
    */
-  public void setLength(long length) {
+  public FileInfo setLength(long length) {
     mLength = length;
+    return this;
   }
 
   /**
    * @param blockSizeBytes the file block size (in bytes) to use
+   * @return the file descriptor
    */
-  public void setBlockSizeBytes(long blockSizeBytes) {
+  public FileInfo setBlockSizeBytes(long blockSizeBytes) {
     mBlockSizeBytes = blockSizeBytes;
+    return this;
   }
 
   /**
    * @param creationTimeMs the file creation time (in milliseconds) to use
+   * @return the file descriptor
    */
-  public void setCreationTimeMs(long creationTimeMs) {
+  public FileInfo setCreationTimeMs(long creationTimeMs) {
     mCreationTimeMs = creationTimeMs;
+    return this;
   }
 
   /**
    * @param completed the completed flag value to use
+   * @return the file descriptor
    */
-  public void setCompleted(boolean completed) {
+  public FileInfo setCompleted(boolean completed) {
     mCompleted = completed;
+    return this;
   }
 
   /**
    * @param folder the folder flag value to use
+   * @return the file descriptor
    */
-  public void setFolder(boolean folder) {
+  public FileInfo setFolder(boolean folder) {
     mFolder = folder;
+    return this;
   }
 
   /**
    * @param pinned the pinned flag value to use
+   * @return the file descriptor
    */
-  public void setPinned(boolean pinned) {
+  public FileInfo setPinned(boolean pinned) {
     mPinned = pinned;
+    return this;
   }
 
   /**
    * @param cacheable the cacheable flag value to use
+   * @return the file descriptor
    */
-  public void setCacheable(boolean cacheable) {
+  public FileInfo setCacheable(boolean cacheable) {
     mCacheable = cacheable;
+    return this;
   }
 
   /**
    * @param persisted the persisted flag value to use
+   * @return the file descriptor
    */
-  public void setPersisted(boolean persisted) {
+  public FileInfo setPersisted(boolean persisted) {
     mPersisted = persisted;
+    return this;
   }
 
   /**
    * @param blockIds the file block ids to use
+   * @return the file descriptor
    */
-  public void setBlockIds(List<Long> blockIds) {
+  public FileInfo setBlockIds(List<Long> blockIds) {
     mBlockIds = blockIds;
+    return this;
   }
 
   /**
    * @param inMemoryPercentage the file in memory percentage to use
+   * @return the file descriptor
    */
-  public void setInMemoryPercentage(int inMemoryPercentage) {
+  public FileInfo setInMemoryPercentage(int inMemoryPercentage) {
     mInMemoryPercentage = inMemoryPercentage;
+    return this;
   }
 
   /**
    * @param lastModificationTimeMs the last modification time (in milliseconds) to use
+   * @return the file descriptor
    */
-  public void setLastModificationTimeMs(long lastModificationTimeMs) {
+  public FileInfo setLastModificationTimeMs(long lastModificationTimeMs) {
     mLastModificationTimeMs = lastModificationTimeMs;
+    return this;
   }
 
   /**
    * @param ttl the file time-to-live (in seconds) to use
+   * @return the file descriptor
    */
-  public void setTtl(long ttl) {
+  public FileInfo setTtl(long ttl) {
     mTtl = ttl;
+    return this;
   }
 
   /**
    * @param userName the file owner user name to use
+   * @return the file descriptor
    */
-  public void setUserName(String userName) {
+  public FileInfo setUserName(String userName) {
     mUserName = userName;
+    return this;
   }
 
   /**
    * @param groupName the file owner group name to use
+   * @return the file descriptor
    */
-  public void setGroupName(String groupName) {
+  public FileInfo setGroupName(String groupName) {
     mGroupName = groupName;
+    return this;
   }
 
   /**
    * @param permission the file permission bits to use
+   * @return the file descriptor
    */
-  public void setPermission(int permission) {
+  public FileInfo setPermission(int permission) {
     mPermission = permission;
+    return this;
   }
 
   /**
    * @param persistenceState the file persistance state to use
+   * @return the file descriptor
    */
-  public void setPersistenceState(String persistenceState) {
+  public FileInfo setPersistenceState(String persistenceState) {
     mPersistenceState = persistenceState;
+    return this;
   }
 
   /**

@@ -31,10 +31,10 @@ import tachyon.client.ClientContext;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.BlockInfo;
-import tachyon.thrift.BlockLocation;
-import tachyon.thrift.WorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.wire.BlockInfo;
+import tachyon.wire.BlockLocation;
+import tachyon.wire.WorkerInfo;
 import tachyon.wire.WorkerNetAddress;
 
 /**
@@ -95,11 +95,8 @@ public final class TachyonBlockStore {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
       for (WorkerInfo workerInfo : masterClient.getWorkerInfoList()) {
-        WorkerNetAddress address = new WorkerNetAddress(workerInfo.getAddress().getHost(),
-            workerInfo.getAddress().getRpcPort(), workerInfo.getAddress().getDataPort(),
-            workerInfo.getAddress().getWebPort());
-        infoList.add(
-            new BlockWorkerInfo(address, workerInfo.getCapacityBytes(), workerInfo.getUsedBytes()));
+        infoList.add(new BlockWorkerInfo(workerInfo.getAddress(), workerInfo.getCapacityBytes(),
+            workerInfo.getUsedBytes()));
       }
       return infoList;
     } finally {
@@ -137,7 +134,7 @@ public final class TachyonBlockStore {
     // for hasLocalWorker is fixed.
     String localHostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
     for (BlockLocation location : blockInfo.getLocations()) {
-      tachyon.thrift.WorkerNetAddress workerNetAddress = location.getWorkerAddress();
+      WorkerNetAddress workerNetAddress = location.getWorkerAddress();
       if (workerNetAddress.getHost().equals(localHostName)) {
         // There is a local worker and the block is local.
         try {
@@ -150,8 +147,7 @@ public final class TachyonBlockStore {
       }
     }
     // No local worker/block, get the first location since it's nearest to memory tier.
-    tachyon.thrift.WorkerNetAddress workerNetAddress =
-        blockInfo.getLocations().get(0).getWorkerAddress();
+    WorkerNetAddress workerNetAddress = blockInfo.getLocations().get(0).getWorkerAddress();
     return new RemoteBlockInStream(blockId, blockInfo.getLength(),
         new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort()));
   }
@@ -254,7 +250,7 @@ public final class TachyonBlockStore {
     }
     // Get the first worker address for now, as this will likely be the location being read from
     // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
-    tachyon.thrift.WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
+    WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
     BlockWorkerClient blockWorkerClient = mContext.acquireWorkerClient(workerAddr.getHost());
     try {
       blockWorkerClient.promoteBlock(blockId);

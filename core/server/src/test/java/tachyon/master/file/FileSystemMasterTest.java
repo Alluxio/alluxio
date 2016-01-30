@@ -141,12 +141,14 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.start(true);
 
     // set up workers
-    mWorkerId1 = mBlockMaster.getWorkerId(new WorkerNetAddress("localhost", 80, 81, 82));
+    mWorkerId1 = mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("localhost")
+        .setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
         Maps.<String, List<Long>>newHashMap());
-    mWorkerId2 = mBlockMaster.getWorkerId(new WorkerNetAddress("remote", 80, 81, 82));
+    mWorkerId2 = mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("localhost")
+        .setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),

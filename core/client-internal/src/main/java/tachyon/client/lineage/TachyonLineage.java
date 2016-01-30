@@ -32,7 +32,7 @@ import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.job.Job;
-import tachyon.thrift.LineageInfo;
+import tachyon.wire.LineageInfo;
 
 /**
  * A {@link LineageClient} implementation. This class does not access the master client directly

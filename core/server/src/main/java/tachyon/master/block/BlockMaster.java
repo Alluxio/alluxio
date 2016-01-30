@@ -689,11 +689,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
       if (workerInfo != null) {
-        ret.add(new BlockLocation(masterBlockLocation.getWorkerId(),
-            workerInfo.getWorkerAddress(), masterBlockLocation.getTierAlias()));
+        ret.add(new BlockLocation().setWorkerId(masterBlockLocation.getWorkerId())
+            .setWorkerAddress(workerInfo.getWorkerAddress())
+            .setTierAlias(masterBlockLocation.getTierAlias()));
       }
     }
-    return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), ret);
+    return new BlockInfo().setBlockId(masterBlockInfo.getBlockId())
+        .setLength(masterBlockInfo.getLength()).setLocations(ret);
   }
 
   /**

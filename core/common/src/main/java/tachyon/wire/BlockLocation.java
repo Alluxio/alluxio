@@ -15,13 +15,16 @@
 
 package tachyon.wire;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
 /**
  * The location of a block.
  */
-public class BlockLocation {
+@NotThreadSafe
+public final class BlockLocation {
   @JsonProperty("workerId")
   private long mWorkerId;
   @JsonProperty("address")
@@ -33,19 +36,6 @@ public class BlockLocation {
    * Creates a new instance of {@BlockLocation}.
    */
   public BlockLocation() {}
-
-  /**
-   * Creates a new instance of {@BlockLocation}.
-   *
-   * @param workerId the worker id to use
-   * @param workerAddress the worker address to use
-   * @param tierAlias the worker tier alias to use
-   */
-  public BlockLocation(long workerId, WorkerNetAddress workerAddress, String tierAlias) {
-    mWorkerId = workerId;
-    mWorkerAddress = workerAddress;
-    mTierAlias = tierAlias;
-  }
 
   /**
    * Creates a new instance of {@link BlockLocation} from a thrift representation.
@@ -81,23 +71,29 @@ public class BlockLocation {
 
   /**
    * @param workerId the worker id to use
+   * @return the block location
    */
-  public void setWorkerId(long workerId) {
+  public BlockLocation setWorkerId(long workerId) {
     mWorkerId = workerId;
+    return this;
   }
 
   /**
    * @param workerAddress the worker address to use
+   * @return the block location
    */
-  public void setWorkerAddress(WorkerNetAddress workerAddress) {
+  public BlockLocation setWorkerAddress(WorkerNetAddress workerAddress) {
     mWorkerAddress = workerAddress;
+    return this;
   }
 
   /**
    * @param tierAlias the tier alias to use
+   * @return the block location
    */
-  public void setTierAlias(String tierAlias) {
+  public BlockLocation setTierAlias(String tierAlias) {
     mTierAlias = tierAlias;
+    return this;
   }
 
   /**

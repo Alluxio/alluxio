@@ -15,13 +15,20 @@
 
 package tachyon.wire;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+
+import tachyon.annotation.PublicApi;
 
 /**
  * The lineage command-line job descriptor.
  */
-public class CommandLineJobInfo {
+@NotThreadSafe
+@PublicApi
+// TODO(jiri): Consolidate with tachyon.job.CommandLine.Job.
+public final class CommandLineJobInfo {
   @JsonProperty("command")
   private String mCommand;
   @JsonProperty("conf")
@@ -31,17 +38,6 @@ public class CommandLineJobInfo {
    * Creates a new instance of {@link CommandLineJobInfo}.
    */
   public CommandLineJobInfo() {
-  }
-
-  /**
-   * Creates a new instance of {@link CommandLineJobInfo}.
-   *
-   * @param command the command to use
-   * @param conf the command configuration to use
-   */
-  public CommandLineJobInfo(String command, JobConfInfo conf) {
-    mCommand = command;
-    mConf = conf;
   }
 
   /**
@@ -70,16 +66,20 @@ public class CommandLineJobInfo {
 
   /**
    * @param command the command to use
+   * @return the lineage command-line job descriptor
    */
-  public void setCommand(String command) {
+  public CommandLineJobInfo setCommand(String command) {
     mCommand = command;
+    return this;
   }
 
   /**
    * @param conf the command configuration to use
+   * @return the lineage command-line job descriptor
    */
-  public void setConf(JobConfInfo conf) {
+  public CommandLineJobInfo setConf(JobConfInfo conf) {
     mConf = conf;
+    return this;
   }
 
   /**

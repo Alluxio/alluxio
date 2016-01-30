@@ -15,13 +15,20 @@
 
 package tachyon.wire;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+
+import tachyon.annotation.PublicApi;
 
 /**
  * The lineage command-line job configuration.
  */
-public class JobConfInfo {
+@NotThreadSafe
+@PublicApi
+// TODO(jiri): Consolidate with tachyon.job.JobConf
+public final class JobConfInfo {
   @JsonProperty("outputFile")
   private String mOutputFile;
 
@@ -29,15 +36,6 @@ public class JobConfInfo {
    * Creates a new instance of {@link JobConfInfo}.
    */
   public JobConfInfo() {
-  }
-
-  /**
-   * Creates a new instance of {@link JobConfInfo}.
-   *
-   * @param outputFile the output file to use
-   */
-  public JobConfInfo(String outputFile) {
-    mOutputFile = outputFile;
   }
 
   /**
@@ -58,9 +56,11 @@ public class JobConfInfo {
 
   /**
    * @param outputFile the output file to use
+   * @return the lineage command-line job configuration
    */
-  public void setOutputFile(String outputFile) {
+  public JobConfInfo setOutputFile(String outputFile) {
     mOutputFile = outputFile;
+    return this;
   }
 
   /**

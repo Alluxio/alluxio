@@ -18,13 +18,16 @@ package tachyon.wire;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
 /**
  * The block descriptor.
  */
-public class BlockInfo {
+@NotThreadSafe
+public final class BlockInfo {
   @JsonProperty("blockId")
   private long mBlockId;
   @JsonProperty("length")
@@ -36,19 +39,6 @@ public class BlockInfo {
    * Creates a new instance of {@link BlockInfo}.
    */
   public BlockInfo() {}
-
-  /**
-   * Creates a new instance of {@link BlockInfo}.
-   *
-   * @param blockId the block id to use
-   * @param length the block length to use
-   * @param locations the block locations to use
-   */
-  public BlockInfo(long blockId, long length, List<BlockLocation> locations) {
-    mBlockId = blockId;
-    mLength = length;
-    mLocations = locations;
-  }
 
   /**
    * Creates a new instance of {@link BlockInfo} from a thrift representation.
@@ -87,23 +77,29 @@ public class BlockInfo {
 
   /**
    * @param blockId the block id to use
+   * @return the block descriptor
    */
-  public void setBlockId(long blockId) {
+  public BlockInfo setBlockId(long blockId) {
     mBlockId = blockId;
+    return this;
   }
 
   /**
    * @param length the block length to use
+   * @return the block descriptor
    */
-  public void setLength(long length) {
+  public BlockInfo setLength(long length) {
     mLength = length;
+    return this;
   }
 
   /**
    * @param locations the block locations to use
+   * @return the block descriptor
    */
-  public void setLocations(List<BlockLocation> locations) {
+  public BlockInfo setLocations(List<BlockLocation> locations) {
     mLocations = locations;
+    return this;
   }
 
   /**

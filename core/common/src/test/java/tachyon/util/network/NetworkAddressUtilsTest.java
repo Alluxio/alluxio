@@ -252,7 +252,8 @@ public class NetworkAddressUtilsTest {
   public void getFqdnHostTest() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.getFqdnHost(new InetSocketAddress("localhost", 0)),
         "localhost");
-    Assert.assertEquals(NetworkAddressUtils.getFqdnHost(new WorkerNetAddress("localhost", 0, 0, 0)),
-        "localhost");
+    Assert.assertEquals(
+        NetworkAddressUtils.getFqdnHost(new WorkerNetAddress().setHost("localhost").setRpcPort(0)
+            .setDataPort(0).setWebPort(0)), "localhost");
   }
 }

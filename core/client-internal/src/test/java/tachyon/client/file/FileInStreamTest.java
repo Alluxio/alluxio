@@ -80,9 +80,7 @@ public class FileInStreamTest {
    */
   @Before
   public void before() throws IOException {
-    mInfo = new FileInfo();
-    mInfo.setBlockSizeBytes(BLOCK_LENGTH);
-    mInfo.setLength(FILE_LENGTH);
+    mInfo = new FileInfo().setBlockSizeBytes(BLOCK_LENGTH).setLength(FILE_LENGTH);
 
     ClientTestUtils.setSmallBufferSizes();
 
@@ -334,8 +332,7 @@ public class FileInStreamTest {
    */
   @Test
   public void failToUnderFsTest() throws IOException {
-    mInfo.setPersisted(true);
-    mInfo.setUfsPath("testUfsPath");
+    mInfo.setPersisted(true).setUfsPath("testUfsPath");
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
     mTestStream = new FileInStream(mInfo, InStreamOptions.defaults());
 

@@ -40,7 +40,8 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
-import tachyon.thrift.LineageInfo;
+import tachyon.wire.LineageInfo;
+
 /**
  * Tachyon Lineage client. This class provides implementation of interacting with Tachyon Lineage
  * master.

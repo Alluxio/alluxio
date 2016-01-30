@@ -262,10 +262,12 @@ public final class TachyonWorker {
     // Set updated net address for this worker in context
     // Requirement: RPC, web, and dataserver ports are updated
     // Consequence: create a NetAddress object and set it into WorkerContext
-    mNetAddress = new WorkerNetAddress(
-        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
-        mTachyonConf.getInt(Constants.WORKER_RPC_PORT), getDataLocalPort(),
-        mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
+    mNetAddress =
+        new WorkerNetAddress()
+            .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf))
+            .setRpcPort(mTachyonConf.getInt(Constants.WORKER_RPC_PORT))
+            .setDataPort(getDataLocalPort())
+            .setWebPort(mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
     WorkerContext.setWorkerNetAddress(mNetAddress);
 
     // Start each worker

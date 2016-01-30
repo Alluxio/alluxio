@@ -982,7 +982,7 @@ public final class FileSystemMaster extends MasterBase {
           }
           // The resolved port is the data transfer port not the rpc port
           fileBlockInfo.getUfsLocations().add(
-                  new WorkerNetAddress(resolvedHost, -1, resolvedPort, -1));
+              new WorkerNetAddress().setHost(resolvedHost).setDataPort(resolvedPort));
         }
       }
     }

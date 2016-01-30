@@ -40,7 +40,7 @@ import tachyon.master.file.options.SetAttributeOptions;
  * This class is a REST handler for file system master requests.
  */
 @Path("/")
-public class FileSystemMasterRestServiceHandler {
+public final class FileSystemMasterRestServiceHandler {
 
   /**
    * @return the response object

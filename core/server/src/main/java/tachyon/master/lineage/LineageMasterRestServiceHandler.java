@@ -39,7 +39,7 @@ import tachyon.master.TachyonMaster;
  * This class is a REST handler for lineage master requests.
  */
 @Path("/")
-public class LineageMasterRestServiceHandler {
+public final class LineageMasterRestServiceHandler {
 
   /**
    * @return the response object
