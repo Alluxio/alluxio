@@ -659,11 +659,6 @@ The user configuration specifies values regarding file system access.
   <td>0</td>
   <td>How many threads to use for remote block worker client to read from remote block workers.</td>
 </tr>
-<tr>
-  <td>tachyon.user.quota.unit.bytes</td>
-  <td>8 MB</td>
-  <td>The minimum number of bytes that will be requested from a client to a worker at a time.</td>
-</tr>
 </table>
 
 ## Cluster Management
