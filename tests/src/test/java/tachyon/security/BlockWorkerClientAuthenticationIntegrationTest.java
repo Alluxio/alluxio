@@ -41,7 +41,7 @@ import tachyon.worker.ClientMetrics;
 public class BlockWorkerClientAuthenticationIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(1000, 1000, Constants.GB);
+      new LocalTachyonClusterResource(1000, Constants.GB);
   private ExecutorService mExecutorService;
 
   @Rule
