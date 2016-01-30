@@ -16,6 +16,7 @@
 package tachyon.master.file;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -24,7 +25,6 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
@@ -32,6 +32,7 @@ import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.file.options.SetAclOptions;
+import tachyon.master.file.options.SetAttributeOptions;
 import tachyon.thrift.CompleteFileTOptions;
 import tachyon.thrift.CreateDirectoryTOptions;
 import tachyon.thrift.CreateFileTOptions;
@@ -112,7 +113,12 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public List<FileBlockInfo> getFileBlockInfoList(String path) throws TachyonTException {
     try {
-      return mFileSystemMaster.getFileBlockInfoList(new TachyonURI(path));
+      List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
+      for (tachyon.wire.FileBlockInfo fileBlockInfo :
+          mFileSystemMaster.getFileBlockInfoList(new TachyonURI(path))) {
+        result.add(fileBlockInfo.toThrift());
+      }
+      return result;
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -130,7 +136,7 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public FileInfo getStatus(String path) throws TachyonTException {
     try {
-      return mFileSystemMaster.getFileInfo(new TachyonURI(path));
+      return mFileSystemMaster.getFileInfo(new TachyonURI(path)).toThrift();
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -139,7 +145,7 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public FileInfo getStatusInternal(long fileId) throws TachyonTException {
     try {
-      return mFileSystemMaster.getFileInfo(fileId);
+      return mFileSystemMaster.getFileInfo(fileId).toThrift();
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -153,7 +159,12 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public List<FileInfo> listStatus(String path) throws TachyonTException {
     try {
-      return mFileSystemMaster.getFileInfoList(new TachyonURI(path));
+      List<FileInfo> result = new ArrayList<FileInfo>();
+      for (tachyon.wire.FileInfo fileInfo :
+          mFileSystemMaster.getFileInfoList(new TachyonURI(path))) {
+        result.add(fileInfo.toThrift());
+      }
+      return result;
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -231,8 +242,7 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public void setAttribute(String path, SetAttributeTOptions options) throws TachyonTException {
     try {
-      mFileSystemMaster.setState(new TachyonURI(path),
-          SetAttributeOptions.fromThriftOptions(options));
+      mFileSystemMaster.setState(new TachyonURI(path), new SetAttributeOptions(options));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }

@@ -36,8 +36,8 @@ import tachyon.ClientBase;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
-import tachyon.exception.TachyonException;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.TachyonException;
 import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
@@ -48,8 +48,8 @@ import tachyon.thrift.LockBlockResult;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.ClientMetrics;
-import tachyon.worker.NetAddress;
 
 /**
  * The client talks to a block worker server. It keeps sending keep alive message to the worker
@@ -85,7 +85,7 @@ public final class BlockWorkerClient extends ClientBase {
    * @param isLocal true if it is a local client, false otherwise
    * @param clientMetrics metrics of the client
    */
-  public BlockWorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
+  public BlockWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
       TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "blockWorker");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
@@ -193,7 +193,7 @@ public final class BlockWorkerClient extends ClientBase {
 
   @Override
   protected long getServiceVersion() {
-    return Constants.BLOCK_WORKER_SERVICE_VERSION;
+    return Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION;
   }
 
   /**

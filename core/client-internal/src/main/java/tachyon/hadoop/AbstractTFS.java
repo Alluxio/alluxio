@@ -56,9 +56,9 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
+import tachyon.wire.FileBlockInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Base class for Apache Hadoop based Tachyon {@link org.apache.hadoop.fs.FileSystem}. This class
@@ -271,7 +271,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
         ArrayList<String> hosts = new ArrayList<String>();
         List<WorkerNetAddress> addrs = Lists.newArrayList();
         // add the existing in-memory block locations first
-        for (tachyon.thrift.BlockLocation location : info.getBlockInfo().getLocations()) {
+        for (tachyon.wire.BlockLocation location : info.getBlockInfo().getLocations()) {
           addrs.add(location.getWorkerAddress());
         }
         // then add under file system location

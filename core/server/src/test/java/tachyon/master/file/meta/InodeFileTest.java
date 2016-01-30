@@ -23,9 +23,9 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.exception.BlockInfoException;
 import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.InvalidFileSizeException;
-import tachyon.exception.BlockInfoException;
 
 /**
  * Unit tests for {@link InodeFile}.

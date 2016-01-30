@@ -32,15 +32,16 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.lineage.options.CreateLineageOptions;
 import tachyon.client.lineage.options.DeleteLineageOptions;
 import tachyon.client.lineage.options.GetLineageInfoListOptions;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.exception.ConnectionFailedException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
-import tachyon.thrift.LineageInfo;
+import tachyon.wire.LineageInfo;
+
 /**
  * Tachyon Lineage client. This class provides implementation of interacting with Tachyon Lineage
  * master.

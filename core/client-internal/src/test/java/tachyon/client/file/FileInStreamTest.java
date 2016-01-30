@@ -49,10 +49,10 @@ import tachyon.client.util.ClientMockUtils;
 import tachyon.client.util.ClientTestUtils;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
-import tachyon.worker.NetAddress;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Tests for the {@link FileInStream} class.
@@ -103,7 +103,7 @@ public class FileInStreamTest {
       });
 
       Mockito.when(mBlockStore.getOutStream(Mockito.eq((long) i), Mockito.anyLong(),
-          Mockito.any(NetAddress.class))).thenReturn(mCacheStreams.get(i));
+          Mockito.any(WorkerNetAddress.class))).thenReturn(mCacheStreams.get(i));
     }
     mInfo.setBlockIds(blockIds);
 

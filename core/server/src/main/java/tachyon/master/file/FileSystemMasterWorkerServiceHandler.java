@@ -60,7 +60,7 @@ public final class FileSystemMasterWorkerServiceHandler
   @Override
   public FileInfo getFileInfo(long fileId) throws TachyonTException {
     try {
-      return mFileSystemMaster.getFileInfo(fileId);
+      return mFileSystemMaster.getFileInfo(fileId).toThrift();
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }

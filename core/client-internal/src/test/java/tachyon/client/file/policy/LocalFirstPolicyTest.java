@@ -26,7 +26,7 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.NetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Tests {@link LocalFirstPolicy}.
@@ -42,10 +42,10 @@ public final class LocalFirstPolicyTest {
     String localhostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
     LocalFirstPolicy policy = new LocalFirstPolicy();
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
-    workerInfoList.add(
-        new BlockWorkerInfo(new NetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new NetAddress(localhostName, PORT, PORT, PORT),
-        Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost(localhostName)
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     Assert.assertEquals(localhostName,
         policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
@@ -58,10 +58,10 @@ public final class LocalFirstPolicyTest {
     String localhostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
     LocalFirstPolicy policy = new LocalFirstPolicy();
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
-    workerInfoList.add(
-        new BlockWorkerInfo(new NetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new NetAddress(localhostName, PORT, PORT, PORT),
-        Constants.MB, Constants.MB));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost(localhostName)
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     Assert.assertEquals("worker1",
         policy.getWorkerForNextBlock(workerInfoList, Constants.GB).getHost());
   }

@@ -16,6 +16,7 @@
 package tachyon.web;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -47,7 +48,7 @@ public final class WorkerUIWebServer extends UIWebServer {
       BlockWorker blockWorker, InetSocketAddress workerAddress, long startTimeMs,
       TachyonConf conf) {
     super(serviceType, webAddress, conf);
-    Preconditions.checkNotNull(blockWorker, "Block Worker cannot be null");
+    Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
     Preconditions.checkNotNull(workerAddress, "Worker address cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerGeneralServlet(
@@ -59,5 +60,9 @@ public final class WorkerUIWebServer extends UIWebServer {
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(false)),
         "/browseLogs");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet(conf)), "/header");
+
+    // REST configuration
+    mWebAppContext.setOverrideDescriptors(Arrays
+        .asList("core/server/src/main/webapp/WEB-INF/worker.xml"));
   }
 }

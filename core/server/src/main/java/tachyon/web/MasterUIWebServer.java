@@ -16,6 +16,7 @@
 package tachyon.web;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -44,7 +45,7 @@ public final class MasterUIWebServer extends UIWebServer {
   public MasterUIWebServer(ServiceType service, InetSocketAddress address, TachyonMaster master,
       TachyonConf conf) {
     super(service, address, conf);
-    Preconditions.checkNotNull(master, "TachyonMaster cannot be null");
+    Preconditions.checkNotNull(master, "Tachyon master cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(master)), "/home");
     mWebAppContext.addServlet(new ServletHolder(
@@ -63,5 +64,9 @@ public final class MasterUIWebServer extends UIWebServer {
         "/browseLogs");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet(conf)),
         "/header");
+
+    // REST configuration
+    mWebAppContext.setOverrideDescriptors(Arrays
+        .asList("core/server/src/main/webapp/WEB-INF/master.xml"));
   }
 }

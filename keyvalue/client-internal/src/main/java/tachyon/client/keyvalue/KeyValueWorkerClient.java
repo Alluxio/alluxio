@@ -32,9 +32,8 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.KeyValueWorkerClientService;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.NetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Client for talking to a key-value worker server.
@@ -55,8 +54,7 @@ public final class KeyValueWorkerClient extends ClientBase {
    * @param conf Tachyon configuration
    */
   public KeyValueWorkerClient(WorkerNetAddress workerNetAddress, TachyonConf conf) {
-    super(NetworkAddressUtils.getRpcPortSocketAddress(new NetAddress(workerNetAddress)), conf,
-        "key-value-worker");
+    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "key-value-worker");
   }
 
   @Override

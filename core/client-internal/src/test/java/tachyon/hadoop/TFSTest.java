@@ -39,9 +39,9 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.FileSystemMasterClient;
-import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**

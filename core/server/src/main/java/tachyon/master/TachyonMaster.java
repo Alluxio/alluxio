@@ -63,6 +63,8 @@ import tachyon.web.UIWebServer;
 public class TachyonMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private static TachyonMaster sTachyonMaster = null;
+
   /**
    * Starts the Tachyon master server via {@code java -cp <TACHYON-VERSION> tachyon.Master}.
    *
@@ -75,11 +77,21 @@ public class TachyonMaster {
     }
 
     try {
-      Factory.create().start();
+      sTachyonMaster = Factory.create();
+      sTachyonMaster.start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating Master", e);
       System.exit(-1);
     }
+  }
+
+  /**
+   * Returns a handle to the Tachyon master instance.
+   *
+   * @return Tachyon master handle
+   */
+  public static TachyonMaster get() {
+    return sTachyonMaster;
   }
 
   /** Maximum number of threads to serve the rpc server. */
@@ -267,17 +279,24 @@ public class TachyonMaster {
   }
 
   /**
-   * @return internal {@link FileSystemMaster}, for unit test only
+   * @return internal {@link FileSystemMaster}
    */
   public FileSystemMaster getFileSystemMaster() {
     return mFileSystemMaster;
   }
 
   /**
-   * @return internal {@link BlockMaster}, for unit test only
+   * @return internal {@link BlockMaster}
    */
   public BlockMaster getBlockMaster() {
     return mBlockMaster;
+  }
+
+  /**
+   * @return internal {@link LineageMaster}
+   */
+  public LineageMaster getLineageMaster() {
+    return mLineageMaster;
   }
 
   /**

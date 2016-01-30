@@ -188,10 +188,12 @@ public class ServiceSocketBindIntegrationTest {
     Assert.assertTrue(mWorkerDataService.isConnected());
 
     // test Master Web service connectivity (application layer)
-    Assert.assertEquals(200, mMasterWebService.getResponseCode());
+    Assert.assertEquals(mMasterWebService.getResponseMessage(), 200,
+        mMasterWebService.getResponseCode());
 
     // test Worker Web service connectivity (application layer)
-    Assert.assertEquals(200, mWorkerWebService.getResponseCode());
+    Assert.assertEquals(mWorkerWebService.getResponseMessage(), 200,
+        mWorkerWebService.getResponseCode());
 
     closeServices();
   }

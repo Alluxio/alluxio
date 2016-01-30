@@ -203,9 +203,9 @@
       ]
     }
   },
-  "SET_STATE":{
+  "SET_ATTRIBUTE":{
     "mSequenceNumber":1945,
-    "mType":"SET_STATE",
+    "mType":"SET_ATTRIBUTE",
     "mParameters":{
       "id":1,
       "operationTimeMs":1409349750338,
