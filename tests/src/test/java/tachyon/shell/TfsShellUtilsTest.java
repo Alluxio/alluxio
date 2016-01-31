@@ -49,7 +49,7 @@ public class TfsShellUtilsTest {
   private static final int SIZE_BYTES = Constants.MB * 10;
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(SIZE_BYTES, 1000, Constants.MB);
+      new LocalTachyonClusterResource(SIZE_BYTES, Constants.MB);
   private FileSystem mFileSystem = null;
 
   @Before

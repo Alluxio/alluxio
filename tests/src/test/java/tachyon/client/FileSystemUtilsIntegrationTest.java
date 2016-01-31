@@ -45,7 +45,7 @@ public class FileSystemUtilsIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.MB,
+      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
           Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
   private static CreateFileOptions sWriteBoth;
   private static FileSystem sFileSystem = null;
