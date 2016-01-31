@@ -24,11 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.client.block.BlockStoreContext;
-import tachyon.client.file.FileSystemContext;
-import tachyon.client.lineage.LineageContext;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.PreconditionMessage;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.ClientMetrics;
 
@@ -42,84 +38,67 @@ public final class ClientContext {
   private static TachyonConf sTachyonConf;
   private static InetSocketAddress sMasterAddress;
   private static ClientMetrics sClientMetrics;
-  private static boolean sInitialized;
 
   static {
-    sInitialized = false;
     reset();
   }
 
   /**
-   * Initializes the client context singleton.
+   * Resets to the default Tachyon configuration and initializes the client context singleton.
+   *
+   * This method is useful for undoing changes to TachyonConf made by unit tests.
    */
-  public static synchronized void reset() {
-    reset(new TachyonConf());
+  private static void reset() {
+    sTachyonConf = new TachyonConf();
+    init();
   }
 
   /**
-   * Initializes the client context singleton with a given conf.
+   * Initializes the client context singleton, bringing all non-TachyonConf state into sync with
+   * the current TachyonConf.
    *
-   * @param conf the configuration of Tachyon
+   * This method is useful for updating parts of {@link ClientContext} which depend on
+   * {@link TachyonConf} when {@link TachyonConf} is changed, e.g. the master hostname or port. This
+   * method requires that {@link sTachyonConf} has been initialized.
    */
-  public static synchronized void reset(TachyonConf conf) {
-    sTachyonConf = conf;
-
+  private static void init() {
     String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
     int masterPort = sTachyonConf.getInt(Constants.MASTER_RPC_PORT);
-
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
+
     sClientMetrics = new ClientMetrics();
 
-    if (sExecutorService != null) {
-      sExecutorService.shutdownNow();
-    }
     sExecutorService = Executors.newFixedThreadPool(
         sTachyonConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
-    // If this isn't the first time setting the ClientContext, we should reset other contexts so
-    // that they can see the latest changes
-    if (sInitialized) {
-      BlockStoreContext.INSTANCE.reset();
-      FileSystemContext.INSTANCE.reset();
-      LineageContext.INSTANCE.reset();
-    }
-    sInitialized = true;
   }
 
   /**
    * @return the {@link TachyonConf} for the client process
    */
-  public static synchronized TachyonConf getConf() {
-    checkContextInitialized();
+  public static TachyonConf getConf() {
     return sTachyonConf;
   }
 
   /**
    * @return the {@link ClientMetrics} for this client
    */
-  public static synchronized ClientMetrics getClientMetrics() {
-    checkContextInitialized();
+  public static ClientMetrics getClientMetrics() {
     return sClientMetrics;
   }
 
   /**
    * @return the master address
    */
-  public static synchronized InetSocketAddress getMasterAddress() {
-    checkContextInitialized();
+  public static InetSocketAddress getMasterAddress() {
     return sMasterAddress;
   }
 
   /**
    * @return the executor service
    */
-  public static synchronized ExecutorService getExecutorService() {
-    checkContextInitialized();
+  public static ExecutorService getExecutorService() {
     return sExecutorService;
-  }
-
-  private static void checkContextInitialized() {
-    Preconditions.checkState(sInitialized, PreconditionMessage.CLIENT_CONTEXT_NOT_INITIALIZED);
   }
 
   private ClientContext() {} // prevent instantiation

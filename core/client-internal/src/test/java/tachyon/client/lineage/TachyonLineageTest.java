@@ -34,7 +34,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.lineage.options.DeleteLineageOptions;
-import tachyon.conf.TachyonConf;
+import tachyon.client.util.ClientTestUtils;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
 
@@ -47,13 +47,10 @@ public final class TachyonLineageTest {
   private LineageContext mLineageContext;
   private LineageMasterClient mLineageMasterClient;
   private TachyonLineage mTachyonLineage;
-  private TachyonConf mTachyonConf;
 
   @Before
   public void before() throws Exception {
-    mTachyonConf = new TachyonConf();
-    mTachyonConf.set(Constants.USER_LINEAGE_ENABLED, "true");
-    ClientContext.reset(mTachyonConf);
+    ClientContext.getConf().set(Constants.USER_LINEAGE_ENABLED, "true");
     mLineageMasterClient = PowerMockito.mock(LineageMasterClient.class);
     mLineageContext = PowerMockito.mock(LineageContext.class);
     Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
@@ -64,7 +61,7 @@ public final class TachyonLineageTest {
 
   @After
   public void after() {
-    ClientContext.reset();
+    ClientTestUtils.resetClientContext();
   }
 
   @Test

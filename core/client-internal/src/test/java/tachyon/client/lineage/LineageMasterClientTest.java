@@ -26,7 +26,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
-import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.LineageMasterClientService;
 
@@ -44,9 +43,6 @@ public class LineageMasterClientTest {
    */
   @Test
   public void unsupportedVersionTest() throws Exception {
-    // Client context needs to be initialized before the lineage context can be used.
-    ClientContext.reset();
-
     LineageMasterClientService.Client mock =
         PowerMockito.mock(LineageMasterClientService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);

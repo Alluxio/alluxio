@@ -28,5 +28,14 @@
       <artifactId>tachyon-keyvalue-common</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!-- Other projects' test-jars -->
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-core-client-internal</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+      <type>test-jar</type>
+    </dependency>
   </dependencies>
 </project>

@@ -30,6 +30,7 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.client.ClientContext;
 import tachyon.client.block.BlockWorkerClient;
+import tachyon.client.util.ClientTestUtils;
 import tachyon.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
 import tachyon.worker.ClientMetrics;
 
@@ -103,7 +104,7 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
       blockWorkerClient.connect();
     } finally {
       blockWorkerClient.close();
-      ClientContext.reset();
+      ClientTestUtils.resetClientContext();
     }
   }
 
