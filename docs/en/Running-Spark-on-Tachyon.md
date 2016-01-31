@@ -18,10 +18,10 @@ out-of-the-box.
 
 <table class="table table-striped">
 <tr><th>Spark Version</th><th>Tachyon Version</th></tr>
-{% for version in site.data.table.versions-of-Spark-and-Tachyon %}
+{% for item in site.data.table.versions-of-Spark-and-Tachyon %}
 <tr>
-  <td>{{version.Spark-Version}}</td>
-  <td>{{version.Tachyon-Version}}</td>
+  <td>{{item.Spark-Version}}</td>
+  <td>{{item.Tachyon-Version}}</td>
 </tr>
 {% endfor %}
 </table>
