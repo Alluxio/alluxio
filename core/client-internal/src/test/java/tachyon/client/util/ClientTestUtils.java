@@ -39,7 +39,8 @@ public final class ClientTestUtils {
   }
 
   /**
-   * Resets the {@link ClientContext} singleton.
+   * Reverts the client context configuration to the default value, and reinitializes all contexts
+   * while rely on this configuration.
    *
    * This method should only be used as a cleanup mechanism between tests. It should not be used
    * while any object may be using the {@link ClientContext}.
