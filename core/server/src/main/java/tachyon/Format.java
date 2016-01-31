@@ -77,7 +77,7 @@ public final class Format {
         System.exit(-1);
       }
 
-      for (String masterServiceName : TachyonMaster.getNames()) {
+      for (String masterServiceName : TachyonMaster.getServiceNames()) {
         if (!formatFolder(masterServiceName + "_JOURNAL_FOLDER", PathUtils.concatPath(masterJournal,
             masterServiceName), tachyonConf)) {
           System.exit(-1);

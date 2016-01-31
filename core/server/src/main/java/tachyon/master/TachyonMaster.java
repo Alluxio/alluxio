@@ -133,26 +133,44 @@ public class TachyonMaster {
   /** The start time for when the master started serving the RPC server. */
   private long mStartTimeMs = -1;
 
-  /**
-   * @return a list of the enabled master services' names
-   */
-  public static List<String> getNames() {
-    List<String> names = Lists.newArrayList();
-    names.add(Constants.BLOCK_MASTER_NAME);
-    names.add(Constants.FILE_SYSTEM_MASTER_NAME);
-    names.add(Constants.LINEAGE_MASTER_NAME);
+  /** The master services' names. */
+  private static List<String> sServiceNames;
 
-    // Discover the available master factories.
+  /** The master service loaders. */
+  private static ServiceLoader<MasterFactory> sServiceLoader;
+
+  /**
+   * @return the (cached) master service loader
+   */
+  private static ServiceLoader<MasterFactory> getServiceLoader() {
+    if (sServiceLoader != null) {
+      return sServiceLoader;
+    }
+    // Discover and register the available factories.
     // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader.
-    ServiceLoader<MasterFactory> discoveredMasterFactories =
-        ServiceLoader.load(MasterFactory.class, MasterFactory.class.getClassLoader());
-    for (MasterFactory factory : discoveredMasterFactories) {
+    sServiceLoader = ServiceLoader.load(MasterFactory.class, MasterFactory.class.getClassLoader());
+    return sServiceLoader;
+  }
+
+  /**
+   * @return the (cached) list of the enabled master services' names
+   */
+  public static List<String> getServiceNames() {
+    if (sServiceNames != null) {
+      return sServiceNames;
+    }
+    sServiceNames = Lists.newArrayList();
+    sServiceNames.add(Constants.BLOCK_MASTER_NAME);
+    sServiceNames.add(Constants.FILE_SYSTEM_MASTER_NAME);
+    sServiceNames.add(Constants.LINEAGE_MASTER_NAME);
+
+    for (MasterFactory factory : getServiceLoader()) {
       if (factory.isEnabled()) {
-        names.add(factory.getName());
+        sServiceNames.add(factory.getName());
       }
     }
 
-    return names;
+    return sServiceNames;
   }
 
   /**
@@ -227,11 +245,7 @@ public class TachyonMaster {
 
       mAdditionalMasters = Lists.newArrayList();
       List<? extends  Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
-      // Discover and register the available factories
-      // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader
-      ServiceLoader<MasterFactory> discoveredMasterFactories =
-          ServiceLoader.load(MasterFactory.class, MasterFactory.class.getClassLoader());
-      for (MasterFactory factory : discoveredMasterFactories) {
+      for (MasterFactory factory : getServiceLoader()) {
         Master master = factory.create(masters, journalDirectory);
         if (master != null) {
           mAdditionalMasters.add(master);
