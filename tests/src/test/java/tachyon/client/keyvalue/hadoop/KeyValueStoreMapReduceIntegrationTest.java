@@ -50,7 +50,7 @@ public final class KeyValueStoreMapReduceIntegrationTest {
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE,
+      new LocalTachyonClusterResource(Constants.GB, BLOCK_SIZE,
           /* ensure key-value service is turned on */
           Constants.KEY_VALUE_ENABLED, "true",
           Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, Integer.toString(KEY_VALUE_PARTITION_SIZE));
