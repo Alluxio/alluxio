@@ -45,7 +45,7 @@ public class CommandLineJob extends Job {
   private final String mCommand;
 
   /**
-   * Creates a new instance of {@link CommandLineJob}".
+   * Creates a new instance of {@link CommandLineJob}.
    *
    * @param command the command that can run in shell
    * @param jobConf the job configuration
