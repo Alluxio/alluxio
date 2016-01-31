@@ -1,0 +1,3 @@
+PropertyName,Value
+tachyon.zookeeper.enabled,true
+tachyon.zookeeper.address,[zookeeper_hostname]:2181
