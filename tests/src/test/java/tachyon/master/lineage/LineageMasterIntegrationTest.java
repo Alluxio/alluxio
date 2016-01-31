@@ -52,8 +52,8 @@ import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
 import tachyon.master.file.meta.PersistenceState;
-import tachyon.thrift.LineageInfo;
 import tachyon.util.CommonUtils;
+import tachyon.wire.LineageInfo;
 
 /**
  * Integration tests for the lineage module.

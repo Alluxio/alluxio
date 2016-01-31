@@ -45,8 +45,8 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
+import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.block.BlockWorker;
-import tachyon.worker.block.BlockWorkerClientServiceHandler;
 import tachyon.worker.file.FileSystemWorker;
 
 /**
@@ -56,6 +56,39 @@ import tachyon.worker.file.FileSystemWorker;
 @NotThreadSafe
 public final class TachyonWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  private static TachyonWorker sTachyonWorker = null;
+  /**
+   * Main method for Tachyon Worker. A Block Worker will be started and the Tachyon Worker will
+   * continue to run until the Block Worker thread exits.
+   *
+   * @param args command line arguments, should be empty
+   */
+  public static void main(String[] args) {
+    checkArgs(args);
+    sTachyonWorker = new TachyonWorker();
+    try {
+      sTachyonWorker.start();
+    } catch (Exception e) {
+      LOG.error("Uncaught exception while running worker, stopping it and exiting.", e);
+      try {
+        sTachyonWorker.stop();
+      } catch (Exception ex) {
+        // continue to exit
+        LOG.error("Uncaught exception while stopping worker, simply exiting.", ex);
+      }
+      System.exit(-1);
+    }
+  }
+
+  /**
+   * Returns a handle to the Tachyon worker instance.
+   *
+   * @return Tachyon master handle
+   */
+  public static TachyonWorker get() {
+    return sTachyonWorker;
+  }
 
   private TachyonConf mTachyonConf;
 
@@ -90,7 +123,7 @@ public final class TachyonWorker {
   private InetSocketAddress mWorkerAddress;
 
   /** Net address of this worker. */
-  private NetAddress mNetAddress;
+  private WorkerNetAddress mNetAddress;
 
   /** Worker start time in milliseconds. */
   private long mStartTimeMs;
@@ -150,29 +183,6 @@ public final class TachyonWorker {
   }
 
   /**
-   * Main method for Tachyon Worker. A Block Worker will be started and the Tachyon Worker will
-   * continue to run until the Block Worker thread exits.
-   *
-   * @param args command line arguments, should be empty
-   */
-  public static void main(String[] args) {
-    checkArgs(args);
-    TachyonWorker worker = new TachyonWorker();
-    try {
-      worker.start();
-    } catch (Exception e) {
-      LOG.error("Uncaught exception while running worker, stopping it and exiting.", e);
-      try {
-        worker.stop();
-      } catch (Exception ex) {
-        // continue to exit
-        LOG.error("Uncaught exception while stopping worker, simply exiting.", ex);
-      }
-      System.exit(-1);
-    }
-  }
-
-  /**
    * @return the worker RPC service bind host
    */
   public String getRPCBindHost() {
@@ -218,17 +228,17 @@ public final class TachyonWorker {
   /**
    * @return the worker service handler (used by unit test only)
    */
-  public BlockWorkerClientServiceHandler getBlockWorkerServiceHandler() {
-    return mBlockWorker.getWorkerServiceHandler();
+  public BlockWorker getBlockWorker() {
+    return mBlockWorker;
   }
 
   /**
-   * Gets this worker's {@link NetAddress}, which is the worker's hostname, rpc
+   * Gets this worker's {@link WorkerNetAddress}, which is the worker's hostname, rpc
    * server port, data server port, and web server port.
    *
    * @return the worker's net address
    */
-  public NetAddress getNetAddress() {
+  public WorkerNetAddress getNetAddress() {
     return mNetAddress;
   }
 
@@ -252,10 +262,12 @@ public final class TachyonWorker {
     // Set updated net address for this worker in context
     // Requirement: RPC, web, and dataserver ports are updated
     // Consequence: create a NetAddress object and set it into WorkerContext
-    mNetAddress = new NetAddress(
-        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
-        mTachyonConf.getInt(Constants.WORKER_RPC_PORT), getDataLocalPort(),
-        mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
+    mNetAddress =
+        new WorkerNetAddress()
+            .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf))
+            .setRpcPort(mTachyonConf.getInt(Constants.WORKER_RPC_PORT))
+            .setDataPort(getDataLocalPort())
+            .setWebPort(mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
     WorkerContext.setWorkerNetAddress(mNetAddress);
 
     // Start each worker

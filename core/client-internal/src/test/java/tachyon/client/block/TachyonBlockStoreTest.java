@@ -33,11 +33,11 @@ import org.powermock.reflect.Whitebox;
 
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.BlockInfo;
-import tachyon.thrift.BlockLocation;
-import tachyon.thrift.LockBlockResult;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.wire.BlockInfo;
+import tachyon.wire.BlockLocation;
+import tachyon.wire.LockBlockResult;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Tests for {@link TachyonBlockStore}.
@@ -56,18 +56,23 @@ public final class TachyonBlockStoreTest {
   private static final int WORKER_RPC_PORT = 7;
   private static final int WORKER_DATA_PORT = 9;
   private static final int WORKER_WEB_PORT = 10;
-  private static final WorkerNetAddress WORKER_NET_ADDRESS_LOCAL = new WorkerNetAddress(
-      WORKER_HOSTNAME_LOCAL, WORKER_RPC_PORT, WORKER_DATA_PORT, WORKER_WEB_PORT);
-  private static final WorkerNetAddress WORKER_NET_ADDRESS_REMOTE = new WorkerNetAddress(
-      WORKER_HOSTNAME_REMOTE, WORKER_RPC_PORT, WORKER_DATA_PORT, WORKER_WEB_PORT);
+  private static final WorkerNetAddress WORKER_NET_ADDRESS_LOCAL = new WorkerNetAddress()
+      .setHost(WORKER_HOSTNAME_LOCAL).setRpcPort(WORKER_RPC_PORT).setDataPort(WORKER_DATA_PORT)
+      .setWebPort(WORKER_WEB_PORT);
+  private static final WorkerNetAddress WORKER_NET_ADDRESS_REMOTE = new WorkerNetAddress()
+      .setHost(WORKER_HOSTNAME_REMOTE).setRpcPort(WORKER_RPC_PORT).setDataPort(WORKER_DATA_PORT)
+      .setWebPort(WORKER_WEB_PORT);
   private static final String STORAGE_TIER = "mem";
-  private static final BlockLocation BLOCK_LOCATION_LOCAL =
-      new BlockLocation(WORKER_ID_LOCAL, WORKER_NET_ADDRESS_LOCAL, STORAGE_TIER);
-  private static final BlockLocation BLOCK_LOCATION_REMOTE =
-      new BlockLocation(WORKER_ID_REMOTE, WORKER_NET_ADDRESS_REMOTE, STORAGE_TIER);
+  private static final BlockLocation BLOCK_LOCATION_LOCAL = new BlockLocation()
+      .setWorkerId(WORKER_ID_LOCAL).setWorkerAddress(WORKER_NET_ADDRESS_LOCAL)
+      .setTierAlias(STORAGE_TIER);
+  private static final BlockLocation BLOCK_LOCATION_REMOTE = new BlockLocation()
+      .setWorkerId(WORKER_ID_REMOTE).setWorkerAddress(WORKER_NET_ADDRESS_REMOTE)
+      .setTierAlias(STORAGE_TIER);
   /** {@link BlockInfo} representing a block stored both remotely and locally. */
-  private static final BlockInfo BLOCK_INFO = new BlockInfo(BLOCK_ID, BLOCK_LENGTH,
-      Arrays.asList(BLOCK_LOCATION_REMOTE, BLOCK_LOCATION_LOCAL));
+  private static final BlockInfo BLOCK_INFO = new BlockInfo().setBlockId(BLOCK_ID)
+      .setLength(BLOCK_LENGTH)
+      .setLocations(Arrays.asList(BLOCK_LOCATION_REMOTE, BLOCK_LOCATION_LOCAL));
 
   /**
    * The rule for a temporary folder.
@@ -108,7 +113,7 @@ public final class TachyonBlockStoreTest {
 
     mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
     Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
-        new LockBlockResult(LOCK_ID, mTestFile.getAbsolutePath()));
+        new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
     Mockito.when(mBlockStoreContext.acquireWorkerClient(Mockito.anyString()))
         .thenReturn(mBlockWorkerClient);
   }

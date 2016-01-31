@@ -21,7 +21,7 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import tachyon.client.block.BlockWorkerInfo;
-import tachyon.worker.NetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * A policy that chooses the worker for the next block in a round-robin manner and skips workers
@@ -44,7 +44,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
    * @return the address of the worker to write to
    */
   @Override
-  public NetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
     if (!mInitialized) {
       mWorkerInfoList = workerInfoList;
@@ -55,7 +55,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
 
     // at most try all the workers
     for (int i = 0; i < mWorkerInfoList.size(); i ++) {
-      NetAddress candidate = mWorkerInfoList.get(mIndex).getNetAddress();
+      WorkerNetAddress candidate = mWorkerInfoList.get(mIndex).getNetAddress();
       BlockWorkerInfo workerInfo = findBlockWorkerInfo(workerInfoList, candidate);
       mIndex = (mIndex + 1) % mWorkerInfoList.size();
       if (workerInfo != null && workerInfo.getCapacityBytes() >= blockSizeBytes) {
@@ -71,7 +71,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
    * @return the worker info in the list that matches the host name, null if not found
    */
   private BlockWorkerInfo findBlockWorkerInfo(List<BlockWorkerInfo> workerInfoList,
-      NetAddress address) {
+      WorkerNetAddress address) {
     for (BlockWorkerInfo info : workerInfoList) {
       if (info.getNetAddress().equals(address)) {
         return info;

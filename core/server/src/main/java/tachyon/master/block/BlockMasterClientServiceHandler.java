@@ -15,6 +15,7 @@
 
 package tachyon.master.block;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -52,7 +53,11 @@ public class BlockMasterClientServiceHandler implements BlockMasterClientService
 
   @Override
   public List<WorkerInfo> getWorkerInfoList() {
-    return mBlockMaster.getWorkerInfoList();
+    List<WorkerInfo> workerInfos = new ArrayList<WorkerInfo>();
+    for (tachyon.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
+      workerInfos.add(workerInfo.toThrift());
+    }
+    return workerInfos;
   }
 
   @Override
@@ -68,7 +73,7 @@ public class BlockMasterClientServiceHandler implements BlockMasterClientService
   @Override
   public BlockInfo getBlockInfo(long blockId) throws TachyonTException {
     try {
-      return mBlockMaster.getBlockInfo(blockId);
+      return mBlockMaster.getBlockInfo(blockId).toThrift();
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }

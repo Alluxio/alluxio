@@ -24,7 +24,7 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.security.authorization.PermissionStatus;
-import tachyon.thrift.FileInfo;
+import tachyon.wire.FileInfo;
 
 /**
  * Unit tests for {@link InodeDirectory}.

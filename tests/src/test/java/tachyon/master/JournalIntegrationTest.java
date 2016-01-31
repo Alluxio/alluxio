@@ -50,10 +50,10 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.security.authentication.PlainSaslServer;
 import tachyon.security.group.GroupMappingService;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.wire.FileInfo;
 
 /**
  * Test master journal, including checkpoint and entry log. Most tests will test entry log first,

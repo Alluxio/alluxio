@@ -54,7 +54,7 @@ import tachyon.proto.journal.File.InodeLastModificationTimeEntry;
 import tachyon.proto.journal.File.PersistDirectoryEntry;
 import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
-import tachyon.proto.journal.File.SetStateEntry;
+import tachyon.proto.journal.File.SetAttributeEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.KeyValue.CompletePartitionEntry;
 import tachyon.proto.journal.KeyValue.CompleteStoreEntry;
@@ -228,7 +228,7 @@ public abstract class JournalFormatterTestBase {
             .build())
         .add(
             JournalEntry.newBuilder()
-                .setSetState(SetStateEntry.newBuilder()
+                .setSetAttribute(SetAttributeEntry.newBuilder()
                     .setId(TEST_FILE_ID)
                     .setOpTimeMs(TEST_OP_TIME_MS)
                     .setPinned(true)

@@ -29,8 +29,8 @@ import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.master.file.meta.PersistenceState;
 import tachyon.master.file.meta.FileSystemMasterView;
+import tachyon.master.file.meta.PersistenceState;
 import tachyon.master.lineage.meta.LineageIdGenerator;
 import tachyon.master.lineage.meta.LineageStore;
 

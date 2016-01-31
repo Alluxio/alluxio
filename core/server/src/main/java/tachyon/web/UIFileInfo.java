@@ -29,9 +29,9 @@ import com.google.common.collect.Ordering;
 import tachyon.TachyonURI;
 import tachyon.master.file.meta.PersistenceState;
 import tachyon.security.authorization.FileSystemPermission;
-import tachyon.thrift.FileInfo;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.FormatUtils;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Contains information about a file to be displayed in the UI.

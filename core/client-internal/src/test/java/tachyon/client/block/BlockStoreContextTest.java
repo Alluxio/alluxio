@@ -32,9 +32,9 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.WorkerInfo;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.wire.WorkerInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Tests {@link BlockStoreContext}.
@@ -123,7 +123,7 @@ public final class BlockStoreContextTest {
     Whitebox.setInternalState(NetworkAddressUtils.class, "sLocalHost", "localhost");
     BlockMasterClient masterClientMock = PowerMockito.mock(BlockMasterClient.class);
     List<WorkerInfo> list = Lists.newArrayList();
-    list.add(new WorkerInfo(0, new WorkerNetAddress("localhost", 0, 0, 0), 0, "", 0, 0, 0));
+    list.add(new WorkerInfo().setAddress(new WorkerNetAddress().setHost("localhost")));
     PowerMockito.doReturn(list).when(masterClientMock).getWorkerInfoList();
     PowerMockito.whenNew(BlockMasterClient.class).withArguments(Mockito.any(), Mockito.any())
         .thenReturn(masterClientMock);

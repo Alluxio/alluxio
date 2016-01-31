@@ -118,10 +118,12 @@ public class ServiceSocketBindIntegrationTest {
     Assert.assertTrue(mWorkerDataService.isConnected());
 
     // test Master Web service connectivity (application layer)
-    Assert.assertEquals(200, mMasterWebService.getResponseCode());
+    Assert.assertEquals(mMasterWebService.getResponseMessage(), 200,
+        mMasterWebService.getResponseCode());
 
     // test Worker Web service connectivity (application layer)
-    Assert.assertEquals(200, mWorkerWebService.getResponseCode());
+    Assert.assertEquals(mWorkerWebService.getResponseMessage(), 200,
+        mWorkerWebService.getResponseCode());
 
     closeServices();
   }
@@ -161,14 +163,16 @@ public class ServiceSocketBindIntegrationTest {
     Assert.assertThat("Master Web bind address " + bindHost + "is not wildcard address", bindHost,
         CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Master Web service connectivity (application layer)
-    Assert.assertEquals(200, mMasterWebService.getResponseCode());
+    Assert.assertEquals(mMasterWebService.getResponseMessage(), 200,
+        mMasterWebService.getResponseCode());
 
     // test Worker Web socket bind (session layer)
     bindHost = mLocalTachyonCluster.getWorker().getWebBindHost();
     Assert.assertThat("Worker Web bind address " + bindHost + "is not wildcard address", bindHost,
         CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Worker Web service connectivity (application layer)
-    Assert.assertEquals(200, mWorkerWebService.getResponseCode());
+    Assert.assertEquals(mWorkerWebService.getResponseMessage(), 200,
+        mWorkerWebService.getResponseCode());
 
     closeServices();
   }
@@ -188,10 +192,12 @@ public class ServiceSocketBindIntegrationTest {
     Assert.assertTrue(mWorkerDataService.isConnected());
 
     // test Master Web service connectivity (application layer)
-    Assert.assertEquals(200, mMasterWebService.getResponseCode());
+    Assert.assertEquals(mMasterWebService.getResponseMessage(), 200,
+        mMasterWebService.getResponseCode());
 
     // test Worker Web service connectivity (application layer)
-    Assert.assertEquals(200, mWorkerWebService.getResponseCode());
+    Assert.assertEquals(mWorkerWebService.getResponseMessage(), 200,
+        mWorkerWebService.getResponseCode());
 
     closeServices();
   }
@@ -235,7 +241,8 @@ public class ServiceSocketBindIntegrationTest {
       mMasterWebService = (HttpURLConnection) new URL(
           "http://127.0.0.1:" + mLocalTachyonCluster.getMaster().getWebLocalPort() + "/home")
           .openConnection();
-      Assert.assertEquals(200, mMasterWebService.getResponseCode());
+      Assert.assertEquals(mMasterWebService.getResponseMessage(), 200,
+          mMasterWebService.getResponseCode());
       Assert.fail("Client should not have successfully connected to Master Web service.");
     } catch (IOException e) {
       // This is expected, since Master Web service is NOT listening on loopback.
@@ -249,7 +256,8 @@ public class ServiceSocketBindIntegrationTest {
       mWorkerWebService = (HttpURLConnection) new URL(
           "http://127.0.0.1:" + mLocalTachyonCluster.getWorker().getWebLocalPort() + "/home")
               .openConnection();
-      Assert.assertEquals(200, mWorkerWebService.getResponseCode());
+      Assert.assertEquals(mWorkerWebService.getResponseMessage(), 200,
+          mWorkerWebService.getResponseCode());
       Assert.fail("Client should not have successfully connected to Worker Web service.");
     } catch (IOException e) {
       // This is expected, since Worker Web service is NOT listening on loopback.

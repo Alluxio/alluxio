@@ -35,21 +35,21 @@ import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.RemoteBlockReader;
 import tachyon.client.FileSystemTestUtils;
+import tachyon.client.RemoteBlockReader;
 import tachyon.client.WriteType;
 import tachyon.client.block.BlockMasterClient;
 import tachyon.client.block.BlockStoreContext;
+import tachyon.client.block.BlockWorkerClient;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.URIStatus;
-import tachyon.client.block.BlockWorkerClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.network.protocol.RPCResponse;
-import tachyon.thrift.BlockInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
+import tachyon.wire.BlockInfo;
 
 /**
  * Integration tests for {@link DataServer}.

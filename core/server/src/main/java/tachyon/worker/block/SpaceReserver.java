@@ -25,8 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.StorageTierAssoc;
 import tachyon.Sessions;
+import tachyon.StorageTierAssoc;
 import tachyon.WorkerStorageTierAssoc;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;

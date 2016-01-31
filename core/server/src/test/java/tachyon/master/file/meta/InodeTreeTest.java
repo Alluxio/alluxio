@@ -26,11 +26,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
+import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -42,11 +41,11 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
+import tachyon.master.file.PermissionChecker;
 import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.ReadWriteJournal;
-import tachyon.master.file.PermissionChecker;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.util.CommonUtils;
 

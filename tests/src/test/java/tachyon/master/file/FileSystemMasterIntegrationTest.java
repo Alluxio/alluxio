@@ -49,13 +49,13 @@ import tachyon.master.MasterTestUtils;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.meta.TtlBucketPrivateAccess;
 import tachyon.master.file.options.CompleteFileOptions;
-import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
+import tachyon.master.file.options.CreateFileOptions;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.PlainSaslServer.AuthorizedClientUser;
-import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.IdUtils;
+import tachyon.wire.FileInfo;
 
 /**
  * Test behavior of {@link FileSystemMaster}.

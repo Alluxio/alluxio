@@ -20,8 +20,8 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.collections.Pair;
 import tachyon.TachyonURI;
+import tachyon.collections.Pair;
 import tachyon.conf.TachyonConf;
 
 /**

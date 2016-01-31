@@ -41,20 +41,6 @@ public final class SetAttributeOptions {
     return new SetAttributeOptions();
   }
 
-  /**
-   * @param options the thrift options to convert from
-   * @return a {@link SetAttributeOptions} logically equivalent to the given thrift options
-   */
-  public static SetAttributeOptions fromThriftOptions(SetAttributeTOptions options) {
-    return new SetAttributeOptions(options);
-  }
-
-  private SetAttributeOptions(SetAttributeTOptions options) {
-    mPinned = options.isSetPinned() ? options.isPinned() : null;
-    mTtl = options.isSetTtl() ? options.getTtl() : null;
-    mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
-  }
-
   private SetAttributeOptions() {
     mPinned = null;
     mTtl = null;
