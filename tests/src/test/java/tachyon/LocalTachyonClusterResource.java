@@ -195,8 +195,7 @@ public class LocalTachyonClusterResource implements TestRule {
    */
   @Retention(RetentionPolicy.RUNTIME)
   public @interface Config {
-    String[]tachyonConfParams() default {};
-
+    String[] tachyonConfParams() default {};
     boolean startCluster() default true;
   }
 }
