@@ -158,7 +158,7 @@ memory tier. To specify additional tiers for Tachyon, use the following configur
 For example, if you wanted to configure Tachyon to have two tiers -- memory and hard disk drive --
 you could use a configuration similar to:
 
-    tachyon.worker.tieredstore.levels
+    tachyon.worker.tieredstore.levels=2
     tachyon.worker.tieredstore.level0.alias=MEM
     tachyon.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
     tachyon.worker.tieredstore.level0.dirs.quota=100GB
