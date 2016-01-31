@@ -254,7 +254,7 @@ public abstract class AbstractLocalTachyonCluster {
 
     // Formats the journal
     UnderFileSystemUtils.mkdirIfNotExists(journalFolder, conf);
-    for (String masterServiceName : TachyonMaster.getNames()) {
+    for (String masterServiceName : TachyonMaster.getServiceNames()) {
       UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(journalFolder, masterServiceName),
           conf);
     }
