@@ -24,6 +24,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.block.BlockWorker;
@@ -62,7 +63,7 @@ public final class WorkerUIWebServer extends UIWebServer {
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet(conf)), "/header");
 
     // REST configuration
-    mWebAppContext.setOverrideDescriptors(Arrays
-        .asList("core/server/src/main/webapp/WEB-INF/worker.xml"));
+    mWebAppContext.setOverrideDescriptors(
+        Arrays.asList(conf.get(Constants.WEB_RESOURCES) + "/WEB-INF/worker.xml"));
   }
 }

@@ -147,7 +147,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
         Maps.<String, List<Long>>newHashMap());
-    mWorkerId2 = mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("localhost")
+    mWorkerId2 = mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("remote")
         .setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
@@ -579,7 +579,8 @@ public final class FileSystemMasterTest {
     long blockId2 = mFileSystemMaster.getNewBlockIdForFile(ROOT_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId2, Constants.KB, "MEM", blockId2, Constants.KB);
     CompleteFileOptions options =
-        new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(Constants.KB).build();
+        new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(2 * Constants.KB)
+            .build();
     mFileSystemMaster.completeFile(ROOT_FILE_URI, options);
 
     long workerId = mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI);
