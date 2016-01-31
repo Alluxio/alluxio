@@ -1,8 +1,8 @@
 # Configure Tachyon, some configuration is related to ufs, so will reference scripts in roles/ufs_xxx
 ---
 
-- name: set tachyon/conf/workers tachyon/conf/slaves
-  script: slave.sh
+- name: set tachyon/conf/workers
+  script: set_workers.sh
 
 - name: set TACHYON_MASTER_ADDRESS in tachyon-env.sh
   script: set_master_address.sh

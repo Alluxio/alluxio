@@ -18,7 +18,7 @@ mkdir -p "${TACHYON_LOGS_DIR}"
   -Dtachyon.logger.type="WORKER_LOGGER" \
   -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" \
   -Dtachyon.master.hostname="${TACHYON_MASTER_ADDRESS}" \
-  -Dtachyon.worker.tieredstore.level.max=1 \
+  -Dtachyon.worker.tieredstore.levels=1 \
   -Dtachyon.worker.tieredstore.level0.alias=MEM \
   -Dtachyon.worker.tieredstore.level0.dirs.path="/mnt/ramdisk" \
   -Dtachyon.worker.tieredstore.level0.dirs.quota="${TACHYON_WORKER_MEMORY_SIZE}" \
