@@ -290,9 +290,6 @@ public abstract class AbstractLocalTachyonCluster {
     stopTFS();
     stopUFS();
 
-    // Deletes the tachyon home dir for this test to save disk space.
-    UnderFileSystemUtils.deleteDir(mTachyonHome, mMasterConf);
-
     resetContext();
     resetLoginUser();
   }
