@@ -10,7 +10,7 @@ title: Java Setup
 2.  From either the Downloads window of the browser, or from the file
     browser, double click the .dmg file to launch it.
 3.  A Finder window appears containing an icon of an open box and the
-    name of the .pkg file Double click the package icon to launch the
+    name of the .pkg file. Double click the package icon to launch the
     **Install** app.
 4.  The Install app displays the **Introduction** window. Click
     **Continue**.

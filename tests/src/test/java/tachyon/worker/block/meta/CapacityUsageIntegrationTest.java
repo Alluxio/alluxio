@@ -42,7 +42,7 @@ public class CapacityUsageIntegrationTest {
 
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
+      new LocalTachyonClusterResource(MEM_CAPACITY_BYTES,
           MEM_CAPACITY_BYTES / 2, Constants.WORKER_TIERED_STORE_LEVELS, "2",
           String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 1), "HDD",
           String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 1), "/disk1",

@@ -62,7 +62,7 @@ import tachyon.util.io.PathUtils;
 public class JournalIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(Constants.GB, 100, Constants.GB,
+      new LocalTachyonClusterResource(Constants.GB, Constants.GB,
           Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB));
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
