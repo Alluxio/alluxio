@@ -78,17 +78,14 @@ public class UnderFileSystemClusterTest {
   public void readEOFReturnsNegativeTest() {
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
             (String) null);
-    boolean resultFlag = UnderFileSystemCluster.readEOFReturnsNegative();
-    Assert.assertFalse(resultFlag);
+    Assert.assertFalse(UnderFileSystemCluster.readEOFReturnsNegative());
 
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
         "XXXX");
-    resultFlag = UnderFileSystemCluster.readEOFReturnsNegative();
-    Assert.assertFalse(resultFlag);
+    Assert.assertFalse(UnderFileSystemCluster.readEOFReturnsNegative());
 
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
         "tachyon.underfs.hdfs.LocalMiniDFSCluster");
-    resultFlag = UnderFileSystemCluster.readEOFReturnsNegative();
-    Assert.assertTrue(resultFlag);
+    Assert.assertTrue(UnderFileSystemCluster.readEOFReturnsNegative());
   }
 }
