@@ -33,14 +33,12 @@ import tachyon.conf.TachyonConf;
 @PrepareForTest(UnderFileSystemCluster.class)
 public class UnderFileSystemClusterTest {
 
-  private String mBaseDir;
-  private TachyonConf mTachyonConf;
+  private static final String BASE_DIR = "/tmp";
+  private static final TachyonConf TACHYON_CONF = new TachyonConf();
   private UnderFileSystemCluster mUnderFileSystemCluster;
 
   @Before
   public void before() {
-    mBaseDir = "/tmp";
-    mTachyonConf = new TachyonConf();
     mUnderFileSystemCluster = PowerMockito.mock(UnderFileSystemCluster.class);
   }
 
@@ -48,8 +46,8 @@ public class UnderFileSystemClusterTest {
   public void getTest() throws IOException {
     PowerMockito.spy(UnderFileSystemCluster.class);
 
-    Mockito.when(UnderFileSystemCluster.getUnderFilesystemCluster(mBaseDir,
-        mTachyonConf)).thenReturn(mUnderFileSystemCluster);
+    Mockito.when(UnderFileSystemCluster.getUnderFilesystemCluster(BASE_DIR,
+        TACHYON_CONF)).thenReturn(mUnderFileSystemCluster);
 
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSCluster",
         (UnderFileSystemCluster) null);
@@ -57,7 +55,7 @@ public class UnderFileSystemClusterTest {
     Mockito.when(mUnderFileSystemCluster.isStarted()).thenReturn(false);
 
     // execute test
-    UnderFileSystemCluster.get(mBaseDir, mTachyonConf);
+    UnderFileSystemCluster.get(BASE_DIR, TACHYON_CONF);
 
     UnderFileSystemCluster sUnderFSCluster = Whitebox.getInternalState(UnderFileSystemCluster
         .class, "sUnderFSCluster");
