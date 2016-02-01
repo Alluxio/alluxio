@@ -15,14 +15,10 @@
 
 package tachyon.web;
 
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -30,23 +26,16 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 
-import com.codahale.metrics.json.MetricsModule;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-
 import tachyon.metrics.TachyonMetricRegistry;
 import tachyon.worker.TachyonWorker;
 
 /**
  * Servlet that provides data for viewing the metrics values
  */
-public final class WebInterfaceWorkerMetricsServlet extends HttpServlet {
+public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstractMetricsServlet {
 
   private static final long serialVersionUID = -1481253168100363787L;
   private final transient TachyonWorker mWorker;
-  private ObjectMapper mObjectMapper;
 
   /**
    * Creates a new instance of {@link WebInterfaceWorkerMetricsServlet}.
@@ -54,8 +43,7 @@ public final class WebInterfaceWorkerMetricsServlet extends HttpServlet {
    * @param worker Tachyon worker
    */
   public WebInterfaceWorkerMetricsServlet(TachyonWorker worker) {
-    mObjectMapper = new ObjectMapper().registerModule(new MetricsModule(TimeUnit.SECONDS,
-            TimeUnit.MILLISECONDS, false));
+    super();
     mWorker = worker;
   }
 
@@ -97,10 +85,6 @@ public final class WebInterfaceWorkerMetricsServlet extends HttpServlet {
     request.setAttribute("workerCapacityUsedPercentage", workerCapacityUsedPercentage);
     request.setAttribute("workerCapacityFreePercentage", 100 - workerCapacityUsedPercentage);
 
-    request.setAttribute("historyEnabled", mr.isHistoryEnabled());
-
-    request.setAttribute("csvPath", mr.getCsvPath());
-
     Map<String,Counter> counters = mr.getCounters(new MetricFilter() {
       @Override
       public boolean matches(String name, Metric metric) {
@@ -112,20 +96,6 @@ public final class WebInterfaceWorkerMetricsServlet extends HttpServlet {
     operations.putAll(counters);
     operations.put("worker.BlocksCached", mr.getGauges().get("worker.BlocksCached"));
 
-    CSVFormat csvFileFormat = CSVFormat.DEFAULT.withRecordSeparator("\n");
-
-    Map<String,Map<String,String>> countersHistorycal = new HashMap<String, Map<String,String>>();
-
-    for (String k : operations.keySet()) {
-      Map<String,String> values = new HashMap<String, String>();
-      String fileName = mr.getCsvPath() + "/" + k + ".csv";
-      CSVParser csvFileParser = new CSVParser(new FileReader(fileName), csvFileFormat);
-      for (CSVRecord r : csvFileParser.getRecords()) {
-        values.put(r.get(0), r.get(1));
-      }
-      countersHistorycal.put(k, values);
-    }
-
-    request.setAttribute("operationMetrics", mObjectMapper.writeValueAsString(countersHistorycal));
+    populateCountersValues(mr,operations,request);
   }
 }
