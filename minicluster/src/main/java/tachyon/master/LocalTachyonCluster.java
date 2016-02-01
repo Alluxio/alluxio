@@ -22,6 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.file.FileSystem;
+import tachyon.client.util.ClientTestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.wire.WorkerNetAddress;
@@ -46,7 +47,6 @@ import tachyon.worker.WorkerContext;
 @NotThreadSafe
 public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   private LocalTachyonMaster mMaster;
-  private TachyonConf mClientConf;
 
   /**
    * @param workerCapacityBytes the capacity of the worker in bytes
@@ -128,8 +128,8 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
 
     // We need to update client context with the most recent configuration so they know the correct
     // port to connect to master.
-    mClientConf = new TachyonConf(testConf.getInternalProperties());
-    ClientContext.reset(mClientConf);
+    ClientContext.getConf().merge(testConf);
+    ClientTestUtils.reinitializeClientContext();
   }
 
   @Override
@@ -146,7 +146,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   protected void resetContext() {
     MasterContext.reset();
     WorkerContext.reset();
-    ClientContext.reset();
+    ClientTestUtils.resetClientContext();
   }
 
   @Override

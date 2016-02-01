@@ -83,7 +83,6 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
   private Statistics mStatistics = null;
   private FileSystem mFileSystem = null;
   private String mTachyonHeader = null;
-  private final TachyonConf mTachyonConf = ClientContext.getConf();
 
   @Override
   public FSDataOutputStream append(Path cPath, int bufferSize, Progressable progress)
@@ -238,7 +237,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public long getDefaultBlockSize() {
-    return mTachyonConf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return ClientContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -424,13 +423,14 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
 
     // Load TachyonConf if any and merge to the one in TachyonFS
     TachyonConf siteConf = ConfUtils.loadFromHadoopConfiguration(conf);
+    // These modifications to ClientContext are global, affecting every Tachyon client in this JVM.
+    // We assume here that this client is the only client.
     if (siteConf != null) {
-      mTachyonConf.merge(siteConf);
+      ClientContext.getConf().merge(siteConf);
     }
-    mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
-    mTachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
-    ClientContext.reset(mTachyonConf);
+    ClientContext.getConf().set(Constants.MASTER_HOSTNAME, uri.getHost());
+    ClientContext.getConf().set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+    ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
 
     mFileSystem = FileSystem.Factory.get();
     mUri = URI.create(mTachyonHeader);

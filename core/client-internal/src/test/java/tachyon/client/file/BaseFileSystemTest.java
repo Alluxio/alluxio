@@ -69,7 +69,6 @@ public final class BaseFileSystemTest {
    */
   @Before
   public void before() {
-    ClientContext.reset();
     mFileSystem = new DummyTachyonFileSystem();
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     Whitebox.setInternalState(mFileSystem, "mContext", mFileContext);

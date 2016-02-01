@@ -43,7 +43,7 @@ public class TFSRenameIntegrationTest {
   private static final int BLOCK_SIZE = 1024;
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(100000000, 100000, BLOCK_SIZE);
+      new LocalTachyonClusterResource(100000000, BLOCK_SIZE);
   private static String sUfsRoot;
   private static UnderFileSystem sUfs;
   private static FileSystem sTFS;

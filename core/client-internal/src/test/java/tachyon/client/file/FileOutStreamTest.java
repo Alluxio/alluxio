@@ -38,7 +38,6 @@ import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.client.block.BlockStoreContext;
@@ -160,12 +159,9 @@ public class FileOutStreamTest {
     mTestStream = createTestStream(FILE_NAME, options);
   }
 
-  /**
-   * Resets the context after a test ran.
-   */
   @After
   public void after() {
-    ClientContext.reset();
+    ClientTestUtils.resetClientContext();
   }
 
   /**

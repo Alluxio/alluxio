@@ -57,7 +57,7 @@ public abstract class AbstractTfsShellTest {
   protected static final int SIZE_BYTES = Constants.MB * 10;
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(SIZE_BYTES, 1000, Constants.MB,
+      new LocalTachyonClusterResource(SIZE_BYTES, Constants.MB,
           Constants.MASTER_TTLCHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE),
           Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
           Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());

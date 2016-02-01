@@ -7,7 +7,7 @@ priority: 3
 ---
 
 Fault Tolerance in Tachyon is based upon a multi-master approach where multiple master processes
-are run. One of these processes is elected the leader and is used by all workers and clients as the
+are running. One of these processes is elected the leader and is used by all workers and clients as the
 primary point of contact. The other masters act as standbys using the shared journal to ensure that
 they maintain the same file system metadata as a new leader and can rapidly take over in the event
 of the leader failing.
@@ -75,20 +75,13 @@ Tachyon masters, workers, and clients. In `conf/tachyon-env.sh`, these java opti
 
 <table class="table">
 <tr><th>Property Name</th><th>Value</th><th>Meaning</th></tr>
+{% for item in site.data.table.java-options-for-fault-tolerance %}
 <tr>
-  <td>tachyon.zookeeper.enabled</td>
-  <td>true</td>
-  <td>
-     If true, masters will use ZooKeeper to enable fault tolerance.
-  </td>
+  <td>{{item.PropertyName}}</td>
+  <td>{{item.Value}}</td>
+  <td>{{site.data.table.en.java-options-for-fault-tolerance.[item.PropertyName]}}</td>
 </tr>
-<tr>
-  <td>tachyon.zookeeper.address</td>
-  <td>[zookeeper_hostname]:2181</td>
-  <td>
-    The hostname and port ZooKeeper is running on. Separate multiple addresses with commas.
-  </td>
-</tr>
+{% endfor %}
 </table>
 
 To set these options, you can configure your `TACHYON_JAVA_OPTS` to include:

@@ -271,7 +271,7 @@ public class FileSystemMasterIntegrationTest {
 
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(1000, 1000, Constants.GB,
+      new LocalTachyonClusterResource(1000, Constants.GB,
           Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
   private TachyonConf mMasterTachyonConf;
   private FileSystemMaster mFsMaster;

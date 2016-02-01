@@ -32,6 +32,7 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.FileSystemUtils;
 import tachyon.client.file.options.CreateFileOptions;
+import tachyon.client.util.ClientTestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.util.CommonUtils;
@@ -45,7 +46,7 @@ public class FileSystemUtilsIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.MB,
+      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
           Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
   private static CreateFileOptions sWriteBoth;
   private static FileSystem sFileSystem = null;
@@ -144,17 +145,19 @@ public class FileSystemUtilsIntegrationTest {
       @Override
       public void run() {
         try {
-          final TachyonConf conf = ClientContext.getConf();
           // set the slow default polling period to a more sensible value, in order
           // to speed up the tests artificial waiting times
-          conf.set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
-          // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
-          boolean completed = FileSystemUtils.waitCompleted(sFileSystem, uri, 300,
-              TimeUnit.MILLISECONDS);
-          Assert.assertFalse(completed);
-          completed = sFileSystem.getStatus(uri).isCompleted();
-          Assert.assertFalse(completed);
-          ClientContext.reset();
+          ClientContext.getConf().set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
+          try {
+            // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
+            boolean completed = FileSystemUtils.waitCompleted(sFileSystem, uri, 300,
+                TimeUnit.MILLISECONDS);
+            Assert.assertFalse(completed);
+            completed = sFileSystem.getStatus(uri).isCompleted();
+            Assert.assertFalse(completed);
+          } finally {
+            ClientTestUtils.resetClientContext();
+          }
         } catch (Exception e) {
           e.printStackTrace();
           Assert.fail(e.getMessage());

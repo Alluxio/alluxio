@@ -40,7 +40,7 @@ public class TFSBlockLocationIntegrationTest {
   private static final int FILE_LEN = BLOCK_SIZE * 3;
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE);
+      new LocalTachyonClusterResource(Constants.GB, BLOCK_SIZE);
   private static org.apache.hadoop.fs.FileSystem sTFS;
 
   @BeforeClass

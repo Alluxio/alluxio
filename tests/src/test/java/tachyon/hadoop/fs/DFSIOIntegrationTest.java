@@ -113,7 +113,7 @@ public class DFSIOIntegrationTest implements Tool {
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(500000, 100000, BLOCK_SIZE);
+      new LocalTachyonClusterResource(500000, BLOCK_SIZE);
   private static URI sLocalTachyonClusterUri = null;
 
   static {

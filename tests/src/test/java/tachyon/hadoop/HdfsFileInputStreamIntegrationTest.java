@@ -52,7 +52,7 @@ public class HdfsFileInputStreamIntegrationTest {
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES, Constants.MB);
+      new LocalTachyonClusterResource(WORKER_CAPACITY, Constants.MB);
   private static FileSystem sFileSystem = null;
   private HdfsFileInputStream mInMemInputStream;
   private HdfsFileInputStream mUfsInputStream;

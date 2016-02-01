@@ -61,7 +61,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.MB,
+      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
   private BlockWorkerClientServiceHandler mBlockWorkerServiceHandler = null;
   private FileSystem mFileSystem = null;

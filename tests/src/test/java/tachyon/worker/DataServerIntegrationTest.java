@@ -91,7 +91,7 @@ public class DataServerIntegrationTest {
     mBlockReader = blockReader;
 
     mLocalTachyonClusterResource = new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES,
-        USER_QUOTA_UNIT_BYTES, Constants.MB, Constants.WORKER_DATA_SERVER, mDataServerClass,
+        Constants.MB, Constants.WORKER_DATA_SERVER, mDataServerClass,
         Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType,
         Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100), Constants.USER_BLOCK_REMOTE_READER,
         mBlockReader);

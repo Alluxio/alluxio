@@ -42,7 +42,7 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 public class ServiceSocketBindIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(100, 100, Constants.GB, false);
+      new LocalTachyonClusterResource(100, Constants.GB, false);
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonConf mWorkerTachyonConf = null;
   private TachyonConf mMasterTachyonConf = null;
