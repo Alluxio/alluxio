@@ -123,7 +123,7 @@ group: Resources
 
     View > Tool Windows > Maven Projects
 
-### Presentations
+### 幻灯片介绍
 
 -   AMPCamp 6 (November, 2015)
 [SlideShare](http://www.slideshare.net/TachyonNexus/tachyon-presentation-at-ampcamp-6-november-2015)
@@ -135,7 +135,7 @@ group: Resources
 -   Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
 -   Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
 
-### Readings
+### 延伸阅读
 
 -   [Tachyon: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_tachyon.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *SOCC 2014*.
