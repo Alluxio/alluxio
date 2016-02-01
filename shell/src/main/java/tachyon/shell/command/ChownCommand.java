@@ -19,6 +19,10 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -50,19 +54,35 @@ public final class ChownCommand extends AbstractAclCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  protected Options getOptions() {
+    Options opts = new Options();
+    // Add R option for recursively.
+    Option recursive = Option.builder("R")
+        .required(false)
+        .hasArg(false)
+        .desc("recusively")
+        .build();
+
+    opts.addOption(recursive);
+    return opts;
+  }
+
+  @Override
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     String owner = args[0];
     TachyonURI path = new TachyonURI(args[1]);
-    chown(path, owner, false);
+    chown(path, owner, cl.hasOption("R"));
   }
 
   @Override
   public String getUsage() {
-    return "chown <owner> <path>";
+    return "chown -R <owner> <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Changes the owner of a file or directory specified by args.";
+    return "Changes the owner of a file or directory specified by args. "
+        + " Specify -R to change the owner recursively.";
   }
 }

@@ -17,6 +17,12 @@ package tachyon.shell.command;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
@@ -36,19 +42,53 @@ public abstract class AbstractTfsShellCommand implements TfsShellCommand {
   }
 
   /**
-   * Gets the expected number of arguments of the command.
+   * Checks if the arguments are valid.
    *
-   * @return the number of arguments
+   * @param args the arguments for the command, excluding the command name and options
+   * @return whether the args are valid
    */
-  abstract int getNumOfArgs();
-
-  @Override
-  public boolean validateArgs(String... args) {
+  protected boolean validateArgs(String... args) {
     boolean valid = args.length == getNumOfArgs();
     if (!valid) {
       System.out.println(getCommandName() + " takes " + getNumOfArgs() + " arguments, " + " not "
           + args.length + "\n");
     }
     return valid;
+  }
+
+  /**
+   * Gets the expected number of arguments of the command.
+   *
+   * @return the number of arguments
+   */
+  abstract int getNumOfArgs();
+
+  /**
+   * Gets the supported Options of the command.
+   *
+   * @return the Options
+   */
+  protected Options getOptions() {
+    return new Options();
+  }
+
+  @Override
+  public CommandLine parseAndValidateArgs(String... args) {
+    Options opts = getOptions();
+    CommandLineParser parser = new DefaultParser();
+    CommandLine cmd;
+
+    try {
+      cmd = parser.parse(opts, args, true /* stopAtNonOption */);
+    } catch (ParseException e) {
+      // TODO(ifcharming): improve the error message when an unregistered option appears
+      System.err.println("Unable to parse input args: " + e.getMessage());
+      return null;
+    }
+
+    if (!validateArgs(cmd.getArgs())) {
+      return null;
+    }
+    return cmd;
   }
 }
