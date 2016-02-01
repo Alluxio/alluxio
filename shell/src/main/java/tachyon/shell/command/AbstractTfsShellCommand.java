@@ -20,7 +20,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -64,21 +63,21 @@ public abstract class AbstractTfsShellCommand implements TfsShellCommand {
    */
   abstract int getNumOfArgs();
 
+  /**
+   * Gets the supported Options of the command.
+   *
+   * @return the Options
+   */
+  protected Options getOptions() {
+    return new Options();
+  }
+
   @Override
   public CommandLine parseAndValidateArgs(String... args) {
-    Options opts = new Options();
-    // Add R option for recursively.
-    // TODO(ifcharming): extend more options as needed.
-    Option recursive = Option.builder("R")
-        .required(false)
-        .hasArg(false)
-        .desc("recusively")
-        .build();
-
-    opts.addOption(recursive);
-
+    Options opts = getOptions();
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd;
+
     try {
       cmd = parser.parse(opts, args, true /* stopAtNonOption */);
     } catch (ParseException e) {

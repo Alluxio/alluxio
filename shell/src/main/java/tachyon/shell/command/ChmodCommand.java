@@ -20,6 +20,8 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
@@ -49,6 +51,20 @@ public final class ChmodCommand extends AbstractAclCommand {
   @Override
   protected int getNumOfArgs() {
     return 2;
+  }
+
+  @Override
+  protected Options getOptions() {
+    Options opts = new Options();
+    // Add R option for recursively.
+    Option recursive = Option.builder("R")
+        .required(false)
+        .hasArg(false)
+        .desc("recusively")
+        .build();
+
+    opts.addOption(recursive);
+    return opts;
   }
 
   @Override
