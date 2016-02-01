@@ -4,3 +4,7 @@
 	width:100%;
 	height:50%;
 }
+
+.table-centered th {
+   text-align: center;   
+}
