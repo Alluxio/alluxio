@@ -43,6 +43,11 @@ public class ChownCommandTest extends AbstractTfsShellTest {
     Assert.assertEquals("user2", owner);
   }
 
+  /**
+   * Test -R option for chown recursively.
+   *
+   * @throws Exception
+   */
   @Test
   public void chownRecursiveTest() throws IOException, TachyonException {
     clearLoginUser();

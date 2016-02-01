@@ -42,6 +42,11 @@ public class ChgrpCommandTest extends AbstractTfsShellTest {
     Assert.assertEquals("group2", group);
   }
 
+  /**
+   * Test -R option for chgrp recursively.
+   *
+   * @throws Exception
+   */
   @Test
   public void chgrpRecursiveTest() throws IOException, TachyonException {
     clearLoginUser();
