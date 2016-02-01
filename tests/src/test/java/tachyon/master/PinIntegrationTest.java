@@ -41,7 +41,7 @@ import tachyon.worker.file.FileSystemMasterClient;
 public class PinIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(1000, 1000, Constants.GB);
+      new LocalTachyonClusterResource(1000, Constants.GB);
   private FileSystem mFileSystem = null;
   private FileSystemMasterClient mFSMasterClient;
   private SetAttributeOptions mSetPinned;

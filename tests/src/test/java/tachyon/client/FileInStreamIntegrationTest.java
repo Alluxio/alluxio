@@ -49,7 +49,7 @@ public class FileInStreamIntegrationTest {
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE);
+      new LocalTachyonClusterResource(Constants.GB, BLOCK_SIZE);
   private static FileSystem sFileSystem = null;
   private static TachyonConf sTachyonConf;
   private static CreateFileOptions sWriteBoth;

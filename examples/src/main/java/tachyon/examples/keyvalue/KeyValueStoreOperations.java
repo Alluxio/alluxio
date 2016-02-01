@@ -64,7 +64,6 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
     TachyonConf tachyonConf = ClientContext.getConf();
     tachyonConf.set(Constants.KEY_VALUE_ENABLED, String.valueOf(true));
     tachyonConf.set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(mPartitionLength));
-    ClientContext.reset(tachyonConf);
 
     KeyValueStores kvStores = KeyValueStores.Factory.create();
 

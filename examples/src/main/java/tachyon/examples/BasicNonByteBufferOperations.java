@@ -30,7 +30,6 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.OpenFileOptions;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.TachyonException;
 
@@ -75,10 +74,9 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    TachyonConf tachyonConf = ClientContext.getConf();
-    tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
-    tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
-    ClientContext.reset(tachyonConf);
+    ClientContext.getConf().set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
+    ClientContext.getConf().set(Constants.MASTER_RPC_PORT,
+        Integer.toString(mMasterLocation.getPort()));
     FileSystem tachyonClient = FileSystem.Factory.get();
     write(tachyonClient);
     return read(tachyonClient);
