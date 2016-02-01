@@ -19,7 +19,7 @@ Tachyon的容错通过多master实现。同一时刻，有多个master进程运�
 
 Tachyon使用Zookeeper实现容错和leader选举，可以保证在任何时间最多只有一个leader。
 
-Tachyon使用共享底层文件系统存放日志。共享文件系统必须可以被所有master访问，可以选择[HDFS](Configuring-Tachyon-with-HDFS.html), [Amazon S3](Configuring-Tachyon-with-S3.html)或[GlusterFS](Configuring-Tachyon-with-GlusterFS.html)作为共享文件系统。leader master将日志写到共享文件系统，其它(备用) master持续地重播日志条目与leader最新的状态保持一致。
+Tachyon使用共享底层文件系统存放日志。共享文件系统必须可以被所有master访问，可以选择[HDFS](Configuring-Tachyon-with-HDFS.html), [Amazon S3](Configuring-Tachyon-with-S3.html)或[GlusterFS](Configuring-Tachyon-with-GlusterFS.html)作为共享文件系统。leader master将日志写到共享文件系统，其它(备用) master持续地重播日志条目与leader的最新状态保持一致。
 
 ### ZooKeeper
 
