@@ -5,6 +5,18 @@
 	height:50%;
 }
 
+.table-header-centered th {
+   text-align: center;   
+}
+
 .table-centered th {
    text-align: center;   
+}
+
+.table-centered td {
+   text-align: center;   
+}
+
+.huge{
+	font-size: 45px;
 }

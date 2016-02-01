@@ -63,9 +63,13 @@
     </div>        
     
     <div class="row-fluid">
-      <jsp:include page="metrics-history.jsp">
-        <jsp:param value="${operationMetrics}" name="operationMetrics" />
-      </jsp:include>    
+      <% if ((Boolean)request.getAttribute("historyEnabled")) { %>
+        <jsp:include page="metrics-history.jsp">
+          <jsp:param value="${operationMetrics}" name="operationMetrics" />
+        </jsp:include>
+      <% } else { %>
+        <jsp:include page="metrics-summary.jsp" />
+      <% } %>
     </div>
   <%@ include file="../footer.jsp" %>
 </div>

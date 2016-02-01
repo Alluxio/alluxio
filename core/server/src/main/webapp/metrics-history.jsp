@@ -16,7 +16,7 @@
     <div id="data4" class="accordion-body collapse in">
       <div class="accordion-inner">
 
-        <table class="table table-condensed table-centered">
+        <table class="table table-condensed table-header-centered">
           <thead>
             <th></th>
             <th></th>
