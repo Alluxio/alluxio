@@ -76,8 +76,7 @@
           
         </div>
       </div>
-    </div>
-    <div class="row-fluid">
+    </div>    
       <% if ((Boolean)request.getAttribute("historyEnabled")) { %>
         <jsp:include page="metrics-history.jsp">
           <jsp:param value="${operationMetrics}" name="operationMetrics" />

@@ -85,12 +85,7 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("workerCapacityUsedPercentage", workerCapacityUsedPercentage);
     request.setAttribute("workerCapacityFreePercentage", 100 - workerCapacityUsedPercentage);
 
-    Map<String,Counter> counters = mr.getCounters(new MetricFilter() {
-      @Override
-      public boolean matches(String name, Metric metric) {
-        return !name.endsWith("Ops");
-      }
-    });
+    Map<String,Counter> counters = mr.getCounters(MetricFilter.ALL);
 
     Map<String,Metric> operations = new TreeMap<String, Metric>();
     operations.putAll(counters);

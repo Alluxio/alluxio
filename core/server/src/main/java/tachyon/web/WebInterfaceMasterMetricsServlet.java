@@ -100,12 +100,7 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("masterUnderfsCapacityFreePercentage",
         100 - masterUnderfsCapacityUsedPercentage);
 
-    Map<String,Counter> counters = mr.getCounters(new MetricFilter() {
-      @Override
-      public boolean matches(String name, Metric metric) {
-        return !name.endsWith("Ops");
-      }
-    });
+    Map<String,Counter> counters = mr.getCounters(MetricFilter.ALL);
 
     Map<String,Metric> operations = new TreeMap<String, Metric>();
     operations.putAll(counters);
