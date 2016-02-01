@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Contributing to Tachyon
-nickname: Contributor Guide
+title: 参与Tachyon开发
+nickname: 开发者向导
 group: Resources
 ---
 
@@ -12,7 +12,7 @@ group: Resources
 
 ### Tachyon初始任务
 
-新的贡献者可以先进行以下列出的任务，从而能够更加熟悉Tachyon：
+新的开发者可以先进行以下列出的任务，从而能够更加熟悉Tachyon：
 
 1.  [在本地运行Tachyon](Running-Tachyon-Locally.html)
 
@@ -24,7 +24,7 @@ group: Resources
 
 5.  [构建Tachyon主分支](Building-Tachyon-Master-Branch.html)
 
-6.  Fork Tachyon Github仓库，并添加一两个单元测试或者javadoc文件，再提交一个pull request。也欢迎你处理我们的[JIRA](https://tachyon.atlassian.net/browse/TACHYON)中的issues。这里是专门为新的贡献者准备的一些[任务](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)，每个新贡献者最多只能做其中的两个任务，在这之后，尝试去做一些Beginner/Intermediate任务，或者在[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)里询问。可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行基本Github操作。
+6.  Fork Tachyon Github仓库，并添加一两个单元测试或者javadoc文件，再提交一个pull request。也欢迎你处理我们的[JIRA](https://tachyon.atlassian.net/browse/TACHYON)中的issues。这里是专门为新的开发者准备的一些[任务](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)，每个新开发者最多只能做其中的两个任务，在这之后，尝试去做一些Beginner/Intermediate任务，或者在[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)里询问。可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行基本Github操作。
 
 ### 提交代码
 
