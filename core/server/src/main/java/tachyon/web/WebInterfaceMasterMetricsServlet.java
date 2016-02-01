@@ -15,27 +15,18 @@
 
 package tachyon.web;
 
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
-import com.codahale.metrics.json.MetricsModule;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 
 import tachyon.master.TachyonMaster;
 import tachyon.metrics.TachyonMetricRegistry;
@@ -43,11 +34,11 @@ import tachyon.metrics.TachyonMetricRegistry;
 /**
  * Servlet that provides data for viewing the metrics values
  */
-public final class WebInterfaceMasterMetricsServlet extends HttpServlet {
+@ThreadSafe
+public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstractMetricsServlet {
 
   private static final long serialVersionUID = -1481253168100363787L;
   private final transient TachyonMaster mMaster;
-  private ObjectMapper mObjectMapper;
 
   /**
    * Creates a new instance of {@link WebInterfaceMasterMetricsServlet}.
@@ -55,8 +46,7 @@ public final class WebInterfaceMasterMetricsServlet extends HttpServlet {
    * @param master Tachyon master
    */
   public WebInterfaceMasterMetricsServlet(TachyonMaster master) {
-    mObjectMapper = new ObjectMapper().registerModule(new MetricsModule(TimeUnit.SECONDS,
-            TimeUnit.MILLISECONDS, false));
+    super();
     mMaster = master;
   }
 
@@ -110,10 +100,6 @@ public final class WebInterfaceMasterMetricsServlet extends HttpServlet {
     request.setAttribute("masterUnderfsCapacityFreePercentage",
         100 - masterUnderfsCapacityUsedPercentage);
 
-    request.setAttribute("historyEnabled", mr.isHistoryEnabled());
-
-    request.setAttribute("csvPath", mr.getCsvPath());
-
     Map<String,Counter> counters = mr.getCounters(new MetricFilter() {
       @Override
       public boolean matches(String name, Metric metric) {
@@ -125,20 +111,6 @@ public final class WebInterfaceMasterMetricsServlet extends HttpServlet {
     operations.putAll(counters);
     operations.put("master.FilesPinned", mr.getGauges().get("master.FilesPinned"));
 
-    CSVFormat csvFileFormat = CSVFormat.DEFAULT.withRecordSeparator("\n");
-
-    Map<String,Map<String,String>> countersHistorycal = new HashMap<String, Map<String,String>>();
-
-    for (String k : operations.keySet()) {
-      Map<String,String> values = new HashMap<String, String>();
-      String fileName = mr.getCsvPath() + "/" + k + ".csv";
-      CSVParser csvFileParser = new CSVParser(new FileReader(fileName), csvFileFormat);
-      for (CSVRecord r : csvFileParser.getRecords()) {
-        values.put(r.get(0), r.get(1));
-      }
-      countersHistorycal.put(k, values);
-    }
-
-    request.setAttribute("operationMetrics", mObjectMapper.writeValueAsString(countersHistorycal));
+    populateCountersValues(mr,operations,request);
   }
 }
