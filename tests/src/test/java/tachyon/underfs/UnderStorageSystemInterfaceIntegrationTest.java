@@ -30,7 +30,7 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.PathUtils;
 
-public class UnderStorageSystemInterfaceIntegrationTest {
+public final class UnderStorageSystemInterfaceIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
 
   @Rule
