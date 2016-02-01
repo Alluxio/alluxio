@@ -61,15 +61,13 @@ public class UnderFileSystemClusterTest {
     // execute test
     UnderFileSystemCluster.get(BASE_DIR, TACHYON_CONF);
 
-    UnderFileSystemCluster sUnderFSCluster = Whitebox.getInternalState(UnderFileSystemCluster
+    UnderFileSystemCluster underFSCluster = Whitebox.getInternalState(UnderFileSystemCluster
         .class, "sUnderFSCluster");
 
-    Assert.assertNotNull(sUnderFSCluster);
+    Assert.assertSame(mUnderFileSystemCluster, underFSCluster);
 
-    Assert.assertEquals(mUnderFileSystemCluster, sUnderFSCluster);
-
-    Mockito.verify(sUnderFSCluster).start();
-    Mockito.verify(sUnderFSCluster).registerJVMOnExistHook();
+    Mockito.verify(underFSCluster).start();
+    Mockito.verify(underFSCluster).registerJVMOnExistHook();
   }
 
   /**
@@ -80,18 +78,17 @@ public class UnderFileSystemClusterTest {
   public void readEOFReturnsNegativeTest() {
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
             (String) null);
-    boolean resultFalg = UnderFileSystemCluster.readEOFReturnsNegative();
-    Assert.assertFalse(resultFalg);
+    boolean resultFlag = UnderFileSystemCluster.readEOFReturnsNegative();
+    Assert.assertFalse(resultFlag);
 
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
         "XXXX");
-    resultFalg = UnderFileSystemCluster.readEOFReturnsNegative();
-    Assert.assertFalse(resultFalg);
+    resultFlag = UnderFileSystemCluster.readEOFReturnsNegative();
+    Assert.assertFalse(resultFlag);
 
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
         "tachyon.underfs.hdfs.LocalMiniDFSCluster");
-    resultFalg = UnderFileSystemCluster.readEOFReturnsNegative();
-    Assert.assertTrue(resultFalg);
+    resultFlag = UnderFileSystemCluster.readEOFReturnsNegative();
+    Assert.assertTrue(resultFlag);
   }
-
 }
