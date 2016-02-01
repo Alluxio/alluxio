@@ -66,10 +66,10 @@ public abstract class AbstractTfsShellCommand implements TfsShellCommand {
 
   @Override
   public CommandLine parseAndValidateArgs(String... args) {
-    final Options opts = new Options();
+    Options opts = new Options();
     // Add R option for recursively.
     // TODO(ifcharming): extend more options as needed.
-    final Option recursive = Option.builder("R")
+    Option recursive = Option.builder("R")
         .required(false)
         .hasArg(false)
         .desc("recusively")
@@ -77,11 +77,12 @@ public abstract class AbstractTfsShellCommand implements TfsShellCommand {
 
     opts.addOption(recursive);
 
-    final CommandLineParser parser = new DefaultParser();
+    CommandLineParser parser = new DefaultParser();
     CommandLine cmd;
     try {
       cmd = parser.parse(opts, args, true /* stopAtNonOption */);
     } catch (ParseException e) {
+      // TODO(ifcharming): improve the error message when an unregistered option appears
       System.err.println("Unable to parse input args: " + e.getMessage());
       return null;
     }

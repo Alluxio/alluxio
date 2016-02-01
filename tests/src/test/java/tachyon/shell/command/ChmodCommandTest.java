@@ -30,7 +30,6 @@ import tachyon.shell.AbstractTfsShellTest;
  * Tests for chmod command.
  */
 public class ChmodCommandTest extends AbstractTfsShellTest {
-
   @Test
   public void chmodTest() throws IOException, TachyonException {
     clearLoginUser();
@@ -56,5 +55,4 @@ public class ChmodCommandTest extends AbstractTfsShellTest {
     permission = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getPermission();
     Assert.assertEquals((short) 0755, permission);
   }
-
 }
