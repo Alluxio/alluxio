@@ -17,25 +17,31 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.ReadType;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
+import tachyon.client.file.options.OpenFileOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 
 /**
  * Prints the file's last 1KB of contents to the console.
  */
+@ThreadSafe
 public final class TailCommand extends WithWildCardPathCommand {
 
-  public TailCommand(TachyonConf conf, TachyonFileSystem tfs) {
-    super(conf, tfs);
+  /**
+   * @param conf the configuration for Tachyon
+   * @param fs the filesystem of Tachyon
+   */
+  public TailCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -45,29 +51,26 @@ public final class TailCommand extends WithWildCardPathCommand {
 
   @Override
   void runCommand(TachyonURI path) throws IOException {
-    TachyonFile fd;
-    FileInfo fInfo;
+    URIStatus status;
     try {
-      fd = mTfs.open(path);
-      fInfo = mTfs.getInfo(fd);
+      status = mFileSystem.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
 
-    if (!fInfo.isFolder) {
-      InStreamOptions op = new InStreamOptions.Builder(mTachyonConf)
-          .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
+    if (!status.isFolder()) {
+      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream is = null;
       try {
-        is = mTfs.getInStream(fd, op);
+        is = mFileSystem.openFile(path, options);
         byte[] buf = new byte[Constants.KB];
         long bytesToRead = 0L;
-        if (fInfo.getLength() > Constants.KB) {
+        if (status.getLength() > Constants.KB) {
           bytesToRead = Constants.KB;
         } else {
-          bytesToRead = fInfo.getLength();
+          bytesToRead = status.getLength();
         }
-        is.skip(fInfo.getLength() - bytesToRead);
+        is.skip(status.getLength() - bytesToRead);
         int read = is.read(buf);
         if (read != -1) {
           System.out.write(buf, 0, read);
@@ -80,5 +83,15 @@ public final class TailCommand extends WithWildCardPathCommand {
     } else {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
     }
+  }
+
+  @Override
+  public String getUsage() {
+    return "tail <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Prints the file's last 1KB of contents to the console.";
   }
 }

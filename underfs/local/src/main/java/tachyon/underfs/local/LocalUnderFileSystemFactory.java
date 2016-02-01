@@ -15,6 +15,8 @@
 
 package tachyon.underfs.local;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
@@ -23,8 +25,9 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
 
 /**
- * Factory for {@link LocalUnderFileSystem} instances
+ * Factory for creating {@link LocalUnderFileSystem}.
  */
+@ThreadSafe
 public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
@@ -38,6 +41,8 @@ public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
     if (path == null) {
       return false;
     }
-    return path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://");
+    return path.startsWith(TachyonURI.SEPARATOR)
+        || path.startsWith("file://")
+        || TachyonURI.hasWindowsDrive(path, false);
   }
 }

@@ -27,17 +27,31 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-common</artifactId>
+      <artifactId>tachyon-core-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-client-unshaded</artifactId>
+      <artifactId>tachyon-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-servers</artifactId>
+      <artifactId>tachyon-core-server</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Other projects' test-jars -->
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-core-client-internal</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-core-server</artifactId>
+      <type>test-jar</type>
       <version>${project.version}</version>
     </dependency>
     <!-- Test Dependencies -->

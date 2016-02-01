@@ -15,11 +15,18 @@
 
 package tachyon.underfs.hdfs;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.hadoop.conf.Configuration;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystem;
 
+/**
+ * Utility methods for the HDFS implementation of the {@link UnderFileSystem}.
+ */
+@ThreadSafe
 public class HdfsUnderFileSystemUtils {
   /**
    * Replaces default key with user provided key.
@@ -37,8 +44,8 @@ public class HdfsUnderFileSystemUtils {
   }
 
   /**
-   * Adds S3 keys to the given Hadoop Configuration object if the user has specified them using
-   * System properties, and they're not already set.
+   * Adds S3 keys to the given {@code conf} object if the user has specified them using system
+   * properties, and they're not already set.
    *
    * @param conf the Hadoop configuration
    */

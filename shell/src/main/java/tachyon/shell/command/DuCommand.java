@@ -18,20 +18,26 @@ package tachyon.shell.command;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 
 /**
  * Displays the size of a file or a directory specified by argv.
  */
+@ThreadSafe
 public final class DuCommand extends WithWildCardPathCommand {
 
-  public DuCommand(TachyonConf conf, TachyonFileSystem tfs) {
-    super(conf, tfs);
+  /**
+   * @param conf the configuration for Tachyon
+   * @param fs the filesystem of Tachyon
+   */
+  public DuCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -41,36 +47,45 @@ public final class DuCommand extends WithWildCardPathCommand {
 
   @Override
   void runCommand(TachyonURI path) throws IOException {
-    long sizeInBytes = getFileOrFolderSize(mTfs, path);
+    long sizeInBytes = getFileOrFolderSize(mFileSystem, path);
     System.out.println(path + " is " + sizeInBytes + " bytes");
   }
 
   /**
    * Calculates the size of a path (file or folder) specified by a {@link TachyonURI}.
    *
-   * @param tachyonFS A {@link TachyonFileSystem}
+   * @param tachyonFS A {@link FileSystem}
    * @param path A {@link TachyonURI} denoting the path
    * @return total size of the specified path in byte
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
-  private long getFileOrFolderSize(TachyonFileSystem tachyonFS, TachyonURI path)
+  private long getFileOrFolderSize(FileSystem tachyonFS, TachyonURI path)
       throws IOException {
     long sizeInBytes = 0;
-    List<FileInfo> files;
+    List<URIStatus> statuses;
     try {
-      TachyonFile inputFile = tachyonFS.open(path);
-      files = tachyonFS.listStatus(inputFile);
+      statuses = tachyonFS.listStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
-    for (FileInfo file : files) {
-      if (file.isFolder) {
-        TachyonURI subFolder = new TachyonURI(file.getPath());
+    for (URIStatus status : statuses) {
+      if (status.isFolder()) {
+        TachyonURI subFolder = new TachyonURI(status.getPath());
         sizeInBytes += getFileOrFolderSize(tachyonFS, subFolder);
       } else {
-        sizeInBytes += file.getLength();
+        sizeInBytes += status.getLength();
       }
     }
     return sizeInBytes;
+  }
+
+  @Override
+  public String getUsage() {
+    return "du <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Displays the size of the specified file or directory.";
   }
 }

@@ -17,8 +17,10 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -26,10 +28,17 @@ import tachyon.exception.TachyonException;
 /**
  * Loads metadata for the given Tachyon path from UFS.
  */
+@ThreadSafe
 public final class LoadMetadataCommand extends AbstractTfsShellCommand {
 
-  public LoadMetadataCommand(TachyonConf conf, TachyonFileSystem tfs) {
-    super(conf, tfs);
+  /**
+   * Constructs a new instance to load metadata for the given Tachyon path from UFS.
+   *
+   * @param conf the configuration for Tachyon
+   * @param fs the filesystem of Tachyon
+   */
+  public LoadMetadataCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -47,11 +56,20 @@ public final class LoadMetadataCommand extends AbstractTfsShellCommand {
     TachyonURI inputPath = new TachyonURI(args[0]);
 
     try {
-      LoadMetadataOptions recursive =
-          new LoadMetadataOptions.Builder().setRecursive(true).build();
-      mTfs.loadMetadata(inputPath, recursive);
+      LoadMetadataOptions options = LoadMetadataOptions.defaults().setRecursive(true);
+      mFileSystem.loadMetadata(inputPath, options);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
+  }
+
+  @Override
+  public String getUsage() {
+    return "loadMetadata <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Loads metadata for the given Tachyon path from the under file system.";
   }
 }

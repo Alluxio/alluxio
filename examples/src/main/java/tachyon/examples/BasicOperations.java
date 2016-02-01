@@ -31,45 +31,49 @@ import tachyon.client.ReadType;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.InStreamOptions;
-import tachyon.client.file.options.OutStreamOptions;
-import tachyon.conf.TachyonConf;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.options.CreateFileOptions;
+import tachyon.client.file.options.OpenFileOptions;
 import tachyon.exception.TachyonException;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 
+/**
+ * Example to show the basic operations of Tachyon.
+ */
 public class BasicOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final TachyonURI mMasterLocation;
   private final TachyonURI mFilePath;
-  private final InStreamOptions mReadOptions;
-  private final OutStreamOptions mWriteOptions;
+  private final OpenFileOptions mReadOptions;
+  private final CreateFileOptions mWriteOptions;
   private final int mNumbers = 20;
 
+  /**
+   * @param masterLocation the location of the master
+   * @param filePath the path for the files
+   * @param readType the {@link ReadType}
+   * @param writeType the {@link WriteType}
+   */
   public BasicOperations(TachyonURI masterLocation, TachyonURI filePath, ReadType readType,
       WriteType writeType) {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
-    mReadOptions =
-        new InStreamOptions.Builder(ClientContext.getConf()).setReadType(readType).build();
-    mWriteOptions =
-        new OutStreamOptions.Builder(ClientContext.getConf()).setWriteType(writeType).build();
+    mReadOptions = OpenFileOptions.defaults().setReadType(readType);
+    mWriteOptions = CreateFileOptions.defaults().setWriteType(writeType);
   }
 
   @Override
   public Boolean call() throws Exception {
-    TachyonConf tachyonConf = ClientContext.getConf();
-    tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
-    tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
-    ClientContext.reset(tachyonConf);
-    TachyonFileSystem tFS = TachyonFileSystem.TachyonFileSystemFactory.get();
-    writeFile(tFS);
-    return readFile(tFS);
+    ClientContext.getConf().set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
+    ClientContext.getConf().set(Constants.MASTER_RPC_PORT,
+        Integer.toString(mMasterLocation.getPort()));
+    FileSystem fs = FileSystem.Factory.get();
+    writeFile(fs);
+    return readFile(fs);
   }
 
-  private void writeFile(TachyonFileSystem tachyonFileSystem)
+  private void writeFile(FileSystem fileSystem)
     throws IOException, TachyonException {
     ByteBuffer buf = ByteBuffer.allocate(mNumbers * 4);
     buf.order(ByteOrder.nativeOrder());
@@ -78,20 +82,19 @@ public class BasicOperations implements Callable<Boolean> {
     }
     LOG.debug("Writing data...");
     long startTimeMs = CommonUtils.getCurrentMs();
-    FileOutStream os = tachyonFileSystem.getOutStream(mFilePath, mWriteOptions);
+    FileOutStream os = fileSystem.createFile(mFilePath, mWriteOptions);
     os.write(buf.array());
     os.close();
 
     LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "writeFile to file " + mFilePath));
   }
 
-  private boolean readFile(TachyonFileSystem tachyonFileSystem)
+  private boolean readFile(FileSystem fileSystem)
       throws IOException, TachyonException {
     boolean pass = true;
     LOG.debug("Reading data...");
-    TachyonFile file = tachyonFileSystem.open(mFilePath);
     final long startTimeMs = CommonUtils.getCurrentMs();
-    FileInStream is = tachyonFileSystem.getInStream(file, mReadOptions);
+    FileInStream is = fileSystem.openFile(mFilePath, mReadOptions);
     ByteBuffer buf = ByteBuffer.allocate((int) is.remaining());
     is.read(buf.array());
     buf.order(ByteOrder.nativeOrder());
@@ -104,11 +107,19 @@ public class BasicOperations implements Callable<Boolean> {
     return pass;
   }
 
-  public static void main(String[] args) throws IllegalArgumentException {
+  /**
+   * Usage:
+   * {@code java -cp <TACHYON-VERSION> BasicOperations
+   * <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)>
+   * <WriteType (MUST_CACHE | CACHE_THROUGH | THROUGH | ASYNC_THROUGH)>}
+   *
+   * @param args the arguments for this example
+   */
+  public static void main(String[] args) {
     if (args.length != 4) {
       System.out.println("java -cp " + Version.TACHYON_JAR + " " + BasicOperations.class.getName()
           + " <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)> <WriteType (MUST_CACHE | CACHE_THROUGH"
-          + " | THROUGH)>");
+          + " | THROUGH | ASYNC_THROUGH)>");
       System.exit(-1);
     }
 

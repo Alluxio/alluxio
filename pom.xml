@@ -142,13 +142,12 @@
   </properties>
 
   <modules>
-    <module>common</module>
     <module>underfs</module>
-    <module>clients</module>
-    <module>servers</module>
+    <module>core</module>
+    <module>keyvalue</module>
     <module>shell</module>
     <module>examples</module>
-    <module>integration-tests</module>
+    <module>tests</module>
     <module>integration</module>
     <module>assembly</module>
     <module>minicluster</module>
@@ -242,45 +241,9 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>${junit.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-test</artifactId>
         <version>${hadoop.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.mockito</groupId>
-        <artifactId>mockito-all</artifactId>
-        <version>1.10.8</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-api-mockito</artifactId>
-        <version>${powermock.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-core</artifactId>
-        <version>${powermock.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-module-junit4</artifactId>
-        <version>${powermock.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-reflect</artifactId>
-        <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
 
@@ -298,6 +261,46 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <!-- Dependencies to add to all projects. These should all be in the test scope -->
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.10.8</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-core</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-reflect</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
   <build>
     <pluginManagement>
@@ -442,6 +445,8 @@
         <version>2.13</version>
         <configuration>
           <configLocation>${checkstyle.path}tachyon_checks.xml</configLocation>
+          <suppressionsLocation>${checkstyle.path}suppressions.xml</suppressionsLocation>
+          <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
           <excludes>**/org/apache/jsp/**,**/tachyon/thrift/**,**/tachyon/proto/**</excludes>
           <encoding>UTF-8</encoding>
@@ -654,7 +659,7 @@
         <jdk>[1.8,)</jdk> <!-- 1.8 or newer -->
       </activation>
       <modules>
-        <module>fuse</module>
+        <module>integration/fuse</module>
       </modules>
     </profile>
   </profiles>

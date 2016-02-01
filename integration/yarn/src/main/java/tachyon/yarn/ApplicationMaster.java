@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
@@ -54,14 +56,16 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.util.FormatUtils;
+import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.yarn.Utils.YarnContainerType;
+import tachyon.yarn.YarnUtils.YarnContainerType;
 
 /**
  * Actual owner of Tachyon running on Yarn. The YARN ResourceManager will launch this
  * ApplicationMaster on an allocated container. The ApplicationMaster communicates with the YARN
  * cluster, and handles application execution. It performs operations asynchronously.
  */
+@NotThreadSafe
 public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -82,7 +86,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * before running the container's command.
    */
   private static final List<String> LOCAL_RESOURCE_NAMES =
-      Lists.newArrayList(TACHYON_TARBALL, Utils.TACHYON_SETUP_SCRIPT);
+      Lists.newArrayList(TACHYON_TARBALL, YarnUtils.TACHYON_SETUP_SCRIPT);
   /** Container request priorities are intra-application */
   private static final Priority MASTER_PRIORITY = Priority.newInstance(0);
   /**
@@ -100,13 +104,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private final int mRamdiskMemInMB;
   private final int mNumWorkers;
   private final String mMasterAddress;
-  private final boolean mOneWorkerPerHost;
+  private final int mMaxWorkersPerHost;
   private final String mResourcePath;
 
   /** Set of hostnames for launched workers. The implementation must be thread safe */
   private final Multiset<String> mWorkerHosts;
   private final YarnConfiguration mYarnConf = new YarnConfiguration();
-  private final TachyonConf mTachyonConf = new TachyonConf();
   /** The count starts at 1, then becomes 0 when we allocate a container for the Tachyon master */
   private final CountDownLatch mMasterContainerAllocatedLatch;
   /** The count starts at 1, then becomes 0 when the application is done */
@@ -127,18 +130,36 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    */
   private CountDownLatch mOutstandingWorkerContainerRequestsLatch = null;
 
+  /**
+   * Convenience constructor which uses the default Tachyon configuration.
+   *
+   * @param numWorkers the number of workers to launch
+   * @param masterAddress the address at which to start the Tachyon master
+   * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
+   */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath) {
-    mMasterCpu = mTachyonConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
+    this(numWorkers, masterAddress, resourcePath, new TachyonConf());
+  }
+
+  /**
+   * @param numWorkers the number of workers to launch
+   * @param masterAddress the address at which to start the Tachyon master
+   * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
+   * @param conf Tachyon configuration
+   */
+  public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath,
+      TachyonConf conf) {
+    mMasterCpu = conf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
     mMasterMemInMB =
-        (int) mTachyonConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
-    mWorkerCpu = mTachyonConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+        (int) (conf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
+    mWorkerCpu = conf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
     // TODO(binfan): request worker container and ramdisk container separately
     // memory for running worker
     mWorkerMemInMB =
-        (int) mTachyonConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
+        (int) (conf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     // memory for running ramdisk
-    mRamdiskMemInMB = (int) mTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
-    mOneWorkerPerHost = mTachyonConf.getBoolean(Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST);
+    mRamdiskMemInMB = (int) (conf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB);
+    mMaxWorkersPerHost = conf.getInt(Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
     mNumWorkers = numWorkers;
     mMasterAddress = masterAddress;
     mResourcePath = resourcePath;
@@ -215,6 +236,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     return 0;
   }
 
+  /**
+   * Starts the application master.
+   *
+   * @throws IOException if registering the application master fails due to an IO error
+   * @throws YarnException if registering the application master fails due to an internal Yarn error
+   */
   public void start() throws IOException, YarnException {
     // create a client to talk to NodeManager
     mNMClient = NMClient.createNMClient();
@@ -237,6 +264,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     LOG.info("ApplicationMaster registered");
   }
 
+  /**
+   * Submits requests for containers until the master and all workers are launched, then waits for
+   * the application to be shut down.
+   *
+   * @throws Exception if an error occurs while requesting containers
+   */
   public void requestContainers() throws Exception {
     requestMasterContainer();
 
@@ -316,15 +349,11 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     mOutstandingWorkerContainerRequestsLatch = new CountDownLatch(neededWorkers);
     String[] hosts;
-    boolean relaxLocality = !mOneWorkerPerHost;
-    if (mOneWorkerPerHost) {
-      hosts = getUnusedWorkerHosts();
-      if (hosts.length < neededWorkers) {
-        throw new RuntimeException(
-            ExceptionMessage.YARN_NOT_ENOUGH_HOSTS.getMessage(neededWorkers, hosts.length));
-      }
-    } else {
-      hosts = null;
+    boolean relaxLocality = false;
+    hosts = getUnfilledWorkerHosts();
+    if (hosts.length * mMaxWorkersPerHost < neededWorkers) {
+      throw new RuntimeException(
+          ExceptionMessage.YARN_NOT_ENOUGH_HOSTS.getMessage(neededWorkers, hosts.length));
     }
     // Make container requests for workers to ResourceManager
     for (int i = currentNumWorkers; i < mNumWorkers; i ++) {
@@ -338,19 +367,22 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   /**
-   * @return the hostnames in the cluster which are not being used by a Tachyon worker, returning an
-   *         empty array if there are none
+   * @return the hostnames in the cluster which are not being used by the maximum number of Tachyon
+   *         workers. If all workers are full, returns an empty array
    */
-  private String[] getUnusedWorkerHosts() throws Exception {
+  private String[] getUnfilledWorkerHosts() throws Exception {
     List<String> unusedHosts = Lists.newArrayList();
     for (String host : YarnUtils.getNodeHosts(mYarnClient)) {
-      if (!mWorkerHosts.contains(host)) {
+      if (mWorkerHosts.count(host) < mMaxWorkersPerHost) {
         unusedHosts.add(host);
       }
     }
     return unusedHosts.toArray(new String[] {});
   }
 
+  /**
+   * Shuts down the application master, unregistering it from Yarn and stopping its clients.
+   */
   public void stop() {
     try {
       mRMClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
@@ -376,7 +408,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     Container container = containers.get(0);
 
-    final String command = Utils.buildCommand(YarnContainerType.TACHYON_MASTER);
+    final String command = YarnUtils.buildCommand(YarnContainerType.TACHYON_MASTER);
     try {
       ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
       ctx.setCommands(Lists.newArrayList(command));
@@ -397,7 +429,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   private void launchTachyonWorkerContainers(List<Container> containers) {
-    final String command = Utils.buildCommand(YarnContainerType.TACHYON_WORKER);
+    final String command = YarnUtils.buildCommand(YarnContainerType.TACHYON_WORKER);
 
     ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
     ctx.setCommands(Lists.newArrayList(command));
@@ -407,10 +439,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     for (Container container : containers) {
       synchronized (mWorkerHosts) {
         if (mWorkerHosts.size() >= mNumWorkers
-            || (mOneWorkerPerHost && mWorkerHosts.contains(container.getNodeId().getHost()))) {
+            || mWorkerHosts.count(container.getNodeId().getHost()) >= mMaxWorkersPerHost) {
           // 1. Yarn will sometimes offer more containers than were requested, so we ignore offers
           // when mWorkerHosts.size() >= mNumWorkers
-          // 2. Avoid re-using nodes if mOneWorkerPerHost is true
+          // 2. Avoid re-using nodes if they already have the maximum number of workers
           LOG.info("Releasing assigned container on {}", container.getNodeId().getHost());
           mRMClient.releaseAssignedContainer(container.getId());
         } else {
@@ -432,8 +464,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     try {
       Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
       for (String resourceName : LOCAL_RESOURCE_NAMES) {
-        localResources.put(resourceName,
-            Utils.createLocalResourceOfFile(new YarnConfiguration(), resourcePath + resourceName));
+        localResources.put(resourceName, YarnUtils.createLocalResourceOfFile(
+            new YarnConfiguration(), PathUtils.concatPath(resourcePath, resourceName)));
       }
       return localResources;
     } catch (IOException e) {

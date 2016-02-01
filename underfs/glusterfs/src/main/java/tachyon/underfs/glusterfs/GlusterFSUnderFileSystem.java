@@ -15,27 +15,37 @@
 
 package tachyon.underfs.glusterfs;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.hadoop.conf.Configuration;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.hdfs.HdfsUnderFileSystem;
 
 /**
- * A variant of {@link HdfsUnderFileSystem} that instead uses the Gluster FS
+ * A variant of {@link HdfsUnderFileSystem} that instead uses the Gluster FS.
  * <p>
  * Currently this implementation simply manages the extra configuration setup necessary to connect
- * to Gluster FS
+ * to Gluster FS.
  * </p>
- *
  */
+@ThreadSafe
 public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
 
   /**
-   * Constant for the Gluster FS URI scheme
+   * Constant for the Gluster FS URI scheme.
    */
   public static final String SCHEME = "glusterfs://";
 
+  /**
+   * Constructs a new Gluster FS {@link UnderFileSystem}.
+   *
+   * @param fsDefaultName the under FS prefix
+   * @param tachyonConf the configuration for Tachyon
+   * @param conf the configuration for Hadoop or GlusterFS
+   */
   public GlusterFSUnderFileSystem(String fsDefaultName, TachyonConf tachyonConf, Object conf) {
     super(fsDefaultName, tachyonConf, conf);
   }

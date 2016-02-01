@@ -19,23 +19,25 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.google.common.base.Supplier;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
- * Constructs an isolated master. Primary users of this class are the
- * {@link tachyon.master.LocalTachyonCluster} and
- * {@link tachyon.master.LocalTachyonClusterMultiMaster}.
+ * Constructs an isolated master. Primary users of this class are the {@link LocalTachyonCluster}
+ * and {@link LocalTachyonClusterMultiMaster}.
  *
  * Isolated is defined as having its own root directory, and port.
  */
+@NotThreadSafe
 public final class LocalTachyonMaster {
   private final String mHostname;
 
@@ -59,7 +61,7 @@ public final class LocalTachyonMaster {
 
     mJournalFolder = tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
 
-    mTachyonMaster = TachyonMaster.Factory.createMaster();
+    mTachyonMaster = TachyonMaster.Factory.create();
 
     // Reset the master port
     tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(getRPCLocalPort()));
@@ -111,10 +113,16 @@ public final class LocalTachyonMaster {
     return new LocalTachyonMaster();
   }
 
+  /**
+   * Starts the master.
+   */
   public void start() {
     mMasterThread.start();
   }
 
+  /**
+   * @return true if the master is serving, false otherwise
+   */
   public boolean isServing() {
     return mTachyonMaster.isServing();
   }
@@ -134,6 +142,20 @@ public final class LocalTachyonMaster {
 
   }
 
+  /**
+   * Kill the master thread, by calling {@link Thread#interrupt()}.
+   *
+   * @throws Exception if master thread cannot be interrupted
+   */
+  public void kill() throws Exception {
+    mMasterThread.interrupt();
+  }
+
+  /**
+   * Clears all the clients.
+   *
+   * @throws IOException if the client pool cannot be closed
+   */
   public void clearClients() throws IOException {
     mClientPool.close();
   }
@@ -153,7 +175,7 @@ public final class LocalTachyonMaster {
   }
 
   /**
-   * Get the actual bind hostname on RPC service (used by unit test only).
+   * Gets the actual bind hostname on RPC service (used by unit test only).
    *
    * @return the RPC bind hostname
    */
@@ -162,7 +184,7 @@ public final class LocalTachyonMaster {
   }
 
   /**
-   * Get the actual port that the RPC service is listening on (used by unit test only)
+   * Gets the actual port that the RPC service is listening on (used by unit test only)
    *
    * @return the RPC local port
    */
@@ -171,7 +193,7 @@ public final class LocalTachyonMaster {
   }
 
   /**
-   * Get the actual bind hostname on web service (used by unit test only).
+   * Gets the actual bind hostname on web service (used by unit test only).
    *
    * @return the Web bind hostname
    */
@@ -180,7 +202,7 @@ public final class LocalTachyonMaster {
   }
 
   /**
-   * Get the actual port that the web service is listening on (used by unit test only)
+   * Gets the actual port that the web service is listening on (used by unit test only)
    *
    * @return the Web local port
    */
@@ -188,11 +210,18 @@ public final class LocalTachyonMaster {
     return mTachyonMaster.getWebLocalPort();
   }
 
+  /**
+   * @return the URI of the master
+   */
   public String getUri() {
     return Constants.HEADER + mHostname + ":" + getRPCLocalPort();
   }
 
-  public TachyonFileSystem getClient() throws IOException {
+  /**
+   * @return the client from the pool
+   * @throws IOException if the client cannot be retrieved
+   */
+  public FileSystem getClient() throws IOException {
     return mClientPool.getClient(ClientContext.getConf());
   }
 
@@ -200,6 +229,9 @@ public final class LocalTachyonMaster {
     return File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.nanoTime();
   }
 
+  /**
+   * @return the folder of the journal
+   */
   public String getJournalFolder() {
     return mJournalFolder;
   }

@@ -15,11 +15,14 @@
 
 package tachyon.mesos;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos;
@@ -28,6 +31,7 @@ import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 
 import com.google.common.collect.Lists;
+import com.google.protobuf.ByteString;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -42,6 +46,7 @@ import tachyon.util.io.PathUtils;
  * The current resource allocation policy uses a configurable Tachyon master allocation, while the
  * workers use the maximum available allocation.
  */
+@NotThreadSafe
 public class TachyonFramework {
   static class TachyonScheduler implements Scheduler {
     private static TachyonConf sConf = new TachyonConf();
@@ -290,6 +295,31 @@ public class TachyonFramework {
             .setExtract(true).build());
   }
 
+  private static Protos.Credential createCredential(TachyonConf conf) {
+
+    if (conf.get(Constants.INTEGRATION_MESOS_PRINCIPAL) == null) {
+      return null;
+    }
+
+    try {
+      Protos.Credential.Builder credentialBuilder = Protos.Credential.newBuilder()
+          .setPrincipal(conf.get(Constants.INTEGRATION_MESOS_PRINCIPAL))
+          .setSecret(ByteString.copyFrom(conf.get(Constants.INTEGRATION_MESOS_SECRET)
+                  .getBytes("UTF-8")));
+
+      return credentialBuilder.build();
+    } catch (UnsupportedEncodingException ex) {
+      System.err.println("Failed to encode secret when creating Credential.");
+    }
+    return null;
+  }
+
+  /**
+   * Starts the Tachyon framework.
+   *
+   * @param args command-line arguments
+   * @throws Exception if the Tachyon framework encounters an unrecoverable error
+   */
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
       usage();
@@ -297,15 +327,34 @@ public class TachyonFramework {
     }
     String hostname = args[0];
 
+    TachyonConf conf = new TachyonConf();
+
     // Start Mesos master. Setting the user to an empty string will prompt Mesos to set it to the
     // current user.
-    Protos.FrameworkInfo framework =
-        Protos.FrameworkInfo.newBuilder().setUser("").setName("tachyon").setCheckpoint(true)
-            .setPrincipal("tachyon-framework").build();
+    Protos.FrameworkInfo.Builder frameworkInfo = Protos.FrameworkInfo.newBuilder()
+        .setName("tachyon").setCheckpoint(true);
+
+    if (conf.get(Constants.INTEGRATION_MESOS_ROLE) != null) {
+      frameworkInfo.setRole(conf.get(Constants.INTEGRATION_MESOS_ROLE));
+    }
+
+    if (conf.get(Constants.INTEGRATION_MESOS_USER) != null) {
+      frameworkInfo.setUser(conf.get(Constants.INTEGRATION_MESOS_USER));
+    }
+
+    if (conf.get(Constants.INTEGRATION_MESOS_PRINCIPAL) != null) {
+      frameworkInfo.setPrincipal(conf.get(Constants.INTEGRATION_MESOS_PRINCIPAL));
+    }
 
     Scheduler scheduler = new TachyonScheduler();
 
-    MesosSchedulerDriver driver = new MesosSchedulerDriver(scheduler, framework, hostname);
+    Protos.Credential cred = createCredential(conf);
+    MesosSchedulerDriver driver = null;
+    if (cred == null) {
+      driver = new MesosSchedulerDriver(scheduler, frameworkInfo.build(), hostname);
+    } else {
+      driver = new MesosSchedulerDriver(scheduler, frameworkInfo.build(), hostname, cred);
+    }
 
     int status = driver.run() == Protos.Status.DRIVER_STOPPED ? 0 : 1;
 

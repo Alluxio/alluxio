@@ -1,0 +1,27 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.tachyonproject</groupId>
+    <artifactId>tachyon-keyvalue</artifactId>
+    <version>0.9.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>tachyon-keyvalue-common</artifactId>
+  <name>Tachyon Key Value - Common Utilities</name>
+  <description>Clients of Tachyon Key Value Store</description>
+
+  <properties>
+    <!-- These need to be defined here as well as in the parent pom so that mvn can run
+         properly from sub-project directories -->
+    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+</project>

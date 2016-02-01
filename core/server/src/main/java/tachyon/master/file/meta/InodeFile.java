@@ -1,0 +1,406 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package tachyon.master.file.meta;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+
+import tachyon.Constants;
+import tachyon.exception.BlockInfoException;
+import tachyon.exception.FileAlreadyCompletedException;
+import tachyon.exception.InvalidFileSizeException;
+import tachyon.master.block.BlockId;
+import tachyon.proto.journal.File.InodeFileEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.security.authorization.FileSystemPermission;
+import tachyon.security.authorization.PermissionStatus;
+import tachyon.thrift.FileInfo;
+
+/**
+ * Tachyon file system's file representation in the file system master.
+ */
+@ThreadSafe
+public final class InodeFile extends Inode {
+  /** This default umask is used to calculate file permission from directory permission. */
+  private static final FileSystemPermission UMASK =
+      new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
+
+  /**
+   * Builder for {@link InodeFile}.
+   */
+  public static class Builder extends Inode.Builder<InodeFile.Builder> {
+    private long mBlockContainerId;
+    private long mBlockSizeBytes;
+    private boolean mCacheable;
+    private long mTtl;
+
+    /**
+     * Creates a new builder for {@link InodeFile}.
+     */
+    public Builder() {
+      super();
+      mBlockContainerId = 0;
+      mBlockSizeBytes = 0;
+      mCacheable = false;
+      mDirectory = false;
+      mTtl = Constants.NO_TTL;
+    }
+
+    /**
+     * @param blockContainerId the block container id to use
+     * @return the builder
+     */
+    public Builder setBlockContainerId(long blockContainerId) {
+      mBlockContainerId = blockContainerId;
+      mId = BlockId.createBlockId(mBlockContainerId, BlockId.getMaxSequenceNumber());
+      return this;
+    }
+
+    /**
+     * @param blockSizeBytes the block size in bytes to use
+     * @return the builder
+     */
+    public Builder setBlockSizeBytes(long blockSizeBytes) {
+      mBlockSizeBytes = blockSizeBytes;
+      return this;
+    }
+
+    /**
+     * @param cacheable the cacheable flag value to use
+     * @return the builder
+     */
+    public Builder setCacheable(boolean cacheable) {
+      mCacheable = cacheable;
+      return this;
+    }
+
+    @Override
+    public Builder setId(long id) {
+      // id is computed using the block container id
+      // TODO(jiri): Should we throw an exception to warn the caller?
+      return this;
+    }
+
+    /**
+     * @param ttl the ttl value to use
+     * @return the builder
+     */
+    public Builder setTtl(long ttl) {
+      mTtl = ttl;
+      return this;
+    }
+
+    /**
+     * Builds a new instance of {@link InodeFile}.
+     *
+     * @return a {@link InodeFile} instance
+     */
+    @Override
+    public InodeFile build() {
+      return new InodeFile(this);
+    }
+
+    @Override
+    protected InodeFile.Builder getThis() {
+      return this;
+    }
+
+    @Override
+    public InodeFile.Builder setPermissionStatus(PermissionStatus ps) {
+      return super.setPermissionStatus(ps.applyUMask(UMASK));
+    }
+  }
+
+  private long mBlockContainerId;
+
+  private long mBlockSizeBytes;
+
+  // list of block ids.
+  private List<Long> mBlocks;
+
+  private boolean mCacheable;
+
+  private boolean mCompleted;
+
+  // length of inode file in bytes.
+  private long mLength;
+
+  private long mTtl;
+
+  private InodeFile(InodeFile.Builder builder) {
+    super(builder);
+    mBlockContainerId = builder.mBlockContainerId;
+    mBlockSizeBytes = builder.mBlockSizeBytes;
+    mBlocks = new ArrayList<Long>(3);
+    mCacheable = builder.mCacheable;
+    mCompleted = false;
+    mLength = 0;
+    mTtl = builder.mTtl;
+  }
+
+  @Override
+  public synchronized FileInfo generateClientFileInfo(String path) {
+    FileInfo ret = new FileInfo();
+    // note: in-memory percentage is NOT calculated here, because it needs blocks info stored in
+    // block master
+    ret.setFileId(getId());
+    ret.setName(getName());
+    ret.setPath(path);
+    ret.setLength(getLength());
+    ret.setBlockSizeBytes(getBlockSizeBytes());
+    ret.setCreationTimeMs(getCreationTimeMs());
+    ret.setCacheable(isCacheable());
+    ret.setFolder(false);
+    ret.setPinned(isPinned());
+    ret.setCompleted(isCompleted());
+    ret.setPersisted(isPersisted());
+    ret.setBlockIds(getBlockIds());
+    ret.setLastModificationTimeMs(getLastModificationTimeMs());
+    ret.setTtl(mTtl);
+    ret.setUserName(getUserName());
+    ret.setGroupName(getGroupName());
+    ret.setPermission(getPermission());
+    ret.setPersistenceState(getPersistenceState().toString());
+    return ret;
+  }
+
+  /**
+   * Resets the file inode.
+   */
+  public synchronized void reset() {
+    mBlocks = Lists.newArrayList();
+    mLength = 0;
+    mCompleted = false;
+    mCacheable = false;
+  }
+
+  /**
+   * @param blockSizeBytes the block size to use
+   */
+  public synchronized void setBlockSize(long blockSizeBytes) {
+    Preconditions.checkArgument(blockSizeBytes >= 0, "Block size cannot be negative");
+    mBlockSizeBytes = blockSizeBytes;
+  }
+
+  /**
+   * @param ttl the TTL to use, in milliseconds
+   */
+  public synchronized void setTtl(long ttl) {
+    mTtl = ttl;
+  }
+
+  /**
+   * @return a duplication of all the block ids of the file
+   */
+  public synchronized List<Long> getBlockIds() {
+    return new ArrayList<Long>(mBlocks);
+  }
+
+  /**
+   * @return the block size in bytes
+   */
+  public synchronized long getBlockSizeBytes() {
+    return mBlockSizeBytes;
+  }
+
+  /**
+   * @return the length of the file in bytes. This is not accurate before the file is closed
+   */
+  public synchronized long getLength() {
+    return mLength;
+  }
+
+  /**
+   * @return the id of a new block of the file
+   */
+  public synchronized long getNewBlockId() {
+    long blockId = BlockId.createBlockId(mBlockContainerId, mBlocks.size());
+    // TODO(gene): Check for max block sequence number, and sanity check the sequence number.
+    // TODO(gene): Check isComplete?
+    // TODO(gene): This will not work with existing lineage implementation, since a new writer will
+    // not be able to get the same block ids (to write the same block ids).
+    mBlocks.add(blockId);
+    return blockId;
+  }
+
+  /**
+   * Gets the block id for a given index.
+   *
+   * @param blockIndex the index to get the block id for
+   * @return the block id for the index
+   * @throws BlockInfoException if the index of the block is out of range
+   */
+  public synchronized long getBlockIdByIndex(int blockIndex) throws BlockInfoException {
+    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
+      throw new BlockInfoException(
+          "blockIndex " + blockIndex + " is out of range. File blocks: " + mBlocks.size());
+    }
+    return mBlocks.get(blockIndex);
+  }
+
+  /**
+   * @return true if the file is cacheable, false otherwise
+   */
+  public synchronized boolean isCacheable() {
+    return mCacheable;
+  }
+
+  /**
+   * @return true if the file is complete, false otherwise
+   */
+  public synchronized boolean isCompleted() {
+    return mCompleted;
+  }
+
+  /**
+   * Sets the id's of the block.
+   *
+   * @param blockIds the id's of the block
+   */
+  public synchronized void setBlockIds(List<Long> blockIds) {
+    mBlocks = Lists.newArrayList(Preconditions.checkNotNull(blockIds));
+  }
+
+  /**
+   * @param cacheable the cacheable flag value to use
+   */
+  public synchronized void setCacheable(boolean cacheable) {
+    // TODO(gene). This related logic is not complete right. Fix this.
+    mCacheable = cacheable;
+  }
+
+  /**
+   * @param completed the complete flag value to use
+   */
+  public synchronized void setCompleted(boolean completed) {
+    mCompleted = completed;
+  }
+
+  /**
+   * @param length the length to use
+   */
+  public synchronized void setLength(long length) {
+    mLength = length;
+  }
+
+  /**
+   * Completes the file. Cannot set the length if the file is already completed or the length is
+   * negative.
+   *
+   * @param length The new length of the file, cannot be negative
+   * @throws InvalidFileSizeException if invalid file size is encountered
+   * @throws FileAlreadyCompletedException if the file is already completed
+   */
+  public synchronized void complete(long length)
+      throws InvalidFileSizeException, FileAlreadyCompletedException {
+    if (mCompleted) {
+      throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
+    }
+    if (length < 0) {
+      throw new InvalidFileSizeException("File " + getName() + " cannot have negative length.");
+    }
+    mCompleted = true;
+    mLength = length;
+    mBlocks.clear();
+    while (length > 0) {
+      long blockSize = Math.min(length, mBlockSizeBytes);
+      getNewBlockId();
+      length -= blockSize;
+    }
+  }
+
+  @Override
+  public synchronized String toString() {
+    StringBuilder sb = new StringBuilder("InodeFile(");
+    sb.append(super.toString()).append(", LENGTH: ").append(mLength);
+    sb.append(", Cacheable: ").append(mCacheable);
+    sb.append(", Completed: ").append(mCompleted);
+    sb.append(", Cacheable: ").append(mCacheable);
+    sb.append(", mBlocks: ").append(mBlocks);
+    sb.append(", mTtl: ").append(mTtl);
+    sb.append(")");
+    return sb.toString();
+  }
+
+  /**
+   * Converts the entry to an {@link InodeFile}.
+   *
+   * @param entry the entry to convert
+   * @return the {@link InodeFile} representation
+   */
+  public static InodeFile fromJournalEntry(InodeFileEntry entry) {
+    PermissionStatus permissionStatus = new PermissionStatus(entry.getUserName(),
+        entry.getGroupName(), (short) entry.getPermission());
+    InodeFile inode =
+        new InodeFile.Builder()
+            .setName(entry.getName())
+            .setBlockContainerId(BlockId.getContainerId(entry.getId()))
+            .setBlockSizeBytes(entry.getBlockSizeBytes())
+            .setCacheable(entry.getCacheable())
+            .setCreationTimeMs(entry.getCreationTimeMs())
+            .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+            .setParentId(entry.getParentId())
+            .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
+            .setPinned(entry.getPinned())
+            .setTtl(entry.getTtl())
+            .setPermissionStatus(permissionStatus)
+            .build();
+
+    inode.setBlockIds(entry.getBlocksList());
+    inode.setCompleted(entry.getCompleted());
+    inode.setLength(entry.getLength());
+    inode.setPinned(entry.getPinned());
+    inode.setCacheable(entry.getCacheable());
+    inode.setLastModificationTimeMs(entry.getLastModificationTimeMs());
+
+    return inode;
+  }
+
+  @Override
+  public synchronized JournalEntry toJournalEntry() {
+    InodeFileEntry inodeFile = InodeFileEntry.newBuilder()
+        .setCreationTimeMs(getCreationTimeMs())
+        .setId(getId())
+        .setName(getName())
+        .setParentId(getParentId())
+        .setPersistenceState(getPersistenceState().name())
+        .setPinned(isPinned())
+        .setLastModificationTimeMs(getLastModificationTimeMs())
+        .setBlockSizeBytes(getBlockSizeBytes())
+        .setLength(getLength())
+        .setCompleted(isCompleted())
+        .setCacheable(isCacheable())
+        .addAllBlocks(mBlocks)
+        .setTtl(mTtl)
+        .setUserName(getUserName())
+        .setGroupName(getGroupName())
+        .setPermission(getPermission())
+        .build();
+    return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
+  }
+
+  /**
+   * @return the ttl of the file
+   */
+  public synchronized long getTtl() {
+    return mTtl;
+  }
+}

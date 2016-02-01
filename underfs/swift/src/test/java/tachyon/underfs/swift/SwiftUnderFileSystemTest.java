@@ -16,26 +16,102 @@
 package tachyon.underfs.swift;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.reflect.Whitebox;
 
-import tachyon.conf.TachyonConf;
-import tachyon.underfs.UnderFileSystemFactory;
-import tachyon.underfs.UnderFileSystemRegistry;
-
+/**
+ * Tests for the private helper methods in {@link SwiftUnderFileSystem} that do not require a
+ * Swift backend.
+ */
 public class SwiftUnderFileSystemTest {
+  private SwiftUnderFileSystem mMockSwiftUnderFileSystem;
+  private String mMockContainerName = "test-container";
+  private String mMockContainerPrefix = "swift://" + mMockContainerName + "/";
 
+  /**
+   * Sets up the mock before a test runs.
+   */
+  @Before
+  public  final void before() {
+    mMockSwiftUnderFileSystem = PowerMockito.mock(SwiftUnderFileSystem.class);
+    Whitebox.setInternalState(mMockSwiftUnderFileSystem, "mContainerName", mMockContainerName);
+    Whitebox.setInternalState(mMockSwiftUnderFileSystem, "mContainerPrefix", mMockContainerPrefix);
+  }
+
+  /**
+   * Tests the {@link SwiftUnderFileSystem#makeQualifiedPath(String)} method.
+   *
+   * @throws Exception when the Whitebox fails
+   */
   @Test
-  public void factoryTest() {
-    TachyonConf conf = new TachyonConf();
+  public void makeQualifiedPathTest() throws Exception {
+    String input1 = "a/b";
+    String input2 = "/a/b";
+    String input3 = "a/b/";
+    String input4 = "/a/b/";
+    String result1 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "makeQualifiedPath", input1);
+    String result2 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "makeQualifiedPath", input2);
+    String result3 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "makeQualifiedPath", input3);
+    String result4 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "makeQualifiedPath", input4);
 
-    UnderFileSystemFactory factory =
-        UnderFileSystemRegistry.find("swift://localhost/test/path", conf);
-    UnderFileSystemFactory factory2 =
-        UnderFileSystemRegistry.find("file://localhost/test/path", conf);
+    Assert.assertEquals(result1, "a/b/");
+    Assert.assertEquals(result2, "a/b/");
+    Assert.assertEquals(result3, "a/b/");
+    Assert.assertEquals(result4, "a/b/");
+  }
 
-    Assert.assertNotNull("A UnderFileSystemFactory should exist for swift paths when using this "
-        + "module", factory);
-    Assert.assertNull("A UnderFileSystemFactory should not exist for non supported paths when "
-        + "using this module", factory2);
+  /**
+   * Tests the {@link SwiftUnderFileSystem#stripFolderSuffixIfPresent(String)} method.
+   *
+   * @throws Exception when the Whitebox fails
+   */
+  @Test
+  public void stripFolderSuffixIfPresentTest() throws Exception {
+    String input1 = mMockContainerPrefix;
+    String input2 = mMockContainerPrefix + "dir/file";
+    String input3 = mMockContainerPrefix + "dir_$folder$";
+    String result1 =
+        Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "stripFolderSuffixIfPresent", input1);
+    String result2 =
+        Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "stripFolderSuffixIfPresent", input2);
+    String result3 =
+        Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "stripFolderSuffixIfPresent", input3);
+
+    Assert.assertEquals(mMockContainerPrefix, result1);
+    Assert.assertEquals(mMockContainerPrefix + "dir/file", result2);
+    Assert.assertEquals(mMockContainerPrefix + "dir", result3);
+  }
+
+  /**
+   * Tests the {@link SwiftUnderFileSystem#stripPrefixIfPresent(String)} method.
+   *
+   * @throws Exception when the Whitebox fails
+   */
+  @Test
+  public void stripPrefixIfPresentTest() throws Exception {
+    String[] inputs = new String[]{
+        "swift://" + mMockContainerName,
+        mMockContainerPrefix,
+        mMockContainerPrefix + "file",
+        mMockContainerPrefix + "dir/file",
+        "swift://test-container-wrong/dir/file",
+        "dir/file",
+        "/dir/file",
+    };
+    String[] results = new String[]{
+        "swift://" + mMockContainerName,
+        "",
+        "file",
+        "dir/file",
+        "swift://test-container-wrong/dir/file",
+        "dir/file",
+        "/dir/file",
+    };
+    for (int i = 0; i < inputs.length; i ++) {
+      Assert.assertEquals(results[i], Whitebox.invokeMethod(mMockSwiftUnderFileSystem,
+          "stripPrefixIfPresent", inputs[i]));
+    }
   }
 }

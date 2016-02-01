@@ -17,16 +17,17 @@ package tachyon.master;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
+import tachyon.client.util.ClientTestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
-import tachyon.thrift.NetAddress;
-import tachyon.util.LineageUtils;
+import tachyon.worker.NetAddress;
+import tachyon.worker.TachyonWorker;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.block.BlockWorker;
-import tachyon.worker.lineage.LineageWorker;
 
 /**
  * Local Tachyon cluster for integration tests.
@@ -43,18 +44,20 @@ import tachyon.worker.lineage.LineageWorker;
  * localTachyonCluster.start(testConf);
  * </pre>
  */
+@NotThreadSafe
 public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
-
   private LocalTachyonMaster mMaster;
-  private TachyonConf mClientConf;
 
-  public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
+  /**
+   * @param workerCapacityBytes the capacity of the worker in bytes
+   * @param userBlockSize the block size for a user
+   */
+  public LocalTachyonCluster(long workerCapacityBytes, int userBlockSize) {
     super(workerCapacityBytes, userBlockSize);
-    mQuotaUnitBytes = quotaUnitBytes;
   }
 
   @Override
-  public TachyonFileSystem getClient() throws IOException {
+  public FileSystem getClient() throws IOException {
     return mMaster.getClient();
   }
 
@@ -63,36 +66,53 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     return mMaster;
   }
 
+  /**
+   * @return the hostname of the master
+   */
   public String getMasterHostname() {
     return mHostname;
   }
 
+  /**
+   * @return the URI of the master
+   */
   public String getMasterUri() {
     return mMaster.getUri();
   }
 
+  /**
+   * @return the port of the master
+   */
   public int getMasterPort() {
     return mMaster.getRPCLocalPort();
   }
 
+  /**
+   * @return the home path to Tachyon
+   */
   public String getTachyonHome() {
     return mTachyonHome;
   }
 
-  public BlockWorker getWorker() {
+  /**
+   * @return the worker
+   */
+  public TachyonWorker getWorker() {
     return mWorker;
   }
 
-  public LineageWorker getLineageWorker() {
-    return mLineageWorker;
-  }
-
+  /**
+   * @return the configuration for Tachyon
+   */
   public TachyonConf getWorkerTachyonConf() {
     return mWorkerConf;
   }
 
+  /**
+   * @return the address of the worker
+   */
   public NetAddress getWorkerAddress() {
-    return mWorker.getWorkerNetAddress();
+    return mWorker.getNetAddress();
   }
 
   @Override
@@ -108,8 +128,8 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
 
     // We need to update client context with the most recent configuration so they know the correct
     // port to connect to master.
-    mClientConf = new TachyonConf(testConf.getInternalProperties());
-    ClientContext.reset(mClientConf);
+    ClientContext.getConf().merge(testConf);
+    ClientTestUtils.reinitializeClientContext();
   }
 
   @Override
@@ -126,7 +146,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   protected void resetContext() {
     MasterContext.reset();
     WorkerContext.reset();
-    ClientContext.reset();
+    ClientTestUtils.resetClientContext();
   }
 
   @Override
@@ -135,23 +155,17 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
 
     // Stopping Worker before stopping master speeds up tests
     mWorker.stop();
-    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-      mLineageWorker.stop();
-    }
     mMaster.stop();
   }
 
   /**
-   * Cleanup the worker state from the master and stop the worker.
+   * Cleans up the worker state from the master and stops the worker.
    *
    * @throws Exception when the operation fails
    */
   public void stopWorker() throws Exception {
     mMaster.clearClients();
     mWorker.stop();
-    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-      mLineageWorker.stop();
-    }
   }
 
   @Override

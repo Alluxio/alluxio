@@ -20,15 +20,21 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
+import org.apache.commons.lang.StringUtils;
 import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
-import com.google.common.io.Closer;
 
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.Constants;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.shell.command.TfsShellCommand;
 import tachyon.util.CommonUtils;
@@ -36,11 +42,15 @@ import tachyon.util.CommonUtils;
 /**
  * Class for handling command line inputs.
  */
+@NotThreadSafe
 public class TfsShell implements Closeable {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /**
-   * Main method, starts a new TfsShell
+   * Main method, starts a new TfsShell.
    *
    * @param argv [] Array of arguments given by the user's input from the terminal
+   * @throws IOException if closing the shell fails
    */
   public static void main(String[] argv) throws IOException {
     TfsShell shell = new TfsShell(new TachyonConf());
@@ -54,20 +64,20 @@ public class TfsShell implements Closeable {
   }
 
   private final Map<String, TfsShellCommand> mCommands = Maps.newHashMap();
-  private final Closer mCloser;
   private final TachyonConf mTachyonConf;
-  private final TachyonFileSystem mTfs;
+  private final FileSystem mFileSystem;
 
+  /**
+   * @param tachyonConf the configuration for Tachyon
+   */
   public TfsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mCloser = Closer.create();
-    mTfs = TachyonFileSystemFactory.get();
+    mFileSystem = FileSystem.Factory.get();
     loadCommands();
   }
 
   @Override
   public void close() throws IOException {
-    mCloser.close();
   }
 
   /**
@@ -82,8 +92,8 @@ public class TfsShell implements Closeable {
         TfsShellCommand cmd;
         try {
           cmd = CommonUtils.createNewClassInstance(cls,
-              new Class[] { TachyonConf.class, TachyonFileSystem.class },
-              new Object[] { mTachyonConf, mTfs });
+              new Class[] { TachyonConf.class, FileSystem.class },
+              new Object[] { mTachyonConf, mFileSystem });
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }
@@ -95,35 +105,13 @@ public class TfsShell implements Closeable {
   /**
    * Method which prints the method to use all the commands.
    */
-  public void printUsage() {
+  private void printUsage() {
     System.out.println("Usage: java TfsShell");
-    System.out.println("       [cat <path>]");
-    System.out.println("       [copyFromLocal <src> <remoteDst>]");
-    System.out.println("       [copyToLocal <src> <localDst>]");
-    System.out.println("       [count <path>]");
-    System.out.println("       [du <path>]");
-    System.out.println("       [fileinfo <path>]");
-    System.out.println("       [free <file path|folder path>]");
-    System.out.println("       [getUsedBytes]");
-    System.out.println("       [getCapacityBytes]");
-    System.out.println("       [load <path>]");
-    System.out.println("       [loadMetadata <path>]");
-    System.out.println("       [location <path>]");
-    System.out.println("       [ls <path>]");
-    System.out.println("       [lsr <path>]");
-    System.out.println("       [mkdir <path>]");
-    System.out.println("       [mount <tachyonPath> <ufsURI>]");
-    System.out.println("       [mv <src> <dst>]");
-    System.out.println("       [pin <path>]");
-    System.out.println("       [report <path>]");
-    System.out.println("       [rm <path>]");
-    System.out.println("       [rmr <path>]");
-    System.out.println("       [setTTL <path> <time to live(in milliseconds)>]");
-    System.out.println("       [unsetTTL <path>]");
-    System.out.println("       [tail <path>]");
-    System.out.println("       [touch <path>]");
-    System.out.println("       [unmount <tachyonPath>]");
-    System.out.println("       [unpin <path>]");
+    SortedSet<String> sortedCmds = new TreeSet<String>(mCommands.keySet());
+    for (String cmd : sortedCmds) {
+      System.out.format("%-60s%-95s%n", "       [" + mCommands.get(cmd).getUsage() + "]   ",
+          mCommands.get(cmd).getDescription());
+    }
   }
 
   /**
@@ -159,8 +147,9 @@ public class TfsShell implements Closeable {
     try {
       command.run(args);
       return 0;
-    } catch (IOException ioe) {
-      System.out.println(ioe.getMessage());
+    } catch (IOException e) {
+      System.out.println(e.getMessage());
+      LOG.error("Error running " + StringUtils.join(argv, " "), e);
       return -1;
     }
   }

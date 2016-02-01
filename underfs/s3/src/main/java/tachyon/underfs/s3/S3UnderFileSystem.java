@@ -26,6 +26,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
@@ -45,24 +47,28 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 
 /**
- * Under file system implementation for S3 using the Jets3t library.
+ * S3 FS {@link UnderFileSystem} implementation based on the jets3t library.
  */
+@ThreadSafe
 public class S3UnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Suffix for an empty file to flag it as a directory */
+  /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = "_$folder$";
-  /** Value used to indicate folder structure in S3 */
+
+  /** Value used to indicate folder structure in S3. */
   private static final String PATH_SEPARATOR = "/";
 
-  /** Jets3t S3 client */
+  private static final byte[] DIR_HASH;
+
+  /** Jets3t S3 client. */
   private final S3Service mClient;
-  /** Bucket name of user's configured Tachyon bucket */
+
+  /** Bucket name of user's configured Tachyon bucket. */
   private final String mBucketName;
+
   /** Prefix of the bucket, for example s3n://my-bucket-name/ */
   private final String mBucketPrefix;
-
-  private static final byte[] DIR_HASH;
 
   static {
     try {
@@ -72,6 +78,13 @@ public class S3UnderFileSystem extends UnderFileSystem {
     }
   }
 
+  /**
+   * Constructs a new instance of {@link S3UnderFileSystem}.
+   *
+   * @param bucketName the name of the bucket
+   * @param tachyonConf the configuration for Tachyon
+   * @throws ServiceException when a connection to S3 could not be created
+   */
   public S3UnderFileSystem(String bucketName, TachyonConf tachyonConf) throws ServiceException {
     super(tachyonConf);
     Preconditions.checkArgument(tachyonConf.containsKey(Constants.S3_ACCESS_KEY),
@@ -171,9 +184,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * There is no concept of a block in S3, however the maximum allowed size of one file is
-   * currently 5 TB.
-   * @param path The file name
+   * Gets the block size in bytes. There is no concept of a block in S3, however the maximum allowed
+   * size of one file is currently 5 TB.
+   *
+   * @param path the file name
    * @return 5 TB in bytes
    * @throws IOException this implementation will not throw this exception, but subclasses may
    */
@@ -236,6 +250,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] list(String path) throws IOException {
+    // if the path not exists, or it is a file, then should return null
+    if (!exists(path) || isFile(path)) {
+      return null;
+    }
     // Non recursive list
     path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
     return listInternal(path, false);
@@ -278,8 +296,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
     try {
       path = stripPrefixIfPresent(path);
       return new S3InputStream(mBucketName, path, mClient);
-    } catch (ServiceException se) {
-      LOG.error("Failed to open file: {}", path, se);
+    } catch (ServiceException e) {
+      LOG.error("Failed to open file: {}", path, e);
       return null;
     }
   }
@@ -324,15 +342,22 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Appends the directory suffix to the key.
+   *
    * @param key the key to convert
    * @return key as a directory path
    */
   private String convertToFolderName(String key) {
+    // Strips the slash if it is the end of the key string. This is because the slash at
+    // the end of the string is not part of the Object key in S3.
+    if (key.endsWith(PATH_SEPARATOR)) {
+      key = key.substring(0, key.length() - PATH_SEPARATOR.length());
+    }
     return key + FOLDER_SUFFIX;
   }
 
   /**
    * Copies an object to another key.
+   *
    * @param src the source key to copy
    * @param dst the destination key to copy to
    * @return true if the operation was successful, false otherwise
@@ -345,14 +370,15 @@ public class S3UnderFileSystem extends UnderFileSystem {
       S3Object obj = new S3Object(dst);
       mClient.copyObject(mBucketName, src, mBucketName, obj, false);
       return true;
-    } catch (ServiceException se) {
-      LOG.error("Failed to rename file {} to {}", src, dst);
+    } catch (ServiceException e) {
+      LOG.error("Failed to rename file {} to {}", src, dst, e);
       return false;
     }
   }
 
   /**
-   * Internal function to delete a key in S3
+   * Internal function to delete a key in S3.
+   *
    * @param key the key to delete
    * @return true if successful, false if an exception is thrown
    */
@@ -364,8 +390,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
       } else {
         mClient.deleteObject(mBucketName, stripPrefixIfPresent(key));
       }
-    } catch (ServiceException se) {
-      LOG.error("Failed to delete {}", key, se);
+    } catch (ServiceException e) {
+      LOG.error("Failed to delete {}", key, e);
       return false;
     }
     return true;
@@ -373,6 +399,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Gets the child name based on the parent name.
+   *
    * @param child the key of the child
    * @param parent the key of the parent
    * @return the child key with the parent prefix removed, null if the parent prefix is invalid
@@ -387,10 +414,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the {@link StorageObject} representing the metadata of a key. If the key does not exist as
-   * a file or folder, null is returned
    * @param key the key to get the object details of
-   * @return {@link StorageObject} of the key, or null if the key does not exist as a file or folder
+   * @return {@link StorageObject} of the key, or null if the key does not exist
    */
   private StorageObject getObjectDetails(String key) {
     try {
@@ -400,15 +425,14 @@ public class S3UnderFileSystem extends UnderFileSystem {
       } else {
         return mClient.getObjectDetails(mBucketName, stripPrefixIfPresent(key));
       }
-    } catch (ServiceException se) {
+    } catch (ServiceException e) {
       return null;
     }
   }
 
   /**
-   * Gets the parent key of the input key, or null if no parent exists
    * @param key the key to get the parent of
-   * @return the the parent key
+   * @return the parent key, or null if the parent does not exist
    */
   private String getParentKey(String key) {
     // Root does not have a parent.
@@ -425,11 +449,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
   /**
    * Determines if the key represents a folder. If false is returned, it is not guaranteed that the
    * path exists.
+   *
    * @param key the key to check
-   * @return {@link S3Object} containing metadata
+   * @return whether the given key identifies a folder
    */
   private boolean isFolder(String key) {
-    key = key.endsWith(PATH_SEPARATOR) ? key.substring(0, key.length() - 1) : key;
     // Root is always a folder
     if (isRoot(key)) {
       return true;
@@ -439,13 +463,14 @@ public class S3UnderFileSystem extends UnderFileSystem {
       mClient.getObjectDetails(mBucketName, keyAsFolder);
       // If no exception is thrown, the key exists as a folder
       return true;
-    } catch (ServiceException se) {
+    } catch (ServiceException s) {
       return false;
     }
   }
 
   /**
    * Checks if the key is the root.
+   *
    * @param key the key to check
    * @return true if the key is the root, false otherwise
    */
@@ -456,11 +481,12 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Lists the files in the given path, the paths will be their logical names and not contain the
-   * folder suffix
+   * folder suffix.
+   *
    * @param path the key to list
    * @param recursive if true will list children directories as well
    * @return an array of the file and folder names in this directory
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   private String[] listInternal(String path, boolean recursive) throws IOException {
     try {
@@ -495,14 +521,15 @@ public class S3UnderFileSystem extends UnderFileSystem {
         children.add(child);
       }
       return children.toArray(new String[children.size()]);
-    } catch (ServiceException se) {
-      LOG.error("Failed to list path {}", path);
+    } catch (ServiceException e) {
+      LOG.error("Failed to list path {}", path, e);
       return null;
     }
   }
 
   /**
    * Creates a directory flagged file with the key and folder suffix.
+   *
    * @param key the key to create a folder
    * @return true if the operation was successful, false otherwise
    */
@@ -516,14 +543,15 @@ public class S3UnderFileSystem extends UnderFileSystem {
       obj.setContentType(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
       mClient.putObject(mBucketName, obj);
       return true;
-    } catch (ServiceException se) {
-      LOG.error("Failed to create directory: {}", key, se);
+    } catch (ServiceException e) {
+      LOG.error("Failed to create directory: {}", key, e);
       return false;
     }
   }
 
   /**
    * Treating S3 as a file system, checks if the parent directory exists.
+   *
    * @param key the key to check
    * @return true if the parent exists or if the key is root, false otherwise
    */
@@ -537,9 +565,9 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strip the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder. This method will leave keys without a suffix
-   * unaltered.
+   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
+   * guarantee the existence of the folder. This method will leave keys without a suffix unaltered.
+   *
    * @param key the key to strip the suffix from
    * @return the key with the suffix removed, or the key unaltered if the suffix is not present
    */
@@ -551,10 +579,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the s3 bucket prefix or the preceding path separator from the key if it is present.
-   * For example, for input key s3n://my-bucket-name/my-path/file, the output would be my-path/file.
-   * If key is an absolute path like /my-path/file, the output would be my-path/file.
-   * This method will leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
+   * Strips the s3 bucket prefix or the preceding path separator from the key if it is present. For
+   * example, for input key s3n://my-bucket-name/my-path/file, the output would be my-path/file. If
+   * key is an absolute path like /my-path/file, the output would be my-path/file. This method will
+   * leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
+   *
    * @param key the key to strip
    * @return the key without the s3 bucket prefix
    */
