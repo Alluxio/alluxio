@@ -33,6 +33,11 @@ import tachyon.master.TachyonMaster;
 public final class BlockMasterRestServiceHandler {
 
   /**
+   * Returns the service name.
+   *
+   * Method: GET
+   * Response: {@code string}
+   *
    * @return the response object
    */
   @GET
@@ -40,9 +45,15 @@ public final class BlockMasterRestServiceHandler {
   @Produces(MediaType.APPLICATION_JSON)
   public Response getServiceName() {
     return Response.ok(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME).build();
+
   }
 
   /**
+   * Returns the service version.
+   *
+   * Method: GET
+   * Response: {@code int}
+   *
    * @return the response object
    */
   @GET

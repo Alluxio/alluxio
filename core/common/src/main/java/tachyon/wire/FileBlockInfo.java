@@ -27,7 +27,7 @@ import com.google.common.base.Objects;
  * The file block descriptor.
  */
 @NotThreadSafe
-public class FileBlockInfo {
+public final class FileBlockInfo {
   @JsonProperty("blockInfo")
   private BlockInfo mBlockInfo;
   @JsonProperty("offset")

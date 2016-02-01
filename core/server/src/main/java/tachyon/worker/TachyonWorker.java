@@ -58,6 +58,7 @@ public final class TachyonWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static TachyonWorker sTachyonWorker = null;
+
   /**
    * Main method for Tachyon Worker. A Block Worker will be started and the Tachyon Worker will
    * continue to run until the Block Worker thread exits.
@@ -198,44 +199,41 @@ public final class TachyonWorker {
   }
 
   /**
-   * @return the worker data service bind host (used by unit test only)
+   * @return the worker data service bind host
    */
   public String getDataBindHost() {
     return mBlockWorker.getDataBindHost();
   }
 
   /**
-   * @return the worker data service port (used by unit test only)
+   * @return the worker data service port
    */
   public int getDataLocalPort() {
     return mBlockWorker.getDataLocalPort();
   }
 
   /**
-   * @return the worker web service bind host (used by unit test only)
+   * @return the worker web service bind host
    */
   public String getWebBindHost() {
     return mWebServer.getBindHost();
   }
 
   /**
-   * @return the worker web service port (used by unit test only)
+   * @return the worker web service port
    */
   public int getWebLocalPort() {
     return mWebServer.getLocalPort();
   }
 
   /**
-   * @return the worker service handler (used by unit test only)
+   * @return the block worker
    */
   public BlockWorker getBlockWorker() {
     return mBlockWorker;
   }
 
   /**
-   * Gets this worker's {@link WorkerNetAddress}, which is the worker's hostname, rpc
-   * server port, data server port, and web server port.
-   *
    * @return the worker's net address
    */
   public WorkerNetAddress getNetAddress() {
