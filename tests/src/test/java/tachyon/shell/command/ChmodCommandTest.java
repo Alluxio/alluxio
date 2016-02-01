@@ -42,6 +42,11 @@ public class ChmodCommandTest extends AbstractTfsShellTest {
     Assert.assertEquals((short) 0755, permission);
   }
 
+  /**
+   * Test -R option for chmod recursively.
+   *
+   * @throws Exception
+   */
   @Test
   public void chmodRecursivelyTest() throws IOException, TachyonException {
     clearLoginUser();
