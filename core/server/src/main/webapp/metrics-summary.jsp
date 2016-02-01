@@ -11,8 +11,7 @@
 
     <div id="data4" class="accordion-body collapse in">
       <div class="accordion-inner">
-
-        <table class="table table-condensed table-centered">
+        <table class="table">
           <thead>
             <th></th>
             <th></th>
@@ -20,105 +19,44 @@
           <tbody>
             <tr>
               <th>Directories Created</th>
+              <th><%= request.getAttribute("master.DirectoriesCreated") %></th>
               <th>File Block Infos Got</th>
-              <th>File Infos Got</th>
+              <th><%= request.getAttribute("master.FileBlockInfosGot") %></th>
             </tr>
             <tr>
-              <td>
-                <div id="DirectoriesCreated" class="huge">                  
-                    <%= request.getAttribute("master.DirectoriesCreated") %>
-                </div>
-              </td>
-              <td>
-                <div id="FileBlockInfosGot" class="huge">
-                    <%= request.getAttribute("master.FileBlockInfosGot") %>
-                </div>
-              </td>
-              <td>
-                <div id="FileInfosGot" class="huge">
-                    <%= request.getAttribute("master.FileInfosGot") %>
-                </div>
-              </td>
-            </tr>
-            <tr>
+              <th>File Infos Got</th>              
+              <th><%= request.getAttribute("master.FileInfosGot") %></th>
               <th>Files Completed</th>
-              <th>Files Created</th>
-              <th>Files Freed</th>
+              <th><%= request.getAttribute("master.FilesCompleted") %></th>
             </tr>
             <tr>
-              <td>
-                <div id="FilesCompleted" class="huge">
-                    <%= request.getAttribute("master.FilesCompleted") %>
-                </div>
-              </td>
-              <td>
-                <div id="FilesCreated" class="huge">
-                    <%= request.getAttribute("master.FilesCreated") %>
-                </div>
-              </td>
-              <td>
-                <div id="FilesFreed" class="huge">
-                    <%= request.getAttribute("master.FilesFreed") %> 
-                </div>
-              </td>
+              <th>Files Created</th>
+              <th><%= request.getAttribute("master.FilesCreated") %></th>
+              <th>Files Freed</th>
+              <th><%= request.getAttribute("master.FilesFreed") %> </th>
             </tr>
             <tr>
               <th>Files Persisted</th>
+              <th><%= request.getAttribute("master.FilesPersisted") %></th>
               <th>Files Pinned</th>
+              <th><%= request.getAttribute("master.FilesPinned") %></th>              
+            </tr>
+            <tr>
               <th>New Blocks Got</th>
-            </tr>
-            <tr>
-              <td>
-                <div id="FilesPersisted" class="huge">
-                    <%= request.getAttribute("master.FilesPersisted") %>
-                </div>
-              </td>
-              <td>
-                <div id="FilesPinned" class="huge">
-                    <%= request.getAttribute("master.FilesPinned") %>
-                </div>
-              </td>
-              <td>
-                <div id="NewBlocksGot" class="huge">
-                    <%= request.getAttribute("master.NewBlocksGot") %>
-                </div>
-              </td>
-            </tr>
-            <tr>
+              <th><%= request.getAttribute("master.NewBlocksGot") %></th>
               <th>Paths Deleted</th>
-              <th>Paths Mounted</th>
-              <th>Paths Renamed</th>
+              <th><%= request.getAttribute("master.PathsDeleted") %></th>              
             </tr>
             <tr>
-              <td>
-                <div id="PathsDeleted" class="huge">
-                    <%= request.getAttribute("master.PathsDeleted") %>
-                </div>
-              </td>
-              <td>
-                <div id="PathsMounted" class="huge">
-                    <%= request.getAttribute("master.PathsMounted") %>
-                </div>
-              </td>
-              <td>
-                <div id="PathsRenamed" class="huge">
-                    <%= request.getAttribute("master.PathsRenamed") %>
-                </div>
-              </td>
+              <th>Paths Mounted</th>
+              <th><%= request.getAttribute("master.PathsMounted") %></th>
+              <th>Paths Renamed</th>
+              <th><%= request.getAttribute("master.PathsRenamed") %></th>
             </tr>
             <tr>
               <th>PathsUnmounted</th>
+              <th><%= request.getAttribute("master.PathsUnmounted") %></th>
               <th></th>
-              <th></th>
-            </tr>
-            <tr>
-              <td>
-                <div id="PathsUnmounted" class="huge">
-                    <%= request.getAttribute("master.PathsUnmounted") %>
-                </div>
-              </td>
-              <td></td>
-              <td></td>
             </tr>
           </tbody>
         </table>
