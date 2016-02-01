@@ -39,10 +39,10 @@ import tachyon.security.authentication.AuthenticationProvider;
  */
 // TODO(bin): add tests for {@link LocalTachyonClusterMultiMaster} in fault tolerant mode
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
-public class MasterClientAuthenticationIntegrationTest {
+public final class MasterClientAuthenticationIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(1000, Constants.GB);
+      new LocalTachyonClusterResource();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();

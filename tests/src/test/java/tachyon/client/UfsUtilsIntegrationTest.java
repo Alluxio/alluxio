@@ -38,7 +38,7 @@ import tachyon.util.io.PathUtils;
 public class UfsUtilsIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(10000, 128);
+      new LocalTachyonClusterResource();
   private FileSystem mFileSystem = null;
   private String mUfsRoot = null;
   private UnderFileSystem mUfs = null;
