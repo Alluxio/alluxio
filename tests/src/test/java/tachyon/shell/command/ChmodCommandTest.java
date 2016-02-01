@@ -30,7 +30,6 @@ import tachyon.shell.AbstractTfsShellTest;
  * Tests for chmod command.
  */
 public class ChmodCommandTest extends AbstractTfsShellTest {
-
   @Test
   public void chmodTest() throws IOException, TachyonException {
     clearLoginUser();
@@ -43,4 +42,22 @@ public class ChmodCommandTest extends AbstractTfsShellTest {
     Assert.assertEquals((short) 0755, permission);
   }
 
+  /**
+   * Test -R option for chmod recursively.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void chmodRecursivelyTest() throws IOException, TachyonException {
+    clearLoginUser();
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile", WriteType.MUST_CACHE, 10);
+    mFsShell.run("chmod", "-R", "777", "/testDir");
+    int permission = mFileSystem.getStatus(new TachyonURI("/testDir")).getPermission();
+    Assert.assertEquals((short) 0777, permission);
+    permission = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getPermission();
+    Assert.assertEquals((short) 0777, permission);
+    mFsShell.run("chmod", "-R", "755", "/testDir");
+    permission = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getPermission();
+    Assert.assertEquals((short) 0755, permission);
+  }
 }
