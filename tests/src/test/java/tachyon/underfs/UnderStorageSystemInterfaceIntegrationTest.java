@@ -35,7 +35,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
 
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(10000, 128);
+      new LocalTachyonClusterResource();
   private String mUnderfsAddress = null;
   private UnderFileSystem mUfs = null;
 

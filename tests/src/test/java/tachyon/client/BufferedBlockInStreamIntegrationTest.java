@@ -24,7 +24,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
@@ -38,14 +37,14 @@ import tachyon.util.io.PathUtils;
 /**
  * Integration tests for {@link tachyon.client.block.BlockInStream}.
  */
-public class BufferedBlockInStreamIntegrationTest {
+public final class BufferedBlockInStreamIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(Constants.GB, Constants.GB);
+      new LocalTachyonClusterResource();
   private static FileSystem sFileSystem;
   private static TachyonConf sTachyonConf;
   private static CreateFileOptions sWriteBoth;
