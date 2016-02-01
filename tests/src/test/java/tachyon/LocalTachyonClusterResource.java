@@ -64,9 +64,10 @@ import tachyon.master.LocalTachyonCluster;
  * </pre>
  */
 public final class LocalTachyonClusterResource implements TestRule {
-
-  private static final long DEFAULT_WORKER_CAPACITY_BYTES = 100 * Constants.MB;
-  private static final int DEFAULT_USER_BLOCK_SIZE = Constants.KB;
+  /** Default worker capacity in bytes. */
+  public static final long DEFAULT_WORKER_CAPACITY_BYTES = 100 * Constants.MB;
+  /** Default block size in bytes. */
+  public static final int DEFAULT_USER_BLOCK_SIZE = Constants.KB;
 
   /** The capacity of the worker in bytes */
   private final long mWorkerCapacityBytes;
