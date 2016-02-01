@@ -42,6 +42,10 @@ public class UnderFileSystemClusterTest {
     mUnderFileSystemCluster = PowerMockito.mock(UnderFileSystemCluster.class);
   }
 
+  /**
+   * Tests the getting an {@link UnderFileSystemCluster} when none is cached will create one, start
+   * it, and register a shutdown hook for it.
+   */
   @Test
   public void getTest() throws IOException {
     PowerMockito.spy(UnderFileSystemCluster.class);
@@ -68,6 +72,10 @@ public class UnderFileSystemClusterTest {
     Mockito.verify(sUnderFSCluster).registerJVMOnExistHook();
   }
 
+  /**
+   * Tests that the {UnderFileSystemCluster{@link #readEOFReturnsNegativeTest()} method will return
+   * true only when the cluster type is "tachyon.underfs.hdfs.LocalMiniDFSCluster".
+   */
   @Test
   public void readEOFReturnsNegativeTest() {
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
