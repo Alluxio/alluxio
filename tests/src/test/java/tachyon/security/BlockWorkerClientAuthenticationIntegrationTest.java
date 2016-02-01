@@ -39,10 +39,10 @@ import tachyon.worker.ClientMetrics;
  * KERBEROS.
  */
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
-public class BlockWorkerClientAuthenticationIntegrationTest {
+public final class BlockWorkerClientAuthenticationIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(1000, Constants.GB);
+      new LocalTachyonClusterResource();
   private ExecutorService mExecutorService;
 
   @Rule
