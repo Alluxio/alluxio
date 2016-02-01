@@ -16,23 +16,28 @@
 package tachyon.shell.command;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 
 /**
  * Displays the number of folders and files matching the specified prefix in args.
  */
+@ThreadSafe
 public final class CountCommand extends AbstractTfsShellCommand {
 
-  public CountCommand(TachyonConf conf, TachyonFileSystem tfs) {
-    super(conf, tfs);
+  /**
+   * @param conf the configuration for Tachyon
+   * @param fs the filesystem of Tachyon
+   */
+  public CountCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -56,34 +61,41 @@ public final class CountCommand extends AbstractTfsShellCommand {
   }
 
   private long[] countHelper(TachyonURI path) throws IOException {
-    TachyonFile fd;
-    FileInfo fInfo;
+    URIStatus status;
     try {
-      fd = mTfs.open(path);
-      fInfo = mTfs.getInfo(fd);
+      status = mFileSystem.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
 
-    if (!fInfo.isFolder) {
-      return new long[] { 1L, 0L, fInfo.length };
+    if (!status.isFolder()) {
+      return new long[] { 1L, 0L, status.getLength() };
     }
 
     long[] rtn = new long[] { 0L, 1L, 0L };
 
-    List<FileInfo> files = null;
+    List<URIStatus> statuses;
     try {
-      files = mTfs.listStatus(fd);
+      statuses = mFileSystem.listStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
-    Collections.sort(files);
-    for (FileInfo file : files) {
-      long[] toAdd = countHelper(new TachyonURI(file.getPath()));
+    for (URIStatus uriStatus : statuses) {
+      long[] toAdd = countHelper(new TachyonURI(uriStatus.getPath()));
       rtn[0] += toAdd[0];
       rtn[1] += toAdd[1];
       rtn[2] += toAdd[2];
     }
     return rtn;
+  }
+
+  @Override
+  public String getUsage() {
+    return "count <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Displays the number of files and directories matching the specified prefix.";
   }
 }

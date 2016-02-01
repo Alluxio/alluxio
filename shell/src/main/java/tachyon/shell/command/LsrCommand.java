@@ -17,18 +17,28 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
  * Displays information for all directories and files under the path specified in args
  * recursively.
  */
+@ThreadSafe
 public final class LsrCommand extends AbstractLsCommand {
 
-  public LsrCommand(TachyonConf conf, TachyonFileSystem tfs) {
-    super(conf, tfs);
+  /**
+   * Constructs a new instance to display information for all directories and files under the path
+   * specified in args recursively.
+   *
+   * @param conf the configuration for Tachyon
+   * @param fs the filesystem of Tachyon
+   */
+  public LsrCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -39,5 +49,16 @@ public final class LsrCommand extends AbstractLsCommand {
   @Override
   void runCommand(TachyonURI path) throws IOException {
     ls(path, true);
+  }
+
+  @Override
+  public String getUsage() {
+    return "lsr <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Displays information for all files and directories under the specified "
+      + "path recursively.";
   }
 }

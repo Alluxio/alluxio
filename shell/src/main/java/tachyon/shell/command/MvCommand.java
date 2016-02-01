@@ -17,19 +17,25 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
 /**
  * Renames a file or directory specified by args. Will fail if the new path name already exists.
  */
+@ThreadSafe
 public final class MvCommand extends AbstractTfsShellCommand {
 
-  public MvCommand(TachyonConf conf, TachyonFileSystem tfs) {
-    super(conf, tfs);
+  /**
+   * @param conf the configuration for Tachyon
+   * @param fs the filesystem of Tachyon
+   */
+  public MvCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -47,14 +53,20 @@ public final class MvCommand extends AbstractTfsShellCommand {
     TachyonURI srcPath = new TachyonURI(args[0]);
     TachyonURI dstPath = new TachyonURI(args[1]);
     try {
-      TachyonFile fd = mTfs.open(srcPath);
-      if (mTfs.rename(fd, dstPath)) {
-        System.out.println("Renamed " + srcPath + " to " + dstPath);
-      } else {
-        throw new IOException("mv: Failed to rename " + srcPath + " to " + dstPath);
-      }
+      mFileSystem.rename(srcPath, dstPath);
+      System.out.println("Renamed " + srcPath + " to " + dstPath);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
+  }
+
+  @Override
+  public String getUsage() {
+    return "mv <src> <dst>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Renames a file or directory.";
   }
 }

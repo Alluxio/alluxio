@@ -18,12 +18,14 @@ package tachyon.shell.command;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.lineage.TachyonLineage;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -31,12 +33,17 @@ import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
 
 /**
- * TODO(yupeng): add javadoc
+ * Creates a lineage for the given input files, output files, and command line job.
  */
+@ThreadSafe
 public final class CreateLineageCommand extends AbstractTfsShellCommand {
 
-  public CreateLineageCommand(TachyonConf conf, TachyonFileSystem tfs) {
-    super(conf, tfs);
+  /**
+   * @param conf the configuration for Tachyon
+   * @param fs the filesystem of Tachyon
+   */
+  public CreateLineageCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -90,5 +97,15 @@ public final class CreateLineageCommand extends AbstractTfsShellCommand {
       throw new IOException(e.getMessage());
     }
     System.out.println("Lineage " + lineageId + " has been created.");
+  }
+
+  @Override
+  public String getUsage() {
+    return "createLineage <inputFile1,...> <outputFile1,...> [<cmd_arg1> <cmd_arg2> ...]";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Creates a lineage.";
   }
 }

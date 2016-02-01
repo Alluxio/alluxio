@@ -15,21 +15,24 @@
 
 package tachyon.shell.command;
 
-import tachyon.client.file.TachyonFileSystem;
+import javax.annotation.concurrent.ThreadSafe;
+
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
  * The base class for all the {@link TfsShellCommand} classes. It provides a default argument
- * validation method and a place to hold the {@link TachyonFileSystem} client.
+ * validation method and a place to hold the {@link FileSystem} client.
  */
+@ThreadSafe
 public abstract class AbstractTfsShellCommand implements TfsShellCommand {
 
   protected TachyonConf mTachyonConf;
-  protected TachyonFileSystem mTfs;
+  protected FileSystem mFileSystem;
 
-  protected AbstractTfsShellCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  protected AbstractTfsShellCommand(TachyonConf conf, FileSystem fs) {
     mTachyonConf = conf;
-    mTfs = tfs;
+    mFileSystem = fs;
   }
 
   /**
@@ -43,8 +46,8 @@ public abstract class AbstractTfsShellCommand implements TfsShellCommand {
   public boolean validateArgs(String... args) {
     boolean valid = args.length == getNumOfArgs();
     if (!valid) {
-      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " arguments, "
-              + " not " + args.length + "\n");
+      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " arguments, " + " not "
+          + args.length + "\n");
     }
     return valid;
   }

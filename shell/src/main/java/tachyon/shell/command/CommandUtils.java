@@ -20,16 +20,18 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.TachyonException;
 
 /**
  * Common util methods for executing commands.
  */
+@ThreadSafe
 public final class CommandUtils {
 
   private CommandUtils() {
@@ -39,17 +41,17 @@ public final class CommandUtils {
   /**
    * Sets a new TTL value or unsets an existing TTL value for file at path.
    *
+   * @param fs the file system for Tachyon
    * @param path the file path
    * @param ttlMs the TTL (time to live) value to use; it identifies duration (in milliseconds) the
    *        created file should be kept around before it is automatically deleted, irrespective of
    *        whether the file is pinned; {@link Constants#NO_TTL} means to unset the TTL value
    * @throws IOException when failing to set/unset the TTL
    */
-  public static void setTTL(TachyonFileSystem tfs, TachyonURI path, long ttlMs) throws IOException {
+  public static void setTtl(FileSystem fs, TachyonURI path, long ttlMs) throws IOException {
     try {
-      TachyonFile fd = tfs.open(path);
-      SetStateOptions options = new SetStateOptions.Builder().setTTL(ttlMs).build();
-      tfs.setState(fd, options);
+      SetAttributeOptions options = SetAttributeOptions.defaults().setTtl(ttlMs);
+      fs.setAttribute(path, options);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
@@ -69,17 +71,16 @@ public final class CommandUtils {
   /**
    * Sets pin state for the input path
    *
-   * @param tfs The {@link TachyonFileSystem} client
+   * @param fs The {@link FileSystem} client
    * @param path The {@link TachyonURI} path as the input of the command
    * @param pinned the state to be set
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
-  public static void setPinned(TachyonFileSystem tfs, TachyonURI path, boolean pinned)
+  public static void setPinned(FileSystem fs, TachyonURI path, boolean pinned)
       throws IOException {
     try {
-      TachyonFile fd = tfs.open(path);
-      SetStateOptions options = new SetStateOptions.Builder().setPinned(pinned).build();
-      tfs.setState(fd, options);
+      SetAttributeOptions options = SetAttributeOptions.defaults().setPinned(pinned);
+      fs.setAttribute(path, options);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }

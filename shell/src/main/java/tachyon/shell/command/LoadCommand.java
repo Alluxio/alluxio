@@ -16,29 +16,36 @@
 package tachyon.shell.command;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.ReadType;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
+import tachyon.client.file.options.OpenFileOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 
 /**
  * Loads a file or directory in Tachyon space, makes it resident in memory.
  */
+@ThreadSafe
 public final class LoadCommand extends WithWildCardPathCommand {
 
-  public LoadCommand(TachyonConf conf, TachyonFileSystem tfs) {
-    super(conf, tfs);
+  /**
+   * Constructs a new instance to load a file or directory in Tachyon space.
+   *
+   * @param conf the configuration for Tachyon
+   * @param fs the filesystem of Tachyon
+   */
+  public LoadCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -52,32 +59,29 @@ public final class LoadCommand extends WithWildCardPathCommand {
   }
 
   /**
-   * Load a file or directory in Tachyon space, makes it resident in memory.
+   * Loads a file or directory in Tachyon space, makes it resident in memory.
    *
    * @param filePath The {@link TachyonURI} path to load into Tachyon memory
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   private void load(TachyonURI filePath) throws IOException {
     try {
-      TachyonFile fd = mTfs.open(filePath);
-      FileInfo fInfo = mTfs.getInfo(fd);
-      if (fInfo.isFolder) {
-        List<FileInfo> files = mTfs.listStatus(fd);
-        Collections.sort(files);
-        for (FileInfo file : files) {
-          TachyonURI newPath = new TachyonURI(file.getPath());
+      URIStatus status = mFileSystem.getStatus(filePath);
+      if (status.isFolder()) {
+        List<URIStatus> statuses = mFileSystem.listStatus(filePath);
+        for (URIStatus uriStatus : statuses) {
+          TachyonURI newPath = new TachyonURI(uriStatus.getPath());
           load(newPath);
         }
       } else {
-        if (fInfo.getInMemoryPercentage() == 100) {
+        if (status.getInMemoryPercentage() == 100) {
           // The file has already been fully loaded into Tachyon memory.
           return;
         }
         Closer closer = Closer.create();
         try {
-          InStreamOptions op = new InStreamOptions.Builder(mTachyonConf)
-              .setTachyonStorageType(TachyonStorageType.STORE).build();
-          FileInStream in = closer.register(mTfs.getInStream(fd, op));
+          OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+          FileInStream in = closer.register(mFileSystem.openFile(filePath, options));
           byte[] buf = new byte[8 * Constants.MB];
           while (in.read(buf) != -1) {
           }
@@ -91,5 +95,15 @@ public final class LoadCommand extends WithWildCardPathCommand {
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
+  }
+
+  @Override
+  public String getUsage() {
+    return "load <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Loads a file or directory in Tachyon space, makes it resident in memory.";
   }
 }

@@ -17,24 +17,30 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.ReadType;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
+import tachyon.client.file.options.OpenFileOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 
 /**
  * Prints the file's contents to the console.
  */
+@ThreadSafe
 public final class CatCommand extends WithWildCardPathCommand {
 
-  public CatCommand(TachyonConf conf, TachyonFileSystem tfs) {
-    super(conf, tfs);
+  /**
+   * @param conf the configuration for Tachyon
+   * @param fs the filesystem of Tachyon
+   */
+  public CatCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -45,13 +51,11 @@ public final class CatCommand extends WithWildCardPathCommand {
   @Override
   void runCommand(TachyonURI path) throws IOException {
     try {
-      TachyonFile fd = mTfs.open(path);
-      FileInfo tFile = mTfs.getInfo(fd);
+      URIStatus status = mFileSystem.getStatus(path);
 
-      if (!tFile.isFolder) {
-        InStreamOptions op = new InStreamOptions.Builder(mTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
-        FileInStream is = mTfs.getInStream(fd, op);
+      if (!status.isFolder()) {
+        OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+        FileInStream is = mFileSystem.openFile(path, options);
         byte[] buf = new byte[512];
         try {
           int read = is.read(buf);
@@ -68,5 +72,15 @@ public final class CatCommand extends WithWildCardPathCommand {
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
+  }
+
+  @Override
+  public String getUsage() {
+    return "cat <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Prints the file's contents to the console.";
   }
 }

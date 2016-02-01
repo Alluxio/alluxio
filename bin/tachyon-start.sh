@@ -5,6 +5,7 @@ LAUNCHER=
 if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
+BIN=$(cd "$( dirname "$0" )"; pwd)
 
 #start up tachyon
 
@@ -32,8 +33,6 @@ MOPT is one of:
 
 -h  display this help."
 
-bin=`cd "$( dirname "$0" )"; pwd`
-
 ensure_dirs() {
   if [ ! -d "$TACHYON_LOGS_DIR" ]; then
     echo "TACHYON_LOGS_DIR: $TACHYON_LOGS_DIR"
@@ -42,7 +41,7 @@ ensure_dirs() {
 }
 
 get_env() {
-  DEFAULT_LIBEXEC_DIR="$bin"/../libexec
+  DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
   TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
   . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 }
@@ -67,12 +66,8 @@ check_mount_mode() {
 do_mount() {
   MOUNT_FAILED=0
   case "${1}" in
-    Mount)
-      $LAUNCHER $bin/tachyon-mount.sh $1
-      MOUNT_FAILED=$?
-      ;;
-    SudoMount)
-      $LAUNCHER $bin/tachyon-mount.sh $1
+    Mount|SudoMount)
+      $LAUNCHER ${BIN}/tachyon-mount.sh $1
       MOUNT_FAILED=$?
       ;;
     NoMount)
@@ -85,7 +80,7 @@ do_mount() {
 }
 
 stop() {
-  $bin/tachyon-stop.sh
+  ${BIN}/tachyon-stop.sh all
 }
 
 
@@ -100,7 +95,7 @@ start_master() {
   fi
 
   if [ "${1}" == "-f" ] ; then
-    $LAUNCHER $bin/tachyon format
+    $LAUNCHER ${BIN}/tachyon format
   fi
 
   echo "Starting master @ $MASTER_ADDRESS. Logging to $TACHYON_LOGS_DIR"
@@ -186,18 +181,18 @@ case "${WHAT}" in
   all)
     check_mount_mode $2
     if [ "${killonstart}" != "no" ]; then
-      stop $bin
+      stop ${BIN}
     fi
     start_master $3
     sleep 2
-    $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon-start.sh worker $2
+    $LAUNCHER ${BIN}/tachyon-workers.sh ${BIN}/tachyon-start.sh worker $2
     ;;
   local)
     if [ "${killonstart}" != "no" ]; then
-      stop $bin
+      stop ${BIN}
       sleep 1
     fi
-    $LAUNCHER $bin/tachyon-mount.sh SudoMount
+    $LAUNCHER ${BIN}/tachyon-mount.sh SudoMount
     stat=$?
     if [ $stat -ne 0 ] ; then
       echo "Mount failed, not starting"
@@ -227,13 +222,13 @@ case "${WHAT}" in
     ;;
   workers)
     check_mount_mode $2
-    $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon-start.sh worker $2 $TACHYON_MASTER_ADDRESS
+    $LAUNCHER ${BIN}/tachyon-workers.sh ${BIN}/tachyon-start.sh worker $2 $TACHYON_MASTER_ADDRESS
     ;;
   restart_worker)
     restart_worker
     ;;
   restart_workers)
-    $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon-start.sh restart_worker
+    $LAUNCHER ${BIN}/tachyon-workers.sh ${BIN}/tachyon-start.sh restart_worker
     ;;
   *)
     echo "Error: Invalid WHAT: $WHAT"

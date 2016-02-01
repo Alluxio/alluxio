@@ -34,7 +34,7 @@ TACHYON_TARFILE="tachyon.tar.gz"
 rm -rf $TACHYON_TARFILE
 tar -C $TACHYON_HOME -zcf $TACHYON_TARFILE \
   assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar libexec \
-  servers/src/main/webapp \
+  core/server/src/main/webapp \
   bin conf integration/bin/common.sh integration/bin/tachyon-master-yarn.sh \
   integration/bin/tachyon-worker-yarn.sh \
   integration/bin/tachyon-application-master.sh \
@@ -56,5 +56,5 @@ export YARN_OPTS="${YARN_OPTS:-${TACHYON_JAVA_OPTS}}"
 
 ${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} tachyon.yarn.Client \
     -num_workers $NUM_WORKERS \
-    -master_address localhost \
+    -master_address ${TACHYON_MASTER_ADDRESS:-localhost} \
     -resource_path ${HDFS_PATH}

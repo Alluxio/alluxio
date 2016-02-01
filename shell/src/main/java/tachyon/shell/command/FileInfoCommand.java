@@ -17,46 +17,61 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.block.TachyonBlockStore;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 
 /**
  * Displays the file's all blocks info.
  */
+@ThreadSafe
 public final class FileInfoCommand extends WithWildCardPathCommand {
 
-  public FileInfoCommand(TachyonConf conf, TachyonFileSystem tfs) {
-    super(conf, tfs);
+  /**
+   * @param conf the configuration for Tachyon
+   * @param fs the filesystem of Tachyon
+   */
+  public FileInfoCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
   public String getCommandName() {
-    return "fileinfo";
+    return "fileInfo";
   }
 
   @Override
   void runCommand(TachyonURI path) throws IOException {
-    TachyonFile fd;
-    FileInfo fInfo;
+    URIStatus status;
     try {
-      fd = mTfs.open(path);
-      fInfo = mTfs.getInfo(fd);
+      status = mFileSystem.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
 
-    if (fInfo.isFolder) {
+    if (status.isFolder()) {
       throw new IOException(path + " is a directory path so does not have file blocks.");
     }
 
-    System.out.println(path + " with file id " + fd.getFileId() + " has the following blocks: ");
-    for (long blockId : fInfo.getBlockIds()) {
+    System.out.println(status);
+    System.out.println("Containing the following blocks: ");
+    for (long blockId : status.getBlockIds()) {
       System.out.println(TachyonBlockStore.get().getInfo(blockId));
     }
+  }
+
+  @Override
+  public String getUsage() {
+    return "fileInfo <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Displays all block info for the specified file.";
   }
 }

@@ -15,8 +15,6 @@
 
 package tachyon.underfs.glusterfs;
 
-import java.io.IOException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -30,7 +28,7 @@ import tachyon.underfs.UnderFileSystemFactory;
 import tachyon.underfs.UnderFileSystemRegistry;
 
 /**
- * Unit tests for {@link GlusterFSUnderFileSystem}
+ * Unit tests for {@link GlusterFSUnderFileSystem}.
  */
 public class GlusterFSUnderFileSystemFactoryTest {
   private UnderFileSystem mGfs = null;
@@ -38,8 +36,11 @@ public class GlusterFSUnderFileSystemFactoryTest {
   private String mVolume = null;
   private TachyonConf mTachyonConf;
 
+  /**
+   * Sets the volume and the mount directory before a test runs.
+   */
   @Before
-  public final void before() throws IOException {
+  public final void before() {
     mTachyonConf = new TachyonConf();
     if (mTachyonConf.containsKey(Constants.UNDERFS_GLUSTERFS_MR_DIR)) {
       mMount = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR);
@@ -49,6 +50,11 @@ public class GlusterFSUnderFileSystemFactoryTest {
     }
   }
 
+  /**
+   * Tests the {@link UnderFileSystem#create(String)} method.
+   *
+   * @throws Exception when the creation fails
+   */
   @Test
   public void createGlusterFS() throws Exception {
     // Using Assume will mark the tests as skipped rather than passed which provides a truer
@@ -60,6 +66,9 @@ public class GlusterFSUnderFileSystemFactoryTest {
     Assert.assertNotNull(mGfs.create("tachyon_test"));
   }
 
+  /**
+   * Tests the {@link UnderFileSystemRegistry#find(String, TachyonConf)} method.
+   */
   @Test
   public void factoryTest() {
     UnderFileSystemFactory factory =

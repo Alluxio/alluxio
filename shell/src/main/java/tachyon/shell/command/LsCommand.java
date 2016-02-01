@@ -17,17 +17,27 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
  * Displays information for all directories and files directly under the path specified in args.
  */
+@ThreadSafe
 public final class LsCommand extends AbstractLsCommand {
 
-  public LsCommand(TachyonConf conf, TachyonFileSystem tfs) {
-    super(conf, tfs);
+  /**
+   * Constructs a new instance to display information for all directories and files directly under
+   * the path specified in args.
+   *
+   * @param conf the configuration for Tachyon
+   * @param fs the filesystem of Tachyon
+   */
+  public LsCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -38,5 +48,15 @@ public final class LsCommand extends AbstractLsCommand {
   @Override
   void runCommand(TachyonURI path) throws IOException {
     ls(path, false);
+  }
+
+  @Override
+  public String getUsage() {
+    return "ls <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Displays information for all files and directories directly under the specified path.";
   }
 }

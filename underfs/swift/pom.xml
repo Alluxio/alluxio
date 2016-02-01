@@ -34,7 +34,7 @@
     </dependency>
      <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-common</artifactId>
+      <artifactId>tachyon-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -42,11 +42,20 @@
       <artifactId>commons-httpclient</artifactId>
       <version>3.1</version>
     </dependency>
-
-    <!-- Test Dependencies -->
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.javaswift</groupId>
+      <artifactId>joss</artifactId>
+      <version>0.9.8</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+      <version>1.9.7</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-core-asl</artifactId>
+      <version>1.9.7</version>
     </dependency>
   </dependencies>
 </project>

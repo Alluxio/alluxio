@@ -17,18 +17,25 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
 /**
  * Mounts a UFS path onto a Tachyon path.
  */
+@ThreadSafe
 public final class MountCommand extends AbstractTfsShellCommand {
 
-  public MountCommand(TachyonConf conf, TachyonFileSystem tfs) {
-    super(conf, tfs);
+  /**
+   * @param conf the configuration for Tachyon
+   * @param fs the filesystem of Tachyon
+   */
+  public MountCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -46,13 +53,20 @@ public final class MountCommand extends AbstractTfsShellCommand {
     TachyonURI tachyonPath = new TachyonURI(args[0]);
     TachyonURI ufsPath = new TachyonURI(args[1]);
     try {
-      if (mTfs.mount(tachyonPath, ufsPath)) {
-        System.out.println("Mounted " + ufsPath + " at " + tachyonPath);
-      } else {
-        throw new IOException("mount: Failed to mount" + ufsPath + " to " + tachyonPath);
-      }
+      mFileSystem.mount(tachyonPath, ufsPath);
+      System.out.println("Mounted " + ufsPath + " at " + tachyonPath);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
+  }
+
+  @Override
+  public String getUsage() {
+    return "mount <tachyonPath> <ufsURI>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Mounts a UFS path onto a Tachyon path.";
   }
 }

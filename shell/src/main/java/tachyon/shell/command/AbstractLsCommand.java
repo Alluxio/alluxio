@@ -20,21 +20,24 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
+import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 import tachyon.util.FormatUtils;
 
 /**
  * Parent class for commands ls and lsr.
  */
+@ThreadSafe
 public abstract class AbstractLsCommand extends WithWildCardPathCommand {
 
-  protected AbstractLsCommand(TachyonConf conf, TachyonFileSystem tfs) {
-    super(conf, tfs);
+  protected AbstractLsCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   /**
@@ -42,43 +45,43 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
    *
    * @param path The {@link TachyonURI} path as the input of the command
    * @param recursive Whether list the path recursively
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   protected void ls(TachyonURI path, boolean recursive) throws IOException {
-    List<FileInfo> files = listStatusSortedByIncreasingCreationTime(path);
-    String format = "%-10s%-25s%-15s%-15s%-5s%n";
-    for (FileInfo file : files) {
+    List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path);
+    for (URIStatus status : statuses) {
       String inMemory = "";
-      if (!file.isFolder) {
-        if (100 == file.inMemoryPercentage) {
+      if (!status.isFolder()) {
+        if (100 == status.getInMemoryPercentage()) {
           inMemory = "In Memory";
         } else {
           inMemory = "Not In Memory";
         }
       }
-      System.out.format(format, FormatUtils.getSizeFromBytes(file.getLength()),
-          CommandUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getUserName(),
-          file.getPath());
-      if (recursive && file.isFolder) {
-        ls(new TachyonURI(path.getScheme(), path.getAuthority(), file.getPath()), true);
+      System.out.format(Constants.COMMAND_FORMAT_LS,
+          FormatUtils.formatPermission((short) status.getPermission(), status.isFolder()),
+          status.getUserName(), status.getGroupName(),
+          FormatUtils.getSizeFromBytes(status.getLength()),
+          CommandUtils.convertMsToDate(status.getCreationTimeMs()), inMemory, status.getPath());
+      if (recursive && status.isFolder()) {
+        ls(new TachyonURI(path.getScheme(), path.getAuthority(), status.getPath()), true);
       }
     }
   }
 
-  private List<FileInfo> listStatusSortedByIncreasingCreationTime(TachyonURI path)
+  private List<URIStatus> listStatusSortedByIncreasingCreationTime(TachyonURI path)
       throws IOException {
-    List<FileInfo> files = null;
+    List<URIStatus> statuses;
     try {
-      TachyonFile fd = mTfs.open(path);
-      files = mTfs.listStatus(fd);
+      statuses = mFileSystem.listStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
-    Collections.sort(files, new Comparator<FileInfo>() {
+    Collections.sort(statuses, new Comparator<URIStatus>() {
       @Override
-      public int compare(FileInfo fileInfo, FileInfo fileInfo2) {
-        long t1 = fileInfo.creationTimeMs;
-        long t2 = fileInfo2.creationTimeMs;
+      public int compare(URIStatus status1, URIStatus status2) {
+        long t1 = status1.getCreationTimeMs();
+        long t2 = status2.getCreationTimeMs();
         if (t1 < t2) {
           return -1;
         }
@@ -88,6 +91,6 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
         return 1;
       }
     });
-    return files;
+    return statuses;
   }
 }

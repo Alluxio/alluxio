@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -56,7 +58,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.yarn.Utils.YarnContainerType;
+import tachyon.yarn.YarnUtils.YarnContainerType;
 
 /**
  * The client to submit the application to run Tachyon to YARN ResourceManager.
@@ -78,6 +80,7 @@ import tachyon.yarn.Utils.YarnContainerType;
  * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client -help
  * }
  */
+@NotThreadSafe
 public final class Client {
   /** Yarn client to talk to resource manager. */
   private YarnClient mYarnClient;
@@ -103,13 +106,16 @@ public final class Client {
   private int mNumWorkers;
   /** Address to run Tachyon master. */
   private String mMasterAddress;
-  /** Whether to allow multiple workers on a single host */
-  private boolean mOneWorkerPerHost;
+  /** Maximum number of workers to allow on a single host */
+  private int mMaxWorkersPerHost;
   /** Id of the application */
   private ApplicationId mAppId;
   /** Command line options */
   private Options mOptions;
 
+  /**
+   * Constructs a new client for launching a Tachyon application master.
+   */
   public Client() {
     mOptions = new Options();
     mOptions.addOption("appname", true, "Application Name. Default 'Tachyon'");
@@ -203,8 +209,8 @@ public final class Client {
     mAmMemoryInMB = Integer.parseInt(cliParser.getOptionValue("am_memory", "256"));
     mAmVCores = Integer.parseInt(cliParser.getOptionValue("am_vcores", "1"));
     mNumWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
-    mOneWorkerPerHost =
-        new TachyonConf().getBoolean(Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST);
+    mMaxWorkersPerHost =
+        new TachyonConf().getInt(Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
 
     Preconditions.checkArgument(mAmMemoryInMB > 0,
         "Invalid memory specified for application master, " + "exiting. Specified memory="
@@ -237,9 +243,8 @@ public final class Client {
     // Check if the cluster has enough resource to launch the ApplicationMaster
     checkClusterResource(appResponse);
 
-    if (mOneWorkerPerHost) {
-      checkNodesAvailable();
-    }
+    // Check that there are enough hosts in the cluster to support the desired number of workers
+    checkNodesAvailable();
 
     // Set up the container launch context for the application master
     mAmContainer = Records.newRecord(ContainerLaunchContext.class);
@@ -273,10 +278,10 @@ public final class Client {
   // Checks that there are enough nodes in the cluster to run the desired number of workers
   private void checkNodesAvailable() throws YarnException, IOException {
     Set<String> hosts = YarnUtils.getNodeHosts(mYarnClient);
-    Preconditions.checkArgument(mNumWorkers <= hosts.size(),
-        "Number of workers specified above number of usable hosts in the cluster, "
-            + String.format("specified=%s, but there are only %d usable hosts: %s", mNumWorkers,
-                hosts.size(), hosts));
+    Preconditions.checkArgument(mNumWorkers <= hosts.size() * mMaxWorkersPerHost,
+        "Not enough nodes in cluster to support specified number of workers, " + String.format(
+            "specified=%s, but there are only %d usable hosts and %d workers allowed per host: %s",
+            mNumWorkers, hosts.size(), mMaxWorkersPerHost, hosts));
   }
 
   private void setupContainerLaunchContext() throws IOException {
@@ -286,7 +291,7 @@ public final class Client {
         "-resource_path", mResourcePath);
 
     final String amCommand =
-        Utils.buildCommand(YarnContainerType.APPLICATION_MASTER, applicationMasterArgs);
+        YarnUtils.buildCommand(YarnContainerType.APPLICATION_MASTER, applicationMasterArgs);
 
     System.out.println("ApplicationMaster command: " + amCommand);
     mAmContainer.setCommands(Collections.singletonList(amCommand));
@@ -294,11 +299,11 @@ public final class Client {
     // Setup local resources
     Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
     localResources.put("tachyon.tar.gz",
-        Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.tar.gz"));
+        YarnUtils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.tar.gz"));
     localResources.put("tachyon-yarn-setup.sh",
-        Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon-yarn-setup.sh"));
+        YarnUtils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon-yarn-setup.sh"));
     localResources.put("tachyon.jar",
-        Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.jar"));
+        YarnUtils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.jar"));
     mAmContainer.setLocalResources(localResources);
 
     // Setup CLASSPATH for ApplicationMaster
