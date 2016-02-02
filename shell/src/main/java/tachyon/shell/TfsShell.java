@@ -49,8 +49,8 @@ public class TfsShell implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final HashMap<String, String[]> CMD_ALIAS = new HashMap<String, String[]>() { {
       put("chgrpr", new String[] {"chgrp", "-R"});
-      put("chownr", new String[] {"chown", "-R"});
       put("chmodr", new String[] {"chmod", "-R"});
+      put("chownr", new String[] {"chown", "-R"});
       // TODO(chaomin): also add "lsr", "rmr" as alias.
     } };
 
@@ -113,8 +113,8 @@ public class TfsShell implements Closeable {
   /**
    * Gets the replacement command for alias.
    *
-   * @arg command name
-   * @return replacement command if cmd is a alias
+   * @param command name
+   * @return replacement command if cmd is an alias
    */
   private String[] getReplacementCmd(String cmd) {
     if (CMD_ALIAS.containsKey(cmd)) {
@@ -160,11 +160,12 @@ public class TfsShell implements Closeable {
         printUsage();
         return -1;
       } else {
+        // Handle command alias.
         String[] replacementArgv = new String[replacementCmd.length + argv.length - 1];
-        for (int i = 0; i < replacementCmd.length; ++i) {
+        for (int i = 0; i < replacementCmd.length; ++ i) {
           replacementArgv[i] = replacementCmd[i];
         }
-        for (int i = 1; i < argv.length; ++i) {
+        for (int i = 1; i < argv.length; ++ i) {
           replacementArgv[i + replacementCmd.length - 1] = argv[i];
         }
         return run(replacementArgv);
