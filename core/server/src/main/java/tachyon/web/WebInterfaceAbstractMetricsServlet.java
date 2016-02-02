@@ -57,7 +57,7 @@ public abstract class WebInterfaceAbstractMetricsServlet extends HttpServlet {
    * @throws IOException if an I/O error occurs
    */
   protected void populateCountersValues(TachyonMetricRegistry mr, Map<String, Metric> operations,
-                                        HttpServletRequest request) throws IOException {
+        Map<String, Counter> rpcInvocations, HttpServletRequest request) throws IOException {
     request.setAttribute("historyEnabled", mr.isHistoryEnabled());
 
     if (mr.isHistoryEnabled()) {
@@ -88,5 +88,10 @@ public abstract class WebInterfaceAbstractMetricsServlet extends HttpServlet {
         }
       }
     }
+
+    for (Map.Entry<String, Counter> entry : rpcInvocations.entrySet()) {
+      request.setAttribute(entry.getKey(), entry.getValue().getCount());
+    }
+
   }
 }

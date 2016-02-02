@@ -100,12 +100,24 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("masterUnderfsCapacityFreePercentage",
         100 - masterUnderfsCapacityUsedPercentage);
 
-    Map<String,Counter> counters = mr.getCounters(MetricFilter.ALL);
+    Map<String,Counter> counters = mr.getCounters(new MetricFilter() {
+      @Override
+      public boolean matches(String name, Metric metric) {
+        return !(name.endsWith("Ops"));
+      }
+    });
+
+    Map<String,Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
+      @Override
+      public boolean matches(String name, Metric metric) {
+        return name.endsWith("Ops");
+      }
+    });
 
     Map<String,Metric> operations = new TreeMap<String, Metric>();
     operations.putAll(counters);
     operations.put("master.FilesPinned", mr.getGauges().get("master.FilesPinned"));
 
-    populateCountersValues(mr,operations,request);
+    populateCountersValues(mr,operations, rpcInvocations, request);
   }
 }
