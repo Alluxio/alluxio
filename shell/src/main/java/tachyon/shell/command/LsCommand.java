@@ -141,6 +141,7 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   @Override
   public String getDescription() {
-    return "Displays information for all files and directories directly under the specified path.";
+    return "Displays information for all files and directories directly under the specified path. "
+        + " Specify -R to display files and directories recursively.";
   }
 }
