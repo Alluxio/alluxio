@@ -8,11 +8,14 @@ priority: 6
 * Table of Contents
 {:toc}
 
-Tachyon提供了用户友好的Web界面以便用户查看和管理。master和worker都拥有各自的Web UI。master Web界面的默认端口是19999，worker的端口是30000。
+Tachyon提供了用户友好的Web界面以便用户查看和管理。master和worker都拥有各自的Web UI。master Web界面的默认
+端口是19999，worker的端口是30000。
 
 # Tachyon Master Web界面
 
-Tachyon master提供了Web界面以便用户管理。Tachyon master Web界面的默认端口是19999，访问`http://<MASTER IP>:19999`即可查看。举个例子，如果你在本地启动Tachyon，访问[localhost:19999](http://localhost:19999)即可查看master Web界面。
+Tachyon master提供了Web界面以便用户管理。Tachyon master Web界面的默认端口是19999，访问
+`http://<MASTER IP>:19999`即可查看。举个例子，如果你在本地启动Tachyon，访问
+[localhost:19999](http://localhost:19999)即可查看master Web界面。
 
 Tachyon master Web界面包含若干不同页面，描述如下：
 
@@ -86,7 +89,9 @@ workers页面将所有Tachyon worker节点分为两类显示：
 
 # Tachyon Workers Web界面
 
-每个Tachyon worker也提供Web界面显示worker信息。worker Web界面的默认端口是30000，访问`http://<WORKER IP>:30000`即可查看。举个例子，如果你在本地启动Tachyon，访问[localhost:30000](http://localhost:30000)即可查看worker Web界面。
+每个Tachyon worker也提供Web界面显示worker信息。worker Web界面的默认端口是30000，访问
+`http://<WORKER IP>:30000`即可查看。举个例子，如果你在本地启动Tachyon，访问
+[localhost:30000](http://localhost:30000)即可查看worker Web界面。
 
 ## 主页
 
@@ -95,4 +100,5 @@ Tachyon worker的主页和Tachyon master类似，但是显示的是单个worker�
 
 ## 块信息页面
 
-在块信息页面，可以看到worker上的文件，以及其他信息，如：文件大小和文件所在的存储层。当你点击文件时，可以看到文件的所有块信息。
+在块信息页面，可以看到worker上的文件，以及其他信息，如：文件大小和文件所在的存储层。当你点击文件时，可以看
+到文件的所有块信息。
