@@ -159,16 +159,17 @@ public class TfsShell implements Closeable {
         System.out.println(cmd + " is an unknown command.\n");
         printUsage();
         return -1;
+      } else {
+        // Handle command alias.
+        String[] replacementArgv = new String[replacementCmd.length + argv.length - 1];
+        for (int i = 0; i < replacementCmd.length; ++ i) {
+          replacementArgv[i] = replacementCmd[i];
+        }
+        for (int i = 1; i < argv.length; ++ i) {
+          replacementArgv[i + replacementCmd.length - 1] = argv[i];
+        }
+        return run(replacementArgv);
       }
-      // Handle command alias.
-      String[] replacementArgv = new String[replacementCmd.length + argv.length - 1];
-      for (int i = 0; i < replacementCmd.length; ++ i) {
-        replacementArgv[i] = replacementCmd[i];
-      }
-      for (int i = 1; i < argv.length; ++ i) {
-        replacementArgv[i + replacementCmd.length - 1] = argv[i];
-      }
-      return run(replacementArgv);
     }
 
     String[] args = Arrays.copyOfRange(argv, 1, argv.length);
