@@ -27,6 +27,7 @@ import java.util.TreeSet;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -162,17 +163,12 @@ public class TfsShell implements Closeable {
       }
       // Handle command alias, and print out WARNING message for deprecated cmd.
       String deprecatedMsg = "WARNING: " + cmd + " is deprecated. Please use "
-                             + replacementCmd[0] + " instead.";
+                             + StringUtils.join(replacementCmd, " ") + " instead.";
       System.out.println(deprecatedMsg);
       LOG.warn(deprecatedMsg);
 
-      String[] replacementArgv = new String[replacementCmd.length + argv.length - 1];
-      for (int i = 0; i < replacementCmd.length; ++ i) {
-        replacementArgv[i] = replacementCmd[i];
-      }
-      for (int i = 1; i < argv.length; ++ i) {
-        replacementArgv[i + replacementCmd.length - 1] = argv[i];
-      }
+      String[] replacementArgv = (String[]) ArrayUtils.addAll(replacementCmd,
+          ArrayUtils.subarray(argv, 1, argv.length));
       return run(replacementArgv);
     }
 
