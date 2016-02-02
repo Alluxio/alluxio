@@ -58,7 +58,7 @@
                       <div class="progress custom-progress">
                         <div class="bar bar-success" style="width: <%= (Integer) request.getAttribute("masterUnderfsCapacityFreePercentage") %>%;">
                           <% if ( (Integer) request.getAttribute("masterUnderfsCapacityFreePercentage") >= (Integer) request.getAttribute("masterUnderfsCapacityUsedPercentage")) { %>
-                            <%= request.getAttribute("masterCapacityFreePercentage") %>%Free
+                            <%= request.getAttribute("masterUnderfsCapacityFreePercentage") %>%Free
                           <% } %>
                         </div>
                         <div class="bar bar-danger" style="width: <%= (Integer) request.getAttribute("masterUnderfsCapacityUsedPercentage") %>%;">
