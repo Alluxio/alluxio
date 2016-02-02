@@ -30,6 +30,7 @@ import tachyon.TachyonURI;
 import tachyon.client.file.URIStatus;
 import tachyon.master.file.meta.PersistenceState;
 import tachyon.security.authorization.FileSystemPermission;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.FormatUtils;
 
@@ -127,6 +128,15 @@ public final class UIFileInfo {
         FormatUtils.formatPermission((short) status.getPermission(), status.isFolder());
     mPersistenceState = status.getPersistenceState();
     mFileLocations = new ArrayList<String>();
+  }
+
+  /**
+   * Creates a new instance of {@link UIFileInfo}
+   *
+   * @param info underlying {@link FileInfo}
+   */
+  public UIFileInfo(FileInfo info) {
+    this(new URIStatus(info));
   }
 
   /**
