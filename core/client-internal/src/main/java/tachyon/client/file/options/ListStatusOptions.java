@@ -55,4 +55,15 @@ public final class ListStatusOptions {
     mCheckUfs = checkUfs;
     return this;
   }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("ListStatus(");
+    sb.append(super.toString()).append(", Check UFS: ").append(mCheckUfs);
+    sb.append(")");
+    return sb.toString();
+  }
 }

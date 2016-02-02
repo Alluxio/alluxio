@@ -60,14 +60,25 @@ public class CreateDirectoryOptionsTest {
     Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
   }
 
+  /**
+   * Tests conversion to thrift representation.
+   */
   @Test
   public void toThriftTest() {
+    Random random = new Random();
+    boolean allowExists = random.nextBoolean();
+    boolean recursive = random.nextBoolean();
+    WriteType writeType = WriteType.NONE;
+
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
+    options.setAllowExists(allowExists);
+    options.setRecursive(recursive);
+    options.setWriteType(writeType);
+
     CreateDirectoryTOptions thriftOptions = options.toThrift();
-    Assert.assertFalse(thriftOptions.isAllowExists());
-    Assert.assertFalse(thriftOptions.isRecursive());
-    Assert.assertTrue(thriftOptions.isSetPersisted());
-    Assert.assertEquals(mDefaultWriteType.getUnderStorageType().isSyncPersist(),
+    Assert.assertEquals(allowExists, thriftOptions.isAllowExists());
+    Assert.assertEquals(recursive, thriftOptions.isRecursive());
+    Assert.assertEquals(writeType.getUnderStorageType().isSyncPersist(),
         thriftOptions.isPersisted());
   }
 }

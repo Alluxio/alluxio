@@ -20,6 +20,8 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.thrift.SetAttributeTOptions;
+
 /**
  * Tests for the {@link SetAttributeOptions} class.
  */
@@ -53,5 +55,29 @@ public class SetAttributeOptionsTest {
     Assert.assertEquals(pinned, options.getPinned());
     Assert.assertTrue(options.hasTtl());
     Assert.assertEquals(ttl, options.getTtl());
+  }
+
+  /**
+   * Tests conversion to thrift representation.
+   */
+  @Test
+  public void toThriftTest() {
+    Random random = new Random();
+    boolean persisted = random.nextBoolean();
+    boolean pinned = random.nextBoolean();
+    long ttl = random.nextLong();
+
+    SetAttributeOptions options = SetAttributeOptions.defaults();
+    options.setPersisted(persisted);
+    options.setPinned(pinned);
+    options.setTtl(ttl);
+    SetAttributeTOptions thriftOptions = options.toThrift();
+
+    Assert.assertTrue(thriftOptions.isSetPersisted());
+    Assert.assertEquals(persisted, thriftOptions.isPersisted());
+    Assert.assertTrue(thriftOptions.isSetPinned());
+    Assert.assertEquals(pinned, thriftOptions.isPinned());
+    Assert.assertTrue(thriftOptions.isSetTtl());
+    Assert.assertEquals(ttl, thriftOptions.getTtl());
   }
 }
