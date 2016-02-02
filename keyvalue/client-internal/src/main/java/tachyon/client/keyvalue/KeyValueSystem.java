@@ -27,24 +27,24 @@ import tachyon.exception.TachyonException;
  * Client to access or create key-value stores in Tachyon.
  */
 @PublicApi
-public interface KeyValueStores {
+public interface KeyValueSystem {
 
   /**
-   * Factory for the {@link KeyValueStores}.
+   * Factory for the {@link KeyValueSystem}.
    */
   final class Factory {
-    private static KeyValueStores sKeyValueStores = null;
+    private static KeyValueSystem sKeyValueSystem = null;
 
     private Factory() {} // to prevent initialization
 
     /**
-     * @return a {@link KeyValueStores} instance
+     * @return a {@link KeyValueSystem} instance
      */
-    public static synchronized KeyValueStores create() {
-      if (sKeyValueStores == null) {
-        sKeyValueStores = new BaseKeyValueStores();
+    public static synchronized KeyValueSystem create() {
+      if (sKeyValueSystem == null) {
+        sKeyValueSystem = new BaseKeyValueSystem();
       }
-      return sKeyValueStores;
+      return sKeyValueSystem;
     }
   }
 

@@ -31,7 +31,7 @@ import org.apache.hadoop.util.Progressable;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.keyvalue.KeyValueStores;
+import tachyon.client.keyvalue.KeyValueSystem;
 import tachyon.exception.TachyonException;
 
 /**
@@ -84,7 +84,7 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
     super.checkOutputSpecs(ignored, conf);
     conf.setOutputCommitter(KeyValueOutputCommitter.class);
     try {
-      KeyValueStores.Factory.create().createStore(KeyValueOutputFormat.getJobOutputURI(conf)).close();
+      KeyValueSystem.Factory.create().createStore(KeyValueOutputFormat.getJobOutputURI(conf)).close();
     } catch (TachyonException e) {
       throw new IOException(e);
     }
