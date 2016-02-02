@@ -6,7 +6,9 @@ group: User Guide
 priority: 5
 ---
 
-Tachyon可以由Apache YARN启动并管理。该向导介绍如何使用Tachyon自带的[Vagrant脚本](https://github.com/amplab/tachyon/tree/master/deploy/vagrant)在EC2的机器上用YARN启动Tachyon。
+Tachyon可以由Apache YARN启动并管理。该向导介绍如何使用Tachyon自带的
+[Vagrant脚本](https://github.com/amplab/tachyon/tree/master/deploy/vagrant)在EC2的机器上用YARN启
+动Tachyon。
 
 # 前期准备
 
@@ -90,26 +92,35 @@ Hadoop Web UI的默认端口为**50070**。
 
 # 配置集成YARN的Tachyon
 
-在我们的EC2机器上，YARN作为Hadoop2.4.1的一部分安装。注意，vagrant脚本构建的Tachyon二进制版本并不包含YARN的整合。需要先停止默认的Tachyon服务，重新编译Tachyon，编译时指定"yarn"配置文件(以便Tachyon包含YARN client和ApplicationMaster)。
+在我们的EC2机器上，YARN作为Hadoop2.4.1的一部分安装。注意，vagrant脚本构建的Tachyon二进制版本并不包含YARN
+的整合。需要先停止默认的Tachyon服务，重新编译Tachyon，编译时指定"yarn"配置文件(以便Tachyon包含YARN client
+和ApplicationMaster)。
 
 {% include Running-Tachyon-on-EC2-Yarn/stop-install-yarn.md %}
 
-添加`-DskipTests -Dfindbugs.skip -Dmaven.javadoc.skip -Dcheckstyle.skip`不是严格必须的，但是添加后可以使构建过程快很多。
+添加`-DskipTests -Dfindbugs.skip -Dmaven.javadoc.skip -Dcheckstyle.skip`不是严格必须的，但是添加后可以
+使构建过程快很多。
 
-定制Tachyon master和worker的特定属性(例如，每个worker建立分层存储)，参考[配置设置](Configuration-Settings.html)获取更多信息。为了确保你的配置可以被ApplicationMaster和Tachyon master/worker读取,将`${TACHYON_HOME}/conf`下的`tachyon-site.properties`放在每一台EC2机器上。
+定制Tachyon master和worker的特定属性(例如，每个worker建立分层存储)，参考
+[配置设置](Configuration-Settings.html)获取更多信息。为了确保你的配置可以被ApplicationMaster和
+Tachyon master/worker读取,将`${TACHYON_HOME}/conf`下的`tachyon-site.properties`放在每一台EC2机器上。
 
 # 启动Tachyon
 
 使用`integration/bin/tachyon-yarn.sh`脚本启动Tachyon。该脚本需要3个参数：
-1. 每台机器上指向`${TACHYON_HOME}`的路径。以便YARN NodeManager可以访问Tachyon脚本和可执行文件启动master和worker。在我们创建的EC2上，该路径为`/tachyon`。
+1. 每台机器上指向`${TACHYON_HOME}`的路径。以便YARN NodeManager可以访问Tachyon脚本和可执行文件启动master
+和worker。在我们创建的EC2上，该路径为`/tachyon`。
 2. 需要启动的Tachyon worker的总数。
 3. 分布存储Tachyon ApplicationMaster可执行文件的HDFS路径。
 
-举例而言，启动3个worker节点的Tachyon集群，HDFS临时目录是`hdfs://TachyonMaster:9000/tmp/`并且每个YARN容器可以在`/tachyon`目录下访问Tachyon:
+举例而言，启动3个worker节点的Tachyon集群，HDFS临时目录是`hdfs://TachyonMaster:9000/tmp/`并且每个YARN容
+器可以在`/tachyon`目录下访问Tachyon:
 
 {% include Running-Tachyon-on-EC2-Yarn/three-arguments.md %}
 
-脚本先上传YARN client和ApplicationMaster的可执行文件到指定的HDFS路径，再通知YARN运行client二进制jar。脚本一直运行并报告ApplicationMaster的状态。也可以在浏览器中查看`http://TachyonMaster:8088`访问Web UI观察Tachyon作业的状态和应用ID。
+脚本先上传YARN client和ApplicationMaster的可执行文件到指定的HDFS路径，再通知YARN运行client二进制jar。脚
+本一直运行并报告ApplicationMaster的状态。也可以在浏览器中查看`http://TachyonMaster:8088`访问Web UI观察
+Tachyon作业的状态和应用ID。
 
 以上脚本会产生如下的输出：
 
@@ -117,7 +128,8 @@ Hadoop Web UI的默认端口为**50070**。
 
 从输出中，我们得知运行Tachyon的应用ID是**`application_1445469376652_0002`**。应用ID可以用来杀死该应用。
 
-提示：当前的Tachyon YARN框架不保证在TachyonMaster机器上启动Tachyon。使用YARN web UI读取YARN应用的日志。应用的日志会记录哪台机器启动了Tachyon master容器，如下所示：
+提示：当前的Tachyon YARN框架不保证在TachyonMaster机器上启动Tachyon。使用YARN web UI读取YARN应用的日志。
+应用的日志会记录哪台机器启动了Tachyon master容器，如下所示：
 
 {% include Running-Tachyon-on-EC2-Yarn/log-Tachyon-master.md %}
 
