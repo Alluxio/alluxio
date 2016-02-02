@@ -42,7 +42,7 @@ public final class KeyValueStoreQuickStart {
     KeyValueStores kvStore = KeyValueStores.Factory.create();
 
     // Creates a store.
-    KeyValueStoreWriter writer = kvStore.create(storeUri);
+    KeyValueStoreWriter writer = kvStore.createStore(storeUri);
 
     // Puts a key-value pair ("key", "value").
     String key = "key";

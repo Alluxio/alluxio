@@ -82,7 +82,7 @@ public final class KeyValueStoresIntegrationTest {
    */
   @Test
   public void createAndOpenEmptyStoreTest() throws Exception {
-    mWriter = sKVStores.create(mStoreUri);
+    mWriter = sKVStores.createStore(mStoreUri);
     Assert.assertNotNull(mWriter);
     mWriter.close();
 
@@ -96,7 +96,7 @@ public final class KeyValueStoresIntegrationTest {
    */
   @Test
   public void createAndOpenStoreWithOneKeyTest() throws Exception {
-    mWriter = sKVStores.create(mStoreUri);
+    mWriter = sKVStores.createStore(mStoreUri);
     mWriter.put(KEY1, VALUE1);
     mWriter.close();
 
@@ -114,7 +114,7 @@ public final class KeyValueStoresIntegrationTest {
     final int numKeys = 100;
     final int keyLength = 4; // 4Byte key
     final int valueLength = 5 * Constants.KB; // 5KB value
-    mWriter = sKVStores.create(mStoreUri);
+    mWriter = sKVStores.createStore(mStoreUri);
     for (int i = 0; i < numKeys; i ++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = BufferUtils.getIncreasingByteArray(i, valueLength);
@@ -138,7 +138,7 @@ public final class KeyValueStoresIntegrationTest {
    */
   @Test
   public void emptyStoreIteratorTest() throws Exception {
-    mWriter = sKVStores.create(mStoreUri);
+    mWriter = sKVStores.createStore(mStoreUri);
     mWriter.close();
 
     mReader = sKVStores.openStore(mStoreUri);
@@ -224,7 +224,7 @@ public final class KeyValueStoresIntegrationTest {
 
     ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
         String.valueOf(maxPartitionSize));
-    mWriter = sKVStores.create(mStoreUri);
+    mWriter = sKVStores.createStore(mStoreUri);
     for (int i = 0; i < numKeys; i ++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = BufferUtils.getIncreasingByteArray(i, valueLength);
@@ -261,7 +261,7 @@ public final class KeyValueStoresIntegrationTest {
 
     ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
         String.valueOf(maxPartitionSize));
-    mWriter = sKVStores.create(mStoreUri);
+    mWriter = sKVStores.createStore(mStoreUri);
     byte[] key = BufferUtils.getIncreasingByteArray(0, keyLength);
     byte[] value = BufferUtils.getIncreasingByteArray(0, valueLength);
 
@@ -284,7 +284,7 @@ public final class KeyValueStoresIntegrationTest {
    */
   private TachyonURI createStoreOfSize(int size, List<KeyValuePair> pairs) throws Exception {
     TachyonURI path = new TachyonURI(PathUtils.uniqPath());
-    KeyValueStoreWriter writer = sKVStores.create(path);
+    KeyValueStoreWriter writer = sKVStores.createStore(path);
     for (int i = 0; i < size; i ++) {
       byte[] key = genBaseKey(i).getBytes();
       byte[] value = genBaseValue(i).getBytes();
@@ -326,7 +326,7 @@ public final class KeyValueStoresIntegrationTest {
     final int valueLength = 500 * Constants.KB; // 500KB value
 
     TachyonURI storeUri = new TachyonURI(PathUtils.uniqPath());
-    mWriter = sKVStores.create(storeUri);
+    mWriter = sKVStores.createStore(storeUri);
     for (int i = 0; i < partitionNumber; i ++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = BufferUtils.getIncreasingByteArray(i, valueLength);
