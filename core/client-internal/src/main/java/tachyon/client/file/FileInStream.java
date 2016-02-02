@@ -70,7 +70,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /** File System context containing the {@link FileSystemMasterClient} pool */
   private final FileSystemContext mContext;
   /** File information */
-  private final FileInfo mFileInfo;
+  private final URIStatus mFileInfo;
   /** Constant error message for block ID not cached */
   private static final String BLOCK_ID_NOT_CACHED = "The block with ID {}"
       + " could not be cached into Tachyon storage.";
@@ -89,13 +89,13 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /**
    * Creates a new file input stream.
    *
-   * @param info the file information
+   * @param status the file status
    * @param options the client options
    */
-  public FileInStream(FileInfo info, InStreamOptions options) {
-    mFileInfo = info;
-    mBlockSize = info.getBlockSizeBytes();
-    mFileLength = info.getLength();
+  public FileInStream(URIStatus status, InStreamOptions options) {
+    mFileInfo = status;
+    mBlockSize = status.getBlockSizeBytes();
+    mFileLength = status.getLength();
     mContext = FileSystemContext.INSTANCE;
     mTachyonStorageType = options.getTachyonStorageType();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
