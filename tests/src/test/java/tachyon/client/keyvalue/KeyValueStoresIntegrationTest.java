@@ -373,7 +373,7 @@ public final class KeyValueStoresIntegrationTest {
 
   private void testMergeStore(TachyonURI store1, List<KeyValuePair> keyValuePairs1,
       TachyonURI store2, List<KeyValuePair> keyValuePairs2) throws Exception {
-    sKVStores.merge(store1, store2);
+    sKVStores.mergeStore(store1, store2);
 
     // store2 contains all key-value pairs in both store1 and store2.
     List<KeyValuePair> mergedPairs = Lists.newArrayList();
