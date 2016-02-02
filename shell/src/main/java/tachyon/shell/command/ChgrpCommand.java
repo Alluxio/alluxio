@@ -25,13 +25,15 @@ import org.apache.commons.cli.Options;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 
 /**
  * Changes the group of a file or directory specified by args.
  */
 @ThreadSafe
-public final class ChgrpCommand extends AbstractAclCommand {
+public final class ChgrpCommand extends AbstractTfsShellCommand {
 
   /**
    * Creates a new instance of {@link ChgrpCommand}.
@@ -65,6 +67,25 @@ public final class ChgrpCommand extends AbstractAclCommand {
 
     opts.addOption(recursive);
     return opts;
+  }
+
+  /**
+   * Changes the group for the directory or file with the path specified in args.
+   *
+   * @param path The {@link TachyonURI} path as the input of the command
+   * @param group The group to be updated to the file or directory
+   * @param recursive Whether change the group recursively
+   * @throws IOException
+   */
+  protected void chgrp(TachyonURI path, String group, boolean recursive) throws IOException {
+    try {
+      SetAclOptions options = SetAclOptions.defaults().setGroup(group).setRecursive(recursive);
+      mFileSystem.setAcl(path, options);
+      System.out.println("Changed group of " + path + " to " + group);
+    } catch (TachyonException e) {
+      throw new IOException("Failed to changed group of " + path + " to " + group + " : "
+          + e.getMessage());
+    }
   }
 
   @Override

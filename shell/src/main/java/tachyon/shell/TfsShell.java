@@ -19,6 +19,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -46,6 +47,12 @@ import tachyon.util.CommonUtils;
 @NotThreadSafe
 public class TfsShell implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final HashMap<String, String[]> CMD_ALIAS = new HashMap<String, String[]>() { {
+      put("chgrpr", new String[] {"chgrp", "-R"});
+      put("chownr", new String[] {"chown", "-R"});
+      put("chmodr", new String[] {"chmod", "-R"});
+      // TODO(chaomin): also add "lsr", "rmr" as alias.
+    } };
 
   /**
    * Main method, starts a new TfsShell.
@@ -104,6 +111,20 @@ public class TfsShell implements Closeable {
   }
 
   /**
+   * Gets the replacement command for alias.
+   *
+   * @arg command name
+   * @return replacement command if cmd is a alias
+   */
+  private String[] getReplacementCmd(String cmd) {
+    if (CMD_ALIAS.containsKey(cmd)) {
+      return CMD_ALIAS.get(cmd);
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * Method which prints the method to use all the commands.
    */
   private void printUsage() {
@@ -133,9 +154,21 @@ public class TfsShell implements Closeable {
     TfsShellCommand command = mCommands.get(cmd);
 
     if (command == null) { // Unknown command (we didn't find the cmd in our dict)
-      System.out.println(cmd + " is an unknown command.\n");
-      printUsage();
-      return -1;
+      String[] replacementCmd = getReplacementCmd(cmd);
+      if (replacementCmd == null) {
+        System.out.println(cmd + " is an unknown command.\n");
+        printUsage();
+        return -1;
+      } else {
+        String[] replacementArgv = new String[replacementCmd.length + argv.length - 1];
+        for (int i = 0; i < replacementCmd.length; ++i) {
+          replacementArgv[i] = replacementCmd[i];
+        }
+        for (int i = 1; i < argv.length; ++i) {
+          replacementArgv[i + replacementCmd.length - 1] = argv[i];
+        }
+        return run(replacementArgv);
+      }
     }
 
     String[] args = Arrays.copyOfRange(argv, 1, argv.length);
