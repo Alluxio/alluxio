@@ -91,5 +91,5 @@ public interface KeyValueStores {
    * @throws IOException if non-Tachyon error occurs
    * @throws TachyonException if other Tachyon error occurs
    */
-  void merge(TachyonURI fromUri, TachyonURI toUri) throws IOException, TachyonException;
+  void mergeStore(TachyonURI fromUri, TachyonURI toUri) throws IOException, TachyonException;
 }

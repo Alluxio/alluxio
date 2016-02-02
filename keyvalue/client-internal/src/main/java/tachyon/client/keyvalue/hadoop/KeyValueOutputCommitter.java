@@ -72,7 +72,7 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
     TachyonURI jobOutputURI = KeyValueOutputFormat.getJobOutputURI(conf);
     for (TachyonURI tempStoreUri : getTaskTemporaryStores(conf)) {
       try {
-        KEY_VALUE_STORES.merge(tempStoreUri, jobOutputURI);
+        KEY_VALUE_STORES.mergeStore(tempStoreUri, jobOutputURI);
       } catch (TachyonException e) {
         throw new IOException(e);
       }
