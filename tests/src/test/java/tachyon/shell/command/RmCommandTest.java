@@ -36,7 +36,7 @@ public class RmCommandTest extends AbstractTfsShellTest {
     mFsShell.run("mkdir", "/testFolder");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
     mFsShell.run("rm", "/testFolder");
-    toCompare.append("rm: cannot remove a directory, please try rmr <path>\n");
+    toCompare.append("rm: cannot remove a directory, please try rm -R <path>\n");
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
   }
 

@@ -19,8 +19,13 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
+import tachyon.client.file.options.DeleteOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
@@ -44,16 +49,38 @@ public final class RmCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path) throws IOException {
+  protected int getNumOfArgs() {
+    return 1;
+  }
+
+  @Override
+  protected Options getOptions() {
+    Options opts = new Options();
+    // Add R option for recursively.
+    Option recursive = Option.builder("R")
+        .required(false)
+        .hasArg(false)
+        .desc("recusively")
+        .build();
+
+    opts.addOption(recursive);
+    return opts;
+  }
+
+  @Override
+  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
     // TODO(calvin): Remove explicit state checking.
     try {
+      boolean recursively = cl.hasOption("R");
       if (!mFileSystem.exists(path)) {
         throw new IOException("Path " + path + " does not exist");
       }
-      if (mFileSystem.getStatus(path).isFolder()) {
-        throw new IOException("rm: cannot remove a directory, please try rmr <path>");
+      if (!recursively && mFileSystem.getStatus(path).isFolder()) {
+        throw new IOException("rm: cannot remove a directory, please try rm -R <path>");
       }
-      mFileSystem.delete(path);
+
+      DeleteOptions options = DeleteOptions.defaults().setRecursive(recursively);
+      mFileSystem.delete(path, options);
       System.out.println(path + " has been removed");
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -62,7 +89,7 @@ public final class RmCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "rm <path>";
+    return "rm [-R] <path>";
   }
 
   @Override
