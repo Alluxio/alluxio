@@ -25,6 +25,7 @@ import java.util.TreeSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang.StringUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -138,14 +139,15 @@ public class TfsShell implements Closeable {
     }
 
     String[] args = Arrays.copyOfRange(argv, 1, argv.length);
-    if (!command.validateArgs(args)) {
+    CommandLine cmdline = command.parseAndValidateArgs(args);
+    if (cmdline == null) {
       printUsage();
       return -1;
     }
 
     // Handle the command
     try {
-      command.run(args);
+      command.run(cmdline);
       return 0;
     } catch (IOException e) {
       System.out.println(e.getMessage());

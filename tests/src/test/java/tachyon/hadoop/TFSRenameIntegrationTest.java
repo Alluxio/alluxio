@@ -38,12 +38,10 @@ import tachyon.util.io.PathUtils;
  * Integration tests for {@link TFS#rename(Path, Path)}.
  */
 // TODO(jiri): Test persisting rename operations to UFS.
-public class TFSRenameIntegrationTest {
-
-  private static final int BLOCK_SIZE = 1024;
+public final class TFSRenameIntegrationTest {
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(100000000, BLOCK_SIZE);
+      new LocalTachyonClusterResource();
   private static String sUfsRoot;
   private static UnderFileSystem sUfs;
   private static FileSystem sTFS;

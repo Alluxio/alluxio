@@ -30,7 +30,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.FileSystemTestUtils;
@@ -44,15 +43,13 @@ import tachyon.util.io.BufferUtils;
 /**
  * Integration tests for {@link HdfsFileInputStream}.
  */
-public class HdfsFileInputStreamIntegrationTest {
-  private static final int USER_QUOTA_UNIT_BYTES = 100;
-  private static final int WORKER_CAPACITY = 10 * Constants.MB;
+public final class HdfsFileInputStreamIntegrationTest {
   private static final int FILE_LEN = 255;
   private static final int BUFFER_SIZE = 50;
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY, Constants.MB);
+      new LocalTachyonClusterResource();
   private static FileSystem sFileSystem = null;
   private HdfsFileInputStream mInMemInputStream;
   private HdfsFileInputStream mUfsInputStream;
