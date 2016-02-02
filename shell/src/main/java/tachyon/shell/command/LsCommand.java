@@ -23,7 +23,6 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import tachyon.Constants;
@@ -63,16 +62,7 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   @Override
   protected Options getOptions() {
-    Options opts = new Options();
-    // Add R option for recursively.
-    Option recursive = Option.builder("R")
-        .required(false)
-        .hasArg(false)
-        .desc("recusively")
-        .build();
-
-    opts.addOption(recursive);
-    return opts;
+    return new Options().addOption(RECURSIVE_OPTION);
   }
 
   /**
@@ -141,7 +131,7 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   @Override
   public String getDescription() {
-    return "Displays information for all files and directories directly under the specified path. "
+    return "Displays information for all files and directories directly under the specified path."
         + " Specify -R to display files and directories recursively.";
   }
 }
