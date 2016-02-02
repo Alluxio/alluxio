@@ -34,7 +34,7 @@ import tachyon.TachyonURI;
  * Utilty class for using Tachyon with Hadoop.
  */
 @ThreadSafe
-public final class Utils {
+public final class HadoopUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -175,5 +175,5 @@ public final class Utils {
     }
   }
 
-  private Utils() {} // prevent instantiation
+  private HadoopUtils() {} // prevent instantiation
 }
