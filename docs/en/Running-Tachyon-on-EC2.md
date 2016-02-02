@@ -9,7 +9,7 @@ priority: 3
 Tachyon can be deployed on Amazon EC2 using the
 [Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant) that come with
 Tachyon. The scripts let you create, configure, and destroy clusters that come automatically
-configured with HDFS.
+configured with [Amazon S3](https://s3.amazonaws.com/).
 
 # Prerequisites
 
@@ -85,10 +85,9 @@ In order to enable spot instances, you have to modify the file: `deploy/vagrant/
 
     Spot_Price: “X.XX”
 
-For AWS EC2, the default underfs is S3. For other providers, it is hadoop2. You can config the ufs type in `deploy/vagrant/conf/ufs.yml`.
-The following example uses hadoop2 as under filesystem.
+For AWS EC2, the default underfs is S3. You need to sign into your [Amazon S3 console](http://aws.amazon.com/s3/), create a S3 bucket and write the bucket's name to the field `S3:Bucket` in `conf/ufs.yml`. To use other under storage systems, configure the field `Type` and the corresponding configurations in `conf/ufs.yml`.
 
-Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running
+Now you can launch the Tachyon cluster with your chosen under filesystem in your chosen availability zone by running
 the script under `deploy/vagrant`:
 
 {% include Running-Tachyon-on-EC2/launch-cluster.md %}
@@ -105,8 +104,6 @@ below shown at the end of the shell output:
 {% include Running-Tachyon-on-EC2/shell-output.md %}
 
 Default port for Tachyon Web UI is **19999**.
-
-Default port for Hadoop Web UI is **50070**.
 
 Visit `http://{MASTER_IP}:{PORT}` in the browser to access the Web UIs.
 
@@ -131,8 +128,7 @@ For example, you can ssh into `TachyonMaster` with:
 
 {% include Running-Tachyon-on-EC2/ssh-TachyonMaster.md %}
 
-All software is installed under the root directory, e.g. Tachyon is installed in `/tachyon`,
-and Hadoop is installed in `/hadoop`.
+All software is installed under the root directory, e.g. Tachyon is installed in `/tachyon`.
 
 On the `TachyonMaster` node, you can run tests against Tachyon to check its health:
 
@@ -141,6 +137,9 @@ On the `TachyonMaster` node, you can run tests against Tachyon to check its heal
 After the tests finish, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse
 File System` in the navigation bar, and you should see the files written to Tachyon by the above
 tests.
+
+You can login to [AWS web console](https://console.aws.amazon.com/console), then go to your S3 console,
+and find some files written into your S3 bucket by the above tests.
 
 From a node in the cluster, you can ssh to other nodes in the cluster without password with:
 
