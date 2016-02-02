@@ -77,7 +77,7 @@ public final class ChgrpCommand extends AbstractTfsShellCommand {
    * @param recursive Whether change the group recursively
    * @throws IOException
    */
-  protected void chgrp(TachyonURI path, String group, boolean recursive) throws IOException {
+  private void chgrp(TachyonURI path, String group, boolean recursive) throws IOException {
     try {
       SetAclOptions options = SetAclOptions.defaults().setGroup(group).setRecursive(recursive);
       mFileSystem.setAcl(path, options);
