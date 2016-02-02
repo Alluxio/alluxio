@@ -90,7 +90,7 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
   public void abortTask(TaskAttemptContext context) throws IOException {
     for (TachyonURI tempStoreUri : getTaskTemporaryStores(context.getJobConf())) {
       try {
-        KEY_VALUE_STORES.delete(tempStoreUri);
+        KEY_VALUE_STORES.deleteStore(tempStoreUri);
       } catch (TachyonException e) {
         throw new IOException(e);
       }

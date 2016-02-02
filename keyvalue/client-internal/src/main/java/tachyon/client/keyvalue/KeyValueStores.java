@@ -77,7 +77,7 @@ public interface KeyValueStores {
    * @throws FileDoesNotExistException if the uri does not exist
    * @throws TachyonException if other Tachyon error occurs
    */
-  void delete(TachyonURI uri)
+  void deleteStore(TachyonURI uri)
       throws IOException, InvalidPathException, FileDoesNotExistException, TachyonException;
 
   /**
