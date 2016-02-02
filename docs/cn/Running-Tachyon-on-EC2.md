@@ -6,7 +6,8 @@ group: User Guide
 priority: 3
 ---
 
-使用Tachyon自带的[Vagrant脚本](https://github.com/amplab/tachyon/tree/master/deploy/vagrant)可以将Tachyon部署在Amazon EC2上。该脚本允许你创建，配置以及销毁集群，该集群自动配置了HDFS相关项。
+使用Tachyon自带的[Vagrant脚本](https://github.com/amplab/tachyon/tree/master/deploy/vagrant)可以将
+Tachyon部署在Amazon EC2上。该脚本允许你创建，配置以及销毁集群，该集群自动配置了HDFS相关项。
 
 # 前期准备
 
@@ -98,7 +99,8 @@ Hadoop Web UI的默认端口为**50070**。
 
 {% include Running-Tachyon-on-EC2/runTests.md %}
 
-在所有测试完成后，再次访问Tachyon的web UI `http://{MASTER_IP}:19999`，在导航栏中点击`Browse File System`，你应该能看到测试过程中写入到Tachyon的文件。
+在所有测试完成后，再次访问Tachyon的web UI `http://{MASTER_IP}:19999`，在导航栏中点
+击`Browse File System`，你应该能看到测试过程中写入到Tachyon的文件。
 
 在集群中的某个节点上，可以通过ssh免密码登陆到集群中的其他节点：
 
