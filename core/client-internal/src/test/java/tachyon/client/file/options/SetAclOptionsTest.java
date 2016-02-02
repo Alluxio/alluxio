@@ -18,43 +18,93 @@ package tachyon.client.file.options;
 import java.util.Random;
 
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+
+import tachyon.Constants;
+import tachyon.thrift.SetAclTOptions;
 
 /**
  * Tests for the {@link SetAclOptions} class.
  */
 public class SetAclOptionsTest {
+  /**
+   * Tests that building a {@link SetAclOptions} with the defaults works.
+   */
+  @Test
+  public void defaultsTest() {
+    SetAclOptions options = SetAclOptions.defaults();
 
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
+    Assert.assertNull(options.getOwner());
+    Assert.assertNull(options.getGroup());
+    Assert.assertEquals(Constants.INVALID_PERMISSION, options.getPermission());
+    Assert.assertFalse(options.isRecursive());
+  }
 
   /**
    * Tests setting the fields of a {@link SetAclOptions} object
    */
   @Test
-  public void setFieldsTest() {
+  public void fieldsTest() {
+    SetAclOptions options = SetAclOptions.defaults();
     Random random = new Random();
-    boolean recursive = random.nextBoolean();
 
     // owner
     byte[] bytes = new byte[5];
     random.nextBytes(bytes);
     String owner = new String(bytes);
-    SetAclOptions options = SetAclOptions.defaults().setOwner(owner).setRecursive(recursive);
-    Assert.assertEquals(owner, options.getOwner());
-    Assert.assertEquals(recursive, options.isRecursive());
+    options.setOwner(owner);
 
     // group
     random.nextBytes(bytes);
     String group = new String(bytes);
-    options = SetAclOptions.defaults().setGroup(group).setRecursive(recursive);
-    Assert.assertEquals(group, options.getGroup());
+    options.setGroup(group);
 
     // permission
     short permission = (short) random.nextInt();
-    options = SetAclOptions.defaults().setPermission(permission).setRecursive(recursive);
+    options.setPermission(permission);
+
+    // recursive
+    boolean recursive = random.nextBoolean();
+    options.setRecursive(recursive);
+
+    Assert.assertEquals(owner, options.getOwner());
+    Assert.assertEquals(group, options.getGroup());
     Assert.assertEquals(permission, options.getPermission());
+    Assert.assertEquals(recursive, options.isRecursive());
+  }
+
+  /**
+   * Tests conversion to thrift representation.
+   */
+  @Test
+  public void toThriftTest() {
+    SetAclOptions options = SetAclOptions.defaults();
+    Random random = new Random();
+
+    // owner
+    byte[] bytes = new byte[5];
+    random.nextBytes(bytes);
+    String owner = new String(bytes);
+    options.setOwner(owner);
+
+    // group
+    random.nextBytes(bytes);
+    String group = new String(bytes);
+    options.setGroup(group);
+
+    // permission
+    short permission = (short) random.nextInt();
+    options.setPermission(permission);
+
+    // recursive
+    boolean recursive = random.nextBoolean();
+    options.setRecursive(recursive);
+
+    SetAclTOptions thriftOptions = options.toThrift();
+
+    Assert.assertEquals(owner, thriftOptions.getOwner());
+    Assert.assertEquals(group, thriftOptions.getGroup());
+    Assert.assertEquals(permission, thriftOptions.getPermission());
+    Assert.assertEquals(recursive, thriftOptions.isRecursive());
   }
 }
