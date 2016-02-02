@@ -30,7 +30,6 @@ import tachyon.TachyonURI;
 import tachyon.client.file.URIStatus;
 import tachyon.master.file.meta.PersistenceState;
 import tachyon.security.authorization.FileSystemPermission;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.FormatUtils;
 
