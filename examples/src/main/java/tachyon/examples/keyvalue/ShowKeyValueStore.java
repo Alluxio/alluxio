@@ -20,7 +20,7 @@ import tachyon.Version;
 import tachyon.client.keyvalue.KeyValueIterator;
 import tachyon.client.keyvalue.KeyValuePair;
 import tachyon.client.keyvalue.KeyValueStoreReader;
-import tachyon.client.keyvalue.KeyValueStores;
+import tachyon.client.keyvalue.KeyValueSystem;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.BufferUtils;
 
@@ -59,7 +59,7 @@ public final class ShowKeyValueStore {
       System.exit(-1);
     }
 
-    KeyValueStoreReader reader = KeyValueStores.Factory.create().openStore(new TachyonURI(args[0]));
+    KeyValueStoreReader reader = KeyValueSystem.Factory.create().openStore(new TachyonURI(args[0]));
     KeyValueIterator iterator = reader.iterator();
     while (iterator.hasNext()) {
       show(iterator.next(), args[1]);
