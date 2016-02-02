@@ -40,7 +40,6 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
-import tachyon.thrift.FileInfo;
 import tachyon.worker.NetAddress;
 
 /**
