@@ -343,7 +343,7 @@ public final class KeyValueStoresIntegrationTest {
   }
 
   private void testDeleteStore(TachyonURI storeUri) throws Exception {
-    sKVStores.delete(storeUri);
+    sKVStores.deleteStore(storeUri);
 
     // TachyonException is expected to be thrown.
     try {

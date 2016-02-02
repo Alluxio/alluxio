@@ -53,7 +53,7 @@ public class BaseKeyValueStores implements KeyValueStores {
   }
 
   @Override
-  public void delete(TachyonURI uri)
+  public void deleteStore(TachyonURI uri)
       throws IOException, InvalidPathException, FileDoesNotExistException, TachyonException {
     mMasterClient.deleteStore(uri);
   }
