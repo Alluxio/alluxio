@@ -27,24 +27,24 @@ import tachyon.exception.TachyonException;
  * Client to access or create key-value stores in Tachyon.
  */
 @PublicApi
-public interface KeyValueStores {
+public interface KeyValueSystem {
 
   /**
-   * Factory for the {@link KeyValueStores}.
+   * Factory for the {@link KeyValueSystem}.
    */
   final class Factory {
-    private static KeyValueStores sKeyValueStores = null;
+    private static KeyValueSystem sKeyValueSystem = null;
 
     private Factory() {} // to prevent initialization
 
     /**
-     * @return a {@link KeyValueStores} instance
+     * @return a {@link KeyValueSystem} instance
      */
-    public static synchronized KeyValueStores create() {
-      if (sKeyValueStores == null) {
-        sKeyValueStores = new BaseKeyValueStores();
+    public static synchronized KeyValueSystem create() {
+      if (sKeyValueSystem == null) {
+        sKeyValueSystem = new BaseKeyValueSystem();
       }
-      return sKeyValueStores;
+      return sKeyValueSystem;
     }
   }
 
@@ -56,7 +56,7 @@ public interface KeyValueStores {
    * @throws IOException if non-Tachyon error occurs
    * @throws TachyonException if Tachyon error occurs
    */
-  KeyValueStoreReader open(TachyonURI uri) throws IOException, TachyonException;
+  KeyValueStoreReader openStore(TachyonURI uri) throws IOException, TachyonException;
 
   /**
    * Gets a writer to create a new key-value store.
@@ -66,7 +66,7 @@ public interface KeyValueStores {
    * @throws IOException if non-Tachyon error occurs
    * @throws TachyonException if Tachyon error occurs
    */
-  KeyValueStoreWriter create(TachyonURI uri) throws IOException, TachyonException;
+  KeyValueStoreWriter createStore(TachyonURI uri) throws IOException, TachyonException;
 
   /**
    * Deletes a completed key-value store.
@@ -77,7 +77,7 @@ public interface KeyValueStores {
    * @throws FileDoesNotExistException if the uri does not exist
    * @throws TachyonException if other Tachyon error occurs
    */
-  void delete(TachyonURI uri)
+  void deleteStore(TachyonURI uri)
       throws IOException, InvalidPathException, FileDoesNotExistException, TachyonException;
 
   /**
@@ -91,5 +91,5 @@ public interface KeyValueStores {
    * @throws IOException if non-Tachyon error occurs
    * @throws TachyonException if other Tachyon error occurs
    */
-  void merge(TachyonURI fromUri, TachyonURI toUri) throws IOException, TachyonException;
+  void mergeStore(TachyonURI fromUri, TachyonURI toUri) throws IOException, TachyonException;
 }

@@ -22,29 +22,29 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for the {@link Utils} class.
+ * Tests for the {@link HadoopUtils} class.
  */
-public final class UtilsTest {
+public final class HadoopUtilsTest {
 
   /**
-   * Test for the {@link Utils#getPathWithoutScheme(Path)} method.
+   * Test for the {@link HadoopUtils#getPathWithoutScheme(Path)} method.
    */
   @Test
   public void testGetPathWithoutSchema() {
     final Path path = new Path("/foo/bar/baz");
 
-    final String output = Utils.getPathWithoutScheme(path);
+    final String output = HadoopUtils.getPathWithoutScheme(path);
     Assert.assertEquals("/foo/bar/baz", output);
   }
 
   /**
-   * Test for the {@link Utils#getPathWithoutScheme(Path)} method that contains the schema.
+   * Test for the {@link HadoopUtils#getPathWithoutScheme(Path)} method that contains the schema.
    */
   @Test
   public void testGetPathWithoutSchemaThatContainsSchema() {
     final Path path = new Path("file:///foo/bar/baz");
 
-    final String output = Utils.getPathWithoutScheme(path);
+    final String output = HadoopUtils.getPathWithoutScheme(path);
     Assert.assertEquals("/foo/bar/baz", output);
   }
 
@@ -60,18 +60,18 @@ public final class UtilsTest {
   public void testGetPathWithoutSchemaFromHDFS() {
     final Path path = new Path("hdfs://localhost:1234/foo/bar/baz?please=dont&show=up");
 
-    final String output = Utils.getPathWithoutScheme(path);
+    final String output = HadoopUtils.getPathWithoutScheme(path);
     Assert.assertFalse("/foo/bar/baz".equals(output));
   }
 
   /**
-   * Test for the {@link Utils#getPathWithoutScheme(Path)} method from an HDFS URI.
+   * Test for the {@link HadoopUtils#getPathWithoutScheme(Path)} method from an HDFS URI.
    */
   @Test
   public void testGetPathWithoutSchemaFromHDFSURI() {
     final Path path = new Path(URI.create("hdfs://localhost:1234/foo/bar/baz?please=dont&show=up"));
 
-    final String output = Utils.getPathWithoutScheme(path);
+    final String output = HadoopUtils.getPathWithoutScheme(path);
     Assert.assertEquals("/foo/bar/baz", output);
   }
 }

@@ -21,7 +21,7 @@ import tachyon.annotation.PublicApi;
 import tachyon.exception.TachyonException;
 
 /**
- * Iterator to iterate over key-value pairs in {@link KeyValueStores} or its partitions.
+ * Iterator to iterate over key-value pairs in {@link KeyValueSystem} or its partitions.
  */
 @PublicApi
 public interface KeyValueIterator {
