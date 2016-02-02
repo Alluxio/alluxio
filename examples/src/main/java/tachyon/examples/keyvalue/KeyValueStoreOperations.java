@@ -71,7 +71,7 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
     putKeyValuePairs(writer);
     writer.close();
 
-    KeyValueStoreReader reader = kvStores.open(mStoreUri);
+    KeyValueStoreReader reader = kvStores.openStore(mStoreUri);
     boolean pass = getKeyValuePairs(reader);
     reader.close();
 

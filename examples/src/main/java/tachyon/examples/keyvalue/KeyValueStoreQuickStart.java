@@ -54,7 +54,7 @@ public final class KeyValueStoreQuickStart {
     writer.close();
 
     // Opens a store.
-    KeyValueStoreReader reader = kvStore.open(storeUri);
+    KeyValueStoreReader reader = kvStore.openStore(storeUri);
 
     // Gets the value for "key".
     System.out.println(String.format("Value for key '%s' got from the store is '%s'", key,

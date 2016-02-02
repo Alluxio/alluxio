@@ -59,7 +59,7 @@ public final class ShowKeyValueStore {
       System.exit(-1);
     }
 
-    KeyValueStoreReader reader = KeyValueStores.Factory.create().open(new TachyonURI(args[0]));
+    KeyValueStoreReader reader = KeyValueStores.Factory.create().openStore(new TachyonURI(args[0]));
     KeyValueIterator iterator = reader.iterator();
     while (iterator.hasNext()) {
       show(iterator.next(), args[1]);

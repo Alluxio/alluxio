@@ -56,7 +56,7 @@ public interface KeyValueStores {
    * @throws IOException if non-Tachyon error occurs
    * @throws TachyonException if Tachyon error occurs
    */
-  KeyValueStoreReader open(TachyonURI uri) throws IOException, TachyonException;
+  KeyValueStoreReader openStore(TachyonURI uri) throws IOException, TachyonException;
 
   /**
    * Gets a writer to create a new key-value store.
