@@ -44,4 +44,6 @@ public class CompleteFileOptionsTest {
     options.setUfsLength(len);
     Assert.assertEquals(len, options.getUfsLength());
   }
+
+  // TODO(jiri): Add toThriftTest().
 }

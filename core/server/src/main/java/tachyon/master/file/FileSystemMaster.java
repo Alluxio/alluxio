@@ -102,6 +102,7 @@ import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.security.group.GroupMappingService;
 import tachyon.thrift.CommandType;
+// TODO(jiri): Replace FileSystemCommand and FileSystemCommandOptions thrift types with wire types.
 import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.FileSystemCommandOptions;
 import tachyon.thrift.FileSystemMasterClientService;

@@ -31,6 +31,7 @@ import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
+// TODO(jiri): Replace FileSystemCommand thrift type with a wire type.
 import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.TachyonService;

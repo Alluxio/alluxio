@@ -34,7 +34,7 @@ public class SetAclOptionsTest {
    * Tests setting the fields of a {@link SetAclOptions} object
    */
   @Test
-  public void setFieldsTest() {
+  public void fieldsTest() {
     Random random = new Random();
     boolean recursive = random.nextBoolean();
 
@@ -57,4 +57,8 @@ public class SetAclOptionsTest {
     options = SetAclOptions.defaults().setPermission(permission).setRecursive(recursive);
     Assert.assertEquals(permission, options.getPermission());
   }
+
+  // TODO(jiri): Add defaultsTest().
+
+  // TODO(jiri): Add toThriftTest().
 }

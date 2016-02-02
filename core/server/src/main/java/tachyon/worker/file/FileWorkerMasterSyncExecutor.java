@@ -31,6 +31,7 @@ import tachyon.Constants;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.CommandType;
+// TODO(jiri): Replace FileSystemCommand and PersistFile thrift types with wire types.
 import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.PersistFile;
 import tachyon.util.ThreadFactoryUtils;

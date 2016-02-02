@@ -54,4 +54,6 @@ public class SetAttributeOptionsTest {
     Assert.assertTrue(options.hasTtl());
     Assert.assertEquals(ttl, options.getTtl());
   }
+
+  // TODO(jiri): Add toThriftTest().
 }
