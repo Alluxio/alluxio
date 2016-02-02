@@ -67,7 +67,7 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
 
     KeyValueStores kvStores = KeyValueStores.Factory.create();
 
-    KeyValueStoreWriter writer = kvStores.create(mStoreUri);
+    KeyValueStoreWriter writer = kvStores.createStore(mStoreUri);
     putKeyValuePairs(writer);
     writer.close();
 

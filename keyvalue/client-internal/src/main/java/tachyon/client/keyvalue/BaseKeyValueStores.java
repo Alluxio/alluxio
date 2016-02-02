@@ -47,7 +47,7 @@ public class BaseKeyValueStores implements KeyValueStores {
   }
 
   @Override
-  public KeyValueStoreWriter create(TachyonURI uri) throws IOException, TachyonException {
+  public KeyValueStoreWriter createStore(TachyonURI uri) throws IOException, TachyonException {
     Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
     return new BaseKeyValueStoreWriter(uri);
   }

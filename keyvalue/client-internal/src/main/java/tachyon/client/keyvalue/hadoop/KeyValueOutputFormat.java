@@ -84,7 +84,7 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
     super.checkOutputSpecs(ignored, conf);
     conf.setOutputCommitter(KeyValueOutputCommitter.class);
     try {
-      KeyValueStores.Factory.create().create(KeyValueOutputFormat.getJobOutputURI(conf)).close();
+      KeyValueStores.Factory.create().createStore(KeyValueOutputFormat.getJobOutputURI(conf)).close();
     } catch (TachyonException e) {
       throw new IOException(e);
     }

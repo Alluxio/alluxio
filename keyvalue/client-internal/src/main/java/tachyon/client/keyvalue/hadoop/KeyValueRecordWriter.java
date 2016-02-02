@@ -46,7 +46,7 @@ class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable>
    */
   public KeyValueRecordWriter(TachyonURI storeUri, Progressable progress) throws IOException {
     try {
-      mWriter = KeyValueStores.Factory.create().create(storeUri);
+      mWriter = KeyValueStores.Factory.create().createStore(storeUri);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
