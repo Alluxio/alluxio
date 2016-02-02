@@ -59,7 +59,8 @@ public class BaseKeyValueSystem implements KeyValueSystem {
   }
 
   @Override
-  public void mergeStore(TachyonURI fromUri, TachyonURI toUri) throws IOException, TachyonException {
+  public void mergeStore(TachyonURI fromUri, TachyonURI toUri)
+      throws IOException, TachyonException {
     mMasterClient.mergeStore(fromUri, toUri);
   }
 }

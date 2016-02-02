@@ -52,8 +52,8 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
    * @return the task's temporary output path ${mapred.out.dir}/_temporary/_${taskid}
    */
   public static TachyonURI getTaskOutputURI(JobConf conf) {
-    return getJobOutputURI(conf).join(FileOutputCommitter.TEMP_DIR_NAME).join("_"
-        + TaskAttemptID.forName(conf.get("mapred.task.id")).toString());
+    return getJobOutputURI(conf).join(FileOutputCommitter.TEMP_DIR_NAME)
+        .join("_" + TaskAttemptID.forName(conf.get("mapred.task.id")).toString());
   }
 
   /**
@@ -84,7 +84,8 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
     super.checkOutputSpecs(ignored, conf);
     conf.setOutputCommitter(KeyValueOutputCommitter.class);
     try {
-      KeyValueSystem.Factory.create().createStore(KeyValueOutputFormat.getJobOutputURI(conf)).close();
+      KeyValueSystem.Factory.create().createStore(KeyValueOutputFormat.getJobOutputURI(conf))
+          .close();
     } catch (TachyonException e) {
       throw new IOException(e);
     }
