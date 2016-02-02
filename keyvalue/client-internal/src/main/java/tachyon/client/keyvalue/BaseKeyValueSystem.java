@@ -30,36 +30,37 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 
 /**
- * Default implementation of the {@link KeyValueStores} interface. Developers can extend this class
+ * Default implementation of the {@link KeyValueSystem} interface. Developers can extend this class
  * instead of implementing the interface. This implementation reads and writes key-value data
  * through {@link BaseKeyValueStoreReader} and {@link BaseKeyValueStoreWriter}.
  */
 @PublicApi
 @ThreadSafe
-public class BaseKeyValueStores implements KeyValueStores {
+public class BaseKeyValueSystem implements KeyValueSystem {
   private final KeyValueMasterClient mMasterClient =
       new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
 
   @Override
-  public KeyValueStoreReader open(TachyonURI uri) throws IOException, TachyonException {
+  public KeyValueStoreReader openStore(TachyonURI uri) throws IOException, TachyonException {
     Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
     return new BaseKeyValueStoreReader(uri);
   }
 
   @Override
-  public KeyValueStoreWriter create(TachyonURI uri) throws IOException, TachyonException {
+  public KeyValueStoreWriter createStore(TachyonURI uri) throws IOException, TachyonException {
     Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
     return new BaseKeyValueStoreWriter(uri);
   }
 
   @Override
-  public void delete(TachyonURI uri)
+  public void deleteStore(TachyonURI uri)
       throws IOException, InvalidPathException, FileDoesNotExistException, TachyonException {
     mMasterClient.deleteStore(uri);
   }
 
   @Override
-  public void merge(TachyonURI fromUri, TachyonURI toUri) throws IOException, TachyonException {
+  public void mergeStore(TachyonURI fromUri, TachyonURI toUri)
+      throws IOException, TachyonException {
     mMasterClient.mergeStore(fromUri, toUri);
   }
 }

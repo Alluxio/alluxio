@@ -39,8 +39,18 @@ public final class KeyValueMasterFactory implements MasterFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Override
+  public boolean isEnabled() {
+    return MasterContext.getConf().getBoolean(Constants.KEY_VALUE_ENABLED);
+  }
+
+  @Override
+  public String getName() {
+    return Constants.KEY_VALUE_MASTER_NAME;
+  }
+
+  @Override
   public KeyValueMaster create(List<? extends Master> masters, String journalDirectory) {
-    if (!MasterContext.getConf().getBoolean(Constants.KEY_VALUE_ENABLED)) {
+    if (!isEnabled()) {
       return null;
     }
     Preconditions.checkArgument(journalDirectory != null, "journal path may not be null");
