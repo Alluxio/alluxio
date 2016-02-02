@@ -76,7 +76,7 @@ public final class ChmodCommand extends AbstractTfsShellCommand {
    * @param recursive Whether change the permission recursively
    * @throws IOException if command failed
    */
-  protected void chmod(TachyonURI path, String modeStr, boolean recursive) throws IOException {
+  private void chmod(TachyonURI path, String modeStr, boolean recursive) throws IOException {
     short newPermission = 0;
     try {
       newPermission = Short.parseShort(modeStr, 8);

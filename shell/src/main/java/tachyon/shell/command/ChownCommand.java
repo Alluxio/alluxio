@@ -77,7 +77,7 @@ public final class ChownCommand extends AbstractTfsShellCommand {
    * @param recursive Whether change the owner recursively
    * @throws IOException if command failed
    */
-  protected void chown(TachyonURI path, String owner, boolean recursive) throws IOException {
+  private void chown(TachyonURI path, String owner, boolean recursive) throws IOException {
     try {
       SetAclOptions options = SetAclOptions.defaults().setOwner(owner).setRecursive(recursive);
       mFileSystem.setAcl(path, options);
