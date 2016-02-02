@@ -11,7 +11,7 @@
       </div>
 
       <script type="text/javascript">
-        jsonString = $ {param.operationMetrics};
+        jsonString = ${param.operationMetrics};
       </script>
 
       <div id="data4" class="accordion-body collapse in">
@@ -161,6 +161,61 @@
             </tbody>
           </table>
 
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row-fluid">
+  <div class="accordion span14" id="accordion5">
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion5" href="#data5">
+          <h4>RPC Invocations</h4>
+        </a>
+      </div>
+      <div id="data5" class="accordion-body collapse in">
+        <div class="accordion-inner">
+          <table class="table">
+            <tbody>
+              <tr>
+                <th>CompleteFile Ops</th>
+                <th><%= request.getAttribute("master.CompleteFileOps") %></th>
+                <th>CreateDirectory Ops</th>
+                <th><%= request.getAttribute("master.CreateDirectoryOps") %></th>
+              </tr>
+              <tr>
+                <th>CreateFile Ops</th>
+                <th><%= request.getAttribute("master.CreateFileOps") %></th>
+                <th>DeletePath Ops</th>
+                <th><%= request.getAttribute("master.DeletePathOps") %></th>
+              </tr>
+              <tr>
+                <th>FreeFile Ops</th>
+                <th><%= request.getAttribute("master.FreeFileOps") %></th>
+                <th>GetFileBlockInfo Ops</th>
+                <th><%= request.getAttribute("master.GetFileBlockInfoOps") %></th>
+              </tr>
+              <tr>
+                <th>GetFileInfo Ops</th>
+                <th><%= request.getAttribute("master.GetFileInfoOps") %></th>
+                <th>GetNewBlock Ops</th>
+                <th><%= request.getAttribute("master.GetNewBlockOps") %></th>
+              </tr>
+              <tr>
+                <th>Mount Ops</th>
+                <th><%= request.getAttribute("master.MountOps") %></th>
+                <th>RenamePath Ops</th>
+                <th><%= request.getAttribute("master.RenamePathOps") %></th>
+              </tr>
+              <tr>
+                <th>SetState Ops</th>
+                <th><%= request.getAttribute("master.SetStateOps") %></th>
+                <th>Unmount Ops</th>
+                <th><%= request.getAttribute("master.UnmountOps") %></th>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
