@@ -41,7 +41,7 @@ public class BaseKeyValueStores implements KeyValueStores {
       new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
 
   @Override
-  public KeyValueStoreReader open(TachyonURI uri) throws IOException, TachyonException {
+  public KeyValueStoreReader openStore(TachyonURI uri) throws IOException, TachyonException {
     Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
     return new BaseKeyValueStoreReader(uri);
   }

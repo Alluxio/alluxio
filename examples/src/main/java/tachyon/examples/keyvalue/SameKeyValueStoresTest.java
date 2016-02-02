@@ -54,8 +54,8 @@ public final class SameKeyValueStoresTest implements Callable<Boolean> {
   @Override
   public Boolean call() throws Exception {
     KeyValueStores kvStores = KeyValueStores.Factory.create();
-    KeyValueStoreReader reader1 = kvStores.open(mStoreUri1);
-    KeyValueStoreReader reader2 = kvStores.open(mStoreUri2);
+    KeyValueStoreReader reader1 = kvStores.openStore(mStoreUri1);
+    KeyValueStoreReader reader2 = kvStores.openStore(mStoreUri2);
     boolean pass = areTheSameStores(reader1, reader2);
     reader1.close();
     reader2.close();

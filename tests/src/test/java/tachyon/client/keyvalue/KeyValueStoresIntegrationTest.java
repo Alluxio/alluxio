@@ -86,7 +86,7 @@ public final class KeyValueStoresIntegrationTest {
     Assert.assertNotNull(mWriter);
     mWriter.close();
 
-    mReader = sKVStores.open(mStoreUri);
+    mReader = sKVStores.openStore(mStoreUri);
     Assert.assertNotNull(mReader);
     mReader.close();
   }
@@ -100,7 +100,7 @@ public final class KeyValueStoresIntegrationTest {
     mWriter.put(KEY1, VALUE1);
     mWriter.close();
 
-    mReader = sKVStores.open(mStoreUri);
+    mReader = sKVStores.openStore(mStoreUri);
     Assert.assertArrayEquals(VALUE1, mReader.get(KEY1));
     Assert.assertNull(mReader.get(KEY2));
     mReader.close();
@@ -122,7 +122,7 @@ public final class KeyValueStoresIntegrationTest {
     }
     mWriter.close();
 
-    mReader = sKVStores.open(mStoreUri);
+    mReader = sKVStores.openStore(mStoreUri);
     for (int i = 0; i < numKeys; i ++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = mReader.get(key);
@@ -141,7 +141,7 @@ public final class KeyValueStoresIntegrationTest {
     mWriter = sKVStores.create(mStoreUri);
     mWriter.close();
 
-    mReader = sKVStores.open(mStoreUri);
+    mReader = sKVStores.openStore(mStoreUri);
     KeyValueIterator iterator = mReader.iterator();
     Assert.assertFalse(iterator.hasNext());
   }
@@ -193,7 +193,7 @@ public final class KeyValueStoresIntegrationTest {
     for (int i = 0; i < numStoreUri; i ++) {
       List<KeyValuePair> expectedPairs = keyValuePairs.get(i);
       List<KeyValuePair> iteratedPairs = Lists.newArrayList();
-      mReader = sKVStores.open(storeUris.get(i));
+      mReader = sKVStores.openStore(storeUris.get(i));
       KeyValueIterator iterator = mReader.iterator();
       while (iterator.hasNext()) {
         iteratedPairs.add(iterator.next());
@@ -238,7 +238,7 @@ public final class KeyValueStoresIntegrationTest {
       Assert.assertTrue(info.getLength() <= maxPartitionSize);
     }
 
-    mReader = sKVStores.open(mStoreUri);
+    mReader = sKVStores.openStore(mStoreUri);
     for (int i = 0; i < numKeys; i ++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = mReader.get(key);
@@ -295,7 +295,7 @@ public final class KeyValueStoresIntegrationTest {
     }
     writer.close();
 
-    Assert.assertEquals(size, sKVStores.open(path).size());
+    Assert.assertEquals(size, sKVStores.openStore(path).size());
 
     return path;
   }
@@ -347,7 +347,7 @@ public final class KeyValueStoresIntegrationTest {
 
     // TachyonException is expected to be thrown.
     try {
-      sKVStores.open(storeUri);
+      sKVStores.openStore(storeUri);
     } catch (TachyonException e) {
       Assert.assertEquals(e.getMessage(),
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(storeUri));
@@ -381,7 +381,7 @@ public final class KeyValueStoresIntegrationTest {
     mergedPairs.addAll(keyValuePairs2);
 
     List<KeyValuePair> store2Pairs = Lists.newArrayList();
-    KeyValueIterator iterator = sKVStores.open(store2).iterator();
+    KeyValueIterator iterator = sKVStores.openStore(store2).iterator();
     while (iterator.hasNext()) {
       store2Pairs.add(iterator.next());
     }
@@ -395,7 +395,7 @@ public final class KeyValueStoresIntegrationTest {
     // store1 no longer exists, because it has been merged into store2.
     // TachyonException is expected to be thrown.
     try {
-      sKVStores.open(store1);
+      sKVStores.openStore(store1);
     } catch (TachyonException e) {
       Assert.assertEquals(e.getMessage(),
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(store1));
