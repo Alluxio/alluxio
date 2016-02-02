@@ -45,7 +45,7 @@ import tachyon.exception.TachyonException;
 @PublicApi
 @ThreadSafe
 public final class KeyValueOutputCommitter extends FileOutputCommitter {
-  private static final KeyValueSystem KEY_VALUE_STORES = KeyValueSystem.Factory.create();
+  private static final KeyValueSystem KEY_VALUE_SYSTEM = KeyValueSystem.Factory.create();
 
   private List<TachyonURI> getTaskTemporaryStores(JobConf conf) throws IOException {
     TachyonURI taskOutputURI = KeyValueOutputFormat.getTaskOutputURI(conf);
@@ -72,7 +72,7 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
     TachyonURI jobOutputURI = KeyValueOutputFormat.getJobOutputURI(conf);
     for (TachyonURI tempStoreUri : getTaskTemporaryStores(conf)) {
       try {
-        KEY_VALUE_STORES.mergeStore(tempStoreUri, jobOutputURI);
+        KEY_VALUE_SYSTEM.mergeStore(tempStoreUri, jobOutputURI);
       } catch (TachyonException e) {
         throw new IOException(e);
       }
@@ -90,7 +90,7 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
   public void abortTask(TaskAttemptContext context) throws IOException {
     for (TachyonURI tempStoreUri : getTaskTemporaryStores(context.getJobConf())) {
       try {
-        KEY_VALUE_STORES.deleteStore(tempStoreUri);
+        KEY_VALUE_SYSTEM.deleteStore(tempStoreUri);
       } catch (TachyonException e) {
         throw new IOException(e);
       }

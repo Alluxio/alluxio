@@ -65,13 +65,13 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
     tachyonConf.set(Constants.KEY_VALUE_ENABLED, String.valueOf(true));
     tachyonConf.set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(mPartitionLength));
 
-    KeyValueSystem kvStores = KeyValueSystem.Factory.create();
+    KeyValueSystem kvs = KeyValueSystem.Factory.create();
 
-    KeyValueStoreWriter writer = kvStores.createStore(mStoreUri);
+    KeyValueStoreWriter writer = kvs.createStore(mStoreUri);
     putKeyValuePairs(writer);
     writer.close();
 
-    KeyValueStoreReader reader = kvStores.openStore(mStoreUri);
+    KeyValueStoreReader reader = kvs.openStore(mStoreUri);
     boolean pass = getKeyValuePairs(reader);
     reader.close();
 
