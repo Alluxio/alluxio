@@ -39,10 +39,10 @@ public final class KeyValueStoreQuickStart {
     }
 
     TachyonURI storeUri = new TachyonURI(args[0]);
-    KeyValueSystem kvStore = KeyValueSystem.Factory.create();
+    KeyValueSystem kvs = KeyValueSystem.Factory.create();
 
     // Creates a store.
-    KeyValueStoreWriter writer = kvStore.createStore(storeUri);
+    KeyValueStoreWriter writer = kvs.createStore(storeUri);
 
     // Puts a key-value pair ("key", "value").
     String key = "key";
@@ -54,7 +54,7 @@ public final class KeyValueStoreQuickStart {
     writer.close();
 
     // Opens a store.
-    KeyValueStoreReader reader = kvStore.openStore(storeUri);
+    KeyValueStoreReader reader = kvs.openStore(storeUri);
 
     // Gets the value for "key".
     System.out.println(String.format("Value for key '%s' got from the store is '%s'", key,
