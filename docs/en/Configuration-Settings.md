@@ -29,11 +29,12 @@ distributed with Tachyon binaries. We do not recommend beginner users to edit th
 which Tachyon is running. The easiest way is to put the site properties file in directory
 `$TACHYON_HOME/conf`.
 
-All Tachyon configuration properties fall into one of the five categories:
+All Tachyon configuration properties fall into one of the six categories:
 [Common](#common-configuration) (shared by Master and Worker),
-[Master specific](#master-configuration), [Worker specific](#worker-configuration), and
-[User specific](#user-configuration), and [Cluster specific](#cluster-management) (used for running
-Tachyon with cluster managers like Mesos and YARN).
+[Master specific](#master-configuration), [Worker specific](#worker-configuration),
+[User specific](#user-configuration), [Cluster specific](#cluster-management) (used for running
+Tachyon with cluster managers like Mesos and YARN), and [Security specific]
+(#security-configuration) (shared by Master, Worker, and User).
 
 ## Common Configuration
 
@@ -743,6 +744,68 @@ configuration options.
   <td>1024 MB</td>
   <td>Memory resource required to run a Tachyon worker. This memory does not include the memory
   configured for tiered storage.</td>
+</tr>
+</table>
+
+## Security Configuration
+
+The security configuration specifies information regarding the security features,
+such as authentication and file permission. Properties for authentication take effect for master,
+worker, and user. Properties for file permission only take effect for master.
+See [Security](Security.html) for more information about security features.
+
+<table class="table table-striped">
+<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
+<tr>
+  <td>tachyon.security.authentication.type</td>
+  <td>NOSASL</td>
+  <td>The authentication mode. Currently three modes are supported: NOSASL, SIMPLE,
+  CUSTOM. The default value NOSASL indicates that authentication is not enabled.</td>
+</tr>
+<tr>
+  <td>tachyon.security.authentication.socket.timeout.ms</td>
+  <td>60000</td>
+  <td>The maximum amount of time (in milliseconds) for a user to create a Thrift socket which
+  will connect to the master.</td>
+</tr>
+<tr>
+  <td>tachyon.security.authentication.custom.provider.class</td>
+  <td></td>
+  <td>The class to provide customized authentication implementation, when
+  tachyon.security.authentication.type is set to CUSTOM. It must implement the
+  interface 'tachyon.security.authentication.AuthenticationProvider'.</td>
+</tr>
+<tr>
+  <td>tachyon.security.login.username</td>
+  <td></td>
+  <td>When tachyon.security.authentication.type is set to SIMPLE or CUSTOM, user application uses
+  this property to indicate the user requesting Tachyon service. If it is not set explicitly,
+  the OS login user will be used.</td>
+</tr>
+<tr>
+  <td>tachyon.security.authorization.permission.enabled</td>
+  <td>false</td>
+  <td>Whether to enable access control based on file permission.</td>
+</tr>
+<tr>
+  <td>tachyon.security.authorization.permission.umask</td>
+  <td>022</td>
+  <td>The umask of creating file and directory. The initial creation permission is 777, and
+  the difference between directory and file is 111. So for default umask value 022,
+  the created directory has permission 755 and file has permission 644.</td>
+</tr>
+<tr>
+  <td>tachyon.security.authorization.permission.supergroup</td>
+  <td>supergroup</td>
+  <td>The super group of Tachyon file system. All users in this group have super permission.</td>
+</tr>
+<tr>
+  <td>tachyon.security.group.mapping.class</td>
+  <td>tachyon.security.group.provider.ShellBasedUnixGroupsMapping</td>
+  <td>The class to provide user-to-groups mapping service. Master could get the various group
+  memberships of a given user.  It must implement the interface
+  'tachyon.security.group.GroupMappingService'. The default implementation execute the 'groups'
+  shell command to fetch the group memberships of a given user.</td>
 </tr>
 </table>
 
