@@ -25,13 +25,14 @@ import org.apache.commons.cli.Options;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.conf.TachyonConf;
 
 /**
  * Changes the permission of a file or directory specified by args.
  */
 @ThreadSafe
-public final class ChmodCommand extends AbstractAclCommand {
+public final class ChmodCommand extends AbstractTfsShellCommand {
 
   /**
    * Creates a new instance of {@link ChmodCommand}.
@@ -65,6 +66,29 @@ public final class ChmodCommand extends AbstractAclCommand {
 
     opts.addOption(recursive);
     return opts;
+  }
+
+  /**
+   * Changes the permissions of directory or file with the path specified in args.
+   *
+   * @param path The {@link TachyonURI} path as the input of the command
+   * @param modeStr The new permission to be updated to the file or directory
+   * @param recursive Whether change the permission recursively
+   * @throws IOException if command failed
+   */
+  private void chmod(TachyonURI path, String modeStr, boolean recursive) throws IOException {
+    short newPermission = 0;
+    try {
+      newPermission = Short.parseShort(modeStr, 8);
+      SetAclOptions options =
+          SetAclOptions.defaults().setPermission(newPermission).setRecursive(recursive);
+      mFileSystem.setAcl(path, options);
+      System.out.println("Changed permission of " + path + " to "
+          + Integer.toOctalString(newPermission));
+    } catch (Exception e) {
+      throw new IOException("Failed to changed permission of  " + path + " to "
+          + Integer.toOctalString(newPermission) + " : " + e.getMessage());
+    }
   }
 
   @Override
