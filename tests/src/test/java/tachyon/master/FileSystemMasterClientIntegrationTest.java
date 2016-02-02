@@ -22,7 +22,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystemMasterClient;
@@ -36,10 +35,10 @@ import tachyon.exception.TachyonException;
  *
  * <p>
  */
-public class FileSystemMasterClientIntegrationTest {
+public final class FileSystemMasterClientIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(1000, Constants.GB);
+      new LocalTachyonClusterResource();
   private TachyonConf mMasterTachyonConf = null;
 
   @Before

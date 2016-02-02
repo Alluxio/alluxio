@@ -13,7 +13,7 @@ Since Mac OS X Mavericks, Maven was removed and hence needs to be installed manu
 1.  Download [Maven Binary](http://maven.apache.org/download.cgi)
 2.  Extract the distribution archive, i.e.
     `apache-maven-<version.number>-bin.tar.gz` to the directory you wish to install
-    Maven <version.number>. These instructions assume you chose
+    `Maven <version.number>`. These instructions assume you chose
     `/System/Library/Apache-Maven`. The subdirectory `apache-maven-<version.number>`
     will be created from the archive.
 3.  In a command terminal, add the `M2_HOME` environment variable, e.g.
@@ -33,7 +33,7 @@ Alternatively, Maven can be installed through [Homebrew](http://brew.sh/) using 
 1.  Download [Maven Binary](http://maven.apache.org/download.cgi)
 2.  Extract the distribution archive, i.e.
     `apache-maven-<version.number>-bin.tar.gz` to the directory you wish to install
-    Maven <version.number>. These instructions assume you chose
+    `Maven <version.number>`. These instructions assume you chose
     `/usr/local/apache-maven`. The subdirectory `apache-maven-<version.number>`
     will be created from the archive.
 3.  In a command terminal, add the `M2_HOME` environment variable, e.g.

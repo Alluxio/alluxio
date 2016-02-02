@@ -28,6 +28,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closer;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
@@ -66,7 +68,8 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     String srcPath = args[0];
     TachyonURI dstPath = new TachyonURI(args[1]);
     List<File> srcFiles = TfsShellUtils.getFiles(srcPath);

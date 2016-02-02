@@ -30,12 +30,12 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.PathUtils;
 
-public class UnderStorageSystemInterfaceIntegrationTest {
+public final class UnderStorageSystemInterfaceIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
 
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(10000, 128);
+      new LocalTachyonClusterResource();
   private String mUnderfsAddress = null;
   private UnderFileSystem mUfs = null;
 
