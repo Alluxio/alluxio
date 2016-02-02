@@ -160,7 +160,12 @@ public class TfsShell implements Closeable {
         printUsage();
         return -1;
       }
-      // Handle command alias.
+      // Handle command alias, and print out WARNING message for deprecated cmd.
+      String deprecatedMsg = "WARNING: " + cmd + " is deprecated. Please use "
+                             + replacementCmd[0] + " instead.";
+      System.out.println(deprecatedMsg);
+      LOG.warn(deprecatedMsg);
+
       String[] replacementArgv = new String[replacementCmd.length + argv.length - 1];
       for (int i = 0; i < replacementCmd.length; ++ i) {
         replacementArgv[i] = replacementCmd[i];
