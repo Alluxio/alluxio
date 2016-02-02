@@ -26,12 +26,12 @@ import org.apache.hadoop.mapred.InputSplit;
 
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.block.TachyonBlockStore;
-import tachyon.client.keyvalue.KeyValueStores;
+import tachyon.client.keyvalue.KeyValueSystem;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.PartitionInfo;
 
 /**
- * Implements {@link InputSplit}, each split contains one partition of the {@link KeyValueStores}.
+ * Implements {@link InputSplit}, each split contains one partition of the {@link KeyValueSystem}.
  */
 @NotThreadSafe
 final class KeyValueInputSplit implements InputSplit {
