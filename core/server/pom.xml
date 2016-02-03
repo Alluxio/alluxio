@@ -114,22 +114,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-module-junit4</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-underfs-local</artifactId>
       <version>${project.version}</version>
@@ -150,6 +134,7 @@
         <artifactId>maven-jspc-plugin</artifactId>
         <version>2.0.8</version>
       </plugin>
+      <!-- Export test classes in a test-jar so that other projects can use them for testing -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>

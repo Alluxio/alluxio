@@ -26,6 +26,8 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ReadType;
@@ -46,10 +48,10 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public CopyToLocalCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public CopyToLocalCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -63,10 +65,11 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     TachyonURI srcPath = new TachyonURI(args[0]);
     File dstFile = new File(args[1]);
-    List<TachyonURI> srcPaths = TfsShellUtils.getTachyonURIs(mTfs, srcPath);
+    List<TachyonURI> srcPaths = TfsShellUtils.getTachyonURIs(mFileSystem, srcPath);
     if (srcPaths.size() == 0) {
       throw new IOException(srcPath.getPath() + " does not exist.");
     }
@@ -122,7 +125,7 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
   private void copyToLocal(TachyonURI srcPath, File dstFile) throws IOException {
     URIStatus srcStatus;
     try {
-      srcStatus = mTfs.getStatus(srcPath);
+      srcStatus = mFileSystem.getStatus(srcPath);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
@@ -139,7 +142,7 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
 
       List<URIStatus> statuses = null;
       try {
-        statuses = mTfs.listStatus(srcPath);
+        statuses = mFileSystem.listStatus(srcPath);
       } catch (TachyonException e) {
         throw new IOException(e.getMessage());
       }
@@ -179,7 +182,7 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
       Closer closer = Closer.create();
       try {
         OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-        FileInStream is = closer.register(mTfs.openFile(srcPath, options));
+        FileInStream is = closer.register(mFileSystem.openFile(srcPath, options));
         FileOutputStream out = closer.register(new FileOutputStream(tmpDst));
         byte[] buf = new byte[64 * Constants.MB];
         int t = is.read(buf);

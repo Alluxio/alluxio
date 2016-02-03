@@ -41,7 +41,7 @@ public class TFSStatisticsTest {
   private static final int FILE_LEN = BLOCK_SIZE * 2 + 1;
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(10000, 1000, BLOCK_SIZE);
+      new LocalTachyonClusterResource(10000, BLOCK_SIZE);
   private static org.apache.hadoop.fs.FileSystem.Statistics sStatistics;
   private static org.apache.hadoop.fs.FileSystem sTFS;
 

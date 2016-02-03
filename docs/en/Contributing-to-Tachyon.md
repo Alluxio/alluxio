@@ -2,7 +2,7 @@
 layout: global
 title: Contributing to Tachyon
 nickname: Contributor Guide
-group: Dev Resources
+group: Resources
 ---
 
 * Table of Contents
@@ -140,53 +140,32 @@ leverage the Scala shell, as discussed in this
          will be formatted to what you want
 -   Tachyon is using SLF4J for logging with typical usage pattern of:
 
-```java
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public MyClass {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  public void someMethod() {
-    LOG.info("Hello world");
-  }
-}
-```
+{% include Contributing-to-Tachyon/slf4j.md %}
 
 -  To verify that the coding standards match, you should run
    [checkstyle](http://checkstyle.sourceforge.net) before sending a pull-request to verify no new
    warnings are introduced:
 
-```bash
-$ mvn checkstyle:checkstyle
-```
+{% include Contributing-to-Tachyon/checkstyle.md %}
 
 #### FindBugs
 
 Before submitting the pull-request, run the latest code against
 [FindBugs](http://findbugs.sourceforge.net/) to verify no new warnings are introduced.
 
-```bash
-$ mvn compile findbugs:findbugs
-```
+{% include Contributing-to-Tachyon/findbugs.md %}
 
 ### IDE
 
 You can generate an Eclipse configuration file by running:
 
-```bash
-$ mvn clean -Pdeveloper install -DskipTests
-$ mvn clean -Pdeveloper -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
-```
+{% include Contributing-to-Tachyon/eclipse-configuration.md %}
 
 Then import the folder into Eclipse.
 
 You may also have to add the classpath variable M2_REPO by running:
 
-```bash
-$ mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
-```
+{% include Contributing-to-Tachyon/M2_REPO.md %}
 
 If you are using IntelliJ IDEA, you may need to change the Maven profile to 'developer' in order
 to avoid import errors. You can do this by going to

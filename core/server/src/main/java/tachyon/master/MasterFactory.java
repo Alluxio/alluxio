@@ -21,6 +21,15 @@ import java.util.List;
  * Interface for factory of {@link Master}.
  */
 public interface MasterFactory {
+  /**
+   * @return whether the master is enabled
+   */
+  boolean isEnabled();
+
+  /**
+   * @return the master's name
+   */
+  String getName();
 
   /**
    * Factory method to create a new master instance.

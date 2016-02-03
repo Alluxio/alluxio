@@ -180,7 +180,7 @@ public final class FileSystemPermission {
    * @return the default {@link FileSystemPermission}
    */
   public static FileSystemPermission getDefault() {
-    return new FileSystemPermission(Constants.DEFAULT_TFS_FULL_PERMISSION);
+    return new FileSystemPermission(Constants.DEFAULT_FS_FULL_PERMISSION);
   }
 
   /**
@@ -200,7 +200,7 @@ public final class FileSystemPermission {
    * @return the umask {@link FileSystemPermission}
    */
   public static FileSystemPermission getUMask(TachyonConf conf) {
-    int umask = Constants.DEFAULT_TFS_PERMISSIONS_UMASK;
+    int umask = Constants.DEFAULT_FS_PERMISSIONS_UMASK;
     if (conf != null) {
       String confUmask = conf.get(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK);
       if (confUmask != null) {

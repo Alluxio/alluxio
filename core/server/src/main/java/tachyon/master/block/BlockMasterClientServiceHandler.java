@@ -38,7 +38,7 @@ public class BlockMasterClientServiceHandler implements BlockMasterClientService
   /**
    * Creates a new instance of {@link BlockMasterClientServiceHandler}.
    *
-   * @param blockMaster the {@BlockMaster} the handler uses internally
+   * @param blockMaster the {@link BlockMaster} the handler uses internally
    */
   public BlockMasterClientServiceHandler(BlockMaster blockMaster) {
     Preconditions.checkNotNull(blockMaster);

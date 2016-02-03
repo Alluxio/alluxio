@@ -19,12 +19,15 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -45,6 +48,13 @@ import tachyon.util.CommonUtils;
 @NotThreadSafe
 public class TfsShell implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final HashMap<String, String[]> CMD_ALIAS = new HashMap<String, String[]>() { {
+      put("chgrpr", new String[] {"chgrp", "-R"});
+      put("chmodr", new String[] {"chmod", "-R"});
+      put("chownr", new String[] {"chown", "-R"});
+      put("lsr",    new String[] {"ls",    "-R"});
+      put("rmr",    new String[] {"rm",    "-R"});
+    } };
 
   /**
    * Main method, starts a new TfsShell.
@@ -65,14 +75,14 @@ public class TfsShell implements Closeable {
 
   private final Map<String, TfsShellCommand> mCommands = Maps.newHashMap();
   private final TachyonConf mTachyonConf;
-  private final FileSystem mTfs;
+  private final FileSystem mFileSystem;
 
   /**
    * @param tachyonConf the configuration for Tachyon
    */
   public TfsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mTfs = FileSystem.Factory.get();
+    mFileSystem = FileSystem.Factory.get();
     loadCommands();
   }
 
@@ -93,12 +103,26 @@ public class TfsShell implements Closeable {
         try {
           cmd = CommonUtils.createNewClassInstance(cls,
               new Class[] { TachyonConf.class, FileSystem.class },
-              new Object[] { mTachyonConf, mTfs });
+              new Object[] { mTachyonConf, mFileSystem });
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }
         mCommands.put(cmd.getCommandName(), cmd);
       }
+    }
+  }
+
+  /**
+   * Gets the replacement command for alias.
+   *
+   * @param command name
+   * @return replacement command if cmd is an alias
+   */
+  private String[] getReplacementCmd(String cmd) {
+    if (CMD_ALIAS.containsKey(cmd)) {
+      return CMD_ALIAS.get(cmd);
+    } else {
+      return null;
     }
   }
 
@@ -132,20 +156,33 @@ public class TfsShell implements Closeable {
     TfsShellCommand command = mCommands.get(cmd);
 
     if (command == null) { // Unknown command (we didn't find the cmd in our dict)
-      System.out.println(cmd + " is an unknown command.\n");
-      printUsage();
-      return -1;
+      String[] replacementCmd = getReplacementCmd(cmd);
+      if (replacementCmd == null) {
+        System.out.println(cmd + " is an unknown command.\n");
+        printUsage();
+        return -1;
+      }
+      // Handle command alias, and print out WARNING message for deprecated cmd.
+      String deprecatedMsg = "WARNING: " + cmd + " is deprecated. Please use "
+                             + StringUtils.join(replacementCmd, " ") + " instead.";
+      System.out.println(deprecatedMsg);
+      LOG.warn(deprecatedMsg);
+
+      String[] replacementArgv = (String[]) ArrayUtils.addAll(replacementCmd,
+          ArrayUtils.subarray(argv, 1, argv.length));
+      return run(replacementArgv);
     }
 
     String[] args = Arrays.copyOfRange(argv, 1, argv.length);
-    if (!command.validateArgs(args)) {
+    CommandLine cmdline = command.parseAndValidateArgs(args);
+    if (cmdline == null) {
       printUsage();
       return -1;
     }
 
     // Handle the command
     try {
-      command.run(args);
+      command.run(cmdline);
       return 0;
     } catch (IOException e) {
       System.out.println(e.getMessage());

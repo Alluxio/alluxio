@@ -20,12 +20,14 @@ limitations.  Please, read the rest of this document before using this feature t
 what it can and cannot do for you.
 
 # Requirements
+
 * Linux kernel 2.6.9 or newer
 * JDK 1.8 or newer
 * libfuse 2.9.3 or newer
   (2.8.3 has been reported to also work - with some warnings)
 
 # Building
+
 tachyon-fuse is only built with Tachyon when the `buildFuse` maven profile is active. This
 profile will be automatically activated by maven when it is detected that you are building
 Tachyon with a JDK version 8 or newer.
@@ -37,37 +39,39 @@ deployment.
 The best way to do so is to either clone the Tachyon [GitHub
 repository](https://github.com/amplab/tachyon) and choose your favourite branch from git, or to
 grab a [source distribution](https://github.com/amplab/tachyon/releases) directly. Please, refer to
-[this page](http://tachyon-project.org/documentation/master/Building-Tachyon-Master-Branch.html))
+[this page](Building-Tachyon-Master-Branch.html))
 for building instructions.
 
 # Usage
 
 ## Mount Tachyon-FUSE
+
 After having properly configured and started the tachyon cluster, and from the node where you
 wish to mount Tachyon, point a shell to your `$TACHYON_HOME` and run:
-```bash
-$ bin/tachyon-fuse.sh mount <mount_point>
-```
+
+{% include Mounting-Tachyon-FS-with-FUSE/tachyon-fuse-mount.md %}
+
 This will spawn a background user-space java process (tachyon-fuse) that will mount the file
-system on the specified *<mount_point>*. Note that *<mount_point>* must be an existing and empty
+system on the specified `<mount_point>`. Note that `<mount_point>` must be an existing and empty
 path in your local file system hierarchy and that the user that runs the `tachyon-fuse.sh`
 script must own the mount point and have read and write permissions on it. Also note that,
 currently, you are limited to have only one Tachyon-FUSE mount per node.
 
 ## Unmount Tachyon-FUSE
+
 To umount a previoulsy mounted Tachyon-FUSE file sytem, on the node where the file system is
 mounted, point a shell to your `$TACHYON_HOME` and run:
-```bash
-$ bin/tachyon-fuse.sh umount
-```
+
+{% include Mounting-Tachyon-FS-with-FUSE/tachyon-fuse-umount.md %}
+
 This will stop the background tachyon-fuse java process and unmount the file system.
 
 ## Check if Tachyon-FUSE is running
-```bash
-$ bin/tachyon-fuse.sh stat
-```
+
+{% include Mounting-Tachyon-FS-with-FUSE/tachyon-fuse-stat.md %}
 
 ## Optional configuration steps
+
 Tachyon-FUSE is based on the standard java tachyon-client to perform its operations. You might
 want to customize the behaviour of the tachyon client used by Tachyon-FUSE the same way you
 would for any other client application.
@@ -76,8 +80,10 @@ One possibility, for example, is to edit `$TACHYON_HOME/bin/tachyon-fuse.sh` and
 specific tachyon client options in the `TACHYON_JAVA_OPTS` variable.
 
 # Operational assumptions and status
+
 Currently, most basic file system operations are supported. However, due to Tachyon implicit
 characteristics, please, be aware that:
+
 * Files can be written only once, only sequentially, and never modified.
 * Due to the above, any further access to a file must be read-only.
 
@@ -89,6 +95,7 @@ file system:
 
 If `pathname` indicates the path of a non-existing regular file in Tachyon, then an open will
 only succeed if:
+
 1. The base directory of `pathname` exists in Tachyon;
 2. `O_CREAT` and `O_WRONLY` are passed among the `flags` bitfield.
 
@@ -97,6 +104,7 @@ Equivalently, `creat(const char* pathname )` calls will succeed as long as (1) h
 
 If `pathname`, instead, points to an existing regular file in Tachyon, then an open call will
 only succeed if:
+
 1. `O_RDONLY` is passed among the `flags` bitfield.
 
 Note that, in either cases, the `mode` parameter is currently ignored by Tachyon-FUSE.
@@ -120,6 +128,7 @@ A write system call will only succeed when `fd` refers to a Tachyon file that ha
 opened  with the `O_WRONLY` flag.
 
 # Performance considerations
+
 Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected
 to be considerably worse than what you would see by using the `tachyon-client` directly. In other
 words, if you are concerned about performance rather then functionality, then Tachyon-FUSE is
@@ -136,53 +145,15 @@ These are the configuration parameters for Tachyon-FUSE.
 
 <table class="table table-striped">
 <tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
-<tr>
-  <td>tachyon.fuse.maxwrite.bytes</td>
-  <td>131072</td>
-  <td>
-  The desired granularity of FUSE write upcalls in bytes. Note that 128K is currently an upper
-  bound imposed by the linux kernel.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.fuse.debug.enabled</td>
-  <td>false</td>
-  <td>
-  Enable FUSE debug output. This output will be redirected in a `fuse.out` log file inside
-  `tachyon.logs.dir`.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.fuse.cachedpaths.max</td>
-  <td>500</td>
-  <td>
-  Defines the size of the internal Tachyon-FUSE cache that maintains the most frequently used
-  translations between local file system paths and Tachyon file URIs.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.fuse.mount.default</td>
-  <td>/mnt/tachyon</td>
-  <td>
-  Default mount point, only used when the user does not specify something else at mount time.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.fuse.fs.root</td>
-  <td>/mnt</td>
-  <td>
-  Path, within the Tachyon namespace, that will be used as the root of the FUSE mount.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.fuse.fs.name</td>
-  <td>tachyon-fuse</td>
-  <td>
-  Descriptive name used by FUSE to mount the file system.
-  </td>
-</tr>
+{% for item in site.data.table.Tachyon-FUSE-parameter %}
+  <tr>
+    <td>{{ item.parameter }}</td>
+    <td>{{ item.defaultValue }}</td>
+    <td>{{ site.data.table.en.Tachyon-FUSE-parameter.[item.parameter] }}</td>
+  </tr>
+{% endfor %}
 </table>
 
 # Acknowledgements
-This project uses [jnr-fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on Java.
 
+This project uses [jnr-fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on Java.

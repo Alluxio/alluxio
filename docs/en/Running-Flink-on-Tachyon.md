@@ -28,24 +28,12 @@ Therefore, the configuration of Tachyon is done mostly in Hadoop configuration f
 If you have a Hadoop setup next to the Flink installation, add the following property to the
 `core-site.xml` configuration file:
 
-```xml
-<property>
-  <name>fs.tachyon.impl</name>
-  <value>tachyon.hadoop.TFS</value>
-</property>
-```
+{% include Running-Flink-on-Tachyon/core-site-configuration.md %}
 
 In case you don't have a Hadoop setup, you have to create a file called `core-site.xml` with the
 following contents:
 
-```xml
-<configuration>
-  <property>
-    <name>fs.tachyon.impl</name>
-    <value>tachyon.hadoop.TFS</value>
-  </property>
-</configuration>
-```
+{% include Running-Flink-on-Tachyon/create-core-site.md %}
 
 #### Specify path to `core-site.xml` in `conf/flink-config.yaml`
 

@@ -34,7 +34,6 @@ import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.Lists;
 
-import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
 import tachyon.client.block.BlockInStream;
 import tachyon.client.block.BufferedBlockInStream;
@@ -68,6 +67,7 @@ public class FileInStreamTest {
   private TachyonBlockStore mBlockStore;
   private FileSystemContext mContext;
   private FileInfo mInfo;
+  private URIStatus mStatus;
 
   private List<TestBufferedBlockOutStream> mCacheStreams;
 
@@ -106,18 +106,17 @@ public class FileInStreamTest {
           Mockito.any(NetAddress.class))).thenReturn(mCacheStreams.get(i));
     }
     mInfo.setBlockIds(blockIds);
+    mStatus = new URIStatus(mInfo);
 
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
     mTestStream =
-        new FileInStream(mInfo, InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE));
+        new FileInStream(mStatus, InStreamOptions.defaults().setReadType(
+            ReadType.CACHE_PROMOTE));
   }
 
-  /**
-   * Resets the context after a test ran.
-   */
   @After
   public void after() {
-    ClientContext.reset();
+    ClientTestUtils.resetClientContext();
   }
 
   /**
@@ -333,8 +332,9 @@ public class FileInStreamTest {
   @Test
   public void failToUnderFsTest() throws IOException {
     mInfo.setPersisted(true).setUfsPath("testUfsPath");
+    mStatus = new URIStatus(mInfo);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
-    mTestStream = new FileInStream(mInfo, InStreamOptions.defaults());
+    mTestStream = new FileInStream(mStatus, InStreamOptions.defaults());
 
     Mockito.when(mBlockStore.getInStream(1L)).thenThrow(new IOException("test IOException"));
     UnderFileSystem ufs = ClientMockUtils.mockUnderFileSystem(Mockito.eq("testUfsPath"));
@@ -461,7 +461,7 @@ public class FileInStreamTest {
   @Test
   public void locationPolicyTest() {
     mTestStream =
-        new FileInStream(mInfo, InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE));
+        new FileInStream(mStatus, InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE));
 
     // by default local first policy used
     FileWriteLocationPolicy policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
@@ -469,7 +469,7 @@ public class FileInStreamTest {
 
     // configure a different policy
     mTestStream =
-        new FileInStream(mInfo, InStreamOptions.defaults().setReadType(ReadType.CACHE)
+        new FileInStream(mStatus, InStreamOptions.defaults().setReadType(ReadType.CACHE)
             .setLocationPolicy(new RoundRobinPolicy()));
     policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
     Assert.assertTrue(policy instanceof RoundRobinPolicy);
@@ -482,7 +482,7 @@ public class FileInStreamTest {
   public void missingLocationPolicyTest() {
     try {
       mTestStream =
-          new FileInStream(mInfo, InStreamOptions.defaults().setReadType(ReadType.CACHE)
+          new FileInStream(mStatus, InStreamOptions.defaults().setReadType(ReadType.CACHE)
               .setLocationPolicy(null));
     } catch (NullPointerException e) {
       Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED,

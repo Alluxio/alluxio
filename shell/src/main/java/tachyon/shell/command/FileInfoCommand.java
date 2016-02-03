@@ -19,6 +19,8 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.TachyonURI;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileSystem;
@@ -34,10 +36,10 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public FileInfoCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public FileInfoCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -46,10 +48,10 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path) throws IOException {
+  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
     URIStatus status;
     try {
-      status = mTfs.getStatus(path);
+      status = mFileSystem.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }

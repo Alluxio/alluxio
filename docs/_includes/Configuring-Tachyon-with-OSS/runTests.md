@@ -1,0 +1,1 @@
+    $ ./bin/tachyon runTests

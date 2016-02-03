@@ -18,10 +18,10 @@ package tachyon.master.file.options;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import tachyon.Constants;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.master.MasterContext;
-import tachyon.thrift.SetAclTOptions;
 
 /**
  * Method option for setting the acl.
@@ -140,12 +140,12 @@ public class SetAclOptions {
    *
    * @param options the options for setting the acl
    */
-  public SetAclOptions(SetAclTOptions options) {
-    mOwner = options.isSetOwner() ? options.getOwner() : null;
-    mGroup = options.isSetGroup() ? options.getGroup() : null;
+  public SetAclOptions(SetAttributeOptions options) {
+    mOwner = options.hasOwner() ? options.getOwner() : null;
+    mGroup = options.hasGroup() ? options.getGroup() : null;
     mPermission =
-        options.isSetPermission() ? (short) options.getPermission() : Constants.INVALID_PERMISSION;
-    mRecursive = options.isSetRecursive() ? options.isRecursive() : null;
+        options.hasPermission() ? (short) options.getPermission() : Constants.INVALID_PERMISSION;
+    mRecursive = options.hasRecursive() ? options.getRecursive() : false;
     mOperationTimeMs = System.currentTimeMillis();
   }
 
