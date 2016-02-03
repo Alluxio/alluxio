@@ -24,7 +24,7 @@ import org.apache.commons.cli.Options;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
-import tachyon.client.file.options.SetAclOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
@@ -69,8 +69,9 @@ public final class ChgrpCommand extends AbstractTfsShellCommand {
    */
   private void chgrp(TachyonURI path, String group, boolean recursive) throws IOException {
     try {
-      SetAclOptions options = SetAclOptions.defaults().setGroup(group).setRecursive(recursive);
-      mFileSystem.setAcl(path, options);
+      SetAttributeOptions options = SetAttributeOptions.defaults()
+          .setGroup(group).setRecursive(recursive);
+      mFileSystem.setAttribute(path, options);
       System.out.println("Changed group of " + path + " to " + group);
     } catch (TachyonException e) {
       throw new IOException("Failed to changed group of " + path + " to " + group + " : "
