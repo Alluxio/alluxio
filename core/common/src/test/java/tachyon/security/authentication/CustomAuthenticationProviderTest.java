@@ -23,9 +23,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 /**
- * Tests the {@link CustomAuthenticationProviderImpl} class.
+ * Tests the {@link CustomAuthenticationProvider} class.
  */
-public class CustomAuthenticationProviderImplTest {
+public class CustomAuthenticationProviderTest {
 
   /**
    * The exception expected to be thrown.
@@ -34,7 +34,7 @@ public class CustomAuthenticationProviderImplTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   /**
-   * Tests the {@link CustomAuthenticationProviderImpl#CustomAuthenticationProviderImpl(String)}
+   * Tests the {@link CustomAuthenticationProvider#CustomAuthenticationProvider(String)}
    * constructor to throw an exception when the class cannot be found.
    */
   @Test
@@ -42,28 +42,28 @@ public class CustomAuthenticationProviderImplTest {
     String notExistClass = "tachyon.test.custom.provider";
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(notExistClass + " not found");
-    new CustomAuthenticationProviderImpl(notExistClass);
+    new CustomAuthenticationProvider(notExistClass);
   }
 
   /**
-   * Tests the {@link CustomAuthenticationProviderImpl#CustomAuthenticationProviderImpl(String)}
+   * Tests the {@link CustomAuthenticationProvider#CustomAuthenticationProvider(String)}
    * constructor to throw an exception when the class is not a provider.
    */
   @Test
   public void classNotProviderTest() {
-    String notProviderClass = CustomAuthenticationProviderImplTest.class.getName();
+    String notProviderClass = CustomAuthenticationProviderTest.class.getName();
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(notProviderClass + " instantiate failed :");
-    new CustomAuthenticationProviderImpl(notProviderClass);
+    new CustomAuthenticationProvider(notProviderClass);
   }
 
   /**
-   * Tests the {@link CustomAuthenticationProviderImpl#getCustomProvider()} method.
+   * Tests the {@link CustomAuthenticationProvider#getCustomProvider()} method.
    */
   @Test
   public void mockCustomProviderTest() {
-    CustomAuthenticationProviderImpl provider =
-        new CustomAuthenticationProviderImpl(MockAuthenticationProvider.class.getName());
+    CustomAuthenticationProvider provider =
+        new CustomAuthenticationProvider(MockAuthenticationProvider.class.getName());
     Assert.assertTrue(provider.getCustomProvider() instanceof MockAuthenticationProvider);
   }
 
