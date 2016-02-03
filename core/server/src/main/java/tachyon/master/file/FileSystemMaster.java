@@ -1709,7 +1709,6 @@ public final class FileSystemMaster extends MasterBase {
       throws FileDoesNotExistException, AccessControlException, InvalidPathException {
     MasterContext.getMasterSource().incSetAttributeOps(1);
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.WRITE, path, false);
       long fileId = mInodeTree.getInodeByPath(path).getId();
       long opTimeMs = System.currentTimeMillis();
 
@@ -1718,7 +1717,11 @@ public final class FileSystemMaster extends MasterBase {
         List<Inode> inodeChildren =
             mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
         for (Inode inode : inodeChildren) {
-          checkOwner(mInodeTree.getPath(inode));
+          if (options.getGroup() != null
+              || options.getPermission() != Constants.INVALID_PERMISSION) {
+            checkOwner(path);
+          }
+          checkPermission(FileSystemAction.WRITE, mInodeTree.getPath(inode), false);
         }
         for (Inode inode : inodeChildren) {
           long id = inode.getId();
@@ -1726,6 +1729,13 @@ public final class FileSystemMaster extends MasterBase {
           journalSetAttribute(id, opTimeMs, options);
         }
       }
+      if (options.getOwner() != null) {
+        PermissionChecker.checkSuperuser(getClientUser(), getGroups(getClientUser()));
+      }
+      if (options.getGroup() != null || options.getPermission() != Constants.INVALID_PERMISSION) {
+        checkOwner(path);
+      }
+      checkPermission(FileSystemAction.WRITE, path, false);
       setAttributeInternal(fileId, opTimeMs, options);
       journalSetAttribute(fileId, opTimeMs, options);
     }
@@ -2030,8 +2040,7 @@ public final class FileSystemMaster extends MasterBase {
 
   /**
    * Checks user's permission on a path. If the path is invalid, it should bypass the
-   * {@link InvalidPathException} and the logic at operation will handle it. The caller should lock
-   * mInodeTree before calling it.
+   * {@link InvalidPathException} and the logic at operation will handle it.
    *
    * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
