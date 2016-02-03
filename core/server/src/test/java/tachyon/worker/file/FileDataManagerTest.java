@@ -38,10 +38,10 @@ import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.InvalidWorkerStateException;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.wire.FileInfo;
 import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.io.BlockReader;
 

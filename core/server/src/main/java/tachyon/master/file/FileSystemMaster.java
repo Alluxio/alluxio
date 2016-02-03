@@ -101,22 +101,22 @@ import tachyon.security.authentication.PlainSaslServer;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.security.group.GroupMappingService;
-import tachyon.thrift.BlockInfo;
-import tachyon.thrift.BlockLocation;
 import tachyon.thrift.CommandType;
-import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.FileSystemCommandOptions;
 import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.PersistCommandOptions;
 import tachyon.thrift.PersistFile;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
 import tachyon.util.SecurityUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.wire.BlockInfo;
+import tachyon.wire.BlockLocation;
+import tachyon.wire.FileBlockInfo;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -982,7 +982,7 @@ public final class FileSystemMaster extends MasterBase {
           }
           // The resolved port is the data transfer port not the rpc port
           fileBlockInfo.getUfsLocations().add(
-                  new WorkerNetAddress(resolvedHost, -1, resolvedPort, -1));
+              new WorkerNetAddress().setHost(resolvedHost).setDataPort(resolvedPort));
         }
       }
     }

@@ -17,6 +17,7 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -28,11 +29,11 @@ import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterClientService;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
-import tachyon.thrift.WorkerInfo;
+import tachyon.wire.BlockInfo;
+import tachyon.wire.WorkerInfo;
 
 /**
  * A wrapper for the thrift client to interact with the block master, used by tachyon clients.
@@ -86,7 +87,11 @@ public final class BlockMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallable<List<WorkerInfo>>() {
       @Override
       public List<WorkerInfo> call() throws TException {
-        return mClient.getWorkerInfoList();
+        List<WorkerInfo> result = new ArrayList<WorkerInfo>();
+        for (tachyon.thrift.WorkerInfo workerInfo : mClient.getWorkerInfoList()) {
+          result.add(new WorkerInfo(workerInfo));
+        }
+        return result;
       }
     });
   }
@@ -104,7 +109,7 @@ public final class BlockMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<BlockInfo>() {
       @Override
       public BlockInfo call() throws TachyonTException, TException {
-        return mClient.getBlockInfo(blockId);
+        return new BlockInfo(mClient.getBlockInfo(blockId));
       }
     });
   }

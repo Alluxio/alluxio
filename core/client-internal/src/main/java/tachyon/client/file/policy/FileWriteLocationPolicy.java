@@ -20,7 +20,7 @@ import java.util.List;
 import tachyon.annotation.PublicApi;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.file.FileOutStream;
-import tachyon.worker.NetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * <p>
@@ -46,6 +46,6 @@ public interface FileWriteLocationPolicy {
    * @param blockSizeBytes the size of the block in bytes
    * @return the address of the worker to write to
    */
-  public NetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes);
 }

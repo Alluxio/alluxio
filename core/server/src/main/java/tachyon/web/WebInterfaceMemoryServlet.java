@@ -35,8 +35,8 @@ import tachyon.master.MasterContext;
 import tachyon.master.TachyonMaster;
 import tachyon.security.LoginUser;
 import tachyon.security.authentication.PlainSaslServer;
-import tachyon.thrift.FileInfo;
 import tachyon.util.SecurityUtils;
+import tachyon.wire.FileInfo;
 
 /**
  * Servlet that provides data for displaying which files are currently in memory.

@@ -27,7 +27,7 @@ import tachyon.collections.IndexedSet;
 import tachyon.proto.journal.File.InodeDirectoryEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.security.authorization.PermissionStatus;
-import tachyon.thrift.FileInfo;
+import tachyon.wire.FileInfo;
 
 /**
  * Tachyon file system's directory representation in the file system master.
