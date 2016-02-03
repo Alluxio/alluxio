@@ -26,7 +26,7 @@ Here is a list that tracks external software projects that supplement Tachyon an
 * [Alibaba OSS](http://www.aliyun.com/product/oss/?lang=en)
 * [Amazon S3](https://aws.amazon.com/s3/)
 * [Apache Flink](https://flink.apache.org/)
-* [Apache Hadoop MapReduce](https://hadoop.apache.org/)
+* [Apache Hadoop](https://hadoop.apache.org/)
 * [Apache Spark](http://spark.apache.org/)
 * [Apache Zeppelin](http://zeppelin-project.org/)
 * [GlusterFS](http://www.gluster.org/)
