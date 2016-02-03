@@ -43,4 +43,31 @@ public final class UserTest {
     Assert.assertEquals(2, users.length);
     Assert.assertNotEquals(users[0], users[1]);
   }
+
+  /**
+   * This test verifies that full realm names format is supported.
+   */
+  @Test
+  public void realmAsUserName() {
+    // Add new users into Subject.
+    Subject subject = new Subject();
+    subject.getPrincipals().add(new User("admin/admin@EXAMPLE.com"));
+    subject.getPrincipals().add(new User("admin/mbox.example.com@EXAMPLE.com"));
+    subject.getPrincipals().add(new User("imap/mbox.example.com@EXAMPLE.COM"));
+
+    // Fetch added users.
+    User[] users = subject.getPrincipals(User.class).toArray(new User[0]);
+    Assert.assertEquals(3, users.length);
+    Assert.assertNotEquals(users[0], users[1]);
+    Assert.assertNotEquals(users[1], users[2]);
+
+    // Add similar user name without domain name.
+    subject.getPrincipals().add(new User("admin"));
+    subject.getPrincipals().add(new User("imap"));
+
+    users = subject.getPrincipals(User.class).toArray(new User[0]);
+    Assert.assertEquals(5, users.length);
+    Assert.assertNotEquals(users[0], users[3]);
+    Assert.assertNotEquals(users[2], users[4]);
+  }
 }
