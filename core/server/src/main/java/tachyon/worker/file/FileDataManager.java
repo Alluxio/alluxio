@@ -67,9 +67,6 @@ public final class FileDataManager {
   // the file being persisted,
   private final Map<Long, Map<Long, Long>> mPersistingInProgressFiles;
 
-
-
-
   /** The file are persisted, but not sent back to master for confirmation yet. */
   @GuardedBy("mLock")
   private final Set<Long> mPersistedFiles;
