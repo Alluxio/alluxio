@@ -28,7 +28,7 @@ import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.keyvalue.KeyValueStoreReader;
 import tachyon.client.keyvalue.KeyValueStoreWriter;
-import tachyon.client.keyvalue.KeyValueStores;
+import tachyon.client.keyvalue.KeyValueSystem;
 import tachyon.examples.keyvalue.SameKeyValueStoresTest;
 import tachyon.examples.keyvalue.hadoop.CloneKeyValueStoreMapReduce;
 import tachyon.hadoop.ConfUtils;
@@ -78,8 +78,8 @@ public final class KeyValueStoreMapReduceIntegrationTest {
 
     // Creates a key-value store.
     TachyonURI originalKVStoreURI = new TachyonURI(PathUtils.uniqPath());
-    KeyValueStores kvStores = KeyValueStores.Factory.create();
-    KeyValueStoreWriter writer = kvStores.create(originalKVStoreURI);
+    KeyValueSystem kvSystem = KeyValueSystem.Factory.create();
+    KeyValueStoreWriter writer = kvSystem.createStore(originalKVStoreURI);
     for (int i = 1; i <= numKeys; i ++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i);
       byte[] value = BufferUtils.getIncreasingByteArray(valueBytes);
@@ -88,7 +88,7 @@ public final class KeyValueStoreMapReduceIntegrationTest {
     writer.close();
 
     // Verifies that the newly created store has correct key-value pairs.
-    KeyValueStoreReader reader = kvStores.open(originalKVStoreURI);
+    KeyValueStoreReader reader = kvSystem.openStore(originalKVStoreURI);
     Assert.assertEquals(numKeys, reader.size());
     for (int i = 1; i <= numKeys; i ++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i);

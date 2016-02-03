@@ -27,7 +27,7 @@ import tachyon.Version;
 import tachyon.client.keyvalue.KeyValueIterator;
 import tachyon.client.keyvalue.KeyValuePair;
 import tachyon.client.keyvalue.KeyValueStoreReader;
-import tachyon.client.keyvalue.KeyValueStores;
+import tachyon.client.keyvalue.KeyValueSystem;
 import tachyon.examples.Utils;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.BufferUtils;
@@ -53,9 +53,9 @@ public final class SameKeyValueStoresTest implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    KeyValueStores kvStores = KeyValueStores.Factory.create();
-    KeyValueStoreReader reader1 = kvStores.open(mStoreUri1);
-    KeyValueStoreReader reader2 = kvStores.open(mStoreUri2);
+    KeyValueSystem kvs = KeyValueSystem.Factory.create();
+    KeyValueStoreReader reader1 = kvs.openStore(mStoreUri1);
+    KeyValueStoreReader reader2 = kvs.openStore(mStoreUri2);
     boolean pass = areTheSameStores(reader1, reader2);
     reader1.close();
     reader2.close();

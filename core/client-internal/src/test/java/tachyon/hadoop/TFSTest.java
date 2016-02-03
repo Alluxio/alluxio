@@ -39,10 +39,10 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.FileSystemMasterClient;
-import tachyon.client.file.FileSystem;
-import tachyon.conf.TachyonConf;
+import tachyon.client.util.ClientTestUtils;
 
 /**
  * Unit tests for {@link TFS}.
@@ -57,8 +57,6 @@ import tachyon.conf.TachyonConf;
 @PowerMockIgnore("javax.security.*")
 public class TFSTest {
   private static final Logger LOG = LoggerFactory.getLogger(TFSTest.class.getName());
-
-  private TachyonConf mTachyonConf;
 
   private ClassLoader getClassLoader(Class<?> clazz) {
     // Power Mock makes this hard, so try to hack it
@@ -105,10 +103,9 @@ public class TFSTest {
     // when
     final URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
 
-    mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
-    mTachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, "true");
-    ClientContext.reset(mTachyonConf);
+    ClientContext.getConf().set(Constants.MASTER_HOSTNAME, uri.getHost());
+    ClientContext.getConf().set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+    ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, "true");
     mockMasterClient();
 
     final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
@@ -117,7 +114,7 @@ public class TFSTest {
 
     PowerMockito.verifyStatic();
     FileSystem.Factory.get();
-    ClientContext.reset();
+    ClientTestUtils.resetClientContext();
   }
 
   /**
@@ -135,10 +132,9 @@ public class TFSTest {
     // when
     final URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
 
-    mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
-    mTachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, "false");
-    ClientContext.reset(mTachyonConf);
+    ClientContext.getConf().set(Constants.MASTER_HOSTNAME, uri.getHost());
+    ClientContext.getConf().set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+    ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, "false");
     mockMasterClient();
 
     final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
@@ -147,7 +143,7 @@ public class TFSTest {
 
     PowerMockito.verifyStatic();
     FileSystem.Factory.get();
-    ClientContext.reset();
+    ClientTestUtils.resetClientContext();
   }
 
   private boolean isHadoop1x() {
@@ -181,7 +177,6 @@ public class TFSTest {
    */
   @Before
   public void setup() throws Exception {
-    mTachyonConf = new TachyonConf();
     mockUserGroupInformation();
 
     if (isHadoop1x()) {

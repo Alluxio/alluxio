@@ -32,12 +32,12 @@ import com.google.common.collect.Lists;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.keyvalue.KeyValueStores;
+import tachyon.client.keyvalue.KeyValueSystem;
 import tachyon.exception.TachyonException;
 
 /**
  * Extension of {@link FileOutputCommitter} where creating, completing, or deleting a
- * {@link KeyValueStores} in different phases of a job's or task's lifecycle is considered.
+ * {@link KeyValueSystem} in different phases of a job's or task's lifecycle is considered.
  * <p>
  * This committer must be used along with {@link KeyValueOutputFormat} to merge the key-value stores
  * created by each Reducer into one key-value store under the MapReduce output directory.
@@ -45,7 +45,7 @@ import tachyon.exception.TachyonException;
 @PublicApi
 @ThreadSafe
 public final class KeyValueOutputCommitter extends FileOutputCommitter {
-  private static final KeyValueStores KEY_VALUE_STORES = KeyValueStores.Factory.create();
+  private static final KeyValueSystem KEY_VALUE_SYSTEM = KeyValueSystem.Factory.create();
 
   private List<TachyonURI> getTaskTemporaryStores(JobConf conf) throws IOException {
     TachyonURI taskOutputURI = KeyValueOutputFormat.getTaskOutputURI(conf);
@@ -89,7 +89,7 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
     TachyonURI jobOutputURI = KeyValueOutputFormat.getJobOutputURI(conf);
     for (TachyonURI tempStoreUri : getTaskTemporaryStores(conf)) {
       try {
-        KEY_VALUE_STORES.merge(tempStoreUri, jobOutputURI);
+        KEY_VALUE_SYSTEM.mergeStore(tempStoreUri, jobOutputURI);
       } catch (TachyonException e) {
         throw new IOException(e);
       }
@@ -107,7 +107,7 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
   public void abortTask(TaskAttemptContext context) throws IOException {
     for (TachyonURI tempStoreUri : getTaskTemporaryStores(context.getJobConf())) {
       try {
-        KEY_VALUE_STORES.delete(tempStoreUri);
+        KEY_VALUE_SYSTEM.deleteStore(tempStoreUri);
       } catch (TachyonException e) {
         throw new IOException(e);
       }

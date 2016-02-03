@@ -38,10 +38,10 @@ import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.client.block.BlockStoreContext;
+import tachyon.client.block.BlockWorkerClient;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.TachyonBlockStore;
@@ -53,7 +53,6 @@ import tachyon.client.file.policy.LocalFirstPolicy;
 import tachyon.client.file.policy.RoundRobinPolicy;
 import tachyon.client.util.ClientMockUtils;
 import tachyon.client.util.ClientTestUtils;
-import tachyon.client.block.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.FileInfo;
@@ -159,12 +158,9 @@ public class FileOutStreamTest {
     mTestStream = createTestStream(FILE_NAME, options);
   }
 
-  /**
-   * Resets the context after a test ran.
-   */
   @After
   public void after() {
-    ClientContext.reset();
+    ClientTestUtils.resetClientContext();
   }
 
   /**

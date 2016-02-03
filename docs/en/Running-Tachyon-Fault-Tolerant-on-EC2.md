@@ -19,19 +19,13 @@ Download [Vagrant](https://www.vagrantup.com/downloads.html)
 
 Install AWS Vagrant plugin:
 
-```bash
-$ vagrant plugin install vagrant-aws
-$ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/install-aws-vagrant-plugin.md %}
 
 **Install Tachyon**
 
 Download Tachyon to your local machine, and unzip it:
 
-```bash
-$ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
-$ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/download-tachyon.md %}
 
 **Install python library dependencies**
 
@@ -39,16 +33,13 @@ Install [python>=2.7](https://www.python.org/), not python3.
 
 Under `deploy/vagrant` directory in your home directory, run:
 
-```bash
-$ sudo bash bin/install.sh
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/install-vagrant.md %}
 
 Alternatively, you can manually install [pip](https://pip.pypa.io/en/latest/installing/), and then
 in `deploy/vagrant` run:
 
-```bash
-$ sudo pip install -r pip-req.txt
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/install-pip.md %}
+
 
 # Launch a Cluster
 
@@ -58,24 +49,17 @@ on the [Amazon Web Services site](http://aws.amazon.com/).
 Then create [access keys](https://aws.amazon.com/developers/access-keys/)
 and set shell environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` by:
 
-```bash
-$ export AWS_ACCESS_KEY_ID=<your access key>
-$ export AWS_SECRET_ACCESS_KEY=<your secret access key>
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/access-keys.md %}
 
 Next generate your EC2
 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). Make sure to set
 the permissions of your private key file that only you can read it:
 
-```bash
-$ chmod 400 <your key pair>.pem
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/generate-key-pairs.md %}
 
 Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml` by:
 
-```bash
-$ cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/copy-ec2-yml.md %}
 
 In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
 name and `Key_Path` to the path to the pem key.
@@ -94,9 +78,7 @@ traffic opened. You can change the *security group*, *region* and *availability 
 Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running
 the script under `deploy/vagrant`:
 
-```bash
-$ ./create <number of machines> aws
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/launch-cluster.md %}
 
 Note that the `<number of machines>` above should be larger than or equal to `Masters` set in
 `deploy/vagrant/conf/tachyon.yml`.
@@ -111,9 +93,7 @@ is in one of the master nodes.
 After command `./create <number of machines> aws` succeeds, you can see three green lines like below
 shown at the end of the shell output:
 
-    >>> Master public IP for Tachyon is xxx, visit xxx:19999 for Tachyon web UI<<<
-    >>> Master public IP for other softwares is xxx <<<
-    >>> visit default port of the web UI of what you deployed <<<
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/shell-output.md %}
 
 The first line shows public IP for current leader of all Tachyon masters.
 
@@ -141,24 +121,18 @@ for Tachyon and other software like Hadoop.
 
 To ssh into a node, run:
 
-```bash
-$ vagrant ssh <node name>
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/ssh.md %}
 
 For example, you can ssh into `TachyonMaster` with:
 
-```bash
-$ vagrant ssh TachyonMaster
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/ssh-TachyonMaster.md %}
 
 All software is installed under the root directory, e.g. Tachyon is installed in `/tachyon`,
 Hadoop is installed in `/hadoop`, and Zookeeper is installed in `/zookeeper`.
 
 On the leader master node, you can run tests against Tachyon to check its health:
 
-```bash
-$ /tachyon/bin/tachyon runTests
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/runTests.md %}
 
 After the tests finish, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click
 `Browse File System` in the navigation bar, and you should see the files written to Tachyon by the
@@ -167,28 +141,20 @@ above tests.
 You can ssh into the current Tachyon master leader, and find process ID of the TachyonMaster
 process with:
 
-```bash
-$ jps | grep TachyonMaster
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/jps.md %}
 
 Then kill the leader with:
 
-```bash
-$ kill -9 <leader pid found via the above command>
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/kill-leader.md %}
 
 Then you can ssh into `TachyonMaster` where [zookeeper](http://zookeeper.apache.org/) is
 running to find out the new leader, and run the zookeeper client via:
 
-```bash
-$ /zookeeper/bin/zkCli.sh
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/zookeeper-client.md %}
 
 In the zookeeper client shell, you can see the leader with the command:
 
-```bash
-$ ls /leader
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/see-leader.md %}
 
 The output of the command should show the new leader. You may need to wait for a moment for the
 new leader to be elected. You can query the public IP for the new leader based on its name in
@@ -199,17 +165,13 @@ navigation bar, and you should see all files are still there.
 
 From a node in the cluster, you can ssh to other nodes in the cluster without password with:
 
-```bash
-$ ssh TachyonWorker1
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/ssh-other-node.md %}
 
 # Destroy the cluster
 
 Under `deploy/vagrant` directory, you can run
 
-```bash
-$ ./destroy
-```
+{% include Running-Tachyon-Fault-Tolerant-on-EC2/destroy.md %}
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
 command succeeds, the EC2 instances are terminated.
