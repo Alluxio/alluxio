@@ -89,8 +89,8 @@ public class MasterSource implements Source {
           mMetricRegistry.counter(MetricRegistry.name("MountOps"));
   private final Counter mRenamePathOps =
       mMetricRegistry.counter(MetricRegistry.name("RenamePathOps"));
-  private final Counter mSetStateOps =
-          mMetricRegistry.counter(MetricRegistry.name("SetStateOps"));
+  private final Counter mSetAttributeOps =
+          mMetricRegistry.counter(MetricRegistry.name("SetAttributeOps"));
   private final Counter mUnmountOps =
       mMetricRegistry.counter(MetricRegistry.name("UnmountOps"));
 
@@ -403,12 +403,12 @@ public class MasterSource implements Source {
   }
 
   /**
-   * Increments the counter of set state RPCs.
+   * Increments the counter of set attribute RPCs.
    *
    * @param n the increment
    */
-  public void incSetStateOps(long n) {
-    mSetStateOps.inc(n);
+  public void incSetAttributeOps(long n) {
+    mSetAttributeOps.inc(n);
   }
 
   /**

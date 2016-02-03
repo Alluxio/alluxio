@@ -10293,8 +10293,8 @@ public final class File {
     // @@protoc_insertion_point(class_scope:tachyon.proto.journal.SetAclEntry)
   }
 
-  public interface SetStateEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:tachyon.proto.journal.SetStateEntry)
+  public interface SetAttributeEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.journal.SetAttributeEntry)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -10343,29 +10343,29 @@ public final class File {
     boolean getPersisted();
   }
   /**
-   * Protobuf type {@code tachyon.proto.journal.SetStateEntry}
+   * Protobuf type {@code tachyon.proto.journal.SetAttributeEntry}
    *
    * <pre>
    * next available id: 6
    * </pre>
    */
-  public static final class SetStateEntry extends
+  public static final class SetAttributeEntry extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:tachyon.proto.journal.SetStateEntry)
-      SetStateEntryOrBuilder {
-    // Use SetStateEntry.newBuilder() to construct.
-    private SetStateEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      // @@protoc_insertion_point(message_implements:tachyon.proto.journal.SetAttributeEntry)
+      SetAttributeEntryOrBuilder {
+    // Use SetAttributeEntry.newBuilder() to construct.
+    private SetAttributeEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
       this.unknownFields = builder.getUnknownFields();
     }
-    private SetStateEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+    private SetAttributeEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
 
-    private static final SetStateEntry defaultInstance;
-    public static SetStateEntry getDefaultInstance() {
+    private static final SetAttributeEntry defaultInstance;
+    public static SetAttributeEntry getDefaultInstance() {
       return defaultInstance;
     }
 
-    public SetStateEntry getDefaultInstanceForType() {
+    public SetAttributeEntry getDefaultInstanceForType() {
       return defaultInstance;
     }
 
@@ -10375,7 +10375,7 @@ public final class File {
         getUnknownFields() {
       return this.unknownFields;
     }
-    private SetStateEntry(
+    private SetAttributeEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -10437,28 +10437,28 @@ public final class File {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_SetStateEntry_descriptor;
+      return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_SetAttributeEntry_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_SetStateEntry_fieldAccessorTable
+      return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_SetAttributeEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              tachyon.proto.journal.File.SetStateEntry.class, tachyon.proto.journal.File.SetStateEntry.Builder.class);
+              tachyon.proto.journal.File.SetAttributeEntry.class, tachyon.proto.journal.File.SetAttributeEntry.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<SetStateEntry> PARSER =
-        new com.google.protobuf.AbstractParser<SetStateEntry>() {
-      public SetStateEntry parsePartialFrom(
+    public static com.google.protobuf.Parser<SetAttributeEntry> PARSER =
+        new com.google.protobuf.AbstractParser<SetAttributeEntry>() {
+      public SetAttributeEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-        return new SetStateEntry(input, extensionRegistry);
+        return new SetAttributeEntry(input, extensionRegistry);
       }
     };
 
     @java.lang.Override
-    public com.google.protobuf.Parser<SetStateEntry> getParserForType() {
+    public com.google.protobuf.Parser<SetAttributeEntry> getParserForType() {
       return PARSER;
     }
 
@@ -10614,53 +10614,53 @@ public final class File {
       return super.writeReplace();
     }
 
-    public static tachyon.proto.journal.File.SetStateEntry parseFrom(
+    public static tachyon.proto.journal.File.SetAttributeEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static tachyon.proto.journal.File.SetStateEntry parseFrom(
+    public static tachyon.proto.journal.File.SetAttributeEntry parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static tachyon.proto.journal.File.SetStateEntry parseFrom(byte[] data)
+    public static tachyon.proto.journal.File.SetAttributeEntry parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static tachyon.proto.journal.File.SetStateEntry parseFrom(
+    public static tachyon.proto.journal.File.SetAttributeEntry parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static tachyon.proto.journal.File.SetStateEntry parseFrom(java.io.InputStream input)
+    public static tachyon.proto.journal.File.SetAttributeEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return PARSER.parseFrom(input);
     }
-    public static tachyon.proto.journal.File.SetStateEntry parseFrom(
+    public static tachyon.proto.journal.File.SetAttributeEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return PARSER.parseFrom(input, extensionRegistry);
     }
-    public static tachyon.proto.journal.File.SetStateEntry parseDelimitedFrom(java.io.InputStream input)
+    public static tachyon.proto.journal.File.SetAttributeEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return PARSER.parseDelimitedFrom(input);
     }
-    public static tachyon.proto.journal.File.SetStateEntry parseDelimitedFrom(
+    public static tachyon.proto.journal.File.SetAttributeEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return PARSER.parseDelimitedFrom(input, extensionRegistry);
     }
-    public static tachyon.proto.journal.File.SetStateEntry parseFrom(
+    public static tachyon.proto.journal.File.SetAttributeEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return PARSER.parseFrom(input);
     }
-    public static tachyon.proto.journal.File.SetStateEntry parseFrom(
+    public static tachyon.proto.journal.File.SetAttributeEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -10669,7 +10669,7 @@ public final class File {
 
     public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(tachyon.proto.journal.File.SetStateEntry prototype) {
+    public static Builder newBuilder(tachyon.proto.journal.File.SetAttributeEntry prototype) {
       return newBuilder().mergeFrom(prototype);
     }
     public Builder toBuilder() { return newBuilder(this); }
@@ -10681,7 +10681,7 @@ public final class File {
       return builder;
     }
     /**
-     * Protobuf type {@code tachyon.proto.journal.SetStateEntry}
+     * Protobuf type {@code tachyon.proto.journal.SetAttributeEntry}
      *
      * <pre>
      * next available id: 6
@@ -10689,21 +10689,21 @@ public final class File {
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:tachyon.proto.journal.SetStateEntry)
-        tachyon.proto.journal.File.SetStateEntryOrBuilder {
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.journal.SetAttributeEntry)
+        tachyon.proto.journal.File.SetAttributeEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_SetStateEntry_descriptor;
+        return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_SetAttributeEntry_descriptor;
       }
 
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_SetStateEntry_fieldAccessorTable
+        return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_SetAttributeEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                tachyon.proto.journal.File.SetStateEntry.class, tachyon.proto.journal.File.SetStateEntry.Builder.class);
+                tachyon.proto.journal.File.SetAttributeEntry.class, tachyon.proto.journal.File.SetAttributeEntry.Builder.class);
       }
 
-      // Construct using tachyon.proto.journal.File.SetStateEntry.newBuilder()
+      // Construct using tachyon.proto.journal.File.SetAttributeEntry.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -10742,23 +10742,23 @@ public final class File {
 
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_SetStateEntry_descriptor;
+        return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_SetAttributeEntry_descriptor;
       }
 
-      public tachyon.proto.journal.File.SetStateEntry getDefaultInstanceForType() {
-        return tachyon.proto.journal.File.SetStateEntry.getDefaultInstance();
+      public tachyon.proto.journal.File.SetAttributeEntry getDefaultInstanceForType() {
+        return tachyon.proto.journal.File.SetAttributeEntry.getDefaultInstance();
       }
 
-      public tachyon.proto.journal.File.SetStateEntry build() {
-        tachyon.proto.journal.File.SetStateEntry result = buildPartial();
+      public tachyon.proto.journal.File.SetAttributeEntry build() {
+        tachyon.proto.journal.File.SetAttributeEntry result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
         return result;
       }
 
-      public tachyon.proto.journal.File.SetStateEntry buildPartial() {
-        tachyon.proto.journal.File.SetStateEntry result = new tachyon.proto.journal.File.SetStateEntry(this);
+      public tachyon.proto.journal.File.SetAttributeEntry buildPartial() {
+        tachyon.proto.journal.File.SetAttributeEntry result = new tachyon.proto.journal.File.SetAttributeEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
@@ -10787,16 +10787,16 @@ public final class File {
       }
 
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof tachyon.proto.journal.File.SetStateEntry) {
-          return mergeFrom((tachyon.proto.journal.File.SetStateEntry)other);
+        if (other instanceof tachyon.proto.journal.File.SetAttributeEntry) {
+          return mergeFrom((tachyon.proto.journal.File.SetAttributeEntry)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(tachyon.proto.journal.File.SetStateEntry other) {
-        if (other == tachyon.proto.journal.File.SetStateEntry.getDefaultInstance()) return this;
+      public Builder mergeFrom(tachyon.proto.journal.File.SetAttributeEntry other) {
+        if (other == tachyon.proto.journal.File.SetAttributeEntry.getDefaultInstance()) return this;
         if (other.hasId()) {
           setId(other.getId());
         }
@@ -10824,11 +10824,11 @@ public final class File {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        tachyon.proto.journal.File.SetStateEntry parsedMessage = null;
+        tachyon.proto.journal.File.SetAttributeEntry parsedMessage = null;
         try {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (tachyon.proto.journal.File.SetStateEntry) e.getUnfinishedMessage();
+          parsedMessage = (tachyon.proto.journal.File.SetAttributeEntry) e.getUnfinishedMessage();
           throw e;
         } finally {
           if (parsedMessage != null) {
@@ -10999,15 +10999,15 @@ public final class File {
         return this;
       }
 
-      // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.SetStateEntry)
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.SetAttributeEntry)
     }
 
     static {
-      defaultInstance = new SetStateEntry(true);
+      defaultInstance = new SetAttributeEntry(true);
       defaultInstance.initFields();
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.SetStateEntry)
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.SetAttributeEntry)
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
@@ -11081,10 +11081,10 @@ public final class File {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_SetAclEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_tachyon_proto_journal_SetStateEntry_descriptor;
+    internal_static_tachyon_proto_journal_SetAttributeEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_tachyon_proto_journal_SetStateEntry_fieldAccessorTable;
+      internal_static_tachyon_proto_journal_SetAttributeEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -11129,10 +11129,10 @@ public final class File {
       "d\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_time_ms\030" +
       "\003 \001(\003\"h\n\013SetAclEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_t" +
       "ime_ms\030\002 \001(\003\022\021\n\tuser_name\030\003 \001(\t\022\022\n\ngroup" +
-      "_name\030\004 \001(\t\022\022\n\npermission\030\005 \001(\005\"_\n\rSetSt" +
-      "ateEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003" +
-      "\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersist" +
-      "ed\030\005 \001(\010"
+      "_name\030\004 \001(\t\022\022\n\npermission\030\005 \001(\005\"c\n\021SetAt" +
+      "tributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002" +
+      " \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tper" +
+      "sisted\030\005 \001(\010"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -11230,11 +11230,11 @@ public final class File {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_SetAclEntry_descriptor,
         new java.lang.String[] { "Id", "OpTimeMs", "UserName", "GroupName", "Permission", });
-    internal_static_tachyon_proto_journal_SetStateEntry_descriptor =
+    internal_static_tachyon_proto_journal_SetAttributeEntry_descriptor =
       getDescriptor().getMessageTypes().get(14);
-    internal_static_tachyon_proto_journal_SetStateEntry_fieldAccessorTable = new
+    internal_static_tachyon_proto_journal_SetAttributeEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_tachyon_proto_journal_SetStateEntry_descriptor,
+        internal_static_tachyon_proto_journal_SetAttributeEntry_descriptor,
         new java.lang.String[] { "Id", "OpTimeMs", "Pinned", "Ttl", "Persisted", });
   }
 
