@@ -15,6 +15,8 @@
 
 package tachyon.security;
 
+import java.util.Set;
+
 import javax.security.auth.Subject;
 
 import org.junit.Assert;
@@ -37,15 +39,14 @@ public final class UserTest {
     subject.getPrincipals().add(new User("proxyUser"));
 
     // fetch added users
-    User[] users = subject.getPrincipals(User.class).toArray(new User[0]);
+    Set<User> users = subject.getPrincipals(User.class);
 
     // verification
-    Assert.assertEquals(2, users.length);
-    Assert.assertNotEquals(users[0], users[1]);
+    Assert.assertEquals(2, users.size());
   }
 
   /**
-   * This test verifies that full realm names format is supported.
+   * This test verifies that full realm format is valid as User name.
    */
   @Test
   public void realmAsUserName() {
@@ -56,18 +57,14 @@ public final class UserTest {
     subject.getPrincipals().add(new User("imap/mbox.example.com@EXAMPLE.COM"));
 
     // Fetch added users.
-    User[] users = subject.getPrincipals(User.class).toArray(new User[0]);
-    Assert.assertEquals(3, users.length);
-    Assert.assertNotEquals(users[0], users[1]);
-    Assert.assertNotEquals(users[1], users[2]);
+    Set<User> users = subject.getPrincipals(User.class);
+    Assert.assertEquals(3, users.size());
 
     // Add similar user name without domain name.
     subject.getPrincipals().add(new User("admin"));
     subject.getPrincipals().add(new User("imap"));
 
-    users = subject.getPrincipals(User.class).toArray(new User[0]);
-    Assert.assertEquals(5, users.length);
-    Assert.assertNotEquals(users[0], users[3]);
-    Assert.assertNotEquals(users[2], users[4]);
+    users = subject.getPrincipals(User.class);
+    Assert.assertEquals(5, users.size());
   }
 }
