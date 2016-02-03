@@ -32,8 +32,8 @@ import com.google.common.base.Objects;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
-import tachyon.thrift.WorkerInfo;
 import tachyon.util.FormatUtils;
+import tachyon.wire.WorkerInfo;
 
 /**
  * Servlet that provides data for displaying detail info of all workers.

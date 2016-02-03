@@ -40,8 +40,8 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
-import tachyon.thrift.FileInfo;
-import tachyon.worker.NetAddress;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * A streaming API to read a file. This API represents a file as a stream of bytes and provides a
@@ -238,7 +238,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       if (mShouldCacheCurrentBlock) {
         try {
           long blockSize = getCurrentBlockSize();
-          NetAddress address = mLocationPolicy.getWorkerForNextBlock(
+          WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
               mContext.getTachyonBlockStore().getWorkerInfoList(), blockSize);
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, blockSize, address);
@@ -311,7 +311,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
           long blockSize = getCurrentBlockSize();
-          NetAddress address = mLocationPolicy.getWorkerForNextBlock(
+          WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
               mContext.getTachyonBlockStore().getWorkerInfoList(), blockSize);
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, blockSize, address);

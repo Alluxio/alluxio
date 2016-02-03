@@ -30,9 +30,9 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.BlockInfo;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.io.BufferUtils;
+import tachyon.wire.BlockInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Default implementation of {@link KeyValuePartitionReader} to talk to a remote key-value worker to

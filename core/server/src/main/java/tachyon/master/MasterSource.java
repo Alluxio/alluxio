@@ -28,9 +28,9 @@ import com.codahale.metrics.MetricRegistry;
 
 import tachyon.Constants;
 import tachyon.metrics.source.Source;
-import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.wire.FileBlockInfo;
+import tachyon.wire.FileInfo;
 
 /**
  * Master source collects information about master's internal state. Metrics like *Ops are used to
