@@ -1,0 +1,98 @@
+tachyon.worker.allocator.class:
+  "The strategy that a worker uses to allocate space among storage directories in certain storage
+  layer. Valid options include: `tachyon.worker.block.allocator.MaxFreeAllocator`,
+  `tachyon.worker.block.allocator.GreedyAllocator`,
+  `tachyon.worker.block.allocator.RoundRobinAllocator`."
+tachyon.worker.bind.host:
+  The hostname Tachyon's worker node binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
+tachyon.worker.block.heartbeat.interval.ms:
+  The interval (in milliseconds) between block worker's heartbeats
+tachyon.worker.block.heartbeat.timeout.ms:
+  The timeout value (in milliseconds) of block worker's heartbeat
+tachyon.worker.block.threads.max:
+  The maximum number of incoming RPC requests to block worker that can be handled.
+  This value is used for configuring the Thrift server for RPC  with block worker.
+tachyon.worker.block.threads.min:
+  The minimum number of incoming RPC requests to block worker that can be handled.
+  This value is used for configuring the Thrift server for RPC with block worker.
+tachyon.worker.data.bind.host:
+  The hostname that the Tachyon worker's data server runs on. See
+  <a href="#configure-multihomed-networks">multi-homed networks</a>
+tachyon.worker.data.folder:
+  A relative path within each storage directory used as the data folder for Tachyon worker to put data for tiered store.
+tachyon.worker.data.port:
+  The port Tachyon's worker's data server runs on.
+tachyon.worker.data.server.class:
+  "Selects the networking stack to run the worker with. Valid options are:
+  `tachyon.worker.netty.NettyDataServer`, `tachyon.worker.nio.NIODataServer`."
+tachyon.worker.evictor.class:
+  The strategy that a worker uses to evict block files when a storage layer runs out of space. Valid
+  options include `tachyon.worker.block.evictor.LRFUEvictor`,
+  `tachyon.worker.block.evictor.GreedyEvictor`, `tachyon.worker.block.evictor.LRUEvictor`.
+tachyon.worker.evictor.lrfu.attenuation.factor:
+  A attenuation factor in [2, INF) to control the behavior of LRFU.
+tachyon.worker.evictor.lrfu.step.factor:
+  "A factor in [0, 1] to control the behavior of LRFU: smaller value makes LRFU more similar to
+  LFU; and larger value makes LRFU closer to LRU."
+tachyon.worker.filesystem.heartbeat.interval.ms:
+  The heartbeat interval (in milliseconds) between the worker and file system master.
+tachyon.worker.hostname:
+  The hostname of Tachyon worker.
+tachyon.worker.memory.size:
+  Memory capacity of each worker node.
+tachyon.worker.network.netty.boss.threads:
+  How many threads to use for accepting new requests.
+tachyon.worker.network.netty.file.transfer:
+  When returning files to the user, select how the data is transferred; valid options are
+  `MAPPED` (uses java MappedByteBuffer) and `TRANSFER` (uses Java FileChannel.transferTo).
+tachyon.worker.network.netty.shutdown.quiet.period:
+  The quiet period (in seconds). When the netty server is shutting down, it will ensure that no
+  RPCs occur during the quiet period. If an RPC occurs, then the quiet period will restart before
+  shutting down the netty server.
+tachyon.worker.network.netty.shutdown.timeout:
+  Maximum amount of time to wait (in seconds) until the netty server is shutdown (regardless of
+  the quiet period).
+tachyon.worker.network.netty.watermark.high:
+  Determines how many bytes can be in the write queue before switching to non-writable.
+tachyon.worker.network.netty.watermark.low:
+  Once the high watermark limit is reached, the queue must be flushed down to the low watermark
+  before switching back to writable.
+tachyon.worker.network.netty.worker.threads:
+  "How many threads to use for processing requests. Zero defaults to #cpuCores * 2."
+tachyon.worker.port:
+  The port Tachyon's worker node runs on.
+tachyon.worker.session.timeout.ms:
+  Timeout (in milliseconds) between worker and client connection indicating a lost session
+  connection.
+tachyon.worker.tieredstore.block.locks:
+  Total number of block locks for a Tachyon block worker. Larger value leads to finer locking
+  granularity, but uses more space.
+tachyon.worker.tieredstore.levels:
+  The number of storage tiers on the worker
+tachyon.worker.tieredstore.level0.alias:
+  The alias of the highest storage tier on this worker. It must match one of
+  the global storage tiers from the master configuration. We disable placing an
+  alias lower in the global hierarchy before an alias with a higher postion on
+  the worker hierarchy. So by default, SSD cannot come before MEM on any worker.
+tachyon.worker.tieredstore.level0.dirs.path:
+  The path of storage directory path for the top storage layer. Note for MacOS the value
+  should be `/Volumes/`
+tachyon.worker.tieredstore.level0.dirs.quota:
+  The capacity of the top storage layer.
+tachyon.worker.tieredstore.level0.reserved.ratio:
+  The portion of space reserved in the top storage layer (a value between 0 and 1).
+tachyon.worker.tieredstore.reserver.enabled:
+  Whether to enable tiered store reserver service or not.
+tachyon.worker.tieredstore.reserver.interval.ms:
+  The time period (in milliseconds) of space reserver service, which keeps certain portion of
+  available space on each layer.
+tachyon.worker.web.bind.host:
+  The hostname Tachyon worker's web server binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
+tachyon.worker.web.hostname:
+  The hostname Tachyon worker's web UI binds to.
+tachyon.worker.web.port:
+  The port Tachyon worker's web UI runs on.
+tachyon.worker.keytab.file:
+  Kerberos keytab file for Tachyon worker.
+tachyon.worker.principal:
+  Kerberos principal for Tachyon worker.
