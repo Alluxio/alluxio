@@ -19,6 +19,8 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.TachyonURI;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileSystem;
@@ -50,7 +52,7 @@ public final class LocationCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path) throws IOException {
+  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
     URIStatus status;
     try {
       status = mFileSystem.getStatus(path);

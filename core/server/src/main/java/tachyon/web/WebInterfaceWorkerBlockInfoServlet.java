@@ -223,7 +223,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     } catch (TachyonException e) {
       throw new FileDoesNotExistException(filePath.toString());
     }
-    UIFileInfo uiFileInfo = new UIFileInfo(status.getInfo());
+    UIFileInfo uiFileInfo = new UIFileInfo(status);
     boolean blockExistOnWorker = false;
     for (long blockId : status.getBlockIds()) {
       if (mBlockWorker.hasBlockMeta(blockId)) {

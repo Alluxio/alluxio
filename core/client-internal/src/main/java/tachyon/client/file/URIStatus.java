@@ -80,17 +80,6 @@ public class URIStatus {
   }
 
   /**
-   * @deprecated This method is temporary
-   *
-   * @return the backing {@link FileInfo} object
-   */
-  // TODO(calvin): Remove this method
-  @Deprecated
-  public FileInfo getInfo() {
-    return mInfo;
-  }
-
-  /**
    * @return the percentage of blocks in Tachyon memory tier storage, mutable
    */
   public int getInMemoryPercentage() {
