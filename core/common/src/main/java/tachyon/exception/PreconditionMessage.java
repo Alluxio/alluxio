@@ -57,6 +57,10 @@ public final class PreconditionMessage {
   public static final String MUST_SET_PINNED = "The pinned flag must be set";
   public static final String MUST_SET_TTL = "The TTL value must be set";
   public static final String MUST_SET_PERSISTED = "The persisted value must be set";
+  public static final String MUST_SET_OWNER = "The owner must be set";
+  public static final String MUST_SET_GROUP = "The group must be set";
+  public static final String MUST_SET_PERMISSION = "The permission must be set";
+  public static final String MUST_SET_RECURSIVE = "The recursive must be set";
   public static final String REMOTE_CLIENT_BUT_LOCAL_HOSTNAME =
       "Acquire Remote Worker Client cannot not be called with local hostname";
   public static final String S3_BUCKET_MUST_BE_SET =
