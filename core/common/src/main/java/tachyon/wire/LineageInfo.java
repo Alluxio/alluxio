@@ -32,19 +32,12 @@ import tachyon.annotation.PublicApi;
 @NotThreadSafe
 @PublicApi
 public final class LineageInfo implements WireType<tachyon.thrift.LineageInfo> {
-  @JsonProperty("id")
   private long mId;
-  @JsonProperty("inputFiles")
   private List<String> mInputFiles;
-  @JsonProperty("outputFiles")
   private List<String> mOutputFiles;
-  @JsonProperty("job")
   private CommandLineJobInfo mJob;
-  @JsonProperty("creationTimeMs")
   private long mCreationTimeMs;
-  @JsonProperty("parents")
   private List<Long> mParents;
-  @JsonProperty("children")
   private List<Long> mChildren;
 
   /**

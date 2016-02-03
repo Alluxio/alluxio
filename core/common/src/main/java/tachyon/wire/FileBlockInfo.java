@@ -30,11 +30,8 @@ import com.google.common.collect.Lists;
  */
 @NotThreadSafe
 public final class FileBlockInfo implements WireType<tachyon.thrift.FileBlockInfo> {
-  @JsonProperty("blockInfo")
   private BlockInfo mBlockInfo = new BlockInfo();
-  @JsonProperty("offset")
   private long mOffset;
-  @JsonProperty("ufsLocations")
   private List<WorkerNetAddress> mUfsLocations = Lists.newArrayList();
 
   /**

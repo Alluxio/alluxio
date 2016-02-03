@@ -29,13 +29,9 @@ import tachyon.annotation.PublicApi;
 @PublicApi
 @ThreadSafe
 public final class WorkerNetAddress implements WireType<tachyon.thrift.WorkerNetAddress> {
-  @JsonProperty("host")
   private String mHost = "";
-  @JsonProperty("rpcPort")
   private int mRpcPort;
-  @JsonProperty("dataPort")
   private int mDataPort;
-  @JsonProperty("webPort")
   private int mWebPort;
 
   /**

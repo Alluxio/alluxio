@@ -26,11 +26,8 @@ import com.google.common.base.Preconditions;
  */
 @NotThreadSafe
 public final class BlockLocation implements WireType<tachyon.thrift.BlockLocation> {
-  @JsonProperty("workerId")
   private long mWorkerId;
-  @JsonProperty("address")
   private WorkerNetAddress mWorkerAddress = new WorkerNetAddress();
-  @JsonProperty("tierAlias")
   private String mTierAlias = "";
 
   /**

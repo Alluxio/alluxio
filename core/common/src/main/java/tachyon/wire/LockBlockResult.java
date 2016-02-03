@@ -26,9 +26,7 @@ import com.google.common.base.Preconditions;
  */
 @NotThreadSafe
 public final class LockBlockResult implements WireType<tachyon.thrift.LockBlockResult> {
-  @JsonProperty("lockId")
   private long mLockId;
-  @JsonProperty("blockPath")
   private String mBlockPath;
 
   /**

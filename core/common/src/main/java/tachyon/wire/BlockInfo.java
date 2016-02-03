@@ -30,11 +30,8 @@ import com.google.common.collect.Lists;
  */
 @NotThreadSafe
 public final class BlockInfo implements WireType<tachyon.thrift.BlockInfo> {
-  @JsonProperty("blockId")
   private long mBlockId;
-  @JsonProperty("length")
   private long mLength;
-  @JsonProperty("locations")
   private List<BlockLocation> mLocations = Lists.newArrayList();
 
   /**
