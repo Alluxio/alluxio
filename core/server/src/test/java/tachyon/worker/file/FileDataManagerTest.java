@@ -142,14 +142,14 @@ public final class FileDataManagerTest {
     List<Long> blockIds = Lists.newArrayList(1L, 2L, 3L);
 
     // mock block data manager
-    BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
     FileInfo fileInfo = new FileInfo();
-    fileInfo.path = "test";
-    Mockito.when(blockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, 1L)).thenReturn(1L);
-    Mockito.when(blockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, 2L)).thenReturn(2L);
-    Mockito.when(blockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, 3L))
+    fileInfo.setPath("test");
+    Mockito.when(blockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, 1L)).thenReturn(1L);
+    Mockito.when(blockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, 2L)).thenReturn(2L);
+    Mockito.when(blockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, 3L))
         .thenThrow(new BlockDoesNotExistException("block 3 does not exist"));
-    FileDataManager manager = new FileDataManager(blockDataManager);
+    FileDataManager manager = new FileDataManager(blockWorker);
     try {
       manager.lockBlocks(fileId, blockIds);
       Assert.fail("the lock should fail");
@@ -159,8 +159,8 @@ public final class FileDataManagerTest {
               + "tachyon.exception.BlockDoesNotExistException: block 3 does not exist\n",
           e.getMessage());
       // verify the locks are all unlocked
-      Mockito.verify(blockDataManager).unlockBlock(1L);
-      Mockito.verify(blockDataManager).unlockBlock(2L);
+      Mockito.verify(blockWorker).unlockBlock(1L);
+      Mockito.verify(blockWorker).unlockBlock(2L);
     }
   }
 
