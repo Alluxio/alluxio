@@ -39,7 +39,7 @@ public final class ClientRWLockTest {
   }
 
   /**
-   * Tests the equalty for two {@link ClientRWLock} constructors.
+   * Tests the equality for both {@link ClientRWLock} constructors.
    */
   @Test
   public void notSameLockTest() {
