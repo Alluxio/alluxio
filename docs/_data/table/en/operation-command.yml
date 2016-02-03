@@ -1,0 +1,86 @@
+cat:
+  Print the content of the file to the console.
+chgrp:
+  Change the group of the directory or file.
+chgrpr:
+  Recursively change the group of the directory or file.
+chmod:
+  Change the permission of the directory or file.
+chmodr:
+  Recursively change the permission of the directory or file.
+chown:
+  Change the owner of the directory or file.
+chownr:
+  Recursively change the owner of the directory or file.
+copyFromLocal:
+  Copy the specified file specified by "source path" to the path specified by "remote path".
+  This command will fail if "remote path" already exists.
+copyToLocal:
+  Copy the specified file from the path specified by "remote path" to a local
+  destination.
+count:
+  Display the number of folders and files matching the specified prefix in "path".
+du:
+  Display the size of a file or a directory specified by the input path.
+fileInfo:
+  Print the information of the blocks of a specified file.
+free:
+  Free a file or all files under a directory from Tachyon. If the file/directory is also
+  in under storage, it will still be available there.
+getCapacityBytes:
+  Get the capacity of the TachyonFS.
+getUsedBytes:
+  Get number of bytes used in the TachyonFS.
+load:
+  Load the data of a file or a directory from under storage into Tachyon.
+loadMetadata:
+  Load the metadata of a file or a directory from under storage into Tachyon.
+location:
+  Display a list of hosts that have the file data.
+ls:
+  List all the files and directories directly under the given path with information such as
+  size.
+lsr:
+  Recursively list all the files and directories under the given path with information such
+  as size.
+mkdir:
+  Create directory(ies) under the given paths, along with any necessary parent directories. Multiple paths separated by spaces or tabs. This
+  command will fail if any of the given paths already exist.
+mount:
+  Mount the underlying file system path "uri" into the Tachyon namespace as "path". The "path"
+  is assumed not to exist and is created by the operation. No data or metadata is loaded from
+  under storage into Tachyon. After a path is mounted, operations on objects under the mounted
+  path are mirror to the mounted under storage.
+mv:
+  Move a file or directory specified by "source" to a new location "destination". This command
+  will fail if "destination" already exists.
+persist:
+  Persist a file or directory currently stored only in Tachyon to the underlying file system.
+    
+pin:
+  Pin the given file to avoid evicting it from memory. If the given path is a directory, it
+  recursively pins all the files contained and any new files created within this directory.
+report:
+  Report to the master that a file is lost.
+rm:
+  Remove a file. This command will fail if the given path is a directory rather than a
+  file.
+rmr:
+  Remove a file, or a directory with all the files and sub-directories that this directory
+  contains.
+setTtl:
+  Set the TTL (time to live) in milliseconds to a file.
+tail:
+  Print the last 1KB of the specified file to the console.
+touch:
+  Create a 0-byte file at the specified location.
+unmount:
+  Unmount the underlying file system path mounted in the Tachyon namespace as "path". Tachyon
+  objects under "path" are removed from Tachyon, but they still exist in the previously mounted
+  under storage.
+unpin:
+  Unpin the given file to allow Tachyon to evict this file again. If the given path is a
+  directory, it recursively unpins all files contained and any new files created within this
+  directory.
+unsetTtl:
+  Remove the TTL (time to live) setting from a file.
