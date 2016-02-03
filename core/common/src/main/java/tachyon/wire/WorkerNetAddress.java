@@ -28,8 +28,7 @@ import tachyon.annotation.PublicApi;
  */
 @PublicApi
 @ThreadSafe
-// TODO(jiri): Consolidate with tachyon.worker.NetAddress.
-public final class WorkerNetAddress {
+public final class WorkerNetAddress implements WireType<tachyon.thrift.WorkerNetAddress> {
   @JsonProperty("host")
   private String mHost = "";
   @JsonProperty("rpcPort")
@@ -124,6 +123,7 @@ public final class WorkerNetAddress {
   /**
    * @return a net address of thrift construct
    */
+  @Override
   public tachyon.thrift.WorkerNetAddress toThrift() {
     return new tachyon.thrift.WorkerNetAddress(mHost, mRpcPort, mDataPort, mWebPort);
   }

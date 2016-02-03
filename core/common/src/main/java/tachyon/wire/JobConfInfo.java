@@ -29,7 +29,7 @@ import tachyon.annotation.PublicApi;
 @NotThreadSafe
 @PublicApi
 // TODO(jiri): Consolidate with tachyon.job.JobConf
-public final class JobConfInfo {
+public final class JobConfInfo implements WireType<tachyon.thrift.JobConfInfo> {
   @JsonProperty("outputFile")
   private String mOutputFile;
 
@@ -69,6 +69,7 @@ public final class JobConfInfo {
   /**
    * @return thrift representation of the lineage command-line job configuration
    */
+  @Override
   public tachyon.thrift.JobConfInfo toThrift() {
     return new tachyon.thrift.JobConfInfo(mOutputFile);
   }

@@ -29,7 +29,7 @@ import tachyon.annotation.PublicApi;
 @NotThreadSafe
 @PublicApi
 // TODO(jiri): Consolidate with tachyon.job.CommandLine.Job.
-public final class CommandLineJobInfo {
+public final class CommandLineJobInfo implements WireType<tachyon.thrift.CommandLineJobInfo> {
   @JsonProperty("command")
   private String mCommand = "";
   @JsonProperty("conf")
@@ -87,6 +87,7 @@ public final class CommandLineJobInfo {
   /**
    * @return thrift representation of the lineage command-line job descriptor
    */
+  @Override
   public tachyon.thrift.CommandLineJobInfo toThrift() {
     return new tachyon.thrift.CommandLineJobInfo(mCommand, mConf.toThrift());
   }

@@ -31,7 +31,7 @@ import tachyon.annotation.PublicApi;
  */
 @NotThreadSafe
 @PublicApi
-public final class LineageInfo {
+public final class LineageInfo implements WireType<tachyon.thrift.LineageInfo> {
   @JsonProperty("id")
   private long mId;
   @JsonProperty("inputFiles")
@@ -193,6 +193,7 @@ public final class LineageInfo {
   /**
    * @return thrift representation of the lineage descriptor
    */
+  @Override
   public tachyon.thrift.LineageInfo toThrift() {
     return new tachyon.thrift.LineageInfo(mId, mInputFiles, mOutputFiles, mJob.toThrift(),
         mCreationTimeMs, mParents, mChildren);

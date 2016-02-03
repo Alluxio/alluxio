@@ -25,7 +25,7 @@ import com.google.common.base.Preconditions;
  * The location of a block.
  */
 @NotThreadSafe
-public final class BlockLocation {
+public final class BlockLocation implements WireType<tachyon.thrift.BlockLocation> {
   @JsonProperty("workerId")
   private long mWorkerId;
   @JsonProperty("address")
@@ -102,6 +102,7 @@ public final class BlockLocation {
   /**
    * @return thrift representation of the block location
    */
+  @Override
   public tachyon.thrift.BlockLocation toThrift() {
     return new tachyon.thrift.BlockLocation(mWorkerId, mWorkerAddress.toThrift(), mTierAlias);
   }

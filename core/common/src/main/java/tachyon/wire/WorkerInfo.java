@@ -25,7 +25,7 @@ import com.google.common.base.Preconditions;
  * The worker descriptor.
  */
 @NotThreadSafe
-public final class WorkerInfo {
+public final class WorkerInfo implements WireType<tachyon.thrift.WorkerInfo> {
   @JsonProperty("id")
   private long mId;
   @JsonProperty("address")
@@ -181,6 +181,7 @@ public final class WorkerInfo {
   /**
    * @return thrift representation of the worker descriptor
    */
+  @Override
   public tachyon.thrift.WorkerInfo toThrift() {
     return new tachyon.thrift.WorkerInfo(mId, mAddress.toThrift(), mLastContactSec, mState,
         mCapacityBytes, mUsedBytes, mStartTimeMs);

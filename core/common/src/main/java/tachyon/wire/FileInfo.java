@@ -29,7 +29,7 @@ import com.google.common.collect.Lists;
  */
 @NotThreadSafe
 // TODO(jiri): Consolidate with URIStatus
-public final class FileInfo {
+public final class FileInfo implements WireType<tachyon.thrift.FileInfo> {
   @JsonProperty("fileId")
   private long mFileId;
   @JsonProperty("name")
@@ -434,6 +434,7 @@ public final class FileInfo {
   /**
    * @return thrift representation of the file descriptor
    */
+  @Override
   public tachyon.thrift.FileInfo toThrift() {
     return new tachyon.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
