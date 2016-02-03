@@ -32,7 +32,7 @@ import tachyon.security.User;
 
 /**
  * An app login module that creates a user based on the user name provided through application
- * configuration. Specifically, through Java system property tachyon.security.login.username. This
+ * configuration. Specifically, through Tachyon property tachyon.security.login.username. This
  * module is useful if multiple Tachyon clients running under same OS user name want to get
  * different identifies (for resource and data management), or if Tachyon clients running under
  * different OS user names want to get same identify.

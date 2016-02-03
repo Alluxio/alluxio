@@ -415,30 +415,28 @@ public final class Constants {
   // ttl related
   public static final long NO_TTL = -1;
 
-  // TODO(binfan): explaine the following three properties in the configuration page in docs/
   /** Security */
-  public static final String SECURITY_LOGIN_USERNAME = "tachyon.security.login.username";
   // Authentication
   public static final String SECURITY_AUTHENTICATION_TYPE = "tachyon.security.authentication.type";
   public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER =
       "tachyon.security.authentication.custom.provider.class";
   public static final String SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
       "tachyon.security.authentication.socket.timeout.ms";
+  public static final String SECURITY_LOGIN_USERNAME = "tachyon.security.login.username";
   // Authorization
+  public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
+      "tachyon.security.authorization.permission.enabled";
   public static final String SECURITY_AUTHORIZATION_PERMISSIONS_UMASK =
       "tachyon.security.authorization.permission.umask";
+  public static final String SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
+      "tachyon.security.authorization.permission.supergroup";
+  // Group Mapping
+  public static final String SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping.class";
+
+  // Security related constant value
   public static final int DEFAULT_FS_PERMISSIONS_UMASK = 0022;
   public static final short DEFAULT_FS_FULL_PERMISSION = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
-  // Group Mapping
-  public static final String SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
-
-  // TODO(dong): TACHYON-1462. Document these security related properties in configuration page
-  public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
-      "tachyon.security.authorization.permission.enabled";
-  public static final String SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
-      "tachyon.security.authorization.permission.supergroup";
-
   public static final short INVALID_PERMISSION = -1;
 
   private Constants() {} // prevent instantiation
