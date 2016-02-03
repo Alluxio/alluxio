@@ -20,7 +20,6 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import tachyon.TachyonURI;
@@ -56,16 +55,7 @@ public final class ChmodCommand extends AbstractTfsShellCommand {
 
   @Override
   protected Options getOptions() {
-    Options opts = new Options();
-    // Add R option for recursively.
-    Option recursive = Option.builder("R")
-        .required(false)
-        .hasArg(false)
-        .desc("recusively")
-        .build();
-
-    opts.addOption(recursive);
-    return opts;
+    return new Options().addOption(RECURSIVE_OPTION);
   }
 
   /**
@@ -106,7 +96,7 @@ public final class ChmodCommand extends AbstractTfsShellCommand {
 
   @Override
   public String getDescription() {
-    return "Changes the permission of a file or directory specified by args. "
+    return "Changes the permission of a file or directory specified by args."
         + " Specify -R to change the permission recursively.";
   }
 }
