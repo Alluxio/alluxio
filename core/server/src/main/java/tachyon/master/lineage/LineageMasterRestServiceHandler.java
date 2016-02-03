@@ -39,13 +39,23 @@ import tachyon.master.TachyonMaster;
  * This class is a REST handler for lineage master requests.
  */
 @Path("/")
+// TODO(jiri): Figure out why Jersey complains if this is changed to "/lineage".
 public final class LineageMasterRestServiceHandler {
+  public static final String SERVICE_NAME = "lineage/service_name";
+  public static final String SERVICE_VERSION = "lineage/service_version";
+  public static final String CREATE_LINEAGE = "lineage/create_lineage";
+  public static final String DELETE_LINEAGE = "lineage/delete_lineage";
+  public static final String GET_LINEAGE_INFO_LIST = "lineage/lineage_info_list";
+  public static final String REINITIALIZE_FILE = "lineage/reinitialize_file";
+  public static final String REPORT_LOST_FILE = "lineage/report_lost_file";
+
+  private LineageMaster mLineageMaster = TachyonMaster.get().getLineageMaster();
 
   /**
    * @return the response object
    */
   @GET
-  @Path("lineage/service_name")
+  @Path(SERVICE_NAME)
   @Produces(MediaType.APPLICATION_JSON)
   public Response name() {
     return Response.ok(Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME).build();
@@ -55,26 +65,25 @@ public final class LineageMasterRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("lineage/service_version")
+  @Path(SERVICE_VERSION)
   @Produces(MediaType.APPLICATION_JSON)
   public Response version() {
     return Response.ok(Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION).build();
   }
 
   /**
-   * @param inputFiles the lineage input files
-   * @param outputFiles the lineage output files
+   * @param inputFiles a colon-separated list of the lineage input files
+   * @param outputFiles a colon-separated list of the lineage output files
    * @param command the job command
    * @param outputFile the job output file
    * @return the response object
    */
   @POST
-  @Path("lineage/create_lineage")
+  @Path(CREATE_LINEAGE)
   @Produces(MediaType.APPLICATION_JSON)
   public Response createLineage(@QueryParam("inputFiles") String inputFiles,
       @QueryParam("outputFiles") String outputFiles, @QueryParam("job.command") String command,
       @QueryParam("job.command.conf.outputFile") String outputFile) {
-    LineageMaster master = TachyonMaster.get().getLineageMaster();
     List<TachyonURI> inputFilesUri = Lists.newArrayList();
     for (String path : inputFiles.split(":", -1)) {
       inputFilesUri.add(new TachyonURI(path));
@@ -85,7 +94,7 @@ public final class LineageMasterRestServiceHandler {
     }
     CommandLineJob job = new CommandLineJob(command, new JobConf(outputFile));
     try {
-      return Response.ok(master.createLineage(inputFilesUri, outputFilesUri, job)).build();
+      return Response.ok(mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job)).build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     } catch (IOException e) {
@@ -99,13 +108,12 @@ public final class LineageMasterRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("lineage/delete_lineage")
+  @Path(DELETE_LINEAGE)
   @Produces(MediaType.APPLICATION_JSON)
   public Response deleteLineage(@QueryParam("lineageId") long lineageId,
       @QueryParam("cascade") boolean cascade) {
-    LineageMaster master = TachyonMaster.get().getLineageMaster();
     try {
-      return Response.ok(master.deleteLineage(lineageId, cascade)).build();
+      return Response.ok(mLineageMaster.deleteLineage(lineageId, cascade)).build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
@@ -115,12 +123,11 @@ public final class LineageMasterRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("lineage/lineage_info_list")
+  @Path(GET_LINEAGE_INFO_LIST)
   @Produces(MediaType.APPLICATION_JSON)
   public Response getLineageInfoList() {
-    LineageMaster master = TachyonMaster.get().getLineageMaster();
     try {
-      return Response.ok(master.getLineageInfoList()).build();
+      return Response.ok(mLineageMaster.getLineageInfoList()).build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
@@ -133,13 +140,12 @@ public final class LineageMasterRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("lineage/reinitialize_file")
+  @Path(REINITIALIZE_FILE)
   @Produces(MediaType.APPLICATION_JSON)
   public Response reinitializeFile(@QueryParam("path") String path,
       @QueryParam("blockSizeBytes") long blockSizeBytes, @QueryParam("ttl") long ttl) {
-    LineageMaster master = TachyonMaster.get().getLineageMaster();
     try {
-      return Response.ok(master.reinitializeFile(path, blockSizeBytes, ttl)).build();
+      return Response.ok(mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl)).build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
@@ -150,12 +156,11 @@ public final class LineageMasterRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("lineage/report_lost_file")
+  @Path(REPORT_LOST_FILE)
   @Produces(MediaType.APPLICATION_JSON)
   public Response reportLostFile(@QueryParam("path") String path) {
-    LineageMaster master = TachyonMaster.get().getLineageMaster();
     try {
-      master.reportLostFile(path);
+      mLineageMaster.reportLostFile(path);
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();

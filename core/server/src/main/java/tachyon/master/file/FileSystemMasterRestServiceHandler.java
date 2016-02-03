@@ -40,13 +40,35 @@ import tachyon.master.file.options.SetAttributeOptions;
  * This class is a REST handler for file system master requests.
  */
 @Path("/")
+// TODO(jiri): Figure out why Jersey complains if this is changed to "/file".
 public final class FileSystemMasterRestServiceHandler {
+  public static final String SERVICE_NAME = "file/service_name";
+  public static final String SERVICE_VERSION = "file/service_version";
+  public static final String COMPLETE_FILE = "file/complete_file";
+  public static final String CREATE_DIRECTORY = "file/create_directory";
+  public static final String GET_FILE_BLOCK_INFO_LIST = "file/file_block_info_list";
+  public static final String GET_STATUS = "file/status";
+  public static final String GET_STATUS_INTERNAL = "file/status_internal";
+  public static final String GET_UFS_ADDRESS = "file/ufs_address";
+  public static final String FREE = "file/free";
+  public static final String LIST_STATUS = "file/list_status";
+  public static final String LOAD_METADATA = "file/load_metadata";
+  public static final String MOUNT = "file/mount";
+  public static final String NEW_BLOCK_ID_FOR_FILE = "file/new_block_id_for_file";
+  public static final String REMOVE = "file/remove";
+  public static final String RENAME = "file/rename";
+  public static final String SCHEDULE_ASYNC_PERSIST = "file/schedule_async_persist";
+  public static final String SET_ACL = "file/set_acl";
+  public static final String SET_ATTRIBUTE = "file/set_attribute";
+  public static final String UNMOUNT = "file/unmount";
+
+  private FileSystemMaster mFileSystemMaster = TachyonMaster.get().getFileSystemMaster();
 
   /**
    * @return the response object
    */
   @GET
-  @Path("file/service_name")
+  @Path(SERVICE_NAME)
   @Produces(MediaType.APPLICATION_JSON)
   public Response name() {
     return Response.ok(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME).build();
@@ -56,7 +78,7 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("file/service_version")
+  @Path(SERVICE_VERSION)
   @Produces(MediaType.APPLICATION_JSON)
   public Response version() {
     return Response.ok(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION).build();
@@ -68,15 +90,14 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("file/complete_file")
+  @Path(COMPLETE_FILE)
   @Produces(MediaType.APPLICATION_JSON)
   public Response completeFile(@QueryParam("path") String path,
       @QueryParam("ufsLength") long ufsLength) {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
     try {
       CompleteFileOptions options =
           new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(ufsLength).build();
-      master.completeFile(new TachyonURI(path), options);
+      mFileSystemMaster.completeFile(new TachyonURI(path), options);
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -91,17 +112,16 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("file/create_directory")
+  @Path(CREATE_DIRECTORY)
   @Produces(MediaType.APPLICATION_JSON)
   public Response createDirectory(@QueryParam("path") String path,
       @QueryParam("persisted") boolean persisted, @QueryParam("recursive") boolean recursive,
       @QueryParam("allowExists") boolean allowExists) {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
     try {
       CreateDirectoryOptions options =
           new CreateDirectoryOptions.Builder(MasterContext.getConf()).setAllowExists(allowExists)
               .setPersisted(persisted).setRecursive(recursive).build();
-      master.mkdir(new TachyonURI(path), options);
+      mFileSystemMaster.mkdir(new TachyonURI(path), options);
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -115,12 +135,11 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("file/file_block_info_list")
+  @Path(GET_FILE_BLOCK_INFO_LIST)
   @Produces(MediaType.APPLICATION_JSON)
   public Response getFileBlockInfoList(@QueryParam("path") String path) {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
     try {
-      return Response.ok(master.getFileBlockInfoList(new TachyonURI(path))).build();
+      return Response.ok(mFileSystemMaster.getFileBlockInfoList(new TachyonURI(path))).build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
@@ -132,13 +151,12 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("file/free")
+  @Path(FREE)
   @Produces(MediaType.APPLICATION_JSON)
   public Response free(@QueryParam("path") String path,
       @QueryParam("recursive") boolean recursive) {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
     try {
-      master.free(new TachyonURI(path), recursive);
+      mFileSystemMaster.free(new TachyonURI(path), recursive);
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -150,12 +168,11 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("file/list_status")
+  @Path(LIST_STATUS)
   @Produces(MediaType.APPLICATION_JSON)
   public Response listStatus(@QueryParam("path") String path) {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
     try {
-      return Response.ok(master.getFileInfoList(new TachyonURI(path))).build();
+      return Response.ok(mFileSystemMaster.getFileInfoList(new TachyonURI(path))).build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
@@ -167,13 +184,13 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("file/load_metadata")
+  @Path(LOAD_METADATA)
   @Produces(MediaType.APPLICATION_JSON)
   public Response loadMetadata(@QueryParam("tachyonPath") String tachyonPath,
-                               @QueryParam("recursive") boolean recursive) {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
+      @QueryParam("recursive") boolean recursive) {
     try {
-      return Response.ok(master.loadMetadata(new TachyonURI(tachyonPath), recursive)).build();
+      return Response.ok(mFileSystemMaster.loadMetadata(new TachyonURI(tachyonPath), recursive))
+          .build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     } catch (IOException e) {
@@ -187,13 +204,12 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("file/mount")
+  @Path(MOUNT)
   @Produces(MediaType.APPLICATION_JSON)
   public Response mount(@QueryParam("tachyonPath") String tachyonPath,
-                        @QueryParam("ufsPath") String ufsPath) {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
+      @QueryParam("ufsPath") String ufsPath) {
     try {
-      master.mount(new TachyonURI(tachyonPath), new TachyonURI(ufsPath));
+      mFileSystemMaster.mount(new TachyonURI(tachyonPath), new TachyonURI(ufsPath));
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -207,12 +223,11 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("file/new_block_id_for_file")
+  @Path(NEW_BLOCK_ID_FOR_FILE)
   @Produces(MediaType.APPLICATION_JSON)
   public Response getNewBlockIdForFile(@QueryParam("path") String path) {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
     try {
-      return Response.ok(master.getNewBlockIdForFile(new TachyonURI(path))).build();
+      return Response.ok(mFileSystemMaster.getNewBlockIdForFile(new TachyonURI(path))).build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
@@ -224,13 +239,12 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("file/remove")
+  @Path(REMOVE)
   @Produces(MediaType.APPLICATION_JSON)
   public Response remove(@QueryParam("path") String path,
                          @QueryParam("recursive") boolean recursive) {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
     try {
-      master.deleteFile(new TachyonURI(path), recursive);
+      mFileSystemMaster.deleteFile(new TachyonURI(path), recursive);
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -245,13 +259,12 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("file/rename")
+  @Path(RENAME)
   @Produces(MediaType.APPLICATION_JSON)
   public Response remove(@QueryParam("srcPath") String srcPath,
                          @QueryParam("dstPath") String dstPath) {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
     try {
-      master.rename(new TachyonURI(srcPath), new TachyonURI(dstPath));
+      mFileSystemMaster.rename(new TachyonURI(srcPath), new TachyonURI(dstPath));
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -265,12 +278,11 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("file/schedule_async_persist")
+  @Path(SCHEDULE_ASYNC_PERSIST)
   @Produces(MediaType.APPLICATION_JSON)
   public Response scheduleAsyncPersist(@QueryParam("path") String path) {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
     try {
-      return Response.ok(master.scheduleAsyncPersistence(new TachyonURI(path))).build();
+      return Response.ok(mFileSystemMaster.scheduleAsyncPersistence(new TachyonURI(path))).build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
@@ -285,18 +297,17 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @PUT
-  @Path("file/set_acl")
+  @Path(SET_ACL)
   @Produces(MediaType.APPLICATION_JSON)
   public Response setAcl(@QueryParam("path") String path, @QueryParam("owner") String owner,
       @QueryParam("group") String group, @QueryParam("permission") int permission,
       @QueryParam("recursive") boolean recursive) {
     // TODO(jiri): Only set options that have been set.
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
     SetAclOptions setAclOptions =
         new SetAclOptions.Builder().setOwner(owner).setGroup(group)
             .setPermission((short) permission).setRecursive(recursive).build();
     try {
-      master.setAcl(new TachyonURI(path), setAclOptions);
+      mFileSystemMaster.setAcl(new TachyonURI(path), setAclOptions);
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -311,18 +322,17 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @PUT
-  @Path("file/set_attribute")
+  @Path(SET_ATTRIBUTE)
   @Produces(MediaType.APPLICATION_JSON)
   public Response setAttribute(@QueryParam("path") String path,
       @QueryParam("pinned") boolean pinned, @QueryParam("ttl") long ttl,
       @QueryParam("persisted") boolean persisted) {
     // TODO(jiri): Only set options that have been set.
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
     SetAttributeOptions setAttributeOptions =
         new SetAttributeOptions.Builder().setPinned(pinned).setTtl(ttl)
             .setPersisted(persisted).build();
     try {
-      master.setState(new TachyonURI(path), setAttributeOptions);
+      mFileSystemMaster.setState(new TachyonURI(path), setAttributeOptions);
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -334,12 +344,11 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("file/status")
+  @Path(GET_STATUS)
   @Produces(MediaType.APPLICATION_JSON)
   public Response getStatus(@QueryParam("path") String path) {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
     try {
-      return Response.ok(master.getFileInfo(new TachyonURI(path))).build();
+      return Response.ok(mFileSystemMaster.getFileInfo(new TachyonURI(path))).build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
@@ -350,12 +359,11 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response path
    */
   @GET
-  @Path("file/status_internal")
+  @Path(GET_STATUS_INTERNAL)
   @Produces(MediaType.APPLICATION_JSON)
   public Response getStatusInternal(@QueryParam("fileId") long fileId) {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
     try {
-      return Response.ok(master.getFileInfo(fileId)).build();
+      return Response.ok(mFileSystemMaster.getFileInfo(fileId)).build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
@@ -365,11 +373,10 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("file/ufs_address")
+  @Path(GET_UFS_ADDRESS)
   @Produces(MediaType.APPLICATION_JSON)
   public Response getUfsAddress() {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
-    return Response.ok(master.getUfsAddress()).build();
+    return Response.ok(mFileSystemMaster.getUfsAddress()).build();
   }
 
   /**
@@ -377,12 +384,11 @@ public final class FileSystemMasterRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("file/unmount")
+  @Path(UNMOUNT)
   @Produces(MediaType.APPLICATION_JSON)
   public Response unmount(@QueryParam("path") String path) {
-    FileSystemMaster master = TachyonMaster.get().getFileSystemMaster();
     try {
-      return Response.ok(master.unmount(new TachyonURI(path))).build();
+      return Response.ok(mFileSystemMaster.unmount(new TachyonURI(path))).build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     } catch (IOException e) {

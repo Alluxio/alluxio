@@ -38,14 +38,28 @@ import tachyon.worker.WorkerContext;
  * This class is a REST handler for block worker requests.
  */
 @Path("/")
+// TODO(jiri): Figure out why Jersey complains if this is changed to "/block".
 public final class BlockWorkerRestServiceHandler {
+  public static final String SERVICE_NAME = "block/service_name";
+  public static final String SERVICE_VERSION = "block/service_version";
+  public static final String ACCESS_BLOCK = "block/access_block";
+  public static final String ASYNC_CHECKPOINT = "block/async_checkpoint";
+  public static final String CACHE_BLOCK = "block/cache_block";
+  public static final String CANCEL_BLOCK = "block/cancel_block";
+  public static final String LOCK_BLOCK = "block/lock_block";
+  public static final String PROMOTE_BLOCK = "block/promote_block";
+  public static final String REQUEST_BLOCK_LOCATION = "block/request_block_location";
+  public static final String REQUEST_SPACE = "block/request_space";
+  public static final String UNLOCK_BLOCK = "block/unlock_block";
+
+  private BlockWorker mBlockWorker = TachyonWorker.get().getBlockWorker();
   private StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
 
   /**
    * @return the response object
    */
   @GET
-  @Path("block/service_name")
+  @Path(SERVICE_NAME)
   @Produces(MediaType.APPLICATION_JSON)
   public Response name() {
     return Response.ok(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME).build();
@@ -55,7 +69,7 @@ public final class BlockWorkerRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("block/service_version")
+  @Path(SERVICE_VERSION)
   @Produces(MediaType.APPLICATION_JSON)
   public Response version() {
     return Response.ok(Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION).build();
@@ -66,12 +80,11 @@ public final class BlockWorkerRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("block/access_block")
+  @Path(ACCESS_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
   public Response accessBlock(@QueryParam("blockId") long blockId) {
-    BlockWorker worker = TachyonWorker.get().getBlockWorker();
     try {
-      worker.accessBlock(Sessions.ACCESS_BLOCK_SESSION_ID, blockId);
+      mBlockWorker.accessBlock(Sessions.ACCESS_BLOCK_SESSION_ID, blockId);
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -83,7 +96,7 @@ public final class BlockWorkerRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("block/async_checkpoint")
+  @Path(ASYNC_CHECKPOINT)
   @Produces(MediaType.APPLICATION_JSON)
   public Response asyncCheckpoint(@QueryParam("fileId") long fileId) {
     return Response.ok(false).build();
@@ -95,13 +108,12 @@ public final class BlockWorkerRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("block/cache_block")
+  @Path(CACHE_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
   public Response cacheBlock(@QueryParam("sessionId") long sessionId,
       @QueryParam("blockId") long blockId) {
-    BlockWorker worker = TachyonWorker.get().getBlockWorker();
     try {
-      worker.commitBlock(sessionId, blockId);
+      mBlockWorker.commitBlock(sessionId, blockId);
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -116,13 +128,12 @@ public final class BlockWorkerRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("block/cancel_block")
+  @Path(CANCEL_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
   public Response cancelBlock(@QueryParam("sessionId") long sessionId,
       @QueryParam("blockId") long blockId) {
-    BlockWorker worker = TachyonWorker.get().getBlockWorker();
     try {
-      worker.abortBlock(sessionId, blockId);
+      mBlockWorker.abortBlock(sessionId, blockId);
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -137,16 +148,15 @@ public final class BlockWorkerRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("block/lock_block")
+  @Path(LOCK_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
   public Response lockBlock(@QueryParam("sessionId") long sessionId,
       @QueryParam("blockId") long blockId) {
-    BlockWorker worker = TachyonWorker.get().getBlockWorker();
     try {
-      long lockId = worker.lockBlock(sessionId, blockId);
+      long lockId = mBlockWorker.lockBlock(sessionId, blockId);
       return Response.ok(
           new LockBlockResult().setLockId(lockId).setBlockPath(
-              worker.readBlock(sessionId, blockId, lockId))).build();
+              mBlockWorker.readBlock(sessionId, blockId, lockId))).build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
@@ -157,12 +167,12 @@ public final class BlockWorkerRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("block/promote_block")
+  @Path(PROMOTE_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
   public Response promoteBlock(@QueryParam("blockId") long blockId) {
-    BlockWorker worker = TachyonWorker.get().getBlockWorker();
     try {
-      worker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId, mStorageTierAssoc.getAlias(0));
+      mBlockWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId,
+          mStorageTierAssoc.getAlias(0));
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -178,15 +188,14 @@ public final class BlockWorkerRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("block/request_block_location")
+  @Path(REQUEST_BLOCK_LOCATION)
   @Produces(MediaType.APPLICATION_JSON)
   public Response requestBlockLocation(@QueryParam("sessionId") long sessionId,
       @QueryParam("blockId") long blockId, @QueryParam("initialBytes") long initialBytes) {
-    BlockWorker worker = TachyonWorker.get().getBlockWorker();
     try {
-      return Response.ok(
-          worker.createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(0), initialBytes))
-          .build();
+      return Response
+          .ok(mBlockWorker.createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(0),
+              initialBytes)).build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     } catch (IOException e) {
@@ -201,13 +210,12 @@ public final class BlockWorkerRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("block/request_space")
+  @Path(REQUEST_SPACE)
   @Produces(MediaType.APPLICATION_JSON)
   public Response requestSpace(@QueryParam("sessionId") long sessionId,
       @QueryParam("blockId") long blockId, @QueryParam("requestBytes") long requestBytes) {
-    BlockWorker worker = TachyonWorker.get().getBlockWorker();
     try {
-      worker.requestSpace(sessionId, blockId, requestBytes);
+      mBlockWorker.requestSpace(sessionId, blockId, requestBytes);
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -222,13 +230,12 @@ public final class BlockWorkerRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path("block/unlock_block")
+  @Path(UNLOCK_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
   public Response unlockBlock(@QueryParam("sessionId") long sessionId,
       @QueryParam("blockId") long blockId) {
-    BlockWorker worker = TachyonWorker.get().getBlockWorker();
     try {
-      worker.unlockBlock(sessionId, blockId);
+      mBlockWorker.unlockBlock(sessionId, blockId);
       return Response.ok().build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();

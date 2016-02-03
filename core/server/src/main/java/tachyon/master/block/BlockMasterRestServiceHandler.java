@@ -30,7 +30,16 @@ import tachyon.master.TachyonMaster;
  * This class is a REST handler for block master requests.
  */
 @Path("/")
+// TODO(jiri): Figure out why Jersey complains if this is changed to "/block".
 public final class BlockMasterRestServiceHandler {
+  public static final String SERVICE_NAME = "block/service_name";
+  public static final String SERVICE_VERSION = "block/service_version";
+  public static final String GET_BLOCK_INFO = "block/block_info";
+  public static final String GET_CAPACITY_BYTES = "block/capacity_bytes";
+  public static final String GET_USED_BYTES = "block/used_bytes";
+  public static final String GET_WORKER_INFO_LIST = "block/worker_info_list";
+
+  private BlockMaster mBlockMaster = TachyonMaster.get().getBlockMaster();
 
   /**
    * Returns the service name.
@@ -41,7 +50,7 @@ public final class BlockMasterRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("block/service_name")
+  @Path(SERVICE_NAME)
   @Produces(MediaType.APPLICATION_JSON)
   public Response getServiceName() {
     return Response.ok(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME).build();
@@ -57,7 +66,7 @@ public final class BlockMasterRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("block/service_version")
+  @Path(SERVICE_VERSION)
   @Produces(MediaType.APPLICATION_JSON)
   public Response getServiceVersion() {
     return Response.ok(Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION).build();
@@ -68,12 +77,11 @@ public final class BlockMasterRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("block/block_info")
+  @Path(GET_BLOCK_INFO)
   @Produces(MediaType.APPLICATION_JSON)
   public Response getBlockInfo(@QueryParam("blockId") long blockId) {
-    BlockMaster master = TachyonMaster.get().getBlockMaster();
     try {
-      return Response.ok(master.getBlockInfo(blockId)).build();
+      return Response.ok(mBlockMaster.getBlockInfo(blockId)).build();
     } catch (TachyonException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
@@ -83,32 +91,29 @@ public final class BlockMasterRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path("block/capacity_bytes")
+  @Path(GET_CAPACITY_BYTES)
   @Produces(MediaType.APPLICATION_JSON)
   public Response getCapacityBytes() {
-    BlockMaster master = TachyonMaster.get().getBlockMaster();
-    return Response.ok(master.getCapacityBytes()).build();
+    return Response.ok(mBlockMaster.getCapacityBytes()).build();
   }
 
   /**
    * @return the response object
    */
   @GET
-  @Path("block/used_bytes")
+  @Path(GET_USED_BYTES)
   @Produces(MediaType.APPLICATION_JSON)
   public Response getUsedBytes() {
-    BlockMaster master = TachyonMaster.get().getBlockMaster();
-    return Response.ok(master.getUsedBytes()).build();
+    return Response.ok(mBlockMaster.getUsedBytes()).build();
   }
 
   /**
    * @return the response object
    */
   @GET
-  @Path("block/worker_info_list")
+  @Path(GET_WORKER_INFO_LIST)
   @Produces(MediaType.APPLICATION_JSON)
   public Response getWorkerInfoList() {
-    BlockMaster master = TachyonMaster.get().getBlockMaster();
-    return Response.ok(master.getWorkerInfoList()).build();
+    return Response.ok(mBlockMaster.getWorkerInfoList()).build();
   }
 }
