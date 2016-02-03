@@ -20,7 +20,6 @@ import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
