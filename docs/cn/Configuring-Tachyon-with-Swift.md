@@ -31,7 +31,7 @@ priority: 1
 `<swift-use-public>`的值为`true`或`false`。
 `<swift-auth-model>`的值为`keystone`、`tempauth`或`swiftauth`。
 
-在成功授权情况下，Keystone会返回两个访问URL：公共的和私有的。如果Tachyon是在公司网络中使用，并且Swift也在同一个网络中，建议设置`<swift-auth-model>`的值为`false`。<!--Is this a typo?-->
+在成功授权情况下，Keystone会返回两个访问URL：公共的和私有的。如果Tachyon是在公司网络中使用，并且Swift也在同一个网络中，建议设置`<swift-use-public>`的值为`false`。
 
 
 ## 访问IBM SoftLayer对象存储
@@ -64,6 +64,6 @@ priority: 1
 
 {% include Configuring-Tachyon-with-Swift/functional-tests.md %}
 
-若测试失败，日志记录在`tests/target/logs`下。可以通过以下命令激活堆转储：
+若测试失败，日志记录在`tests/target/logs`下。可以通过以下命令抓取堆状态备份：
 
 {% include Configuring-Tachyon-with-Swift/heap-dump.md %}
