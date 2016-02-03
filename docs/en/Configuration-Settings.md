@@ -33,8 +33,8 @@ All Tachyon configuration properties fall into one of the six categories:
 [Common](#common-configuration) (shared by Master and Worker),
 [Master specific](#master-configuration), [Worker specific](#worker-configuration),
 [User specific](#user-configuration), [Cluster specific](#cluster-management) (used for running
-Tachyon with cluster managers like Mesos and YARN), and [Security specific]
-(#security-configuration) (shared by Master, Worker, and User).
+Tachyon with cluster managers like Mesos and YARN), and
+[Security specific](#security-configuration) (shared by Master, Worker, and User).
 
 ## Common Configuration
 
@@ -801,7 +801,7 @@ See [Security](Security.html) for more information about security features.
 </tr>
 <tr>
   <td>tachyon.security.group.mapping.class</td>
-  <td>tachyon.security.group.provider.ShellBasedUnixGroupsMapping</td>
+  <td>tachyon.security.group.provider.&#8203;ShellBasedUnixGroupsMapping</td>
   <td>The class to provide user-to-groups mapping service. Master could get the various group
   memberships of a given user.  It must implement the interface
   'tachyon.security.group.GroupMappingService'. The default implementation execute the 'groups'
