@@ -13,7 +13,7 @@ tachyon.integration.mesos.master.name:
 tachyon.integration.mesos.master.node.count:
   启动Tachyon master的进程数目。
 tachyon.integration.mesos.principal:
-  Tachyon框架身份标识。
+  Tachyon框架账户。
 tachyon.integration.mesos.role:
   Tachyon框架在Mesos集群中的角色。
 tachyon.integration.mesos.secret:
