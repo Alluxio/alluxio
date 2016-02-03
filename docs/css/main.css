@@ -119,6 +119,7 @@ body {
 .navbar .nav>li>a {
     text-shadow: none;
     padding-bottom: 5px;
+    padding-right: 5px;
     color: #F7F4F3;
 }
 .navbar .nav>li>a:hover, .navbar .nav>li>a:focus {

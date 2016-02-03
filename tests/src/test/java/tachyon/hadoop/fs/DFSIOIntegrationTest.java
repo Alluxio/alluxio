@@ -107,13 +107,11 @@ public class DFSIOIntegrationTest implements Tool {
       + " [-size Size[B|KB|MB|GB|TB]]" + " [-resFile resultFileName] [-bufferSize Bytes]"
       + " [-rootDir]";
 
-  // Constants for Tachyon
-  private static final int BLOCK_SIZE = 8192;
   private Configuration mConfig;
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(500000, 100000, BLOCK_SIZE);
+      new LocalTachyonClusterResource();
   private static URI sLocalTachyonClusterUri = null;
 
   static {

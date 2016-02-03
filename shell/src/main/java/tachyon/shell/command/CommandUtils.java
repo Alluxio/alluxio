@@ -41,17 +41,17 @@ public final class CommandUtils {
   /**
    * Sets a new TTL value or unsets an existing TTL value for file at path.
    *
-   * @param tfs the file system for Tachyon
+   * @param fs the file system for Tachyon
    * @param path the file path
    * @param ttlMs the TTL (time to live) value to use; it identifies duration (in milliseconds) the
    *        created file should be kept around before it is automatically deleted, irrespective of
    *        whether the file is pinned; {@link Constants#NO_TTL} means to unset the TTL value
    * @throws IOException when failing to set/unset the TTL
    */
-  public static void setTtl(FileSystem tfs, TachyonURI path, long ttlMs) throws IOException {
+  public static void setTtl(FileSystem fs, TachyonURI path, long ttlMs) throws IOException {
     try {
       SetAttributeOptions options = SetAttributeOptions.defaults().setTtl(ttlMs);
-      tfs.setAttribute(path, options);
+      fs.setAttribute(path, options);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
@@ -71,16 +71,16 @@ public final class CommandUtils {
   /**
    * Sets pin state for the input path
    *
-   * @param tfs The {@link FileSystem} client
+   * @param fs The {@link FileSystem} client
    * @param path The {@link TachyonURI} path as the input of the command
    * @param pinned the state to be set
    * @throws IOException if a non-Tachyon related exception occurs
    */
-  public static void setPinned(FileSystem tfs, TachyonURI path, boolean pinned)
+  public static void setPinned(FileSystem fs, TachyonURI path, boolean pinned)
       throws IOException {
     try {
       SetAttributeOptions options = SetAttributeOptions.defaults().setPinned(pinned);
-      tfs.setAttribute(path, options);
+      fs.setAttribute(path, options);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }

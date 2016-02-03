@@ -58,7 +58,6 @@ public abstract class AbstractLocalTachyonCluster {
 
   protected long mWorkerCapacityBytes;
   protected int mUserBlockSize;
-  protected int mQuotaUnitBytes = 1000;
 
   protected TachyonConf mMasterConf;
   protected TachyonConf mWorkerConf;
@@ -70,14 +69,6 @@ public abstract class AbstractLocalTachyonCluster {
   protected String mHostname;
 
   protected Thread mWorkerThread;
-
-  /** The names of all the master services, for creating journal folders. */
-  // TODO(gpang): Consolidate this array of services with the one in Format.java
-  protected String[] mMasterServiceNames = new String[] {
-      Constants.BLOCK_MASTER_NAME,
-      Constants.FILE_SYSTEM_MASTER_NAME,
-      Constants.LINEAGE_MASTER_NAME,
-  };
 
   /**
    * @param workerCapacityBytes the capacity of the worker in bytes
@@ -262,7 +253,7 @@ public abstract class AbstractLocalTachyonCluster {
 
     // Formats the journal
     UnderFileSystemUtils.mkdirIfNotExists(journalFolder, conf);
-    for (String masterServiceName : mMasterServiceNames) {
+    for (String masterServiceName : TachyonMaster.getServiceNames()) {
       UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(journalFolder, masterServiceName),
           conf);
     }
@@ -339,7 +330,6 @@ public abstract class AbstractLocalTachyonCluster {
 
     testConf.set(Constants.IN_TEST_MODE, "true");
     testConf.set(Constants.TACHYON_HOME, mTachyonHome);
-    testConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
     testConf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
     testConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
     testConf.set(Constants.MASTER_HOSTNAME, mHostname);
@@ -362,7 +352,7 @@ public abstract class AbstractLocalTachyonCluster {
 
     testConf.set(Constants.WEB_THREAD_COUNT, "1");
     testConf.set(Constants.WEB_RESOURCES,
-        PathUtils.concatPath(System.getProperty("user.dir"), "../servers/src/main/webapp"));
+        PathUtils.concatPath(System.getProperty("user.dir"), "../core/server/src/main/webapp"));
 
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default tachyon storage is STORE, and under storage is SYNC_PERSIST for tests.

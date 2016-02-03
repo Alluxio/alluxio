@@ -34,10 +34,10 @@ public final class LsCommand extends AbstractLsCommand {
    * the path specified in args.
    *
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public LsCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public LsCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override

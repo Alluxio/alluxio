@@ -80,7 +80,7 @@ public class DataServerIntegrationTest {
 
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource;
-  private FileSystem mTFS = null;
+  private FileSystem mFileSystem = null;
   private TachyonConf mWorkerTachyonConf;
   private BlockMasterClient mBlockMasterClient;
   private BlockWorkerClient mBlockWorkerClient;
@@ -91,7 +91,7 @@ public class DataServerIntegrationTest {
     mBlockReader = blockReader;
 
     mLocalTachyonClusterResource = new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES,
-        USER_QUOTA_UNIT_BYTES, Constants.MB, Constants.WORKER_DATA_SERVER, mDataServerClass,
+        Constants.MB, Constants.WORKER_DATA_SERVER, mDataServerClass,
         Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType,
         Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100), Constants.USER_BLOCK_REMOTE_READER,
         mBlockReader);
@@ -100,7 +100,7 @@ public class DataServerIntegrationTest {
   @Before
   public final void before() throws Exception {
     mWorkerTachyonConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
-    mTFS = mLocalTachyonClusterResource.get().getClient();
+    mFileSystem = mLocalTachyonClusterResource.get().getClient();
 
     mBlockWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
     mBlockMasterClient = new BlockMasterClient(
@@ -145,7 +145,7 @@ public class DataServerIntegrationTest {
   @Test
   public void lengthTooSmall() throws IOException, TachyonException {
     final int length = 20;
-    FileSystemTestUtils.createByteFile(mTFS, "/file", WriteType.MUST_CACHE, length);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new TachyonURI("/file"));
     DataServerMessage recvMsg = request(block, 0, length * -2);
     assertError(recvMsg, block.getBlockId());
@@ -154,7 +154,7 @@ public class DataServerIntegrationTest {
   @Test
   public void multiReadTest() throws IOException, TachyonException {
     final int length = 20;
-    FileSystemTestUtils.createByteFile(mTFS, "/file", WriteType.MUST_CACHE, length);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new TachyonURI("/file"));
     for (int i = 0; i < 10; i ++) {
       DataServerMessage recvMsg = request(block);
@@ -165,7 +165,7 @@ public class DataServerIntegrationTest {
   @Test
   public void negativeOffset() throws IOException, TachyonException {
     final int length = 10;
-    FileSystemTestUtils.createByteFile(mTFS, "/file", WriteType.MUST_CACHE, length);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new TachyonURI("/file"));
     DataServerMessage recvMsg = request(block, length * -2, 1);
     assertError(recvMsg, block.getBlockId());
@@ -174,12 +174,12 @@ public class DataServerIntegrationTest {
   @Test
   public void readMultiFiles() throws IOException, TachyonException {
     final int length = WORKER_CAPACITY_BYTES / 2 + 1;
-    FileSystemTestUtils.createByteFile(mTFS, "/file1", WriteType.MUST_CACHE, length);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/file1", WriteType.MUST_CACHE, length);
     BlockInfo block1 = getFirstBlockInfo(new TachyonURI("/file1"));
     DataServerMessage recvMsg1 = request(block1);
     assertValid(recvMsg1, length, block1.getBlockId(), 0, length);
 
-    FileSystemTestUtils.createByteFile(mTFS, "/file2", WriteType.MUST_CACHE, length);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/file2", WriteType.MUST_CACHE, length);
     BlockInfo block2 = getFirstBlockInfo(new TachyonURI("/file2"));
     DataServerMessage recvMsg2 = request(block2);
     assertValid(recvMsg2, length, block2.getBlockId(), 0, length);
@@ -188,12 +188,12 @@ public class DataServerIntegrationTest {
         .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2
             + 10);
 
-    Assert.assertEquals(0, mTFS.getStatus(new TachyonURI("/file1")).getInMemoryPercentage());
+    Assert.assertEquals(0, mFileSystem.getStatus(new TachyonURI("/file1")).getInMemoryPercentage());
   }
 
   @Test
   public void readPartialTest1() throws TachyonException, IOException {
-    FileSystemTestUtils.createByteFile(mTFS, "/file", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, 10);
     BlockInfo block = getFirstBlockInfo(new TachyonURI("/file"));
     final int offset = 0;
     final int length = 6;
@@ -203,7 +203,7 @@ public class DataServerIntegrationTest {
 
   @Test
   public void readPartialTest2() throws TachyonException, IOException {
-    FileSystemTestUtils.createByteFile(mTFS, "/file", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, 10);
     BlockInfo block = getFirstBlockInfo(new TachyonURI("/file"));
     final int offset = 2;
     final int length = 6;
@@ -215,7 +215,7 @@ public class DataServerIntegrationTest {
   @Test
   public void readTest() throws IOException, TachyonException {
     final int length = 10;
-    FileSystemTestUtils.createByteFile(mTFS, "/file", WriteType.MUST_CACHE, length);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new TachyonURI("/file"));
     DataServerMessage recvMsg = request(block);
     assertValid(recvMsg, length, block.getBlockId(), 0, length);
@@ -237,7 +237,7 @@ public class DataServerIntegrationTest {
   @Test
   public void readThroughClientTest() throws IOException, TachyonException {
     final int length = 10;
-    FileSystemTestUtils.createByteFile(mTFS, "/file", WriteType.MUST_CACHE, length);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new TachyonURI("/file"));
 
     RemoteBlockReader client =
@@ -251,11 +251,11 @@ public class DataServerIntegrationTest {
   // @Test
   public void readThroughClientNonExistentTest() throws IOException, TachyonException {
     final int length = 10;
-    FileSystemTestUtils.createByteFile(mTFS, "/file", WriteType.MUST_CACHE, length);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new TachyonURI("/file"));
 
     // Get the maximum block id, for use in determining a non-existent block id.
-    URIStatus status = mTFS.getStatus(new TachyonURI("/file"));
+    URIStatus status = mFileSystem.getStatus(new TachyonURI("/file"));
     long maxBlockId = block.getBlockId();
     for (long blockId : status.getBlockIds()) {
       if (blockId > maxBlockId) {
@@ -274,7 +274,7 @@ public class DataServerIntegrationTest {
   @Test
   public void readTooLarge() throws IOException, TachyonException {
     final int length = 20;
-    FileSystemTestUtils.createByteFile(mTFS, "/file", WriteType.MUST_CACHE, length);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new TachyonURI("/file"));
     DataServerMessage recvMsg = request(block, 0, length * 2);
     assertError(recvMsg, block.getBlockId());
@@ -283,7 +283,7 @@ public class DataServerIntegrationTest {
   @Test
   public void tooLargeOffset() throws IOException, TachyonException {
     final int length = 10;
-    FileSystemTestUtils.createByteFile(mTFS, "/file", WriteType.MUST_CACHE, length);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new TachyonURI("/file"));
     DataServerMessage recvMsg = request(block, length * 2, 1);
     assertError(recvMsg, block.getBlockId());
@@ -345,7 +345,7 @@ public class DataServerIntegrationTest {
    */
   private BlockInfo getFirstBlockInfo(TachyonURI uri)
       throws IOException, TachyonException {
-    URIStatus status = mTFS.getStatus(uri);
+    URIStatus status = mFileSystem.getStatus(uri);
     return mBlockMasterClient.getBlockInfo(status.getBlockIds().get(0));
   }
 }

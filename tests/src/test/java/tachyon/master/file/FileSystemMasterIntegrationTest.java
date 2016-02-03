@@ -30,6 +30,7 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.Timeout;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -266,8 +267,11 @@ public class FileSystemMasterIntegrationTest {
   private static final String TEST_AUTHENTICATE_USER = "test-user";
 
   @Rule
+  public Timeout mGlobalTimeout = Timeout.seconds(60);
+
+  @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(1000, 1000, Constants.GB,
+      new LocalTachyonClusterResource(1000, Constants.GB,
           Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
   private TachyonConf mMasterTachyonConf;
   private FileSystemMaster mFsMaster;

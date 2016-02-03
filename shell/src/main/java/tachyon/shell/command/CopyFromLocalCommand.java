@@ -28,6 +28,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closer;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
@@ -49,10 +51,10 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public CopyFromLocalCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public CopyFromLocalCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -66,7 +68,8 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     String srcPath = args[0];
     TachyonURI dstPath = new TachyonURI(args[1]);
     List<File> srcFiles = TfsShellUtils.getFiles(srcPath);
@@ -92,7 +95,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
    */
   private void copyFromLocalWildcard(List<File> srcFiles, TachyonURI dstPath) throws IOException {
     try {
-      mTfs.createDirectory(dstPath);
+      mFileSystem.createDirectory(dstPath);
     } catch (FileAlreadyExistsException e) {
       // it's fine if the directory already exists
     } catch (TachyonException e) {
@@ -101,7 +104,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
 
     URIStatus dstStatus;
     try {
-      dstStatus = mTfs.getStatus(dstPath);
+      dstStatus = mFileSystem.getStatus(dstPath);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
@@ -143,14 +146,14 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
       if (!src.isDirectory()) {
         // If the dstPath is a directory, then it should be updated to be the path of the file where
         // src will be copied to
-        if (mTfs.exists(dstPath) && mTfs.getStatus(dstPath).isFolder()) {
+        if (mFileSystem.exists(dstPath) && mFileSystem.getStatus(dstPath).isFolder()) {
           dstPath = dstPath.join(src.getName());
         }
 
         Closer closer = Closer.create();
         FileOutStream os = null;
         try {
-          os = closer.register(mTfs.createFile(dstPath));
+          os = closer.register(mFileSystem.createFile(dstPath));
           FileInputStream in = closer.register(new FileInputStream(src));
           FileChannel channel = closer.register(in.getChannel());
           ByteBuffer buf = ByteBuffer.allocate(8 * Constants.MB);
@@ -163,8 +166,8 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
           // around
           if (os != null) {
             os.cancel();
-            if (mTfs.exists(dstPath)) {
-              mTfs.delete(dstPath);
+            if (mFileSystem.exists(dstPath)) {
+              mFileSystem.delete(dstPath);
             }
           }
           throw e;
@@ -172,7 +175,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
           closer.close();
         }
       } else {
-        mTfs.createDirectory(dstPath);
+        mFileSystem.createDirectory(dstPath);
         List<String> errorMessages = Lists.newArrayList();
         String[] fileList = src.list();
         for (String file : fileList) {
@@ -187,8 +190,8 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
         if (errorMessages.size() != 0) {
           if (errorMessages.size() == fileList.length) {
             // If no files were created, then delete the directory
-            if (mTfs.exists(dstPath)) {
-              mTfs.delete(dstPath);
+            if (mFileSystem.exists(dstPath)) {
+              mFileSystem.delete(dstPath);
             }
           }
           throw new IOException(Joiner.on('\n').join(errorMessages));
