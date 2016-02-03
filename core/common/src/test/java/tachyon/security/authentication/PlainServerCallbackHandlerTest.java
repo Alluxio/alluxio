@@ -70,7 +70,7 @@ public class PlainServerCallbackHandlerTest {
     ncb.setName(authenticateId);
 
     PasswordCallback pcb = new PasswordCallback(" password: ", false);
-    pcb.setPassword("anonymous".toCharArray());
+    pcb.setPassword("password".toCharArray());
 
     Callback[] callbacks = new Callback[]{ncb, pcb,
         new AuthorizeCallback(authenticateId, authenticateId)};
@@ -92,7 +92,7 @@ public class PlainServerCallbackHandlerTest {
     ncb.setName(authenticateId);
 
     PasswordCallback pcb = new PasswordCallback(" password: ", false);
-    pcb.setPassword("anonymous".toCharArray());
+    pcb.setPassword("password".toCharArray());
 
     Callback[] callbacks = new Callback[]{ncb, pcb,
         new AuthorizeCallback(authenticateId, authenticateId)};
@@ -100,13 +100,37 @@ public class PlainServerCallbackHandlerTest {
   }
 
   /**
-   * An {@link AuthenticationProvider} that only allows users starting with tachyon.
+   * Tests that the incorrect password should fail the authentication.
+   */
+  @Test
+  public void authenticateCorrectPasswordTest() throws Exception {
+    mThrown.expect(AuthenticationException.class);
+    mThrown.expectMessage("Wrong password");
+
+    String authenticateId = "tachyon-1";
+    NameCallback ncb = new NameCallback(" authentication id: ");
+    ncb.setName(authenticateId);
+
+    PasswordCallback pcb = new PasswordCallback(" password: ", false);
+    pcb.setPassword("not-password".toCharArray());
+
+    Callback[] callbacks = new Callback[]{ncb, pcb,
+        new AuthorizeCallback(authenticateId, authenticateId)};
+    mPlainServerCBHandler.handle(callbacks);
+  }
+
+  /**
+   * An {@link AuthenticationProvider} that only allows users starting with tachyon, password
+   * should be "password"
    */
   public static class NameMatchAuthenticationProvider implements AuthenticationProvider {
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {
       if (!user.matches("^tachyon.*")) {
         throw new AuthenticationException("Only allow the user starting with tachyon");
+      }
+      if (!password.matches("^password")) {
+        throw new AuthenticationException("Wrong password");
       }
     }
   }
