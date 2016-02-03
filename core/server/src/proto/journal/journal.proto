@@ -9,7 +9,7 @@ import "key_value.proto";
 import "lineage.proto";
 
 // Wraps around all types of Tachyon journal messages.
-// next available id: 27
+// next available id: 28
 message JournalEntry {
   optional int64 sequence_number = 1;
   oneof entry {
