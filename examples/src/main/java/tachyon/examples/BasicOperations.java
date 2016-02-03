@@ -34,11 +34,13 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.OpenFileOptions;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 
+/**
+ * Example to show the basic operations of Tachyon.
+ */
 public class BasicOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final TachyonURI mMasterLocation;
@@ -47,6 +49,12 @@ public class BasicOperations implements Callable<Boolean> {
   private final CreateFileOptions mWriteOptions;
   private final int mNumbers = 20;
 
+  /**
+   * @param masterLocation the location of the master
+   * @param filePath the path for the files
+   * @param readType the {@link ReadType}
+   * @param writeType the {@link WriteType}
+   */
   public BasicOperations(TachyonURI masterLocation, TachyonURI filePath, ReadType readType,
       WriteType writeType) {
     mMasterLocation = masterLocation;
@@ -57,13 +65,12 @@ public class BasicOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    TachyonConf tachyonConf = ClientContext.getConf();
-    tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
-    tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
-    ClientContext.reset(tachyonConf);
-    FileSystem tFS = FileSystem.Factory.get();
-    writeFile(tFS);
-    return readFile(tFS);
+    ClientContext.getConf().set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
+    ClientContext.getConf().set(Constants.MASTER_RPC_PORT,
+        Integer.toString(mMasterLocation.getPort()));
+    FileSystem fs = FileSystem.Factory.get();
+    writeFile(fs);
+    return readFile(fs);
   }
 
   private void writeFile(FileSystem fileSystem)
@@ -100,7 +107,15 @@ public class BasicOperations implements Callable<Boolean> {
     return pass;
   }
 
-  public static void main(String[] args) throws IllegalArgumentException {
+  /**
+   * Usage:
+   * {@code java -cp <TACHYON-VERSION> BasicOperations
+   * <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)>
+   * <WriteType (MUST_CACHE | CACHE_THROUGH | THROUGH | ASYNC_THROUGH)>}
+   *
+   * @param args the arguments for this example
+   */
+  public static void main(String[] args) {
     if (args.length != 4) {
       System.out.println("java -cp " + Version.TACHYON_JAR + " " + BasicOperations.class.getName()
           + " <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)> <WriteType (MUST_CACHE | CACHE_THROUGH"

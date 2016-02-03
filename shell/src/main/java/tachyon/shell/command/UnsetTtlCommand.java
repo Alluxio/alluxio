@@ -17,6 +17,10 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
@@ -25,13 +29,14 @@ import tachyon.conf.TachyonConf;
 /**
  * Unsets the TTL value for the given path.
  */
+@ThreadSafe
 public final class UnsetTtlCommand extends AbstractTfsShellCommand {
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public UnsetTtlCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public UnsetTtlCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -45,9 +50,10 @@ public final class UnsetTtlCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     TachyonURI inputPath = new TachyonURI(args[0]);
-    CommandUtils.setTtl(mTfs, inputPath, Constants.NO_TTL);
+    CommandUtils.setTtl(mFileSystem, inputPath, Constants.NO_TTL);
     System.out.println("TTL of file '" + inputPath + "' was successfully removed.");
   }
 

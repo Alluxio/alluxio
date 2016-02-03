@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.base.Supplier;
 
 import tachyon.client.file.FileSystem;
@@ -30,6 +32,7 @@ import tachyon.conf.TachyonConf;
  * Keeps a collection of all clients ({@link FileSystem}) returned. The main reason for this is
  * to build cleanup clients.
  */
+@ThreadSafe
 public final class ClientPool implements Closeable {
   private final List<FileSystem> mClients =
       Collections.synchronizedList(new ArrayList<FileSystem>());

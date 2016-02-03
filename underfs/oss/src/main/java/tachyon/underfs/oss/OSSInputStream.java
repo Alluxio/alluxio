@@ -19,6 +19,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.model.OSSObject;
 
@@ -26,25 +28,29 @@ import com.aliyun.oss.model.OSSObject;
  * A stream for reading a file from OSS. This input stream returns 0 when calling read with an empty
  * buffer.
  */
+@NotThreadSafe
 public class OSSInputStream extends InputStream {
 
   /** Bucket name of the Tachyon OSS bucket. */
   private final String mBucketName;
+
   /** Key of the file in OSS to read. */
   private final String mKey;
+
   /** The OSS client for OSS operations. */
   private final OSSClient mOssClient;
 
   /** The storage object that will be updated on each large skip. */
-  private OSSObject mObject;
+  private final OSSObject mObject;
+
   /** The underlying input stream. */
-  private BufferedInputStream mInputStream;
+  private final BufferedInputStream mInputStream;
 
   /**
    * Creates a new instance of {@link OSSInputStream}.
    *
    * @param bucketName the name of the bucket
-   * @param key c
+   * @param key the key of the file
    * @param client the client for OSS
    * @throws IOException if an I/O error occurs
    */

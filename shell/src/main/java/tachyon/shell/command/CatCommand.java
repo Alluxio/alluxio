@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.ReadType;
 import tachyon.client.file.FileInStream;
@@ -30,14 +32,15 @@ import tachyon.exception.TachyonException;
 /**
  * Prints the file's contents to the console.
  */
+@ThreadSafe
 public final class CatCommand extends WithWildCardPathCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public CatCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public CatCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -48,11 +51,11 @@ public final class CatCommand extends WithWildCardPathCommand {
   @Override
   void runCommand(TachyonURI path) throws IOException {
     try {
-      URIStatus status = mTfs.getStatus(path);
+      URIStatus status = mFileSystem.getStatus(path);
 
       if (!status.isFolder()) {
         OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-        FileInStream is = mTfs.openFile(path, options);
+        FileInStream is = mFileSystem.openFile(path, options);
         byte[] buf = new byte[512];
         try {
           int read = is.read(buf);

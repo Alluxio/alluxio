@@ -18,6 +18,10 @@ package tachyon.shell.command;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.client.file.FileSystem;
 import tachyon.client.lineage.TachyonLineage;
 import tachyon.conf.TachyonConf;
@@ -26,16 +30,17 @@ import tachyon.thrift.LineageInfo;
 /**
  * Lists all the lineages.
  */
+@ThreadSafe
 public final class ListLineagesCommand extends AbstractTfsShellCommand {
 
   /**
    * Constructs a new instance to list all the lineages.
    *
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public ListLineagesCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public ListLineagesCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -49,7 +54,7 @@ public final class ListLineagesCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
     TachyonLineage tl = TachyonLineage.get();
     List<LineageInfo> infos = tl.getLineageInfoList();
     for (LineageInfo info : infos) {

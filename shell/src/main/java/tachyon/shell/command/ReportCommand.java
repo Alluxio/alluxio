@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.client.lineage.LineageFileSystem;
@@ -26,14 +28,15 @@ import tachyon.exception.TachyonException;
 /**
  * Reports to the master that a file is lost.
  */
+@ThreadSafe
 public final class ReportCommand extends WithWildCardPathCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public ReportCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public ReportCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
