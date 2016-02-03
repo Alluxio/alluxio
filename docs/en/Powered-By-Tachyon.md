@@ -21,7 +21,7 @@ or let us know by email (project.tachyon@gmail.com) or
 * [Tachyon Nexus](http://www.tachyonnexus.com/)
 * [UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/)
 
-Here is a list tracks external software projects that supplement Tachyon and add to its ecosystem.
+Here is a list that tracks external software projects that supplement Tachyon and add to its ecosystem.
 
 * [Alibaba OSS](http://www.aliyun.com/product/oss/?lang=en)
 * [Amazon S3](https://aws.amazon.com/s3/)
