@@ -20,6 +20,8 @@ import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
@@ -54,7 +56,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path) throws IOException {
+  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
     load(path);
   }
 

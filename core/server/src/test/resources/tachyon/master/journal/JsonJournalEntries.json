@@ -209,7 +209,12 @@
     "mParameters":{
       "id":1,
       "operationTimeMs":1409349750338,
-      "pinned":true
+      "pinned":true,
+      "ttl":-1,
+      "persisted":true,
+      "owner":"user1",
+      "group":"group1",
+      "permission":511,
     }
   }
 }

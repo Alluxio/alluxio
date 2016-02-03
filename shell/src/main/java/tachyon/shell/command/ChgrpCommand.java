@@ -20,12 +20,11 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
-import tachyon.client.file.options.SetAclOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
@@ -57,16 +56,7 @@ public final class ChgrpCommand extends AbstractTfsShellCommand {
 
   @Override
   protected Options getOptions() {
-    Options opts = new Options();
-    // Add R option for recursively.
-    Option recursive = Option.builder("R")
-        .required(false)
-        .hasArg(false)
-        .desc("recusively")
-        .build();
-
-    opts.addOption(recursive);
-    return opts;
+    return new Options().addOption(RECURSIVE_OPTION);
   }
 
   /**
@@ -79,8 +69,9 @@ public final class ChgrpCommand extends AbstractTfsShellCommand {
    */
   private void chgrp(TachyonURI path, String group, boolean recursive) throws IOException {
     try {
-      SetAclOptions options = SetAclOptions.defaults().setGroup(group).setRecursive(recursive);
-      mFileSystem.setAcl(path, options);
+      SetAttributeOptions options = SetAttributeOptions.defaults()
+          .setGroup(group).setRecursive(recursive);
+      mFileSystem.setAttribute(path, options);
       System.out.println("Changed group of " + path + " to " + group);
     } catch (TachyonException e) {
       throw new IOException("Failed to changed group of " + path + " to " + group + " : "
@@ -104,7 +95,7 @@ public final class ChgrpCommand extends AbstractTfsShellCommand {
 
   @Override
   public String getDescription() {
-    return "Changes the group of a file or directory specified by args. "
+    return "Changes the group of a file or directory specified by args."
         + " Specify -R to change the group recursively.";
   }
 }

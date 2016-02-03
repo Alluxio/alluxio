@@ -69,8 +69,6 @@ public final class JournalProtoUtils {
         return entry.getReinitializeFile();
       case RENAME:
         return entry.getRename();
-      case SET_ACL:
-        return entry.getSetAcl();
       case SET_ATTRIBUTE:
         return entry.getSetAttribute();
       case ENTRY_NOT_SET:

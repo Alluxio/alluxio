@@ -39,7 +39,6 @@ import tachyon.master.block.BlockMaster;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.file.options.CreateFileOptions;
-import tachyon.master.file.options.SetAclOptions;
 import tachyon.master.file.options.SetAttributeOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
@@ -736,21 +735,13 @@ public class PermissionCheckTest {
         (short) 0600, false);
   }
 
-  @Test
-  public void setAclFailByInvalidOptionsTest() throws Exception {
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(ExceptionMessage.INVALID_SET_ACL_OPTIONS.getMessage(
-        null, null, (short) -1));
-
-    verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, null, null, (short) -1, false);
-  }
-
   private void verifySetAcl(TestUser owner, String path, String user, String group,
       short permission, boolean recursive) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(owner.getUser());
-    SetAclOptions options = new SetAclOptions.Builder().setOwner(user).setGroup(group)
-        .setPermission(permission).setRecursive(recursive).build();
-    mFileSystemMaster.setAcl(new TachyonURI(path), options);
+    SetAttributeOptions options =
+        new SetAttributeOptions.Builder().setOwner(user).setGroup(group).setPermission(permission)
+            .setRecursive(recursive).build();
+    mFileSystemMaster.setAttribute(new TachyonURI(path), options);
 
     PlainSaslServer.AuthorizedClientUser.set(TEST_USER_ADMIN.getUser());
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(

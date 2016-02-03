@@ -53,7 +53,6 @@ import tachyon.proto.journal.File.InodeLastModificationTimeEntry;
 import tachyon.proto.journal.File.PersistDirectoryEntry;
 import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
-import tachyon.proto.journal.File.SetAclEntry;
 import tachyon.proto.journal.File.SetAttributeEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.KeyValue.CompletePartitionEntry;
@@ -233,15 +232,9 @@ public abstract class JournalFormatterTestBase {
                     .setOpTimeMs(TEST_OP_TIME_MS)
                     .setPinned(true)
                     .setPersisted(true)
-                    .setTtl(TEST_TTL))
-                .build())
-        .add(
-            JournalEntry.newBuilder()
-                .setSetAcl(SetAclEntry.newBuilder()
-                    .setId(TEST_FILE_ID)
-                    .setOpTimeMs(TEST_OP_TIME_MS)
-                    .setUserName(TEST_PERMISSION_STATUS.getUserName())
-                    .setGroupName(TEST_PERMISSION_STATUS.getGroupName())
+                    .setTtl(TEST_TTL)
+                    .setOwner(TEST_PERMISSION_STATUS.getUserName())
+                    .setGroup(TEST_PERMISSION_STATUS.getGroupName())
                     .setPermission(TEST_PERMISSION_STATUS.getPermission().toShort()))
                 .build())
         .add(

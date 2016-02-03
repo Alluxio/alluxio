@@ -17,6 +17,7 @@ package tachyon.master.file.options;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 import tachyon.thrift.SetAttributeTOptions;
@@ -33,6 +34,10 @@ public class SetAttributeOptions {
     private Boolean mPinned;
     private Long mTtl;
     private Boolean mPersisted;
+    private String mOwner;
+    private String mGroup;
+    private Short mPermission;
+    private boolean mRecursive;
     private long mOperationTimeMs;
 
     /**
@@ -51,6 +56,10 @@ public class SetAttributeOptions {
       mPinned = null;
       mTtl = null;
       mPersisted = null;
+      mOwner = null;
+      mGroup = null;
+      mPermission = Constants.INVALID_PERMISSION;
+      mRecursive = false;
       mOperationTimeMs = System.currentTimeMillis();
     }
 
@@ -82,6 +91,42 @@ public class SetAttributeOptions {
     }
 
     /**
+     * @param owner the owner to use
+     * @return the builder
+     */
+    public Builder setOwner(String owner) {
+      mOwner = owner;
+      return this;
+    }
+
+    /**
+     * @param group the group to use
+     * @return the builder
+     */
+    public Builder setGroup(String group) {
+      mGroup = group;
+      return this;
+    }
+
+    /**
+     * @param permission the permission bits to use
+     * @return the builder
+     */
+    public Builder setPermission(short permission) {
+      mPermission = permission;
+      return this;
+    }
+
+    /**
+     * @param recursive whether owner / group / permission should be updated recursively
+     * @return the builder
+     */
+    public Builder setRecursive(boolean recursive) {
+      mRecursive = recursive;
+      return this;
+    }
+
+    /**
      * @param operationTimeMs the operation time to use
      * @return the builder
      */
@@ -103,6 +148,10 @@ public class SetAttributeOptions {
   private final Boolean mPinned;
   private final Long mTtl;
   private final Boolean mPersisted;
+  private final String mOwner;
+  private final String mGroup;
+  private final Short mPermission;
+  private final boolean mRecursive;
   private long mOperationTimeMs;
 
   /**
@@ -114,6 +163,10 @@ public class SetAttributeOptions {
     mPinned = options.isSetPinned() ? options.isPinned() : null;
     mTtl = options.isSetTtl() ? options.getTtl() : null;
     mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
+    mOwner = options.isSetOwner() ? options.getOwner() : null;
+    mGroup = options.isSetGroup() ? options.getGroup() : null;
+    mPermission = options.isSetPermission() ? options.getPermission() : null;
+    mRecursive = options.isRecursive();
     mOperationTimeMs = System.currentTimeMillis();
   }
 
@@ -128,6 +181,10 @@ public class SetAttributeOptions {
     mPinned = builder.mPinned;
     mTtl = builder.mTtl;
     mPersisted = builder.mPersisted;
+    mOwner = builder.mOwner;
+    mGroup = builder.mGroup;
+    mPermission = builder.mPermission;
+    mRecursive = builder.mRecursive;
     mOperationTimeMs = builder.mOperationTimeMs;
   }
 
@@ -146,14 +203,42 @@ public class SetAttributeOptions {
   }
 
   /**
-   * @return the recursive flag value
+   * @return the persisted flag value
    */
   public Boolean getPersisted() {
     return mPersisted;
   }
 
   /**
-   * @return the operation time
+   * @return the owner
+   */
+  public String getOwner() {
+    return mOwner;
+  }
+
+  /**
+   * @return the group
+   */
+  public String getGroup() {
+    return mGroup;
+  }
+
+  /**
+   * @return the permission bits
+   */
+  public Short getPermission() {
+    return mPermission;
+  }
+
+  /**
+   * @return the recursive flag value
+   */
+  public boolean isRecursive() {
+    return mRecursive;
+  }
+
+  /**
+   * @return the operation time (in milliseconds)
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
