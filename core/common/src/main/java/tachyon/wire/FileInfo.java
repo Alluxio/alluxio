@@ -15,12 +15,14 @@
 
 package tachyon.wire;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 /**
  * The file descriptor.
@@ -28,26 +30,46 @@ import com.google.common.base.Objects;
 @NotThreadSafe
 // TODO(jiri): Consolidate with URIStatus
 public final class FileInfo {
+  @JsonProperty("fileId")
   private long mFileId;
-  private String mName;
-  private String mPath;
-  private String mUfsPath;
+  @JsonProperty("name")
+  private String mName = "";
+  @JsonProperty("path")
+  private String mPath = "";
+  @JsonProperty("ufsPath")
+  private String mUfsPath = "";
+  @JsonProperty("length")
   private long mLength;
+  @JsonProperty("blockSizeBytes")
   private long mBlockSizeBytes;
+  @JsonProperty("creationTimeMs")
   private long mCreationTimeMs;
+  @JsonProperty("completed")
   private boolean mCompleted;
+  @JsonProperty("folder")
   private boolean mFolder;
+  @JsonProperty("pinned")
   private boolean mPinned;
+  @JsonProperty("cacheable")
   private boolean mCacheable;
+  @JsonProperty("persisted")
   private boolean mPersisted;
-  private List<Long> mBlockIds = new ArrayList<Long>();
+  @JsonProperty("blockIds")
+  private List<Long> mBlockIds = Lists.newArrayList();
+  @JsonProperty("inMemoryPercentage")
   private int mInMemoryPercentage;
+  @JsonProperty("lastModificationTimeMs")
   private long mLastModificationTimeMs;
+  @JsonProperty("ttl")
   private long mTtl;
-  private String mUserName;
-  private String mGroupName;
+  @JsonProperty("userName")
+  private String mUserName = "";
+  @JsonProperty("groupName")
+  private String mGroupName = "";
+  @JsonProperty("permission")
   private int mPermission;
-  private String mPersistenceState;
+  @JsonProperty("persistenceState")
+  private String mPersistenceState = "";
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -236,6 +258,7 @@ public final class FileInfo {
    * @return the file descriptor
    */
   public FileInfo setName(String name) {
+    Preconditions.checkNotNull(name);
     mName = name;
     return this;
   }
@@ -245,6 +268,7 @@ public final class FileInfo {
    * @return the file descriptor
    */
   public FileInfo setPath(String path) {
+    Preconditions.checkNotNull(path);
     mPath = path;
     return this;
   }
@@ -254,6 +278,7 @@ public final class FileInfo {
    * @return the file descriptor
    */
   public FileInfo setUfsPath(String ufsPath) {
+    Preconditions.checkNotNull(ufsPath);
     mUfsPath = ufsPath;
     return this;
   }
@@ -335,6 +360,7 @@ public final class FileInfo {
    * @return the file descriptor
    */
   public FileInfo setBlockIds(List<Long> blockIds) {
+    Preconditions.checkNotNull(blockIds);
     mBlockIds = blockIds;
     return this;
   }
@@ -371,6 +397,7 @@ public final class FileInfo {
    * @return the file descriptor
    */
   public FileInfo setUserName(String userName) {
+    Preconditions.checkNotNull(userName);
     mUserName = userName;
     return this;
   }
@@ -380,6 +407,7 @@ public final class FileInfo {
    * @return the file descriptor
    */
   public FileInfo setGroupName(String groupName) {
+    Preconditions.checkNotNull(groupName);
     mGroupName = groupName;
     return this;
   }
@@ -398,6 +426,7 @@ public final class FileInfo {
    * @return the file descriptor
    */
   public FileInfo setPersistenceState(String persistenceState) {
+    Preconditions.checkNotNull(persistenceState);
     mPersistenceState = persistenceState;
     return this;
   }
@@ -426,8 +455,7 @@ public final class FileInfo {
         && mBlockSizeBytes == that.mBlockSizeBytes && mCreationTimeMs == that.mCreationTimeMs
         && mCompleted == that.mCompleted && mFolder == that.mFolder && mPinned == that.mPinned
         && mCacheable == that.mCacheable && mPersisted == that.mPersisted
-        && ((mBlockIds == null && that.mBlockIds == null) || mBlockIds.equals(that.mBlockIds))
-        && mInMemoryPercentage == that.mInMemoryPercentage
+        && mBlockIds.equals(that.mBlockIds) && mInMemoryPercentage == that.mInMemoryPercentage
         && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl
         && mUserName.equals(that.mUserName) && mGroupName.equals(that.mGroupName)
         && mPermission == that.mPermission && mPersistenceState.equals(that.mPersistenceState);

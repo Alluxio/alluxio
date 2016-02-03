@@ -19,6 +19,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 /**
  * The location of a block.
@@ -28,9 +29,9 @@ public final class BlockLocation {
   @JsonProperty("workerId")
   private long mWorkerId;
   @JsonProperty("address")
-  private WorkerNetAddress mWorkerAddress;
+  private WorkerNetAddress mWorkerAddress = new WorkerNetAddress();
   @JsonProperty("tierAlias")
-  private String mTierAlias;
+  private String mTierAlias = "";
 
   /**
    * Creates a new instance of {@BlockLocation}.
@@ -83,6 +84,7 @@ public final class BlockLocation {
    * @return the block location
    */
   public BlockLocation setWorkerAddress(WorkerNetAddress workerAddress) {
+    Preconditions.checkNotNull(workerAddress);
     mWorkerAddress = workerAddress;
     return this;
   }
@@ -92,6 +94,7 @@ public final class BlockLocation {
    * @return the block location
    */
   public BlockLocation setTierAlias(String tierAlias) {
+    Preconditions.checkNotNull(tierAlias);
     mTierAlias = tierAlias;
     return this;
   }
@@ -112,9 +115,8 @@ public final class BlockLocation {
       return false;
     }
     BlockLocation that = (BlockLocation) o;
-    return mWorkerId == that.mWorkerId
-        && ((mWorkerAddress == null && that.mWorkerAddress == null) || mWorkerAddress
-            .equals(that.mWorkerAddress)) && mTierAlias.equals(that.mTierAlias);
+    return mWorkerId == that.mWorkerId && mWorkerAddress.equals(that.mWorkerAddress)
+        && mTierAlias.equals(that.mTierAlias);
   }
 
   @Override

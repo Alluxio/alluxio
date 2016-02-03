@@ -19,6 +19,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
 
@@ -30,15 +31,14 @@ import tachyon.annotation.PublicApi;
 // TODO(jiri): Consolidate with tachyon.job.CommandLine.Job.
 public final class CommandLineJobInfo {
   @JsonProperty("command")
-  private String mCommand;
+  private String mCommand = "";
   @JsonProperty("conf")
-  private JobConfInfo mConf;
+  private JobConfInfo mConf = new JobConfInfo();
 
   /**
    * Creates a new instance of {@link CommandLineJobInfo}.
    */
-  public CommandLineJobInfo() {
-  }
+  public CommandLineJobInfo() {}
 
   /**
    * Creates a new instance of {@link CommandLineJobInfo} from a thrift representation.
@@ -69,6 +69,7 @@ public final class CommandLineJobInfo {
    * @return the lineage command-line job descriptor
    */
   public CommandLineJobInfo setCommand(String command) {
+    Preconditions.checkNotNull(command);
     mCommand = command;
     return this;
   }
@@ -78,6 +79,7 @@ public final class CommandLineJobInfo {
    * @return the lineage command-line job descriptor
    */
   public CommandLineJobInfo setConf(JobConfInfo conf) {
+    Preconditions.checkNotNull(conf);
     mConf = conf;
     return this;
   }
@@ -98,8 +100,7 @@ public final class CommandLineJobInfo {
       return false;
     }
     CommandLineJobInfo that = (CommandLineJobInfo) o;
-    return mCommand.equals(that.mCommand)
-        && ((mConf == null && that.mConf == null) || mConf.equals(that.mConf));
+    return mCommand.equals(that.mCommand) && mConf.equals(that.mConf);
   }
 
   @Override

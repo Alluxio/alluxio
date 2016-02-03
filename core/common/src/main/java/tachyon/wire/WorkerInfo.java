@@ -19,12 +19,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 /**
  * The worker descriptor.
  */
 @NotThreadSafe
-public class WorkerInfo {
+public final class WorkerInfo {
   @JsonProperty("id")
   private long mId;
   @JsonProperty("address")
@@ -43,7 +44,10 @@ public class WorkerInfo {
   /**
    * Creates a new instance of {@link WorkerInfo}.
    */
-  public WorkerInfo() {}
+  public WorkerInfo() {
+    mAddress = new WorkerNetAddress();
+    mState = "";
+  }
 
   /**
    * Creates a new instance of {@link WorkerInfo} from a thrift representation.
@@ -123,6 +127,7 @@ public class WorkerInfo {
    * @return the worker descriptor
    */
   public WorkerInfo setAddress(WorkerNetAddress address) {
+    Preconditions.checkNotNull(address);
     mAddress = address;
     return this;
   }
@@ -141,6 +146,7 @@ public class WorkerInfo {
    * @return the worker descriptor
    */
   public WorkerInfo setState(String state) {
+    Preconditions.checkNotNull(state);
     mState = state;
     return this;
   }

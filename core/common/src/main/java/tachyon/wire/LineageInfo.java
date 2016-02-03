@@ -21,6 +21,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import tachyon.annotation.PublicApi;
 
@@ -49,6 +51,11 @@ public final class LineageInfo {
    * Creates a new instance of {@link LineageInfo}.
    */
   public LineageInfo() {
+    mInputFiles = Lists.newArrayList();
+    mOutputFiles = Lists.newArrayList();
+    mJob = new CommandLineJobInfo();
+    mParents = Lists.newArrayList();
+    mChildren = Lists.newArrayList();
   }
 
   /**
@@ -97,7 +104,7 @@ public final class LineageInfo {
   /**
    * @return the lineage creation time (in milliseconds)
    */
-  public long getCreationTimesMs() {
+  public long getCreationTimeMs() {
     return mCreationTimeMs;
   }
 
@@ -129,6 +136,7 @@ public final class LineageInfo {
    * @return the lineage descriptor
    */
   public LineageInfo setInputFiles(List<String> inputFiles) {
+    Preconditions.checkNotNull(inputFiles);
     mInputFiles = inputFiles;
     return this;
   }
@@ -138,6 +146,7 @@ public final class LineageInfo {
    * @return the lineage descriptor
    */
   public LineageInfo setOutputFiles(List<String> outputFiles) {
+    Preconditions.checkNotNull(outputFiles);
     mOutputFiles = outputFiles;
     return this;
   }
@@ -147,6 +156,7 @@ public final class LineageInfo {
    * @return the lineage descriptor
    */
   public LineageInfo setJob(CommandLineJobInfo job) {
+    Preconditions.checkNotNull(job);
     mJob = job;
     return this;
   }
@@ -165,6 +175,7 @@ public final class LineageInfo {
    * @return the lineage descriptor
    */
   public LineageInfo setParents(List<Long> parents) {
+    Preconditions.checkNotNull(parents);
     mParents = parents;
     return this;
   }
@@ -174,6 +185,7 @@ public final class LineageInfo {
    * @return the lineage descriptor
    */
   public LineageInfo setChildren(List<Long> children) {
+    Preconditions.checkNotNull(children);
     mChildren = children;
     return this;
   }
@@ -195,15 +207,10 @@ public final class LineageInfo {
       return false;
     }
     LineageInfo that = (LineageInfo) o;
-    return mId == that.mId
-        && ((mInputFiles == null && that.mInputFiles == null) || mInputFiles
-            .equals(that.mInputFiles))
-        && ((mOutputFiles == null && that.mOutputFiles == null) || mOutputFiles
-            .equals(that.mOutputFiles))
-        && ((mJob == null && that.mJob == null) || mJob.equals(that.mJob))
-        && mCreationTimeMs == that.mCreationTimeMs
-        && ((mParents == null && that.mParents == null) || mParents.equals(that.mParents))
-        && ((mChildren == null && that.mChildren == null) || mChildren.equals(that.mChildren));
+    return mId == that.mId && mInputFiles.equals(that.mInputFiles)
+        && mOutputFiles.equals(that.mOutputFiles) && mJob.equals(that.mJob)
+        && mCreationTimeMs == that.mCreationTimeMs && mParents.equals(that.mParents)
+        && mChildren.equals(that.mChildren);
   }
 
   @Override
