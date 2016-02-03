@@ -50,20 +50,6 @@ public final class LoginUserTest {
   }
 
   /**
-   * This test verifies login user is not supported with no security authentication type in conf.
-   *
-   * @throws Exception thrown if loginUser can be retrieved
-   */
-  @Test
-  public void getLoginUserWithNoSecurityAuthType() throws Exception {
-    TachyonConf conf = new TachyonConf();
-
-    mThrown.expect(UnsupportedOperationException.class);
-    mThrown.expectMessage("User is not supported in NOSASL mode");
-    LoginUser.get(conf);
-  }
-
-  /**
    * Test whether we can get login user with conf in SIMPLE mode.
    *
    * @throws Exception thrown if the current user cannot be retrieved
@@ -95,6 +81,25 @@ public final class LoginUserTest {
 
     Assert.assertNotNull(loginUser);
     Assert.assertEquals(loginUser.getName(), "tachyon-user");
+  }
+
+  /**
+   * Test whether we can get login user with conf in SIMPLE mode, when a user list is provided by
+   * by the application through configuration.
+   *
+   * @throws Exception thrown if the current user cannot be retrieved
+   */
+  @Test
+  public void getSimpleLoginUserListProvidedByAppTest() throws Exception {
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
+    conf.set(Constants.SECURITY_LOGIN_USERNAME, "tachyon-user, superuser");
+
+    User loginUser = LoginUser.get(conf);
+
+    // The user list is considered as a single user name.
+    Assert.assertNotNull(loginUser);
+    Assert.assertEquals(loginUser.getName(), "tachyon-user, superuser");
   }
 
   /**
