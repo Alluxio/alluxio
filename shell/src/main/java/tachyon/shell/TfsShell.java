@@ -52,7 +52,8 @@ public class TfsShell implements Closeable {
       put("chgrpr", new String[] {"chgrp", "-R"});
       put("chmodr", new String[] {"chmod", "-R"});
       put("chownr", new String[] {"chown", "-R"});
-      // TODO(chaomin): also add "lsr", "rmr" as alias.
+      put("lsr",    new String[] {"ls",    "-R"});
+      put("rmr",    new String[] {"rm",    "-R"});
     } };
 
   /**

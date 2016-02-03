@@ -76,7 +76,6 @@ import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.file.options.CreateFileOptions;
-import tachyon.master.file.options.SetAclOptions;
 import tachyon.master.file.options.SetAttributeOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
@@ -93,7 +92,6 @@ import tachyon.proto.journal.File.InodeLastModificationTimeEntry;
 import tachyon.proto.journal.File.PersistDirectoryEntry;
 import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
-import tachyon.proto.journal.File.SetAclEntry;
 import tachyon.proto.journal.File.SetAttributeEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.security.User;
@@ -283,12 +281,6 @@ public final class FileSystemMaster extends MasterBase {
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       } catch (InvalidPathException e) {
-        throw new RuntimeException(e);
-      }
-    } else if (innerEntry instanceof SetAclEntry) {
-      try {
-        setAclFromEntry((SetAclEntry) innerEntry);
-      } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
     } else {
@@ -1720,21 +1712,46 @@ public final class FileSystemMaster extends MasterBase {
       checkPermission(FileSystemAction.WRITE, path, false);
       long fileId = mInodeTree.getInodeByPath(path).getId();
       long opTimeMs = System.currentTimeMillis();
+
+      Inode targetInode = mInodeTree.getInodeByPath(path);
+      if (options.isRecursive() && targetInode.isDirectory()) {
+        List<Inode> inodeChildren =
+            mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
+        for (Inode inode : inodeChildren) {
+          checkOwner(mInodeTree.getPath(inode));
+        }
+        for (Inode inode : inodeChildren) {
+          long id = inode.getId();
+          setAttributeInternal(id, opTimeMs, options);
+          journalSetAttribute(id, opTimeMs, options);
+        }
+      }
       setAttributeInternal(fileId, opTimeMs, options);
-      SetAttributeEntry.Builder builder =
-          SetAttributeEntry.newBuilder().setId(fileId).setOpTimeMs(opTimeMs);
-      if (options.getPinned() != null) {
-        builder.setPinned(options.getPinned());
-      }
-      if (options.getTtl() != null) {
-        builder.setTtl(options.getTtl());
-      }
-      if (options.getPersisted() != null) {
-        builder.setPersisted(options.getPersisted());
-      }
-      writeJournalEntry(JournalEntry.newBuilder().setSetAttribute(builder).build());
-      flushJournal();
+      journalSetAttribute(fileId, opTimeMs, options);
     }
+  }
+
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param fileId the file id to use
+   * @param opTimeMs the operation time (in milliseconds)
+   * @param options the method options
+   */
+  private void journalSetAttribute(long fileId, long opTimeMs, SetAttributeOptions options) {
+    SetAttributeEntry.Builder builder =
+        SetAttributeEntry.newBuilder().setId(fileId).setOpTimeMs(opTimeMs);
+    if (options.getPinned() != null) {
+      builder.setPinned(options.getPinned());
+    }
+    if (options.getTtl() != null) {
+      builder.setTtl(options.getTtl());
+    }
+    if (options.getPersisted() != null) {
+      builder.setPersisted(options.getPersisted());
+    }
+    writeJournalEntry(JournalEntry.newBuilder().setSetAttribute(builder).build());
+    flushJournal();
   }
 
   /**
@@ -1945,6 +1962,15 @@ public final class FileSystemMaster extends MasterBase {
         MasterContext.getMasterSource().incFilesPersisted(1);
       }
     }
+    if (options.getOwner() != null) {
+      inode.setUserName(options.getOwner());
+    }
+    if (options.getGroup() != null) {
+      inode.setGroupName(options.getGroup());
+    }
+    if (options.getPermission() != Constants.INVALID_PERMISSION) {
+      inode.setPermission(options.getPermission().shortValue());
+    }
   }
 
   /**
@@ -1964,148 +1990,16 @@ public final class FileSystemMaster extends MasterBase {
     if (entry.hasPersisted()) {
       options.setPersisted(entry.getPersisted());
     }
-    setAttributeInternal(entry.getId(), entry.getOpTimeMs(), options.build());
-  }
-
-  /**
-   * Sets the acl of a file or directory. At least one of owner, group, or permission in the
-   * {@link SetAclOptions} could be set at a time.
-   *
-   * @param path to be set acl on
-   * @param options acl option to be set
-   * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
-   */
-  public void setAcl(TachyonURI path, SetAclOptions options) throws AccessControlException,
-      InvalidPathException {
-    Preconditions.checkArgument(options.isValid(), PreconditionMessage.INVALID_SET_ACL_OPTIONS,
-        options.getOwner(), options.getGroup(), options.getPermission());
-
-    if (options.getOwner() != null) {
-      setOwner(path,new SetAclOptions.Builder().setOwner(options.getOwner())
-          .setRecursive(options.isRecursive()).build());
+    if (entry.hasOwner()) {
+      options.setOwner(entry.getOwner());
     }
-
-    if (options.getGroup() != null
-        || options.getPermission() != Constants.INVALID_PERMISSION) {
-      setGroupOrPermission(path, new SetAclOptions.Builder().setGroup(options.getGroup())
-          .setPermission(options.getPermission()).setRecursive(options.isRecursive()).build());
-    }
-  }
-
-  /**
-   * Sets the user to be the owner of the path. Only a super user can change the owner of a path.
-   *
-   * @param path to be set owner on
-   * @param options acl option to be set
-   * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
-   */
-  private void setOwner(TachyonURI path, SetAclOptions options)
-      throws AccessControlException, InvalidPathException {
-    PermissionChecker.checkSuperuser(getClientUser(), getGroups(getClientUser()));
-    synchronized (mInodeTree) {
-      long opTimeMs = System.currentTimeMillis();
-      Inode targetInode = mInodeTree.getInodeByPath(path);
-      if (options.isRecursive() && targetInode.isDirectory()) {
-        List<Inode> inodeChildren =
-            mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
-        for (Inode inode : inodeChildren) {
-          setAclInternal(inode, opTimeMs, options);
-        }
-      }
-      setAclInternal(targetInode, opTimeMs, options);
-    }
-  }
-
-  /**
-   * Sets the group or permission of the path. Only a super user or the path owner can change.
-   *
-   * @param path to be set permission on
-   * @param options acl option to be set
-   * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
-   */
-  private void setGroupOrPermission(TachyonURI path, SetAclOptions options) throws
-      AccessControlException, InvalidPathException {
-    synchronized (mInodeTree) {
-      checkOwner(path);
-      long opTimeMs = System.currentTimeMillis();
-      Inode targetInode = mInodeTree.getInodeByPath(path);
-      if (options.isRecursive() && targetInode.isDirectory()) {
-        List<Inode> inodeChildren =
-            mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
-        for (Inode inode : inodeChildren) {
-          checkOwner(mInodeTree.getPath(inode));
-        }
-        for (Inode inode : inodeChildren) {
-          setAclInternal(inode, opTimeMs, options);
-        }
-      }
-      setAclInternal(targetInode, opTimeMs, options);
-    }
-  }
-
-  /**
-   * Sets acl attributes to the inode. At least one of user, group, or permission in
-   * {@link SetAclOptions} is set.
-   *
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
-   * @param inode the inode to be set on
-   * @param opTimeMs the time of the operation
-   * @param options acl option to be set
-   * @throws AccessControlException if security is not enabled
-   */
-  // TODO(jiri): To be consistent with the rest of the code base, use setAclInternal to implement
-  // setAclFromEntry, not the other way around.
-  private void setAclInternal(Inode inode, long opTimeMs, SetAclOptions options)
-      throws AccessControlException {
-    // throws exception if security is not enabled.
-    if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
-      throw new AccessControlException(ExceptionMessage.SECURITY_IS_NOT_ENABLED.getMessage());
-    }
-
-    SetAclEntry.Builder setAcl = SetAclEntry.newBuilder().setId(inode.getId())
-        .setOpTimeMs(opTimeMs);
-    if (options.getOwner() != null) {
-      setAcl.setUserName(options.getOwner());
-    }
-    if (options.getGroup() != null) {
-      setAcl.setGroupName(options.getGroup());
-    }
-    if (options.getPermission() != Constants.INVALID_PERMISSION) {
-      setAcl.setPermission(options.getPermission());
-    }
-
-    try {
-      setAclFromEntry(setAcl.build());
-    } catch (FileDoesNotExistException e) {
-      LOG.warn("Exception happens when setting acl: ", e);
-    }
-
-    writeJournalEntry(JournalEntry.newBuilder().setSetAcl(setAcl).build());
-    flushJournal();
-  }
-
-  /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
-   * @param entry the entry to use
-   * @throws FileDoesNotExistException if the file does not exist
-   */
-  private void setAclFromEntry(SetAclEntry entry) throws FileDoesNotExistException {
-    Inode inode = mInodeTree.getInodeById(entry.getId());
-    inode.setLastModificationTimeMs(entry.getOpTimeMs());
-    if (entry.hasUserName()) {
-      inode.setUserName(entry.getUserName());
-    }
-    if (entry.hasGroupName()) {
-      inode.setGroupName(entry.getGroupName());
+    if (entry.hasGroup()) {
+      options.setGroup(entry.getGroup());
     }
     if (entry.hasPermission()) {
-      inode.setPermission((short) entry.getPermission());
+      options.setPermission((short) entry.getPermission());
     }
+    setAttributeInternal(entry.getId(), entry.getOpTimeMs(), options.build());
   }
 
   /**

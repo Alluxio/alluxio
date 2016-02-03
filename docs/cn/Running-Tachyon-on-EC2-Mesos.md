@@ -6,7 +6,8 @@ group: User Guide
 priority: 4
 ---
 
-使用Tachyon自带的[Vagrant脚本](https://github.com/amplab/tachyon/tree/master/deploy/vagrant)可以通过Mesos将Tachyon部署在Amazon EC2上。该脚本允许你创建，配置以及销毁集群，该集群自动配置了HDFS相关项。
+使用Tachyon自带的[Vagrant脚本](https://github.com/amplab/tachyon/tree/master/deploy/vagrant)可以通过
+Mesos将Tachyon部署在Amazon EC2上。该脚本允许你创建，配置以及销毁集群，该集群自动配置了HDFS相关项。
 
 # 前期准备
 
@@ -40,7 +41,8 @@ priority: 4
 
 要在EC2上运行Tachyon集群，首先在[Amazon Web Services site](http://aws.amazon.com/)注册一个Amazon EC2帐号。
 
-接着创建[access keys](https://aws.amazon.com/developers/access-keys/)并且设置`AWS_ACCESS_KEY_ID`和`AWS_SECRET_ACCESS_KEY`环境变量:
+接着创建[access keys](https://aws.amazon.com/developers/access-keys/)并且设置`AWS_ACCESS_KEY_ID`和
+`AWS_SECRET_ACCESS_KEY`环境变量:
 
 {% include Running-Tachyon-on-EC2-Mesos/access-key.md %}
 
@@ -51,12 +53,18 @@ priority: 4
 
 在`deploy/vagrant/conf/ec2.yml`配置文件中，将`Keypair`设置为你的keypair名，`Key_Path`设置成pem key路径。
 
-Vagrant脚本默认会在[该区域(**us-east-1**)和可用区域(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)中创建一个名为*tachyon-vagrant-test*的[安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
-该安全组会在区域中自动建立，并且所有inbound及outbound网络流量都将打开。你可以在`ec2.yml`配置文件中设置*security group*、*region*以及*availability zone*的值。
+Vagrant脚本默认会在
+[该区域(**us-east-1**)和可用区域(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
+中创建一个名为*tachyon-vagrant-test*的
+[安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
+该安全组会在区域中自动建立，并且所有inbound及outbound网络流量都将打开。你可以在`ec2.yml`配置文件中设
+置*security group*、*region*以及*availability zone*的值。
 
-在`deploy/vagrant/conf/mesos.yml`配置文件中，根据你需要从Github分支还是发布版本构建Mesos，将`Type`的值设置为`Github`或`Release`。
+在`deploy/vagrant/conf/mesos.yml`配置文件中，根据你需要从Github分支还是发布版本构建Mesos，将`Type`的值
+设置为`Github`或`Release`。
 
-现在你可以启动Mesos集群以及Tachyon Mesos框架，该框架自动在us-east-1a里以Hadoop 2.4.1为底层文件系统启动一个Tachyon集群。在`deploy/vagrant`运行以下命令：
+现在你可以启动Mesos集群以及Tachyon Mesos框架，该框架自动在us-east-1a里以Hadoop 2.4.1为底层文件系统启动一
+个Tachyon集群。在`deploy/vagrant`运行以下命令：
 
 {% include Running-Tachyon-on-EC2-Mesos/launch-cluster.md %}
 
@@ -76,7 +84,8 @@ Hadoop Web UI的默认端口为**50070**。
 
 在浏览器中输入`http://{MASTER_IP}:{PORT}`地址访问Web UI。
 
-注意：Tachyon Mesos框架不确保在集群中的tachyonMaster节点启动Tachyon master服务，通过Mesos Web UI找出运行该服务的节点。
+注意：Tachyon Mesos框架不确保在集群中的tachyonMaster节点启动Tachyon master服务，通过Mesos Web UI找出运
+行该服务的节点。
 
 也能通过[AWS web console](https://console.aws.amazon.com/console/home?region=us-east-1)监视其状态。
 
@@ -98,7 +107,8 @@ Hadoop Web UI的默认端口为**50070**。
 
 {% include Running-Tachyon-on-EC2-Mesos/runTests.md %}
 
-在所有测试完成后，再次访问Tachyon的web UI `http://{MASTER_IP}:19999`，在导航栏中点击`Browse File System`，你应该能看到测试过程中写入到Tachyon的文件。
+在所有测试完成后，再次访问Tachyon的web UI `http://{MASTER_IP}:19999`，在导航栏中点击
+`Browse File System`，你应该能看到测试过程中写入到Tachyon的文件。
 
 # 销毁集群
 

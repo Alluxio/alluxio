@@ -29,7 +29,7 @@ import tachyon.util.CommonUtils;
  * Configuration} to determine which provider to load.
  */
 @NotThreadSafe
-public class CustomAuthenticationProviderImpl implements AuthenticationProvider {
+public final class CustomAuthenticationProvider implements AuthenticationProvider {
 
   private final AuthenticationProvider mCustomProvider;
 
@@ -38,7 +38,7 @@ public class CustomAuthenticationProviderImpl implements AuthenticationProvider 
    *
    * @param providerName the name of the provider
    */
-  public CustomAuthenticationProviderImpl(String providerName) {
+  public CustomAuthenticationProvider(String providerName) {
     Class<?> customProviderClass;
     try {
       customProviderClass = Class.forName(providerName);
