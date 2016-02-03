@@ -8,13 +8,11 @@ priority: 0
 Tachyon's command line interface provides users with basic file system operations. You can invoke
 the command line utility using:
 
-```bash
-$ ./bin/tachyon tfs
-```
+{% include Command-Line-Interface/tachyon-tfs.md %}
 
 All "path" variables in tfs commands should start with
 
-    tachyon://<master node address>:<master node port>/<path>
+{% include Command-Line-Interface/tachyon-path.md %}
 
 Or, if no header is provided, the default hostname and port (set in the env file) will be used.
 
@@ -25,25 +23,20 @@ Or, if no header is provided, the default hostname and port (set in the env file
 Most of the commands which require path components allow wildcard arguments for ease of use. For
 example:
 
-```bash
-$ ./bin/tachyon tfs rm /data/2014*
-```
+{% include Command-Line-Interface/rm.md %}
 
 The example command would delete anything in the `data` directory with a prefix of `2014`.
 
 Note that some shells will attempt to glob the input paths, causing strange errors (Note: the number
 21 could be different and comes from the number of matching files in your local filesystem):
 
-```
-rm takes 1 arguments,  not 21
-```
+{% include Command-Line-Interface/rm-error.md %}
 
 As a work around, you can disable globbing (depending on your shell, for example `set -f`) or by
 escaping wildcards, for example:
 
-```bash
-$ ./bin/tachyon tfs cat /\\*
-```
+{% include Command-Line-Interface/escape.md %}
+
 Note the double escape, this is because the shell script will eventually call a java program which
 should have the final escaped parameters (cat /\\*).
 
@@ -51,194 +44,13 @@ should have the final escaped parameters (cat /\\*).
 
 <table class="table table-striped">
   <tr><th>Operation</th><th>Syntax</th><th>Description</th></tr>
-  <tr>
-    <td>cat</td>
-    <td>cat "path"</td>
-    <td>Print the content of the file to the console.</td>
-  </tr>
-  <tr>
-    <td>chgrp</td>
-    <td>chgrp "group" "path"</td>
-    <td>Change the group of the directory or file.</td>
-  </tr>
-  <tr>
-    <td>chgrpr</td>
-    <td>chgrpr "group" "path"</td>
-    <td>Recursively change the group of the directory or file.</td>
-  </tr>
-  <tr>
-    <td>chmod</td>
-    <td>chmod "permission" "path"</td>
-    <td>Change the permission of the directory or file.</td>
-  </tr>
-  <tr>
-    <td>chmodr</td>
-    <td>chmodr "permission" "path"</td>
-    <td>Recursively change the permission of the directory or file.</td>
-  </tr>
-  <tr>
-    <td>chown</td>
-    <td>chown "owner" "path"</td>
-    <td>Change the owner of the directory or file.</td>
-  </tr>
-  <tr>
-    <td>chownr</td>
-    <td>chownr "owner" "path"</td>
-    <td>Recursively change the owner of the directory or file.</td>
-  </tr>
-  <tr>
-    <td>copyFromLocal</td>
-    <td>copyFromLocal "source path" "remote path"</td>
-    <td>Copy the specified file specified by "source path" to the path specified by "remote path".
-    This command will fail if "remote path" already exists.</td>
-  </tr>
-  <tr>
-    <td>copyToLocal</td>
-    <td>copyToLocal "remote path" "local path"</td>
-    <td>Copy the specified file from the path specified by "remote path" to a local
-    destination.</td>
-  </tr>
-  <tr>
-    <td>count</td>
-    <td>count "path"</td>
-    <td>Display the number of folders and files matching the specified prefix in "path".</td>
-  </tr>
-  <tr>
-    <td>du</td>
-    <td>du "path"</td>
-    <td>Display the size of a file or a directory specified by the input path.</td>
-  </tr>
-  <tr>
-    <td>fileInfo</td>
-    <td>fileInfo "path"</td>
-    <td>Print the information of the blocks of a specified file.</td>
-  </tr>
-  <tr>
-    <td>free</td>
-    <td>free "path"</td>
-    <td>Free a file or all files under a directory from Tachyon. If the file/directory is also
-    in under storage, it will still be available there.</td>
-  </tr>
-  <tr>
-    <td>getCapacityBytes</td>
-    <td>getCapacityBytes</td>
-    <td>Get the capacity of the TachyonFS.</td>
-  </tr>
-  <tr>
-    <td>getUsedBytes</td>
-    <td>getUsedBytes</td>
-    <td>Get number of bytes used in the TachyonFS.</td>
-  </tr>
-  <tr>
-    <td>load</td>
-    <td>load "path"</td>
-    <td>Load the data of a file or a directory from under storage into Tachyon.</td>
-  </tr>
-  <tr>
-    <td>loadMetadata</td>
-    <td>loadMetadata "path"</td>
-    <td>Load the metadata of a file or a directory from under storage into Tachyon.</td>
-  </tr>
-  <tr>
-    <td>location</td>
-    <td>location "path"</td>
-    <td>Display a list of hosts that have the file data.</td>
-  </tr>
-  <tr>
-    <td>ls</td>
-    <td>ls "path"</td>
-    <td>List all the files and directories directly under the given path with information such as
-    size.</td>
-  </tr>
-  <tr>
-    <td>lsr</td>
-    <td>lsr "path"</td>
-    <td>Recursively list all the files and directories under the given path with information such
-    as size.</td>
-  </tr>
-  <tr>
-    <td>mkdir</td>
-    <td>mkdir "path1" ... "pathn" </td>
-    <td>Create directory(ies) under the given paths, along with any necessary parent directories. Multiple paths separated by spaces or tabs. This
-    command will fail if any of the given paths already exist.</td>
-  </tr>
-  <tr>
-    <td>mount</td>
-    <td>mount "path" "uri"</td>
-    <td>Mount the underlying file system path "uri" into the Tachyon namespace as "path". The "path"
-    is assumed not to exist and is created by the operation. No data or metadata is loaded from
-    under storage into Tachyon. After a path is mounted, operations on objects under the mounted
-    path are mirror to the mounted under storage.</td>
-  </tr>
-  <tr>
-    <td>mv</td>
-    <td>mv "source" "destination"</td>
-    <td>Move a file or directory specified by "source" to a new location "destination". This command
-    will fail if "destination" already exists.</td>
-  </tr>
-  <tr>
-    <td>persist</td>
-    <td>persist "path"</td>
-    <td>Persist a file or directory currently stored only in Tachyon to the underlying file system.
-    </td>
-  </tr>
-  <tr>
-    <td>pin</td>
-    <td>pin "path"</td>
-    <td>Pin the given file to avoid evicting it from memory. If the given path is a directory, it
-    recursively pins all the files contained and any new files created within this directory.</td>
-  </tr>
-  <tr>
-    <td>report</td>
-    <td>report "path"</td>
-    <td>Report to the master that a file is lost.</td>
-  </tr>
-  <tr>
-    <td>rm</td>
-    <td>rm "path"</td>
-    <td>Remove a file. This command will fail if the given path is a directory rather than a
-    file.</td>
-  </tr>
-  <tr>
-    <td>rmr</td>
-    <td>rmr "path"</td>
-    <td>Remove a file, or a directory with all the files and sub-directories that this directory
-    contains.</td>
-  </tr>
-  <tr>
-    <td>setTtl</td>
-    <td>setTtl "time"</td>
-    <td>Set the TTL (time to live) in milliseconds to a file.</td>
-  </tr>
-  <tr>
-    <td>tail</td>
-    <td>tail "path"</td>
-    <td>Print the last 1KB of the specified file to the console.</td>
-  </tr>
-  <tr>
-    <td>touch</td>
-    <td>touch "path"</td>
-    <td>Create a 0-byte file at the specified location.</td>
-  </tr>
-  <tr>
-    <td>unmount</td>
-    <td>unmount "path"</td>
-    <td>Unmount the underlying file system path mounted in the Tachyon namespace as "path". Tachyon
-    objects under "path" are removed from Tachyon, but they still exist in the previously mounted
-    under storage.</td>
-  </tr>
-  <tr>
-    <td>unpin</td>
-    <td>unpin "path"</td>
-    <td>Unpin the given file to allow Tachyon to evict this file again. If the given path is a
-    directory, it recursively unpins all files contained and any new files created within this
-    directory.</td>
-  </tr>
-  <tr>
-    <td>unsetTtl</td>
-    <td>unsetTtl</td>
-    <td>Remove the TTL (time to live) setting from a file.</td>
-  </tr>
+  {% for item in site.data.table.operation-command %}
+    <tr>
+      <td>{{ item.operation }}</td>
+      <td>{{ item.syntax }}</td>
+      <td>{{ site.data.table.en.operation-command.[item.operation] }}</td>
+    </tr>
+  {% endfor %}
 </table>
 
 # Example Use Cases
@@ -251,9 +63,7 @@ file system, `copyToLocal` should be used.
 For example, when trying out a new computation job, `cat` can be used as a quick way to check the
 output:
 
-```bash
-$ ./bin/tachyon tfs cat /output/part-00000
-```
+{% include Command-Line-Interface/cat.md %}
 
 ## chgrp
 The `chgrp` command changes the group of the file or directory in Tachyon. Tachyon supports file
@@ -262,18 +72,16 @@ model. The file owner or super-user can execute this command to change the group
 directory.
 
 For example, `chgrp` can be used as a quick way to change the group of file:
-```bash
-$ ./bin/tachyon tfs chgrp tachyon-group-new /input/file1
-```
+
+{% include Command-Line-Interface/chgrp.md %}
 
 ## chgrpr
 The `chgrpr` command is similar to `chgrp`, but it also recursively changes the group of child file
 and directory in Tachyon.
 
 For example, `chgrpr` can be used as a quick way to recursively change the group of directory:
-```bash
-$ ./bin/tachyon tfs chgrpr tachyon-group-new /input/directory1
-```
+
+{% include Command-Line-Interface/chgrpr.md %}
 
 ## chmod
 The `chmod` command changes the permission of file or directory in Tachyon. Currently octal mode
@@ -282,79 +90,42 @@ file owner, the group and other users. Here is number-permission mapping table:
 
 <table class="table table-striped">
   <tr><th>Number</th><th>Permission</th><th>rwx</th></tr>
-  <tr>
-    <td>7</td>
-    <td>read, write and execute</td>
-    <td>rwx</td>
-  </tr>
-  <tr>
-    <td>6</td>
-    <td>read and write</td>
-    <td>rw-</td>
-  </tr>
-  <tr>
-    <td>5</td>
-    <td>read and execute</td>
-    <td>r-x</td>
-  </tr>
-  <tr>
-    <td>4</td>
-    <td>read only</td>
-    <td>r--</td>
-  </tr>
-  <tr>
-    <td>3</td>
-    <td>write and execute</td>
-    <td>-wx</td>
-  </tr>
-  <tr>
-    <td>2</td>
-    <td>write only</td>
-    <td>-w-</td>
-  </tr>
-  <tr>
-    <td>1</td>
-    <td>execute only</td>
-    <td>--x</td>
-  </tr>
-  <tr>
-    <td>0</td>
-    <td>none</td>
-    <td>---</td>
-  </tr>
+  {% for item in site.data.table.chmod-permission %}
+    <tr>
+      <td>{{ item.number }}</td>
+      <td>{{ item.permission }}</td>
+      <td>{{ item.rwx }}</td>
+    </tr>
+  {% endfor %}
 </table>
 
 For example, `chmod` can be used as a quick way to change the permission of file:
-```bash
-$ ./bin/tachyon tfs chmod 755 /input/file1
-```
+
+{% include Command-Line-Interface/chmod.md %}
 
 ## chmodr
 The `chmodr` command is similar to `chmod`, but it also changes the permission of child file and
 child directory in Tachyon.
 
 For example, `chmodr` can be used as a quick way to recursively change the permission of directory:
-```bash
-$ ./bin/tachyon tfs chmodr 755 /input/directory1
-```
+
+{% include Command-Line-Interface/chmodr.md %}
 
 ## chown
 The `chown` command changes the owner of the file or directory in Tachyon. For obvious security
 reasons, the ownership of a file can only be altered by a super-user.
 
 For example, `chown` can be used as a quick way to change the owner of file:
-```bash
-$ ./bin/tachyon tfs chown tachyon-user /input/file1
-```
+
+{% include Command-Line-Interface/chown.md %}
 
 ## chownr
 The `chownr` command is similar to `chown`, but it also changes the owner of child file and child
 directory in Tachyon.
 
 For example, `chownr` can be used as a quick way to recursively change the owner of directory:
-```bash
-$ ./bin/tachyon tfs chownr tachyon-user /input/directory1
-```
+
+{% include Command-Line-Interface/chownr.md %}
 
 ## copyFromLocal
 The `copyFromLocal` command copies the contents of a file in your local file system into Tachyon.
@@ -365,9 +136,7 @@ directory is specified, the directory and all its contents will be uploaded recu
 For example, `copyFromLocal` can be used as a quick way to inject data into the system for
 processing:
 
-```bash
-$ ./bin/tachyon tfs copyFromLocal /local/data /input
-```
+{% include Command-Line-Interface/copyFromLocal.md %}
 
 ## copyToLocal
 The `copyToLocal` command copies the contents of a file in Tachyon to a file in your local file
@@ -377,10 +146,7 @@ recurisvely.
 For example, `copyToLocal` can be used as a quick way to download output data for additional
 investigation or debugging.
 
-```bash
-$ ./bin/tachyon tfs copyToLocal /output/part-00000 part-00000
-$ wc -l part-00000
-```
+{% include Command-Line-Interface/copyToLocal.md %}
 
 ## count
 The `count` command outputs the number of files and folders matching a prefix as well as the
@@ -391,9 +157,7 @@ files.
 For example, if data files are stored by their date, `count` can be used to determine the number of
 data files and their total size for any date, month, or year.
 
-```bash
-$ ./bin/tachyon tfs count /data/2014
-```
+{% include Command-Line-Interface/count.md %}
 
 ## du
 The `du` command outputs the size of a file. If a directory is specified, it will output the
@@ -402,9 +166,7 @@ aggregate size of all files in the directory and its children directories.
 For example, if the Tachyon space is unexpectedly over utilized, `du` can be used to detect
 which folders are taking up the most space.
 
-```bash
-$ ./bin/tachyon tfs du /\\*
-```
+{% include Command-Line-Interface/du.md %}
 
 ## fileInfo
 The `fileInfo` command dumps the FileInfo representation of a file to the console. It is primarily
@@ -414,9 +176,7 @@ will be much easier to understand.
 For example, `fileInfo` can be used to debug the block locations of a file. This is useful when
 trying to achieve locality for compute workloads.
 
-```bash
-$ ./bin/tachyon tfs fileInfo /data/2015/logs-1.txt
-```
+{% include Command-Line-Interface/fileInfo.md %}
 
 ## free
 The `free` command sends a request to the master to evict all blocks of a file from the Tachyon
@@ -429,27 +189,21 @@ will still show up if an `ls` command is run.
 
 For example, `free` can be used to manually manage Tachyon's data caching.
 
-```bash
-$ ./bin/tachyon tfs free /unused/data
-```
+{% include Command-Line-Interface/free.md %}
 
 ## getCapacityBytes
 The `getCapacityBytes` command returns the maximum number of bytes Tachyon is configured to store.
 
 For example, `getCapacityBytes` can be used to verify if your cluster is set up as expected.
 
-```bash
-$ ./bin/tachyon tfs getCapacityBytes
-```
+{% include Command-Line-Interface/getCapacityBytes.md %}
 
 ## getUsedBytes
 The `getUsedBytes` command returns the number of used bytes in Tachyon.
 
 For example, `getUsedBytes` can be used to monitor the health of your cluster.
 
-```bash
-$ ./bin/tachyon tfs getUsedBytes
-```
+{% include Command-Line-Interface/getUsedBytes.md %}
 
 ## load
 The `load` command moves data from the under storage system into Tachyon storage. If there is a
@@ -460,9 +214,7 @@ will be recursively loaded.
 
 For example, `load` can be used to prefetch data for analytics jobs.
 
-```bash
-$ ./bin/tachyon tfs load /data/today
-```
+{% include Command-Line-Interface/load.md %}
 
 ## loadMetadata
 The `loadMetadata` command queries the under storage system for any file or directory matching the
@@ -473,9 +225,7 @@ For example, `loadMetadata` can be used when other systems output to the under s
 (bypassing Tachyon), and the application running on Tachyon needs to use the output of those
 systems.
 
-```bash
-$ ./bin/tachyon tfs loadMetadata /hdfs/data/2015/logs-1.txt
-```
+{% include Command-Line-Interface/loadMetadata.md %}
 
 ## location
 The `location` command returns the addresses of all the Tachyon workers which contain blocks
@@ -484,9 +234,7 @@ belonging to the given file.
 For example, `location` can be used to debug data locality when running jobs using a compute
 framework.
 
-```bash
-$ ./bin/tachyon tfs location /data/2015/logs-1.txt
-```
+{% include Command-Line-Interface/location.md %}
 
 ## ls
 The `ls` command lists all the immediate children in a directory and displays the file size, last
@@ -495,9 +243,7 @@ information for that specific file.
 
 For example, `ls` can be used to browse the file system.
 
-```bash
-$ ./bin/tachyon tfs ls /users/alice/
-```
+{% include Command-Line-Interface/ls.md %}
 
 ## lsr
 The `lsr` command is similar to `ls`, but it also recursively lists child directories, displaying
@@ -506,9 +252,7 @@ display information for that specific file.
 
 For example, `lsr` can be used to browse the file system.
 
-```bash
-$ ./bin/tachyon tfs lsr /users/
-```
+{% include Command-Line-Interface/lsr.md %}
 
 ## mkdir
 The `mkdir` command creates a new directory in Tachyon space. It is recursive and will create any
@@ -518,11 +262,7 @@ on an invalid or already existing path will fail.
 
 For example, `mkdir` can be used by an admin to set up the basic folder structures.
 
-```bash
-$ ./bin/tachyon tfs mkdir /users
-$ ./bin/tachyon tfs mkdir /users/Alice
-$ ./bin/tachyon tfs mkdir /users/Bob
-```
+{% include Command-Line-Interface/mkdir.md %}
 
 ## mount
 The `mount` command links an under storage path to a Tachyon path, and files and folders created
@@ -531,9 +271,7 @@ storage path. For more details, see [Unified Namespace](Unified-and-Transparent-
 
 For example, `mount` can be used to make data in another storage system available in Tachyon.
 
-```bash
-$ ./bin/tachyon tfs mount s3n://data-bucket/ /s3/data
-```
+{% include Command-Line-Interface/mount.md %}
 
 ## mv
 The `mv` command moves a file or directory to another path in Tachyon. The destination path must not
@@ -543,9 +281,7 @@ the directory. `mv` is purely a metadata operation and does not affect the data 
 
 For example, `mv` can be used to move older data into a non working directory.
 
-```bash
-$ ./bin/tachyon tfs mv /data/2014 /data/archives/2014
-```
+{% include Command-Line-Interface/mv.md %}
 
 ## persist
 The `persist` command persists data in Tachyon storage into the under storage system. This is a data
@@ -556,9 +292,7 @@ blocks are evicted or otherwise lost.
 For example, `persist` can be used after filtering a series of temporary files for the ones
 containing useful data.
 
-```bash
-$ ./bin/tachyon tfs persist /tmp/experimental-logs-2.txt
-```
+{% include Command-Line-Interface/persist.md %}
 
 ## pin
 The `pin` command marks a file or folder as pinned in Tachyon. This is a metadata operation and will
@@ -569,9 +303,7 @@ run low on storage space preventing other files from being cached.
 For example, `pin` can be used to manually ensure performance if the administrator understands the
 workloads well.
 
-```bash
-$ ./bin/tachyon tfs pin /data/today
-```
+{% include Command-Line-Interface/pin.md %}
 
 ## report
 The `report` command marks a file as lost to the Tachyon master. This command should only be used
@@ -580,9 +312,7 @@ master to schedule a recomputation job to regenerate the file.
 
 For example, `report` can be used to force recomputation of a file.
 
-```bash
-$ ./bin/tachyon tfs report /tmp/lineage-file
-```
+{% include Command-Line-Interface/report.md %}
 
 ## rm
 The `rm` command removes a file from Tachyon space and the under storage system. The file will be
@@ -591,9 +321,7 @@ later.
 
 For example, `rm` can be used to remove temporary files which are no longer needed.
 
-```bash
-$ ./bin/tachyon tfs rm /tmp/unused-file
-```
+{% include Command-Line-Interface/rm2.md %}
 
 ## rmr
 The `rmr` command is similar to `rm`, but can also take a directory as an argument. `Rmr` will
@@ -601,9 +329,7 @@ delete all contents of the directory and then the directory itself.
 
 For example, `rmr` can be used to clean up entire subtrees in the Tachyon.
 
-```bash
-$ ./bin/tachyon tfs rmr /tmp/tests
-```
+{% include Command-Line-Interface/rmr.md %}
 
 ## setTtl
 The `setTtl` command sets the time-to-live of a file, in milliseconds. The file will automatically
@@ -613,9 +339,7 @@ will affect both Tachyon and the under storage system.
 For example, `setTtl` can be used to clean up files the administrator knows are unnecessary after a
 period of time.
 
-```bash
-$ ./bin/tachyon tfs setTtl /data/good-for-one-day 86400000
-```
+{% include Command-Line-Interface/setTtl.md %}
 
 ## tail
 The `tail` command outputs the last 1 kb of data in a file to the console.
@@ -623,9 +347,7 @@ The `tail` command outputs the last 1 kb of data in a file to the console.
 For example, `tail` can be used to verify the output of a job is in the expected format or contains
 expected values.
 
-```bash
-$ ./bin/tachyon tfs tail /output/part-00000
-```
+{% include Command-Line-Interface/tail.md %}
 
 ## touch
 The `touch` command creates a 0-byte file. Files created with `touch` cannot be overwritten and are
@@ -634,9 +356,7 @@ mostly useful as flags.
 For example, `touch` can be used to create a file signifying the compeletion of analysis on a
 directory.
 
-```bash
-$ ./bin/tachyon tfs touch /data/yesterday/_DONE_
-```
+{% include Command-Line-Interface/touch.md %}
 
 ## unmount
 The `unmount` command disassociates a Tachyon path with an under storage directory. Tachyon metadata
@@ -647,9 +367,7 @@ more dtails.
 For example, `unmount` can be used to remove an under storage system when the users no longer need
 data from that system.
 
-```bash
-$ ./bin/tachyon tfs unmount /s3/data
-```
+{% include Command-Line-Interface/unmount.md %}
 
 ## unpin
 The `unpin` command unmarks a file or directory in Tachyon as pinned. This is a metadata operation
@@ -659,9 +377,7 @@ evicted from the various Tachyon workers containing the block.
 For example, `unpin` can be used when the administrator knows there is a change in the data access
 pattern.
 
-```bash
-$ ./bin/tachyon tfs unpin /data/yesterday/join-table
-```
+{% include Command-Line-Interface/unpin.md %}
 
 ## unsetTtl
 The `unsetTtl` command will remove the TTL of a file in Tachyon. This is a metadata operation and
@@ -670,6 +386,4 @@ will not evict or store blocks in Tachyon. The TTL of a file can later be reset 
 For example, `unsetTtl` can be used if a regularly managed file requires manual management due to
 some special case.
 
-```bash
-$ ./bin/tachyon tfs unsetTtl /data/yesterday/data-not-yet-analyzed
-```
+{% include Command-Line-Interface/unsetTtl.md %}
