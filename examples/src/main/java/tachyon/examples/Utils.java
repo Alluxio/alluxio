@@ -64,7 +64,7 @@ public final class Utils {
   }
 
   /**
-   * Provides the options to show in the usage for a {@link boolean}.
+   * Provides the options to show in the usage for a {@code boolean}.
    *
    * @param args the arguments to parse
    * @param index the index of the option
@@ -81,7 +81,7 @@ public final class Utils {
   }
 
   /**
-   * Provides the options to show in the usage for an {@link int}.
+   * Provides the options to show in the usage for an {@code int}.
    *
    * @param args the arguments to parse
    * @param index the index of the option
