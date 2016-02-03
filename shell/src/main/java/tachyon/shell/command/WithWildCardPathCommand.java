@@ -49,9 +49,10 @@ public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
    * Actually runs the command against one expanded path.
    *
    * @param path the expanded input path
+   * @param cl the parsed command line object including options
    * @throws IOException if the command fails
    */
-  abstract void runCommand(TachyonURI path) throws IOException;
+  abstract void runCommand(TachyonURI path, CommandLine cl) throws IOException;
 
   @Override
   protected int getNumOfArgs() {
@@ -72,7 +73,7 @@ public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
     List<String> errorMessages = new ArrayList<String>();
     for (TachyonURI path : paths) {
       try {
-        runCommand(path);
+        runCommand(path, cl);
       } catch (IOException e) {
         errorMessages.add(e.getMessage());
       }

@@ -20,6 +20,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -35,6 +36,12 @@ public abstract class AbstractTfsShellCommand implements TfsShellCommand {
 
   protected TachyonConf mTachyonConf;
   protected FileSystem mFileSystem;
+  protected static final Option RECURSIVE_OPTION =
+      Option.builder("R")
+            .required(false)
+            .hasArg(false)
+            .desc("recursive")
+            .build();
 
   protected AbstractTfsShellCommand(TachyonConf conf, FileSystem fs) {
     mTachyonConf = conf;

@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 
 import tachyon.TachyonURI;
+import tachyon.client.file.URIStatus;
 import tachyon.master.file.meta.PersistenceState;
 import tachyon.security.authorization.FileSystemPermission;
 import tachyon.util.FormatUtils;
@@ -107,26 +108,35 @@ public final class UIFileInfo {
   /**
    * Creates a new instance of {@link UIFileInfo}.
    *
-   * @param fileInfo underlying {@link FileInfo}
+   * @param status underlying {@link URIStatus}
    */
-  public UIFileInfo(FileInfo fileInfo) {
-    mId = fileInfo.getFileId();
-    mName = fileInfo.getName();
-    mAbsolutePath = fileInfo.getPath();
-    mBlockSizeBytes = fileInfo.getBlockSizeBytes();
-    mSize = fileInfo.getLength();
-    mCreationTimeMs = fileInfo.getCreationTimeMs();
-    mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
-    mInMemory = (100 == fileInfo.getInMemoryPercentage());
-    mInMemoryPercent = fileInfo.getInMemoryPercentage();
-    mIsDirectory = fileInfo.isFolder();
-    mPinned = fileInfo.isPinned();
-    mUserName = fileInfo.getUserName();
-    mGroupName = fileInfo.getGroupName();
+  public UIFileInfo(URIStatus status) {
+    mId = status.getFileId();
+    mName = status.getName();
+    mAbsolutePath = status.getPath();
+    mBlockSizeBytes = status.getBlockSizeBytes();
+    mSize = status.getLength();
+    mCreationTimeMs = status.getCreationTimeMs();
+    mLastModificationTimeMs = status.getLastModificationTimeMs();
+    mInMemory = (100 == status.getInMemoryPercentage());
+    mInMemoryPercent = status.getInMemoryPercentage();
+    mIsDirectory = status.isFolder();
+    mPinned = status.isPinned();
+    mUserName = status.getUserName();
+    mGroupName = status.getGroupName();
     mPermission =
-        FormatUtils.formatPermission((short) fileInfo.getPermission(), fileInfo.isFolder());
-    mPersistenceState = fileInfo.getPersistenceState();
+        FormatUtils.formatPermission((short) status.getPermission(), status.isFolder());
+    mPersistenceState = status.getPersistenceState();
     mFileLocations = new ArrayList<String>();
+  }
+
+  /**
+   * Creates a new instance of {@link UIFileInfo}
+   *
+   * @param info underlying {@link FileInfo}
+   */
+  public UIFileInfo(FileInfo info) {
+    this(new URIStatus(info));
   }
 
   /**

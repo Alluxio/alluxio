@@ -193,7 +193,7 @@ public final class BlockWorkerClient extends ClientBase {
 
   @Override
   protected long getServiceVersion() {
-    return Constants.BLOCK_WORKER_SERVICE_VERSION;
+    return Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION;
   }
 
   /**
