@@ -639,9 +639,7 @@ public class PermissionCheckTest {
   @Test
   public void setOwnerSuccessTest() throws Exception {
     verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, TEST_USER_1.getUser(), null, (short) -1, false);
-
-    verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, TEST_USER_2.getUser(), null, (short) -1,
-        true);
+    verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, TEST_USER_2.getUser(), null, (short) -1, true);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
         new TachyonURI(TEST_DIR_FILE_URI)));
     Assert.assertEquals(TEST_USER_2.getUser(), fileInfo.getUserName());
@@ -676,8 +674,8 @@ public class PermissionCheckTest {
   @Test
   public void setGroupFailTest() throws Exception {
     mThrown.expect(AccessControlException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        "user=" + TEST_USER_1.getUser() + " is not the owner of path=" + TEST_FILE_URI));
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage("user="
+        + TEST_USER_1.getUser() + " is not the owner of path=" + TEST_FILE_URI));
 
     verifySetAcl(TEST_USER_1, TEST_FILE_URI, null, TEST_USER_1.getGroups(), (short) -1, false);
   }
@@ -727,7 +725,7 @@ public class PermissionCheckTest {
   }
 
   @Test
-  public void setAclFailByNotSuperuserTest() throws Exception {
+  public void setAclFailByNotSuperUserTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(TEST_USER_2.getUser() + " is not a super user or in super group");
 
