@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileSystem;
@@ -28,6 +30,7 @@ import tachyon.thrift.BlockLocation;
 /**
  * Displays a list of hosts that have the file specified in args stored.
  */
+@ThreadSafe
 public final class LocationCommand extends WithWildCardPathCommand {
 
   /**
@@ -35,10 +38,10 @@ public final class LocationCommand extends WithWildCardPathCommand {
    * stored.
    *
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public LocationCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public LocationCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -50,7 +53,7 @@ public final class LocationCommand extends WithWildCardPathCommand {
   void runCommand(TachyonURI path) throws IOException {
     URIStatus status;
     try {
-      status = mTfs.getStatus(path);
+      status = mFileSystem.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }

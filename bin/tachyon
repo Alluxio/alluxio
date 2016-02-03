@@ -5,6 +5,7 @@ LAUNCHER=
 if [[ $- == *x* ]]; then
   LAUNCHER="bash -x"
 fi
+BIN=$(cd "$( dirname "$0" )"; pwd)
 
 function printUsage {
   echo "Usage: tachyon COMMAND "
@@ -14,9 +15,11 @@ function printUsage {
   echo -e "  bootstrap-conf\t Generate a config file if one doesn't exist"
   echo -e "  tfs           \t Command line input for generic filesystem user client."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Tachyon."
+  echo -e "  runClass      \t Run a Tachyon class with main method."
   echo -e "  runTest       \t Run a end-to-end test on a Tachyon cluster."
+  echo -e "  runKVTest     \t Run a test of key-value store operations."
   echo -e "  runTests      \t Run all end-to-end tests on a Tachyon cluster."
-  echo -e "  journalCrashTest\t Test the Master Journal System in a crash scenario. Try 'tachyon journalCrashTest -help' for more help."
+  echo -e "  runJournalCrashTest\t Test the Master Journal System in a crash scenario. Try 'tachyon runJournalCrashTest -help' for more help."
   echo -e "                  \t NOTE: This command will stop the existing server and creates a new one!"
   echo -e "  readJournal   \t Read a Tachyon journal file from stdin and write a human-readable version of it to stdout."
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
@@ -37,15 +40,13 @@ fi
 COMMAND=$1
 shift
 
-bin=`cd "$( dirname "$0" )"; pwd`
-
 function bootstrapConf {
   if [[ $# -ne 1 ]]; then
     echo "Usage: $0 bootstrap-conf TACHYON_MASTER_HOSTNAME"
     exit 1
   fi
 
-  TACHYON_CONF_DIR=$bin/../conf
+  TACHYON_CONF_DIR=${BIN}/../conf
   if [[ ! -e "${TACHYON_CONF_DIR}/tachyon-env.sh" ]]; then
     if [[ `uname -a` == Darwin* ]]; then
       # osx sed wants an argument to -i, use .bootstrap.bk
@@ -72,7 +73,7 @@ if [[ "${COMMAND}" == "bootstrap-conf" ]]; then
   exit 0
 fi
 
-DEFAULT_LIBEXEC_DIR="${bin}"/../libexec
+DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
 TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . ${TACHYON_LIBEXEC_DIR}/tachyon-config.sh
 
@@ -106,7 +107,7 @@ function runTest {
       exit 1
       ;;
   esac
-  ${LAUNCHER} ${bin}/tachyon tfs rmr ${file}
+  ${LAUNCHER} ${BIN}/tachyon tfs rmr ${file}
   ${JAVA} -cp ${CLASSPATH} ${TACHYON_JAVA_OPTS} ${class} tachyon://${MASTER_ADDRESS}:19998 ${file} $2 $3
 
   # If test process received a signal abort early
@@ -119,24 +120,34 @@ function runTest {
   return ${RET}
 }
 
-function journalCrashTest {
+function runClass {
+  if [[ $# -lt 1 ]]; then
+    echo "runClass <class name> <main method parameters>"
+    exit
+  fi
+
   MASTER_ADDRESS=${TACHYON_MASTER_ADDRESS}
   if [[ -z ${TACHYON_MASTER_ADDRESS} ]]; then
     MASTER_ADDRESS=localhost
   fi
 
-  local class="tachyon.examples.JournalCrashTest"
+  local class="$1"
+  shift
 
-  ${JAVA} -cp ${CLASSPATH} -Dtachyon.home=${TACHYON_HOME} -Dtachyon.master.hostname=${MASTER_ADDRESS} -Dtachyon.logs.dir=${TACHYON_LOGS_DIR} -Dtachyon.logger.type=USER_LOGGER ${TACHYON_JAVA_OPTS} ${class} $@
+  ${JAVA} -cp ${CLASSPATH} -Dtachyon.home=${TACHYON_HOME} -Dtachyon.master.hostname=${MASTER_ADDRESS} ${TACHYON_JAVA_OPTS} ${class} $@
   RET=$?
 
   # If test process received a signal abort early
   # Exit Codes for signals terminating a JVM are 128 + signal
   if [[ ${RET} -gt 128 ]]; then
-    echo "Test process was terminated due to signal"
+    echo "Process was terminated due to signal"
     exit ${RET}
   fi
   return ${RET}
+}
+
+function runJournalCrashTest {
+  runClass tachyon.examples.JournalCrashTest $@
 }
 
 function readJournal {
@@ -145,6 +156,10 @@ function readJournal {
   ${JAVA} -cp ${CLASSPATH} -Dtachyon.home=${TACHYON_HOME} -Dtachyon.master.hostname=${MASTER_ADDRESS} -Dtachyon.logs.dir=${TACHYON_LOGS_DIR} -Dtachyon.logger.type=USER_LOGGER ${TACHYON_JAVA_OPTS} ${class} $@
   RET=$?
   return ${RET}
+}
+
+function runKVTest {
+  runClass tachyon.examples.keyvalue.KeyValueStoreOperations /default_tests_files/KeyValueStoreOperations
 }
 
 function killAll {
@@ -180,7 +195,6 @@ function copyDir {
     exit 1
   fi
 
-  bin=`cd "$( dirname "$0" )"; pwd`
   WORKERS=`cat ${TACHYON_CONF_DIR}/workers | grep -v '^#'`
 
   DIR=`readlink -f "$1"`
@@ -207,7 +221,7 @@ case ${COMMAND} in
         # if ufs is local filesystem and already exists
         exit 0
       else
-        declare -a schemes=(hdfs s3 s3n glusterfs swift)
+        declare -a schemes=(hdfs s3 s3n glusterfs swift oss)
         for scheme in ${schemes[@]}; do
           if [[ ${TACHYON_UNDERFS_ADDRESS} == ${scheme}://* ]]; then
             # if ufs is not local filesystem, don't format
@@ -230,7 +244,7 @@ case ${COMMAND} in
     TACHYON_MASTER_ADDRESS=localhost
   fi
 
-  ${LAUNCHER} ${bin}/tachyon-workers.sh ${bin}/tachyon formatWorker
+  ${LAUNCHER} ${BIN}/tachyon-workers.sh ${BIN}/tachyon formatWorker
 
   echo "Formatting Tachyon Master @ ${TACHYON_MASTER_ADDRESS}"
   CLASS=tachyon.Format
@@ -247,8 +261,16 @@ case ${COMMAND} in
 "loadufs")
   CLASS=tachyon.client.UfsUtils
 ;;
+"runClass")
+  runClass $@
+  exit $?
+;;
 "runTest")
   runTest $@
+  exit $?
+;;
+"runKVTest")
+  runKVTest $@
   exit $?
 ;;
 "runTests")
@@ -259,8 +281,8 @@ case ${COMMAND} in
   for readType in ${readTypes[@]}; do
     for writeType in ${writeTypes[@]}; do
       for example in Basic BasicNonByteBuffer; do
-        echo ${LAUNCHER} ${bin}/tachyon runTest ${example} ${readType} ${writeType}
-        ${LAUNCHER} ${bin}/tachyon runTest ${example} ${readType} ${writeType}
+        echo ${LAUNCHER} ${BIN}/tachyon runTest ${example} ${readType} ${writeType}
+        ${LAUNCHER} ${BIN}/tachyon runTest ${example} ${readType} ${writeType}
         st=$?
 
         # If test process received a signal abort early
@@ -280,8 +302,8 @@ case ${COMMAND} in
   fi
   exit ${failed}
 ;;
-"journalCrashTest")
-  journalCrashTest $@
+"runJournalCrashTest")
+  runJournalCrashTest $@
   exit $?
 ;;
 "readJournal")
@@ -297,19 +319,19 @@ case ${COMMAND} in
   exit 0
 ;;
 "thriftGen")
-  declare -a thriftSrcPaths=("${bin}/../common/src" "${bin}/../keyvalue/common/src")
+  declare -a thriftSrcPaths=("${BIN}/../core/common/src" "${BIN}/../keyvalue/common/src")
   for thriftSrcPath in ${thriftSrcPaths[@]}; do
     rm -rf "${thriftSrcPath}/main/java/tachyon/thrift"
     for srcFile in $(ls "${thriftSrcPath}/thrift"); do
-      thrift -I "${bin}/../common/src/thrift" --gen java -out "${thriftSrcPath}/main/java/." "${thriftSrcPath}/thrift/${srcFile}"
+      thrift -I "${BIN}/../core/common/src/thrift" --gen java:private-members -out "${thriftSrcPath}/main/java/." "${thriftSrcPath}/thrift/${srcFile}"
     done
   done
   exit 0
 ;;
 "protoGen")
-  rm -rf ${bin}/../servers/src/main/java/tachyon/proto
-  for src_file in $(find ${bin}/../servers/src/proto -type f); do
-    protoc --java_out=${bin}/../servers/src/main/java --proto_path=`dirname ${src_file}` ${src_file}
+  rm -rf ${BIN}/../core/server/src/main/java/tachyon/proto
+  for src_file in $(find ${BIN}/../core/server/src/proto -type f); do
+    protoc --java_out=${BIN}/../core/server/src/main/java --proto_path=`dirname ${src_file}` ${src_file}
   done
   exit 0
 ;;

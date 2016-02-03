@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
@@ -31,10 +33,11 @@ import tachyon.util.FormatUtils;
 /**
  * Parent class for commands ls and lsr.
  */
+@ThreadSafe
 public abstract class AbstractLsCommand extends WithWildCardPathCommand {
 
-  protected AbstractLsCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  protected AbstractLsCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   /**
@@ -70,7 +73,7 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
       throws IOException {
     List<URIStatus> statuses;
     try {
-      statuses = mTfs.listStatus(path);
+      statuses = mFileSystem.listStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }

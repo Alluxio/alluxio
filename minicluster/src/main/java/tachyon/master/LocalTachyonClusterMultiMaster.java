@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.curator.test.TestingServer;
 
 import com.google.common.base.Throwables;
@@ -26,14 +28,16 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.file.FileSystem;
+import tachyon.client.util.ClientTestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.worker.WorkerContext;
 
 /**
- * A local Tachyon cluster with Multiple masters
+ * A local Tachyon cluster with multiple masters.
  */
+@NotThreadSafe
 public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster {
 
   private TestingServer mCuratorServer = null;
@@ -41,6 +45,11 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
   private final List<LocalTachyonMaster> mMasters = new ArrayList<LocalTachyonMaster>();
 
+  /**
+   * @param workerCapacityBytes the capacity of the worker in bytes
+   * @param masters the number of the master
+   * @param userBlockSize the block size for a user
+   */
   public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters, int userBlockSize) {
     super(workerCapacityBytes, userBlockSize);
     mNumOfMasters = masters;
@@ -58,6 +67,9 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     return getMaster().getClient();
   }
 
+  /**
+   * @return the URI of the master
+   */
   public String getUri() {
     return new StringBuilder()
         .append(Constants.HEADER_FT)
@@ -91,7 +103,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   }
 
   /**
-   * Iterate over the masters in the order of master creation, kill the first standby master.
+   * Iterates over the masters in the order of master creation, kill the first standby master.
    *
    * @return true if a standby master is successfully killed, otherwise, false
    */
@@ -112,6 +124,11 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     return false;
   }
 
+  /**
+   * Iterates over the masters in the order of master creation, kill the leader master.
+   *
+   * @return true if the leader master is successfully killed, false otherwise
+   */
   public boolean killLeader() {
     for (int k = 0; k < mNumOfMasters; k ++) {
       if (mMasters.get(k).isServing()) {
@@ -157,7 +174,8 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
     runWorker();
     // The client context should reflect the updates to the conf.
-    ClientContext.reset(mWorkerConf);
+    ClientContext.getConf().merge(conf);
+    ClientTestUtils.reinitializeClientContext();
   }
 
   @Override

@@ -17,16 +17,21 @@ package tachyon.underfs;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
-import tachyon.underfs.LocalFilesystemCluster;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.PathUtils;
 
+/**
+ * Base class for a UFS cluster.
+ */
+@NotThreadSafe
 public abstract class UnderFileSystemCluster {
   class ShutdownHook extends Thread {
     UnderFileSystemCluster mUFSCluster = null;
@@ -49,18 +54,20 @@ public abstract class UnderFileSystemCluster {
 
   private static final String INTEGRATION_UFS_PROFILE_KEY = "ufs";
 
-  private static String sUfsClz;
+  private static String sUnderFSClass;
+
+  private static UnderFileSystemCluster sUnderFSCluster = null;
 
   /**
    * @return the existing underfs, throwing IllegalStateException if it hasn't been initialized yet
    */
   public static synchronized UnderFileSystemCluster get() {
-    Preconditions.checkNotNull(sUnderFSCluster, "sUnderFSCluster has not been initailized yet");
+    Preconditions.checkNotNull(sUnderFSCluster, "sUnderFSCluster has not been initialized yet");
     return sUnderFSCluster;
   }
 
   /**
-   * Create an underfs test bed and register the shutdown hook.
+   * Creates an underfs test bed and register the shutdown hook.
    *
    * @param baseDir base directory
    * @param tachyonConf Tachyon configuration
@@ -81,33 +88,34 @@ public abstract class UnderFileSystemCluster {
     return sUnderFSCluster;
   }
 
+  /**
+   * Gets the {@link UnderFileSystemCluster}.
+   *
+   * @param baseDir the base directory
+   * @param tachyonConf the configuration for Tachyon
+   * @return the {@link UnderFileSystemCluster}
+   */
   public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir,
       TachyonConf tachyonConf) {
-    sUfsClz = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
+    sUnderFSClass = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
 
-    if (!StringUtils.isEmpty(sUfsClz)) {
+    if (!StringUtils.isEmpty(sUnderFSClass)) {
       try {
         UnderFileSystemCluster ufsCluster =
-            (UnderFileSystemCluster) Class.forName(sUfsClz).getConstructor(String.class,
+            (UnderFileSystemCluster) Class.forName(sUnderFSClass).getConstructor(String.class,
                 TachyonConf.class).newInstance(baseDir, tachyonConf);
         System.out.println("Initialized under file system testing cluster of type "
             + ufsCluster.getClass().getCanonicalName() + " for integration testing");
         return ufsCluster;
       } catch (Exception e) {
-        System.err.println("Failed to initialize the ufsCluster of " + sUfsClz
+        System.err.println("Failed to initialize the ufsCluster of " + sUnderFSClass
             + " for integration test.");
         throw Throwables.propagate(e);
       }
     }
     System.out.println("Using default LocalFilesystemCluster for integration testing");
-    return new LocalFilesystemCluster(baseDir, tachyonConf);
+    return new LocalFileSystemCluster(baseDir, tachyonConf);
   }
-
-  protected String mBaseDir;
-
-  private static UnderFileSystemCluster sUnderFSCluster = null;
-
-  protected final TachyonConf mTachyonConf;
 
   /**
    * This method is only used by the tachyon.client.FileOutStreamIntegrationTest unit-test.
@@ -116,16 +124,25 @@ public abstract class UnderFileSystemCluster {
    */
   public static boolean readEOFReturnsNegative() {
     // TODO(hy): Should be dynamically determined - may need additional method on UnderFileSystem.
-    return sUfsClz != null && sUfsClz.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster");
+    return sUnderFSClass != null
+        && sUnderFSClass.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster");
   }
 
+  protected String mBaseDir;
+
+  protected final TachyonConf mTachyonConf;
+
+  /**
+   * @param baseDir the base directory
+   * @param tachyonConf the configuration for Tachyon
+   */
   public UnderFileSystemCluster(String baseDir, TachyonConf tachyonConf) {
     mBaseDir = baseDir;
     mTachyonConf = tachyonConf;
   }
 
   /**
-   * To clean up the test environment over underfs cluster system, so that we can re-use the running
+   * Cleans up the test environment over underfs cluster system, so that we can re-use the running
    * system for the next test round instead of turning on/off it from time to time. This function is
    * expected to be called either before or after each test case which avoids certain overhead from
    * the bootstrap.
@@ -142,17 +159,18 @@ public abstract class UnderFileSystemCluster {
     }
   }
 
+  /**
+   * @return the address of the UFS
+   */
   public abstract String getUnderFilesystemAddress();
 
   /**
-   * Check if the cluster started.
-   *
-   * @return if the cluster actually started
+   * @return if the cluster has started
    */
   public abstract boolean isStarted();
 
   /**
-   * Add a shutdown hook. The {@link #shutdown()} phase will be automatically called while the
+   * Adds a shutdown hook. The {@link #shutdown()} phase will be automatically called while the
    * process exists.
    *
    * @throws IOException when the operation fails
@@ -162,14 +180,14 @@ public abstract class UnderFileSystemCluster {
   }
 
   /**
-   * To stop the underfs cluster system
+   * Stops the underfs cluster system.
    *
    * @throws IOException when the operation fails
    */
   public abstract void shutdown() throws IOException;
 
   /**
-   * To start the underfs cluster system
+   * Starts the underfs cluster system.
    *
    * @throws IOException when the operation fails
    */

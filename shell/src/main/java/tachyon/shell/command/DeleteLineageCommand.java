@@ -17,6 +17,10 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.client.file.FileSystem;
 import tachyon.client.lineage.TachyonLineage;
 import tachyon.client.lineage.options.DeleteLineageOptions;
@@ -25,14 +29,15 @@ import tachyon.conf.TachyonConf;
 /**
  * Deletes a lineage by its id. If the cascade flag is set to true it performs a cascading delete.
  */
+@ThreadSafe
 public final class DeleteLineageCommand extends AbstractTfsShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public DeleteLineageCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public DeleteLineageCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -46,7 +51,8 @@ public final class DeleteLineageCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     TachyonLineage tl = TachyonLineage.get();
     long lineageId = Long.parseLong(args[0]);
     boolean cascade = Boolean.parseBoolean(args[1]);

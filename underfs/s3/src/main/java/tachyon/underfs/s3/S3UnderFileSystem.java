@@ -26,6 +26,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
@@ -47,22 +49,26 @@ import tachyon.util.io.PathUtils;
 /**
  * S3 FS {@link UnderFileSystem} implementation based on the jets3t library.
  */
+@ThreadSafe
 public class S3UnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = "_$folder$";
+
   /** Value used to indicate folder structure in S3. */
   private static final String PATH_SEPARATOR = "/";
 
+  private static final byte[] DIR_HASH;
+
   /** Jets3t S3 client. */
   private final S3Service mClient;
+
   /** Bucket name of user's configured Tachyon bucket. */
   private final String mBucketName;
+
   /** Prefix of the bucket, for example s3n://my-bucket-name/ */
   private final String mBucketPrefix;
-
-  private static final byte[] DIR_HASH;
 
   static {
     try {
@@ -290,8 +296,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
     try {
       path = stripPrefixIfPresent(path);
       return new S3InputStream(mBucketName, path, mClient);
-    } catch (ServiceException se) {
-      LOG.error("Failed to open file: {}", path, se);
+    } catch (ServiceException e) {
+      LOG.error("Failed to open file: {}", path, e);
       return null;
     }
   }
@@ -364,8 +370,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
       S3Object obj = new S3Object(dst);
       mClient.copyObject(mBucketName, src, mBucketName, obj, false);
       return true;
-    } catch (ServiceException se) {
-      LOG.error("Failed to rename file {} to {}", src, dst);
+    } catch (ServiceException e) {
+      LOG.error("Failed to rename file {} to {}", src, dst, e);
       return false;
     }
   }
@@ -384,8 +390,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
       } else {
         mClient.deleteObject(mBucketName, stripPrefixIfPresent(key));
       }
-    } catch (ServiceException se) {
-      LOG.error("Failed to delete {}", key, se);
+    } catch (ServiceException e) {
+      LOG.error("Failed to delete {}", key, e);
       return false;
     }
     return true;
@@ -419,7 +425,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       } else {
         return mClient.getObjectDetails(mBucketName, stripPrefixIfPresent(key));
       }
-    } catch (ServiceException se) {
+    } catch (ServiceException e) {
       return null;
     }
   }
@@ -457,7 +463,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       mClient.getObjectDetails(mBucketName, keyAsFolder);
       // If no exception is thrown, the key exists as a folder
       return true;
-    } catch (ServiceException se) {
+    } catch (ServiceException s) {
       return false;
     }
   }
@@ -515,8 +521,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
         children.add(child);
       }
       return children.toArray(new String[children.size()]);
-    } catch (ServiceException se) {
-      LOG.error("Failed to list path {}", path);
+    } catch (ServiceException e) {
+      LOG.error("Failed to list path {}", path, e);
       return null;
     }
   }
@@ -537,8 +543,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
       obj.setContentType(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
       mClient.putObject(mBucketName, obj);
       return true;
-    } catch (ServiceException se) {
-      LOG.error("Failed to create directory: {}", key, se);
+    } catch (ServiceException e) {
+      LOG.error("Failed to create directory: {}", key, e);
       return false;
     }
   }

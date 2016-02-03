@@ -18,7 +18,11 @@ package tachyon.shell.command;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.collect.Lists;
+
+import org.apache.commons.cli.CommandLine;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -33,14 +37,15 @@ import tachyon.job.JobConf;
 /**
  * Creates a lineage for the given input files, output files, and command line job.
  */
+@ThreadSafe
 public final class CreateLineageCommand extends AbstractTfsShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public CreateLineageCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public CreateLineageCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -64,7 +69,8 @@ public final class CreateLineageCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     TachyonLineage tl = TachyonLineage.get();
     // TODO(yupeng) more validation
     List<TachyonURI> inputFiles = Lists.newArrayList();

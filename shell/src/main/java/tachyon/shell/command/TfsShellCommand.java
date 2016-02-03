@@ -17,8 +17,12 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import org.apache.commons.cli.CommandLine;
+
+import tachyon.shell.TfsShell;
+
 /**
- * An interface for all the commands that can be run from {@link tachyon.shell.TfsShell}.
+ * An interface for all the commands that can be run from {@link TfsShell}.
  */
 public interface TfsShellCommand {
 
@@ -30,20 +34,20 @@ public interface TfsShellCommand {
   String getCommandName();
 
   /**
-   * Checks if the arguments are valid.
+   * Parses and validates the arguments.
    *
    * @param args the arguments for the command, excluding the command name
-   * @return whether the args are valid
+   * @return the parsed command line object. If the arguments are invalid, return null
    */
-  boolean validateArgs(String... args);
+  CommandLine parseAndValidateArgs(String... args);
 
   /**
    * Runs the command.
    *
-   * @param args the arguments for the command, excluding the command name
+   * @param cl the parsed command line for the arguments
    * @throws IOException when the command fails
    */
-  void run(String... args) throws IOException;
+  void run(CommandLine cl) throws IOException;
 
   /**
    * @return the usage information of the command

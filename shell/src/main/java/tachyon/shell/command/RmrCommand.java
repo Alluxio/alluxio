@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.DeleteOptions;
@@ -28,14 +30,15 @@ import tachyon.exception.TachyonException;
  * Removes the file or directory specified by args. Will remove all files and directories in the
  * directory if a directory is specified.
  */
+@ThreadSafe
 public final class RmrCommand extends WithWildCardPathCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public RmrCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public RmrCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -47,7 +50,7 @@ public final class RmrCommand extends WithWildCardPathCommand {
   void runCommand(TachyonURI path) throws IOException {
     try {
       DeleteOptions options = DeleteOptions.defaults().setRecursive(true);
-      mTfs.delete(path, options);
+      mFileSystem.delete(path, options);
       System.out.println(path + " has been removed");
     } catch (InvalidPathException e) {
       System.out.println(path + " does not exist");

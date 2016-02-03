@@ -17,6 +17,8 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -25,14 +27,15 @@ import tachyon.conf.TachyonConf;
  * Pins the given file or folder (recursively pinning all children if a folder). Pinned files are
  * never evicted from memory.
  */
+@ThreadSafe
 public final class PinCommand extends WithWildCardPathCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public PinCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public PinCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -42,7 +45,7 @@ public final class PinCommand extends WithWildCardPathCommand {
 
   @Override
   void runCommand(TachyonURI path) throws IOException {
-    CommandUtils.setPinned(mTfs, path, true);
+    CommandUtils.setPinned(mFileSystem, path, true);
     System.out.println("File '" + path + "' was successfully pinned.");
   }
 
