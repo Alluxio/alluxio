@@ -29,7 +29,7 @@ import com.google.common.collect.Lists;
  * The file block descriptor.
  */
 @NotThreadSafe
-public final class FileBlockInfo {
+public final class FileBlockInfo implements WireType<tachyon.thrift.FileBlockInfo> {
   @JsonProperty("blockInfo")
   private BlockInfo mBlockInfo = new BlockInfo();
   @JsonProperty("offset")
@@ -109,6 +109,7 @@ public final class FileBlockInfo {
   /**
    * @return thrift representation of the file block descriptor
    */
+  @Override
   public tachyon.thrift.FileBlockInfo toThrift() {
     List<tachyon.thrift.WorkerNetAddress> ufsLocations =
         new ArrayList<tachyon.thrift.WorkerNetAddress>();

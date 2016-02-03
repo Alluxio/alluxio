@@ -29,7 +29,7 @@ import com.google.common.collect.Lists;
  * The block descriptor.
  */
 @NotThreadSafe
-public final class BlockInfo {
+public final class BlockInfo implements WireType<tachyon.thrift.BlockInfo> {
   @JsonProperty("blockId")
   private long mBlockId;
   @JsonProperty("length")
@@ -108,6 +108,7 @@ public final class BlockInfo {
   /**
    * @return thrift representation of the block descriptor
    */
+  @Override
   public tachyon.thrift.BlockInfo toThrift() {
     List<tachyon.thrift.BlockLocation> locations = new ArrayList<tachyon.thrift.BlockLocation>();
     for (BlockLocation location : mLocations) {
