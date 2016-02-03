@@ -1,0 +1,24 @@
+propertyName,defaultValue
+tachyon.debug,false
+tachyon.home,/mnt/tachyon_default_home
+tachyon.logs.dir,${tachyon.home}/logs
+tachyon.keyvalue.enabled,false
+tachyon.keyvalue.partition.size.bytes.max,512MB
+tachyon.metrics.conf.file,${tachyon.home}/conf/metrics.properties
+tachyon.network.host.resolution.&#8203;timeout.ms,5000
+tachyon.test.mode,false
+tachyon.underfs.address,${tachyon.home}/underFSStorage
+tachyon.underfs.glusterfs.impl,org.apache.hadoop.fs.glusterfs.&#8203;GlusterFileSystem
+tachyon.underfs.glusterfs.mapred.&#8203;system.dir,glusterfs:///mapred/system
+tachyon.underfs.hdfs.configuration,${tachyon.home}/conf/core-site.xml
+tachyon.underfs.hdfs.impl,org.apache.hadoop.hdfs.&#8203;DistributedFileSystem
+tachyon.underfs.hdfs.prefixes,"hdfs://,glusterfs:///"
+tachyon.underfs.s3.proxy.host,No default
+tachyon.underfs.s3.proxy.https.only,true
+tachyon.underfs.s3.proxy.port,No default
+tachyon.web.resources,${tachyon.home}/core/server/src/main/webapp
+tachyon.web.threads,1
+tachyon.zookeeper.election.path,/election
+tachyon.zookeeper.enabled,false
+tachyon.zookeeper.leader.path,/leader
+tachyon.zookeeper.leader.inquiry.retry,10
