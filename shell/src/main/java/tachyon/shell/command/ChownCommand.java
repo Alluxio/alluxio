@@ -24,7 +24,7 @@ import org.apache.commons.cli.Options;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
-import tachyon.client.file.options.SetAclOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
@@ -69,8 +69,9 @@ public final class ChownCommand extends AbstractTfsShellCommand {
    */
   private void chown(TachyonURI path, String owner, boolean recursive) throws IOException {
     try {
-      SetAclOptions options = SetAclOptions.defaults().setOwner(owner).setRecursive(recursive);
-      mFileSystem.setAcl(path, options);
+      SetAttributeOptions options = SetAttributeOptions.defaults()
+          .setOwner(owner).setRecursive(recursive);
+      mFileSystem.setAttribute(path, options);
       System.out.println("Changed owner of " + path + " to " + owner);
     } catch (TachyonException e) {
       throw new IOException("Failed to changed owner of " + path + " to " + owner + " : "
