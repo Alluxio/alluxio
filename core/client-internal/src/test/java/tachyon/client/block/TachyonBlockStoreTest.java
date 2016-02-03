@@ -21,6 +21,7 @@ import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -31,7 +32,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
@@ -75,42 +75,37 @@ public final class TachyonBlockStoreTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
-  private File mTestFile;
-  private TachyonBlockStore mBlockStore;
-  private BlockStoreContext mBlockStoreContext;
-  private BlockMasterClient mMasterClient;
-  private BlockWorkerClient mBlockWorkerClient;
+  private static BlockStoreContext sBlockStoreContext;
+  private static TachyonBlockStore sBlockStore;
+  private static BlockMasterClient sMasterClient;
+  private static BlockWorkerClient sBlockWorkerClient;
 
-  /**
-   * Sets up a testable {@link TachyonBlockStore}. Setup consists of the following:
-   *
-   * 1. The singleton {@link BlockStoreContext} is replaced with {@link #mBlockStoreContext}<br>
-   * 2. {@link #mBlockStoreContext} will return {@link #mMasterClient} and
-   *    {@link #mBlockWorkerClient} when asked for master/worker clients<br>
-   * 3. {@link #mTestFile} is created inside {@link #mTestFolder}<br>
-   * 4. {@link #mBlockWorkerClient} is made to understand that locking {@link #BLOCK_ID} should
-   *    return the path to {@link #mTestFile}.
-   *
-   * @throws Exception when acquiring a worker client fails
-   */
+  private File mTestFile;
+
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    // Replace the singleton BlockStoreContext.INSTANCE with a mock we can control
+    sBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
+    Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", sBlockStoreContext);
+
+    // Mock block store should return our mock clients
+    sBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
+    Mockito.when(sBlockStoreContext.acquireWorkerClient(Mockito.anyString()))
+        .thenReturn(sBlockWorkerClient);
+    sMasterClient = PowerMockito.mock(BlockMasterClient.class);
+    Mockito.when(sBlockStoreContext.acquireMasterClient()).thenReturn(sMasterClient);
+
+    // Inform the block store that it should use the mock context
+    sBlockStore = TachyonBlockStore.get();
+    Whitebox.setInternalState(sBlockStore, "mContext", sBlockStoreContext);
+  }
+
   @Before
   public void before() throws Exception {
     mTestFile = mTestFolder.newFile("testFile");
-
-    ClientContext.reset();
-    mBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
-    Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", mBlockStoreContext);
-    mBlockStore = TachyonBlockStore.get();
-    Whitebox.setInternalState(mBlockStore, "mContext", mBlockStoreContext);
-
-    mMasterClient = PowerMockito.mock(BlockMasterClient.class);
-    Mockito.when(mBlockStoreContext.acquireMasterClient()).thenReturn(mMasterClient);
-
-    mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
-    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
+    // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
+    Mockito.when(sBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
         new LockBlockResult(LOCK_ID, mTestFile.getAbsolutePath()));
-    Mockito.when(mBlockStoreContext.acquireWorkerClient(Mockito.anyString()))
-        .thenReturn(mBlockWorkerClient);
   }
 
   /**
@@ -121,17 +116,15 @@ public final class TachyonBlockStoreTest {
    */
   @Test
   public void getInStreamLocalTest() throws Exception {
-    Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
+    Mockito.when(sMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
     PowerMockito.mockStatic(NetworkAddressUtils.class);
     Mockito.when(NetworkAddressUtils.getLocalHostName(Mockito.<TachyonConf>any()))
         .thenReturn(WORKER_HOSTNAME_LOCAL);
-    BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID);
+    BufferedBlockInStream stream = sBlockStore.getInStream(BLOCK_ID);
 
     Assert.assertTrue(stream instanceof LocalBlockInStream);
     Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
     Assert.assertEquals(BLOCK_LENGTH, Whitebox.getInternalState(stream, "mBlockSize"));
-    Mockito.verify(mBlockStoreContext).acquireMasterClient();
-    Mockito.verify(mBlockStoreContext).releaseMasterClient(mMasterClient);
   }
 
   /**
@@ -142,18 +135,16 @@ public final class TachyonBlockStoreTest {
    */
   @Test
   public void getInStreamRemoteTest() throws Exception {
-    Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
+    Mockito.when(sMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
     PowerMockito.mockStatic(NetworkAddressUtils.class);
     Mockito.when(NetworkAddressUtils.getLocalHostName(Mockito.<TachyonConf>any()))
         .thenReturn(WORKER_HOSTNAME_LOCAL + "_different");
-    BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID);
+    BufferedBlockInStream stream = sBlockStore.getInStream(BLOCK_ID);
 
     Assert.assertTrue(stream instanceof RemoteBlockInStream);
     Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
     Assert.assertEquals(BLOCK_LENGTH, Whitebox.getInternalState(stream, "mBlockSize"));
     Assert.assertEquals(new InetSocketAddress(WORKER_HOSTNAME_REMOTE, WORKER_DATA_PORT),
         Whitebox.getInternalState(stream, "mLocation"));
-    Mockito.verify(mBlockStoreContext).acquireMasterClient();
-    Mockito.verify(mBlockStoreContext).releaseMasterClient(mMasterClient);
   }
 }

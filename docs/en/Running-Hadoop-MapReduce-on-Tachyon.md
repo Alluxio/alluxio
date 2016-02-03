@@ -100,7 +100,7 @@ the Tachyon client jar is to use the distributed cache, via the `-libjars` comma
 Another way to distribute the client jar is to manually distribute it to all the Hadoop nodes.
 Below are instructions for the 2 main alternatives:
 
-1. **Using the -libjars command line option.**
+1.**Using the -libjars command line option.**
 You can run a job by using the `-libjars` command line option when using `hadoop jar ...`, 
 specifying
 `/<PATH_TO_TACHYON>/core/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`
@@ -111,7 +111,7 @@ the nodes. For example, the following command adds the Tachyon client jar to the
 $ hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/core/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar <INPUT FILES> <OUTPUT DIRECTORY>`
 ```
 
-1. **Distributing the jars to all nodes manually.**
+2.**Distributing the jars to all nodes manually.**
 For installing Tachyon on each node, you must place the client jar
 `tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`
 (located in the `/<PATH_TO_TACHYON>/core/client/target/` directory), in the `$HADOOP_HOME/lib`

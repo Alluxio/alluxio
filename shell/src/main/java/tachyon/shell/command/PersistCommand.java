@@ -23,6 +23,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Joiner;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.FileSystemUtils;
@@ -55,7 +57,8 @@ public final class PersistCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     TachyonURI inputPath = new TachyonURI(args[0]);
     persist(inputPath);
   }

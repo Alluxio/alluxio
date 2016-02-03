@@ -134,6 +134,7 @@
         <artifactId>maven-jspc-plugin</artifactId>
         <version>2.0.8</version>
       </plugin>
+      <!-- Export test classes in a test-jar so that other projects can use them for testing -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>

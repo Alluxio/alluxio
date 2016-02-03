@@ -34,15 +34,15 @@ import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.keyvalue.KeyValueMasterClient;
-import tachyon.client.keyvalue.KeyValueStores;
+import tachyon.client.keyvalue.KeyValueSystem;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.PartitionInfo;
 
 /**
  * Implementation of {@link org.apache.hadoop.mapred.InputFormat} for MapReduce programs to access
- * {@link KeyValueStores}.
+ * {@link KeyValueSystem}.
  * <p>
- * It takes a {@link KeyValueStores} URI, and emits key-value pairs stored in the KeyValueStore to
+ * It takes a {@link KeyValueSystem} URI, and emits key-value pairs stored in the KeyValueStore to
  * {@link org.apache.hadoop.mapred.Mapper}s.
  */
 @PublicApi

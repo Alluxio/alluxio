@@ -6,7 +6,7 @@ group: Resources
 
 There are many companies and organizations that use Tachyon. Here is a list of some of the Tachyon
 users. If your organization is using Tachyon, please feel free to 
-[add yourself to this list](https://github.com/amplab/tachyon/edit/master/docs/Powered-By-Tachyon.md)
+[add yourself to this list](https://github.com/amplab/tachyon/blob/master/docs/en/Powered-By-Tachyon.md)
 or let us know by email (project.tachyon@gmail.com) or
 [survey](http://tachyon-project.org/resources/survey-users/).
 

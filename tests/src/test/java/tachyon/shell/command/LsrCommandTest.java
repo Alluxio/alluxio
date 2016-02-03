@@ -54,6 +54,7 @@ public class LsrCommandTest extends AbstractTfsShellTest {
     files[3] = mFileSystem.getStatus(new TachyonURI("/testRoot/testFileC"));
     mFsShell.run("lsr", "/testRoot");
     String expected = "";
+    expected += "WARNING: lsr is deprecated. Please use ls -R instead.\n";
     expected +=
         getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10, "In Memory",
             testUser, testUser, files[0].getPermission(), files[0].isFolder());

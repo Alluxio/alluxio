@@ -635,7 +635,6 @@ public class Performance {
 
     tachyonConf.set(Constants.MASTER_HOSTNAME, sMasterAddress.getHost());
     tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(sMasterAddress.getPort()));
-    ClientContext.reset(tachyonConf);
 
     if (testCase == 1) {
       sResultPrefix = "TachyonFilesWriteTest " + sResultPrefix;

@@ -28,6 +28,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.file.FileSystem;
+import tachyon.client.util.ClientTestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.underfs.UnderFileSystem;
@@ -173,7 +174,8 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
     runWorker();
     // The client context should reflect the updates to the conf.
-    ClientContext.reset(mWorkerConf);
+    ClientContext.getConf().merge(conf);
+    ClientTestUtils.reinitializeClientContext();
   }
 
   @Override
