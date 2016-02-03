@@ -46,10 +46,10 @@ public final class UserTest {
   }
 
   /**
-   * This test verifies that full realm format is valid as User name.
+   * This test verifies that full realm format is valid as {@link tachyon.security.User} name.
    */
   @Test
-  public void realmAsUserName() {
+  public void realmAsUserNameTest() {
     // Add new users into Subject.
     Subject subject = new Subject();
     subject.getPrincipals().add(new User("admin/admin@EXAMPLE.com"));
