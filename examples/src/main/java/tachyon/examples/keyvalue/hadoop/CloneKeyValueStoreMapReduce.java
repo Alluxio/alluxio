@@ -18,7 +18,6 @@ package tachyon.examples.keyvalue.hadoop;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.FileInputFormat;
@@ -66,16 +65,12 @@ public final class CloneKeyValueStoreMapReduce {
   }
 
   /**
-   * Starts the MapReduce job.
-   *
-   * @param hadoopConf the hadoop configuration
-   * @param inputPath input path of the key-value store to be cloned from
-   * @param outputPath output path of the key-value store to be cloned to
+   * @param args two parameters, the first is the input key-value store path, the second is the
+   *    output key-value store path
    * @throws Exception if any exception happens
    */
-  public static void run(Configuration hadoopConf, String inputPath, String outputPath)
-      throws Exception {
-    JobConf conf = new JobConf(hadoopConf, CloneKeyValueStoreMapReduce.class);
+  public static void main(String[] args) throws Exception {
+    JobConf conf = new JobConf(CloneKeyValueStoreMapReduce.class);
     conf.setJobName("clone key-value store");
 
     conf.setOutputKeyClass(BytesWritable.class);
@@ -88,18 +83,9 @@ public final class CloneKeyValueStoreMapReduce {
     conf.setOutputFormat(KeyValueOutputFormat.class);
     conf.setOutputCommitter(KeyValueOutputCommitter.class);
 
-    FileInputFormat.setInputPaths(conf, new Path(inputPath));
-    FileOutputFormat.setOutputPath(conf, new Path(outputPath));
+    FileInputFormat.setInputPaths(conf, new Path(args[0]));
+    FileOutputFormat.setOutputPath(conf, new Path(args[1]));
 
     JobClient.runJob(conf);
-  }
-
-  /**
-   * @param args two parameters, the first is the input key-value store path, the second is the
-   *    output key-value store path
-   * @throws Exception if any exception happens
-   */
-  public static void main(String[] args) throws Exception {
-    run(new Configuration(), args[0], args[1]);
   }
 }
