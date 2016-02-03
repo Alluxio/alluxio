@@ -37,7 +37,7 @@ Possible values of `<swift-use-public>` are `true`, `false`.
 Possible values of `<swift-auth-model>` are `keystone`,
 `tempauth`, `swiftauth`
 
-On the successful authentication, Keystone will return two access URLs: public and private. If Tachyon is used inside company network and Swift is located on the same network it is adviced to set value of `<swift-auth-model>`  to `false`.
+On the successful authentication, Keystone will return two access URLs: public and private. If Tachyon is used inside company network and Swift is located on the same network it is adviced to set value of `<swift-use-public>`  to `false`.
 
 
 ## Accessing IBM SoftLayer object store
