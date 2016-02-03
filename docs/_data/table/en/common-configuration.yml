@@ -1,0 +1,53 @@
+tachyon.debug:
+  Set to true to enable debug mode which has additional logging and info in the Web UI.
+tachyon.home:
+  Tachyon installation folder.
+tachyon.logs.dir:
+  The path to store log files.
+tachyon.keyvalue.enabled:
+  Whether the key-value service is enabled.
+tachyon.keyvalue.partition.size.bytes.max:
+  Maximum allowable size (in bytes) of a single key-value partition in a store. This value
+  should be no larger than the block size (tachyon.user.block.size.bytes.default)
+tachyon.metrics.conf.file:
+  The file path of the metrics system configuration file. By default it is `metrics.properties`
+  in the `conf` directory.
+tachyon.network.host.resolution.&#8203;timeout.ms:
+  During startup of the Master and Worker processes Tachyon needs to ensure that they are
+  listening on externally resolvable and reachable host names.  To do this, Tachyon will
+  automatically attempt to select an appropriate host name if one was not explicitly specified.
+  This represents the maximum amount of time spent waiting to determine if a candidate host name
+  is resolvable over the network.
+tachyon.test.mode:
+  Flag used only during tests to allow special behavior.
+tachyon.underfs.address:
+  Tachyon folder in the underlayer file system.
+tachyon.underfs.glusterfs.impl:
+  Glusterfs hook with hadoop.
+tachyon.underfs.glusterfs.mapred.&#8203;system.dir:
+  Optionally, specify subdirectory under GlusterFS for intermediary MapReduce data.
+tachyon.underfs.hdfs.configuration:
+  Location of the hdfs configuration file.
+tachyon.underfs.hdfs.impl:
+  The implementation class of the HDFS as the under storage system.
+tachyon.underfs.hdfs.prefixes:
+  Optionally, specify which prefixes should run through the Apache Hadoop implementation of
+  UnderFileSystem. The delimiter is any whitespace and/or ','.
+tachyon.underfs.s3.proxy.host:
+  Optionally, specify a proxy host for communicating with S3.
+tachyon.underfs.s3.proxy.https.only:
+  If using a proxy to communicate with S3, determine whether to talk to the proxy using https.
+tachyon.underfs.s3.proxy.port:
+  Optionally, specify a proxy port for communicating with S3.
+tachyon.web.resources:
+  Path to the web application resources.
+tachyon.web.threads:
+  How many threads to use for the web server.
+tachyon.zookeeper.election.path:
+  Election folder in ZooKeeper.
+tachyon.zookeeper.enabled:
+  If true, setup master fault tolerant mode using ZooKeeper.
+tachyon.zookeeper.leader.path:
+  Leader folder in ZooKeeper.
+tachyon.zookeeper.leader.inquiry.retry:
+  The number of retries to inquire leader from ZooKeeper.
