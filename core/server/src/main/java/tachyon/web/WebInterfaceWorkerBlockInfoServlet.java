@@ -75,12 +75,12 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     request.setAttribute("fatalError", "");
-    FileSystem tFS = FileSystem.Factory.get();
+    FileSystem fs = FileSystem.Factory.get();
     String filePath = request.getParameter("path");
     if (!(filePath == null || filePath.isEmpty())) {
       // Display file block info
       try {
-        UIFileInfo uiFileInfo = getUiFileInfo(tFS, new TachyonURI(filePath));
+        UIFileInfo uiFileInfo = getUiFileInfo(fs, new TachyonURI(filePath));
         request.setAttribute("fileBlocksOnTier", uiFileInfo.getBlocksOnTier());
         request.setAttribute("blockSizeBytes", uiFileInfo.getBlockSizeBytes());
         request.setAttribute("path", filePath);
@@ -129,7 +129,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       List<Long> subFileIds = fileIds.subList(offset, offset + limit);
       List<UIFileInfo> uiFileInfos = new ArrayList<UIFileInfo>(subFileIds.size());
       for (long fileId : subFileIds) {
-        uiFileInfos.add(getUiFileInfo(tFS, fileId));
+        uiFileInfos.add(getUiFileInfo(fs, fileId));
       }
       request.setAttribute("fileInfos", uiFileInfos);
     } catch (FileDoesNotExistException e) {
@@ -223,7 +223,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     } catch (TachyonException e) {
       throw new FileDoesNotExistException(filePath.toString());
     }
-    UIFileInfo uiFileInfo = new UIFileInfo(status.getInfo());
+    UIFileInfo uiFileInfo = new UIFileInfo(status);
     boolean blockExistOnWorker = false;
     for (long blockId : status.getBlockIds()) {
       if (mBlockWorker.hasBlockMeta(blockId)) {

@@ -39,7 +39,6 @@ import tachyon.client.file.URIStatus;
 import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.DeleteOptions;
-import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AccessControlException;
@@ -62,11 +61,11 @@ import tachyon.util.io.PathUtils;
 public class JournalIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(Constants.GB, 100, Constants.GB,
+      new LocalTachyonClusterResource(Constants.GB, Constants.GB,
           Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB));
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private FileSystem mTfs = null;
+  private FileSystem mFileSystem = null;
   private TachyonURI mRootUri = new TachyonURI(TachyonURI.SEPARATOR);
   private TachyonConf mMasterTachyonConf = null;
 
@@ -79,12 +78,12 @@ public class JournalIntegrationTest {
   public void addBlockTest() throws Exception {
     TachyonURI uri = new TachyonURI("/xyz");
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(64);
-    FileOutStream os = mTfs.createFile(uri, options);
+    FileOutStream os = mFileSystem.createFile(uri, options);
     for (int k = 0; k < 1000; k ++) {
       os.write(k);
     }
     os.close();
-    URIStatus status = mTfs.getStatus(uri);
+    URIStatus status = mFileSystem.getStatus(uri);
     mLocalTachyonCluster.stopTFS();
     addBlockTestUtil(status);
   }
@@ -129,8 +128,8 @@ public class JournalIntegrationTest {
         .concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(Constants.UNDERFS_ADDRESS));
     UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalTachyonCluster.getMasterTachyonConf());
     ufs.create(ufsRoot + "/xyz");
-    mTfs.loadMetadata(new TachyonURI("/xyz"));
-    URIStatus status = mTfs.getStatus(new TachyonURI("/xyz"));
+    mFileSystem.loadMetadata(new TachyonURI("/xyz"));
+    URIStatus status = mFileSystem.getStatus(new TachyonURI("/xyz"));
     mLocalTachyonCluster.stopTFS();
     loadMetadataTestUtil(status);
     deleteFsMasterJournalLogs();
@@ -153,7 +152,7 @@ public class JournalIntegrationTest {
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = mLocalTachyonClusterResource.get();
-    mTfs = mLocalTachyonCluster.getClient();
+    mFileSystem = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
@@ -165,7 +164,7 @@ public class JournalIntegrationTest {
   @Test
   public void completedEditLogDeletionTest() throws Exception {
     for (int i = 0; i < 124; i ++) {
-      mTfs.createFile(new TachyonURI("/a" + i),
+      mFileSystem.createFile(new TachyonURI("/a" + i),
           CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64)).close();
     }
     mLocalTachyonCluster.stopTFS();
@@ -193,17 +192,17 @@ public class JournalIntegrationTest {
     DeleteOptions recDelete = DeleteOptions.defaults().setRecursive(true);
     for (int i = 0; i < 10; i ++) {
       String dirPath = "/i" + i;
-      mTfs.createDirectory(new TachyonURI(dirPath), recMkdir);
+      mFileSystem.createDirectory(new TachyonURI(dirPath), recMkdir);
       for (int j = 0; j < 10; j ++) {
         CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + j + 1) * 64);
         String filePath = dirPath + "/j" + j;
-        mTfs.createFile(new TachyonURI(filePath), option).close();
+        mFileSystem.createFile(new TachyonURI(filePath), option).close();
         if (j >= 5) {
-          mTfs.delete(new TachyonURI(filePath), recDelete);
+          mFileSystem.delete(new TachyonURI(filePath), recDelete);
         }
       }
       if (i >= 5) {
-        mTfs.delete(new TachyonURI(dirPath), recDelete);
+        mFileSystem.delete(new TachyonURI(dirPath), recDelete);
       }
     }
     mLocalTachyonCluster.stopTFS();
@@ -244,10 +243,10 @@ public class JournalIntegrationTest {
   @Test
   public void fileDirectoryTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
-      mTfs.createDirectory(new TachyonURI("/i" + i));
+      mFileSystem.createDirectory(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
         CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + j + 1) * 64);
-        mTfs.createFile(new TachyonURI("/i" + i + "/j" + j), option).close();
+        mFileSystem.createFile(new TachyonURI("/i" + i + "/j" + j), option).close();
       }
     }
     mLocalTachyonCluster.stopTFS();
@@ -279,8 +278,8 @@ public class JournalIntegrationTest {
   public void fileTest() throws Exception {
     CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes(64);
     TachyonURI filePath = new TachyonURI("/xyz");
-    mTfs.createFile(filePath, option).close();
-    URIStatus status = mTfs.getStatus(filePath);
+    mFileSystem.createFile(filePath, option).close();
+    URIStatus status = mFileSystem.getStatus(filePath);
     mLocalTachyonCluster.stopTFS();
     fileTestUtil(status);
     deleteFsMasterJournalLogs();
@@ -307,20 +306,20 @@ public class JournalIntegrationTest {
     SetAttributeOptions setPinned = SetAttributeOptions.defaults().setPinned(true);
     SetAttributeOptions setUnpinned = SetAttributeOptions.defaults().setPinned(false);
     TachyonURI dirUri = new TachyonURI("/myFolder");
-    mTfs.createDirectory(dirUri);
-    mTfs.setAttribute(dirUri, setPinned);
+    mFileSystem.createDirectory(dirUri);
+    mFileSystem.setAttribute(dirUri, setPinned);
 
     TachyonURI file0Path = new TachyonURI("/myFolder/file0");
     CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes(64);
-    mTfs.createFile(file0Path, op).close();
-    mTfs.setAttribute(file0Path, setUnpinned);
+    mFileSystem.createFile(file0Path, op).close();
+    mFileSystem.setAttribute(file0Path, setUnpinned);
 
     TachyonURI file1Path = new TachyonURI("/myFolder/file1");
-    mTfs.createFile(file1Path, op).close();
+    mFileSystem.createFile(file1Path, op).close();
 
-    URIStatus directoryStatus = mTfs.getStatus(dirUri);
-    URIStatus file0Status = mTfs.getStatus(file0Path);
-    URIStatus file1Status = mTfs.getStatus(file1Path);
+    URIStatus directoryStatus = mFileSystem.getStatus(dirUri);
+    URIStatus file0Status = mFileSystem.getStatus(file0Path);
+    URIStatus file1Status = mFileSystem.getStatus(file1Path);
 
     mLocalTachyonCluster.stopTFS();
 
@@ -356,8 +355,8 @@ public class JournalIntegrationTest {
   @Test
   public void directoryTest() throws Exception {
     TachyonURI directoryPath = new TachyonURI("/xyz");
-    mTfs.createDirectory(directoryPath);
-    URIStatus status = mTfs.getStatus(directoryPath);
+    mFileSystem.createDirectory(directoryPath);
+    URIStatus status = mFileSystem.getStatus(directoryPath);
     mLocalTachyonCluster.stopTFS();
     directoryTestUtil(status);
     deleteFsMasterJournalLogs();
@@ -386,17 +385,17 @@ public class JournalIntegrationTest {
     CreateDirectoryOptions options =
         CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(WriteType.MUST_CACHE);
     for (String directory : directories) {
-      mTfs.createDirectory(new TachyonURI(directory), options);
+      mFileSystem.createDirectory(new TachyonURI(directory), options);
     }
 
     options.setWriteType(WriteType.CACHE_THROUGH);
     for (String directory : directories) {
-      mTfs.createDirectory(new TachyonURI(directory), options);
+      mFileSystem.createDirectory(new TachyonURI(directory), options);
     }
 
     Map<String, URIStatus> directoryStatuses = Maps.newHashMap();
     for (String directory : directories) {
-      directoryStatuses.put(directory, mTfs.getStatus(new TachyonURI(directory)));
+      directoryStatuses.put(directory, mFileSystem.getStatus(new TachyonURI(directory)));
     }
     mLocalTachyonCluster.stopTFS();
     persistDirectoryLaterTestUtil(directoryStatuses);
@@ -424,7 +423,7 @@ public class JournalIntegrationTest {
   public void manyFileTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
       CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + 1) * 64);
-      mTfs.createFile(new TachyonURI("/a" + i), option).close();
+      mFileSystem.createFile(new TachyonURI("/a" + i), option).close();
     }
     mLocalTachyonCluster.stopTFS();
     manyFileTestUtil();
@@ -452,7 +451,7 @@ public class JournalIntegrationTest {
   public void multiEditLogTest() throws Exception {
     for (int i = 0; i < 124; i ++) {
       CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64);
-      mTfs.createFile(new TachyonURI("/a" + i), op);
+      mFileSystem.createFile(new TachyonURI("/a" + i), op);
     }
     mLocalTachyonCluster.stopTFS();
     multiEditLogTestUtil();
@@ -533,14 +532,14 @@ public class JournalIntegrationTest {
   @Test
   public void renameTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
-      mTfs.createDirectory(new TachyonURI("/i" + i));
+      mFileSystem.createDirectory(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
         CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + j + 1) * 64);
         TachyonURI path = new TachyonURI("/i" + i + "/j" + j);
-        mTfs.createFile(path, option).close();
-        mTfs.rename(path, new TachyonURI("/i" + i + "/jj" + j));
+        mFileSystem.createFile(path, option).close();
+        mFileSystem.rename(path, new TachyonURI("/i" + i + "/jj" + j));
       }
-      mTfs.rename(new TachyonURI("/i" + i), new TachyonURI("/ii" + i));
+      mFileSystem.rename(new TachyonURI("/i" + i), new TachyonURI("/ii" + i));
     }
     mLocalTachyonCluster.stopTFS();
     renameTestUtil();
@@ -598,13 +597,16 @@ public class JournalIntegrationTest {
     ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
     CreateFileOptions op =
         CreateFileOptions.defaults().setBlockSizeBytes(64);
-    mTfs.createFile(filePath, op).close();
+    mFileSystem.createFile(filePath, op).close();
 
-    mTfs.setAcl(filePath, SetAclOptions.defaults().setOwner("user1").setRecursive(false));
-    mTfs.setAcl(filePath, SetAclOptions.defaults().setGroup("group1").setRecursive(false));
-    mTfs.setAcl(filePath, SetAclOptions.defaults().setPermission((short) 0400).setRecursive(false));
+    mFileSystem.setAttribute(filePath,
+        SetAttributeOptions.defaults().setOwner("user1").setRecursive(false));
+    mFileSystem.setAttribute(filePath,
+        SetAttributeOptions.defaults().setGroup("group1").setRecursive(false));
+    mFileSystem.setAttribute(filePath,
+        SetAttributeOptions.defaults().setPermission((short) 0400).setRecursive(false));
 
-    URIStatus status = mTfs.getStatus(filePath);
+    URIStatus status = mFileSystem.getStatus(filePath);
 
     mLocalTachyonCluster.stopTFS();
 

@@ -47,8 +47,8 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
     public static KeyValuePartitionReader create(TachyonURI uri)
         throws TachyonException, IOException {
       Preconditions.checkNotNull(uri);
-      FileSystem tfs = FileSystem.Factory.get();
-      List<Long> blockIds = tfs.getStatus(uri).getBlockIds();
+      FileSystem fs = FileSystem.Factory.get();
+      List<Long> blockIds = fs.getStatus(uri).getBlockIds();
       // Each partition file should only contains one block.
       // TODO(binfan): throw exception if a partition file has more than one blocks
       long blockId = blockIds.get(0);

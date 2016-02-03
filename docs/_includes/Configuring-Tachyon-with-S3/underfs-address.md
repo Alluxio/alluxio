@@ -1,0 +1,3 @@
+```bash
+export TACHYON_UNDERFS_ADDRESS=s3n://S3_BUCKET/S3_DIRECTORY
+```

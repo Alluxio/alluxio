@@ -57,12 +57,12 @@ public abstract class AbstractTfsShellTest {
   protected static final int SIZE_BYTES = Constants.MB * 10;
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(SIZE_BYTES, 1000, Constants.MB,
+      new LocalTachyonClusterResource(SIZE_BYTES, Constants.MB,
           Constants.MASTER_TTLCHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE),
           Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
           Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
   protected LocalTachyonCluster mLocalTachyonCluster = null;
-  protected FileSystem mTfs = null;
+  protected FileSystem mFileSystem = null;
   protected TfsShell mFsShell = null;
   protected ByteArrayOutputStream mOutput = null;
   protected PrintStream mNewOutput = null;
@@ -81,7 +81,7 @@ public abstract class AbstractTfsShellTest {
   public final void before() throws Exception {
     clearLoginUser();
     mLocalTachyonCluster = mLocalTachyonClusterResource.get();
-    mTfs = mLocalTachyonCluster.getClient();
+    mFileSystem = mLocalTachyonCluster.getClient();
     mFsShell = new TfsShell(new TachyonConf());
     mOutput = new ByteArrayOutputStream();
     mNewOutput = new PrintStream(mOutput);
@@ -90,7 +90,7 @@ public abstract class AbstractTfsShellTest {
   }
 
   protected void copyToLocalWithBytes(int bytes) throws IOException {
-    FileSystemTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, bytes);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
     mFsShell.run("copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile");
     Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
@@ -168,19 +168,19 @@ public abstract class AbstractTfsShellTest {
 
   protected byte[] readContent(TachyonURI uri, int length) throws IOException, TachyonException {
     FileInStream tfis =
-        mTfs.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE));
+        mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE));
     byte[] read = new byte[length];
     tfis.read(read);
     return read;
   }
 
   protected boolean isInMemoryTest(String path) throws IOException, TachyonException {
-    return (mTfs.getStatus(new TachyonURI(path)).getInMemoryPercentage() == 100);
+    return (mFileSystem.getStatus(new TachyonURI(path)).getInMemoryPercentage() == 100);
   }
 
   protected String getLsResultStr(TachyonURI tUri, int size, String testUser, String testGroup)
       throws IOException, TachyonException {
-    URIStatus status = mTfs.getStatus(tUri);
+    URIStatus status = mFileSystem.getStatus(tUri);
     return getLsResultStr(tUri.getPath(), status.getCreationTimeMs(), size, "In Memory",
         testUser, testGroup, status.getPermission(), status.isFolder());
   }
@@ -196,7 +196,7 @@ public abstract class AbstractTfsShellTest {
 
   protected boolean fileExist(TachyonURI path) {
     try {
-      return mTfs.exists(path);
+      return mFileSystem.exists(path);
     } catch (IOException e) {
       return false;
     } catch (TachyonException e) {
@@ -214,9 +214,9 @@ public abstract class AbstractTfsShellTest {
    * @throws IOException if a non-Tachyon exception occurs
    */
   protected void checkFilePersisted(TachyonURI uri, int size) throws TachyonException, IOException {
-    Assert.assertTrue(mTfs.getStatus(uri).isPersisted());
-    mTfs.free(uri);
-    FileInStream tfis = mTfs.openFile(uri);
+    Assert.assertTrue(mFileSystem.getStatus(uri).isPersisted());
+    mFileSystem.free(uri);
+    FileInStream tfis = mFileSystem.openFile(uri);
     byte[] actual = new byte[size];
     tfis.read(actual);
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(size), actual);

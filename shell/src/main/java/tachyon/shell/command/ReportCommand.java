@@ -19,6 +19,8 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.client.lineage.LineageFileSystem;
@@ -33,10 +35,10 @@ public final class ReportCommand extends WithWildCardPathCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public ReportCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public ReportCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -45,7 +47,7 @@ public final class ReportCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path) throws IOException {
+  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
     try {
       LineageFileSystem.get().reportLostFile(path);
       System.out.println(path + " has reported been reported as lost.");

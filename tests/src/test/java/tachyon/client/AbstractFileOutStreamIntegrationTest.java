@@ -53,7 +53,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
 
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES,
+      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES,
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
           Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
 

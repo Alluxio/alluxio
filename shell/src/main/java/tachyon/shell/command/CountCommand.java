@@ -20,6 +20,8 @@ import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.URIStatus;
@@ -34,10 +36,10 @@ public final class CountCommand extends AbstractTfsShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public CountCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public CountCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -51,7 +53,8 @@ public final class CountCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     TachyonURI inputPath = new TachyonURI(args[0]);
 
     long[] values = countHelper(inputPath);
@@ -63,7 +66,7 @@ public final class CountCommand extends AbstractTfsShellCommand {
   private long[] countHelper(TachyonURI path) throws IOException {
     URIStatus status;
     try {
-      status = mTfs.getStatus(path);
+      status = mFileSystem.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
@@ -76,7 +79,7 @@ public final class CountCommand extends AbstractTfsShellCommand {
 
     List<URIStatus> statuses;
     try {
-      statuses = mTfs.listStatus(path);
+      statuses = mFileSystem.listStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }

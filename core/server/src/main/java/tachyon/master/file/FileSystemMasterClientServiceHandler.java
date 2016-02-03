@@ -31,14 +31,12 @@ import tachyon.exception.TachyonException;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.file.options.CreateFileOptions;
-import tachyon.master.file.options.SetAclOptions;
 import tachyon.thrift.CompleteFileTOptions;
 import tachyon.thrift.CreateDirectoryTOptions;
 import tachyon.thrift.CreateFileTOptions;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterClientService;
-import tachyon.thrift.SetAclTOptions;
 import tachyon.thrift.SetAttributeTOptions;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
@@ -204,15 +202,6 @@ public final class FileSystemMasterClientServiceHandler implements
       throw e.toTachyonTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
-    }
-  }
-
-  @Override
-  public void setAcl(String path, SetAclTOptions options) throws TachyonTException {
-    try {
-      mFileSystemMaster.setAcl(new TachyonURI(path), new SetAclOptions(options));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
     }
   }
 

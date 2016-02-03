@@ -68,7 +68,7 @@ final class TachyonFuseFs extends FuseStubFS {
   private static final long[] UID_AND_GID = TachyonFuseUtils.getUidAndGid();
 
   private final TachyonConf mTachyonConf;
-  private final FileSystem mTFS;
+  private final FileSystem mFileSystem;
   // base path within Tachyon namespace that is used for FUSE operations
   // For example, if tachyon-fuse is mounted in /mnt/tachyon and mTachyonRootPath
   // is /users/foo, then an operation on /mnt/tachyon/bar will be translated on
@@ -82,10 +82,10 @@ final class TachyonFuseFs extends FuseStubFS {
   private final Map<Long, OpenFileEntry> mOpenFiles;
   private long mNextOpenFileId;
 
-  TachyonFuseFs(TachyonConf conf, FileSystem tfs, TachyonFuseOptions opts) {
+  TachyonFuseFs(TachyonConf conf, FileSystem fs, TachyonFuseOptions opts) {
     super();
     mTachyonConf = conf;
-    mTFS = tfs;
+    mFileSystem = fs;
     mTachyonMaster = mTachyonConf.get(Constants.MASTER_ADDRESS);
     mTachyonRootPath = Paths.get(opts.getTachyonRoot());
     mNextOpenFileId = 0L;
@@ -131,7 +131,7 @@ final class TachyonFuseFs extends FuseStubFS {
           return -ErrorCodes.EMFILE();
         }
 
-        final OpenFileEntry ofe = new OpenFileEntry(null, mTFS.createFile(turi));
+        final OpenFileEntry ofe = new OpenFileEntry(null, mFileSystem.createFile(turi));
         LOG.debug("Tachyon OutStream created for {}", path);
         mOpenFiles.put(mNextOpenFileId, ofe);
         fi.fh.set(mNextOpenFileId);
@@ -201,10 +201,10 @@ final class TachyonFuseFs extends FuseStubFS {
     final TachyonURI turi = mPathResolverCache.getUnchecked(path);
     LOG.trace("getattr({}) [Tachyon: {}]", path, turi);
     try {
-      if (!mTFS.exists(turi)) {
+      if (!mFileSystem.exists(turi)) {
         return -ErrorCodes.ENOENT();
       }
-      final URIStatus status = mTFS.getStatus(turi);
+      final URIStatus status = mFileSystem.getStatus(turi);
       stat.st_size.set(status.getLength());
 
       final long ctime = status.getLastModificationTimeMs();
@@ -272,7 +272,7 @@ final class TachyonFuseFs extends FuseStubFS {
     final TachyonURI turi = mPathResolverCache.getUnchecked(path);
     LOG.trace("mkdir({}) [Tachyon: {}]", path, turi);
     try {
-      mTFS.createDirectory(turi);
+      mFileSystem.createDirectory(turi);
     } catch (FileAlreadyExistsException e) {
       LOG.debug("Cannot make dir. {} already exists", path, e);
       return -ErrorCodes.EEXIST();
@@ -317,11 +317,11 @@ final class TachyonFuseFs extends FuseStubFS {
       return -ErrorCodes.EACCES();
     }
     try {
-      if (!mTFS.exists(turi)) {
+      if (!mFileSystem.exists(turi)) {
         LOG.error("File {} does not exist", turi);
         return -ErrorCodes.ENOENT();
       }
-      final URIStatus status = mTFS.getStatus(turi);
+      final URIStatus status = mFileSystem.getStatus(turi);
       if (status.isFolder()) {
         LOG.error("File {} is a directory", turi);
         return -ErrorCodes.EISDIR();
@@ -332,7 +332,7 @@ final class TachyonFuseFs extends FuseStubFS {
           LOG.error("Cannot open {}: too many open files", turi);
           return ErrorCodes.EMFILE();
         }
-        final OpenFileEntry ofe = new OpenFileEntry(mTFS.openFile(turi), null);
+        final OpenFileEntry ofe = new OpenFileEntry(mFileSystem.openFile(turi), null);
         mOpenFiles.put(mNextOpenFileId, ofe);
         fi.fh.set(mNextOpenFileId);
 
@@ -438,14 +438,14 @@ final class TachyonFuseFs extends FuseStubFS {
     LOG.trace("readdir({}) [Tachyon: {}]", path, turi);
 
     try {
-      if (!mTFS.exists(turi)) {
+      if (!mFileSystem.exists(turi)) {
         return -ErrorCodes.ENOENT();
       }
-      final URIStatus status = mTFS.getStatus(turi);
+      final URIStatus status = mFileSystem.getStatus(turi);
       if (!status.isFolder()) {
         return -ErrorCodes.ENOTDIR();
       }
-      final List<URIStatus> ls = mTFS.listStatus(turi);
+      final List<URIStatus> ls = mFileSystem.listStatus(turi);
       // standard . and .. entries
       filter.apply(buff, ".", null, 0);
       filter.apply(buff, "..", null, 0);
@@ -518,11 +518,11 @@ final class TachyonFuseFs extends FuseStubFS {
     LOG.trace("rename({}, {}) [Tachyon: {}, {}]", oldPath, newPath, oldUri, newUri);
 
     try {
-      if (!mTFS.exists(oldUri)) {
+      if (!mFileSystem.exists(oldUri)) {
         LOG.error("File {} does not exist", oldPath);
         return -ErrorCodes.ENOENT();
       } else {
-        mTFS.rename(oldUri, newUri);
+        mFileSystem.rename(oldUri, newUri);
       }
     } catch (FileDoesNotExistException e) {
       LOG.debug("File {} does not exist", oldPath);
@@ -620,17 +620,17 @@ final class TachyonFuseFs extends FuseStubFS {
     final TachyonURI turi = mPathResolverCache.getUnchecked(path);
 
     try {
-      if (!mTFS.exists(turi)) {
+      if (!mFileSystem.exists(turi)) {
         LOG.error("File {} does not exist", turi);
         return -ErrorCodes.ENOENT();
       }
-      final URIStatus status = mTFS.getStatus(turi);
+      final URIStatus status = mFileSystem.getStatus(turi);
       if (mustBeFile && status.isFolder()) {
         LOG.error("File {} is a directory", turi);
         return -ErrorCodes.EISDIR();
       }
 
-      mTFS.delete(turi);
+      mFileSystem.delete(turi);
     } catch (FileDoesNotExistException e) {
       LOG.debug("File does not exist {}", path, e);
       return -ErrorCodes.ENOENT();

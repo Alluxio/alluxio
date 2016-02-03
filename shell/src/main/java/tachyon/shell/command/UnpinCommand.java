@@ -19,6 +19,8 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -32,10 +34,10 @@ public final class UnpinCommand extends WithWildCardPathCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public UnpinCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public UnpinCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -44,8 +46,8 @@ public final class UnpinCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path) throws IOException {
-    CommandUtils.setPinned(mTfs, path, false);
+  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
+    CommandUtils.setPinned(mFileSystem, path, false);
     System.out.println("File '" + path + "' was successfully unpinned.");
   }
 

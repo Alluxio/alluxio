@@ -19,24 +19,29 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 
 /**
  * Changes the owner of a file or directory specified by args.
  */
 @ThreadSafe
-public final class ChownCommand extends AbstractAclCommand {
+public final class ChownCommand extends AbstractTfsShellCommand {
 
   /**
    * Creates a new instance of {@link ChownCommand}.
    *
    * @param conf a Tachyon configuration
-   * @param tfs a Tachyon file system handle
+   * @param fs a Tachyon file system handle
    */
-  public ChownCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public ChownCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -50,19 +55,46 @@ public final class ChownCommand extends AbstractAclCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  protected Options getOptions() {
+    return new Options().addOption(RECURSIVE_OPTION);
+  }
+
+  /**
+   * Changes the owner for the directory or file with the path specified in args.
+   *
+   * @param path The {@link TachyonURI} path as the input of the command
+   * @param owner The owner to be updated to the file or directory
+   * @param recursive Whether change the owner recursively
+   * @throws IOException if command failed
+   */
+  private void chown(TachyonURI path, String owner, boolean recursive) throws IOException {
+    try {
+      SetAttributeOptions options = SetAttributeOptions.defaults()
+          .setOwner(owner).setRecursive(recursive);
+      mFileSystem.setAttribute(path, options);
+      System.out.println("Changed owner of " + path + " to " + owner);
+    } catch (TachyonException e) {
+      throw new IOException("Failed to changed owner of " + path + " to " + owner + " : "
+          + e.getMessage());
+    }
+  }
+
+  @Override
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     String owner = args[0];
     TachyonURI path = new TachyonURI(args[1]);
-    chown(path, owner, false);
+    chown(path, owner, cl.hasOption("R"));
   }
 
   @Override
   public String getUsage() {
-    return "chown <owner> <path>";
+    return "chown -R <owner> <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Changes the owner of a file or directory specified by args.";
+    return "Changes the owner of a file or directory specified by args."
+        + " Specify -R to change the owner recursively.";
   }
 }
