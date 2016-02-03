@@ -117,7 +117,7 @@ message SetAclEntry {
 }
 
 // next available id: 6
-message SetStateEntry {
+message SetAttributeEntry {
   optional int64 id = 1;
   optional int64 op_time_ms = 2;
   optional bool pinned = 3;

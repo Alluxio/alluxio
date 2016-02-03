@@ -36,6 +36,6 @@ message JournalEntry {
     ReinitializeFileEntry reinitialize_file = 18;
     RenameEntry rename = 19;
     SetAclEntry set_acl = 24;
-    SetStateEntry set_state = 20;
+    SetAttributeEntry set_attribute = 27;
   }
 }
