@@ -69,6 +69,8 @@ public final class LocalBlockInStreamIntegrationTest {
     sReadCache = StreamOptionUtils.getOpenFileOptionsCache(sTachyonConf);
     sReadNoCache = StreamOptionUtils.getOpenFileOptionsNoCache(sTachyonConf);
     sTestPath = PathUtils.uniqPath();
+
+    // Create files of varying size and write type to later read from
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         TachyonURI path = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
