@@ -25,6 +25,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Joiner;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -39,8 +41,8 @@ import tachyon.shell.TfsShellUtils;
 @ThreadSafe
 public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
 
-  protected WithWildCardPathCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  protected WithWildCardPathCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   /**
@@ -57,10 +59,11 @@ public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     TachyonURI inputPath = new TachyonURI(args[0]);
 
-    List<TachyonURI> paths = TfsShellUtils.getTachyonURIs(mTfs, inputPath);
+    List<TachyonURI> paths = TfsShellUtils.getTachyonURIs(mFileSystem, inputPath);
     if (paths.size() == 0) { // A unified sanity check on the paths
       throw new IOException(inputPath + " does not exist.");
     }

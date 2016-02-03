@@ -63,16 +63,14 @@ import tachyon.master.LocalTachyonCluster;
  *   }
  * </pre>
  */
-public class LocalTachyonClusterResource implements TestRule {
-
-  private static final long DEFAULT_WORKER_CAPACITY_BYTES = 100 * Constants.MB;
-  private static final int DEFAULT_QUOTA_UNIT_BYTES = 100 * Constants.KB;
-  private static final int DEFAULT_USER_BLOCK_SIZE = Constants.KB;
+public final class LocalTachyonClusterResource implements TestRule {
+  /** Default worker capacity in bytes. */
+  public static final long DEFAULT_WORKER_CAPACITY_BYTES = 100 * Constants.MB;
+  /** Default block size in bytes. */
+  public static final int DEFAULT_USER_BLOCK_SIZE = Constants.KB;
 
   /** The capacity of the worker in bytes */
   private final long mWorkerCapacityBytes;
-  /** The quota of space each user can request */
-  private final int mQuotaUnitBytes;
   /** Block size for a user */
   private final int mUserBlockSize;
   /**
@@ -92,17 +90,14 @@ public class LocalTachyonClusterResource implements TestRule {
    * Create a new instance.
    *
    * @param workerCapacityBytes the capacity of the worker in bytes
-   * @param quotaUnitBytes the quota of space each user can request
    * @param userBlockSize the block size for a user
    * @param startCluster whether or not to start the cluster before the test method starts
    * @param confParams specific tachyon configuration parameters, specified as a list of strings,
-   *        treated as key-value pairs
    */
-  public LocalTachyonClusterResource(long workerCapacityBytes, int quotaUnitBytes,
-      int userBlockSize, boolean startCluster, String... confParams) {
+  public LocalTachyonClusterResource(long workerCapacityBytes, int userBlockSize,
+      boolean startCluster, String... confParams) {
     Preconditions.checkArgument(confParams.length % 2 == 0);
     mWorkerCapacityBytes = workerCapacityBytes;
-    mQuotaUnitBytes = quotaUnitBytes;
     mUserBlockSize = userBlockSize;
     mStartCluster = startCluster;
     mConfParams = confParams;
@@ -113,22 +108,21 @@ public class LocalTachyonClusterResource implements TestRule {
    */
   // TODO(andrew) Go through our integration tests and see how many can use this constructor.
   public LocalTachyonClusterResource() {
-    this(DEFAULT_WORKER_CAPACITY_BYTES, DEFAULT_QUOTA_UNIT_BYTES, DEFAULT_USER_BLOCK_SIZE);
+    this(DEFAULT_WORKER_CAPACITY_BYTES, DEFAULT_USER_BLOCK_SIZE);
   }
 
-  public LocalTachyonClusterResource(long workerCapacityBytes, int quotaUnitBytes,
-      int userBlockSize, boolean startCluster) {
-    this(workerCapacityBytes, quotaUnitBytes, userBlockSize, startCluster, new String[0]);
+  public LocalTachyonClusterResource(long workerCapacityBytes, int userBlockSize,
+      boolean startCluster) {
+    this(workerCapacityBytes, userBlockSize, startCluster, new String[0]);
   }
 
-  public LocalTachyonClusterResource(long workerCapacityBytes, int quotaUnitBytes,
-      int userBlockSize, String... confParams) {
-    this(workerCapacityBytes, quotaUnitBytes, userBlockSize, true, confParams);
+  public LocalTachyonClusterResource(long workerCapacityBytes, int userBlockSize,
+      String... confParams) {
+    this(workerCapacityBytes, userBlockSize, true, confParams);
   }
 
-  public LocalTachyonClusterResource(long workerCapacityBytes, int quotaUnitBytes,
-      int userBlockSize) {
-    this(workerCapacityBytes, quotaUnitBytes, userBlockSize, true, new String[0]);
+  public LocalTachyonClusterResource(long workerCapacityBytes, int userBlockSize) {
+    this(workerCapacityBytes, userBlockSize, true, new String[0]);
   }
 
   /**
@@ -147,6 +141,7 @@ public class LocalTachyonClusterResource implements TestRule {
 
   /**
    * Explicitly starts the {@link LocalTachyonCluster}.
+   *
    * @throws IOException if an I/O error occurs
    * @throws ConnectionFailedException if network connection failed
    */
@@ -156,8 +151,7 @@ public class LocalTachyonClusterResource implements TestRule {
 
   @Override
   public Statement apply(final Statement statement, Description description) {
-    mLocalTachyonCluster =
-        new LocalTachyonCluster(mWorkerCapacityBytes, mQuotaUnitBytes, mUserBlockSize);
+    mLocalTachyonCluster = new LocalTachyonCluster(mWorkerCapacityBytes, mUserBlockSize);
     try {
       mTestConf = mLocalTachyonCluster.newTestConf();
       // Override the configuration parameters with mConfParams
@@ -181,7 +175,7 @@ public class LocalTachyonClusterResource implements TestRule {
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
-    }  catch (ConnectionFailedException e) {
+    } catch (ConnectionFailedException e) {
       throw new RuntimeException(e);
     }
     return new Statement() {

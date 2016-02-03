@@ -19,6 +19,8 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.CreateDirectoryOptions;
@@ -36,10 +38,10 @@ public final class MkdirCommand extends AbstractTfsShellCommand {
    * Constructs a new instance to create a new directory.
    *
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public MkdirCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public MkdirCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -53,13 +55,14 @@ public final class MkdirCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     for (String path : args) {
       TachyonURI inputPath = new TachyonURI(path);
 
       try {
         CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
-        mTfs.createDirectory(inputPath, options);
+        mFileSystem.createDirectory(inputPath, options);
         System.out.println("Successfully created directory " + inputPath);
       } catch (TachyonException e) {
         throw new IOException(e.getMessage());

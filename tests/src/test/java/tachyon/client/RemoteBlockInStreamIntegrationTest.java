@@ -92,7 +92,7 @@ public class RemoteBlockInStreamIntegrationTest {
     mNettyTransferType = transferType;
     mRemoteReaderClass = reader;
 
-    mLocalTachyonClusterResource = new LocalTachyonClusterResource(Constants.GB, Constants.KB,
+    mLocalTachyonClusterResource = new LocalTachyonClusterResource(Constants.GB,
         Constants.GB, Constants.WORKER_DATA_SERVER, mDataServerClass,
         Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType,
         Constants.USER_BLOCK_REMOTE_READER, mRemoteReaderClass,

@@ -33,7 +33,7 @@ public class TouchCommandTest extends AbstractTfsShellTest {
   public void touchTest() throws IOException, TachyonException {
     String[] argv = new String[] {"touch", "/testFile"};
     mFsShell.run(argv);
-    URIStatus status = mTfs.getStatus(new TachyonURI("/testFile"));
+    URIStatus status = mFileSystem.getStatus(new TachyonURI("/testFile"));
     Assert.assertNotNull(status);
     Assert.assertEquals(getCommandOutput(argv), mOutput.toString());
     Assert.assertFalse(status.isFolder());
@@ -47,7 +47,7 @@ public class TouchCommandTest extends AbstractTfsShellTest {
     String[] argv = new String[] {"touch", tachyonURI};
     mFsShell.run(argv);
     // then
-    URIStatus status = mTfs.getStatus(new TachyonURI("/destFileURI"));
+    URIStatus status = mFileSystem.getStatus(new TachyonURI("/destFileURI"));
     Assert.assertNotNull(status);
     Assert.assertEquals(getCommandOutput(argv), mOutput.toString());
     Assert.assertFalse(status.isFolder());

@@ -71,7 +71,7 @@ public class RmCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void rmWildCardTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
 
     mFsShell.run("rm", "/testWildCards/foo/foo*");
     Assert.assertFalse(fileExist(new TachyonURI("/testWildCards/foo/foobar1")));
