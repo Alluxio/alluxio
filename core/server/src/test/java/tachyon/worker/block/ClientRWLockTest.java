@@ -22,36 +22,51 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests for {@link ClientRWLock}
+ * Unit tests for {@link ClientRWLock}.
  */
 public final class ClientRWLockTest {
 
   private Lock mReadLock;
   private Lock mWriteLock;
 
+  /**
+   * Sets up the constructors before a test run.
+   */
   @Before
   public void before() {
     mReadLock = new ClientRWLock().readLock();
     mWriteLock = new ClientRWLock().writeLock();
   }
 
+  /**
+   * Tests the equalty for two {@link ClientRWLock} constructors.
+   */
   @Test
   public void notSameLockTest() {
     Assert.assertNotSame(mReadLock, mWriteLock);
   }
 
+  /**
+   * Tests the {@link ClientRWLock#unlock()} method.
+   */
   @Test
   public void unlockTest() throws Exception {
     mReadLock.unlock();
     Assert.assertTrue(true);
   }
 
+  /**
+   * Tests the {@link ClientRWLock#tryLock()} method.
+   */
   @Test
   public void tryLockTestFail() throws Exception {
     mWriteLock.lock();
     Assert.assertFalse(mWriteLock.tryLock());
   }
 
+  /**
+   * Tests the {@link ClientRWLock#lockInterruptibly()} method.
+   */
   @Test
   public void lockInterruptiblyTest() throws Exception {
     mReadLock.lockInterruptibly();
