@@ -19,6 +19,8 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.TachyonURI;
 import tachyon.client.ReadType;
 import tachyon.client.file.FileInStream;
@@ -49,7 +51,7 @@ public final class CatCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path) throws IOException {
+  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
     try {
       URIStatus status = mFileSystem.getStatus(path);
 
