@@ -19,6 +19,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 /**
  * The lock block operation result.
@@ -33,7 +34,9 @@ public final class LockBlockResult {
   /**
    * Creates a new instance of {@link LockBlockResult}.
    */
-  public LockBlockResult() {}
+  public LockBlockResult() {
+    mBlockPath = "";
+  }
 
   /**
    * Creates a new instance of {@link LockBlockResult} from a thrift representation.
@@ -73,6 +76,7 @@ public final class LockBlockResult {
    * @return the lock block operation result
    */
   public LockBlockResult setBlockPath(String blockPath) {
+    Preconditions.checkNotNull(blockPath);
     mBlockPath = blockPath;
     return this;
   }

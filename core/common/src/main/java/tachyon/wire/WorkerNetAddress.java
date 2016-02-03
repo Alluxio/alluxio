@@ -19,6 +19,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
 
@@ -30,7 +31,7 @@ import tachyon.annotation.PublicApi;
 // TODO(jiri): Consolidate with tachyon.worker.NetAddress.
 public final class WorkerNetAddress {
   @JsonProperty("host")
-  private String mHost;
+  private String mHost = "";
   @JsonProperty("rpcPort")
   private int mRpcPort;
   @JsonProperty("dataPort")
@@ -41,12 +42,7 @@ public final class WorkerNetAddress {
   /**
    * Creates a new instance of {@WorkerNetAddress}.
    */
-  public WorkerNetAddress() {
-    mHost = "";
-    mRpcPort = -1;
-    mDataPort = -1;
-    mWebPort = -1;
-  }
+  public WorkerNetAddress() {}
 
   /**
    * Creates a new instance of {@WorkerNetAddress} from thrift representation.
@@ -93,6 +89,7 @@ public final class WorkerNetAddress {
    * @return the worker net address
    */
   public WorkerNetAddress setHost(String host) {
+    Preconditions.checkNotNull(host);
     mHost = host;
     return this;
   }

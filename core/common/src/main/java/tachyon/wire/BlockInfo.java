@@ -22,6 +22,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 /**
  * The block descriptor.
@@ -33,7 +35,7 @@ public final class BlockInfo {
   @JsonProperty("length")
   private long mLength;
   @JsonProperty("locations")
-  private List<BlockLocation> mLocations = new ArrayList<BlockLocation>();
+  private List<BlockLocation> mLocations = Lists.newArrayList();
 
   /**
    * Creates a new instance of {@link BlockInfo}.
@@ -98,6 +100,7 @@ public final class BlockInfo {
    * @return the block descriptor
    */
   public BlockInfo setLocations(List<BlockLocation> locations) {
+    Preconditions.checkNotNull(locations);
     mLocations = locations;
     return this;
   }
@@ -123,7 +126,7 @@ public final class BlockInfo {
     }
     BlockInfo that = (BlockInfo) o;
     return mBlockId == that.mBlockId && mLength == that.mLength
-        && ((mLocations == null && that.mLocations == null) || mLocations.equals(that.mLocations));
+        && mLocations.equals(that.mLocations);
   }
 
   @Override

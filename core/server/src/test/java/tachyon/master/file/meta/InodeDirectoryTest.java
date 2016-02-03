@@ -255,7 +255,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
     Assert.assertEquals(inodeDirectory.getId(), info.getFileId());
     Assert.assertEquals(inodeDirectory.getName(), info.getName());
     Assert.assertEquals(path, info.getPath());
-    Assert.assertEquals(null, info.getUfsPath());
+    Assert.assertEquals("", info.getUfsPath());
     Assert.assertEquals(0, info.getLength());
     Assert.assertEquals(0, info.getBlockSizeBytes());
     Assert.assertEquals(inodeDirectory.getCreationTimeMs(), info.getCreationTimeMs());
@@ -263,7 +263,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
     Assert.assertTrue(info.isFolder());
     Assert.assertEquals(inodeDirectory.isPinned(), info.isPinned());
     Assert.assertFalse(info.isCacheable());
-    Assert.assertNull(info.getBlockIds());
+    Assert.assertNotNull(info.getBlockIds());
     Assert.assertEquals(inodeDirectory.getLastModificationTimeMs(),
         info.getLastModificationTimeMs());
   }

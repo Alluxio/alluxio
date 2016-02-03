@@ -19,6 +19,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
 
@@ -36,6 +37,7 @@ public final class JobConfInfo {
    * Creates a new instance of {@link JobConfInfo}.
    */
   public JobConfInfo() {
+    mOutputFile = "";
   }
 
   /**
@@ -59,6 +61,7 @@ public final class JobConfInfo {
    * @return the lineage command-line job configuration
    */
   public JobConfInfo setOutputFile(String outputFile) {
+    Preconditions.checkNotNull(outputFile);
     mOutputFile = outputFile;
     return this;
   }

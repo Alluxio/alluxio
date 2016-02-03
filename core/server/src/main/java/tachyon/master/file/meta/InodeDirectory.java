@@ -114,7 +114,6 @@ public final class InodeDirectory extends Inode {
     ret.setPinned(isPinned());
     ret.setCacheable(false);
     ret.setPersisted(isPersisted());
-    ret.setBlockIds(null);
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
     ret.setTtl(Constants.NO_TTL);
     ret.setUserName(getUserName());

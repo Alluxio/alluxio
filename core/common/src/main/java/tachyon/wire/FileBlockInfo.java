@@ -22,6 +22,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 /**
  * The file block descriptor.
@@ -29,11 +31,11 @@ import com.google.common.base.Objects;
 @NotThreadSafe
 public final class FileBlockInfo {
   @JsonProperty("blockInfo")
-  private BlockInfo mBlockInfo;
+  private BlockInfo mBlockInfo = new BlockInfo();
   @JsonProperty("offset")
   private long mOffset;
   @JsonProperty("ufsLocations")
-  private List<WorkerNetAddress> mUfsLocations = new ArrayList<WorkerNetAddress>();
+  private List<WorkerNetAddress> mUfsLocations = Lists.newArrayList();
 
   /**
    * Creates a new instance of {@link FileBlockInfo}.
@@ -80,6 +82,7 @@ public final class FileBlockInfo {
    * @return the file block descriptor
    */
   public FileBlockInfo setBlockInfo(BlockInfo blockInfo) {
+    Preconditions.checkNotNull(blockInfo);
     mBlockInfo = blockInfo;
     return this;
   }
@@ -98,6 +101,7 @@ public final class FileBlockInfo {
    * @return the file block descriptor
    */
   public FileBlockInfo setUfsLocations(List<WorkerNetAddress> ufsLocations) {
+    Preconditions.checkNotNull(ufsLocations);
     mUfsLocations = ufsLocations;
     return this;
   }
@@ -124,8 +128,7 @@ public final class FileBlockInfo {
     }
     FileBlockInfo that = (FileBlockInfo) o;
     return mBlockInfo.equals(that.mBlockInfo) && mOffset == that.mOffset
-        && ((mUfsLocations == null && that.mUfsLocations == null) || mUfsLocations
-            .equals(that.mUfsLocations));
+        && mUfsLocations.equals(that.mUfsLocations);
   }
 
   @Override
