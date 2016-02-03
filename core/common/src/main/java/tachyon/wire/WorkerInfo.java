@@ -26,19 +26,12 @@ import com.google.common.base.Preconditions;
  */
 @NotThreadSafe
 public final class WorkerInfo implements WireType<tachyon.thrift.WorkerInfo> {
-  @JsonProperty("id")
   private long mId;
-  @JsonProperty("address")
   private WorkerNetAddress mAddress;
-  @JsonProperty("lastContactSec")
   private int mLastContactSec;
-  @JsonProperty("state")
   private String mState;
-  @JsonProperty("capacityBytes")
   private long mCapacityBytes;
-  @JsonProperty("usedBytes")
   private long mUsedBytes;
-  @JsonProperty("startTimeMs")
   private long mStartTimeMs;
 
   /**

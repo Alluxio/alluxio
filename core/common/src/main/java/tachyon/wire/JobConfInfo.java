@@ -30,7 +30,6 @@ import tachyon.annotation.PublicApi;
 @PublicApi
 // TODO(jiri): Consolidate with tachyon.job.JobConf
 public final class JobConfInfo implements WireType<tachyon.thrift.JobConfInfo> {
-  @JsonProperty("outputFile")
   private String mOutputFile;
 
   /**

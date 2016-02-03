@@ -30,45 +30,25 @@ import com.google.common.collect.Lists;
 @NotThreadSafe
 // TODO(jiri): Consolidate with URIStatus
 public final class FileInfo implements WireType<tachyon.thrift.FileInfo> {
-  @JsonProperty("fileId")
   private long mFileId;
-  @JsonProperty("name")
   private String mName = "";
-  @JsonProperty("path")
   private String mPath = "";
-  @JsonProperty("ufsPath")
   private String mUfsPath = "";
-  @JsonProperty("length")
   private long mLength;
-  @JsonProperty("blockSizeBytes")
   private long mBlockSizeBytes;
-  @JsonProperty("creationTimeMs")
   private long mCreationTimeMs;
-  @JsonProperty("completed")
   private boolean mCompleted;
-  @JsonProperty("folder")
   private boolean mFolder;
-  @JsonProperty("pinned")
   private boolean mPinned;
-  @JsonProperty("cacheable")
   private boolean mCacheable;
-  @JsonProperty("persisted")
   private boolean mPersisted;
-  @JsonProperty("blockIds")
   private List<Long> mBlockIds = Lists.newArrayList();
-  @JsonProperty("inMemoryPercentage")
   private int mInMemoryPercentage;
-  @JsonProperty("lastModificationTimeMs")
   private long mLastModificationTimeMs;
-  @JsonProperty("ttl")
   private long mTtl;
-  @JsonProperty("userName")
   private String mUserName = "";
-  @JsonProperty("groupName")
   private String mGroupName = "";
-  @JsonProperty("permission")
   private int mPermission;
-  @JsonProperty("persistenceState")
   private String mPersistenceState = "";
 
   /**
