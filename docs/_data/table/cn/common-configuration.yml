@@ -17,8 +17,7 @@ tachyon.test.mode:
 tachyon.underfs.address:
   Tachyon在底层文件系统中的文件夹。
 tachyon.underfs.glusterfs.impl:
-  与hadoop挂钩的Glusterfs
-  Glusterfs hook with hadoop.
+  作为底层存储系统的glusterFS的实现类，其提供的接口与Hadoop兼容。
 tachyon.underfs.glusterfs.mapred.&#8203;system.dir:
   可选配置项，指定GlusterFS下用于存储MapReduce中间数据的子文件夹。
 tachyon.underfs.hdfs.configuration:
