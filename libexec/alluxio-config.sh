@@ -21,12 +21,12 @@ this="$config_bin/$script"
 # This will set the default installation for a tarball installation while os distributors can create
 # their own alluxio-layout.sh file to set system installation locations.
 if [ -z "$TACHYON_SYSTEM_INSTALLATION" ]; then
-  VERSION=0.9.0-RC3
+  VERSION=1.0.0-SNAPSHOT
   export TACHYON_PREFIX=`dirname $(dirname "$this")`
   export TACHYON_HOME=${TACHYON_PREFIX}
   export TACHYON_CONF_DIR="$TACHYON_HOME/conf"
   export TACHYON_LOGS_DIR="$TACHYON_HOME/logs"
-  export TACHYON_JARS="$TACHYON_HOME/assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar"
+  export TACHYON_JARS="$TACHYON_HOME/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar"
 fi
 
 # Make sure alluxio-env.sh exists
