@@ -26,7 +26,7 @@ if [ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]; then
   export ALLUXIO_HOME=${ALLUXIO_PREFIX}
   export ALLUXIO_CONF_DIR="$ALLUXIO_HOME/conf"
   export ALLUXIO_LOGS_DIR="$ALLUXIO_HOME/logs"
-  export ALLUXIO_JARS="$ALLUXIO_HOME/assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar"
+  export ALLUXIO_JARS="$ALLUXIO_HOME/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar"
 fi
 
 # Make sure alluxio-env.sh exists

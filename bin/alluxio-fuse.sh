@@ -15,7 +15,7 @@ get_env () {
   . $ALLUXIO_LIBEXEC_DIR/alluxio-config.sh
 
   ALLUXIO_MASTER_PORT=${ALLUXIO_MASTER_PORT:-19998}
-  ALLUXIO_FUSE_JAR=${BIN}/../integration/fuse/target/tachyon-integration-fuse-${VERSION}-jar-with-dependencies.jar
+  ALLUXIO_FUSE_JAR=${BIN}/../integration/fuse/target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
   FUSE_MAX_WRITE=131072
 }
 
