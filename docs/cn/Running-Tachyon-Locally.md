@@ -24,11 +24,15 @@ priority: 1
 
 * 远程登录服务打开，`ssh localhost`能成功。
 
-接着，格式化Tachyon文件系统并启动。*注意：因为Tachyon需要创建[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt)，启动Tachyon会要求用户输入root密码。如果不想重复输入root密码，将主机的公开ssh key添加到`~/.ssh/authorized_keys`.*
+接着，格式化Tachyon文件系统并启动。*注意：因为Tachyon需要创建
+[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt)，启动
+Tachyon会要求用户输入root密码。如果不想重复输入root密码，将主机的公开ssh key添加
+到`~/.ssh/authorized_keys`.*
 
 {% include Running-Tachyon-Locally/Tachyon-format-start.md %}
 
-验证Tachyon是否运行，访问**[http://localhost:19999](http://localhost:19999)**，或查看`logs`文件夹下的日志。也可以运行一个样例程序：
+验证Tachyon是否运行，访问**[http://localhost:19999](http://localhost:19999)**，或查看`logs`文件夹下的
+日志。也可以运行一个样例程序：
 
 {% include Running-Tachyon-Locally/run-sample.md %}
 
@@ -36,7 +40,8 @@ priority: 1
 
 {% include Running-Tachyon-Locally/first-sample-output.md %}
 
-再次访问Tachyon Web UI **[http://localhost:19999](http://localhost:19999)**。点击导航栏`Browse File System`可以看见样例程序写入Tachyon的文件。
+再次访问Tachyon Web UI **[http://localhost:19999](http://localhost:19999)**。点击导航栏
+`Browse File System`可以看见样例程序写入Tachyon的文件。
 
 
 运行一个更全面的系统完整性检查：

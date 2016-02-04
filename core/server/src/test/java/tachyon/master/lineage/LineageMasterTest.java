@@ -44,8 +44,8 @@ import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
-import tachyon.thrift.FileInfo;
-import tachyon.thrift.LineageInfo;
+import tachyon.wire.FileInfo;
+import tachyon.wire.LineageInfo;
 
 /**
  * Unit tests for {@link LineageMaster}.

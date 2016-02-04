@@ -33,16 +33,15 @@ import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
-import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
+import tachyon.wire.FileBlockInfo;
+import tachyon.wire.ThriftUtils;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by tachyon clients.
@@ -190,7 +189,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<List<FileBlockInfo>>() {
       @Override
       public List<FileBlockInfo> call() throws TachyonTException, TException {
-        return mClient.getFileBlockInfoList(path.getPath());
+        List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
+        for (tachyon.thrift.FileBlockInfo fileBlockInfo :
+            mClient.getFileBlockInfoList(path.getPath())) {
+          result.add(ThriftUtils.fromThrift(fileBlockInfo));
+        }
+        return result;
       }
     });
   }
@@ -206,7 +210,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<URIStatus>() {
       @Override
       public URIStatus call() throws TachyonTException, TException {
-        return new URIStatus(mClient.getStatus(path.getPath()));
+        return new URIStatus(ThriftUtils.fromThrift(mClient.getStatus(path.getPath())));
       }
     });
   }
@@ -225,7 +229,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<URIStatus>() {
       @Override
       public URIStatus call() throws TachyonTException, TException {
-        return new URIStatus(mClient.getStatusInternal(fileId));
+        return new URIStatus(ThriftUtils.fromThrift(mClient.getStatusInternal(fileId)));
       }
     });
   }
@@ -271,12 +275,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws TachyonTException, TException {
-        List<FileInfo> statuses = mClient.listStatus(path.getPath());
-        List<URIStatus> ret = new ArrayList<URIStatus>(statuses.size());
-        for (FileInfo status : statuses) {
-          ret.add(new URIStatus(status));
+        List<URIStatus> result = new ArrayList<URIStatus>();
+        for (tachyon.thrift.FileInfo fileInfo : mClient.listStatus(path.getPath())) {
+          result.add(new URIStatus(ThriftUtils.fromThrift(fileInfo)));
         }
-        return ret;
+        return result;
       }
     });
   }
@@ -369,25 +372,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
       @Override
       public Void call() throws TachyonTException, TException {
         mClient.scheduleAsyncPersist(path.getPath());
-        return null;
-      }
-    });
-  }
-
-  /**
-   * Sets the acl of a path.
-   *
-   * @param path the path of file or directory
-   * @param options the acl option to be set
-   * @throws TachyonException if a Tachyon error occurs
-   * @throws IOException an I/O error occurs
-   */
-  public synchronized void setAcl(final String path, final SetAclOptions options) throws
-      TachyonException, IOException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
-      @Override
-      public Void call() throws TachyonTException, TException {
-        mClient.setAcl(path, options.toThrift());
         return null;
       }
     });

@@ -33,7 +33,7 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.FileInfo;
+import tachyon.wire.FileInfo;
 
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
@@ -55,7 +55,7 @@ import static org.junit.Assert.assertArrayEquals;
 /**
  * Isolation tests for TachyonFuseFs.
  */
-// TODO(andreareale): this test suit should be completed
+// TODO(andreareale): this test suite should be completed
 public class TachyonFuseFsTest {
 
   private static final String TEST_MASTER_ADDRESS = "tachyon://localhost:19998";

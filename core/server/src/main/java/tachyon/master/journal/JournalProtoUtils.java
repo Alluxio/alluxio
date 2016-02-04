@@ -69,10 +69,8 @@ public final class JournalProtoUtils {
         return entry.getReinitializeFile();
       case RENAME:
         return entry.getRename();
-      case SET_ACL:
-        return entry.getSetAcl();
-      case SET_STATE:
-        return entry.getSetState();
+      case SET_ATTRIBUTE:
+        return entry.getSetAttribute();
       case ENTRY_NOT_SET:
         // This could mean that the field was never set, or it was set with a different version of
         // this message. Given the history of the JournalEntry protobuf message, the keys of the

@@ -22,7 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
-import tachyon.thrift.FileInfo;
+import tachyon.wire.FileInfo;
 
 /**
  * Wrapper around {@link FileInfo}. Represents the metadata about a file or directory in Tachyon.
@@ -77,17 +77,6 @@ public class URIStatus {
    */
   public String getGroupName() {
     return mInfo.getGroupName();
-  }
-
-  /**
-   * @deprecated This method is temporary
-   *
-   * @return the backing {@link FileInfo} object
-   */
-  // TODO(calvin): Remove this method
-  @Deprecated
-  public FileInfo getInfo() {
-    return mInfo;
   }
 
   /**
