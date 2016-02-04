@@ -20,12 +20,11 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
-import tachyon.client.file.options.SetAclOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -56,16 +55,7 @@ public final class ChmodCommand extends AbstractTfsShellCommand {
 
   @Override
   protected Options getOptions() {
-    Options opts = new Options();
-    // Add R option for recursively.
-    Option recursive = Option.builder("R")
-        .required(false)
-        .hasArg(false)
-        .desc("recusively")
-        .build();
-
-    opts.addOption(recursive);
-    return opts;
+    return new Options().addOption(RECURSIVE_OPTION);
   }
 
   /**
@@ -80,9 +70,9 @@ public final class ChmodCommand extends AbstractTfsShellCommand {
     short newPermission = 0;
     try {
       newPermission = Short.parseShort(modeStr, 8);
-      SetAclOptions options =
-          SetAclOptions.defaults().setPermission(newPermission).setRecursive(recursive);
-      mFileSystem.setAcl(path, options);
+      SetAttributeOptions options =
+          SetAttributeOptions.defaults().setPermission(newPermission).setRecursive(recursive);
+      mFileSystem.setAttribute(path, options);
       System.out.println("Changed permission of " + path + " to "
           + Integer.toOctalString(newPermission));
     } catch (Exception e) {
@@ -106,7 +96,7 @@ public final class ChmodCommand extends AbstractTfsShellCommand {
 
   @Override
   public String getDescription() {
-    return "Changes the permission of a file or directory specified by args. "
+    return "Changes the permission of a file or directory specified by args."
         + " Specify -R to change the permission recursively.";
   }
 }

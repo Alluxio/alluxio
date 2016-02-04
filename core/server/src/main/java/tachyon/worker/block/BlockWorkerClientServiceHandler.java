@@ -58,7 +58,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
 
   @Override
   public long getServiceVersion() {
-    return Constants.BLOCK_WORKER_SERVICE_VERSION;
+    return Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION;
   }
 
   /**

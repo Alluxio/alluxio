@@ -1,0 +1,31 @@
+tachyon.integration.master.resource.cpu:
+  CPU resource in terms of number of cores required to run a Tachyon master.
+tachyon.integration.master.resource.mem:
+  Memory resource required to run a Tachyon master.
+tachyon.integration.mesos.executor.dependency.path:
+  The URL from which Mesos executor can download Tachyon dependencies.
+tachyon.integration.mesos.jre.path:
+  The relative path to the JRE directory included in the tarball available at the JRE URL.
+tachyon.integration.mesos.jre.url:
+  The URL from which Mesos executor can download the JRE to use.
+tachyon.integration.mesos.master.name:
+  The Mesos task name for the Tachyon master task.
+tachyon.integration.mesos.master.node.count:
+  The number of Tachyon master processes to start.
+tachyon.integration.mesos.principal:
+  Tachyon framework’s identity.
+tachyon.integration.mesos.role:
+  Role that Tachyon framework in Mesos cluster may belong to.
+tachyon.integration.mesos.secret:
+  Tachyon framework’s secret.
+tachyon.integration.mesos.user:
+  Account used by the Mesos executor to run Tachyon workers.
+tachyon.integration.mesos.worker.name:
+  The Mesos task name for the Tachyon worker task.
+tachyon.integration.yarn.max.workers.per.host:
+  The maximum number of Tachyon workers which may be allocated to a single host.
+tachyon.integration.worker.resource.cpu:
+  CPU resource in terms of number of cores required to run a Tachyon worker.
+tachyon.integration.worker.resource.mem:
+  Memory resource required to run a Tachyon worker. This memory does not include the memory
+  configured for tiered storage.

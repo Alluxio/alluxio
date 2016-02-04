@@ -39,7 +39,6 @@ import tachyon.client.file.URIStatus;
 import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.DeleteOptions;
-import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AccessControlException;
@@ -600,10 +599,12 @@ public class JournalIntegrationTest {
         CreateFileOptions.defaults().setBlockSizeBytes(64);
     mFileSystem.createFile(filePath, op).close();
 
-    mFileSystem.setAcl(filePath, SetAclOptions.defaults().setOwner("user1").setRecursive(false));
-    mFileSystem.setAcl(filePath, SetAclOptions.defaults().setGroup("group1").setRecursive(false));
-    mFileSystem.setAcl(filePath,
-        SetAclOptions.defaults().setPermission((short) 0400).setRecursive(false));
+    mFileSystem.setAttribute(filePath,
+        SetAttributeOptions.defaults().setOwner("user1").setRecursive(false));
+    mFileSystem.setAttribute(filePath,
+        SetAttributeOptions.defaults().setGroup("group1").setRecursive(false));
+    mFileSystem.setAttribute(filePath,
+        SetAttributeOptions.defaults().setPermission((short) 0400).setRecursive(false));
 
     URIStatus status = mFileSystem.getStatus(filePath);
 
