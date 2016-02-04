@@ -34,6 +34,8 @@ tachyon.worker.evictor.lrfu.attenuation.factor:
 tachyon.worker.evictor.lrfu.step.factor:
   "A factor in [0, 1] to control the behavior of LRFU: smaller value makes LRFU more similar to
   LFU; and larger value makes LRFU closer to LRU."
+tachyon.worker.file.persist.pool.size:
+  The size of the thread pool per worker, in which the thread persists an ASYNC_THROUGH file to under storage.
 tachyon.worker.filesystem.heartbeat.interval.ms:
   The heartbeat interval (in milliseconds) between the worker and file system master.
 tachyon.worker.hostname:

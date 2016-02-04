@@ -12,6 +12,7 @@ tachyon.worker.data.server.class,tachyon.worker.netty.&#8203;NettyDataServer
 tachyon.worker.evictor.class,tachyon.worker.block.&#8203;evictor.LRUEvictor
 tachyon.worker.evictor.lrfu.attenuation.factor,2.0
 tachyon.worker.evictor.lrfu.step.factor,0.25
+tachyon.worker.file.persist.pool.size, 2
 tachyon.worker.filesystem.heartbeat.interval.ms,1000
 tachyon.worker.hostname,localhost
 tachyon.worker.memory.size,128 MB
