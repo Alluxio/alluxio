@@ -43,7 +43,7 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
   private static final org.apache.thrift.protocol.TField PERSISTED_FIELD_DESC = new org.apache.thrift.protocol.TField("persisted", org.apache.thrift.protocol.TType.BOOL, (short)3);
   private static final org.apache.thrift.protocol.TField OWNER_FIELD_DESC = new org.apache.thrift.protocol.TField("owner", org.apache.thrift.protocol.TType.STRING, (short)4);
   private static final org.apache.thrift.protocol.TField GROUP_FIELD_DESC = new org.apache.thrift.protocol.TField("group", org.apache.thrift.protocol.TType.STRING, (short)5);
-  private static final org.apache.thrift.protocol.TField PERMISSION_FIELD_DESC = new org.apache.thrift.protocol.TField("permission", org.apache.thrift.protocol.TType.I32, (short)6);
+  private static final org.apache.thrift.protocol.TField PERMISSION_FIELD_DESC = new org.apache.thrift.protocol.TField("permission", org.apache.thrift.protocol.TType.I16, (short)6);
   private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)7);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -57,7 +57,7 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
   private boolean persisted; // optional
   private String owner; // optional
   private String group; // optional
-  private int permission; // optional
+  private short permission; // optional
   private boolean recursive; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -158,7 +158,7 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
     tmpMap.put(_Fields.GROUP, new org.apache.thrift.meta_data.FieldMetaData("group", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.PERMISSION, new org.apache.thrift.meta_data.FieldMetaData("permission", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I16)));
     tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -323,11 +323,11 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
     }
   }
 
-  public int getPermission() {
+  public short getPermission() {
     return this.permission;
   }
 
-  public SetAttributeTOptions setPermission(int permission) {
+  public SetAttributeTOptions setPermission(short permission) {
     this.permission = permission;
     setPermissionIsSet(true);
     return this;
@@ -415,7 +415,7 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
       if (value == null) {
         unsetPermission();
       } else {
-        setPermission((Integer)value);
+        setPermission((Short)value);
       }
       break;
 
@@ -836,8 +836,8 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
             }
             break;
           case 6: // PERMISSION
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.permission = iprot.readI32();
+            if (schemeField.type == org.apache.thrift.protocol.TType.I16) {
+              struct.permission = iprot.readI16();
               struct.setPermissionIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -897,7 +897,7 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
       }
       if (struct.isSetPermission()) {
         oprot.writeFieldBegin(PERMISSION_FIELD_DESC);
-        oprot.writeI32(struct.permission);
+        oprot.writeI16(struct.permission);
         oprot.writeFieldEnd();
       }
       if (struct.isSetRecursive()) {
@@ -961,7 +961,7 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
         oprot.writeString(struct.group);
       }
       if (struct.isSetPermission()) {
-        oprot.writeI32(struct.permission);
+        oprot.writeI16(struct.permission);
       }
       if (struct.isSetRecursive()) {
         oprot.writeBool(struct.recursive);
@@ -993,7 +993,7 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
         struct.setGroupIsSet(true);
       }
       if (incoming.get(5)) {
-        struct.permission = iprot.readI32();
+        struct.permission = iprot.readI16();
         struct.setPermissionIsSet(true);
       }
       if (incoming.get(6)) {

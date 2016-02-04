@@ -36,33 +36,14 @@ public final class SetAttributeOptions {
   private Boolean mPersisted;
   private String mOwner;
   private String mGroup;
-  private short mPermission;
-  private Boolean mRecursive;
+  private Short mPermission;
+  private boolean mRecursive;
 
   /**
    * @return the default {@link SetAttributeOptions}
    */
   public static SetAttributeOptions defaults() {
     return new SetAttributeOptions();
-  }
-
-  /**
-   * @param options the thrift options to convert from
-   * @return a {@link SetAttributeOptions} logically equivalent to the given thrift options
-   */
-  public static SetAttributeOptions fromThriftOptions(SetAttributeTOptions options) {
-    return new SetAttributeOptions(options);
-  }
-
-  private SetAttributeOptions(SetAttributeTOptions options) {
-    mPinned = options.isSetPinned() ? options.isPinned() : null;
-    mTtl = options.isSetTtl() ? options.getTtl() : null;
-    mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
-    mOwner = options.isSetOwner() ? options.getOwner() : null;
-    mGroup = options.isSetGroup() ? options.getGroup() : null;
-    mPermission =
-        options.isSetPermission() ? (short) options.getPermission() : Constants.INVALID_PERMISSION;
-    mRecursive = options.isSetRecursive() ? options.isRecursive() : null;
   }
 
   private SetAttributeOptions() {
@@ -72,7 +53,7 @@ public final class SetAttributeOptions {
     mOwner = null;
     mGroup = null;
     mPermission = Constants.INVALID_PERMISSION;
-    mRecursive = null;
+    mRecursive = false;
   }
 
   /**
@@ -169,17 +150,9 @@ public final class SetAttributeOptions {
   }
 
   /**
-   * @return true if the recursive value is set, otherwise false
-   */
-  public boolean hasRecursive() {
-    return mRecursive != null;
-  }
-
-  /**
    * @return the recursive flag value
    */
-  public boolean getRecursive() {
-    Preconditions.checkState(hasRecursive(), PreconditionMessage.MUST_SET_RECURSIVE);
+  public boolean isRecursive() {
     return mRecursive;
   }
 
@@ -276,9 +249,7 @@ public final class SetAttributeOptions {
     if (mPermission != Constants.INVALID_PERMISSION) {
       options.setPermission(mPermission);
     }
-    if (mRecursive != null) {
-      options.setRecursive(mRecursive);
-    }
+    options.setRecursive(mRecursive);
     return options;
   }
 

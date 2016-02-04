@@ -30,7 +30,6 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AccessControlException;
 import tachyon.exception.ExceptionMessage;
@@ -40,6 +39,7 @@ import tachyon.master.block.BlockMaster;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.file.options.CreateFileOptions;
+import tachyon.master.file.options.SetAttributeOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.security.authentication.PlainSaslServer;
@@ -508,18 +508,18 @@ public class PermissionCheckTest {
     boolean recursive = true;
     long ttl = 11;
 
-    return SetAttributeOptions.defaults().setPinned(recursive).setTtl(ttl);
+    return new SetAttributeOptions.Builder().setPinned(recursive).setTtl(ttl).build();
   }
 
   private SetAttributeOptions verifySetState(
       TestUser user, String path, SetAttributeOptions options) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
 
-    mFileSystemMaster.setState(new TachyonURI(path), options);
+    mFileSystemMaster.setAttribute(new TachyonURI(path), options);
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(new TachyonURI(path));
-    return SetAttributeOptions.defaults().setPinned(fileInfo.isPinned())
-        .setTtl(fileInfo.getTtl()).setPersisted(fileInfo.isPersisted());
+    return new SetAttributeOptions.Builder().setPinned(fileInfo.isPinned())
+        .setTtl(fileInfo.getTtl()).setPersisted(fileInfo.isPersisted()).build();
   }
 
   @Test
@@ -639,9 +639,7 @@ public class PermissionCheckTest {
   @Test
   public void setOwnerSuccessTest() throws Exception {
     verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, TEST_USER_1.getUser(), null, (short) -1, false);
-
-    verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, TEST_USER_2.getUser(), null, (short) -1,
-        true);
+    verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, TEST_USER_2.getUser(), null, (short) -1, true);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
         new TachyonURI(TEST_DIR_FILE_URI)));
     Assert.assertEquals(TEST_USER_2.getUser(), fileInfo.getUserName());
@@ -676,8 +674,8 @@ public class PermissionCheckTest {
   @Test
   public void setGroupFailTest() throws Exception {
     mThrown.expect(AccessControlException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        "user=" + TEST_USER_1.getUser() + " is not the owner of path=" + TEST_FILE_URI));
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage("user="
+        + TEST_USER_1.getUser() + " is not the owner of path=" + TEST_FILE_URI));
 
     verifySetAcl(TEST_USER_1, TEST_FILE_URI, null, TEST_USER_1.getGroups(), (short) -1, false);
   }
@@ -727,7 +725,7 @@ public class PermissionCheckTest {
   }
 
   @Test
-  public void setAclFailByNotSuperuserTest() throws Exception {
+  public void setAclFailByNotSuperUserTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(TEST_USER_2.getUser() + " is not a super user or in super group");
 
@@ -738,9 +736,10 @@ public class PermissionCheckTest {
   private void verifySetAcl(TestUser owner, String path, String user, String group,
       short permission, boolean recursive) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(owner.getUser());
-    SetAttributeOptions options = SetAttributeOptions.defaults().setOwner(user).setGroup(group)
-        .setPermission(permission).setRecursive(recursive);
-    mFileSystemMaster.setState(new TachyonURI(path), options);
+    SetAttributeOptions options =
+        new SetAttributeOptions.Builder().setOwner(user).setGroup(group).setPermission(permission)
+            .setRecursive(recursive).build();
+    mFileSystemMaster.setAttribute(new TachyonURI(path), options);
 
     PlainSaslServer.AuthorizedClientUser.set(TEST_USER_ADMIN.getUser());
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(

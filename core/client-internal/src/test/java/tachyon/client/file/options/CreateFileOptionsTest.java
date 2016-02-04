@@ -74,6 +74,9 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
   }
 
+  /**
+   * Tests conversion to thrift representation.
+   */
   @Test
   public void toThriftTest() {
     CreateFileOptions options = CreateFileOptions.defaults();

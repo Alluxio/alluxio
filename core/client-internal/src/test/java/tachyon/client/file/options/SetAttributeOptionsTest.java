@@ -20,6 +20,8 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.thrift.SetAttributeTOptions;
+
 /**
  * Tests for the {@link SetAttributeOptions} class.
  */
@@ -33,7 +35,7 @@ public class SetAttributeOptionsTest {
     Assert.assertFalse(options.hasOwner());
     Assert.assertFalse(options.hasGroup());
     Assert.assertFalse(options.hasPermission());
-    Assert.assertFalse(options.hasRecursive());
+    Assert.assertFalse(options.isRecursive());
   }
 
   /**
@@ -74,7 +76,30 @@ public class SetAttributeOptionsTest {
     Assert.assertEquals(group, options.getGroup());
     Assert.assertTrue(options.hasPermission());
     Assert.assertEquals(permission, options.getPermission());
-    Assert.assertTrue(options.hasRecursive());
-    Assert.assertEquals(recursive, options.getRecursive());
+    Assert.assertEquals(recursive, options.isRecursive());
+  }
+
+  /**
+   * Tests conversion to thrift representation.
+   */
+  @Test
+  public void toThriftTest() {
+    Random random = new Random();
+    boolean persisted = random.nextBoolean();
+    boolean pinned = random.nextBoolean();
+    long ttl = random.nextLong();
+
+    SetAttributeOptions options = SetAttributeOptions.defaults();
+    options.setPersisted(persisted);
+    options.setPinned(pinned);
+    options.setTtl(ttl);
+    SetAttributeTOptions thriftOptions = options.toThrift();
+
+    Assert.assertTrue(thriftOptions.isSetPersisted());
+    Assert.assertEquals(persisted, thriftOptions.isPersisted());
+    Assert.assertTrue(thriftOptions.isSetPinned());
+    Assert.assertEquals(pinned, thriftOptions.isPinned());
+    Assert.assertTrue(thriftOptions.isSetTtl());
+    Assert.assertEquals(ttl, thriftOptions.getTtl());
   }
 }

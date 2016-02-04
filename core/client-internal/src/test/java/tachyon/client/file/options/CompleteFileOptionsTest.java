@@ -20,6 +20,8 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.thrift.CompleteFileTOptions;
+
 /**
  * Tests for the {@link CompleteFileOptions} class.
  */
@@ -43,5 +45,17 @@ public class CompleteFileOptionsTest {
     CompleteFileOptions options = CompleteFileOptions.defaults();
     options.setUfsLength(len);
     Assert.assertEquals(len, options.getUfsLength());
+  }
+
+  /**
+   * Tests conversion to thrift representation.
+   */
+  @Test
+  public void toThriftTest() {
+    long len = new Random().nextLong();
+    CompleteFileOptions options = CompleteFileOptions.defaults();
+    options.setUfsLength(len);
+    CompleteFileTOptions thriftOptions = options.toThrift();
+    Assert.assertEquals(len, thriftOptions.getUfsLength());
   }
 }

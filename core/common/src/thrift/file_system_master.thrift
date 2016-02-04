@@ -63,7 +63,7 @@ struct SetAttributeTOptions {
   3: optional bool persisted
   4: optional string owner
   5: optional string group
-  6: optional i32 permission
+  6: optional i16 permission
   7: optional bool recursive
 }
 

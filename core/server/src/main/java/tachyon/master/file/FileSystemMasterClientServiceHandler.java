@@ -25,13 +25,13 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.file.options.CreateFileOptions;
+import tachyon.master.file.options.SetAttributeOptions;
 import tachyon.thrift.CompleteFileTOptions;
 import tachyon.thrift.CreateDirectoryTOptions;
 import tachyon.thrift.CreateFileTOptions;
@@ -47,7 +47,6 @@ import tachyon.wire.ThriftUtils;
  * This class is a Thrift handler for file system master RPCs invoked by a Tachyon client.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
-//TODO(dong): server side should use a separate SetAttributeOptions in tachyon.master.file.options
 public final class FileSystemMasterClientServiceHandler implements
     FileSystemMasterClientService.Iface {
   private final FileSystemMaster mFileSystemMaster;
@@ -232,8 +231,7 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public void setAttribute(String path, SetAttributeTOptions options) throws TachyonTException {
     try {
-      mFileSystemMaster.setState(new TachyonURI(path),
-          SetAttributeOptions.fromThriftOptions(options));
+      mFileSystemMaster.setAttribute(new TachyonURI(path), new SetAttributeOptions(options));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
