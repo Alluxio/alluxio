@@ -1,4 +1,4 @@
-<%@ page import="tachyon.web.*" %>
+<%@ page import="alluxio.web.*" %>
 
 <html>
 <head>
@@ -32,7 +32,7 @@
                 <th>Workers Capacity</th>
                 <th>Space Used</th>
                 <th>Space Usage</th>
-              </thead>  
+              </thead>
               <tbody>
                 <% for (WebInterfaceWorkersServlet.NodeInfo nodeInfo : ((WebInterfaceWorkersServlet.NodeInfo[]) request.getAttribute("normalNodeInfos"))) { %>
                   <tr>
@@ -85,7 +85,7 @@
                 <% } %>
                 <th>Last Heartbeat</th>
                 <th>Workers Capacity</th>
-              </thead>  
+              </thead>
               <tbody>
                 <% if (request.getAttribute("failedNodeInfos") != null) {
                   for (WebInterfaceWorkersServlet.NodeInfo nodeInfo : ((WebInterfaceWorkersServlet.NodeInfo[]) request.getAttribute("failedNodeInfos"))) { %>

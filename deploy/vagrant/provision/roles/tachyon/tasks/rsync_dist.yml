@@ -6,10 +6,10 @@
   yum: name=rsync
   sudo: yes
 
-- name: mkdir /tachyon
+- name: mkdir /alluxio
   script: mkdir.sh
 
-- name: rsync tachyon from TachyonMaster
+- name: rsync alluxio from TachyonMaster
   script: rsync.sh
 
 # vim :set filetype=ansible.yaml:

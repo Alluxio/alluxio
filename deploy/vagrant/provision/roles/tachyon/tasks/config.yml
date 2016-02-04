@@ -1,13 +1,13 @@
 # Configure Tachyon, some configuration is related to ufs, so will reference scripts in roles/ufs_xxx
 ---
 
-- name: set tachyon/conf/workers
+- name: set alluxio/conf/workers
   script: set_workers.sh
 
-- name: set TACHYON_MASTER_ADDRESS in tachyon-env.sh
+- name: set TACHYON_MASTER_ADDRESS in alluxio-env.sh
   script: set_master_address.sh
 
-- name: set ufs related info in tachyon-env.sh
+- name: set ufs related info in alluxio-env.sh
   script: roles/ufs_{{ ufs }}/files/config_tachyon.sh
   environment:
     S3_BUCKET: "{{ s3_bucket }}"
@@ -26,19 +26,19 @@
   script: set_worker_heartbeat_timeout.sh
   when: tachyon_masters > 1
 
-- name: set worker memory in tachyon-env.sh
+- name: set worker memory in alluxio-env.sh
   replace: >
-    dest=/tachyon/conf/tachyon-env.sh
+    dest=/alluxio/conf/alluxio-env.sh
     regexp='^export TACHYON_WORKER_MEMORY_SIZE=.*'
     replace='export TACHYON_WORKER_MEMORY_SIZE={{ tachyon_memory }}'
 
-- name: let tachyon ssh to workers in parallel when start
+- name: let alluxio ssh to workers in parallel when start
   replace: >
-    dest=/tachyon/conf/tachyon-env.sh
+    dest=/alluxio/conf/alluxio-env.sh
     regexp='TACHYON_SSH_FOREGROUND="yes"'
     replace='TACHYON_SSH_FOREGROUND=""'
 
-- name: set TACHYON_JAR in libexec/tachyon-config.sh
+- name: set TACHYON_JAR in libexec/alluxio-config.sh
   script: tachyon_jar.sh
 
 # vim :set filetype=ansible.yaml:

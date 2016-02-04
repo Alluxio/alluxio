@@ -11,7 +11,7 @@ done
 
 [[ "$TIERED_PATH" == "" ]] && exit 0
 
-sed -i "s/tachyon.worker.tieredstore.levels=1/tachyon.worker.tieredstore.levels=2/g" /tachyon/conf/tachyon-env.sh
+sed -i "s/alluxio.worker.tieredstore.levels=1/alluxio.worker.tieredstore.levels=2/g" /tachyon/conf/tachyon-env.sh
 
 sed -i "/export TACHYON_JAVA_OPTS+=\"/ a\
   -Dtachyon.worker.tieredstore.level1.dirs.quota=$TIERED_QUOTA

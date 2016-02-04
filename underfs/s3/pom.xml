@@ -94,7 +94,7 @@
               <relocations>
                 <relocation>
                   <pattern>org.jets3t</pattern>
-                  <shadedPattern>tachyon.org.jets3t</shadedPattern>
+                  <shadedPattern>alluxio.org.jets3t</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

@@ -15,18 +15,18 @@ echo "Formatting Tachyon Worker"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_WORKER_JAVA_OPTS} \
-  -Dtachyon.home="${TACHYON_HOME}" \
-  -Dtachyon.logger.type="WORKER_LOGGER" \
-  -Dtachyon.logs.dir="${YARN_LOG_DIR}" \
-  tachyon.Format WORKER > "${YARN_LOG_DIR}"/worker.out 2>&1
+  -Dalluxio.home="${TACHYON_HOME}" \
+  -Dalluxio.logger.type="WORKER_LOGGER" \
+  -Dalluxio.logs.dir="${YARN_LOG_DIR}" \
+  alluxio.Format WORKER > "${YARN_LOG_DIR}"/worker.out 2>&1
 
 echo "Starting Tachyon Worker"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_WORKER_JAVA_OPTS} \
-  -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" \
-  -Dtachyon.home="${TACHYON_HOME}" \
-  -Dtachyon.logger.type="WORKER_LOGGER" \
-  -Dtachyon.logs.dir="${YARN_LOG_DIR}" \
-  -Dtachyon.master.hostname="${TACHYON_MASTER_ADDRESS}" \
-  tachyon.worker.TachyonWorker >> "${YARN_LOG_DIR}"/worker.out 2>&1
+  -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" \
+  -Dalluxio.home="${TACHYON_HOME}" \
+  -Dalluxio.logger.type="WORKER_LOGGER" \
+  -Dalluxio.logs.dir="${YARN_LOG_DIR}" \
+  -Dalluxio.master.hostname="${TACHYON_MASTER_ADDRESS}" \
+  alluxio.worker.TachyonWorker >> "${YARN_LOG_DIR}"/worker.out 2>&1

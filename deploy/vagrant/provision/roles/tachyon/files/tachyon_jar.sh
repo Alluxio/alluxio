@@ -5,11 +5,11 @@ tachyon_version=`grep version /tachyon/pom.xml | \
                  sed 's/<version>//g'          | \
                  sed 's/<\/version>//g'`
 
-grep "TACHYON_JAR" /tachyon/libexec/tachyon-config.sh | grep "tachyon-assemblies"
+grep "TACHYON_JAR" /tachyon/libexec/tachyon-config.sh | grep "alluxio-assemblies"
 
 if [[ "$?" == "0" ]]; then
-  sed -i "s/tachyon-assemblies-.*-jar-with-dependencies.jar/tachyon-assemblies-${tachyon_version}-jar-with-dependencies.jar/g" /tachyon/libexec/tachyon-config.sh
+  sed -i "s/alluxio-assemblies-.*-jar-with-dependencies.jar/alluxio-assemblies-${tachyon_version}-jar-with-dependencies.jar/g" /tachyon/libexec/tachyon-config.sh
 else
   # Back compatibility
-  sed -i "s/tachyon-.*-jar-with-dependencies.jar/tachyon-${tachyon_version}-jar-with-dependencies.jar/g" /tachyon/libexec/tachyon-config.sh
+  sed -i "s/alluxio-.*-jar-with-dependencies.jar/alluxio-${tachyon_version}-jar-with-dependencies.jar/g" /tachyon/libexec/tachyon-config.sh
 fi

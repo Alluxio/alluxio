@@ -9,8 +9,8 @@ if [ ! -f $DIST ]; then
  sudo yum install -y -q wget
  wget -q http://tachyon-project.org/downloads/files/${version}/${TACHYON_DIST} -P /vagrant/shared
  if [ $? -ne 0 ]; then
-     echo "Failed to download tachyon distribution $TACHYON_DIST. Please " \
-          "make sure your tachyon and hadoop versions are valid"
+     echo "Failed to download alluxio distribution $TACHYON_DIST. Please " \
+          "make sure your alluxio and hadoop versions are valid"
      exit 1
  fi
 fi

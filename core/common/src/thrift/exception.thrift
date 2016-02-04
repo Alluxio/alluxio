@@ -1,4 +1,4 @@
-namespace java tachyon.thrift
+namespace java alluxio.thrift
 
 exception TachyonTException {
   1: string type

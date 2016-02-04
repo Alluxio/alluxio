@@ -1,7 +1,7 @@
 parameter,defaultValue
-tachyon.fuse.maxwrite.bytes,131072
-tachyon.fuse.debug.enabled,false
-tachyon.fuse.cachedpaths.max,500
-tachyon.fuse.mount.default,/mnt/tachyon
-tachyon.fuse.fs.root,/mnt
-tachyon.fuse.fs.name,tachyon-fuse
+alluxio.fuse.maxwrite.bytes,131072
+alluxio.fuse.debug.enabled,false
+alluxio.fuse.cachedpaths.max,500
+alluxio.fuse.mount.default,/mnt/alluxio
+alluxio.fuse.fs.root,/mnt
+alluxio.fuse.fs.name,alluxio-fuse

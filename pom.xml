@@ -448,7 +448,7 @@
           <suppressionsLocation>${checkstyle.path}suppressions.xml</suppressionsLocation>
           <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/org/apache/jsp/**,**/tachyon/thrift/**,**/tachyon/proto/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/alluxio/thrift/**,**/alluxio/proto/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -483,16 +483,16 @@
           <aggregate>false</aggregate>
           <excludes>
             <!-- Code Exclusions -->
-            <exclude>**/src/main/java/tachyon/thrift/*</exclude>
-            <exclude>**/src/main/java/tachyon/proto/**</exclude>
-            <exclude>**/src/main/java/tachyon/perf/thrift/*</exclude>
+            <exclude>**/src/main/java/alluxio/thrift/*</exclude>
+            <exclude>**/src/main/java/alluxio/proto/**</exclude>
+            <exclude>**/src/main/java/alluxio/perf/thrift/*</exclude>
             <exclude>**/src/main/webapp/**/*</exclude>
             <exclude>**/src/thrift/*</exclude>
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
             <exclude>**/package-info.java</exclude>
-            <exclude>**/src/main/resources/tachyon-default.properties</exclude>
+            <exclude>**/src/main/resources/alluxio-default.properties</exclude>
 
             <!-- Build and Packaging Exclusions -->
             <exclude>build/**/*</exclude>
@@ -652,7 +652,7 @@
       </build>
     </profile>
 
-    <!-- profile that activates tachyon fuse for java8 or newer -->
+    <!-- profile that activates alluxio fuse for java8 or newer -->
     <profile>
       <id>buildFuse</id>
       <activation>

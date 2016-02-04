@@ -1,14 +1,14 @@
 #!/bin/bash
 #
 # Usage:
-#  tachyon-yarn.sh <numWorkers> <pathHdfs>
+#  alluxio-yarn.sh <numWorkers> <pathHdfs>
 
 function printUsage {
-  echo "Usage: tachyon-yarn.sh <numWorkers> <pathHdfs>"
+  echo "Usage: alluxio-yarn.sh <numWorkers> <pathHdfs>"
   echo -e "  numWorkers        \tNumber of Tachyon workers to launch"
-  echo -e "  pathHdfs          \tPath on HDFS to put tachyon jar and distribute it to YARN"
+  echo -e "  pathHdfs          \tPath on HDFS to put alluxio jar and distribute it to YARN"
   echo
-  echo "Example: ./tachyon-yarn.sh 10 hdfs://localhost:9000/tmp/"
+  echo "Example: ./alluxio-yarn.sh 10 hdfs://localhost:9000/tmp/"
 }
 
 if [ "$#" != 2 ]; then
@@ -30,7 +30,7 @@ source "${SCRIPT_DIR}/common.sh"
 
 NUM_WORKERS=$1
 HDFS_PATH=$2
-TACHYON_TARFILE="tachyon.tar.gz"
+TACHYON_TARFILE="alluxio.tar.gz"
 rm -rf $TACHYON_TARFILE
 tar -C $TACHYON_HOME -zcf $TACHYON_TARFILE \
   assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar libexec \
@@ -41,7 +41,7 @@ tar -C $TACHYON_HOME -zcf $TACHYON_TARFILE \
 
 JAR_LOCAL=${TACHYON_HOME}/assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar
 
-echo "Uploading files to HDFS to distribute tachyon runtime"
+echo "Uploading files to HDFS to distribute alluxio runtime"
 
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${TACHYON_TARFILE} ${HDFS_PATH}/$TACHYON_TARFILE
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${JAR_LOCAL} ${HDFS_PATH}/tachyon.jar
@@ -50,11 +50,11 @@ ${HADOOP_HOME}/bin/hadoop fs -put -f ${SCRIPT_DIR}/tachyon-application-master.sh
 
 echo "Starting YARN client to launch Tachyon on YARN"
 
-# Add Tachyon java options to the yarn options so that tachyon.yarn.Client can be configured via
-# tachyon java options
+# Add Tachyon java options to the yarn options so that alluxio.yarn.Client can be configured via
+# alluxio java options
 export YARN_OPTS="${YARN_OPTS:-${TACHYON_JAVA_OPTS}}"
 
-${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} tachyon.yarn.Client \
+${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} alluxio.yarn.Client \
     -num_workers $NUM_WORKERS \
     -master_address ${TACHYON_MASTER_ADDRESS:-localhost} \
     -resource_path ${HDFS_PATH}

@@ -11,17 +11,17 @@ echo "Formatting Tachyon Master"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_MASTER_JAVA_OPTS} \
-  -Dtachyon.home="${TACHYON_HOME}" \
-  -Dtachyon.logger.type="MASTER_LOGGER" \
-  -Dtachyon.logs.dir="${YARN_LOG_DIR}" \
-  tachyon.Format master > "${YARN_LOG_DIR}"/master.out 2>&1
+  -Dalluxio.home="${TACHYON_HOME}" \
+  -Dalluxio.logger.type="MASTER_LOGGER" \
+  -Dalluxio.logs.dir="${YARN_LOG_DIR}" \
+  alluxio.Format master > "${YARN_LOG_DIR}"/master.out 2>&1
 
 echo "Starting Tachyon Master"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_MASTER_JAVA_OPTS} \
-  -Dtachyon.accesslogger.type="MASTER_ACCESS_LOGGER" \
-  -Dtachyon.home="${TACHYON_HOME}" \
-  -Dtachyon.logger.type="MASTER_LOGGER" \
-  -Dtachyon.logs.dir="${YARN_LOG_DIR}" \
-  tachyon.master.TachyonMaster >> "${YARN_LOG_DIR}"/master.out 2>&1
+  -Dalluxio.accesslogger.type="MASTER_ACCESS_LOGGER" \
+  -Dalluxio.home="${TACHYON_HOME}" \
+  -Dalluxio.logger.type="MASTER_LOGGER" \
+  -Dalluxio.logs.dir="${YARN_LOG_DIR}" \
+  alluxio.master.TachyonMaster >> "${YARN_LOG_DIR}"/master.out 2>&1

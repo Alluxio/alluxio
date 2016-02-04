@@ -8,7 +8,7 @@
     src=roles/ufs_{{ ufs }}/files/compile_tachyon.sh
     dest=/tmp/compile_tachyon.sh
 
-- name: compile tachyon
+- name: compile alluxio
   shell: bash /tmp/compile_tachyon.sh
   environment:
     HADOOP_VERSION: "{{ hadoop_version }}"
