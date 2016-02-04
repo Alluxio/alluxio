@@ -1,15 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.tachyonproject</groupId>
-    <artifactId>tachyon-keyvalue</artifactId>
-    <version>0.9.0-RC3</version>
+    <groupId>org.alluxio.alluxio</groupId>
+    <artifactId>alluxio-keyvalue</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
   </parent>
-  <groupId>org.tachyonproject</groupId>
-  <artifactId>tachyon-keyvalue-client</artifactId>
+  <groupId>org.alluxio.alluxio</groupId>
+  <artifactId>alluxio-keyvalue-client</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Key Value - Client Distribution</name>
-  <description>Distribution of client for Tachyon Key Value Store</description>
+  <name>Alluxio Key Value - Client Distribution</name>
+  <description>Distribution of client for Alluxio Key Value Store</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -77,68 +77,68 @@
       <artifactId>hadoop-client</artifactId>
     </dependency>
 
-    <!-- Other Tachyon dependencies -->
+    <!-- Other Alluxio dependencies -->
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-client-internal</artifactId>
+      <groupId>org.alluxio.alluxio</groupId>
+      <artifactId>alluxio-core-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-common</artifactId>
+      <groupId>org.alluxio.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-client-internal</artifactId>
+      <groupId>org.alluxio.alluxio</groupId>
+      <artifactId>alluxio-keyvalue-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-hdfs</artifactId>
+      <groupId>org.alluxio.alluxio</groupId>
+      <artifactId>alluxio-underfs-hdfs</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-core-common</artifactId>
+          <groupId>org.alluxio.alluxio</groupId>
+          <artifactId>alluxio-core-common</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <!-- module alluxio-underfs-glusterfs depends on
          hadoop library of 2.3.0, which may have problem when using with
          hadoop 2.4 and later. Please check instructions in
-         http://tachyon-project.org/documentation/Configuring-Tachyon-with-GlusterFS.html
-         for how to use glusterfs with Tachyon. -->
+         http://alluxio.org/documentation/Configuring-Alluxio-with-GlusterFS.html
+         for how to use glusterfs with Alluxio. -->
     <!-- <dependency> -->
-    <!--   <groupId>org.tachyonproject</groupId> -->
+    <!--   <groupId>org.alluxio.alluxio</groupId> -->
     <!--   <artifactId>alluxio-underfs-glusterfs</artifactId> -->
     <!--   <version>${project.version}</version> -->
     <!--   <exclusions> -->
     <!--     <exclusion> -->
-    <!--       <groupId>org.tachyonproject</groupId> -->
+    <!--       <groupId>org.alluxio.alluxio</groupId> -->
     <!--       <artifactId>alluxio-core-common</artifactId> -->
     <!--     </exclusion> -->
     <!--   </exclusions> -->
     <!-- </dependency> -->
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-s3</artifactId>
+      <groupId>org.alluxio.alluxio</groupId>
+      <artifactId>alluxio-underfs-s3</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-core-common</artifactId>
+          <groupId>org.alluxio.alluxio</groupId>
+          <artifactId>alluxio-core-common</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-local</artifactId>
+      <groupId>org.alluxio.alluxio</groupId>
+      <artifactId>alluxio-underfs-local</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-core-common</artifactId>
+          <groupId>org.alluxio.alluxio</groupId>
+          <artifactId>alluxio-core-common</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -179,9 +179,9 @@
             <configuration>
               <artifactSet>
                 <includes>
-                  <include>org.tachyonproject:tachyon-core-common</include>
-                  <include>org.tachyonproject:tachyon-core-client-internal</include>
-                  <include>org.tachyonproject:tachyon-keyvalue-client-internal</include>
+                  <include>org.alluxio.alluxio:alluxio-core-common</include>
+                  <include>org.alluxio.alluxio:alluxio-core-client-internal</include>
+                  <include>org.alluxio.alluxio:alluxio-keyvalue-client-internal</include>
                   <include>org.apache.thrift:libthrift</include>
                 </includes>
               </artifactSet>
