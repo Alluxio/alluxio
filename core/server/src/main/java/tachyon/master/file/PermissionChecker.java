@@ -28,8 +28,8 @@ import tachyon.exception.InvalidPathException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.authorization.FileSystemPermission;
-import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
+import tachyon.wire.FileInfo;
 
 /**
  * Base class to provide permission check logic.

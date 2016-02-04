@@ -28,6 +28,7 @@ import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.security.User;
 
 /**
@@ -140,5 +141,37 @@ public final class AppLoginModule implements LoginModule {
     }
 
     return true;
+  }
+
+  /**
+   * A callback handler for {@link AppLoginModule}.
+   */
+  @NotThreadSafe
+  public static final class AppCallbackHandler implements CallbackHandler {
+    private String mUserName;
+
+    /**
+     * @param conf the configuration for Tachyon
+     */
+    public AppCallbackHandler(TachyonConf conf) {
+      if (conf.containsKey(Constants.SECURITY_LOGIN_USERNAME)) {
+        mUserName = conf.get(Constants.SECURITY_LOGIN_USERNAME);
+      } else {
+        mUserName = "";
+      }
+    }
+
+    @Override
+    public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+      for (Callback callback : callbacks) {
+        if (callback instanceof NameCallback) {
+          NameCallback nameCallback = (NameCallback) callback;
+          nameCallback.setName(mUserName);
+        } else {
+          Class<?> callbackClass = (callback == null) ? null : callback.getClass();
+          throw new UnsupportedCallbackException(callback, callbackClass + " is unsupported.");
+        }
+      }
+    }
   }
 }

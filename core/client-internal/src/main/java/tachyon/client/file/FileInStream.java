@@ -40,17 +40,16 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
-import tachyon.worker.NetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * A streaming API to read a file. This API represents a file as a stream of bytes and provides a
  * collection of {@link #read} methods to access this stream of bytes. In addition, one can seek
  * into a given offset of the stream to read.
- *
  * <p>
- * This class wraps the {@link tachyon.client.block.BlockInStream} for each of the blocks in the
- * file and abstracts the switching between streams. The backing streams can read from Tachyon space
- * in the local machine, remote machines, or the under storage system.
+ * This class wraps the {@link BlockInStream} for each of the blocks in the file and abstracts the
+ * switching between streams. The backing streams can read from Tachyon space in the local machine,
+ * remote machines, or the under storage system.
  */
 @PublicApi
 @NotThreadSafe
@@ -71,8 +70,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /** File information */
   private final URIStatus mStatus;
   /** Constant error message for block ID not cached */
-  private static final String BLOCK_ID_NOT_CACHED = "The block with ID {}"
-      + " could not be cached into Tachyon storage.";
+  private static final String BLOCK_ID_NOT_CACHED =
+      "The block with ID {} could not be cached into Tachyon storage.";
 
   /** If the stream is closed, this can only go from false to true */
   private boolean mClosed;
@@ -237,7 +236,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       if (mShouldCacheCurrentBlock) {
         try {
           long blockSize = getCurrentBlockSize();
-          NetAddress address = mLocationPolicy.getWorkerForNextBlock(
+          WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
               mContext.getTachyonBlockStore().getWorkerInfoList(), blockSize);
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, blockSize, address);
@@ -310,7 +309,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
           long blockSize = getCurrentBlockSize();
-          NetAddress address = mLocationPolicy.getWorkerForNextBlock(
+          WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
               mContext.getTachyonBlockStore().getWorkerInfoList(), blockSize);
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, blockSize, address);

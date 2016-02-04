@@ -27,6 +27,8 @@ tachyon.worker.evictor.lrfu.attenuation.factor:
   在[2, INF)之间的一个衰减因子，用于控制LRFU策略行为。
 tachyon.worker.evictor.lrfu.step.factor:
   在[0, 1]之间的一个因子，用于控制LRFU策略行为：较小值使LRFU更接近于LFU，较大值更接近于LRU。
+tachyon.worker.file.persist.pool.size:
+  在worker上用于异步存储ASYNC_THROUGH类型文件的线程池大小。每个线程会存储一个文件。
 tachyon.worker.filesystem.heartbeat.interval.ms:
   worker和文件系统master之间的心跳检测时间间隔（单位：毫秒）。
 tachyon.worker.hostname:
