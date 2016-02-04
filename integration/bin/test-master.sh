@@ -8,17 +8,17 @@ mkdir -p "${TACHYON_LOGS_DIR}"
 
 # Format the master.
 "${JAVA}" -cp "${CLASSPATH}" \
-  -Dtachyon.home="${TACHYON_HOME}" \
-  -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" \
-  -Dtachyon.master.hostname="${TACHYON_MASTER_ADDRESS}" \
-  -Dtachyon.logger.type="USER_LOGGER" \
-  ${TACHYON_JAVA_OPTS} "tachyon.Format" "master"
+  -Dalluxio.home="${TACHYON_HOME}" \
+  -Dalluxio.logs.dir="${TACHYON_LOGS_DIR}" \
+  -Dalluxio.master.hostname="${TACHYON_MASTER_ADDRESS}" \
+  -Dalluxio.logger.type="USER_LOGGER" \
+  ${TACHYON_JAVA_OPTS} "alluxio.Format" "master"
 
 # Start the master.
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_MASTER_JAVA_OPTS} \
-  -Dtachyon.accesslogger.type="MASTER_ACCESS_LOGGER" \
-  -Dtachyon.home="${TACHYON_HOME}" \
-  -Dtachyon.logger.type="MASTER_LOGGER" \
-  -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" \
-  tachyon.mesos.TestMasterExecutor > "${TACHYON_LOGS_DIR}"/test-master.out 2>&1
+  -Dalluxio.accesslogger.type="MASTER_ACCESS_LOGGER" \
+  -Dalluxio.home="${TACHYON_HOME}" \
+  -Dalluxio.logger.type="MASTER_LOGGER" \
+  -Dalluxio.logs.dir="${TACHYON_LOGS_DIR}" \
+  alluxio.mesos.TestMasterExecutor > "${TACHYON_LOGS_DIR}"/test-master.out 2>&1

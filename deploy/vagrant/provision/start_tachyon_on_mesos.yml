@@ -6,7 +6,7 @@
   tasks:
     - include: roles/mesos/tasks/start_slave.yml
 
-    - include: roles/tachyon/tasks/create_mount.yml
+    - include: roles/alluxio/tasks/create_mount.yml
 
     - include: roles/mesos/tasks/config_tachyon.yml
 

@@ -197,7 +197,7 @@
            upgrade checkstyle and remove this line when we go to java 7. -->
       <property name="standardPackageRegExp" value="^(java|javax)\..*"/>
       <property name="thirdPartyPackageRegExp" value="^com\..*|^org\..*|^io\..*"/>
-      <property name="specialImportsRegExp" value="tachyon"/>
+      <property name="specialImportsRegExp" value="alluxio"/>
       <property name="sortImportsInGroupAlphabetically" value="false"/>
       <property name="separateLineBetweenGroups" value="true"/>
       <property name="customImportOrderRules"

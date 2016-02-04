@@ -16,7 +16,7 @@ validate_provider(Provider)
 # load version configuration
 ZookeeperV = ZookeeperVersion.new('conf/zookeeper.yml')
 MesosV = MesosVersion.new('conf/mesos.yml')
-TachyonV = TachyonVersion.new('conf/tachyon.yml')
+TachyonV = TachyonVersion.new('conf/alluxio.yml')
 SparkV = SparkVersion.new('conf/spark.yml')
 UfsV = UfsVersion.new('conf/ufs.yml', Provider)
 
@@ -50,7 +50,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           spark_repo, spark_version = SparkV.repo_version
           is_vb = Provider == "vb"
           tachyon_dist = UfsV.tachyon_dist(tachyon_version)
-          puts "using tachyon distribution #{tachyon_dist}"
+          puts "using alluxio distribution #{tachyon_dist}"
           tachyon_platform = "standalone"
           if MesosV.type != "None"
             tachyon_platform = "mesos"

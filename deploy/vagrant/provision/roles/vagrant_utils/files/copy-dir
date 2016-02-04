@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This script is to be run on TachyonMaster to RSYNC a file/directory to all TachyonWorkers
-# e.x. run `/vagrant-utils/copy-dir /tachyon/conf` on master will RSYNC tachyon conf to all workers
+# e.x. run `/vagrant-utils/copy-dir /alluxio/conf` on master will RSYNC alluxio conf to all workers
 # this is helpful when you change configurations on master and then RSYNC to all workers
 
 # Modified from https://github.com/mesos/spark-ec2/blob/branch-1.4/copy-dir.sh

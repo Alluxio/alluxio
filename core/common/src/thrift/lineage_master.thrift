@@ -1,4 +1,4 @@
-namespace java tachyon.thrift
+namespace java alluxio.thrift
 
 include "common.thrift"
 include "exception.thrift"
@@ -27,7 +27,7 @@ struct LineageInfo {
 /**
  * This interface contains lineage master service endpoints for Tachyon clients.
  */
-service LineageMasterClientService extends common.TachyonService {  
+service LineageMasterClientService extends common.TachyonService {
 
   /**
    * Creates a lineage and returns the lineage id.

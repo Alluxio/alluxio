@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-package tachyon.proto.journal;
+package alluxio.proto.journal;
 
 // Journal entry messages for the lineage master.
 

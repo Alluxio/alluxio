@@ -1,65 +1,65 @@
-tachyon.master.bind.host:
+alluxio.master.bind.host:
   The hostname that Tachyon master binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
-tachyon.master.heartbeat.interval.ms:
+alluxio.master.heartbeat.interval.ms:
   The interval (in milliseconds) between Tachyon master's heartbeats
-tachyon.master.hostname:
+alluxio.master.hostname:
   The hostname of Tachyon master.
-tachyon.master.format.file_prefix:
+alluxio.master.format.file_prefix:
   The file prefix of the file generated in the journal directory when the journal is
   formatted. The master will search for a file with this prefix when determining of the journal
   was once formatted.
-tachyon.master.journal.folder:
+alluxio.master.journal.folder:
   The path to store master journal logs.
-tachyon.master.journal.formatter.class:
+alluxio.master.journal.formatter.class:
   The class to serialize the journal in a specified format.
-tachyon.master.journal.log.size.bytes.max:
+alluxio.master.journal.log.size.bytes.max:
   If a log file is bigger than this value, it will rotate to next file
-tachyon.master.journal.tailer.&#8203;shutdown.quiet.wait.time.ms:
+alluxio.master.journal.tailer.&#8203;shutdown.quiet.wait.time.ms:
   Before the standby master shuts down its tailer thread, there should be no update to the
   leader master's journal in this specified time period (in milliseconds).
-tachyon.master.journal.tailer.sleep.time.ms:
+alluxio.master.journal.tailer.sleep.time.ms:
   Time (in milliseconds) the standby master sleeps for when it cannot find anything new in leader
   master's journal.
-tachyon.master.lineage.checkpoint.interval.ms:
+alluxio.master.lineage.checkpoint.interval.ms:
   The interval (in milliseconds) between Tachyon's checkpoint scheduling.
-tachyon.master.lineage.checkpoint.class:
+alluxio.master.lineage.checkpoint.class:
   The class name of the checkpoint strategy for lineage output files. The default strategy is to
   checkpoint the latest completed lineage, i.e. the lineage whose output files are completed.
-tachyon.master.lineage.recompute.interval.ms:
+alluxio.master.lineage.recompute.interval.ms:
   The interval (in milliseconds) between Tachyon's recompute execution. The executor scans the
   all the lost files tracked by lineage, and re-executes the corresponding jobs.
   every 10 minutes.
-tachyon.master.lineage.recompute.log.path:
+alluxio.master.lineage.recompute.log.path:
   The path to the log that the recompute executor redirects the job's stdout into.
-tachyon.master.port:
+alluxio.master.port:
   The port that Tachyon master node runs on.
-tachyon.master.retry:
+alluxio.master.retry:
   The number of retries that the client connects to master
-tachyon.master.ttlchecker.interval.ms:
+alluxio.master.ttlchecker.interval.ms:
   Time interval (in milliseconds) to periodically delete the files with expired ttl value.
-tachyon.master.web.bind.host:
+alluxio.master.web.bind.host:
   The hostname Tachyon master web UI binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
-tachyon.master.web.hostname:
+alluxio.master.web.hostname:
   The hostname of Tachyon Master web UI.
-tachyon.master.web.port:
+alluxio.master.web.port:
   The port Tachyon web UI runs on.
-tachyon.master.whitelist:
+alluxio.master.whitelist:
   A comma-separated list of prefixes of the paths which are cacheable, separated by
   semi-colons. Tachyon will try to cache the cacheable file when it is read for the first
   time.
-tachyon.master.worker.threads.max:
+alluxio.master.worker.threads.max:
   The max number of workers that connect to master
-tachyon.master.worker.timeout.ms:
+alluxio.master.worker.timeout.ms:
   Timeout (in milliseconds) between master and worker indicating a lost worker.
-tachyon.master.tieredstore.global.levels:
+alluxio.master.tieredstore.global.levels:
   The total number of storage tiers in the system
-tachyon.master.tieredstore.global.level0.alias:
+alluxio.master.tieredstore.global.level0.alias:
   The name of the highest storage tier in the entire system
-tachyon.master.tieredstore.global.level1.alias:
+alluxio.master.tieredstore.global.level1.alias:
   The name of the second highest storage tier in the entire system
-tachyon.master.tieredstore.global.level2.alias:
+alluxio.master.tieredstore.global.level2.alias:
   The name of the third highest storage tier in the entire system
-tachyon.master.keytab.file:
+alluxio.master.keytab.file:
   Kerberos keytab file for Tachyon master.
-tachyon.master.principal:
+alluxio.master.principal:
   Kerberos principal for Tachyon master.

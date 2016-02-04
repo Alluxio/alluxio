@@ -6,13 +6,13 @@
   yum: name=git
   sudo: yes
 
-- name: mkdir /tachyon
+- name: mkdir /alluxio
   script: mkdir.sh
 
-- name: clone tachyon from {{ tachyon_repo }} {{ tachyon_version }}
+- name: clone alluxio from {{ tachyon_repo }} {{ tachyon_version }}
   git: >
     repo={{ tachyon_repo }}
-    dest=/tachyon
+    dest=/alluxio
     version={{ tachyon_version }}
 
 # vim :set filetype=ansible.yaml:

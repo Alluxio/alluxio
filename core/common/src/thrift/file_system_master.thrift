@@ -1,4 +1,4 @@
-namespace java tachyon.thrift
+namespace java alluxio.thrift
 
 include "common.thrift"
 include "exception.thrift"
@@ -154,7 +154,7 @@ service FileSystemMasterClientService extends common.TachyonService {
    * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
    * path. The path should not exist and should not be nested under any existing mount point.
    */
-  void mount( /** the path of tachyon mount point */ 1: string tachyonPath,
+  void mount( /** the path of alluxio mount point */ 1: string tachyonPath,
       /** the path of the under file system */ 2: string ufsPath)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
@@ -191,7 +191,7 @@ service FileSystemMasterClientService extends common.TachyonService {
    * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
    * will be persisted before they are removed from the Tachyon namespace.
    */
-  void unmount( /** the path of the tachyon mount point */ 1: string tachyonPath)
+  void unmount( /** the path of the alluxio mount point */ 1: string tachyonPath)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 }
 

@@ -1,5 +1,5 @@
 <assembly>
-  <id>tachyon-dist</id>
+  <id>alluxio-dist</id>
   <formats>
     <format>tar.gz</format>
     <format>dir</format>
@@ -49,7 +49,7 @@
       <directory>${basedir}/..</directory>
       <outputDirectory>/</outputDirectory>
       <includes>
-        <include>**/tachyon-*-jar-with-dependencies.jar</include>
+        <include>**/alluxio-*-jar-with-dependencies.jar</include>
       </includes>
     </fileSet>
     <fileSet>

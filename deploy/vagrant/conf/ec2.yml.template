@@ -97,7 +97,7 @@ AMI: "ami-1ecae776"
 # all outbound traffic and all tcp/udp inbound traffic will be allowed
 # Otherwise, it's your responsibility to make sure the `Security_Group`
 # is appropriate.
-Security_Group: "tachyon-vagrant-test"
+Security_Group: "alluxio-vagrant-test"
 
 Region: "us-east-1"
 

@@ -1,4 +1,4 @@
-namespace java tachyon.thrift
+namespace java alluxio.thrift
 
 include "common.thrift"
 include "exception.thrift"

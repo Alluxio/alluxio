@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OLD_BOX="$(vagrant box list | grep tachyon-dev | cut -d ' ' -f1)"
+OLD_BOX="$(vagrant box list | grep alluxio-dev | cut -d ' ' -f1)"
 if [[ "${OLD_BOX}" != "" ]]; then
   echo "Tachyon base image ${OLD_BOX} exists."
   echo "If you want to remove image ${OLD_BOX}, please run: vagrant box remove ${OLD_BOX}"
@@ -14,7 +14,7 @@ if [[ -f tachyon-dev.box ]]; then
   rm -f tachyon-dev.box
 fi
 
-echo "Generating tachyon base image 'tachyon-dev.box' ..."
+echo "Generating alluxio base image 'alluxio-dev.box' ..."
 vagrant up
 vagrant package --output tachyon-dev.box default
 vagrant destroy -f

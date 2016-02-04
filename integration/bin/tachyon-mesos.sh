@@ -1,14 +1,14 @@
 #!/bin/bash
 #
 # Usage:
-#  tachyon-mesos.sh <mesos-master-hostname>
+#  alluxio-mesos.sh <mesos-master-hostname>
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 source "${SCRIPT_DIR}/common.sh"
 TACHYON_FRAMEWORK_JAVA_OPTS="${TACHYON_FRAMEWORK_JAVA_OPTS:-${TACHYON_JAVA_OPTS}}"
 MESOS_LIBRARY_PATH="${MESOS_LIBRARY_PATH:-/usr/local/lib}"
 
-Usage="Usage: tachyon-mesos.sh [-hw] MESOS_MASTER_ADDRESS
+Usage="Usage: alluxio-mesos.sh [-hw] MESOS_MASTER_ADDRESS
 +MESOS_MASTER_ADDRESS is of the form 'mesos.example.com:5050'
 +
 +-w  wait for process to finish before returning
@@ -44,9 +44,9 @@ mkdir -p "${TACHYON_LOGS_DIR}"
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_FRAMEWORK_JAVA_OPTS} \
   -Djava.library.path="${MESOS_LIBRARY_PATH}" \
-  -Dtachyon.home="${TACHYON_HOME}" \
-  -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" \
-  tachyon.mesos.TachyonFramework "${MESOS_MASTER_ADDRESS}" > "${TACHYON_LOGS_DIR}"/framework.out 2>&1 &
+  -Dalluxio.home="${TACHYON_HOME}" \
+  -Dalluxio.logs.dir="${TACHYON_LOGS_DIR}" \
+  alluxio.mesos.TachyonFramework "${MESOS_MASTER_ADDRESS}" > "${TACHYON_LOGS_DIR}"/framework.out 2>&1 &
 
 if [[ "${wait}" ]]; then
   wait

@@ -1,4 +1,4 @@
-**/tachyon-site.properties
+**/alluxio-site.properties
 *.iml
 *.pyc
 *.swo
@@ -13,8 +13,8 @@
 .metadata/
 .project
 .settings/
-/conf/tachyon-env.sh
-/conf/tachyon-env.sh.bootstrap.bk
+/conf/alluxio-env.sh
+/conf/alluxio-env.sh.bootstrap.bk
 /data/
 /deploy/vagrant/.request_ids
 /deploy/vagrant/.vagrant/
@@ -25,7 +25,7 @@
 /deploy/vagrant/spot/roles/create_ec2/vars/
 /deploy/vagrant/spot/roles/tag_ec2/vars/
 /deploy/vagrant/vbox/.vagrant/
-/deploy/vagrant/vbox/tachyon-dev.box
+/deploy/vagrant/vbox/alluxio-dev.box
 /docs/_site/
 /docs/api/
 /docs/serve/
