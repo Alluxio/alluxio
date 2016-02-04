@@ -17,12 +17,15 @@ package tachyon.wire;
 
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.collect.Lists;
 
 /**
- * Created by jsimsa on 2/3/16.
+ * Utility methods for conversion between wire types and thrift types.
  */
-public class ThriftUtils {
+@ThreadSafe
+public final class ThriftUtils {
 
   /**
    * Converts a thrift type to a wire type.
