@@ -101,6 +101,29 @@ public final class FileSystemPermissionTest {
   }
 
   /**
+   * Tests the {@link FileSystemPermission#equals(Object)} method.
+   */
+  @Test
+  public void equalsTest() {
+    FileSystemPermission allPermission = new FileSystemPermission((short)0777);
+    Assert.assertTrue(allPermission.equals(FileSystemPermission.getDefault()));
+    FileSystemPermission nonePermission = new FileSystemPermission((short)0000);
+    Assert.assertTrue(nonePermission.equals(FileSystemPermission.getNoneFsPermission()));
+    Assert.assertFalse(allPermission.equals(nonePermission));
+  }
+
+  /**
+   * Tests the {@link FileSystemPermission#toString()} method.
+   */
+  @Test
+  public void toStringTest() {
+    Assert.assertEquals("rwxrwxrwx", new FileSystemPermission((short)0777).toString());
+    Assert.assertEquals("rw-r-----", new FileSystemPermission((short)0640).toString());
+    Assert.assertEquals("rw-------", new FileSystemPermission((short)0600).toString());
+    Assert.assertEquals("---------", new FileSystemPermission((short)0000).toString());
+  }
+
+  /**
    * Tests the {@link FileSystemPermission#getUMask(TachyonConf)} and
    * {@link FileSystemPermission#applyUMask(FileSystemPermission)} methods.
    */

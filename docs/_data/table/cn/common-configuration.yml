@@ -1,0 +1,46 @@
+tachyon.debug:
+  设置为true后即可启用debug模式，会记录更多日志，且在Web UI中会显示更多信息。
+tachyon.home:
+  Tachyon安装目录。
+tachyon.logs.dir:
+  存放日志文件的路径。
+tachyon.keyvalue.enabled:
+  是否开启键值对服务。
+tachyon.keyvalue.partition.size.bytes.max:
+  存储中的一个键值对分区的最大大小（单位：byte），该值应当不小于块大小（tachyon.user.block.size.bytes.default）。
+tachyon.metrics.conf.file:
+  度量系统配置文件路径，默认是`conf`文件夹下的`metrics.properties`文件。
+tachyon.network.host.resolution.&#8203;timeout.ms:
+  Tachyon在启动Master和Worker过程中，需要确保它们在监听外部可达且可解析的主机名。如果没有显式指定主机名，Tachyon会自动尝试选择一个合适的主机名。该配置项指定用于判断一个候选主机名在网络上是否可达的最长等待时间。
+tachyon.test.mode:
+  设置在测试过程中是否启用某些特殊行为。
+tachyon.underfs.address:
+  Tachyon在底层文件系统中的文件夹。
+tachyon.underfs.glusterfs.impl:
+  作为底层存储系统的glusterFS的实现类，其提供的接口与Hadoop兼容。
+tachyon.underfs.glusterfs.mapred.&#8203;system.dir:
+  可选配置项，指定GlusterFS下用于存储MapReduce中间数据的子文件夹。
+tachyon.underfs.hdfs.configuration:
+  hdfs配置文件的位置。
+tachyon.underfs.hdfs.impl:
+  作为底层存储系统的hdfs的实现类。
+tachyon.underfs.hdfs.prefixes:
+  可选配置项，指定以哪些前缀开头的文件应该存放在Apache Hadoop底层文件系统。分隔符为任何空白符或者','。
+tachyon.underfs.s3.proxy.host:
+  可选配置项，指定与S3通信的代理主机。
+tachyon.underfs.s3.proxy.https.only:
+  如果使用代理与S3通信，该配置项指定是否使用https与该代理通信。
+tachyon.underfs.s3.proxy.port:
+  可选配置项，指定与S3通信的代理端口。
+tachyon.web.resources:
+  web应用资源路径。
+tachyon.web.threads:
+  web服务器的线程数目。
+tachyon.zookeeper.election.path:
+  ZooKeeper的选举文件夹。
+tachyon.zookeeper.enabled:
+  若为true，则使用zooKeeper启动master容错机制。
+tachyon.zookeeper.leader.path:
+  ZooKeeper的leader文件夹。
+tachyon.zookeeper.leader.inquiry.retry:
+  从ZooKeeper申请leader的最大请求次数。
