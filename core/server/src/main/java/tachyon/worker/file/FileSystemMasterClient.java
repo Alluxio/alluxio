@@ -31,10 +31,11 @@ import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.TachyonService;
+import tachyon.wire.FileInfo;
+import tachyon.wire.ThriftUtils;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by Tachyon worker.
@@ -88,7 +89,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<FileInfo>() {
       @Override
       public FileInfo call() throws TException {
-        return mClient.getFileInfo(fileId);
+        return ThriftUtils.fromThrift(mClient.getFileInfo(fileId));
       }
     });
   }

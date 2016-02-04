@@ -47,9 +47,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.network.protocol.RPCResponse;
-import tachyon.thrift.BlockInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
+import tachyon.wire.BlockInfo;
 
 /**
  * Integration tests for {@link DataServer}.

@@ -42,13 +42,13 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.options.CompleteFileOptions;
-import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
+import tachyon.master.file.options.CreateFileOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.worker.NetAddress;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Unit tests for {@link MasterSource}.
@@ -101,7 +101,9 @@ public final class MasterSourceTest {
     mFileSystemMaster.start(true);
 
     // set up worker
-    mWorkerId = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81, 82));
+    mWorkerId =
+        mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("localhost").setRpcPort(80)
+            .setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
