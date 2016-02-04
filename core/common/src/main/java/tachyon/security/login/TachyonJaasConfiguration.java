@@ -20,6 +20,7 @@ import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.login.AppConfigurationEntry;
+import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
 import javax.security.auth.login.Configuration;
 
 import tachyon.security.authentication.AuthType;
@@ -38,19 +39,17 @@ public final class TachyonJaasConfiguration extends Configuration {
 
   private static final Map<String, String> EMPTY_JAAS_OPTIONS = new HashMap<String, String>();
 
-  private static final AppConfigurationEntry OS_SPECIFIC_LOGIN = new AppConfigurationEntry(
-      TachyonJaasProperties.OS_LOGIN_MODULE_NAME,
-      AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, EMPTY_JAAS_OPTIONS);
-  /**
-   * This app login module allows a user name provided by application to be specified.
-   */
+  /** Login module that allows a user name provided by OS. */
+  private static final AppConfigurationEntry OS_SPECIFIC_LOGIN =
+      new AppConfigurationEntry(TachyonJaasProperties.OS_LOGIN_MODULE_NAME,
+          LoginModuleControlFlag.REQUIRED, EMPTY_JAAS_OPTIONS);
+
+  /** Login module that allows a user name provided by application to be specified. */
   private static final AppConfigurationEntry APP_LOGIN = new AppConfigurationEntry(
-      AppLoginModule.class.getName(), AppConfigurationEntry.LoginModuleControlFlag.SUFFICIENT,
-      EMPTY_JAAS_OPTIONS);
+      AppLoginModule.class.getName(), LoginModuleControlFlag.SUFFICIENT, EMPTY_JAAS_OPTIONS);
 
   private static final AppConfigurationEntry TACHYON_LOGIN = new AppConfigurationEntry(
-      TachyonLoginModule.class.getName(), AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
-      EMPTY_JAAS_OPTIONS);
+      TachyonLoginModule.class.getName(), LoginModuleControlFlag.REQUIRED, EMPTY_JAAS_OPTIONS);
 
   // TODO(dong): add Kerberos_LOGIN module
   // private static final AppConfigurationEntry KERBEROS_LOGIN = ...
@@ -58,13 +57,12 @@ public final class TachyonJaasConfiguration extends Configuration {
   /**
    * In {@link AuthType#SIMPLE} mode, JAAS first tries to retrieve the user name set by the
    * application with {@link tachyon.security.login.AppLoginModule}. Upon failure, it uses the OS
-   * specific login module to fetch the OS user, and then uses the
-   * {@link tachyon.security.login .TachyonLoginModule} to convert it to a Tachyon user represented
-   * by {@link tachyon.security.User}. In {@link AuthType#CUSTOM} mode, we also use this
-   * configuration.
+   * specific login module to fetch the OS user, and then uses the {@link tachyon.security.login
+   * .TachyonLoginModule} to convert it to a Tachyon user represented by
+   * {@link tachyon.security.User}. In {@link AuthType#CUSTOM} mode, we also use this configuration.
    */
-  private static final AppConfigurationEntry[] SIMPLE = new AppConfigurationEntry[] {APP_LOGIN,
-      OS_SPECIFIC_LOGIN, TACHYON_LOGIN};
+  private static final AppConfigurationEntry[] SIMPLE =
+      new AppConfigurationEntry[] {APP_LOGIN, OS_SPECIFIC_LOGIN, TACHYON_LOGIN};
 
   // TODO(dong): add Kerberos mode
   // private static final AppConfigurationEntry[] KERBEROS = ...
