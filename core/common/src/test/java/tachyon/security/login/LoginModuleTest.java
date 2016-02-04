@@ -30,7 +30,7 @@ import tachyon.security.User;
 
 /**
  * Unit test for the login modules defined in {@link tachyon.security.login.TachyonLoginModule} and
- * used in {@link tachyon.security.login.TachyonJaasConfiguration}.
+ * used in {@link LoginModuleConfiguration}.
  */
 public class LoginModuleTest {
 
@@ -46,7 +46,7 @@ public class LoginModuleTest {
    */
   @Test
   public void simpleLoginTest() throws Exception {
-    String clazzName = TachyonJaasProperties.OS_PRINCIPAL_CLASS_NAME;
+    String clazzName = LoginModuleConfigurationUtils.OS_PRINCIPAL_CLASS_NAME;
     @SuppressWarnings("unchecked")
     Class<? extends Principal> clazz = (Class<? extends Principal>) ClassLoader
         .getSystemClassLoader().loadClass(clazzName);
@@ -54,7 +54,7 @@ public class LoginModuleTest {
 
     // login, add OS user into subject, and add corresponding Tachyon user into subject
     LoginContext loginContext = new LoginContext("simple", subject, null,
-        new TachyonJaasConfiguration());
+        new LoginModuleConfiguration());
     loginContext.login();
 
     // verify whether OS user and Tachyon user is added.
