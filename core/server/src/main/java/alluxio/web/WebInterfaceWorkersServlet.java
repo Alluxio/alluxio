@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Objects;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.master.block.BlockMaster;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
@@ -172,7 +172,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
   private static final long serialVersionUID = -7454493761603179826L;
 
   private final transient BlockMaster mBlockMaster;
-  private final transient TachyonConf mTachyonConf;
+  private final transient Configuration mConfiguration;
 
   /**
    * Creates a new instance of {@link WebInterfaceWorkersServlet}
@@ -181,7 +181,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    */
   public WebInterfaceWorkersServlet(BlockMaster blockMaster) {
     mBlockMaster = blockMaster;
-    mTachyonConf = new TachyonConf();
+    mConfiguration = new Configuration();
   }
 
   /**
@@ -233,6 +233,6 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     NodeInfo[] failedNodeInfos = generateOrderedNodeInfos(lostWorkerInfos);
     request.setAttribute("failedNodeInfos", failedNodeInfos);
 
-    request.setAttribute("workerWebPort", mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
+    request.setAttribute("workerWebPort", mConfiguration.getInt(Constants.WORKER_WEB_PORT));
   }
 }

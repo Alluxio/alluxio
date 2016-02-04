@@ -37,8 +37,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -197,7 +197,7 @@ public final class NetworkAddressUtils {
    * @return the service address that a client (typically outside the service machine) uses to
    *         communicate with service.
    */
-  public static InetSocketAddress getConnectAddress(ServiceType service, TachyonConf conf) {
+  public static InetSocketAddress getConnectAddress(ServiceType service, Configuration conf) {
     return new InetSocketAddress(getConnectHost(service, conf), getPort(service, conf));
   }
 
@@ -244,7 +244,7 @@ public final class NetworkAddressUtils {
    * @return the externally resolvable hostname that the client can use to communicate with the
    *         service.
    */
-  public static String getConnectHost(ServiceType service, TachyonConf conf) {
+  public static String getConnectHost(ServiceType service, Configuration conf) {
     if (conf.containsKey(service.mHostNameKey)) {
       String connectHost = conf.get(service.mHostNameKey);
       if (!connectHost.isEmpty() && !connectHost.equals(WILDCARD_ADDRESS)) {
@@ -268,7 +268,7 @@ public final class NetworkAddressUtils {
    * @param conf Tachyon configuration
    * @return the service port number
    */
-  public static int getPort(ServiceType service, TachyonConf conf) {
+  public static int getPort(ServiceType service, Configuration conf) {
     return conf.getInt(service.mPortKey);
   }
 
@@ -286,7 +286,7 @@ public final class NetworkAddressUtils {
    * @param conf the configuration of Tachyon
    * @return the InetSocketAddress the service will bind to
    */
-  public static InetSocketAddress getBindAddress(ServiceType service, TachyonConf conf) {
+  public static InetSocketAddress getBindAddress(ServiceType service, Configuration conf) {
     int port = getPort(service, conf);
     assertValidPort(port);
 
@@ -305,7 +305,7 @@ public final class NetworkAddressUtils {
    * @param conf Tachyon configuration used to look up the host resolution timeout
    * @return the local host name, which is not based on a loopback ip address
    */
-  public static synchronized String getLocalHostName(TachyonConf conf) {
+  public static synchronized String getLocalHostName(Configuration conf) {
     if (sLocalHost != null) {
       return sLocalHost;
     }
@@ -340,7 +340,7 @@ public final class NetworkAddressUtils {
    * @param conf Tachyon configuration
    * @return the local ip address, which is not a loopback address and is reachable
    */
-  public static synchronized String getLocalIpAddress(TachyonConf conf) {
+  public static synchronized String getLocalIpAddress(Configuration conf) {
     if (sLocalIP != null) {
       return sLocalIP;
     }
@@ -450,7 +450,7 @@ public final class NetworkAddressUtils {
    *         hostname is embedded, or null if the given path is null or empty.
    * @throws UnknownHostException if the hostname cannot be resolved
    */
-  public static TachyonURI replaceHostName(TachyonURI path) throws UnknownHostException {
+  public static AlluxioURI replaceHostName(AlluxioURI path) throws UnknownHostException {
     if (path == null) {
       return null;
     }
@@ -460,7 +460,7 @@ public final class NetworkAddressUtils {
       if (path.getPort() != -1) {
         authority += ":" + path.getPort();
       }
-      return new TachyonURI(path.getScheme(), authority, path.getPath());
+      return new AlluxioURI(path.getScheme(), authority, path.getPath());
     }
     return path;
   }

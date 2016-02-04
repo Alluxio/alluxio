@@ -22,11 +22,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * this would be deleting a nonempty directory without specifying 'recursive'.
  */
 @ThreadSafe
-public class DirectoryNotEmptyException extends TachyonException {
+public class DirectoryNotEmptyException extends AlluxioException {
   private static final long serialVersionUID = -8411287237224325573L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.DIRECTORY_NOT_EMPTY_EXCEPTION;
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.DIRECTORY_NOT_EMPTY_EXCEPTION;
 
   /**
    * Constructs a new exception with the specified detail message.

@@ -23,8 +23,8 @@ import org.eclipse.jetty.servlet.ServletHolder;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.conf.TachyonConf;
-import alluxio.master.TachyonMaster;
+import alluxio.Configuration;
+import alluxio.master.AlluxioMaster;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 /**
@@ -41,8 +41,8 @@ public final class MasterUIWebServer extends UIWebServer {
    * @param master the Tachyon master
    * @param conf the Tachyon configuration
    */
-  public MasterUIWebServer(ServiceType service, InetSocketAddress address, TachyonMaster master,
-      TachyonConf conf) {
+  public MasterUIWebServer(ServiceType service, InetSocketAddress address, AlluxioMaster master,
+      Configuration conf) {
     super(service, address, conf);
     Preconditions.checkNotNull(master, "TachyonMaster cannot be null");
 

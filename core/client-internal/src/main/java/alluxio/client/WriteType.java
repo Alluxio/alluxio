@@ -66,13 +66,13 @@ public enum WriteType {
   }
 
   /**
-   * @return the {@link TachyonStorageType} which is associated with this mode
+   * @return the {@link AlluxioStorageType} which is associated with this mode
    */
-  public TachyonStorageType getTachyonStorageType() {
+  public AlluxioStorageType getTachyonStorageType() {
     if (isCache()) {
-      return TachyonStorageType.STORE;
+      return AlluxioStorageType.STORE;
     }
-    return TachyonStorageType.NO_STORE;
+    return AlluxioStorageType.NO_STORE;
   }
 
   /**

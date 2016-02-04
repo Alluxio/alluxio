@@ -18,7 +18,7 @@ package alluxio.client.util;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 
 /**
@@ -35,7 +35,7 @@ public final class ClientMockUtils {
   }
 
   /**
-   * When {@link UnderFileSystem#get(String, TachyonConf)} is called to get an
+   * When {@link UnderFileSystem#get(String, Configuration)} is called to get an
    * {@link UnderFileSystem}, it will instead return the mock returned by this method, as long as
    * `filename` matches `ufsPathMatcher`
    *
@@ -48,7 +48,7 @@ public final class ClientMockUtils {
   public static UnderFileSystem mockUnderFileSystem(String ufsPathMatcher) {
     UnderFileSystem ufs = PowerMockito.mock(UnderFileSystem.class);
     PowerMockito.mockStatic(UnderFileSystem.class);
-    PowerMockito.when(UnderFileSystem.get(ufsPathMatcher, Mockito.any(TachyonConf.class)))
+    PowerMockito.when(UnderFileSystem.get(ufsPathMatcher, Mockito.any(Configuration.class)))
         .thenReturn(ufs);
     return ufs;
   }

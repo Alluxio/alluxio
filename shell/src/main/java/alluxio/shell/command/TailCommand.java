@@ -22,15 +22,15 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.apache.commons.cli.CommandLine;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * Prints the file's last 1KB of contents to the console.
@@ -42,7 +42,7 @@ public final class TailCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public TailCommand(TachyonConf conf, FileSystem fs) {
+  public TailCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -52,11 +52,11 @@ public final class TailCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
+  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
     URIStatus status;
     try {
       status = mFileSystem.getStatus(path);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
 
@@ -77,7 +77,7 @@ public final class TailCommand extends WithWildCardPathCommand {
         if (read != -1) {
           System.out.write(buf, 0, read);
         }
-      } catch (TachyonException e) {
+      } catch (AlluxioException e) {
         throw new IOException(e.getMessage());
       } finally {
         is.close();

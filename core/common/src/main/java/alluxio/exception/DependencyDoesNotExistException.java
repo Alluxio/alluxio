@@ -21,11 +21,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * The excepton thrown when a dependency does not exist in Tachyon.
  */
 @ThreadSafe
-public class DependencyDoesNotExistException extends TachyonException {
+public class DependencyDoesNotExistException extends AlluxioException {
   private static final long serialVersionUID = -8411287237224325573L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.DEPENDENCY_DOES_NOT_EXIST;
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.DEPENDENCY_DOES_NOT_EXIST;
 
   /**
    * Constructs a new exception with the specified detail message.

@@ -26,14 +26,14 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -44,7 +44,7 @@ public class IsolatedFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource = new LocalTachyonClusterResource(
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(
       WORKER_CAPACITY_BYTES, 100 * Constants.MB,
       Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
   private FileSystem mFileSystem = null;
@@ -53,29 +53,29 @@ public class IsolatedFileSystemIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mFileSystem = mLocalTachyonClusterResource.get().getClient();
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
 
-    TachyonConf workerTachyonConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
+    Configuration workerConfiguration = mLocalAlluxioClusterResource.get().getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
-        workerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
-    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(workerTachyonConf);
+        workerConfiguration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
+    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(workerConfiguration);
   }
 
   @Test
-  public void lockBlockTest1() throws IOException, TachyonException {
+  public void lockBlockTest1() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<TachyonURI> files = new ArrayList<TachyonURI>();
+    List<AlluxioURI> files = new ArrayList<AlluxioURI>();
     for (int k = 0; k < numOfFiles; k ++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
-      files.add(new TachyonURI(uniqPath + k));
+      files.add(new AlluxioURI(uniqPath + k));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       Assert.assertTrue(mFileSystem.getStatus(files.get(k)).getInMemoryPercentage() == 100);
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
-    files.add(new TachyonURI(uniqPath + numOfFiles));
+    files.add(new AlluxioURI(uniqPath + numOfFiles));
 
     CommonUtils.sleepMs(mWorkerToMasterHeartbeatIntervalMs);
 
@@ -86,16 +86,16 @@ public class IsolatedFileSystemIntegrationTest {
   }
 
   @Test
-  public void lockBlockTest2() throws IOException, TachyonException {
+  public void lockBlockTest2() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     FileInStream is;
     ByteBuffer buf;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<TachyonURI> files = new ArrayList<TachyonURI>();
+    List<AlluxioURI> files = new ArrayList<AlluxioURI>();
     for (int k = 0; k < numOfFiles; k ++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
-      files.add(new TachyonURI(uniqPath + k));
+      files.add(new AlluxioURI(uniqPath + k));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       URIStatus info = mFileSystem.getStatus(files.get(k));
@@ -106,7 +106,7 @@ public class IsolatedFileSystemIntegrationTest {
       is.close();
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
-    files.add(new TachyonURI(uniqPath + numOfFiles));
+    files.add(new AlluxioURI(uniqPath + numOfFiles));
 
     for (int k = 1; k < numOfFiles; k ++) {
       URIStatus info = mFileSystem.getStatus(files.get(k));
@@ -119,16 +119,16 @@ public class IsolatedFileSystemIntegrationTest {
   }
 
   @Test
-  public void lockBlockTest3() throws IOException, TachyonException {
+  public void lockBlockTest3() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     FileInStream is;
     ByteBuffer buf;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<TachyonURI> files = new ArrayList<TachyonURI>();
+    List<AlluxioURI> files = new ArrayList<AlluxioURI>();
     for (int k = 0; k < numOfFiles; k ++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
-      files.add(new TachyonURI(uniqPath + k));
+      files.add(new AlluxioURI(uniqPath + k));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       URIStatus info = mFileSystem.getStatus(files.get(k));
@@ -142,7 +142,7 @@ public class IsolatedFileSystemIntegrationTest {
       is.close();
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
-    files.add(new TachyonURI(uniqPath + numOfFiles));
+    files.add(new AlluxioURI(uniqPath + numOfFiles));
     // Sleep to ensure eviction has been reported to master
     CommonUtils.sleepMs(getSleepMs());
     URIStatus info = mFileSystem.getStatus(files.get(0));
@@ -154,16 +154,16 @@ public class IsolatedFileSystemIntegrationTest {
   }
 
   @Test
-  public void unlockBlockTest1() throws IOException, TachyonException {
+  public void unlockBlockTest1() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     FileInStream is;
     ByteBuffer buf;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<TachyonURI> files = new ArrayList<TachyonURI>();
+    List<AlluxioURI> files = new ArrayList<AlluxioURI>();
     for (int k = 0; k < numOfFiles; k ++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
-      files.add(new TachyonURI(uniqPath + k));
+      files.add(new AlluxioURI(uniqPath + k));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       URIStatus info = mFileSystem.getStatus(files.get(k));
@@ -174,7 +174,7 @@ public class IsolatedFileSystemIntegrationTest {
       is.close();
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
-    files.add(new TachyonURI(uniqPath + numOfFiles));
+    files.add(new AlluxioURI(uniqPath + numOfFiles));
     // Sleep to ensure eviction has been reported to master
     CommonUtils.sleepMs(getSleepMs());
     URIStatus info = mFileSystem.getStatus(files.get(0));
@@ -186,16 +186,16 @@ public class IsolatedFileSystemIntegrationTest {
   }
 
   @Test
-  public void unlockBlockTest2() throws IOException, TachyonException {
+  public void unlockBlockTest2() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     FileInStream is;
     ByteBuffer buf;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<TachyonURI> files = new ArrayList<TachyonURI>();
+    List<AlluxioURI> files = new ArrayList<AlluxioURI>();
     for (int k = 0; k < numOfFiles; k ++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
-      files.add(new TachyonURI(uniqPath + k));
+      files.add(new AlluxioURI(uniqPath + k));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       URIStatus info = mFileSystem.getStatus(files.get(k));
@@ -209,7 +209,7 @@ public class IsolatedFileSystemIntegrationTest {
       is.close();
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
-    files.add(new TachyonURI(uniqPath + numOfFiles));
+    files.add(new AlluxioURI(uniqPath + numOfFiles));
     for (int k = 1; k < numOfFiles; k ++) {
       URIStatus info = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
@@ -221,17 +221,17 @@ public class IsolatedFileSystemIntegrationTest {
   }
 
   @Test
-  public void unlockBlockTest3() throws IOException, TachyonException {
+  public void unlockBlockTest3() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     FileInStream is;
     ByteBuffer buf1;
     ByteBuffer buf2;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<TachyonURI> files = new ArrayList<TachyonURI>();
+    List<AlluxioURI> files = new ArrayList<AlluxioURI>();
     for (int k = 0; k < numOfFiles; k ++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
-      files.add(new TachyonURI(uniqPath + k));
+      files.add(new AlluxioURI(uniqPath + k));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       URIStatus info = mFileSystem.getStatus(files.get(k));
@@ -245,7 +245,7 @@ public class IsolatedFileSystemIntegrationTest {
       is.close();
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
-    files.add(new TachyonURI(uniqPath + numOfFiles));
+    files.add(new AlluxioURI(uniqPath + numOfFiles));
     // Sleep to ensure eviction has been reported to master
     CommonUtils.sleepMs(getSleepMs());
     URIStatus info = mFileSystem.getStatus(files.get(0));

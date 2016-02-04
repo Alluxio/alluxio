@@ -28,13 +28,13 @@ import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
 import alluxio.MasterClientBase;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
-import alluxio.thrift.TachyonService;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
 import alluxio.wire.WorkerNetAddress;
 
 /**
@@ -52,14 +52,14 @@ public final class BlockMasterClient extends MasterClientBase {
    * Creates a new instance of {@link BlockMasterClient} for the worker.
    *
    * @param masterAddress the master address
-   * @param tachyonConf the Tachyon configuration
+   * @param configuration the Tachyon configuration
    */
-  public BlockMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
-    super(masterAddress, tachyonConf);
+  public BlockMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
+    super(masterAddress, configuration);
   }
 
   @Override
-  protected TachyonService.Client getClient() {
+  protected AlluxioService.Client getClient() {
     return mClient;
   }
 
@@ -150,16 +150,16 @@ public final class BlockMasterClient extends MasterClientBase {
    * @param totalBytesOnTiers mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers mapping from storage tier alias to used bytes
    * @param currentBlocksOnTiers mapping from storage tier alias to the list of list of blocks
-   * @throws TachyonException if registering the worker fails
+   * @throws AlluxioException if registering the worker fails
    * @throws IOException if an I/O error occurs or the workerId doesn't exist
    */
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
   public synchronized void register(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-      final Map<String, List<Long>> currentBlocksOnTiers) throws TachyonException, IOException {
+      final Map<String, List<Long>> currentBlocksOnTiers) throws AlluxioException, IOException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
-      public Void call() throws TachyonTException, TException {
+      public Void call() throws AlluxioTException, TException {
         mClient.registerWorker(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
             currentBlocksOnTiers);
         return null;

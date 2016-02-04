@@ -31,7 +31,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.Lists;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.security.group.GroupMappingService;
 
 /**
@@ -204,7 +204,7 @@ public class CommonUtilsTest {
   }
 
   /**
-   * Test for the {@link CommonUtils#getPrimaryGroupName(TachyonConf, String)} method.
+   * Test for the {@link CommonUtils#getPrimaryGroupName(Configuration, String)} method.
    *
    * @throws Throwable if getting the primary group name fails
    */
@@ -221,10 +221,10 @@ public class CommonUtilsTest {
         Lists.newArrayList(userGroup1, userGroup2));
     PowerMockito.mockStatic(GroupMappingService.Factory.class);
     Mockito.when(
-        GroupMappingService.Factory.getUserToGroupsMappingService(Mockito.any(TachyonConf.class)))
+        GroupMappingService.Factory.getUserToGroupsMappingService(Mockito.any(Configuration.class)))
         .thenReturn(groupService);
 
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     String primaryGroup = CommonUtils.getPrimaryGroupName(conf, userName);
 
     Assert.assertNotNull(primaryGroup);

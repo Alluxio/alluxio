@@ -22,7 +22,7 @@ import java.net.InetSocketAddress;
 import com.google.common.base.Throwables;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.CommonUtils;
 
 /**
@@ -40,7 +40,7 @@ public interface RemoteBlockWriter extends Closeable {
      * @param conf Tachyon configuration
      * @return a new instance of {@link RemoteBlockWriter}
      */
-    public static RemoteBlockWriter create(TachyonConf conf) {
+    public static RemoteBlockWriter create(Configuration conf) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<RemoteBlockWriter>getClass(Constants.USER_BLOCK_REMOTE_WRITER), null, null);

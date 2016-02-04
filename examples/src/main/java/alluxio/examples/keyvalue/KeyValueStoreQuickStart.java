@@ -15,7 +15,7 @@
 
 package alluxio.examples.keyvalue;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.Version;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
@@ -38,7 +38,7 @@ public final class KeyValueStoreQuickStart {
       System.exit(-1);
     }
 
-    TachyonURI storeUri = new TachyonURI(args[0]);
+    AlluxioURI storeUri = new AlluxioURI(args[0]);
     KeyValueSystem kvs = KeyValueSystem.Factory.create();
 
     // Creates a store.

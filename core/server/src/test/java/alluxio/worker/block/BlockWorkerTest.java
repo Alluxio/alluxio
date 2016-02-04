@@ -38,7 +38,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import alluxio.Sessions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.DataServer;
@@ -59,7 +59,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
-    BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, TachyonConf.class,
+    BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, Configuration.class,
     UnderFileSystem.class, BlockWorker.class})
 public class BlockWorkerTest {
 
@@ -95,7 +95,7 @@ public class BlockWorkerTest {
     mWorkerId = mRandom.nextLong();
     ((AtomicLong) Whitebox.getInternalState(WorkerIdRegistry.class, "sWorkerId")).set(mWorkerId);
 
-    TachyonConf conf = WorkerContext.getConf();
+    Configuration conf = WorkerContext.getConf();
     conf.set("tachyon.worker.tieredstore.level0.dirs.path",
         mFolder.newFolder().getAbsolutePath());
     mBlockWorker = new BlockWorker();

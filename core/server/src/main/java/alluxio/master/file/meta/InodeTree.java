@@ -35,7 +35,7 @@ import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
@@ -170,7 +170,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @return the inode with the given path
    * @throws InvalidPathException if the path is invalid
    */
-  public Inode getInodeByPath(TachyonURI path) throws InvalidPathException {
+  public Inode getInodeByPath(AlluxioURI path) throws InvalidPathException {
     TraversalResult traversalResult =
         traverseToInode(PathUtils.getPathComponents(path.toString()), false);
     if (!traversalResult.isFound()) {
@@ -184,7 +184,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @return the inodes list with the given path
    * @throws InvalidPathException if the path is invalid
    */
-  public List<Inode> collectInodes(TachyonURI path) throws InvalidPathException {
+  public List<Inode> collectInodes(AlluxioURI path) throws InvalidPathException {
     TraversalResult traversalResult =
         traverseToInode(PathUtils.getPathComponents(path.getPath()), false);
     return traversalResult.getInodes();
@@ -194,12 +194,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param inode the inode to get the path for
    * @return the path for a given inode
    */
-  public TachyonURI getPath(Inode inode) {
+  public AlluxioURI getPath(Inode inode) {
     if (isRootId(inode.getId())) {
-      return new TachyonURI(TachyonURI.SEPARATOR);
+      return new AlluxioURI(AlluxioURI.SEPARATOR);
     }
     if (isRootId(inode.getParentId())) {
-      return new TachyonURI(TachyonURI.SEPARATOR + inode.getName());
+      return new AlluxioURI(AlluxioURI.SEPARATOR + inode.getName());
     }
     return getPath(mInodes.getFirstByField(mIdIndex, inode.getParentId())).join(inode.getName());
   }
@@ -226,7 +226,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *         parent directories is actually a file
    * @throws IOException if creating the path fails
    */
-  public CreatePathResult createPath(TachyonURI path, CreatePathOptions options)
+  public CreatePathResult createPath(AlluxioURI path, CreatePathOptions options)
       throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException {
     if (path.isRoot()) {
       LOG.info("FileAlreadyExistsException: {}", path);
@@ -379,7 +379,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @return the file id
    * @throws InvalidPathException if the path is invalid
    */
-  public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
+  public long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl)
       throws InvalidPathException {
     InodeFile file = (InodeFile) getInodeByPath(path);
     file.setBlockSize(blockSizeBytes);

@@ -35,7 +35,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.network.protocol.RPCBlockReadRequest;
@@ -63,7 +63,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final BlockWorker mBlockWorker;
-  private final TachyonConf mTachyonConf;
+  private final Configuration mConfiguration;
   private final StorageTierAssoc mStorageTierAssoc;
   private final FileTransferType mTransferType;
 
@@ -71,13 +71,13 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
    * Creates a new instance of {@link DataServerHandler}.
    *
    * @param blockWorker the block worker handle
-   * @param tachyonConf Tachyon configuration
+   * @param configuration Tachyon configuration
    */
-  public DataServerHandler(final BlockWorker blockWorker, TachyonConf tachyonConf) {
+  public DataServerHandler(final BlockWorker blockWorker, Configuration configuration) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
-    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    mStorageTierAssoc = new WorkerStorageTierAssoc(mTachyonConf);
-    mTransferType = mTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE,
+    mConfiguration = Preconditions.checkNotNull(configuration);
+    mStorageTierAssoc = new WorkerStorageTierAssoc(mConfiguration);
+    mTransferType = mConfiguration.getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE,
         FileTransferType.class);
   }
 

@@ -21,11 +21,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * The exception thrown when a file already exists in Tachyon.
  */
 @ThreadSafe
-public class FileAlreadyExistsException extends TachyonException {
+public class FileAlreadyExistsException extends AlluxioException {
   private static final long serialVersionUID = -621175311680977828L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.FILE_ALREADY_EXISTS;
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.FILE_ALREADY_EXISTS;
 
   /**
    * Constructs a new exception with the specified detail message.

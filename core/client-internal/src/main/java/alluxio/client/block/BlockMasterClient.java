@@ -26,12 +26,12 @@ import org.apache.thrift.TException;
 
 import alluxio.Constants;
 import alluxio.MasterClientBase;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.BlockMasterClientService;
-import alluxio.thrift.TachyonService;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerInfo;
@@ -50,14 +50,14 @@ public final class BlockMasterClient extends MasterClientBase {
    * Creates a new block master client.
    *
    * @param masterAddress the master address
-   * @param tachyonConf the Tachyon configuration
+   * @param configuration the Tachyon configuration
    */
-  public BlockMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
-    super(masterAddress, tachyonConf);
+  public BlockMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
+    super(masterAddress, configuration);
   }
 
   @Override
-  protected TachyonService.Client getClient() {
+  protected AlluxioService.Client getClient() {
     return mClient;
   }
 
@@ -102,14 +102,14 @@ public final class BlockMasterClient extends MasterClientBase {
    *
    * @param blockId the block id to get the BlockInfo for
    * @return the {@link BlockInfo}
-   * @throws TachyonException if a Tachyon error occurs
+   * @throws AlluxioException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized BlockInfo getBlockInfo(final long blockId)
-      throws TachyonException, IOException {
+      throws AlluxioException, IOException {
     return retryRPC(new RpcCallableThrowsTachyonTException<BlockInfo>() {
       @Override
-      public BlockInfo call() throws TachyonTException, TException {
+      public BlockInfo call() throws AlluxioTException, TException {
         return ThriftUtils.fromThrift(mClient.getBlockInfo(blockId));
       }
     });

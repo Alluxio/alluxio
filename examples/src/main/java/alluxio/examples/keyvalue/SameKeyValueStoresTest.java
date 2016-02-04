@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.Version;
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
@@ -38,15 +38,15 @@ import alluxio.util.io.BufferUtils;
 public final class SameKeyValueStoresTest implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final TachyonURI mStoreUri1;
-  private final TachyonURI mStoreUri2;
+  private final AlluxioURI mStoreUri1;
+  private final AlluxioURI mStoreUri2;
 
   /**
    * @param storeUri1 the URI of the first key-value store
    * @param storeUri2 the URI of the second key-value store
    * @throws Exception if the instance fails to be created
    */
-  public SameKeyValueStoresTest(TachyonURI storeUri1, TachyonURI storeUri2) throws Exception {
+  public SameKeyValueStoresTest(AlluxioURI storeUri1, AlluxioURI storeUri2) throws Exception {
     mStoreUri1 = storeUri1;
     mStoreUri2 = storeUri2;
   }
@@ -108,6 +108,6 @@ public final class SameKeyValueStoresTest implements Callable<Boolean> {
       System.exit(-1);
     }
 
-    Utils.runExample(new SameKeyValueStoresTest(new TachyonURI(args[0]), new TachyonURI(args[1])));
+    Utils.runExample(new SameKeyValueStoresTest(new AlluxioURI(args[0]), new AlluxioURI(args[1])));
   }
 }

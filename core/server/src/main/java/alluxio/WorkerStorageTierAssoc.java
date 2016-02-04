@@ -19,19 +19,17 @@ import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import alluxio.conf.TachyonConf;
-
 /**
  * {@link StorageTierAssoc} for workers
  */
 @ThreadSafe
 public class WorkerStorageTierAssoc extends StorageTierAssoc {
   /**
-   * Creates a new instance of {@link WorkerStorageTierAssoc} using a {@link TachyonConf}.
+   * Creates a new instance of {@link WorkerStorageTierAssoc} using a {@link Configuration}.
    *
    * @param conf Tachyon configuration
    */
-  public WorkerStorageTierAssoc(TachyonConf conf) {
+  public WorkerStorageTierAssoc(Configuration conf) {
     super(conf, Constants.WORKER_TIERED_STORE_LEVELS,
         Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
   }

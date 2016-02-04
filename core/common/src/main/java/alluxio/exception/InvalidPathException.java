@@ -21,10 +21,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * The exception thrown when the path in Tachyon is invalid.
  */
 @ThreadSafe
-public class InvalidPathException extends TachyonException {
+public class InvalidPathException extends AlluxioException {
   private static final long serialVersionUID = 880152286891141665L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE = TachyonExceptionType.INVALID_PATH;
+  private static final AlluxioExceptionType EXCEPTION_TYPE = AlluxioExceptionType.INVALID_PATH;
 
   /**
    * Constructs a new exception with the specified detail message.

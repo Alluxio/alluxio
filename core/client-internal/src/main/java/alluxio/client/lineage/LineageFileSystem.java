@@ -19,14 +19,14 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDoesNotExistException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * Tachyon lineage file system client. This class provides lineage support in the file system
@@ -58,10 +58,10 @@ public class LineageFileSystem extends BaseFileSystem {
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws LineageDoesNotExistException if the lineage does not exist
    * @throws IOException if the recreation fails
-   * @throws TachyonException if an unexpected TachyonException occurs
+   * @throws AlluxioException if an unexpected TachyonException occurs
    */
-  private long reinitializeFile(TachyonURI path, CreateFileOptions options)
-      throws LineageDoesNotExistException, IOException, TachyonException {
+  private long reinitializeFile(AlluxioURI path, CreateFileOptions options)
+      throws LineageDoesNotExistException, IOException, AlluxioException {
     LineageMasterClient masterClient = mLineageContext.acquireMasterClient();
     try {
       return masterClient.reinitializeFile(path.getPath(), options.getBlockSizeBytes(),
@@ -79,11 +79,11 @@ public class LineageFileSystem extends BaseFileSystem {
    * @param options the set of options specific to this operation
    * @return an output stream to write the file
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Tachyon exception is thrown
    */
   @Override
-  public FileOutStream createFile(TachyonURI path, CreateFileOptions options)
-      throws IOException, TachyonException {
+  public FileOutStream createFile(AlluxioURI path, CreateFileOptions options)
+      throws IOException, AlluxioException {
     long fileId;
     try {
       fileId = reinitializeFile(path, options);
@@ -103,10 +103,10 @@ public class LineageFileSystem extends BaseFileSystem {
    * @param path the path to the lost file
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws TachyonException if a Tachyon exception occurs
+   * @throws AlluxioException if a Tachyon exception occurs
    */
-  public void reportLostFile(TachyonURI path)
-      throws IOException, FileDoesNotExistException, TachyonException {
+  public void reportLostFile(AlluxioURI path)
+      throws IOException, FileDoesNotExistException, AlluxioException {
     LineageMasterClient masterClient = mLineageContext.acquireMasterClient();
     try {
       masterClient.reportLostFile(path.getPath());

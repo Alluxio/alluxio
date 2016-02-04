@@ -23,7 +23,7 @@ import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
-import alluxio.client.TachyonStorageType;
+import alluxio.client.AlluxioStorageType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.util.CommonUtils;
 
@@ -66,7 +66,7 @@ public final class InStreamOptions {
   /**
    * @return the Tachyon storage type
    */
-  public TachyonStorageType getTachyonStorageType() {
+  public AlluxioStorageType getTachyonStorageType() {
     return mReadType.getTachyonStorageType();
   }
 
@@ -83,7 +83,7 @@ public final class InStreamOptions {
    * Sets the {@link ReadType}.
    *
    * @param readType the {@link ReadType} for this operation. Setting this will override the
-   *                 {@link TachyonStorageType}.
+   *        {@link AlluxioStorageType}.
    * @return the updated options object
    */
   public InStreamOptions setReadType(ReadType readType) {

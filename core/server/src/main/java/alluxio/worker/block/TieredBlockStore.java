@@ -39,7 +39,7 @@ import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.collections.Pair;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -91,7 +91,7 @@ public final class TieredBlockStore implements BlockStore {
   // TODO(bin): Change maxRetry to be configurable.
   private static final int MAX_RETRIES = 3;
 
-  private final TachyonConf mTachyonConf;
+  private final Configuration mConfiguration;
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
@@ -119,25 +119,25 @@ public final class TieredBlockStore implements BlockStore {
    * Creates a new instance of {@link TieredBlockStore}.
    */
   public TieredBlockStore() {
-    mTachyonConf = WorkerContext.getConf();
+    mConfiguration = WorkerContext.getConf();
     mMetaManager = BlockMetadataManager.createBlockMetadataManager();
     mLockManager = new BlockLockManager();
 
     BlockMetadataManagerView initManagerView = new BlockMetadataManagerView(mMetaManager,
         Collections.<Long>emptySet(), Collections.<Long>emptySet());
-    mAllocator = Allocator.Factory.create(mTachyonConf, initManagerView);
+    mAllocator = Allocator.Factory.create(mConfiguration, initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
     initManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
         Collections.<Long>emptySet());
-    mEvictor = Evictor.Factory.create(mTachyonConf, initManagerView, mAllocator);
+    mEvictor = Evictor.Factory.create(mConfiguration, initManagerView, mAllocator);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }
 
-    mStorageTierAssoc = new WorkerStorageTierAssoc(mTachyonConf);
+    mStorageTierAssoc = new WorkerStorageTierAssoc(mConfiguration);
   }
 
   @Override

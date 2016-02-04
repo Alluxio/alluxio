@@ -28,14 +28,14 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Tests the {@link alluxio.security.authentication.PlainSaslServer.PlainServerCallbackHandler}
  * class.
  */
 public class PlainServerCallbackHandlerTest {
-  private TachyonConf mConf;
+  private Configuration mConf;
   private CallbackHandler mPlainServerCBHandler;
 
   /**
@@ -51,7 +51,7 @@ public class PlainServerCallbackHandlerTest {
    */
   @Before
   public void before() throws Exception {
-    mConf = new TachyonConf();
+    mConf = new Configuration();
     mConf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         NameMatchAuthenticationProvider.class.getName());
     mPlainServerCBHandler = new PlainSaslServer.PlainServerCallbackHandler(

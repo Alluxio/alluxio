@@ -19,22 +19,22 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Tests the "pin" and "unpin" commands.
  */
-public class PinCommandTest extends AbstractTfsShellTest {
+public class PinCommandTest extends AbstractAlluxioShellTest {
   /**
    * Tests the "pin" and "unpin" commands. Creates a file and tests if unpinning it , then pinning
    * it and finally unpinning
    */
   @Test
   public void setIsPinnedTest() throws Exception {
-    TachyonURI filePath = new TachyonURI("/testFile");
+    AlluxioURI filePath = new AlluxioURI("/testFile");
     FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
 
     // Ensure that the file exists
@@ -62,9 +62,9 @@ public class PinCommandTest extends AbstractTfsShellTest {
    */
   @Test
   public void setPinTest() throws Exception {
-    TachyonURI filePathA = new TachyonURI("/testFileA");
-    TachyonURI filePathB = new TachyonURI("/testFileB");
-    TachyonURI filePathC = new TachyonURI("/testFileC");
+    AlluxioURI filePathA = new AlluxioURI("/testFileA");
+    AlluxioURI filePathB = new AlluxioURI("/testFileB");
+    AlluxioURI filePathC = new AlluxioURI("/testFileC");
     int fileSize = 5 * Constants.MB;
 
     FileSystemTestUtils.createByteFile(mFileSystem, filePathA, WriteType.MUST_CACHE, fileSize);
@@ -76,7 +76,7 @@ public class PinCommandTest extends AbstractTfsShellTest {
     Assert.assertEquals(0, mFsShell.run("unpin", filePathB.toString()));
 
     FileSystemTestUtils.createByteFile(mFileSystem, filePathC, WriteType.MUST_CACHE, fileSize);
-    Assert.assertTrue(fileExist(new TachyonURI(filePathC.toString())));
+    Assert.assertTrue(fileExist(new AlluxioURI(filePathC.toString())));
 
     // fileA is in memory because it is pinned, but not fileB
     Assert.assertEquals(100, mFileSystem.getStatus(filePathA).getInMemoryPercentage());

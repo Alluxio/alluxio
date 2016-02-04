@@ -25,14 +25,14 @@ import org.apache.commons.cli.CommandLine;
 import com.google.common.io.Closer;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Loads a file or directory in Tachyon space, makes it resident in memory.
@@ -46,7 +46,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public LoadCommand(TachyonConf conf, FileSystem fs) {
+  public LoadCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -56,23 +56,23 @@ public final class LoadCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
+  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
     load(path);
   }
 
   /**
    * Loads a file or directory in Tachyon space, makes it resident in memory.
    *
-   * @param filePath The {@link TachyonURI} path to load into Tachyon memory
+   * @param filePath The {@link AlluxioURI} path to load into Tachyon memory
    * @throws IOException if a non-Tachyon related exception occurs
    */
-  private void load(TachyonURI filePath) throws IOException {
+  private void load(AlluxioURI filePath) throws IOException {
     try {
       URIStatus status = mFileSystem.getStatus(filePath);
       if (status.isFolder()) {
         List<URIStatus> statuses = mFileSystem.listStatus(filePath);
         for (URIStatus uriStatus : statuses) {
-          TachyonURI newPath = new TachyonURI(uriStatus.getPath());
+          AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
           load(newPath);
         }
       } else {
@@ -94,7 +94,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
         }
       }
       System.out.println(filePath + " loaded");
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
   }

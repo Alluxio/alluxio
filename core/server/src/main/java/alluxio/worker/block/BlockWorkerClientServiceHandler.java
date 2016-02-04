@@ -27,9 +27,9 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.LockBlockResult;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.worker.WorkerContext;
@@ -66,20 +66,20 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * components that may care about the access times of the blocks (for example, Evictor, UI).
    *
    * @param blockId the id of the block to access
-   * @throws TachyonTException if a alluxio error occurs
+   * @throws AlluxioTException if a alluxio error occurs
    */
   @Override
-  public void accessBlock(long blockId) throws TachyonTException {
+  public void accessBlock(long blockId) throws AlluxioTException {
     try {
       mWorker.accessBlock(Sessions.ACCESS_BLOCK_SESSION_ID, blockId);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   // TODO(calvin): Make this supported again.
   @Override
-  public boolean asyncCheckpoint(long fileId) throws TachyonTException {
+  public boolean asyncCheckpoint(long fileId) throws AlluxioTException {
     return false;
   }
 
@@ -90,17 +90,17 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    *
    * @param sessionId the id of the client requesting the commit
    * @param blockId the id of the block to commit
-   * @throws TachyonTException if a alluxio error occurs
+   * @throws AlluxioTException if a alluxio error occurs
    * @throws ThriftIOException if an I/O error occurs
    */
   @Override
-  public void cacheBlock(long sessionId, long blockId) throws TachyonTException, ThriftIOException {
+  public void cacheBlock(long sessionId, long blockId) throws AlluxioTException, ThriftIOException {
     try {
       mWorker.commitBlock(sessionId, blockId);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
@@ -110,58 +110,58 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    *
    * @param sessionId the id of the client requesting the abort
    * @param blockId the id of the block to be aborted
-   * @throws TachyonTException if a alluxio error occurs
+   * @throws AlluxioTException if a alluxio error occurs
    * @throws ThriftIOException if an I/O error occurs
    */
   @Override
   public void cancelBlock(long sessionId, long blockId)
-      throws TachyonTException, ThriftIOException {
+      throws AlluxioTException, ThriftIOException {
     try {
       mWorker.abortBlock(sessionId, blockId);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }
   }
 
   /**
-   * Locks the file in Tachyon's space while the session is reading it.
+   * Locks the file in Alluxio's space while the session is reading it.
    *
    * @param blockId the id of the block to be locked
    * @param sessionId the id of the session
    * @return the path of the block file locked
-   * @throws TachyonTException if a alluxio error occurs
+   * @throws AlluxioTException if a alluxio error occurs
    */
   @Override
-  public LockBlockResult lockBlock(long blockId, long sessionId) throws TachyonTException {
+  public LockBlockResult lockBlock(long blockId, long sessionId) throws AlluxioTException {
     try {
       long lockId = mWorker.lockBlock(sessionId, blockId);
       return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   /**
    * Used to promote block on under storage layer to top storage layer when there are more than one
-   * storage layers in Tachyon's space.
+   * storage layers in Alluxio's space.
    * otherwise.
    *
    * @param blockId the id of the block to move to the top layer
    * @return true if the block is successfully promoted, otherwise false
-   * @throws TachyonTException if a alluxio error occurs
+   * @throws AlluxioTException if a alluxio error occurs
    * @throws ThriftIOException if an I/O error occurs
    */
   // TODO(calvin): This may be better as void.
   @Override
-  public boolean promoteBlock(long blockId) throws TachyonTException, ThriftIOException {
+  public boolean promoteBlock(long blockId) throws AlluxioTException, ThriftIOException {
     try {
       // TODO(calvin): Make the top level configurable.
       mWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId, mStorageTierAssoc.getAlias(0));
       return true;
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }
@@ -170,7 +170,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   /**
    * Used to allocate location and space for a new coming block, worker will choose the appropriate
    * storage directory which fits the initial block size by some allocation strategy. If there is
-   * not enough space on Tachyon storage {@link alluxio.exception.WorkerOutOfSpaceException} will be
+   * not enough space on Alluxio storage {@link alluxio.exception.WorkerOutOfSpaceException} will be
    * thrown, if the file is already being written by the session,
    * {@link alluxio.exception.FileAlreadyExistsException} will be thrown.
    *
@@ -178,17 +178,17 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @param blockId the id of the new block to create
    * @param initialBytes the initial number of bytes to allocate for this block
    * @return the temporary file path of the block file
-   * @throws TachyonTException if a alluxio error occurs
+   * @throws AlluxioTException if a alluxio error occurs
    * @throws ThriftIOException if an I/O error occurs
    */
   @Override
   public String requestBlockLocation(long sessionId, long blockId, long initialBytes)
-      throws TachyonTException, ThriftIOException {
+      throws AlluxioTException, ThriftIOException {
     try {
       // NOTE: right now, we ask allocator to allocate new blocks in top tier
       return mWorker.createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(0), initialBytes);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }
@@ -222,15 +222,15 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @param sessionId the id of the client requesting the unlock
    * @return true if successfully unlock the block, return false if the block is not
    * found or failed to delete the block
-   * @throws TachyonTException if a alluxio error occurs
+   * @throws AlluxioTException if a alluxio error occurs
    */
   @Override
-  public boolean unlockBlock(long blockId, long sessionId) throws TachyonTException {
+  public boolean unlockBlock(long blockId, long sessionId) throws AlluxioTException {
     try {
       mWorker.unlockBlock(sessionId, blockId);
       return true;
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 

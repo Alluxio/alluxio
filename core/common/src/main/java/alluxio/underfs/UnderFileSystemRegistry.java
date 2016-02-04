@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * <p>
@@ -101,13 +101,13 @@ public final class UnderFileSystemRegistry {
    * or if no under file system could successfully be created.
    *
    * @param path Path
-   * @param tachyonConf Tachyon Configuration
+   * @param configuration Tachyon Configuration
    * @param ufsConf Optional configuration object for the UFS, may be null
    * @return Client for the under file system
    */
-  public static UnderFileSystem create(String path, TachyonConf tachyonConf, Object ufsConf) {
+  public static UnderFileSystem create(String path, Configuration configuration, Object ufsConf) {
     // Try to obtain the appropriate factory
-    List<UnderFileSystemFactory> factories = findAll(path, tachyonConf);
+    List<UnderFileSystemFactory> factories = findAll(path, configuration);
     if (factories.isEmpty()) {
       throw new IllegalArgumentException("No Under File System Factory found for: " + path);
     }
@@ -116,7 +116,7 @@ public final class UnderFileSystemRegistry {
     for (UnderFileSystemFactory factory : factories) {
       try {
         // Use the factory to create the actual client for the Under File System
-        return factory.create(path, tachyonConf, ufsConf);
+        return factory.create(path, configuration, ufsConf);
       } catch (Exception e) {
         errors.add(e);
       }
@@ -139,14 +139,14 @@ public final class UnderFileSystemRegistry {
    * Finds the first Under File System factory that supports the given path
    *
    * @param path Path
-   * @param tachyonConf Tachyon configuration
+   * @param configuration Tachyon configuration
    * @return Factory if available, null otherwise
    */
-  public static UnderFileSystemFactory find(String path, TachyonConf tachyonConf) {
+  public static UnderFileSystemFactory find(String path, Configuration configuration) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     for (UnderFileSystemFactory factory : FACTORIES) {
-      if (factory.supportsPath(path, tachyonConf)) {
+      if (factory.supportsPath(path, configuration)) {
         LOG.debug("Selected Under File System Factory implementation {} for path {}",
             factory.getClass(), path);
         return factory;
@@ -161,15 +161,15 @@ public final class UnderFileSystemRegistry {
    * Finds all the Under File System factories that support the given path
    *
    * @param path Path
-   * @param tachyonConf Tachyon Configuration
+   * @param configuration Tachyon Configuration
    * @return List of factories that support the given path which may be an empty list
    */
-  public static List<UnderFileSystemFactory> findAll(String path, TachyonConf tachyonConf) {
+  public static List<UnderFileSystemFactory> findAll(String path, Configuration configuration) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     List<UnderFileSystemFactory> eligibleFactories = new ArrayList<UnderFileSystemFactory>();
     for (UnderFileSystemFactory factory : FACTORIES) {
-      if (factory.supportsPath(path, tachyonConf)) {
+      if (factory.supportsPath(path, configuration)) {
         LOG.debug("Under File System Factory implementation {} is eligible for path {}",
             factory.getClass(), path);
         eligibleFactories.add(factory);

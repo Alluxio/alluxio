@@ -20,28 +20,28 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Tests for chgrpr command.
  */
-public class ChgrprCommandTest extends AbstractTfsShellTest {
+public class ChgrprCommandTest extends AbstractAlluxioShellTest {
 
   @Test
-  public void chgrprTest() throws IOException, TachyonException {
+  public void chgrprTest() throws IOException, AlluxioException {
     clearLoginUser();
     mFsShell.run("mkdir", "/testFolder1");
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFolder1/testFile", WriteType.MUST_CACHE,
         10);
     mFsShell.run("chgrpr", "group1", "/testFolder1");
-    String group = mFileSystem.getStatus(new TachyonURI("/testFolder1/testFile")).getGroupName();
+    String group = mFileSystem.getStatus(new AlluxioURI("/testFolder1/testFile")).getGroupName();
     Assert.assertEquals("group1", group);
     mFsShell.run("chgrpr", "group2", "/testFolder1");
-    group = mFileSystem.getStatus(new TachyonURI("/testFolder1/testFile")).getGroupName();
+    group = mFileSystem.getStatus(new AlluxioURI("/testFolder1/testFile")).getGroupName();
     Assert.assertEquals("group2", group);
   }
 }

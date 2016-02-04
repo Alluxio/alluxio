@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.master.MasterContext;
 import alluxio.underfs.UnderFileSystem;
 
@@ -63,7 +63,7 @@ public class JournalReader {
    */
   JournalReader(Journal journal) {
     mJournal = Preconditions.checkNotNull(journal);
-    TachyonConf conf = MasterContext.getConf();
+    Configuration conf = MasterContext.getConf();
     mUfs = UnderFileSystem.get(mJournal.getDirectory(), conf);
     mCheckpointPath = mJournal.getCheckpointFilePath();
   }

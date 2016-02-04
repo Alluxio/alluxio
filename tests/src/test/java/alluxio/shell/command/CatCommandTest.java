@@ -22,15 +22,15 @@ import org.junit.Test;
 
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
-import alluxio.shell.TfsShellUtilsTest;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.io.BufferUtils;
 
 /**
  * Tests for cat command.
  */
-public class CatCommandTest extends AbstractTfsShellTest {
+public class CatCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void catDirectoryTest() throws IOException {
     String[] command = new String[] {"mkdir", "/testDir"};
@@ -57,8 +57,8 @@ public class CatCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void catWildcardTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+  public void catWildcardTest() throws IOException, AlluxioException {
+    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
     // the expect contents (remember that the order is based on path)
     byte[] exp1 = BufferUtils.getIncreasingByteArray(30); // testWildCards/bar/foobar3
     byte[] exp2 = BufferUtils.getIncreasingByteArray(10); // testWildCards/foo/foobar1

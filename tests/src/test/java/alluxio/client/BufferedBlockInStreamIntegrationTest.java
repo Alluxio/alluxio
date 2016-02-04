@@ -24,13 +24,13 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
@@ -43,10 +43,10 @@ public final class BufferedBlockInStreamIntegrationTest {
   private static final int DELTA = 33;
 
   @ClassRule
-  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource();
+  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource();
   private static FileSystem sFileSystem;
-  private static TachyonConf sTachyonConf;
+  private static Configuration sConfiguration;
   private static CreateFileOptions sWriteBoth;
   private static CreateFileOptions sWriteTachyon;
   private static CreateFileOptions sWriteUnderStore;
@@ -54,17 +54,17 @@ public final class BufferedBlockInStreamIntegrationTest {
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sFileSystem = sLocalTachyonClusterResource.get().getClient();
-    sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
-    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(sTachyonConf);
-    sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sTachyonConf);
-    sWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(sTachyonConf);
+    sFileSystem = sLocalAlluxioClusterResource.get().getClient();
+    sConfiguration = sLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(sConfiguration);
+    sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sConfiguration);
+    sWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(sConfiguration);
     sTestPath = PathUtils.uniqPath();
 
     // Create files of varying size and write type to later read from
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI path = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
+        AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
         FileSystemTestUtils.createByteFile(sFileSystem, path, op, k);
       }
     }
@@ -82,10 +82,10 @@ public final class BufferedBlockInStreamIntegrationTest {
    * Test {@link alluxio.client.block.BufferedBlockInStream#read()}.
    */
   @Test
-  public void readTest1() throws IOException, TachyonException {
+  public void readTest1() throws IOException, AlluxioException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI path = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
+        AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
         for (int i = 0; i < 2; i ++) {
           FileInStream is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
           byte[] ret = new byte[k];
@@ -109,10 +109,10 @@ public final class BufferedBlockInStreamIntegrationTest {
    * Test {@link alluxio.client.block.BufferedBlockInStream#read(byte[])}.
    */
   @Test
-  public void readTest2() throws IOException, TachyonException {
+  public void readTest2() throws IOException, AlluxioException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI path = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
+        AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
         byte[] ret = new byte[k];
@@ -133,10 +133,10 @@ public final class BufferedBlockInStreamIntegrationTest {
    * Test {@link alluxio.client.block.BufferedBlockInStream#read(byte[], int, int)}.
    */
   @Test
-  public void readTest3() throws IOException, TachyonException {
+  public void readTest3() throws IOException, AlluxioException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI path = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
+        AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
 
@@ -158,10 +158,10 @@ public final class BufferedBlockInStreamIntegrationTest {
    * Test {@link alluxio.client.block.BufferedBlockInStream#skip(long)}.
    */
   @Test
-  public void skipTest() throws IOException, TachyonException {
+  public void skipTest() throws IOException, AlluxioException {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI path = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
+        AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
 

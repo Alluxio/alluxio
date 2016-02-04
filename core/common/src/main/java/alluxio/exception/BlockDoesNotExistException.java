@@ -18,11 +18,11 @@ package alluxio.exception;
 /**
  * The exception thrown when a block does not exist in Tachyon.
  */
-public class BlockDoesNotExistException extends TachyonException {
+public class BlockDoesNotExistException extends AlluxioException {
   private static final long serialVersionUID = -1313208091357063634L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.BLOCK_DOES_NOT_EXIST;
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.BLOCK_DOES_NOT_EXIST;
 
   /**
    * Constructs a new exception with the specified detail message.

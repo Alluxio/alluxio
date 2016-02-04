@@ -21,11 +21,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * The exception thrown when a file does not exist in Tachyon.
  */
 @ThreadSafe
-public class FileDoesNotExistException extends TachyonException {
+public class FileDoesNotExistException extends AlluxioException {
   private static final long serialVersionUID = -3162552529145071329L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.FILE_DOES_NOT_EXIST;
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.FILE_DOES_NOT_EXIST;
 
   /**
    * Constructs a new exception with the specified detail message.

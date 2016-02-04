@@ -18,7 +18,7 @@ package alluxio.master.lineage.checkpoint;
 import com.google.common.base.Throwables;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.lineage.meta.LineageStoreView;
 import alluxio.util.CommonUtils;
@@ -38,7 +38,7 @@ public interface CheckpointPlanner {
      * @param fileSystemMasterView a view of the file system master
      * @return the generated planner
      */
-    public static CheckpointPlanner create(TachyonConf conf,
+    public static CheckpointPlanner create(Configuration conf,
         LineageStoreView lineageStoreView, FileSystemMasterView fileSystemMasterView) {
       try {
         return CommonUtils.createNewClassInstance(
