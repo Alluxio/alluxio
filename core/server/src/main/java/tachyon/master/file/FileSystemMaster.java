@@ -1716,6 +1716,9 @@ public final class FileSystemMaster extends MasterBase {
   public void setState(TachyonURI path, SetAttributeOptions options)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException {
     MasterContext.getMasterSource().incSetStateOps(1);
+    if (options.hasOwner() || options.hasGroup() || options.hasPermission()) {
+      setAcl(path, new SetAclOptions(options));
+    }
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, path, false);
       long fileId = mInodeTree.getInodeByPath(path).getId();
@@ -1977,7 +1980,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public void setAcl(TachyonURI path, SetAclOptions options) throws AccessControlException,
+  private void setAcl(TachyonURI path, SetAclOptions options) throws AccessControlException,
       InvalidPathException {
     Preconditions.checkArgument(options.isValid(), PreconditionMessage.INVALID_SET_ACL_OPTIONS,
         options.getOwner(), options.getGroup(), options.getPermission());

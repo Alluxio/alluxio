@@ -24,7 +24,7 @@ import org.apache.commons.cli.Options;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
-import tachyon.client.file.options.SetAclOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -70,9 +70,9 @@ public final class ChmodCommand extends AbstractTfsShellCommand {
     short newPermission = 0;
     try {
       newPermission = Short.parseShort(modeStr, 8);
-      SetAclOptions options =
-          SetAclOptions.defaults().setPermission(newPermission).setRecursive(recursive);
-      mFileSystem.setAcl(path, options);
+      SetAttributeOptions options =
+          SetAttributeOptions.defaults().setPermission(newPermission).setRecursive(recursive);
+      mFileSystem.setAttribute(path, options);
       System.out.println("Changed permission of " + path + " to "
           + Integer.toOctalString(newPermission));
     } catch (Exception e) {
