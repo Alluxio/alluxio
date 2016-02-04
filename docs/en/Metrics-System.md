@@ -93,7 +93,7 @@ The following shows the details of the available metrics.
 * GetNewBlockOps: Total number of GetNewBlock operations.
 * MountOps: Total number of Mount operations.
 * RenamePathOps: Total number of the RenamePath operations.
-* SetStateOps: Total number of the SetState operations.
+* SetAttributeOps: Total number of the SetAttribute operations.
 * UnmountOps: Total number of Unmount operations.
 
 ## Worker
