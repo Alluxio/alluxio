@@ -12,6 +12,6 @@ export CLASSPATH="${CLASSPATH}:${YARN_CLASSPATH}"
 echo "Launching Application Master"
 
 "${JAVA}" -cp "${CLASSPATH}" \
-  ${TACHYON_JAVA_OPTS} \
+  ${ALLUXIO_JAVA_OPTS} \
   -Xmx256M \
   alluxio.yarn.ApplicationMaster $@
