@@ -73,7 +73,7 @@ public final class PermissionChecker {
    * @throws InvalidPathException if the path is invalid
    */
   public static void checkParentPermission(String user, List<String> groups,
-                                           FileSystemAction action, AlluxioURI path, List<FileInfo> fileInfoList)
+      FileSystemAction action, AlluxioURI path, List<FileInfo> fileInfoList)
       throws AccessControlException, InvalidPathException {
     // root "/" has no parent, so return without checking
     if (PathUtils.isRoot(path.getPath())) {
@@ -101,7 +101,7 @@ public final class PermissionChecker {
    * @throws InvalidPathException if the path is invalid
    */
   public static void checkPermission(String user, List<String> groups, FileSystemAction action,
-                                     AlluxioURI path, List<FileInfo> fileInfoList) throws AccessControlException,
+      AlluxioURI path, List<FileInfo> fileInfoList) throws AccessControlException,
       InvalidPathException {
     String[] pathComponents = PathUtils.getPathComponents(path.getPath());
 

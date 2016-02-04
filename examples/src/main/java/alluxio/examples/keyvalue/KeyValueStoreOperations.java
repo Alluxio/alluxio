@@ -61,9 +61,9 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    Configuration configuration = ClientContext.getConf();
-    configuration.set(Constants.KEY_VALUE_ENABLED, String.valueOf(true));
-    configuration.set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(mPartitionLength));
+    Configuration conf = ClientContext.getConf();
+    conf.set(Constants.KEY_VALUE_ENABLED, String.valueOf(true));
+    conf.set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(mPartitionLength));
 
     KeyValueSystem kvs = KeyValueSystem.Factory.create();
 

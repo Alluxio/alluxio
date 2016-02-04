@@ -30,7 +30,7 @@ import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.UnderFileSystemUtils;
 
 /**
- * A local MiniDFSCluster for testing {@link HdfsUnderFileSystem}. This class emulates an HDFS
+ * A local MiniDFSCluster for testing {@code HdfsUnderFileSystem}. This class emulates an HDFS
  * cluster on the local machine, so {@code HdfsUnderFilesystem} can talk to this emulated HDFS
  * cluster.
  */
@@ -146,8 +146,8 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    *        by {@link #getNameNodePort()} after the cluster started
    * @param configuration the {@link Configuration} instance
    */
-  public LocalMiniDFSCluster(org.apache.hadoop.conf.Configuration conf, String dfsBaseDirs, int numDataNode,
-                             int nameNodePort, Configuration configuration) {
+  public LocalMiniDFSCluster(org.apache.hadoop.conf.Configuration conf, String dfsBaseDirs,
+      int numDataNode, int nameNodePort, Configuration configuration) {
     super(dfsBaseDirs, configuration);
     mConf = conf;
     mNamenodePort = nameNodePort;

@@ -43,19 +43,19 @@ public final class AuthenticationUtils {
    * used as one argument to build a Thrift {@link org.apache.thrift.server.TServer}. If the auth
    * type is not supported or recognized, an {@link UnsupportedOperationException} is thrown.
    *
-   * @param configuration Tachyon Configuration
+   * @param conf Tachyon Configuration
    * @return a corresponding TTransportFactory
    * @throws SaslException if building a TransportFactory fails
    */
-  public static TTransportFactory getServerTransportFactory(Configuration configuration)
+  public static TTransportFactory getServerTransportFactory(Configuration conf)
       throws SaslException {
-    AuthType authType = configuration.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    AuthType authType = conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     switch (authType) {
       case NOSASL:
         return new TFramedTransport.Factory();
       case SIMPLE: // intended to fall through
       case CUSTOM:
-        return PlainSaslUtils.getPlainServerTransportFactory(authType, configuration);
+        return PlainSaslUtils.getPlainServerTransportFactory(authType, conf);
       case KERBEROS:
         throw new UnsupportedOperationException("getServerTransportFactory: Kerberos is "
             + "not supported currently.");
@@ -73,22 +73,22 @@ public final class AuthenticationUtils {
    * currently. If the auth type is not supported or recognized, an
    * {@link UnsupportedOperationException} is thrown.
    *
-   * @param configuration Tachyon Configuration
+   * @param conf Tachyon Configuration
    * @param serverAddress the server address which clients will connect to
    * @return a TTransport for client
    * @throws IOException if building a TransportFactory fails or user login fails
    */
-  public static TTransport getClientTransport(Configuration configuration,
-      InetSocketAddress serverAddress) throws IOException {
-    AuthType authType = configuration.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+  public static TTransport getClientTransport(Configuration conf, InetSocketAddress serverAddress)
+      throws IOException {
+    AuthType authType = conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     TTransport tTransport = AuthenticationUtils.createTSocket(serverAddress,
-        configuration.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS));
+        conf.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS));
     switch (authType) {
       case NOSASL:
         return new TFramedTransport(tTransport);
       case SIMPLE: // intended to fall through
       case CUSTOM:
-        String username = LoginUser.get(configuration).getName();
+        String username = LoginUser.get(conf).getName();
         return PlainSaslUtils.getPlainClientTransport(username, "noPassword", tTransport);
       case KERBEROS:
         throw new UnsupportedOperationException("getClientTransport: Kerberos is not "

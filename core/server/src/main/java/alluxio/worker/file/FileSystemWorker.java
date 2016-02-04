@@ -48,7 +48,7 @@ public final class FileSystemWorker extends WorkerBase {
   /** Client for file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterWorkerClient;
   /** Configuration object */
-  private final Configuration mConfiguration;
+  private final Configuration mConf;
 
   /** The service that persists files */
   private Future<?> mFilePersistenceService;
@@ -63,12 +63,12 @@ public final class FileSystemWorker extends WorkerBase {
     super(Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
 
-    mConfiguration = WorkerContext.getConf();
+    mConf = WorkerContext.getConf();
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker));
 
     // Setup MasterClientBase
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConfiguration), mConfiguration);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
   }
 
   /**
@@ -89,7 +89,7 @@ public final class FileSystemWorker extends WorkerBase {
     mFilePersistenceService = getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
             new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterWorkerClient),
-            mConfiguration.getInt(Constants.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
+            mConf.getInt(Constants.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
   }
 
   /**

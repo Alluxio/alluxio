@@ -54,22 +54,23 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
   }
 
   @Override
-  protected void prepareConfiguration(String path, Configuration configuration, org.apache.hadoop.conf.Configuration config) {
+  protected void prepareConfiguration(String path, Configuration conf,
+      org.apache.hadoop.conf.Configuration hadoopConf) {
     if (path.startsWith(SCHEME)) {
       // Configure for Gluster FS
-      config.set("fs.glusterfs.impl", configuration.get(Constants.UNDERFS_GLUSTERFS_IMPL));
-      config.set("mapred.system.dir",
-          configuration.get(Constants.UNDERFS_GLUSTERFS_MR_DIR));
-      config
-          .set("fs.glusterfs.volumes", configuration.get(Constants.UNDERFS_GLUSTERFS_VOLUMES));
-      config.set(
-          "fs.glusterfs.volume.fuse." + configuration.get(Constants.UNDERFS_GLUSTERFS_VOLUMES),
-          configuration.get(Constants.UNDERFS_GLUSTERFS_MOUNTS));
+      hadoopConf.set("fs.glusterfs.impl", conf.get(Constants.UNDERFS_GLUSTERFS_IMPL));
+      hadoopConf.set("mapred.system.dir",
+          conf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR));
+      hadoopConf
+          .set("fs.glusterfs.volumes", conf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES));
+      hadoopConf.set(
+          "fs.glusterfs.volume.fuse." + conf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES),
+          conf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS));
     } else {
       // If not Gluster FS fall back to default HDFS behaviour
       // This should only happen if someone creates an instance of this directly rather than via the
       // registry and factory which enforces the GlusterFS prefix being present.
-      super.prepareConfiguration(path, configuration, config);
+      super.prepareConfiguration(path, conf, hadoopConf);
     }
   }
 

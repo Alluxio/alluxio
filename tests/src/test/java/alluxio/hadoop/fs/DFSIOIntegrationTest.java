@@ -223,7 +223,8 @@ public class DFSIOIntegrationTest implements Tool {
     Configuration configuration = sLocalAlluxioClusterResource.get().getMasterTachyonConf();
     ConfUtils.storeToHadoopConfiguration(configuration, sBench.getConf());
 
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+    org.apache.hadoop.fs.FileSystem fs =
+        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     sBench.createControlFile(fs, DEFAULT_NR_BYTES, DEFAULT_NR_FILES);
 
     /** Check write here, as it is required for other tests */
@@ -233,12 +234,14 @@ public class DFSIOIntegrationTest implements Tool {
   @AfterClass
   public static void afterClass() throws Exception {
     // Clear DFSIOIntegrationTest
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+    org.apache.hadoop.fs.FileSystem fs =
+        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     sBench.cleanup(fs);
   }
 
   public static void testWrite() throws Exception {
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+    org.apache.hadoop.fs.FileSystem fs =
+        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
     sBench.writeTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
@@ -247,7 +250,8 @@ public class DFSIOIntegrationTest implements Tool {
 
   @Test(timeout = 25000)
   public void testRead() throws Exception {
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+    org.apache.hadoop.fs.FileSystem fs =
+        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
     sBench.readTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
@@ -256,7 +260,8 @@ public class DFSIOIntegrationTest implements Tool {
 
   @Test(timeout = 25000)
   public void testReadRandom() throws Exception {
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+    org.apache.hadoop.fs.FileSystem fs =
+        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
     sBench.getConf().setLong("test.io.skip.size", 0);
     sBench.randomReadTest(fs);
@@ -266,7 +271,8 @@ public class DFSIOIntegrationTest implements Tool {
 
   @Test(timeout = 25000)
   public void testReadBackward() throws Exception {
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+    org.apache.hadoop.fs.FileSystem fs =
+        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
     sBench.getConf().setLong("test.io.skip.size", -DEFAULT_BUFFER_SIZE);
     sBench.randomReadTest(fs);
@@ -276,7 +282,8 @@ public class DFSIOIntegrationTest implements Tool {
 
   @Test(timeout = 25000)
   public void testReadSkip() throws Exception {
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+    org.apache.hadoop.fs.FileSystem fs =
+        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
     sBench.getConf().setLong("test.io.skip.size", 1);
     sBench.randomReadTest(fs);
@@ -286,7 +293,8 @@ public class DFSIOIntegrationTest implements Tool {
 
   @Test(timeout = 25000)
   public void testReadLargeSkip() throws Exception {
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+    org.apache.hadoop.fs.FileSystem fs =
+        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
     sBench.getConf().setLong("test.io.skip.size", 5000);
     sBench.randomReadTest(fs);
@@ -297,7 +305,8 @@ public class DFSIOIntegrationTest implements Tool {
   // TODO(hy): Should active this unit test after TACHYON-25 has been solved
   // @Test (timeout = 25000)
   public void testAppend() throws Exception {
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+    org.apache.hadoop.fs.FileSystem fs =
+        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
     sBench.appendTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
@@ -639,8 +648,8 @@ public class DFSIOIntegrationTest implements Tool {
   }
 
   // fileSize is in Bytes
-  private void sequentialTest(org.apache.hadoop.fs.FileSystem fs, TestType testType, long fileSize, int nrFiles)
-      throws IOException {
+  private void sequentialTest(org.apache.hadoop.fs.FileSystem fs, TestType testType, long fileSize,
+      int nrFiles) throws IOException {
     IOStatMapper ioer = null;
     switch (testType) {
       case TEST_TYPE_READ:
@@ -838,8 +847,8 @@ public class DFSIOIntegrationTest implements Tool {
     return ((float) bytes) / MEGA;
   }
 
-  private void analyzeResult(org.apache.hadoop.fs.FileSystem fs, TestType testType, long execTime, String resFileName)
-      throws IOException {
+  private void analyzeResult(org.apache.hadoop.fs.FileSystem fs, TestType testType, long execTime,
+      String resFileName) throws IOException {
     Path reduceFile = getReduceFilePath(testType);
     long tasks = 0;
     long size = 0;
@@ -906,7 +915,8 @@ public class DFSIOIntegrationTest implements Tool {
     }
   }
 
-  private void analyzeResult(org.apache.hadoop.fs.FileSystem fs, TestType testType, long execTime) throws IOException {
+  private void analyzeResult(org.apache.hadoop.fs.FileSystem fs, TestType testType, long execTime)
+      throws IOException {
     analyzeResult(fs, testType, execTime, DEFAULT_RES_FILE_NAME);
   }
 

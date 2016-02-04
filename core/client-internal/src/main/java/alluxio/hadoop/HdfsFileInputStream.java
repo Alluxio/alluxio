@@ -79,8 +79,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    * @param stats filesystem statistics
    * @throws IOException if the underlying file does not exist or its stream cannot be created
    */
-  public HdfsFileInputStream(AlluxioURI uri, Path hdfsPath, org.apache.hadoop.conf.Configuration conf, int bufferSize,
-                             org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
+  public HdfsFileInputStream(AlluxioURI uri, Path hdfsPath,
+      org.apache.hadoop.conf.Configuration conf, int bufferSize,
+      org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
     LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", uri, hdfsPath, conf,
         bufferSize, stats);
     Configuration configuration = ClientContext.getConf();

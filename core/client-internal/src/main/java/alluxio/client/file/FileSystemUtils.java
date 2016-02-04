@@ -146,14 +146,14 @@ public final class FileSystemUtils {
    * @param fs {@link FileSystem} to carry out Tachyon operations
    * @param uri the uri of the file to persist
    * @param status the status info of the file
-   * @param configuration TachyonConf object
+   * @param conf TachyonConf object
    * @return the size of the file persisted
    * @throws IOException if an I/O error occurs
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws AlluxioException if an unexpected Tachyon error occurs
    */
   public static long persistFile(FileSystem fs, AlluxioURI uri, URIStatus status,
-                                 Configuration configuration) throws IOException, FileDoesNotExistException, AlluxioException {
+      Configuration conf) throws IOException, FileDoesNotExistException, AlluxioException {
     // TODO(manugoyal) move this logic to the worker, as it deals with the under file system
     Closer closer = Closer.create();
     long ret;
@@ -161,7 +161,7 @@ public final class FileSystemUtils {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream in = closer.register(fs.openFile(uri, options));
       AlluxioURI dstPath = new AlluxioURI(status.getUfsPath());
-      UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString(), configuration);
+      UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString(), conf);
       String parentPath = dstPath.getParent().toString();
       if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
         throw new IOException("Failed to create " + parentPath);

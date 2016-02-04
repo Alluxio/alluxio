@@ -94,7 +94,7 @@ public final class BlockWorker extends WorkerBase {
   private final FileSystemMasterClient mFileSystemMasterClient;
 
   /** Configuration object. */
-  private final Configuration mConfiguration;
+  private final Configuration mConf;
 
   /** Space reserver for the block data manager. */
   private SpaceReserver mSpaceReserver = null;
@@ -143,21 +143,21 @@ public final class BlockWorker extends WorkerBase {
   public BlockWorker() throws IOException {
     super(Executors.newFixedThreadPool(4,
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
-    mConfiguration = WorkerContext.getConf();
+    mConf = WorkerContext.getConf();
 
     // Setup BlockMasterClient
     mBlockMasterClient = new BlockMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConfiguration), mConfiguration);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
 
     mFileSystemMasterClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConfiguration), mConfiguration);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
 
     // Setup DataServer
     mDataServer = DataServer.Factory.create(
-        NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mConfiguration),
-        this, mConfiguration);
+        NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mConf),
+        this, mConf);
     // Reset data server port
-    mConfiguration.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
+    mConf.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
     // Setup RPC ServerHandler
     mServiceHandler = new BlockWorkerClientServiceHandler(this);
@@ -214,7 +214,7 @@ public final class BlockWorker extends WorkerBase {
     mSessionCleanerThread = new SessionCleaner(this);
 
     // Setup space reserver
-    if (mConfiguration.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
+    if (mConf.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
       mSpaceReserver = new SpaceReserver(this);
     }
 

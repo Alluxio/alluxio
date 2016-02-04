@@ -78,7 +78,7 @@ public final class UfsUtils {
    * @throws AlluxioException if an unexpected alluxio error occurs
    */
   private static void loadUfs(AlluxioURI tfsAddrRootPath, AlluxioURI ufsAddrRootPath,
-                              String excludePaths, Configuration configuration) throws IOException, AlluxioException {
+      String excludePaths, Configuration configuration) throws IOException, AlluxioException {
     FileSystem tfs = FileSystem.Factory.get();
 
     PrefixList excludePathPrefix = new PrefixList(excludePaths, ";");
@@ -95,16 +95,15 @@ public final class UfsUtils {
    * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/dir"
    * @param excludePathPrefix paths to exclude from ufsRootPath, which will not be registered in
    *        mTachyonFS.
-   * @param configuration instance of {@link Configuration}
+   * @param conf instance of {@link Configuration}
    * @throws IOException when an event that prevents the operation from completing is encountered
    * @throws AlluxioException if an unexpected alluxio error occurs
    * @deprecated As of version 0.8.
    *             Use {@link #loadUfs(AlluxioURI, AlluxioURI, String, Configuration)} instead.
    */
   @Deprecated
-  public static void loadUfs(FileSystem fs, AlluxioURI tachyonPath, AlluxioURI
-      ufsAddrRootPath, PrefixList excludePathPrefix, Configuration configuration) throws IOException,
-      AlluxioException {
+  public static void loadUfs(FileSystem fs, AlluxioURI tachyonPath, AlluxioURI ufsAddrRootPath,
+      PrefixList excludePathPrefix, Configuration conf) throws IOException, AlluxioException {
     LOG.info("Loading to {} {} {}", tachyonPath, ufsAddrRootPath, excludePathPrefix);
     try {
       // resolve and replace hostname embedded in the given ufsAddress/tachyonAddress
@@ -115,14 +114,14 @@ public final class UfsUtils {
       throw new IOException(e);
     }
 
-    Pair<String, String> ufsPair = UnderFileSystem.parse(ufsAddrRootPath, configuration);
+    Pair<String, String> ufsPair = UnderFileSystem.parse(ufsAddrRootPath, conf);
     String ufsAddress = ufsPair.getFirst();
     String ufsRootPath = ufsPair.getSecond();
 
     LOG.debug("Loading ufs, address:{}; root path: {}", ufsAddress, ufsRootPath);
 
     // create the under FS handler (e.g. hdfs, local FS, s3 etc.)
-    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, configuration);
+    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, conf);
 
     if (!ufs.exists(ufsAddrRootPath.toString())) {
       throw new FileNotFoundException("ufs path " + ufsAddrRootPath + " not found.");

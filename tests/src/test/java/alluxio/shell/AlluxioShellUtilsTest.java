@@ -41,9 +41,9 @@ import alluxio.master.LocalAlluxioCluster;
 /**
  * Unit tests on alluxio.command.Utils.
  *
- * Note that the test case for {@link AlluxioShellUtils#validatePath(String, Configuration)} is already
- * covered in {@link AlluxioShellUtils#getFilePath(String, Configuration)}. Hence only getFilePathTest is
- * specified.
+ * Note that the test case for {@link AlluxioShellUtils#validatePath(String, Configuration)} is
+ * already covered in {@link AlluxioShellUtils#getFilePath(String, Configuration)}. Hence only
+ * getFilePathTest is specified.
  */
 public final class AlluxioShellUtilsTest {
   @Rule

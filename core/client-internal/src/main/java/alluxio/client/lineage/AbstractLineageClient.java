@@ -61,8 +61,8 @@ public abstract class AbstractLineageClient implements LineageClient {
 
   @Override
   public long createLineage(List<AlluxioURI> inputFiles, List<AlluxioURI> outputFiles, Job job,
-                            CreateLineageOptions options)
-          throws FileDoesNotExistException, AlluxioException, IOException {
+      CreateLineageOptions options) throws FileDoesNotExistException, AlluxioException,
+      IOException {
     // TODO(yupeng): relax this to support other type of jobs
     Preconditions.checkState(job instanceof CommandLineJob,
         PreconditionMessage.COMMAND_LINE_LINEAGE_ONLY);
