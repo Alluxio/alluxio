@@ -165,7 +165,8 @@ public class SetAttributeOptions {
     mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
     mOwner = options.isSetOwner() ? options.getOwner() : null;
     mGroup = options.isSetGroup() ? options.getGroup() : null;
-    mPermission = options.isSetPermission() ? options.getPermission() : null;
+    mPermission =
+        options.isSetPermission() ? options.getPermission() : Constants.INVALID_PERMISSION;
     mRecursive = options.isRecursive();
     mOperationTimeMs = System.currentTimeMillis();
   }
