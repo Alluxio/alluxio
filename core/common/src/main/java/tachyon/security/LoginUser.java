@@ -27,7 +27,7 @@ import javax.security.auth.login.LoginException;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.security.authentication.AuthType;
-import tachyon.security.login.AppCallbackHandler;
+import tachyon.security.login.AppLoginModule;
 import tachyon.security.login.TachyonJaasConfiguration;
 
 /**
@@ -82,9 +82,11 @@ public final class LoginUser {
 
       CallbackHandler callbackHandler = null;
       if (authType.equals(AuthType.SIMPLE) || authType.equals(AuthType.CUSTOM)) {
-        callbackHandler = new AppCallbackHandler(conf);
+        callbackHandler = new AppLoginModule.AppCallbackHandler(conf);
       }
 
+      // Create LoginContext based on authType, corresponding LoginModule should be registered
+      // under the authType name in TachyonJaasConfiguration.
       LoginContext loginContext =
           new LoginContext(authType.getAuthName(), subject, callbackHandler,
               new TachyonJaasConfiguration());
