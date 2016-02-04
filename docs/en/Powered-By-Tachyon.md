@@ -21,14 +21,14 @@ or let us know by email (project.tachyon@gmail.com) or
 * [Tachyon Nexus](http://www.tachyonnexus.com/)
 * [UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/)
 
-Here is a list tracks external software projects that supplement Tachyon and add to its ecosystem.
+Here is a list that tracks external software projects that supplement Tachyon and add to its ecosystem.
 
-* [Apache Spark](http://spark.apache.org/)
-* [Apache Hadoop MapReduce](https://hadoop.apache.org/)
-* [Apache Flink](https://flink.apache.org/)
-* [Apache Zeppelin](http://zeppelin-project.org/)
-* [Amazon S3](https://aws.amazon.com/s3/)
-* [Openstack Swift](http://docs.openstack.org/developer/swift/)
-* [GlusterFS](http://www.gluster.org/)
 * [Alibaba OSS](http://www.aliyun.com/product/oss/?lang=en)
+* [Amazon S3](https://aws.amazon.com/s3/)
+* [Apache Flink](https://flink.apache.org/)
+* [Apache Hadoop](https://hadoop.apache.org/)
+* [Apache Spark](http://spark.apache.org/)
+* [Apache Zeppelin](http://zeppelin-project.org/)
+* [GlusterFS](http://www.gluster.org/)
+* [Openstack Swift](http://docs.openstack.org/developer/swift/)
 * [Tachyon Service for Ambari](https://github.com/chuyqa/tachyon-ambari-service)

@@ -19,6 +19,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.SetAttributeTOptions;
@@ -33,6 +34,10 @@ public final class SetAttributeOptions {
   private Boolean mPinned;
   private Long mTtl;
   private Boolean mPersisted;
+  private String mOwner;
+  private String mGroup;
+  private short mPermission;
+  private Boolean mRecursive;
 
   /**
    * @return the default {@link SetAttributeOptions}
@@ -53,12 +58,21 @@ public final class SetAttributeOptions {
     mPinned = options.isSetPinned() ? options.isPinned() : null;
     mTtl = options.isSetTtl() ? options.getTtl() : null;
     mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
+    mOwner = options.isSetOwner() ? options.getOwner() : null;
+    mGroup = options.isSetGroup() ? options.getGroup() : null;
+    mPermission =
+        options.isSetPermission() ? (short) options.getPermission() : Constants.INVALID_PERMISSION;
+    mRecursive = options.isSetRecursive() ? options.isRecursive() : null;
   }
 
   private SetAttributeOptions() {
     mPinned = null;
     mTtl = null;
     mPersisted = null;
+    mOwner = null;
+    mGroup = null;
+    mPermission = Constants.INVALID_PERMISSION;
+    mRecursive = null;
   }
 
   /**
@@ -110,6 +124,66 @@ public final class SetAttributeOptions {
   }
 
   /**
+   * @return true if the owner value is set, otherwise false
+   */
+  public boolean hasOwner() {
+    return mOwner != null;
+  }
+
+  /**
+   * @return the owner
+   */
+  public String getOwner() {
+    Preconditions.checkState(hasOwner(), PreconditionMessage.MUST_SET_OWNER);
+    return mOwner;
+  }
+
+  /**
+   * @return true if the group value is set, otherwise false
+   */
+  public boolean hasGroup() {
+    return mGroup != null;
+  }
+
+  /**
+   * @return the group
+   */
+  public String getGroup() {
+    Preconditions.checkState(hasGroup(), PreconditionMessage.MUST_SET_GROUP);
+    return mGroup;
+  }
+
+  /**
+   * @return true if the permission value is set, otherwise false
+   */
+  public boolean hasPermission() {
+    return mPermission != Constants.INVALID_PERMISSION;
+  }
+
+  /**
+   * @return the permission
+   */
+  public short getPermission() {
+    Preconditions.checkState(hasPermission(), PreconditionMessage.MUST_SET_PERMISSION);
+    return mPermission;
+  }
+
+  /**
+   * @return true if the recursive value is set, otherwise false
+   */
+  public boolean hasRecursive() {
+    return mRecursive != null;
+  }
+
+  /**
+   * @return the recursive flag value
+   */
+  public boolean getRecursive() {
+    Preconditions.checkState(hasRecursive(), PreconditionMessage.MUST_SET_RECURSIVE);
+    return mRecursive;
+  }
+
+  /**
    * @param pinned the pinned flag value to use; it specifies whether the object should be kept in
    *        memory, if ttl(time to live) is set, the file will be deleted after expiration no
    *        matter this value is true or false
@@ -142,6 +216,44 @@ public final class SetAttributeOptions {
   }
 
   /**
+   * @param owner to be set as the owner of a path
+   * @return the updated options object
+   */
+  public SetAttributeOptions setOwner(String owner) {
+    mOwner = owner;
+    return this;
+  }
+
+  /**
+   * @param group to be set as the group of a path
+   * @return the updated options object
+   */
+  public SetAttributeOptions setGroup(String group) {
+    mGroup = group;
+    return this;
+  }
+
+  /**
+   * @param permission to be set as the permission of a path
+   * @return the updated options object
+   */
+  public SetAttributeOptions setPermission(short permission) {
+    mPermission = permission;
+    return this;
+  }
+
+  /**
+   * Sets the recursive flag.
+   *
+   * @param recursive whether to set acl recursively under a directory
+   * @return the updated options object
+   */
+  public SetAttributeOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
+    return this;
+  }
+
+  /**
    * @return Thrift representation of the options
    */
   public SetAttributeTOptions toThrift() {
@@ -155,6 +267,18 @@ public final class SetAttributeOptions {
     if (mPersisted != null) {
       options.setPersisted(mPersisted);
     }
+    if (mOwner != null) {
+      options.setOwner(mOwner);
+    }
+    if (mGroup != null) {
+      options.setGroup(mGroup);
+    }
+    if (mPermission != Constants.INVALID_PERMISSION) {
+      options.setPermission(mPermission);
+    }
+    if (mRecursive != null) {
+      options.setRecursive(mRecursive);
+    }
     return options;
   }
 
@@ -165,7 +289,11 @@ public final class SetAttributeOptions {
   public String toString() {
     StringBuilder sb = new StringBuilder("SetStateOptions(");
     sb.append(super.toString()).append(", Pinned: ").append(mPinned).append(", TTL: ").append(mTtl)
-        .append(", Persisted: ").append(mPersisted);
+        .append(", Persisted: ").append(mPersisted)
+        .append(", Owner: ").append(mOwner)
+        .append(", Group: ").append(mGroup)
+        .append(", Permission: ").append(mPermission)
+        .append(", Recursive: ").append(mRecursive);
     sb.append(")");
     return sb.toString();
   }
