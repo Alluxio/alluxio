@@ -1,5 +1,5 @@
 <%@ page import="java.util.*" %>
-<%@ page import="tachyon.web.*" %>
+<%@ page import="alluxio.web.*" %>
 <%@ page import="static org.apache.commons.lang.StringEscapeUtils.escapeHtml" %>
 <%@ page import="static java.net.URLEncoder.encode" %>
 

@@ -6,7 +6,7 @@ Type: Local
 
 # github repo and version(can be branch, commit hash)
 Github:
-  Repo: https://github.com/amplab/tachyon
+  Repo: https://github.com/amplab/alluxio
   Version: branch-0.8
 
 Release:

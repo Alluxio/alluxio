@@ -1,19 +1,19 @@
 propertyName,defaultValue
-tachyon.user.block.master.client.threads,10
-tachyon.user.block.worker.client.threads,10000
-tachyon.user.block.remote.read.buffer.size.bytes,8 MB
-tachyon.user.block.remote.reader.class,tachyon.client.netty.&#8203;NettyRemoteBlockReader
-tachyon.user.block.remote.writer.class,tachyon.client.netty.&#8203;NettyRemoteBlockWriter
-tachyon.user.block.size.bytes.default,512MB
-tachyon.user.failed.space.request.limits,3
-tachyon.user.file.buffer.bytes,1 MB
-tachyon.user.file.master.client.threads,10
-tachyon.user.file.waitcompleted.poll.ms,1000
-tachyon.user.file.write.location.policy.class,tachyon.client.file.policy.LocalFirstPolicy
-tachyon.user.file.readtype.default,CACHE_PROMOTE
-tachyon.user.file.writetype.default,MUST_CACHE
-tachyon.user.heartbeat.interval.ms,1000
-tachyon.user.lineage.enabled,false
-tachyon.user.lineage.master.client.threads,10
-tachyon.user.network.netty.timeout.ms,3000
-tachyon.user.network.netty.worker.threads,0
+alluxio.user.block.master.client.threads,10
+alluxio.user.block.worker.client.threads,10000
+alluxio.user.block.remote.read.buffer.size.bytes,8 MB
+alluxio.user.block.remote.reader.class,alluxio.client.netty.&#8203;NettyRemoteBlockReader
+alluxio.user.block.remote.writer.class,alluxio.client.netty.&#8203;NettyRemoteBlockWriter
+alluxio.user.block.size.bytes.default,512MB
+alluxio.user.failed.space.request.limits,3
+alluxio.user.file.buffer.bytes,1 MB
+alluxio.user.file.master.client.threads,10
+alluxio.user.file.waitcompleted.poll.ms,1000
+alluxio.user.file.write.location.policy.class,alluxio.client.file.policy.LocalFirstPolicy
+alluxio.user.file.readtype.default,CACHE_PROMOTE
+alluxio.user.file.writetype.default,MUST_CACHE
+alluxio.user.heartbeat.interval.ms,1000
+alluxio.user.lineage.enabled,false
+alluxio.user.lineage.master.client.threads,10
+alluxio.user.network.netty.timeout.ms,3000
+alluxio.user.network.netty.worker.threads,0

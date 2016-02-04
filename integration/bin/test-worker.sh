@@ -8,17 +8,17 @@ mkdir -p "${TACHYON_LOGS_DIR}"
 
 # Format the worker.
 "${JAVA}" -cp "${CLASSPATH}" \
-  -Dtachyon.home="${TACHYON_HOME}" \
-  -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" \
-  -Dtachyon.master.hostname="${TACHYON_MASTER_ADDRESS}" \
-  -Dtachyon.logger.type="USER_LOGGER" \
-  ${TACHYON_JAVA_OPTS} "tachyon.Format" "worker"
+  -Dalluxio.home="${TACHYON_HOME}" \
+  -Dalluxio.logs.dir="${TACHYON_LOGS_DIR}" \
+  -Dalluxio.master.hostname="${TACHYON_MASTER_ADDRESS}" \
+  -Dalluxio.logger.type="USER_LOGGER" \
+  ${TACHYON_JAVA_OPTS} "alluxio.Format" "worker"
 
 # Start the worker.
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_WORKER_JAVA_OPTS} \
-  -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" \
-  -Dtachyon.home="${TACHYON_HOME}" \
-  -Dtachyon.logger.type="WORKER_LOGGER" \
-  -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" \
-  tachyon.mesos.TestWorkerExecutor > "${TACHYON_LOGS_DIR}"/test-worker.out 2>&1
+  -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" \
+  -Dalluxio.home="${TACHYON_HOME}" \
+  -Dalluxio.logger.type="WORKER_LOGGER" \
+  -Dalluxio.logs.dir="${TACHYON_LOGS_DIR}" \
+  alluxio.mesos.TestWorkerExecutor > "${TACHYON_LOGS_DIR}"/test-worker.out 2>&1

@@ -25,7 +25,7 @@
     - include: roles/tachyon/tasks/download_release.yml
       when: tachyon_type == "Release"
 
-    - include: roles/tachyon/tasks/clone_local_repo.yml
+    - include: roles/alluxio/tasks/clone_local_repo.yml
       # vb syncs local repo to vm through kernel module instead of rsync
       when: (tachyon_type == "Local") and (provider != "vb")
 
@@ -35,12 +35,12 @@
     - include: roles/tachyon/tasks/compile.yml
       when: tachyon_type != "Release"
 
-    - include: roles/tachyon/tasks/config.yml
+    - include: roles/alluxio/tasks/config.yml
 
     - include: roles/lib/tasks/tachyon_tiered.yml
       when: (ufs != "hadoop1") and (ufs != "hadoop2")
 
-    # some ufs configurations depend on tachyon like tachyon client jar path for hdfs
+    # some ufs configurations depend on alluxio like alluxio client jar path for hdfs
     - include: roles/ufs_{{ ufs }}/tasks/config.yml
 
     # Spark
@@ -71,7 +71,7 @@
   tasks:
     - include: roles/ufs_{{ ufs }}/tasks/rsync_dist.yml
 
-    - include: roles/tachyon/tasks/rsync_dist.yml
+    - include: roles/alluxio/tasks/rsync_dist.yml
 
     - include: roles/spark/tasks/rsync_dist.yml
       when: spark_type != "None"

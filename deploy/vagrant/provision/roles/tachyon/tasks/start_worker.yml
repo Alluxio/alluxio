@@ -1,4 +1,4 @@
-- name: start tachyon worker
-  shell: /tachyon/bin/tachyon-start.sh worker SudoMount
+- name: start alluxio worker
+  shell: /alluxio/bin/alluxio-start.sh worker SudoMount
 
 # vim :set filetype=ansible.yaml:

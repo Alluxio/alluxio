@@ -3,13 +3,13 @@
   <Match>
     <Or>
       <Package name="org.apache.thrift"/>
-      <Package name="tachyon.thrift"/>
-      <Package name="tachyon.proto.journal.*"/>
+      <Package name="alluxio.thrift"/>
+      <Package name="alluxio.proto.journal.*"/>
     </Or>
   </Match>
 
   <Match>
-    <Class name="tachyon.yarn.ApplicationMaster"/>
+    <Class name="alluxio.yarn.ApplicationMaster"/>
     <Bug code="VO"/>
   </Match>
 

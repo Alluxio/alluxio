@@ -21,7 +21,7 @@
   </properties>
 
   <dependencies>
-    <!-- Compile dependencies copied from tachyon-core-common, except libthrift -->
+    <!-- Compile dependencies copied from alluxio-core-common, except libthrift -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -70,7 +70,7 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
 
-    <!-- Dependencies copied from tachyon-core-client-internal, not included in tachyon-core-common
+    <!-- Dependencies copied from alluxio-core-client-internal, not included in alluxio-core-common
      -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -104,19 +104,19 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <!-- module tachyon-underfs-glusterfs depends on
+    <!-- module alluxio-underfs-glusterfs depends on
          hadoop library of 2.3.0, which may have problem when using with
          hadoop 2.4 and later. Please check instructions in
          http://tachyon-project.org/documentation/Configuring-Tachyon-with-GlusterFS.html
          for how to use glusterfs with Tachyon. -->
     <!-- <dependency> -->
     <!--   <groupId>org.tachyonproject</groupId> -->
-    <!--   <artifactId>tachyon-underfs-glusterfs</artifactId> -->
+    <!--   <artifactId>alluxio-underfs-glusterfs</artifactId> -->
     <!--   <version>${project.version}</version> -->
     <!--   <exclusions> -->
     <!--     <exclusion> -->
     <!--       <groupId>org.tachyonproject</groupId> -->
-    <!--       <artifactId>tachyon-core-common</artifactId> -->
+    <!--       <artifactId>alluxio-core-common</artifactId> -->
     <!--     </exclusion> -->
     <!--   </exclusions> -->
     <!-- </dependency> -->
@@ -188,7 +188,7 @@
               <relocations>
                 <relocation>
                   <pattern>org.apache.thrift</pattern>
-                  <shadedPattern>tachyon.org.apache.thrift</shadedPattern>
+                  <shadedPattern>alluxio.org.apache.thrift</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

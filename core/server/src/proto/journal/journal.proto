@@ -1,7 +1,7 @@
 syntax = "proto2";
 
-package tachyon.proto.journal;
-option java_package = "tachyon.proto.journal";
+package alluxio.proto.journal;
+option java_package = "alluxio.proto.journal";
 
 import "block.proto";
 import "file.proto";

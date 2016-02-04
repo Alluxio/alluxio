@@ -1,4 +1,4 @@
-- name: start tachyon master
-  shell: /tachyon/bin/tachyon-start.sh master -f
+- name: start alluxio master
+  shell: /alluxio/bin/alluxio-start.sh master -f
 
 # vim :set filetype=ansible.yaml:

@@ -14,10 +14,10 @@ def config_vb(config, i, total, name, tachyon_is_local)
   config.vm.synced_folder ".", "/vagrant"
 
   if tachyon_is_local
-    config.vm.synced_folder "../../", "/tachyon"
+    config.vm.synced_folder "../../", "/alluxio"
   end
 
-  config.vm.box = "tachyon-dev"
+  config.vm.box = "alluxio-dev"
   config.vm.provider "virtualbox" do |vb|
     mem = YAML.load_file('conf/vb.yml')['MachineMemory']
     if mem != ''

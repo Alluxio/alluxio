@@ -6,9 +6,9 @@
 - hosts: TachyonMaster*
   tasks:
     - name: set master address to own hostname
-      shell: sed -i "s/export TACHYON_MASTER_ADDRESS=.*/export TACHYON_MASTER_ADDRESS=$(hostname -A | cut -d' ' -f1)/g" /tachyon/conf/tachyon-env.sh
+      shell: sed -i "s/export TACHYON_MASTER_ADDRESS=.*/export TACHYON_MASTER_ADDRESS=$(hostname -A | cut -d' ' -f1)/g" /alluxio/conf/alluxio-env.sh
 
-    - include: roles/tachyon/tasks/start_master.yml
+    - include: roles/alluxio/tasks/start_master.yml
 
 - hosts: all
   tasks:

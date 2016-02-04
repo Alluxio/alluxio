@@ -1,9 +1,9 @@
 - include: ../../lib/tasks/maven.yml
 
-- name: set current tachyon version in spark/core/pom.xml
+- name: set current alluxio version in spark/core/pom.xml
   script: set_tachyon_version.sh
 
-- name: remove dependency exclusion of tachyon-underfs-s3
+- name: remove dependency exclusion of alluxio-underfs-s3
   script: remove_s3_exclusion.sh
   when: ufs == "s3"
 
@@ -11,7 +11,7 @@
     src=roles/ufs_{{ ufs }}/files/compile_spark.sh
     dest=/tmp/compile_spark.sh
 # need to use `shell`, `script` can not use `async`, then ssh will timeout
-- name: compile spark 
+- name: compile spark
   shell: bash /tmp/compile_spark.sh
   environment:
     HADOOP_VERSION: "{{ hadoop_version }}"
