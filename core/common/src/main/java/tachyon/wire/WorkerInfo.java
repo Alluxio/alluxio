@@ -26,9 +26,9 @@ import com.google.common.base.Preconditions;
 @NotThreadSafe
 public final class WorkerInfo {
   private long mId;
-  private WorkerNetAddress mAddress;
+  private WorkerNetAddress mAddress = new WorkerNetAddress();
   private int mLastContactSec;
-  private String mState;
+  private String mState = "";
   private long mCapacityBytes;
   private long mUsedBytes;
   private long mStartTimeMs;
@@ -36,9 +36,21 @@ public final class WorkerInfo {
   /**
    * Creates a new instance of {@link WorkerInfo}.
    */
-  public WorkerInfo() {
-    mAddress = new WorkerNetAddress();
-    mState = "";
+  public WorkerInfo() {}
+
+  /**
+   * Creates a new instance of {@link WorkerInfo} from a thrift representation.
+   *
+   * @param workerInfo the thrift representation of a worker descriptor
+   */
+  protected WorkerInfo(tachyon.thrift.WorkerInfo workerInfo) {
+    mId = workerInfo.getId();
+    mAddress = new WorkerNetAddress(workerInfo.getAddress());
+    mLastContactSec = workerInfo.getLastContactSec();
+    mState = workerInfo.getState();
+    mCapacityBytes = workerInfo.getCapacityBytes();
+    mUsedBytes = workerInfo.getUsedBytes();
+    mStartTimeMs = workerInfo.getStartTimeMs();
   }
 
   /**
@@ -153,6 +165,14 @@ public final class WorkerInfo {
   public WorkerInfo setStartTimeMs(long startTimeMs) {
     mStartTimeMs = startTimeMs;
     return this;
+  }
+
+  /**
+   * @return thrift representation of the worker descriptor
+   */
+  protected tachyon.thrift.WorkerInfo toThrift() {
+    return new tachyon.thrift.WorkerInfo(mId, mAddress.toThrift(), mLastContactSec, mState,
+        mCapacityBytes, mUsedBytes, mStartTimeMs);
   }
 
   @Override

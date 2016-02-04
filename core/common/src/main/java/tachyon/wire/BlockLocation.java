@@ -30,6 +30,22 @@ public final class BlockLocation {
   private String mTierAlias = "";
 
   /**
+   * Creates a new instance of {@BlockLocation}.
+   */
+  public BlockLocation() {}
+
+  /**
+   * Creates a new instance of {@link BlockLocation} from a thrift representation.
+   *
+   * @param blockLocation the thrift representation of a block location
+   */
+  protected BlockLocation(tachyon.thrift.BlockLocation blockLocation) {
+    mWorkerId = blockLocation.getWorkerId();
+    mWorkerAddress = new WorkerNetAddress(blockLocation.getWorkerAddress());
+    mTierAlias = blockLocation.getTierAlias();
+  }
+
+  /**
    * @return the worker id
    */
   public long getWorkerId() {
@@ -77,6 +93,13 @@ public final class BlockLocation {
     Preconditions.checkNotNull(tierAlias);
     mTierAlias = tierAlias;
     return this;
+  }
+
+  /**
+   * @return thrift representation of the block location
+   */
+  protected tachyon.thrift.BlockLocation toThrift() {
+    return new tachyon.thrift.BlockLocation(mWorkerId, mWorkerAddress.toThrift(), mTierAlias);
   }
 
   @Override

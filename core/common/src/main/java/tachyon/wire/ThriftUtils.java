@@ -15,11 +15,7 @@
 
 package tachyon.wire;
 
-import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.collect.Lists;
 
 /**
  * Utility methods for conversion between wire types and thrift types.
@@ -34,15 +30,7 @@ public final class ThriftUtils {
    * @return wire representation of the block descriptor
    */
   public static BlockInfo fromThrift(tachyon.thrift.BlockInfo blockInfo) {
-    BlockInfo result = new BlockInfo();
-    result.setBlockId(blockInfo.getBlockId());
-    result.setLength(blockInfo.getLength());
-    List<BlockLocation> locations = Lists.newArrayList();
-    for (tachyon.thrift.BlockLocation location : blockInfo.getLocations()) {
-      locations.add(fromThrift(location));
-    }
-    result.setLocations(locations);
-    return result;
+    return new BlockInfo(blockInfo);
   }
 
   /**
@@ -52,11 +40,7 @@ public final class ThriftUtils {
    * @return wire representation of the block location
    */
   public static BlockLocation fromThrift(tachyon.thrift.BlockLocation blockLocation) {
-    BlockLocation result = new BlockLocation();
-    result.setWorkerId(blockLocation.getWorkerId());
-    result.setWorkerAddress(fromThrift(blockLocation.getWorkerAddress()));
-    result.setTierAlias(blockLocation.getTierAlias());
-    return result;
+    return new BlockLocation(blockLocation);
   }
 
   /**
@@ -66,10 +50,7 @@ public final class ThriftUtils {
    * @return wire representation of the command-line job descriptor
    */
   public static CommandLineJobInfo fromThrift(tachyon.thrift.CommandLineJobInfo jobInfo) {
-    CommandLineJobInfo result = new CommandLineJobInfo();
-    result.setCommand(jobInfo.getCommand());
-    result.setConf(fromThrift(jobInfo.getConf()));
-    return result;
+    return new CommandLineJobInfo(jobInfo);
   }
 
   /**
@@ -79,15 +60,7 @@ public final class ThriftUtils {
    * @return wire representation of the file block descriptor
    */
   public static FileBlockInfo fromThrift(tachyon.thrift.FileBlockInfo fileBlockInfo) {
-    FileBlockInfo result = new FileBlockInfo();
-    result.setBlockInfo(fromThrift(fileBlockInfo.getBlockInfo()));
-    result.setOffset(fileBlockInfo.getOffset());
-    List<WorkerNetAddress> locations = Lists.newArrayList();
-    for (tachyon.thrift.WorkerNetAddress location : fileBlockInfo.getUfsLocations()) {
-      locations.add(fromThrift(location));
-    }
-    result.setUfsLocations(locations);
-    return result;
+    return new FileBlockInfo(fileBlockInfo);
   }
 
   /**
@@ -97,28 +70,7 @@ public final class ThriftUtils {
    * @return wire representation of the file descriptor
    */
   public static FileInfo fromThrift(tachyon.thrift.FileInfo fileInfo) {
-    FileInfo result = new FileInfo();
-    result.setFileId(fileInfo.getFileId());
-    result.setName(fileInfo.getName());
-    result.setPath(fileInfo.getPath());
-    result.setUfsPath(fileInfo.getUfsPath());
-    result.setLength(fileInfo.getLength());
-    result.setBlockSizeBytes(fileInfo.getBlockSizeBytes());
-    result.setCreationTimeMs(fileInfo.getCreationTimeMs());
-    result.setCompleted(fileInfo.isCompleted());
-    result.setFolder(fileInfo.isFolder());
-    result.setPinned(fileInfo.isPinned());
-    result.setCacheable(fileInfo.isCacheable());
-    result.setPersisted(fileInfo.isPersisted());
-    result.setBlockIds(fileInfo.getBlockIds());
-    result.setInMemoryPercentage(fileInfo.getInMemoryPercentage());
-    result.setLastModificationTimeMs(fileInfo.getLastModificationTimeMs());
-    result.setTtl(fileInfo.getTtl());
-    result.setUserName(fileInfo.getUserName());
-    result.setGroupName(fileInfo.getGroupName());
-    result.setPermission(fileInfo.getPermission());
-    result.setPersistenceState(fileInfo.getPersistenceState());
-    return result;
+    return new FileInfo(fileInfo);
   }
 
   /**
@@ -128,9 +80,7 @@ public final class ThriftUtils {
    * @return wire representation of the command-line job configuration
    */
   public static JobConfInfo fromThrift(tachyon.thrift.JobConfInfo conf) {
-    JobConfInfo result = new JobConfInfo();
-    result.setOutputFile(conf.getOutputFile());
-    return result;
+    return new JobConfInfo(conf);
   }
 
   /**
@@ -140,15 +90,7 @@ public final class ThriftUtils {
    * @return wire representation of the lineage descriptor
    */
   public static LineageInfo fromThrift(tachyon.thrift.LineageInfo lineageInfo) {
-    LineageInfo result = new LineageInfo();
-    result.setId(lineageInfo.getId());
-    result.setInputFiles(lineageInfo.getInputFiles());
-    result.setOutputFiles(lineageInfo.getOutputFiles());
-    result.setJob(fromThrift(lineageInfo.getJob()));
-    result.setCreationTimeMs(lineageInfo.getCreationTimeMs());
-    result.setParents(lineageInfo.getParents());
-    result.setChildren(lineageInfo.getChildren());
-    return result;
+    return new LineageInfo(lineageInfo);
   }
 
   /**
@@ -158,10 +100,7 @@ public final class ThriftUtils {
    * @return wire representation of the lock block operation result
    */
   public static LockBlockResult fromThrift(tachyon.thrift.LockBlockResult lockBlockResult) {
-    LockBlockResult result = new LockBlockResult();
-    result.setLockId(lockBlockResult.getLockId());
-    result.setBlockPath(lockBlockResult.getBlockPath());
-    return result;
+    return new LockBlockResult(lockBlockResult);
   }
 
   /**
@@ -171,15 +110,7 @@ public final class ThriftUtils {
    * @return wire representation of the worker descriptor
    */
   public static WorkerInfo fromThrift(tachyon.thrift.WorkerInfo workerInfo) {
-    WorkerInfo result = new WorkerInfo();
-    result.setId(workerInfo.getId());
-    result.setAddress(fromThrift(workerInfo.getAddress()));
-    result.setLastContactSec(workerInfo.getLastContactSec());
-    result.setState((workerInfo.getState()));
-    result.setCapacityBytes(workerInfo.getCapacityBytes());
-    result.setUsedBytes(workerInfo.getUsedBytes());
-    result.setStartTimeMs(workerInfo.getStartTimeMs());
-    return result;
+    return new WorkerInfo(workerInfo);
   }
 
   /**
@@ -189,12 +120,7 @@ public final class ThriftUtils {
    * @return wire representation of the worker net address
    */
   public static WorkerNetAddress fromThrift(tachyon.thrift.WorkerNetAddress workerNetAddress) {
-    WorkerNetAddress result = new WorkerNetAddress();
-    result.setHost(workerNetAddress.getHost());
-    result.setRpcPort(workerNetAddress.getRpcPort());
-    result.setDataPort(workerNetAddress.getDataPort());
-    result.setWebPort(workerNetAddress.getWebPort());
-    return result;
+    return new WorkerNetAddress(workerNetAddress);
   }
 
   /**
@@ -204,11 +130,7 @@ public final class ThriftUtils {
    * @return thrift representation of the block descriptor
    */
   public static tachyon.thrift.BlockInfo toThrift(BlockInfo blockInfo) {
-    List<tachyon.thrift.BlockLocation> locations = Lists.newArrayList();
-    for (BlockLocation location : blockInfo.getLocations()) {
-      locations.add(toThrift(location));
-    }
-    return new tachyon.thrift.BlockInfo(blockInfo.getBlockId(), blockInfo.getLength(), locations);
+    return blockInfo.toThrift();
   }
 
   /**
@@ -218,8 +140,7 @@ public final class ThriftUtils {
    * @return thrift representation of the block location
    */
   public static tachyon.thrift.BlockLocation toThrift(BlockLocation blockLocation) {
-    return new tachyon.thrift.BlockLocation(blockLocation.getWorkerId(),
-        toThrift(blockLocation.getWorkerAddress()), blockLocation.getTierAlias());
+    return blockLocation.toThrift();
   }
 
   /**
@@ -229,7 +150,7 @@ public final class ThriftUtils {
    * @return thrift representation of the command-line job descriptor
    */
   public static tachyon.thrift.CommandLineJobInfo toThrift(CommandLineJobInfo jobInfo) {
-    return new tachyon.thrift.CommandLineJobInfo(jobInfo.getCommand(), toThrift(jobInfo.getConf()));
+    return jobInfo.toThrift();
   }
 
   /**
@@ -239,12 +160,7 @@ public final class ThriftUtils {
    * @return thrift representation of the command-line job descriptor
    */
   public static tachyon.thrift.FileBlockInfo toThrift(FileBlockInfo fileBlockInfo) {
-    List<tachyon.thrift.WorkerNetAddress> locations = Lists.newArrayList();
-    for (WorkerNetAddress location : fileBlockInfo.getUfsLocations()) {
-      locations.add(toThrift(location));
-    }
-    return new tachyon.thrift.FileBlockInfo(toThrift(fileBlockInfo.getBlockInfo()),
-        fileBlockInfo.getOffset(), locations);
+    return fileBlockInfo.toThrift();
   }
 
   /**
@@ -254,13 +170,7 @@ public final class ThriftUtils {
    * @return thrift representation of the file descriptor
    */
   public static tachyon.thrift.FileInfo toThrift(FileInfo fileInfo) {
-    return new tachyon.thrift.FileInfo(fileInfo.getFileId(), fileInfo.getName(),
-        fileInfo.getPath(), fileInfo.getUfsPath(), fileInfo.getLength(),
-        fileInfo.getBlockSizeBytes(), fileInfo.getCreationTimeMs(), fileInfo.isCompleted(),
-        fileInfo.isFolder(), fileInfo.isPinned(), fileInfo.isCacheable(), fileInfo.isPersisted(),
-        fileInfo.getBlockIds(), fileInfo.getInMemoryPercentage(),
-        fileInfo.getLastModificationTimeMs(), fileInfo.getTtl(), fileInfo.getUserName(),
-        fileInfo.getGroupName(), fileInfo.getPermission(), fileInfo.getPersistenceState());
+    return fileInfo.toThrift();
   }
 
   /**
@@ -270,7 +180,7 @@ public final class ThriftUtils {
    * @return thrift representation of the command-line job configuration
    */
   public static tachyon.thrift.JobConfInfo toThrift(JobConfInfo conf) {
-    return new tachyon.thrift.JobConfInfo(conf.getOutputFile());
+    return conf.toThrift();
   }
 
   /**
@@ -280,9 +190,7 @@ public final class ThriftUtils {
    * @return thrift representation of the lineage descriptor
    */
   public static tachyon.thrift.LineageInfo toThrift(LineageInfo lineageInfo) {
-    return new tachyon.thrift.LineageInfo(lineageInfo.getId(), lineageInfo.getInputFiles(),
-        lineageInfo.getOutputFiles(), toThrift(lineageInfo.getJob()),
-        lineageInfo.getCreationTimeMs(), lineageInfo.getParents(), lineageInfo.getChildren());
+    return lineageInfo.toThrift();
   }
 
   /**
@@ -292,8 +200,7 @@ public final class ThriftUtils {
    * @return thrift representation of the lock block operation result
    */
   public static tachyon.thrift.LockBlockResult toThrift(LockBlockResult lockBlockResult) {
-    return new tachyon.thrift.LockBlockResult(lockBlockResult.getLockId(),
-        lockBlockResult.getBlockPath());
+    return lockBlockResult.toThrift();
   }
 
   /**
@@ -303,9 +210,7 @@ public final class ThriftUtils {
    * @return thrift representation of the worker descriptor
    */
   public static tachyon.thrift.WorkerInfo toThrift(WorkerInfo workerInfo) {
-    return new tachyon.thrift.WorkerInfo(workerInfo.getId(), toThrift(workerInfo.getAddress()),
-        workerInfo.getLastContactSec(), workerInfo.getState(), workerInfo.getCapacityBytes(),
-        workerInfo.getUsedBytes(), workerInfo.getStartTimeMs());
+    return workerInfo.toThrift();
   }
 
   /**
@@ -315,9 +220,7 @@ public final class ThriftUtils {
    * @return thrift representation of the worker net address
    */
   public static tachyon.thrift.WorkerNetAddress toThrift(WorkerNetAddress workerNetAddress) {
-    return new tachyon.thrift.WorkerNetAddress(workerNetAddress.getHost(),
-        workerNetAddress.getRpcPort(), workerNetAddress.getDataPort(),
-        workerNetAddress.getWebPort());
+    return workerNetAddress.toThrift();
   }
 }
 

@@ -28,7 +28,7 @@ import tachyon.annotation.PublicApi;
 @NotThreadSafe
 @PublicApi
 // TODO(jiri): Consolidate with tachyon.job.CommandLine.Job.
-public final class CommandLineJobInfo  {
+public final class CommandLineJobInfo {
   private String mCommand = "";
   private JobConfInfo mConf = new JobConfInfo();
 
@@ -36,6 +36,16 @@ public final class CommandLineJobInfo  {
    * Creates a new instance of {@link CommandLineJobInfo}.
    */
   public CommandLineJobInfo() {}
+
+  /**
+   * Creates a new instance of {@link CommandLineJobInfo} from a thrift representation.
+   *
+   * @param commandLineJobInfo the thrift representation of a lineage command-line job descriptor
+   */
+  protected CommandLineJobInfo(tachyon.thrift.CommandLineJobInfo commandLineJobInfo) {
+    mCommand = commandLineJobInfo.getCommand();
+    mConf = new JobConfInfo(commandLineJobInfo.getConf());
+  }
 
   /**
    * @return the command
@@ -69,6 +79,13 @@ public final class CommandLineJobInfo  {
     Preconditions.checkNotNull(conf);
     mConf = conf;
     return this;
+  }
+
+  /**
+   * @return thrift representation of the lineage command-line job descriptor
+   */
+  protected tachyon.thrift.CommandLineJobInfo toThrift() {
+    return new tachyon.thrift.CommandLineJobInfo(mCommand, mConf.toThrift());
   }
 
   @Override

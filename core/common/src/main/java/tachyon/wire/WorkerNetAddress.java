@@ -39,6 +39,18 @@ public final class WorkerNetAddress {
   public WorkerNetAddress() {}
 
   /**
+   * Creates a new instance of {@WorkerNetAddress} from thrift representation.
+   *
+   * @param workerNetAddress the thrift net address
+   */
+  protected WorkerNetAddress(tachyon.thrift.WorkerNetAddress workerNetAddress) {
+    mHost = workerNetAddress.getHost();
+    mRpcPort = workerNetAddress.getRpcPort();
+    mDataPort = workerNetAddress.getDataPort();
+    mWebPort = workerNetAddress.getWebPort();
+  }
+
+  /**
    * @return the host of the worker
    */
   public String getHost() {
@@ -101,6 +113,13 @@ public final class WorkerNetAddress {
   public WorkerNetAddress setWebPort(int webPort) {
     mWebPort = webPort;
     return this;
+  }
+
+  /**
+   * @return a net address of thrift construct
+   */
+  protected tachyon.thrift.WorkerNetAddress toThrift() {
+    return new tachyon.thrift.WorkerNetAddress(mHost, mRpcPort, mDataPort, mWebPort);
   }
 
   @Override

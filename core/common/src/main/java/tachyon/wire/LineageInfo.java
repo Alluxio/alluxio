@@ -32,22 +32,31 @@ import tachyon.annotation.PublicApi;
 @PublicApi
 public final class LineageInfo {
   private long mId;
-  private List<String> mInputFiles;
-  private List<String> mOutputFiles;
-  private CommandLineJobInfo mJob;
+  private List<String> mInputFiles = Lists.newArrayList();
+  private List<String> mOutputFiles = Lists.newArrayList();
+  private CommandLineJobInfo mJob = new CommandLineJobInfo();
   private long mCreationTimeMs;
-  private List<Long> mParents;
-  private List<Long> mChildren;
+  private List<Long> mParents = Lists.newArrayList();
+  private List<Long> mChildren = Lists.newArrayList();
 
   /**
    * Creates a new instance of {@link LineageInfo}.
    */
-  public LineageInfo() {
-    mInputFiles = Lists.newArrayList();
-    mOutputFiles = Lists.newArrayList();
-    mJob = new CommandLineJobInfo();
-    mParents = Lists.newArrayList();
-    mChildren = Lists.newArrayList();
+  public LineageInfo() {}
+
+  /**
+   * Creates a new instance of {@link LineageInfo} from a thrift representation.
+   *
+   * @param lineageInfo the thrift representation of a lineage descriptor
+   */
+  protected LineageInfo(tachyon.thrift.LineageInfo lineageInfo) {
+    mId = lineageInfo.getId();
+    mInputFiles = lineageInfo.getInputFiles();
+    mOutputFiles = lineageInfo.getOutputFiles();
+    mJob = new CommandLineJobInfo(lineageInfo.getJob());
+    mCreationTimeMs = lineageInfo.getCreationTimeMs();
+    mParents = lineageInfo.getParents();
+    mChildren = lineageInfo.getChildren();
   }
 
   /**
@@ -165,6 +174,14 @@ public final class LineageInfo {
     Preconditions.checkNotNull(children);
     mChildren = children;
     return this;
+  }
+
+  /**
+   * @return thrift representation of the lineage descriptor
+   */
+  protected tachyon.thrift.LineageInfo toThrift() {
+    return new tachyon.thrift.LineageInfo(mId, mInputFiles, mOutputFiles, mJob.toThrift(),
+        mCreationTimeMs, mParents, mChildren);
   }
 
   @Override
