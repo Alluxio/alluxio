@@ -16,7 +16,9 @@
 package tachyon.security.authorization;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
@@ -41,6 +43,12 @@ import tachyon.security.group.provider.IdentityUserGroupsMapping;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({GroupMappingService.Factory.class})
 public final class PermissionStatusTest {
+
+  /**
+   * The exception expected to be thrown.
+   */
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   /**
    * Tests the {@link PermissionStatus#getDirDefault()} method.
@@ -140,6 +148,34 @@ public final class PermissionStatusTest {
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
     permissionStatus = PermissionStatus.get(conf, false);
     verifyPermissionStatus("test_login_user", "group1", (short) 0755, permissionStatus);
+  }
+
+  /**
+   * Tests that retrieving the {@link PermissionStatus} with empty group works as expected.
+   */
+  @Test
+  public void getPermissionStatusWithEmptyGroupsTest() throws Exception {
+    // mock an empty group test case
+    TachyonConf conf = new TachyonConf();
+    PermissionStatus permissionStatus;
+    GroupMappingService groupService = PowerMockito.mock(GroupMappingService.class);
+    PowerMockito.when(groupService.getGroups(Mockito.anyString())).thenReturn(
+        Lists.newArrayList(""));
+    PowerMockito.mockStatic(GroupMappingService.Factory.class);
+    Mockito.when(
+        GroupMappingService.Factory.getUserToGroupsMappingService(Mockito.any(TachyonConf.class)))
+        .thenReturn(groupService);
+
+    // no authentication
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    permissionStatus = PermissionStatus.get(conf, true);
+    verifyPermissionStatus("", "", (short) 0000, permissionStatus);
+
+    // authentication is enabled, and remote is true
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    PlainSaslServer.AuthorizedClientUser.set("test_client_user");
+    permissionStatus = PermissionStatus.get(conf, true);
+    verifyPermissionStatus("test_client_user", "", (short) 0755, permissionStatus);
   }
 
   private void verifyPermissionStatus(String user, String group, short permission,
