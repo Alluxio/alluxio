@@ -1,6 +1,6 @@
 namespace java alluxio.thrift
 
-exception TachyonTException {
+exception AlluxioTException {
   1: string type
   2: string message
 }

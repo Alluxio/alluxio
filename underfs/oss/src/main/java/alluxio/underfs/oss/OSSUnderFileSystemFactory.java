@@ -26,8 +26,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
@@ -39,14 +39,14 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Override
-  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object ufsConf) {
+  public UnderFileSystem create(String path, Configuration configuration, Object ufsConf) {
     Preconditions.checkNotNull(path);
-    Preconditions.checkNotNull(tachyonConf);
+    Preconditions.checkNotNull(configuration);
 
-    if (addAndCheckOSSCredentials(tachyonConf)) {
-      TachyonURI uri = new TachyonURI(path);
+    if (addAndCheckOSSCredentials(configuration)) {
+      AlluxioURI uri = new AlluxioURI(path);
       try {
-        return new OSSUnderFileSystem(uri.getHost(), tachyonConf);
+        return new OSSUnderFileSystem(uri.getHost(), configuration);
       } catch (Exception e) {
         LOG.error("Failed to create OSSUnderFileSystem.", e);
         throw Throwables.propagate(e);
@@ -59,7 +59,7 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   @Override
-  public boolean supportsPath(String path, TachyonConf tachyonConf) {
+  public boolean supportsPath(String path, Configuration configuration) {
     return path != null && path.startsWith(Constants.HEADER_OSS);
   }
 
@@ -67,24 +67,24 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
    * Adds OSS credentials from system properties to the Tachyon configuration if they are not
    * already present.
    *
-   * @param tachyonConf the Tachyon configuration to check and add credentials to
+   * @param configuration the Tachyon configuration to check and add credentials to
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean addAndCheckOSSCredentials(TachyonConf tachyonConf) {
+  private boolean addAndCheckOSSCredentials(Configuration configuration) {
     String accessKeyConf = Constants.OSS_ACCESS_KEY;
-    if (System.getProperty(accessKeyConf) != null && tachyonConf.get(accessKeyConf) == null) {
-      tachyonConf.set(accessKeyConf, System.getProperty(accessKeyConf));
+    if (System.getProperty(accessKeyConf) != null && configuration.get(accessKeyConf) == null) {
+      configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
     String secretKeyConf = Constants.OSS_SECRET_KEY;
-    if (System.getProperty(secretKeyConf) != null && tachyonConf.get(secretKeyConf) == null) {
-      tachyonConf.set(secretKeyConf, System.getProperty(secretKeyConf));
+    if (System.getProperty(secretKeyConf) != null && configuration.get(secretKeyConf) == null) {
+      configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
     String endPointConf = Constants.OSS_ENDPOINT_KEY;
-    if (System.getProperty(endPointConf) != null && tachyonConf.get(endPointConf) == null) {
-      tachyonConf.set(endPointConf, System.getProperty(endPointConf));
+    if (System.getProperty(endPointConf) != null && configuration.get(endPointConf) == null) {
+      configuration.set(endPointConf, System.getProperty(endPointConf));
     }
-    return tachyonConf.get(accessKeyConf) != null
-        && tachyonConf.get(secretKeyConf) != null
-        && tachyonConf.get(endPointConf) != null;
+    return configuration.get(accessKeyConf) != null
+        && configuration.get(secretKeyConf) != null
+        && configuration.get(endPointConf) != null;
   }
 }

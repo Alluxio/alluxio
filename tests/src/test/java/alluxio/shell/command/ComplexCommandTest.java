@@ -21,44 +21,44 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 /**
  * Tests consisting of multiple commands.
  */
-public class ComplexCommandTest extends AbstractTfsShellTest {
+public class ComplexCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void createCacheInsertInUfsThenloadMetadataTest() throws IOException, TachyonException {
+  public void createCacheInsertInUfsThenloadMetadataTest() throws IOException, AlluxioException {
     // Construct a situation where the directory exists in the inode tree and the UFS, but is not
     // marked as persisted.
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFileA", WriteType.MUST_CACHE, 10);
-    Assert.assertFalse(mFileSystem.getStatus(new TachyonURI("/testDir")).isPersisted());
-    TachyonConf conf = mLocalTachyonCluster.getMasterTachyonConf();
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/testDir")).isPersisted());
+    Configuration conf = mLocalTachyonCluster.getMasterTachyonConf();
     String ufsRoot = conf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(ufsRoot, "testDir"), conf);
-    Assert.assertFalse(mFileSystem.getStatus(new TachyonURI("/testDir")).isPersisted());
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/testDir")).isPersisted());
     // Load metadata, which should mark the testDir as persisted
     mFsShell.run("loadMetadata", "/testDir");
     Assert.assertEquals("", mOutput.toString());
-    Assert.assertTrue(mFileSystem.getStatus(new TachyonURI("/testDir")).isPersisted());
+    Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI("/testDir")).isPersisted());
   }
 
   @Test
-  public void lsThenloadMetadataTest() throws IOException, TachyonException {
-    TachyonConf conf = mLocalTachyonCluster.getMasterTachyonConf();
+  public void lsThenloadMetadataTest() throws IOException, AlluxioException {
+    Configuration conf = mLocalTachyonCluster.getMasterTachyonConf();
     String ufsRoot = conf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(ufsRoot, "dir1"), conf);
     // First run ls to create the data
     mFsShell.run("ls", "/dir1");
-    Assert.assertTrue(mFileSystem.getStatus(new TachyonURI("/dir1")).isPersisted());
+    Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI("/dir1")).isPersisted());
     // Load metadata
     mFsShell.run("loadMetadata", "/dir1");
     Assert.assertEquals(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage("/dir1") + "\n",

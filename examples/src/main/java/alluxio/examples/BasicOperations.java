@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.Version;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
@@ -34,7 +34,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
@@ -43,8 +43,8 @@ import alluxio.util.FormatUtils;
  */
 public class BasicOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final TachyonURI mMasterLocation;
-  private final TachyonURI mFilePath;
+  private final AlluxioURI mMasterLocation;
+  private final AlluxioURI mFilePath;
   private final OpenFileOptions mReadOptions;
   private final CreateFileOptions mWriteOptions;
   private final int mNumbers = 20;
@@ -55,8 +55,8 @@ public class BasicOperations implements Callable<Boolean> {
    * @param readType the {@link ReadType}
    * @param writeType the {@link WriteType}
    */
-  public BasicOperations(TachyonURI masterLocation, TachyonURI filePath, ReadType readType,
-      WriteType writeType) {
+  public BasicOperations(AlluxioURI masterLocation, AlluxioURI filePath, ReadType readType,
+                         WriteType writeType) {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
     mReadOptions = OpenFileOptions.defaults().setReadType(readType);
@@ -74,7 +74,7 @@ public class BasicOperations implements Callable<Boolean> {
   }
 
   private void writeFile(FileSystem fileSystem)
-    throws IOException, TachyonException {
+    throws IOException, AlluxioException {
     ByteBuffer buf = ByteBuffer.allocate(mNumbers * 4);
     buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < mNumbers; k ++) {
@@ -90,7 +90,7 @@ public class BasicOperations implements Callable<Boolean> {
   }
 
   private boolean readFile(FileSystem fileSystem)
-      throws IOException, TachyonException {
+      throws IOException, AlluxioException {
     boolean pass = true;
     LOG.debug("Reading data...");
     final long startTimeMs = CommonUtils.getCurrentMs();
@@ -123,7 +123,7 @@ public class BasicOperations implements Callable<Boolean> {
       System.exit(-1);
     }
 
-    Utils.runExample(new BasicOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
+    Utils.runExample(new BasicOperations(new AlluxioURI(args[0]), new AlluxioURI(args[1]),
         ReadType.valueOf(args[2]), WriteType.valueOf(args[3])));
   }
 }

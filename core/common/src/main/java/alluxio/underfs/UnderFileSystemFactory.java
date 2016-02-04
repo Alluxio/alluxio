@@ -15,7 +15,7 @@
 
 package alluxio.underfs;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Interface for under file system factories.
@@ -28,19 +28,19 @@ public interface UnderFileSystemFactory {
    * provided is insufficient to create a client.
    *
    * @param path File path
-   * @param tachyonConf Tachyon configuration
+   * @param configuration Tachyon configuration
    * @param ufsConf Optional configuration object for the UFS, may be null
    * @return the client
    */
-  UnderFileSystem create(String path, TachyonConf tachyonConf, Object ufsConf);
+  UnderFileSystem create(String path, Configuration configuration, Object ufsConf);
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, TachyonConf, Object)} can succeed for this path.
+   * {@link #create(String, Configuration, Object)} can succeed for this path.
    *
    * @param path File path
-   * @param tachyonConf Tachyon configuration
+   * @param configuration Tachyon configuration
    * @return True if the path is supported, false otherwise
    */
-  boolean supportsPath(String path, TachyonConf tachyonConf);
+  boolean supportsPath(String path, Configuration configuration);
 }

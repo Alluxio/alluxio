@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.master.MasterContext;
 
 /**
@@ -42,7 +42,7 @@ public class CreateFileOptionsTest {
     long ttl = random.nextLong();
 
     CreateFileOptions options =
-        new CreateFileOptions.Builder(new TachyonConf())
+        new CreateFileOptions.Builder(new Configuration())
             .setBlockSizeBytes(blockSize)
             .setOperationTimeMs(operationTimeMs)
             .setPersisted(persisted)
@@ -62,7 +62,7 @@ public class CreateFileOptionsTest {
    */
   @Test
   public void defaultsTest() {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     MasterContext.reset(conf);
 

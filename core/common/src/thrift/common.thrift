@@ -61,7 +61,7 @@ struct RpcOptions {
   1: optional string key
 }
 
-service TachyonService {
+service AlluxioService {
 
   /**
    * Returns the version of the master service.

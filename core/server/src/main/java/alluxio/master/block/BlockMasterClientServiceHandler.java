@@ -23,15 +23,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.BlockInfo;
 import alluxio.thrift.BlockMasterClientService;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.WorkerInfo;
 import alluxio.wire.ThriftUtils;
 
 /**
- * This class is a Thrift handler for block master RPCs invoked by a Tachyon client.
+ * This class is a Thrift handler for block master RPCs invoked by a Alluxio client.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
 public class BlockMasterClientServiceHandler implements BlockMasterClientService.Iface {
@@ -72,11 +72,11 @@ public class BlockMasterClientServiceHandler implements BlockMasterClientService
   }
 
   @Override
-  public BlockInfo getBlockInfo(long blockId) throws TachyonTException {
+  public BlockInfo getBlockInfo(long blockId) throws AlluxioTException {
     try {
       return ThriftUtils.toThrift(mBlockMaster.getBlockInfo(blockId));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 }

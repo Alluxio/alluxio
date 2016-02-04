@@ -22,11 +22,11 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Displays the size of a file or a directory specified by argv.
@@ -38,7 +38,7 @@ public final class DuCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public DuCommand(TachyonConf conf, FileSystem fs) {
+  public DuCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -48,31 +48,31 @@ public final class DuCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
+  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
     long sizeInBytes = getFileOrFolderSize(mFileSystem, path);
     System.out.println(path + " is " + sizeInBytes + " bytes");
   }
 
   /**
-   * Calculates the size of a path (file or folder) specified by a {@link TachyonURI}.
+   * Calculates the size of a path (file or folder) specified by a {@link AlluxioURI}.
    *
    * @param tachyonFS A {@link FileSystem}
-   * @param path A {@link TachyonURI} denoting the path
+   * @param path A {@link AlluxioURI} denoting the path
    * @return total size of the specified path in byte
    * @throws IOException if a non-Tachyon related exception occurs
    */
-  private long getFileOrFolderSize(FileSystem tachyonFS, TachyonURI path)
+  private long getFileOrFolderSize(FileSystem tachyonFS, AlluxioURI path)
       throws IOException {
     long sizeInBytes = 0;
     List<URIStatus> statuses;
     try {
       statuses = tachyonFS.listStatus(path);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
     for (URIStatus status : statuses) {
       if (status.isFolder()) {
-        TachyonURI subFolder = new TachyonURI(status.getPath());
+        AlluxioURI subFolder = new AlluxioURI(status.getPath());
         sizeInBytes += getFileOrFolderSize(tachyonFS, subFolder);
       } else {
         sizeInBytes += status.getLength();

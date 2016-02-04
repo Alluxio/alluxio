@@ -29,8 +29,8 @@ import org.junit.rules.TemporaryFolder;
 import com.google.common.collect.Lists;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
@@ -135,14 +135,14 @@ public class PermissionCheckTest {
     }
 
     @Override
-    public void setConf(TachyonConf conf) throws IOException {
+    public void setConf(Configuration conf) throws IOException {
       // no-op
     }
   }
 
   @Before
   public void before() throws Exception {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     // authentication
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
     conf.set(Constants.SECURITY_LOGIN_USERNAME, "admin");
@@ -189,7 +189,7 @@ public class PermissionCheckTest {
     // create nested "/notExistDir/notExistFile" for user1
     verifyCreate(TEST_USER_1, "/notExistDir/notExistFile", true);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
-        new TachyonURI("/notExistDir")));
+        new AlluxioURI("/notExistDir")));
     Assert.assertEquals("notExistDir", fileInfo.getName());
     Assert.assertEquals(TEST_USER_1.getUser(), fileInfo.getUserName());
   }
@@ -215,10 +215,10 @@ public class PermissionCheckTest {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
     long fileId;
     if (recursive) {
-      fileId = mFileSystemMaster.create(new TachyonURI(path),
+      fileId = mFileSystemMaster.create(new AlluxioURI(path),
           new CreateFileOptions.Builder(MasterContext.getConf()).setRecursive(true).build());
     } else {
-      fileId = mFileSystemMaster.create(new TachyonURI(path), CreateFileOptions.defaults());
+      fileId = mFileSystemMaster.create(new AlluxioURI(path), CreateFileOptions.defaults());
     }
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
@@ -241,7 +241,7 @@ public class PermissionCheckTest {
     // mkdir nested "/notExistDir/notExistSubDir" for user1
     verifyMkdir(TEST_USER_1, "/notExistDir/notExistSubDir", true);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
-        new TachyonURI("/notExistDir")));
+        new AlluxioURI("/notExistDir")));
     Assert.assertEquals("notExistDir", fileInfo.getName());
     Assert.assertEquals(true, fileInfo.isFolder());
     Assert.assertEquals(TEST_USER_1.getUser(), fileInfo.getUserName());
@@ -267,14 +267,14 @@ public class PermissionCheckTest {
   private void verifyMkdir(TestUser user, String path, boolean recursive) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
     if (recursive) {
-      mFileSystemMaster.mkdir(new TachyonURI(path),
+      mFileSystemMaster.mkdir(new AlluxioURI(path),
           new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(true).build());
     } else {
-      mFileSystemMaster.mkdir(new TachyonURI(path), CreateDirectoryOptions.defaults());
+      mFileSystemMaster.mkdir(new AlluxioURI(path), CreateDirectoryOptions.defaults());
     }
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
-        new TachyonURI(path)));
+        new AlluxioURI(path)));
     String[] pathComponents = path.split("/");
     Assert.assertEquals(pathComponents[pathComponents.length - 1], fileInfo.getName());
     Assert.assertEquals(true, fileInfo.isFolder());
@@ -345,13 +345,13 @@ public class PermissionCheckTest {
   private void verifyRename(TestUser user, String srcPath, String dstPath) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
     String fileOwner = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
-        new TachyonURI(srcPath))).getUserName();
+        new AlluxioURI(srcPath))).getUserName();
 
-    mFileSystemMaster.rename(new TachyonURI(srcPath), new TachyonURI(dstPath));
+    mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath));
 
-    Assert.assertEquals(-1, mFileSystemMaster.getFileId(new TachyonURI(srcPath)));
+    Assert.assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(srcPath)));
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
-        new TachyonURI(dstPath)));
+        new AlluxioURI(dstPath)));
     String[] pathComponents = dstPath.split("/");
     Assert.assertEquals(pathComponents[pathComponents.length - 1], fileInfo.getName());
     Assert.assertEquals(fileOwner, fileInfo.getUserName());
@@ -419,9 +419,9 @@ public class PermissionCheckTest {
 
   private void verifyDelete(TestUser user, String path, boolean recursive) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
-    mFileSystemMaster.deleteFile(new TachyonURI(path), recursive);
+    mFileSystemMaster.deleteFile(new AlluxioURI(path), recursive);
 
-    Assert.assertEquals(-1, mFileSystemMaster.getFileId(new TachyonURI(path)));
+    Assert.assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(path)));
   }
 
   @Test
@@ -436,7 +436,7 @@ public class PermissionCheckTest {
   @Test
   public void readFileFailTest() throws Exception {
     // set unmask
-    TachyonConf conf = MasterContext.getConf();
+    Configuration conf = MasterContext.getConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
     MasterContext.reset(conf);
 
@@ -455,7 +455,7 @@ public class PermissionCheckTest {
   @Test
   public void readDirFailTest() throws Exception {
     // set unmask
-    TachyonConf conf = MasterContext.getConf();
+    Configuration conf = MasterContext.getConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
     MasterContext.reset(conf);
 
@@ -474,7 +474,7 @@ public class PermissionCheckTest {
   @Test
   public void setStateSuccessTest() throws Exception {
     // set unmask
-    TachyonConf conf = MasterContext.getConf();
+    Configuration conf = MasterContext.getConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
     MasterContext.reset(conf);
 
@@ -490,7 +490,7 @@ public class PermissionCheckTest {
   @Test
   public void setStateFailTest() throws Exception {
     // set unmask
-    TachyonConf conf = MasterContext.getConf();
+    Configuration conf = MasterContext.getConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
     MasterContext.reset(conf);
 
@@ -515,9 +515,9 @@ public class PermissionCheckTest {
       TestUser user, String path, SetAttributeOptions options) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
 
-    mFileSystemMaster.setAttribute(new TachyonURI(path), options);
+    mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(new TachyonURI(path));
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(new AlluxioURI(path));
     return new SetAttributeOptions.Builder().setPinned(fileInfo.isPinned())
         .setTtl(fileInfo.getTtl()).setPersisted(fileInfo.isPersisted()).build();
   }
@@ -525,7 +525,7 @@ public class PermissionCheckTest {
   @Test
   public void completeFileSuccessTest() throws Exception {
     // set unmask
-    TachyonConf conf = MasterContext.getConf();
+    Configuration conf = MasterContext.getConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
     MasterContext.reset(conf);
 
@@ -538,7 +538,7 @@ public class PermissionCheckTest {
   @Test
   public void completeFileFailTest() throws Exception {
     // set unmask
-    TachyonConf conf = MasterContext.getConf();
+    Configuration conf = MasterContext.getConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
     MasterContext.reset(conf);
 
@@ -563,13 +563,13 @@ public class PermissionCheckTest {
   private void verifyCompleteFile(TestUser user, String path, CompleteFileOptions options)
       throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
-    mFileSystemMaster.completeFile(new TachyonURI(path), options);
+    mFileSystemMaster.completeFile(new AlluxioURI(path), options);
   }
 
   @Test
   public void freeFileSuccessTest() throws Exception {
     // set unmask
-    TachyonConf conf = MasterContext.getConf();
+    Configuration conf = MasterContext.getConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
     MasterContext.reset(conf);
 
@@ -581,7 +581,7 @@ public class PermissionCheckTest {
   @Test
   public void freeNonNullDirectorySuccessTest() throws Exception {
     // set unmask
-    TachyonConf conf = MasterContext.getConf();
+    Configuration conf = MasterContext.getConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
     MasterContext.reset(conf);
 
@@ -595,7 +595,7 @@ public class PermissionCheckTest {
   @Test
   public void freeFileFailTest() throws Exception {
     // set unmask
-    TachyonConf conf = MasterContext.getConf();
+    Configuration conf = MasterContext.getConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
     MasterContext.reset(conf);
 
@@ -611,7 +611,7 @@ public class PermissionCheckTest {
   @Test
   public void freeNonNullDirectoryFailTest() throws Exception {
     // set unmask
-    TachyonConf conf = MasterContext.getConf();
+    Configuration conf = MasterContext.getConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
     MasterContext.reset(conf);
 
@@ -626,12 +626,12 @@ public class PermissionCheckTest {
 
   private void verifyFree(TestUser user, String path, boolean recursive) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
-    mFileSystemMaster.free(new TachyonURI(path), recursive);
+    mFileSystemMaster.free(new AlluxioURI(path), recursive);
   }
 
   private void verifyGetFileId(TestUser user, String path) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
-    long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
+    long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
 
     Assert.assertNotEquals(-1, fileId);
   }
@@ -641,7 +641,7 @@ public class PermissionCheckTest {
     verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, TEST_USER_1.getUser(), null, (short) -1, false);
     verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, TEST_USER_2.getUser(), null, (short) -1, true);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
-        new TachyonURI(TEST_DIR_FILE_URI)));
+        new AlluxioURI(TEST_DIR_FILE_URI)));
     Assert.assertEquals(TEST_USER_2.getUser(), fileInfo.getUserName());
   }
 
@@ -661,13 +661,13 @@ public class PermissionCheckTest {
     verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, null, TEST_USER_2.getGroups(), (short) -1,
         true);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
-        new TachyonURI(TEST_DIR_FILE_URI)));
+        new AlluxioURI(TEST_DIR_FILE_URI)));
     Assert.assertEquals(TEST_USER_2.getGroups(), fileInfo.getGroupName());
 
     // owner
     verifySetAcl(TEST_USER_1, TEST_DIR_URI, null, TEST_USER_2.getGroups(), (short) -1, true);
     fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
-        new TachyonURI(TEST_DIR_FILE_URI)));
+        new AlluxioURI(TEST_DIR_FILE_URI)));
     Assert.assertEquals(TEST_USER_2.getGroups(), fileInfo.getGroupName());
   }
 
@@ -688,13 +688,13 @@ public class PermissionCheckTest {
     // super group
     verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, null, null, (short) 0700, true);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
-        new TachyonURI(TEST_DIR_FILE_URI)));
+        new AlluxioURI(TEST_DIR_FILE_URI)));
     Assert.assertEquals((short) 0700, fileInfo.getPermission());
 
     // owner enlarge the permission
     verifySetAcl(TEST_USER_1, TEST_DIR_URI, null, null, (short) 0777, true);
     fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
-        new TachyonURI(TEST_DIR_FILE_URI)));
+        new AlluxioURI(TEST_DIR_FILE_URI)));
     Assert.assertEquals((short) 0777, fileInfo.getPermission());
     // other user can operate under this enlarged permission
     verifyCreate(TEST_USER_2, TEST_DIR_URI + "/newFile", false);
@@ -719,7 +719,7 @@ public class PermissionCheckTest {
     // owner sets group and permission
     verifySetAcl(TEST_USER_1, TEST_DIR_URI, null, TEST_USER_2.getGroups(), (short) 0777, true);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
-        new TachyonURI(TEST_DIR_FILE_URI)));
+        new AlluxioURI(TEST_DIR_FILE_URI)));
     Assert.assertEquals(TEST_USER_2.getGroups(), fileInfo.getGroupName());
     Assert.assertEquals((short) 0777, fileInfo.getPermission());
   }
@@ -739,11 +739,11 @@ public class PermissionCheckTest {
     SetAttributeOptions options =
         new SetAttributeOptions.Builder().setOwner(user).setGroup(group).setPermission(permission)
             .setRecursive(recursive).build();
-    mFileSystemMaster.setAttribute(new TachyonURI(path), options);
+    mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
     PlainSaslServer.AuthorizedClientUser.set(TEST_USER_ADMIN.getUser());
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
-        new TachyonURI(path)));
+        new AlluxioURI(path)));
     if (user != null) {
       Assert.assertEquals(user, fileInfo.getUserName());
     }

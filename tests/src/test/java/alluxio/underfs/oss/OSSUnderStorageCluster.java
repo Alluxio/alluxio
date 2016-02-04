@@ -18,7 +18,7 @@ package alluxio.underfs.oss;
 import java.io.IOException;
 import java.util.UUID;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.io.PathUtils;
@@ -29,15 +29,15 @@ public class OSSUnderStorageCluster extends UnderFileSystemCluster {
 
   private String mOSSBucket;
 
-  public OSSUnderStorageCluster(String baseDir, TachyonConf tachyonConf) {
-    super(baseDir, tachyonConf);
+  public OSSUnderStorageCluster(String baseDir, Configuration configuration) {
+    super(baseDir, configuration);
     mOSSBucket = System.getProperty(INTEGRATION_OSS_BUCKET);
     mBaseDir = PathUtils.concatPath(mOSSBucket, UUID.randomUUID());
   }
 
   @Override
   public void cleanup() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mTachyonConf);
+    UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mConfiguration);
     ufs.delete(mBaseDir, true);
     mBaseDir = PathUtils.concatPath(mOSSBucket, UUID.randomUUID());
   }

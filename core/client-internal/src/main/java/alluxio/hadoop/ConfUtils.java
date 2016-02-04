@@ -21,16 +21,15 @@ import java.util.Properties;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DefaultStringifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
- * Utility class for {@link TachyonConf}
+ * Utility class for {@link Configuration}.
  */
 @ThreadSafe
 public final class ConfUtils {
@@ -39,14 +38,15 @@ public final class ConfUtils {
   private ConfUtils() {} // Prevent instantiation.
 
   /**
-   * Stores the source {@link TachyonConf} object to the target
-   * Hadoop {@link Configuration} object.
+   * Stores the source {@link Configuration} object to the target
+   * Hadoop {@link org.apache.hadoop.conf.Configuration} object.
    *
-   * @param source the {@link TachyonConf} to be stored
-   * @param target the {@link Configuration} target
+   * @param source the {@link Configuration} to be stored
+   * @param target the {@link org.apache.hadoop.conf.Configuration} target
    */
-  public static void storeToHadoopConfiguration(TachyonConf source, Configuration target) {
-    // Need to set io.serializations key to prevent NPE when trying to get SerializationFactory.
+  public static void storeToHadoopConfiguration(Configuration source,
+      org.apache.hadoop.conf.Configuration target) {
+  // Need to set io.serializations key to prevent NPE when trying to get SerializationFactory.
     target.set("io.serializations", "org.apache.hadoop.io.serializer.JavaSerialization,"
         + "org.apache.hadoop.io.serializer.WritableSerialization");
     Properties confProperties = source.getInternalProperties();
@@ -59,12 +59,13 @@ public final class ConfUtils {
   }
 
   /**
-   * Loads {@link TachyonConf} from Hadoop {@link Configuration} source.
+   * Loads {@link Configuration} from Hadoop {@link org.apache.hadoop.conf.Configuration} source.
    *
-   * @param source the {@link Configuration} to load from
-   * @return instance of {@link TachyonConf} to be loaded
+   * @param source the {@link org.apache.hadoop.conf.Configuration} to load from
+   * @return instance of {@link Configuration} to be loaded
    */
-  public static TachyonConf loadFromHadoopConfiguration(Configuration source) {
+  public static Configuration loadFromHadoopConfiguration(
+      org.apache.hadoop.conf.Configuration source) {
     // Load TachyonConf if any and merge to the one in TachyonFS
     // Push TachyonConf to the Job conf
     Properties tachyonConfProperties = null;
@@ -92,6 +93,6 @@ public final class ConfUtils {
       }
     }
     LOG.info("Loading Tachyon properties from Hadoop configuration: {}", tachyonConfProperties);
-    return new TachyonConf(tachyonConfProperties);
+    return new Configuration(tachyonConfProperties);
   }
 }

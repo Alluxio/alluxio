@@ -18,7 +18,7 @@ package alluxio.client;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.policy.LocalFirstPolicy;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * A util class to obtain common CreateFile/OpenFile options for tests
@@ -35,7 +35,7 @@ public final class StreamOptionUtils {
    * @param conf the Tachyon config
    * @return the {@link CreateFileOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsCacheThrough(TachyonConf conf) {
+  public static CreateFileOptions getCreateFileOptionsCacheThrough(Configuration conf) {
     return CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
   }
 
@@ -45,7 +45,7 @@ public final class StreamOptionUtils {
    * @param conf the Tachyon config
    * @return the {@link CreateFileOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsMustCache(TachyonConf conf) {
+  public static CreateFileOptions getCreateFileOptionsMustCache(Configuration conf) {
     return CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
   }
 
@@ -55,7 +55,7 @@ public final class StreamOptionUtils {
    * @param conf the Tachyon config
    * @return the {@link CreateFileOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsThrough(TachyonConf conf) {
+  public static CreateFileOptions getCreateFileOptionsThrough(Configuration conf) {
     return CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
   }
 
@@ -65,7 +65,7 @@ public final class StreamOptionUtils {
    * @param conf the Tachyon config
    * @return the {@link CreateFileOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsWriteLocal(TachyonConf conf) {
+  public static CreateFileOptions getCreateFileOptionsWriteLocal(Configuration conf) {
     return CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)
         .setLocationPolicy(new LocalFirstPolicy());
   }
@@ -76,7 +76,7 @@ public final class StreamOptionUtils {
    * @param conf the Tachyon config
    * @return the {@link OpenFileOptions}
    */
-  public static OpenFileOptions getOpenFileOptionsCache(TachyonConf conf) {
+  public static OpenFileOptions getOpenFileOptionsCache(Configuration conf) {
     return OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
   }
 
@@ -86,7 +86,7 @@ public final class StreamOptionUtils {
    * @param conf the Tachyon config
    * @return the {@link OpenFileOptions}
    */
-  public static OpenFileOptions getOpenFileOptionsNoCache(TachyonConf conf) {
+  public static OpenFileOptions getOpenFileOptionsNoCache(Configuration conf) {
     return OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
   }
 
@@ -96,7 +96,7 @@ public final class StreamOptionUtils {
    * @param conf the Tachyon config
    * @return the {@link CreateFileOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsAsync(TachyonConf conf) {
+  public static CreateFileOptions getCreateFileOptionsAsync(Configuration conf) {
     return CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH);
   }
 }

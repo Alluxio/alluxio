@@ -39,7 +39,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import alluxio.collections.IndexedSet;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.block.meta.MasterBlockInfo;
@@ -355,7 +355,7 @@ public class BlockMasterTest {
 
   private void addWorker(BlockMaster master, long workerId, List<String> storageTierAliases,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers)
-          throws TachyonException {
+          throws AlluxioException {
     master.workerRegister(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
         Maps.<String, List<Long>>newHashMap());
   }

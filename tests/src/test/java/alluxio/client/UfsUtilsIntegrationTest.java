@@ -23,11 +23,11 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.collections.PrefixList;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -37,19 +37,19 @@ import alluxio.util.io.PathUtils;
  */
 public class UfsUtilsIntegrationTest {
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource();
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource();
   private FileSystem mFileSystem = null;
   private String mUfsRoot = null;
   private UnderFileSystem mUfs = null;
 
   @Before
   public final void before() throws Exception {
-    mFileSystem = mLocalTachyonClusterResource.get().getClient();
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
 
-    TachyonConf masterConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
+    Configuration masterConf = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
     mUfsRoot = masterConf.get(Constants.UNDERFS_ADDRESS);
-    mUfs = UnderFileSystem.get(mUfsRoot + TachyonURI.SEPARATOR, masterConf);
+    mUfs = UnderFileSystem.get(mUfsRoot + AlluxioURI.SEPARATOR, masterConf);
   }
 
   @Test
@@ -69,12 +69,12 @@ public class UfsUtilsIntegrationTest {
         mUfs.mkdirs(path, true);
       }
       UnderFileSystemUtils.touch(mUfsRoot + inclusion + "/1",
-          mLocalTachyonClusterResource.get().getMasterTachyonConf());
+          mLocalAlluxioClusterResource.get().getMasterTachyonConf());
     }
 
-    UfsUtils.loadUfs(mFileSystem, new TachyonURI(TachyonURI.SEPARATOR), new TachyonURI(
-        mUfsRoot + TachyonURI.SEPARATOR), new PrefixList("alluxio;exclusions", ";"),
-        mLocalTachyonClusterResource.get().getMasterTachyonConf());
+    UfsUtils.loadUfs(mFileSystem, new AlluxioURI(AlluxioURI.SEPARATOR), new AlluxioURI(
+        mUfsRoot + AlluxioURI.SEPARATOR), new PrefixList("alluxio;exclusions", ";"),
+        mLocalAlluxioClusterResource.get().getMasterTachyonConf());
 
     List<String> paths;
     for (String exclusion : exclusions) {

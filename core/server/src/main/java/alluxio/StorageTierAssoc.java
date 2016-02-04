@@ -22,12 +22,11 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.collect.ImmutableBiMap;
 
-import alluxio.conf.TachyonConf;
 import alluxio.worker.block.meta.StorageTier;
 
 /**
  * Creates a two-way mapping between {@link StorageTier} aliases and ordinal numbers from the given
- * {@link TachyonConf}.
+ * {@link Configuration}.
  */
 @ThreadSafe
 public abstract class StorageTierAssoc {
@@ -45,7 +44,7 @@ public abstract class StorageTierAssoc {
    * @param levelsProperty the property in the conf that specifies how many levels there are
    * @param aliasFormat the format for the conf that identifies the alias for each level
    */
-  protected StorageTierAssoc(TachyonConf conf, String levelsProperty, String aliasFormat) {
+  protected StorageTierAssoc(Configuration conf, String levelsProperty, String aliasFormat) {
     int levels = conf.getInt(levelsProperty);
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<String, Integer>();
     for (int i = 0; i < levels; i ++) {

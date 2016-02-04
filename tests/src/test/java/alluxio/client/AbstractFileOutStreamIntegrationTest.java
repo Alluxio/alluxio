@@ -26,15 +26,15 @@ import org.junit.Rule;
 
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.io.BufferUtils;
@@ -52,8 +52,8 @@ public abstract class AbstractFileOutStreamIntegrationTest {
   protected static final int BLOCK_SIZE_BYTES = 128;
 
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES,
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES,
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
           Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
 
@@ -63,18 +63,18 @@ public abstract class AbstractFileOutStreamIntegrationTest {
   protected CreateFileOptions mWriteAsync;
   protected CreateFileOptions mWriteUnderStore;
 
-  protected TachyonConf mTestConf;
+  protected Configuration mTestConf;
   protected FileSystem mFileSystem = null;
 
   @Before
   public void before() throws Exception {
-    mTestConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
+    mTestConf = mLocalAlluxioClusterResource.get().getWorkerTachyonConf();
     mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(mTestConf);
     mWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(mTestConf);
     mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(mTestConf);
     mWriteLocal = StreamOptionUtils.getCreateFileOptionsWriteLocal(mTestConf);
     mWriteAsync = StreamOptionUtils.getCreateFileOptionsAsync(mTestConf);
-    mFileSystem = mLocalTachyonClusterResource.get().getClient();
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 
   /**
@@ -86,8 +86,8 @@ public abstract class AbstractFileOutStreamIntegrationTest {
    * @param increasingByteArrayLen expected length of increasing bytes written in the file
    * @throws IOException if an I/O exception occurs
    */
-  protected void checkWrite(TachyonURI filePath, UnderStorageType underStorageType, int fileLen,
-      int increasingByteArrayLen) throws IOException, TachyonException {
+  protected void checkWrite(AlluxioURI filePath, UnderStorageType underStorageType, int fileLen,
+                            int increasingByteArrayLen) throws IOException, AlluxioException {
     for (CreateFileOptions op : getOptionSet()) {
       URIStatus status = mFileSystem.getStatus(filePath);
       Assert.assertEquals(fileLen, status.getLength());

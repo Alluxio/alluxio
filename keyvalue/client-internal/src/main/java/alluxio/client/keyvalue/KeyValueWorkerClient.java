@@ -27,11 +27,11 @@ import org.slf4j.LoggerFactory;
 
 import alluxio.ClientBase;
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.KeyValueWorkerClientService;
-import alluxio.thrift.TachyonService;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -53,13 +53,13 @@ public final class KeyValueWorkerClient extends ClientBase {
    * @param workerNetAddress location of the worker to connect to
    * @param conf Tachyon configuration
    */
-  public KeyValueWorkerClient(WorkerNetAddress workerNetAddress, TachyonConf conf) {
+  public KeyValueWorkerClient(WorkerNetAddress workerNetAddress, Configuration conf) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf,
         "key-value-worker");
   }
 
   @Override
-  protected TachyonService.Client getClient() {
+  protected AlluxioService.Client getClient() {
     return mClient;
   }
 
@@ -85,13 +85,13 @@ public final class KeyValueWorkerClient extends ClientBase {
    * @param key the key to get the value for
    * @return ByteBuffer of value, or null if not found
    * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
+   * @throws AlluxioException if a Tachyon error occurs
    */
   public synchronized ByteBuffer get(final long blockId, final ByteBuffer key)
-      throws IOException, TachyonException {
+      throws IOException, AlluxioException {
     return retryRPC(new ClientBase.RpcCallableThrowsTachyonTException<ByteBuffer>() {
       @Override
-      public ByteBuffer call() throws TachyonTException, TException {
+      public ByteBuffer call() throws AlluxioTException, TException {
         return mClient.get(blockId, key);
       }
     });
@@ -108,13 +108,13 @@ public final class KeyValueWorkerClient extends ClientBase {
    * @param numKeys maximum number of next keys to fetch
    * @return the next batch of keys
    * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
+   * @throws AlluxioException if a Tachyon error occurs
    */
   public synchronized List<ByteBuffer> getNextKeys(final long blockId, final ByteBuffer key,
-      final int numKeys) throws IOException, TachyonException {
+      final int numKeys) throws IOException, AlluxioException {
     return retryRPC(new ClientBase.RpcCallableThrowsTachyonTException<List<ByteBuffer>>() {
       @Override
-      public List<ByteBuffer> call() throws TachyonTException, TException {
+      public List<ByteBuffer> call() throws AlluxioTException, TException {
         return mClient.getNextKeys(blockId, key, numKeys);
       }
     });
@@ -124,12 +124,12 @@ public final class KeyValueWorkerClient extends ClientBase {
    * @param blockId the id of the partition
    * @return the number of key-value pairs in the partition
    * @throws IOException if a non-Tachyon related exception occurs
-   * @throws TachyonException if an exception in Tachyon occurs
+   * @throws AlluxioException if an exception in Tachyon occurs
    */
-  public synchronized int getSize(final long blockId) throws IOException, TachyonException {
+  public synchronized int getSize(final long blockId) throws IOException, AlluxioException {
     return retryRPC(new ClientBase.RpcCallableThrowsTachyonTException<Integer>() {
       @Override
-      public Integer call() throws TachyonTException, TException {
+      public Integer call() throws AlluxioTException, TException {
         return mClient.getSize(blockId);
       }
     });

@@ -23,10 +23,10 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  */
 @ThreadSafe
-public final class ConnectionFailedException extends TachyonException {
+public final class ConnectionFailedException extends AlluxioException {
   private static final long serialVersionUID = 3160271300708523896L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE = TachyonExceptionType.CONNECTION_FAILED;
+  private static final AlluxioExceptionType EXCEPTION_TYPE = AlluxioExceptionType.CONNECTION_FAILED;
 
   /**
    * Constructs a new exception with the specified detail message.

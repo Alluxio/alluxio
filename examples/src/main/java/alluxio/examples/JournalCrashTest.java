@@ -28,14 +28,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.Version;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 
 /**
@@ -120,13 +120,13 @@ public class JournalCrashTest {
           }
         }
         try {
-          TachyonURI testURI = new TachyonURI(mWorkDir + mSuccessNum);
+          AlluxioURI testURI = new AlluxioURI(mWorkDir + mSuccessNum);
           if (ClientOpType.CREATE_FILE == mOpType) {
             sFileSystem.createFile(testURI, sCreateFileOptions).close();
           } else if (ClientOpType.CREATE_DELETE_FILE == mOpType) {
             try {
               sFileSystem.createFile(testURI, sCreateFileOptions).close();
-            } catch (TachyonException e) {
+            } catch (AlluxioException e) {
               // If file already exists, ignore it.
               if (!(e instanceof FileAlreadyExistsException)) {
                 throw e;
@@ -138,7 +138,7 @@ public class JournalCrashTest {
           } else if (ClientOpType.CREATE_RENAME_FILE == mOpType) {
             try {
               sFileSystem.createFile(testURI, sCreateFileOptions).close();
-            } catch (TachyonException e) {
+            } catch (AlluxioException e) {
               // If file already exists, ignore it.
               if (!(e instanceof FileAlreadyExistsException)) {
                 throw e;
@@ -146,7 +146,7 @@ public class JournalCrashTest {
             } catch (Exception e) {
               throw e;
             }
-            sFileSystem.rename(testURI, new TachyonURI(testURI + "-rename"));
+            sFileSystem.rename(testURI, new AlluxioURI(testURI + "-rename"));
           }
         } catch (Exception e) {
           // Since master may crash/restart for several times, so this exception is expected.
@@ -193,7 +193,7 @@ public class JournalCrashTest {
       LOG.info("Expected Status: OpType[{}] WorkDir[{}] SuccessNum[{}].",
           opType, workDir, successNum);
       for (int s = 0; s < successNum; s ++) {
-        TachyonURI checkURI = new TachyonURI(workDir + s);
+        AlluxioURI checkURI = new AlluxioURI(workDir + s);
         if (ClientOpType.CREATE_FILE == opType) {
           if (!sFileSystem.exists(checkURI)) {
             // File not exist. This is unexpected for CREATE_FILE.
@@ -206,7 +206,7 @@ public class JournalCrashTest {
             return false;
           }
         } else if (ClientOpType.CREATE_RENAME_FILE == opType) {
-          if (!sFileSystem.exists(new TachyonURI(checkURI + "-rename"))) {
+          if (!sFileSystem.exists(new AlluxioURI(checkURI + "-rename"))) {
             // File not exist. This is unexpected for CREATE_FILE.
             LOG.error("File not exist for create/rename test. Check failed! File: {}-rename",
                 checkURI);
@@ -270,7 +270,7 @@ public class JournalCrashTest {
       System.out.println("Round " + rounds + " : Launch Clients...");
       sFileSystem = FileSystem.Factory.get();
       try {
-        sFileSystem.delete(new TachyonURI(sTestDir));
+        sFileSystem.delete(new AlluxioURI(sTestDir));
       } catch (Exception e) {
         // Test Directory not exist
       }
@@ -386,7 +386,7 @@ public class JournalCrashTest {
    * Start Tachyon Master by executing the launch script.
    */
   private static void startMaster() {
-    String startMasterCommand = new TachyonConf().get(Constants.TACHYON_HOME)
+    String startMasterCommand = new Configuration().get(Constants.TACHYON_HOME)
         + "/bin/alluxio-start.sh master";
     try {
       Runtime.getRuntime().exec(startMasterCommand).waitFor();
@@ -401,7 +401,7 @@ public class JournalCrashTest {
    * To crash the Master, use {@link #killMaster()}.
    */
   private static void stopCluster() {
-    String stopClusterCommand = new TachyonConf().get(Constants.TACHYON_HOME)
+    String stopClusterCommand = new Configuration().get(Constants.TACHYON_HOME)
         + "/bin/alluxio-stop.sh all";
     try {
       Runtime.getRuntime().exec(stopClusterCommand).waitFor();

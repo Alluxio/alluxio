@@ -23,15 +23,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.WorkerNetAddress;
 import alluxio.wire.ThriftUtils;
 
 /**
- * This class is a Thrift handler for block master RPCs invoked by a Tachyon worker.
+ * This class is a Thrift handler for block master RPCs invoked by a Alluxio worker.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
 public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService.Iface {
@@ -60,12 +60,12 @@ public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService
   @Override
   public void registerWorker(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers) throws TachyonTException {
+      Map<String, List<Long>> currentBlocksOnTiers) throws AlluxioTException {
     try {
       mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers,
           usedBytesOnTiers, currentBlocksOnTiers);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 

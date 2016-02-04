@@ -38,11 +38,11 @@ import org.slf4j.LoggerFactory;
 public class FileSystemMasterWorkerService {
 
   /**
-   * This interface contains file system master service endpoints for Tachyon workers.
+   * This interface contains file system master service endpoints for Alluxio workers.
    */
-  public interface Iface extends alluxio.thrift.TachyonService.Iface {
+  public interface Iface extends alluxio.thrift.AlluxioService.Iface {
 
-    public FileInfo getFileInfo(long fileId) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public FileInfo getFileInfo(long fileId) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Returns the set of pinned files.
@@ -57,11 +57,11 @@ public class FileSystemMasterWorkerService {
      * 
      * @param persistedFiles the list of persisted files
      */
-    public FileSystemCommand heartbeat(long workerId, List<Long> persistedFiles) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public FileSystemCommand heartbeat(long workerId, List<Long> persistedFiles) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
   }
 
-  public interface AsyncIface extends alluxio.thrift.TachyonService .AsyncIface {
+  public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
 
     public void getFileInfo(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -71,7 +71,7 @@ public class FileSystemMasterWorkerService {
 
   }
 
-  public static class Client extends alluxio.thrift.TachyonService.Client implements Iface {
+  public static class Client extends alluxio.thrift.AlluxioService.Client implements Iface {
     public static class Factory implements org.apache.thrift.TServiceClientFactory<Client> {
       public Factory() {}
       public Client getClient(org.apache.thrift.protocol.TProtocol prot) {
@@ -91,7 +91,7 @@ public class FileSystemMasterWorkerService {
       super(iprot, oprot);
     }
 
-    public FileInfo getFileInfo(long fileId) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public FileInfo getFileInfo(long fileId) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_getFileInfo(fileId);
       return recv_getFileInfo();
@@ -104,7 +104,7 @@ public class FileSystemMasterWorkerService {
       sendBase("getFileInfo", args);
     }
 
-    public FileInfo recv_getFileInfo() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public FileInfo recv_getFileInfo() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       getFileInfo_result result = new getFileInfo_result();
       receiveBase(result, "getFileInfo");
@@ -139,7 +139,7 @@ public class FileSystemMasterWorkerService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getPinIdList failed: unknown result");
     }
 
-    public FileSystemCommand heartbeat(long workerId, List<Long> persistedFiles) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public FileSystemCommand heartbeat(long workerId, List<Long> persistedFiles) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_heartbeat(workerId, persistedFiles);
       return recv_heartbeat();
@@ -153,7 +153,7 @@ public class FileSystemMasterWorkerService {
       sendBase("heartbeat", args);
     }
 
-    public FileSystemCommand recv_heartbeat() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public FileSystemCommand recv_heartbeat() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       heartbeat_result result = new heartbeat_result();
       receiveBase(result, "heartbeat");
@@ -167,7 +167,7 @@ public class FileSystemMasterWorkerService {
     }
 
   }
-  public static class AsyncClient extends alluxio.thrift.TachyonService.AsyncClient implements AsyncIface {
+  public static class AsyncClient extends alluxio.thrift.AlluxioService.AsyncClient implements AsyncIface {
     public static class Factory implements org.apache.thrift.async.TAsyncClientFactory<AsyncClient> {
       private org.apache.thrift.async.TAsyncClientManager clientManager;
       private org.apache.thrift.protocol.TProtocolFactory protocolFactory;
@@ -206,7 +206,7 @@ public class FileSystemMasterWorkerService {
         prot.writeMessageEnd();
       }
 
-      public FileInfo getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public FileInfo getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -270,7 +270,7 @@ public class FileSystemMasterWorkerService {
         prot.writeMessageEnd();
       }
 
-      public FileSystemCommand getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public FileSystemCommand getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -282,7 +282,7 @@ public class FileSystemMasterWorkerService {
 
   }
 
-  public static class Processor<I extends Iface> extends alluxio.thrift.TachyonService.Processor<I> implements org.apache.thrift.TProcessor {
+  public static class Processor<I extends Iface> extends alluxio.thrift.AlluxioService.Processor<I> implements org.apache.thrift.TProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(Processor.class.getName());
     public Processor(I iface) {
       super(iface, getProcessMap(new HashMap<String, org.apache.thrift.ProcessFunction<I, ? extends org.apache.thrift.TBase>>()));
@@ -316,7 +316,7 @@ public class FileSystemMasterWorkerService {
         getFileInfo_result result = new getFileInfo_result();
         try {
           result.success = iface.getFileInfo(args.fileId);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -360,7 +360,7 @@ public class FileSystemMasterWorkerService {
         heartbeat_result result = new heartbeat_result();
         try {
           result.success = iface.heartbeat(args.workerId, args.persistedFiles);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -369,7 +369,7 @@ public class FileSystemMasterWorkerService {
 
   }
 
-  public static class AsyncProcessor<I extends AsyncIface> extends alluxio.thrift.TachyonService.AsyncProcessor<I> {
+  public static class AsyncProcessor<I extends AsyncIface> extends alluxio.thrift.AlluxioService.AsyncProcessor<I> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncProcessor.class.getName());
     public AsyncProcessor(I iface) {
       super(iface, getProcessMap(new HashMap<String, org.apache.thrift.AsyncProcessFunction<I, ? extends org.apache.thrift.TBase, ?>>()));
@@ -413,8 +413,8 @@ public class FileSystemMasterWorkerService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getFileInfo_result result = new getFileInfo_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -521,8 +521,8 @@ public class FileSystemMasterWorkerService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             heartbeat_result result = new heartbeat_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -934,7 +934,7 @@ public class FileSystemMasterWorkerService {
     }
 
     private FileInfo success; // required
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -1014,7 +1014,7 @@ public class FileSystemMasterWorkerService {
 
     public getFileInfo_result(
       FileInfo success,
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
@@ -1029,7 +1029,7 @@ public class FileSystemMasterWorkerService {
         this.success = new FileInfo(other.success);
       }
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -1067,11 +1067,11 @@ public class FileSystemMasterWorkerService {
       }
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public getFileInfo_result setE(alluxio.thrift.TachyonTException e) {
+    public getFileInfo_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -1105,7 +1105,7 @@ public class FileSystemMasterWorkerService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -1310,7 +1310,7 @@ public class FileSystemMasterWorkerService {
               break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -1385,7 +1385,7 @@ public class FileSystemMasterWorkerService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -2596,7 +2596,7 @@ public class FileSystemMasterWorkerService {
     }
 
     private FileSystemCommand success; // required
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -2676,7 +2676,7 @@ public class FileSystemMasterWorkerService {
 
     public heartbeat_result(
       FileSystemCommand success,
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
@@ -2691,7 +2691,7 @@ public class FileSystemMasterWorkerService {
         this.success = new FileSystemCommand(other.success);
       }
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -2729,11 +2729,11 @@ public class FileSystemMasterWorkerService {
       }
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public heartbeat_result setE(alluxio.thrift.TachyonTException e) {
+    public heartbeat_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -2767,7 +2767,7 @@ public class FileSystemMasterWorkerService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -2972,7 +2972,7 @@ public class FileSystemMasterWorkerService {
               break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -3047,7 +3047,7 @@ public class FileSystemMasterWorkerService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }

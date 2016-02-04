@@ -18,7 +18,7 @@ package alluxio.client.keyvalue;
 import java.io.IOException;
 
 import alluxio.annotation.PublicApi;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * Interface to be implemented in classes that support iterating over key-value pairs.
@@ -31,7 +31,7 @@ public interface KeyValueIterable {
   /**
    * @return a {@link KeyValueIterator} for iterating over key-value pairs in the store
    * @throws IOException if a non-Tachyon error occurs
-   * @throws TachyonException if a Tachyon error occurs
+   * @throws AlluxioException if a Tachyon error occurs
    */
-  KeyValueIterator iterator() throws IOException, TachyonException;
+  KeyValueIterator iterator() throws IOException, AlluxioException;
 }

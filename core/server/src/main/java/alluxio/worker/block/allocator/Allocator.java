@@ -20,7 +20,7 @@ import com.google.common.base.Throwables;
 
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
@@ -43,7 +43,7 @@ public interface Allocator {
      * @param view {@link BlockMetadataManagerView} to pass to {@link Allocator}
      * @return the generated {@link Allocator}, it will be a {@link MaxFreeAllocator} by default
      */
-    public static Allocator create(TachyonConf conf, BlockMetadataManagerView view) {
+    public static Allocator create(Configuration conf, BlockMetadataManagerView view) {
       BlockMetadataManagerView managerView = Preconditions.checkNotNull(view);
       try {
         return CommonUtils.createNewClassInstance(

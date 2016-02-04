@@ -18,7 +18,7 @@ package alluxio.underfs.s3;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
 
@@ -32,7 +32,7 @@ public class S3UnderFileSystemFactoryTest {
    */
   @Test
   public void factoryTest() {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
 
     UnderFileSystemFactory factory = UnderFileSystemRegistry.find("s3n://test-bucket/path", conf);
     UnderFileSystemFactory factory2 = UnderFileSystemRegistry.find("s3://test-bucket/path", conf);

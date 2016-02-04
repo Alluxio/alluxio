@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
@@ -39,28 +39,28 @@ public final class MountTable {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private Map<String, TachyonURI> mMountTable;
+  private Map<String, AlluxioURI> mMountTable;
 
   /**
    * Creates a new instance of {@link MountTable}.
    */
   public MountTable() {
     final int initialCapacity = 10;
-    mMountTable = new HashMap<String, TachyonURI>(initialCapacity);
+    mMountTable = new HashMap<String, AlluxioURI>(initialCapacity);
   }
 
   /**
    * Mounts the given UFS path at the given Tachyon path. The Tachyon path should not be nested
    * under an existing mount point.
    *
-   * @param tachyonUri a Tachyon path URI
+   * @param alluxioUri a Tachyon path URI
    * @param ufsUri a UFS path URI
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    */
-  public synchronized void add(TachyonURI tachyonUri, TachyonURI ufsUri)
+  public synchronized void add(AlluxioURI alluxioUri, AlluxioURI ufsUri)
       throws FileAlreadyExistsException, InvalidPathException {
-    String tachyonPath = tachyonUri.getPath();
+    String tachyonPath = alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, tachyonPath);
     if (mMountTable.containsKey(tachyonPath)) {
       throw new FileAlreadyExistsException(
@@ -69,9 +69,9 @@ public final class MountTable {
     // Check all non-root mount points, to check if they're a prefix of the tachyonPath we're trying
     // to mount. Also make sure that the ufs path we're trying to mount is not a prefix or suffix of
     // any existing mount path.
-    for (Map.Entry<String, TachyonURI> entry : mMountTable.entrySet()) {
+    for (Map.Entry<String, AlluxioURI> entry : mMountTable.entrySet()) {
       String mountedTachyonPath = entry.getKey();
-      TachyonURI mountedUfsUri = entry.getValue();
+      AlluxioURI mountedUfsUri = entry.getValue();
       if (!mountedTachyonPath.equals(ROOT)
           && PathUtils.hasPrefix(tachyonPath, mountedTachyonPath)) {
         throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage(
@@ -100,7 +100,7 @@ public final class MountTable {
    * @param uri a Tachyon path URI
    * @return whether the operation succeeded or not
    */
-  public synchronized boolean delete(TachyonURI uri) {
+  public synchronized boolean delete(AlluxioURI uri) {
     String path = uri.getPath();
     LOG.info("Unmounting {}", path);
     if (path.equals(ROOT)) {
@@ -122,10 +122,10 @@ public final class MountTable {
    * @return mount point the given Tachyon path is nested under
    * @throws InvalidPathException if an invalid path is encountered
    */
-  public synchronized String getMountPoint(TachyonURI uri) throws InvalidPathException {
+  public synchronized String getMountPoint(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
     String mountPoint = null;
-    for (Map.Entry<String, TachyonURI> entry : mMountTable.entrySet()) {
+    for (Map.Entry<String, AlluxioURI> entry : mMountTable.entrySet()) {
       String tachyonPath = entry.getKey();
       if (PathUtils.hasPrefix(path, tachyonPath)
           && (mountPoint == null || PathUtils.hasPrefix(tachyonPath, mountPoint))) {
@@ -141,7 +141,7 @@ public final class MountTable {
    * @param uri a Tachyon path URI
    * @return mount point the given Tachyon path is nested under
    */
-  public synchronized boolean isMountPoint(TachyonURI uri) {
+  public synchronized boolean isMountPoint(AlluxioURI uri) {
     return mMountTable.containsKey(uri.getPath());
   }
 
@@ -154,13 +154,13 @@ public final class MountTable {
    * @return the resolved path
    * @throws InvalidPathException if an invalid path is encountered
    */
-  public synchronized TachyonURI resolve(TachyonURI uri) throws InvalidPathException {
+  public synchronized AlluxioURI resolve(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
     LOG.debug("Resolving {}", path);
     String mountPoint = getMountPoint(uri);
     if (mountPoint != null) {
-      TachyonURI ufsPath = mMountTable.get(mountPoint);
-      return new TachyonURI(ufsPath.getScheme(), ufsPath.getAuthority(),
+      AlluxioURI ufsPath = mMountTable.get(mountPoint);
+      return new AlluxioURI(ufsPath.getScheme(), ufsPath.getAuthority(),
           PathUtils.concatPath(ufsPath.getPath(), path.substring(mountPoint.length())));
     }
     return uri;

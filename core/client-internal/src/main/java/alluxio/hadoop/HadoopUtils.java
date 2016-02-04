@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 
 /**
  * Utilty class for using Tachyon with Hadoop.
@@ -44,11 +44,11 @@ public final class HadoopUtils {
    * @param ufsAddress under filesystem address
    * @return an HDFS path
    */
-  public static Path getHDFSPath(TachyonURI path, String ufsAddress) {
+  public static Path getHDFSPath(AlluxioURI path, String ufsAddress) {
     if (path.isPathAbsolute()) {
       return new Path(ufsAddress + path.getPath());
     } else {
-      return new Path(ufsAddress + TachyonURI.SEPARATOR + path.getPath());
+      return new Path(ufsAddress + AlluxioURI.SEPARATOR + path.getPath());
     }
   }
 
@@ -71,7 +71,7 @@ public final class HadoopUtils {
    */
   public static String getTachyonFileName(String path) {
     if (path.isEmpty()) {
-      return TachyonURI.SEPARATOR;
+      return AlluxioURI.SEPARATOR;
     }
 
     while (path.contains(":")) {
@@ -79,7 +79,7 @@ public final class HadoopUtils {
       path = path.substring(index + 1);
     }
 
-    while (!path.startsWith(TachyonURI.SEPARATOR)) {
+    while (!path.startsWith(AlluxioURI.SEPARATOR)) {
       path = path.substring(1);
     }
 

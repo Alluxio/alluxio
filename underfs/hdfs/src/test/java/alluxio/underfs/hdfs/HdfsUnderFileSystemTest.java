@@ -15,13 +15,12 @@
 
 package alluxio.underfs.hdfs;
 
-import org.apache.hadoop.conf.Configuration;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem.UnderFSType;
 
 /**
@@ -33,7 +32,7 @@ public final class HdfsUnderFileSystemTest {
 
   @Before
   public final void before() throws Exception {
-    mMockHdfsUnderFileSystem = new HdfsUnderFileSystem("file:///", new TachyonConf(), null);
+    mMockHdfsUnderFileSystem = new HdfsUnderFileSystem("file:///", new Configuration(), null);
   }
 
   /**
@@ -48,8 +47,7 @@ public final class HdfsUnderFileSystemTest {
   }
 
   /**
-   * Tests the
-   * {@link HdfsUnderFileSystem#prepareConfiguration(String, TachyonConf, Configuration)} method.
+   * Tests the {@link HdfsUnderFileSystem#prepareConfiguration} method.
    *
    * Checks the hdfs implements class and alluxio underfs config setting
    *
@@ -57,8 +55,8 @@ public final class HdfsUnderFileSystemTest {
    */
   @Test
   public void prepareConfigurationTest() throws Exception {
-    TachyonConf tConf = new TachyonConf();
-    Configuration hConf = new Configuration();
+    Configuration tConf = new Configuration();
+    org.apache.hadoop.conf.Configuration hConf = new org.apache.hadoop.conf.Configuration();
     mMockHdfsUnderFileSystem.prepareConfiguration("", tConf, hConf);
     Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", hConf.get("fs.hdfs.impl"));
     Assert.assertFalse(hConf.getBoolean("fs.hdfs.impl.disable.cache", false));

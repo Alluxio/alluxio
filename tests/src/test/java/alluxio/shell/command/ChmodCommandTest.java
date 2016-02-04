@@ -20,25 +20,25 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Tests for chmod command.
  */
-public class ChmodCommandTest extends AbstractTfsShellTest {
+public class ChmodCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void chmodTest() throws IOException, TachyonException {
+  public void chmodTest() throws IOException, AlluxioException {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chmod", "777", "/testFile");
-    int permission = mFileSystem.getStatus(new TachyonURI("/testFile")).getPermission();
+    int permission = mFileSystem.getStatus(new AlluxioURI("/testFile")).getPermission();
     Assert.assertEquals((short) 0777, permission);
     mFsShell.run("chmod", "755", "/testFile");
-    permission = mFileSystem.getStatus(new TachyonURI("/testFile")).getPermission();
+    permission = mFileSystem.getStatus(new AlluxioURI("/testFile")).getPermission();
     Assert.assertEquals((short) 0755, permission);
   }
 
@@ -48,16 +48,16 @@ public class ChmodCommandTest extends AbstractTfsShellTest {
    * @throws Exception
    */
   @Test
-  public void chmodRecursivelyTest() throws IOException, TachyonException {
+  public void chmodRecursivelyTest() throws IOException, AlluxioException {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chmod", "-R", "777", "/testDir");
-    int permission = mFileSystem.getStatus(new TachyonURI("/testDir")).getPermission();
+    int permission = mFileSystem.getStatus(new AlluxioURI("/testDir")).getPermission();
     Assert.assertEquals((short) 0777, permission);
-    permission = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getPermission();
+    permission = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getPermission();
     Assert.assertEquals((short) 0777, permission);
     mFsShell.run("chmod", "-R", "755", "/testDir");
-    permission = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getPermission();
+    permission = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getPermission();
     Assert.assertEquals((short) 0755, permission);
   }
 }

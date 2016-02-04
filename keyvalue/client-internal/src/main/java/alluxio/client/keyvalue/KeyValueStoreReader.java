@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import alluxio.annotation.PublicApi;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * Interface for readers which accesses key-value stores in Tachyon.
@@ -35,9 +35,9 @@ public interface KeyValueStoreReader extends Closeable, KeyValueIterable {
    * @param key key to get, cannot be null
    * @return value associated with the given key, or null if not found
    * @throws IOException if non-Tachyon error occurs
-   * @throws TachyonException if Tachyon error occurs
+   * @throws AlluxioException if Tachyon error occurs
    */
-  byte[] get(byte[] key) throws IOException, TachyonException;
+  byte[] get(byte[] key) throws IOException, AlluxioException;
 
   /**
    * Gets the value associated with {@code key}, returns null if not found.
@@ -45,14 +45,14 @@ public interface KeyValueStoreReader extends Closeable, KeyValueIterable {
    * @param key key to get, cannot be null
    * @return value associated with the given key, or null if not found
    * @throws IOException if non-Tachyon error occurs
-   * @throws TachyonException if Tachyon error occurs
+   * @throws AlluxioException if Tachyon error occurs
    */
-  ByteBuffer get(ByteBuffer key) throws IOException, TachyonException;
+  ByteBuffer get(ByteBuffer key) throws IOException, AlluxioException;
 
   /**
    * @return the number of key-value pairs in the store
    * @throws IOException if a non-Tachyon error occurs
-   * @throws TachyonException if a Tachyon error occurs
+   * @throws AlluxioException if a Tachyon error occurs
    */
-  int size() throws IOException, TachyonException;
+  int size() throws IOException, AlluxioException;
 }

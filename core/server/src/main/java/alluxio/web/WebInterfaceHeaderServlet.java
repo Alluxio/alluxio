@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -35,15 +35,15 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 public final class WebInterfaceHeaderServlet extends HttpServlet {
   private static final long serialVersionUID = -2466055439220042703L;
 
-  private final transient TachyonConf mTachyonConf;
+  private final transient Configuration mConfiguration;
 
   /**
    * Creates a new instance of {@link WebInterfaceHeaderServlet}.
    *
    * @param conf Tachyon configuration
    */
-  public WebInterfaceHeaderServlet(TachyonConf conf) {
-    mTachyonConf = conf;
+  public WebInterfaceHeaderServlet(Configuration conf) {
+    mConfiguration = conf;
   }
 
   /**
@@ -58,9 +58,9 @@ public final class WebInterfaceHeaderServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    int masterWebPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT);
+    int masterWebPort = mConfiguration.getInt(Constants.MASTER_WEB_PORT);
     String masterHostName =
-        NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, mTachyonConf);
+        NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, mConfiguration);
     request.setAttribute("masterHost", masterHostName);
     request.setAttribute("masterPort", masterWebPort);
     getServletContext().getRequestDispatcher("/header.jsp").include(request, response);

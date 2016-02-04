@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
 
 /**
@@ -35,7 +35,7 @@ public final class FileSystemPermissionTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  private TachyonConf mConf = new TachyonConf();
+  private Configuration mConf = new Configuration();
 
   /**
    * Tests the {@link FileSystemPermission#toShort()} method.
@@ -124,7 +124,7 @@ public final class FileSystemPermissionTest {
   }
 
   /**
-   * Tests the {@link FileSystemPermission#getUMask(TachyonConf)} and
+   * Tests the {@link FileSystemPermission#getUMask(Configuration)} and
    * {@link FileSystemPermission#applyUMask(FileSystemPermission)} methods.
    */
   @Test
@@ -141,8 +141,8 @@ public final class FileSystemPermissionTest {
   }
 
   /**
-   * Tests the {@link FileSystemPermission#getUMask(TachyonConf)} method to thrown an exception when
-   * it exceeds the length.
+   * Tests the {@link FileSystemPermission#getUMask(Configuration)} method to thrown an exception
+   * when it exceeds the length.
    */
   @Test
   public void umaskExceedLengthTest() {
@@ -155,8 +155,8 @@ public final class FileSystemPermissionTest {
   }
 
   /**
-   * Tests the {@link FileSystemPermission#getUMask(TachyonConf)} method to thrown an exception when
-   * it is not an integer.
+   * Tests the {@link FileSystemPermission#getUMask(Configuration)} method to thrown an exception
+   * when it is not an integer.
    */
   @Test
   public void umaskNotIntegerTest() {

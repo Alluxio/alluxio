@@ -31,15 +31,14 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.conf.TachyonConf;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.AuthenticationUtils;
-import alluxio.thrift.TachyonService;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
 /**
@@ -52,7 +51,7 @@ public abstract class ClientBase implements Closeable {
   /** The number of times to retry a particular RPC. */
   protected static final int RPC_MAX_NUM_RETRY = 30;
 
-  protected final TachyonConf mTachyonConf;
+  protected final Configuration mConfiguration;
   protected final String mMode;
 
   protected InetSocketAddress mAddress = null;
@@ -76,11 +75,11 @@ public abstract class ClientBase implements Closeable {
    * Creates a new client base.
    *
    * @param address the address
-   * @param tachyonConf the Tachyon configuration
+   * @param configuration the Tachyon configuration
    * @param mode the mode of the client for display
    */
-  public ClientBase(InetSocketAddress address, TachyonConf tachyonConf, String mode) {
-    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
+  public ClientBase(InetSocketAddress address, Configuration configuration, String mode) {
+    mConfiguration = Preconditions.checkNotNull(configuration);
     mAddress = Preconditions.checkNotNull(address);
     mMode = mode;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
@@ -89,7 +88,7 @@ public abstract class ClientBase implements Closeable {
   /**
    * @return a Thrift service client
    */
-  protected abstract TachyonService.Client getClient();
+  protected abstract AlluxioService.Client getClient();
 
   /**
    * @return a string representing the specific service
@@ -107,7 +106,7 @@ public abstract class ClientBase implements Closeable {
    * @param client the service client
    * @param version the client version
    */
-  private void checkVersion(TachyonService.Client client, long version) throws IOException {
+  private void checkVersion(AlluxioService.Client client, long version) throws IOException {
     if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       try {
         mServiceVersion = client.getServiceVersion();
@@ -158,7 +157,7 @@ public abstract class ClientBase implements Closeable {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
-    int maxConnectsTry = mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT);
+    int maxConnectsTry = mConfiguration.getInt(Constants.MASTER_RETRY_COUNT);
     final int BASE_SLEEP_MS = 50;
     RetryPolicy retry =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);
@@ -168,7 +167,7 @@ public abstract class ClientBase implements Closeable {
               getServiceName(), mMode, mAddress);
 
       TProtocol binaryProtocol =
-          new TBinaryProtocol(AuthenticationUtils.getClientTransport(mTachyonConf, mAddress));
+          new TBinaryProtocol(AuthenticationUtils.getClientTransport(mConfiguration, mAddress));
       mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       try {
         mProtocol.getTransport().open();
@@ -261,7 +260,7 @@ public abstract class ClientBase implements Closeable {
   }
 
   /**
-   * Same with {@link RpcCallable} except that this RPC call throws {@link TachyonTException} and
+   * Same with {@link RpcCallable} except that this RPC call throws {@link AlluxioTException} and
    * is to be executed in {@link #retryRPC(RpcCallableThrowsTachyonTException)}.
    *
    * @param <V> the return value of {@link #call()}
@@ -271,11 +270,11 @@ public abstract class ClientBase implements Closeable {
      * The task where RPC happens.
      *
      * @return RPC result
-     * @throws TachyonTException when any {@link TachyonException} happens during RPC and is wrapped
-     *         into {@link TachyonTException}
+     * @throws AlluxioTException when any {@link AlluxioException} happens during RPC and is wrapped
+     *         into {@link AlluxioTException}
      * @throws TException when any exception defined in thrift happens
      */
-    V call() throws TachyonTException, TException;
+    V call() throws AlluxioTException, TException;
   }
 
   /**
@@ -309,25 +308,25 @@ public abstract class ClientBase implements Closeable {
 
   /**
    * Similar to {@link #retryRPC(RpcCallable)} except that the RPC call may throw
-   * {@link TachyonTException} and once it is thrown, it will be transformed into
-   * {@link TachyonException} and be thrown.
+   * {@link AlluxioTException} and once it is thrown, it will be transformed into
+   * {@link AlluxioException} and be thrown.
    *
    * @param rpc the RPC call to be executed
    * @param <V> type of return value of the RPC call
    * @return the return value of the RPC call
-   * @throws TachyonException when {@link TachyonTException} is thrown by the RPC call
+   * @throws AlluxioException when {@link AlluxioTException} is thrown by the RPC call
    * @throws IOException when retries exceeds {@link #RPC_MAX_NUM_RETRY} or {@link #close()} has
    *         been called before calling this method or during the retry
    */
   protected synchronized <V> V retryRPC(RpcCallableThrowsTachyonTException<V> rpc)
-      throws TachyonException, IOException {
+      throws AlluxioException, IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return rpc.call();
-      } catch (TachyonTException e) {
-        throw TachyonException.from(e);
+      } catch (AlluxioTException e) {
+        throw AlluxioException.from(e);
       } catch (ThriftIOException e) {
         throw new IOException(e);
       } catch (TException e) {

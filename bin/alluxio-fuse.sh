@@ -63,7 +63,7 @@ mount_fuse() {
   echo "Starting alluxio-fuse on local host."
   local mount_point=$1
   (nohup $JAVA -cp ${ALLUXIO_FUSE_JAR} ${JAVA_OPTS} ${ALLUXIO_FUSE_OPTS}\
-    alluxio.fuse.TachyonFuse \
+    alluxio.fuse.AlluxioFuse \
     -m ${mount_point} \
     -o big_writes > $ALLUXIO_LOGS_DIR/fuse.out 2>&1) &
   # sleep: workaround to let the bg java process exit on errors, if any
@@ -89,18 +89,18 @@ umount_fuse () {
 }
 
 fuse_stat() {
-  local fuse_pid=$(${JAVA_HOME}/bin/jps | grep TachyonFuse | awk -F' ' '{print $1}')
+  local fuse_pid=$(${JAVA_HOME}/bin/jps | grep AlluxioFuse | awk -F' ' '{print $1}')
   if [[ -z ${fuse_pid} ]]; then
     if [[ $1 == "-v" ]]; then
-      echo "TachyonFuse: not running"
+      echo "AlluxioFuse: not running"
       return 1
     else
       return 1
     fi
   else
-    local fuse_mount=$(mount | grep tachyon-fuse | awk -F' ' '{print $3" "$6}')
+    local fuse_mount=$(mount | grep alluxio-fuse | awk -F' ' '{print $3" "$6}')
     if [[ $1 == "-v" ]]; then
-      echo "TachyonFuse mounted on ${fuse_mount} [PID: ${fuse_pid}]"
+      echo "AlluxioFuse mounted on ${fuse_mount} [PID: ${fuse_pid}]"
       return 0
     else
       echo ${fuse_pid}

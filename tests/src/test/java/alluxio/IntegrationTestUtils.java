@@ -16,7 +16,7 @@
 package alluxio;
 
 import alluxio.util.CommonUtils;
-import alluxio.worker.TachyonWorkerPrivateAccess;
+import alluxio.worker.PrivateAccess;
 import alluxio.worker.file.FileDataManager;
 import alluxio.worker.file.FileSystemWorker;
 import alluxio.worker.file.FileSystemWorkerPrivateAccess;
@@ -28,29 +28,29 @@ public final class IntegrationTestUtils {
 
   /**
    * Convenience method for calling
-   * {@link #waitForPersist(LocalTachyonClusterResource, long, long)} with a timeout of 5
+   * {@link #waitForPersist(LocalAlluxioClusterResource, long, long)} with a timeout of 5
    * seconds.
    *
-   * @param localTachyonClusterResource the cluster for the worker that will persist the file
+   * @param localAlluxioClusterResource the cluster for the worker that will persist the file
    * @param fileId the file id to wait to be persisted
    */
-  public static void waitForPersist(LocalTachyonClusterResource localTachyonClusterResource,
-      long fileId) {
-    waitForPersist(localTachyonClusterResource, fileId, 5 * Constants.SECOND_MS);
+  public static void waitForPersist(LocalAlluxioClusterResource localAlluxioClusterResource,
+                                    long fileId) {
+    waitForPersist(localAlluxioClusterResource, fileId, 5 * Constants.SECOND_MS);
   }
 
   /**
    * Blocks until the specified file is persisted or a timeout occurs.
    *
-   * @param localTachyonClusterResource the cluster for the worker that will persist the file
+   * @param localAlluxioClusterResource the cluster for the worker that will persist the file
    * @param fileId the file id to wait to be persisted
    * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
    */
-  public static void waitForPersist(LocalTachyonClusterResource localTachyonClusterResource,
-      long fileId, int timeoutMs) {
+  public static void waitForPersist(LocalAlluxioClusterResource localAlluxioClusterResource,
+                                    long fileId, int timeoutMs) {
     long start = System.currentTimeMillis();
-    FileSystemWorker worker = TachyonWorkerPrivateAccess
-        .getFileSystemWorker(localTachyonClusterResource.get().getWorker());
+    FileSystemWorker worker = PrivateAccess
+        .getFileSystemWorker(localAlluxioClusterResource.get().getWorker());
     FileDataManager fileDataManager = FileSystemWorkerPrivateAccess.getFileDataManager(worker);
     while (!fileDataManager.isFilePersisted(fileId)) {
       if (System.currentTimeMillis() - start > timeoutMs) {

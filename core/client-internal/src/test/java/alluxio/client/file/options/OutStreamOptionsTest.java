@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import alluxio.Constants;
 import alluxio.client.ClientContext;
-import alluxio.client.TachyonStorageType;
+import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
@@ -39,7 +39,7 @@ public class OutStreamOptionsTest {
    */
   @Test
   public void defaultsTest() {
-    TachyonStorageType tachyonType = TachyonStorageType.STORE;
+    AlluxioStorageType tachyonType = AlluxioStorageType.STORE;
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     ClientContext.getConf().set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT,

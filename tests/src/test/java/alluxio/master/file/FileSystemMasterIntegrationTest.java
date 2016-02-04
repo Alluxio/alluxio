@@ -36,9 +36,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -66,9 +66,9 @@ public class FileSystemMasterIntegrationTest {
   class ConcurrentCreator implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
-    private TachyonURI mInitPath;
+    private AlluxioURI mInitPath;
 
-    ConcurrentCreator(int depth, int concurrencyDepth, TachyonURI initPath) {
+    ConcurrentCreator(int depth, int concurrencyDepth, AlluxioURI initPath) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;
       mInitPath = initPath;
@@ -81,7 +81,7 @@ public class FileSystemMasterIntegrationTest {
       return null;
     }
 
-    public void exec(int depth, int concurrencyDepth, TachyonURI path) throws Exception {
+    public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
         return;
       } else if (depth == 1) {
@@ -127,9 +127,9 @@ public class FileSystemMasterIntegrationTest {
   class ConcurrentDeleter implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
-    private TachyonURI mInitPath;
+    private AlluxioURI mInitPath;
 
-    ConcurrentDeleter(int depth, int concurrencyDepth, TachyonURI initPath) {
+    ConcurrentDeleter(int depth, int concurrencyDepth, AlluxioURI initPath) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;
       mInitPath = initPath;
@@ -141,12 +141,12 @@ public class FileSystemMasterIntegrationTest {
       return null;
     }
 
-    private void doDelete(TachyonURI path) throws Exception {
+    private void doDelete(AlluxioURI path) throws Exception {
       mFsMaster.deleteFile(path, true);
       Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
     }
 
-    public void exec(int depth, int concurrencyDepth, TachyonURI path) throws Exception {
+    public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
         return;
       } else if (depth == 1 || (path.hashCode() % 10 == 0)) {
@@ -182,12 +182,12 @@ public class FileSystemMasterIntegrationTest {
   class ConcurrentRenamer implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
-    private TachyonURI mRootPath;
-    private TachyonURI mRootPath2;
-    private TachyonURI mInitPath;
+    private AlluxioURI mRootPath;
+    private AlluxioURI mRootPath2;
+    private AlluxioURI mInitPath;
 
-    ConcurrentRenamer(int depth, int concurrencyDepth, TachyonURI rootPath, TachyonURI rootPath2,
-        TachyonURI initPath) {
+    ConcurrentRenamer(int depth, int concurrencyDepth, AlluxioURI rootPath, AlluxioURI rootPath2,
+                      AlluxioURI initPath) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;
       mRootPath = rootPath;
@@ -202,7 +202,7 @@ public class FileSystemMasterIntegrationTest {
       return null;
     }
 
-    public void exec(int depth, int concurrencyDepth, TachyonURI path) throws Exception {
+    public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
         return;
       } else if (depth == 1 || (depth < mDepth && path.hashCode() % 10 < 3)) {
@@ -210,8 +210,8 @@ public class FileSystemMasterIntegrationTest {
         // the second condition is for. We have to create the path in the destination up till what
         // we're renaming. This might already exist, so createFile could throw a
         // FileAlreadyExistsException, which we silently handle.
-        TachyonURI srcPath = mRootPath.join(path);
-        TachyonURI dstPath = mRootPath2.join(path);
+        AlluxioURI srcPath = mRootPath.join(path);
+        AlluxioURI dstPath = mRootPath2.join(path);
         long fileId = mFsMaster.getFileId(srcPath);
         try {
           CreateDirectoryOptions options =
@@ -252,8 +252,8 @@ public class FileSystemMasterIntegrationTest {
   private static final int DEPTH = 6;
   private static final int FILES_PER_NODE = 4;
   private static final int CONCURRENCY_DEPTH = 3;
-  private static final TachyonURI ROOT_PATH = new TachyonURI("/root");
-  private static final TachyonURI ROOT_PATH2 = new TachyonURI("/root2");
+  private static final AlluxioURI ROOT_PATH = new AlluxioURI("/root");
+  private static final AlluxioURI ROOT_PATH2 = new AlluxioURI("/root2");
   // Modify current time so that implementations can't accidentally pass unit tests by ignoring
   // this specified time and always using System.currentTimeMillis()
   private static final long TEST_CURRENT_TIME = 300;
@@ -270,10 +270,10 @@ public class FileSystemMasterIntegrationTest {
   public Timeout mGlobalTimeout = Timeout.seconds(60);
 
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(1000, Constants.GB,
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource(1000, Constants.GB,
           Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-  private TachyonConf mMasterTachyonConf;
+  private Configuration mMasterConfiguration;
   private FileSystemMaster mFsMaster;
 
   @Rule
@@ -285,16 +285,16 @@ public class FileSystemMasterIntegrationTest {
     AuthorizedClientUser.set(TEST_AUTHENTICATE_USER);
 
     mFsMaster =
-        mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
-    mMasterTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
+        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
+    mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
 
     TtlBucketPrivateAccess
-        .setTtlIntervalMs(mMasterTachyonConf.getLong(Constants.MASTER_TTLCHECKER_INTERVAL_MS));
+        .setTtlIntervalMs(mMasterConfiguration.getLong(Constants.MASTER_TTLCHECKER_INTERVAL_MS));
   }
 
   @Test
   public void clientFileInfoDirectoryTest() throws Exception {
-    TachyonURI path = new TachyonURI("/testFolder");
+    AlluxioURI path = new AlluxioURI("/testFolder");
     mFsMaster.mkdir(path, CreateDirectoryOptions.defaults());
     long fileId = mFsMaster.getFileId(path);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
@@ -312,7 +312,7 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void clientFileInfoEmptyFileTest() throws Exception {
-    long fileId = mFsMaster.create(new TachyonURI("/testFile"), CreateFileOptions.defaults());
+    long fileId = mFsMaster.create(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals("testFile", fileInfo.getName());
     Assert.assertEquals(fileId, fileInfo.getFileId());
@@ -328,7 +328,7 @@ public class FileSystemMasterIntegrationTest {
   }
 
   private FileSystemMaster createFileSystemMasterFromJournal() throws IOException {
-    return MasterTestUtils.createFileSystemMasterFromJournal(mMasterTachyonConf);
+    return MasterTestUtils.createFileSystemMasterFromJournal(mMasterConfiguration);
   }
 
   // TODO(calvin): This test currently relies on the fact the HDFS client is a cached instance to
@@ -343,8 +343,8 @@ public class FileSystemMasterIntegrationTest {
       concurrentCreator.call();
 
       FileSystemMaster fsMaster = createFileSystemMasterFromJournal();
-      for (FileInfo info : mFsMaster.getFileInfoList(new TachyonURI("/"))) {
-        TachyonURI path = new TachyonURI(info.getPath());
+      for (FileInfo info : mFsMaster.getFileInfoList(new AlluxioURI("/"))) {
+        AlluxioURI path = new AlluxioURI(info.getPath());
         Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
       }
       before();
@@ -369,7 +369,7 @@ public class FileSystemMasterIntegrationTest {
     concurrentDeleter.call();
 
     Assert.assertEquals(0,
-        mFsMaster.getFileInfoList(new TachyonURI("/")).size());
+        mFsMaster.getFileInfoList(new AlluxioURI("/")).size());
   }
 
   @Test
@@ -381,7 +381,7 @@ public class FileSystemMasterIntegrationTest {
     int numFiles = mFsMaster.getFileInfoList(ROOT_PATH).size();
 
     ConcurrentRenamer concurrentRenamer = new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH,
-        ROOT_PATH2, TachyonURI.EMPTY_URI);
+        ROOT_PATH2, AlluxioURI.EMPTY_URI);
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles,
@@ -391,14 +391,14 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void createAlreadyExistFileTest() throws Exception {
     mThrown.expect(FileAlreadyExistsException.class);
-    mFsMaster.create(new TachyonURI("/testFile"), CreateFileOptions.defaults());
-    mFsMaster.mkdir(new TachyonURI("/testFile"), CreateDirectoryOptions.defaults());
+    mFsMaster.create(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
+    mFsMaster.mkdir(new AlluxioURI("/testFile"), CreateDirectoryOptions.defaults());
   }
 
   @Test
   public void createDirectoryTest() throws Exception {
-    mFsMaster.mkdir(new TachyonURI("/testFolder"), CreateDirectoryOptions.defaults());
-    FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
+    FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertTrue(fileInfo.isFolder());
     Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
     Assert.assertEquals(0755, (short) fileInfo.getPermission());
@@ -407,20 +407,20 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void createFileInvalidPathTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
-    mFsMaster.create(new TachyonURI("testFile"), CreateFileOptions.defaults());
+    mFsMaster.create(new AlluxioURI("testFile"), CreateFileOptions.defaults());
   }
 
   @Test
   public void createFileInvalidPathTest2() throws Exception {
     mThrown.expect(FileAlreadyExistsException.class);
-    mFsMaster.create(new TachyonURI("/"), CreateFileOptions.defaults());
+    mFsMaster.create(new AlluxioURI("/"), CreateFileOptions.defaults());
   }
 
   @Test
   public void createFileInvalidPathTest3() throws Exception {
     mThrown.expect(InvalidPathException.class);
-    mFsMaster.create(new TachyonURI("/testFile1"), CreateFileOptions.defaults());
-    mFsMaster.create(new TachyonURI("/testFile1/testFile2"), CreateFileOptions.defaults());
+    mFsMaster.create(new AlluxioURI("/testFile1"), CreateFileOptions.defaults());
+    mFsMaster.create(new AlluxioURI("/testFile1/testFile2"), CreateFileOptions.defaults());
   }
 
   @Test
@@ -429,19 +429,19 @@ public class FileSystemMasterIntegrationTest {
       CreateDirectoryOptions options =
           new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
       mFsMaster.mkdir(
-          new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0"),
+          new AlluxioURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0"),
           options);
     }
     for (int k = 0; k < 200; k ++) {
       mFsMaster.getFileInfo(mFsMaster.getFileId(
-          new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0")));
+          new AlluxioURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0")));
     }
   }
 
   @Test
   public void createFileTest() throws Exception {
-    mFsMaster.create(new TachyonURI("/testFile"), CreateFileOptions.defaults());
-    FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFile")));
+    mFsMaster.create(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
+    FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFile")));
     Assert.assertFalse(fileInfo.isFolder());
     Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
     Assert.assertEquals(0644, (short) fileInfo.getPermission());
@@ -449,114 +449,114 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void deleteDirectoryWithDirectoriesTest() throws Exception {
-    mFsMaster.mkdir(new TachyonURI("/testFolder"), CreateDirectoryOptions.defaults());
-    mFsMaster.mkdir(new TachyonURI("/testFolder/testFolder2"), CreateDirectoryOptions.defaults());
+    mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
+    mFsMaster.mkdir(new AlluxioURI("/testFolder/testFolder2"), CreateDirectoryOptions.defaults());
     long fileId =
-        mFsMaster.create(new TachyonURI("/testFolder/testFile"), CreateFileOptions.defaults());
-    long fileId2 = mFsMaster.create(new TachyonURI("/testFolder/testFolder2/testFile2"),
+        mFsMaster.create(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
+    long fileId2 = mFsMaster.create(new AlluxioURI("/testFolder/testFolder2/testFile2"),
         CreateFileOptions.defaults());
-    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
+    Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
+    Assert.assertEquals(2, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2")));
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
-        mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
-    Assert.assertTrue(mFsMaster.deleteFile(new TachyonURI("/testFolder"), true));
+        mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
+    Assert.assertTrue(mFsMaster.deleteFile(new AlluxioURI("/testFolder"), true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
-        mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
+        mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
   }
 
   @Test
   public void deleteDirectoryWithDirectoriesTest2() throws Exception {
-    mFsMaster.mkdir(new TachyonURI("/testFolder"), CreateDirectoryOptions.defaults());
-    mFsMaster.mkdir(new TachyonURI("/testFolder/testFolder2"), CreateDirectoryOptions.defaults());
+    mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
+    mFsMaster.mkdir(new AlluxioURI("/testFolder/testFolder2"), CreateDirectoryOptions.defaults());
     long fileId =
-        mFsMaster.create(new TachyonURI("/testFolder/testFile"), CreateFileOptions.defaults());
-    long fileId2 = mFsMaster.create(new TachyonURI("/testFolder/testFolder2/testFile2"),
+        mFsMaster.create(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
+    long fileId2 = mFsMaster.create(new AlluxioURI("/testFolder/testFolder2/testFile2"),
         CreateFileOptions.defaults());
-    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
+    Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
+    Assert.assertEquals(2, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2")));
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
-        mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
+        mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
     try {
-      mFsMaster.deleteFile(new TachyonURI("/testFolder/testFolder2"), false);
+      mFsMaster.deleteFile(new AlluxioURI("/testFolder/testFolder2"), false);
       Assert.fail("Deleting a nonempty directory nonrecursively should fail");
     } catch (DirectoryNotEmptyException e) {
       Assert.assertEquals(
           ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE.getMessage("testFolder2"),
           e.getMessage());
     }
-    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
+    Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
+    Assert.assertEquals(2, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2")));
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
-        mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
+        mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
   }
 
   @Test
   public void deleteDirectoryWithFilesTest() throws Exception {
-    mFsMaster.mkdir(new TachyonURI("/testFolder"), CreateDirectoryOptions.defaults());
+    mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long fileId =
-        mFsMaster.create(new TachyonURI("/testFolder/testFile"), CreateFileOptions.defaults());
-    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
-    Assert.assertTrue(mFsMaster.deleteFile(new TachyonURI("/testFolder"), true));
+        mFsMaster.create(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
+    Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
+    Assert.assertTrue(mFsMaster.deleteFile(new AlluxioURI("/testFolder"), true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
-        mFsMaster.getFileId(new TachyonURI("/testFolder")));
+        mFsMaster.getFileId(new AlluxioURI("/testFolder")));
   }
 
   @Test
   public void deleteDirectoryWithFilesTest2() throws Exception {
-    mFsMaster.mkdir(new TachyonURI("/testFolder"), CreateDirectoryOptions.defaults());
+    mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long fileId =
-        mFsMaster.create(new TachyonURI("/testFolder/testFile"), CreateFileOptions.defaults());
-    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
+        mFsMaster.create(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
+    Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     try {
-      mFsMaster.deleteFile(new TachyonURI("/testFolder"), false);
+      mFsMaster.deleteFile(new AlluxioURI("/testFolder"), false);
       Assert.fail("Deleting a nonempty directory nonrecursively should fail");
     } catch (DirectoryNotEmptyException e) {
       Assert.assertEquals(
           ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE.getMessage("testFolder"),
           e.getMessage());
     }
-    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
+    Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
   }
 
   @Test
   public void deleteEmptyDirectoryTest() throws Exception {
-    mFsMaster.mkdir(new TachyonURI("/testFolder"), CreateDirectoryOptions.defaults());
-    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertTrue(mFsMaster.deleteFile(new TachyonURI("/testFolder"), true));
+    mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
+    Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
+    Assert.assertTrue(mFsMaster.deleteFile(new AlluxioURI("/testFolder"), true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
-        mFsMaster.getFileId(new TachyonURI("/testFolder")));
+        mFsMaster.getFileId(new AlluxioURI("/testFolder")));
   }
 
   @Test
   public void deleteFileTest() throws Exception {
-    long fileId = mFsMaster.create(new TachyonURI("/testFile"), CreateFileOptions.defaults());
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFile")));
-    Assert.assertTrue(mFsMaster.deleteFile(new TachyonURI("/testFile"), true));
-    Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(new TachyonURI("/testFile")));
+    long fileId = mFsMaster.create(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFile")));
+    Assert.assertTrue(mFsMaster.deleteFile(new AlluxioURI("/testFile"), true));
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(new AlluxioURI("/testFile")));
   }
 
   @Test
   public void deleteRootTest() throws Exception {
-    Assert.assertFalse(mFsMaster.deleteFile(new TachyonURI("/"), true));
-    Assert.assertFalse(mFsMaster.deleteFile(new TachyonURI("/"), false));
+    Assert.assertFalse(mFsMaster.deleteFile(new AlluxioURI("/"), true));
+    Assert.assertFalse(mFsMaster.deleteFile(new AlluxioURI("/"), false));
   }
 
   @Test
   public void getCapacityBytesTest() {
     BlockMaster blockMaster =
-        mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getBlockMaster();
+        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getBlockMaster();
     Assert.assertEquals(1000, blockMaster.getCapacityBytes());
   }
 
   @Test
   public void lastModificationTimeCompleteFileTest() throws Exception {
-    long fileId = mFsMaster.create(new TachyonURI("/testFile"), CreateFileOptions.defaults());
+    long fileId = mFsMaster.create(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
     mFsMaster.completeFileInternal(Lists.<Long>newArrayList(), fileId, 0, opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
@@ -565,23 +565,23 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void lastModificationTimeCreateFileTest() throws Exception {
-    mFsMaster.mkdir(new TachyonURI("/testFolder"), CreateDirectoryOptions.defaults());
+    mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
     CreateFileOptions options =
         new CreateFileOptions.Builder(MasterContext.getConf()).setOperationTimeMs(opTimeMs).build();
-    mFsMaster.createInternal(new TachyonURI("/testFolder/testFile"), options);
-    FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    mFsMaster.createInternal(new AlluxioURI("/testFolder/testFile"), options);
+    FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
   }
 
   @Test
   public void lastModificationTimeDeleteTest() throws Exception {
-    mFsMaster.mkdir(new TachyonURI("/testFolder"), CreateDirectoryOptions.defaults());
+    mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long fileId =
-        mFsMaster.create(new TachyonURI("/testFolder/testFile"), CreateFileOptions.defaults());
-    long folderId = mFsMaster.getFileId(new TachyonURI("/testFolder"));
+        mFsMaster.create(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
+    long folderId = mFsMaster.getFileId(new AlluxioURI("/testFolder"));
     Assert.assertEquals(1, folderId);
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     long opTimeMs = TEST_CURRENT_TIME;
     Assert.assertTrue(mFsMaster.deleteFileInternal(fileId, true, true, opTimeMs));
     FileInfo folderInfo = mFsMaster.getFileInfo(folderId);
@@ -590,12 +590,12 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void lastModificationTimeRenameTest() throws Exception {
-    mFsMaster.mkdir(new TachyonURI("/testFolder"), CreateDirectoryOptions.defaults());
+    mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long fileId =
-        mFsMaster.create(new TachyonURI("/testFolder/testFile1"), CreateFileOptions.defaults());
+        mFsMaster.create(new AlluxioURI("/testFolder/testFile1"), CreateFileOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
-    mFsMaster.renameInternal(fileId, new TachyonURI("/testFolder/testFile2"), true, opTimeMs);
-    FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    mFsMaster.renameInternal(fileId, new AlluxioURI("/testFolder/testFile2"), true, opTimeMs);
+    FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
   }
 
@@ -607,7 +607,7 @@ public class FileSystemMasterIntegrationTest {
     HashSet<Long> ids = new HashSet<Long>();
     HashSet<Long> dirIds = new HashSet<Long>();
     for (int i = 0; i < 10; i ++) {
-      TachyonURI dir = new TachyonURI("/i" + i);
+      AlluxioURI dir = new AlluxioURI("/i" + i);
       mFsMaster.mkdir(dir, CreateDirectoryOptions.defaults());
       dirIds.add(mFsMaster.getFileId(dir));
       for (int j = 0; j < 10; j ++) {
@@ -616,11 +616,11 @@ public class FileSystemMasterIntegrationTest {
     }
     HashSet<Long> listedIds = Sets.newHashSet();
     HashSet<Long> listedDirIds = Sets.newHashSet();
-    List<FileInfo> infoList = mFsMaster.getFileInfoList(new TachyonURI("/"));
+    List<FileInfo> infoList = mFsMaster.getFileInfoList(new AlluxioURI("/"));
     for (FileInfo info : infoList) {
       long id = info.getFileId();
       listedDirIds.add(id);
-      for (FileInfo fileInfo : mFsMaster.getFileInfoList(new TachyonURI(info.getPath()))) {
+      for (FileInfo fileInfo : mFsMaster.getFileInfoList(new AlluxioURI(info.getPath()))) {
         listedIds.add(fileInfo.getFileId());
       }
     }
@@ -634,36 +634,36 @@ public class FileSystemMasterIntegrationTest {
         new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(64).build();
 
     for (int i = 0; i < 10; i ++) {
-      mFsMaster.mkdir(new TachyonURI("/i" + i), CreateDirectoryOptions.defaults());
+      mFsMaster.mkdir(new AlluxioURI("/i" + i), CreateDirectoryOptions.defaults());
       for (int j = 0; j < 10; j ++) {
-        mFsMaster.create(new TachyonURI("/i" + i + "/j" + j), options);
+        mFsMaster.create(new AlluxioURI("/i" + i + "/j" + j), options);
       }
     }
 
     Assert.assertEquals(1,
-        mFsMaster.getFileInfoList(new TachyonURI("/i0/j0")).size());
+        mFsMaster.getFileInfoList(new AlluxioURI("/i0/j0")).size());
     for (int i = 0; i < 10; i ++) {
       Assert.assertEquals(10,
-          mFsMaster.getFileInfoList(new TachyonURI("/i" + i)).size());
+          mFsMaster.getFileInfoList(new AlluxioURI("/i" + i)).size());
     }
     Assert.assertEquals(10,
-        mFsMaster.getFileInfoList(new TachyonURI("/")).size());
+        mFsMaster.getFileInfoList(new AlluxioURI("/")).size());
   }
 
   @Test
   public void notFileCompletionTest() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
-    mFsMaster.mkdir(new TachyonURI("/testFile"), CreateDirectoryOptions.defaults());
+    mFsMaster.mkdir(new AlluxioURI("/testFile"), CreateDirectoryOptions.defaults());
     CompleteFileOptions options = CompleteFileOptions.defaults();
-    mFsMaster.completeFile(new TachyonURI("/testFile"), options);
+    mFsMaster.completeFile(new AlluxioURI("/testFile"), options);
   }
 
   @Test
   public void renameExistingDstTest() throws Exception {
-    mFsMaster.create(new TachyonURI("/testFile1"), CreateFileOptions.defaults());
-    mFsMaster.create(new TachyonURI("/testFile2"), CreateFileOptions.defaults());
+    mFsMaster.create(new AlluxioURI("/testFile1"), CreateFileOptions.defaults());
+    mFsMaster.create(new AlluxioURI("/testFile2"), CreateFileOptions.defaults());
     try {
-      mFsMaster.rename(new TachyonURI("/testFile1"), new TachyonURI("/testFile2"));
+      mFsMaster.rename(new AlluxioURI("/testFile1"), new AlluxioURI("/testFile2"));
       Assert.fail("Should not be able to rename to an existing file");
     } catch (Exception e) {
       // expected
@@ -672,8 +672,8 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void renameNonexistentTest() throws Exception {
-    mFsMaster.create(new TachyonURI("/testFile1"), CreateFileOptions.defaults());
-    Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(new TachyonURI("/testFile2")));
+    mFsMaster.create(new AlluxioURI("/testFile1"), CreateFileOptions.defaults());
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(new AlluxioURI("/testFile2")));
   }
 
   @Test
@@ -683,33 +683,33 @@ public class FileSystemMasterIntegrationTest {
     CreateDirectoryOptions createDirectoryOptions =
         new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
     mThrown.expect(InvalidPathException.class);
-    mFsMaster.mkdir(new TachyonURI("/testDir1/testDir2"), createDirectoryOptions);
-    mFsMaster.create(new TachyonURI("/testDir1/testDir2/testDir3/testFile3"), createFileOptions);
-    mFsMaster.rename(new TachyonURI("/testDir1/testDir2"),
-        new TachyonURI("/testDir1/testDir2/testDir3/testDir4"));
+    mFsMaster.mkdir(new AlluxioURI("/testDir1/testDir2"), createDirectoryOptions);
+    mFsMaster.create(new AlluxioURI("/testDir1/testDir2/testDir3/testFile3"), createFileOptions);
+    mFsMaster.rename(new AlluxioURI("/testDir1/testDir2"),
+        new AlluxioURI("/testDir1/testDir2/testDir3/testDir4"));
   }
 
   @Test
   public void ttlCreateFileTest() throws Exception {
-    mFsMaster.mkdir(new TachyonURI("/testFolder"), CreateDirectoryOptions.defaults());
+    mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 100;
     CreateFileOptions options =
         new CreateFileOptions.Builder(MasterContext.getConf()).setTtl(ttl).build();
-    mFsMaster.createInternal(new TachyonURI("/testFolder/testFile"), options);
+    mFsMaster.createInternal(new AlluxioURI("/testFolder/testFile"), options);
     FileInfo folderInfo =
-        mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
+        mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     Assert.assertEquals(ttl, folderInfo.getTtl());
   }
 
   @Test
   public void ttlExpiredCreateFileTest() throws Exception {
-    mFsMaster.mkdir(new TachyonURI("/testFolder"), CreateDirectoryOptions.defaults());
+    mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
     CreateFileOptions options =
         new CreateFileOptions.Builder(MasterContext.getConf()).setTtl(ttl).build();
-    long fileId = mFsMaster.create(new TachyonURI("/testFolder/testFile1"), options);
+    long fileId = mFsMaster.create(new AlluxioURI("/testFolder/testFile1"), options);
     FileInfo folderInfo =
-        mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile1")));
+        mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
     Assert.assertEquals(fileId, folderInfo.getFileId());
     Assert.assertEquals(ttl, folderInfo.getTtl());
     CommonUtils.sleepMs(5000);
@@ -719,15 +719,15 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void ttlRenameTest() throws Exception {
-    mFsMaster.mkdir(new TachyonURI("/testFolder"), CreateDirectoryOptions.defaults());
+    mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
     CreateFileOptions options =
         new CreateFileOptions.Builder(MasterContext.getConf()).setTtl(ttl).build();
-    long fileId = mFsMaster.create(new TachyonURI("/testFolder/testFile1"), options);
-    mFsMaster.renameInternal(fileId, new TachyonURI("/testFolder/testFile2"), true,
+    long fileId = mFsMaster.create(new AlluxioURI("/testFolder/testFile1"), options);
+    mFsMaster.renameInternal(fileId, new AlluxioURI("/testFolder/testFile2"), true,
         TEST_CURRENT_TIME);
     FileInfo folderInfo =
-        mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile2")));
+        mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile2")));
     Assert.assertEquals(ttl, folderInfo.getTtl());
   }
 

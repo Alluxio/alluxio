@@ -18,7 +18,7 @@ package alluxio.underfs.swift;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
 
@@ -32,7 +32,7 @@ public class SwiftUnderFileSystemFactoryTest {
    */
   @Test
   public void factoryTest() {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
 
     UnderFileSystemFactory factory =
         UnderFileSystemRegistry.find("swift://localhost/test/path", conf);

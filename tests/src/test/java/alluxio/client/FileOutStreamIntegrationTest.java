@@ -20,10 +20,10 @@ import java.io.IOException;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
@@ -36,17 +36,17 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * Test {@link FileOutStream#write(int)}.
    */
   @Test
-  public void writeTest1() throws IOException, TachyonException {
+  public void writeTest1() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        writeTest1Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
+        writeTest1Util(new AlluxioURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
       }
     }
   }
 
-  private void writeTest1Util(TachyonURI filePath, int len, CreateFileOptions op)
-      throws IOException, TachyonException {
+  private void writeTest1Util(AlluxioURI filePath, int len, CreateFileOptions op)
+      throws IOException, AlluxioException {
     FileOutStream os = mFileSystem.createFile(filePath, op);
     for (int k = 0; k < len; k ++) {
       os.write((byte) k);
@@ -59,17 +59,17 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * Test {@link FileOutStream#write(byte[])}.
    */
   @Test
-  public void writeTest2() throws IOException, TachyonException {
+  public void writeTest2() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        writeTest2Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
+        writeTest2Util(new AlluxioURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
       }
     }
   }
 
-  private void writeTest2Util(TachyonURI filePath, int len, CreateFileOptions op)
-      throws IOException, TachyonException {
+  private void writeTest2Util(AlluxioURI filePath, int len, CreateFileOptions op)
+      throws IOException, AlluxioException {
     FileOutStream os = mFileSystem.createFile(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(len));
     os.close();
@@ -80,17 +80,17 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * Test {@link FileOutStream#write(byte[], int, int)}.
    */
   @Test
-  public void writeTest3() throws IOException, TachyonException {
+  public void writeTest3() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        writeTest3Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
+        writeTest3Util(new AlluxioURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
       }
     }
   }
 
-  private void writeTest3Util(TachyonURI filePath, int len, CreateFileOptions op)
-      throws IOException, TachyonException {
+  private void writeTest3Util(AlluxioURI filePath, int len, CreateFileOptions op)
+      throws IOException, AlluxioException {
     FileOutStream os = mFileSystem.createFile(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(0, len / 2), 0, len / 2);
     os.write(BufferUtils.getIncreasingByteArray(len / 2, len / 2), 0, len / 2);
@@ -104,8 +104,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * @throws IOException if file can not be opened successfully
    */
   @Test
-  public void writeSpecifyLocalTest() throws IOException, TachyonException {
-    TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
+  public void writeSpecifyLocalTest() throws IOException, AlluxioException {
+    AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
     FileOutStream os = mFileSystem.createFile(filePath, mWriteLocal);
     os.write((byte) 0);
@@ -122,8 +122,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * @throws InterruptedException
    */
   @Test
-  public void longWriteTest() throws IOException, InterruptedException, TachyonException {
-    TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
+  public void longWriteTest() throws IOException, InterruptedException, AlluxioException {
+    AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
     FileOutStream os = mFileSystem.createFile(filePath, mWriteUnderStore);
     os.write((byte) 0);
@@ -141,8 +141,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * @throws IOException
    */
   @Test
-  public void outOfOrderWriteTest() throws IOException, TachyonException {
-    TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
+  public void outOfOrderWriteTest() throws IOException, AlluxioException {
+    AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileOutStream os = mFileSystem.createFile(filePath, mWriteTachyon);
 
     // Write something small, so it is written into the buffer, and not directly to the file.

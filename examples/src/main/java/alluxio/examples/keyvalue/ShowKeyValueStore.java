@@ -15,7 +15,7 @@
 
 package alluxio.examples.keyvalue;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.Version;
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
@@ -59,7 +59,7 @@ public final class ShowKeyValueStore {
       System.exit(-1);
     }
 
-    KeyValueStoreReader reader = KeyValueSystem.Factory.create().openStore(new TachyonURI(args[0]));
+    KeyValueStoreReader reader = KeyValueSystem.Factory.create().openStore(new AlluxioURI(args[0]));
     KeyValueIterator iterator = reader.iterator();
     while (iterator.hasNext()) {
       show(iterator.next(), args[1]);

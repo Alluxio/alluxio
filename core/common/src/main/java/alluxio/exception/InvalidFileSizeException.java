@@ -21,11 +21,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * The exception thrown when the file of a size is invalid.
  */
 @ThreadSafe
-public class InvalidFileSizeException extends TachyonException {
+public class InvalidFileSizeException extends AlluxioException {
   private static final long serialVersionUID = -4913703614829472342L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.INVALID_FILE_SIZE;
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.INVALID_FILE_SIZE;
 
   /**
    * Constructs a new exception with the specified detail message.

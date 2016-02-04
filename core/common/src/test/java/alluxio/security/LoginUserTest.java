@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Unit test for {@link alluxio.security.LoginUser}.
@@ -52,7 +52,7 @@ public final class LoginUserTest {
    */
   @Test
   public void getSimpleLoginUserTest() throws Exception {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
 
     User loginUser = LoginUser.get(conf);
@@ -67,7 +67,7 @@ public final class LoginUserTest {
    */
   @Test
   public void getSimpleLoginUserProvidedByAppTest() throws Exception {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
     conf.set(Constants.SECURITY_LOGIN_USERNAME, "alluxio-user");
 
@@ -83,7 +83,7 @@ public final class LoginUserTest {
    */
   @Test
   public void getSimpleLoginUserListProvidedByAppTest() throws Exception {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
     conf.set(Constants.SECURITY_LOGIN_USERNAME, "alluxio-user, superuser");
 
@@ -101,7 +101,7 @@ public final class LoginUserTest {
    */
   @Test
   public void getSimpleLoginUserWhenNotProvidedByAppTest() throws Exception {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
     conf.set(Constants.SECURITY_LOGIN_USERNAME, "");
 
@@ -116,7 +116,7 @@ public final class LoginUserTest {
    */
   @Test
   public void getCustomLoginUserTest() throws Exception {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
 
     User loginUser = LoginUser.get(conf);
@@ -131,7 +131,7 @@ public final class LoginUserTest {
    */
   @Test
   public void getCustomLoginUserProvidedByAppTest() throws Exception {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
     conf.set(Constants.SECURITY_LOGIN_USERNAME, "alluxio-user");
 
@@ -148,7 +148,7 @@ public final class LoginUserTest {
    */
   @Test
   public void getCustomLoginUserWhenNotProvidedByAppTest() throws Exception {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
     conf.set(Constants.SECURITY_LOGIN_USERNAME, "");
 
@@ -167,7 +167,7 @@ public final class LoginUserTest {
   public void securityEnabledTest() throws Exception {
     // TODO(dong): add Kerberos in the white list when it is supported.
     // throw exception when AuthType is not "SIMPLE", or "CUSTOM"
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL");
 
     mThrown.expect(UnsupportedOperationException.class);

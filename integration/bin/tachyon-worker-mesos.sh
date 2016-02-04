@@ -22,4 +22,4 @@ mkdir -p "${ALLUXIO_LOGS_DIR}"
   -Dalluxio.worker.tieredstore.level0.alias=MEM \
   -Dalluxio.worker.tieredstore.level0.dirs.path="/mnt/ramdisk" \
   -Dalluxio.worker.tieredstore.level0.dirs.quota="${ALLUXIO_WORKER_MEMORY_SIZE}" \
-  alluxio.mesos.TachyonWorkerExecutor > "${ALLUXIO_LOGS_DIR}"/worker.out 2>&1
+  alluxio.mesos.AlluxioWorkerExecutor > "${ALLUXIO_LOGS_DIR}"/worker.out 2>&1

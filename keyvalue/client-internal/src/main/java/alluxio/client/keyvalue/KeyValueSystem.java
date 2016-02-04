@@ -17,11 +17,11 @@ package alluxio.client.keyvalue;
 
 import java.io.IOException;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * Client to access or create key-value stores in Tachyon.
@@ -51,34 +51,34 @@ public interface KeyValueSystem {
   /**
    * Gets a reader to access a key-value store.
    *
-   * @param uri {@link TachyonURI} to the store
+   * @param uri {@link AlluxioURI} to the store
    * @return {@link BaseKeyValueStoreReader} instance
    * @throws IOException if non-Tachyon error occurs
-   * @throws TachyonException if Tachyon error occurs
+   * @throws AlluxioException if Tachyon error occurs
    */
-  KeyValueStoreReader openStore(TachyonURI uri) throws IOException, TachyonException;
+  KeyValueStoreReader openStore(AlluxioURI uri) throws IOException, AlluxioException;
 
   /**
    * Gets a writer to create a new key-value store.
    *
-   * @param uri {@link TachyonURI} to the store
+   * @param uri {@link AlluxioURI} to the store
    * @return {@link BaseKeyValueStoreWriter} instance
    * @throws IOException if non-Tachyon error occurs
-   * @throws TachyonException if Tachyon error occurs
+   * @throws AlluxioException if Tachyon error occurs
    */
-  KeyValueStoreWriter createStore(TachyonURI uri) throws IOException, TachyonException;
+  KeyValueStoreWriter createStore(AlluxioURI uri) throws IOException, AlluxioException;
 
   /**
    * Deletes a completed key-value store.
    *
-   * @param uri {@link TachyonURI} to the store
+   * @param uri {@link AlluxioURI} to the store
    * @throws IOException if non-Tachyon error occurs
    * @throws InvalidPathException if the uri exists but is not a key-value store
    * @throws FileDoesNotExistException if the uri does not exist
-   * @throws TachyonException if other Tachyon error occurs
+   * @throws AlluxioException if other Tachyon error occurs
    */
-  void deleteStore(TachyonURI uri)
-      throws IOException, InvalidPathException, FileDoesNotExistException, TachyonException;
+  void deleteStore(AlluxioURI uri)
+      throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException;
 
   /**
    * Merges one completed key-value store to another completed key-value store.
@@ -86,10 +86,10 @@ public interface KeyValueSystem {
    * If there are the same keys from both stores, they are merged too, for these keys, whose value
    * will be retrieved is undetermined.
    *
-   * @param fromUri the {@link TachyonURI} to the store to be merged
-   * @param toUri the {@link TachyonURI} to the store to be merged to
+   * @param fromUri the {@link AlluxioURI} to the store to be merged
+   * @param toUri the {@link AlluxioURI} to the store to be merged to
    * @throws IOException if non-Tachyon error occurs
-   * @throws TachyonException if other Tachyon error occurs
+   * @throws AlluxioException if other Tachyon error occurs
    */
-  void mergeStore(TachyonURI fromUri, TachyonURI toUri) throws IOException, TachyonException;
+  void mergeStore(AlluxioURI fromUri, AlluxioURI toUri) throws IOException, AlluxioException;
 }
