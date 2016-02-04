@@ -33,8 +33,8 @@ import com.google.common.collect.Sets;
 import org.powermock.reflect.Whitebox;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -55,9 +55,9 @@ import alluxio.util.CommonUtils;
  */
 public final class InodeTreeTest {
   private static final String TEST_PATH = "test";
-  private static final TachyonURI TEST_URI = new TachyonURI("/test");
-  private static final TachyonURI NESTED_URI = new TachyonURI("/nested/test");
-  private static final TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
+  private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
+  private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
+  private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
   private static final PermissionStatus TEST_PERMISSION_STATUS =
       new PermissionStatus("user1", "", (short)0755);
   private static CreatePathOptions sFileOptions;
@@ -90,7 +90,7 @@ public final class InodeTreeTest {
 
     blockMaster.start(true);
 
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup");
     MasterContext.reset(conf);
@@ -125,16 +125,16 @@ public final class InodeTreeTest {
    */
   @Test
   public void initializeRootTwiceTest() throws Exception {
-    Inode root = mTree.getInodeByPath(new TachyonURI("/"));
+    Inode root = mTree.getInodeByPath(new AlluxioURI("/"));
     // initializeRoot call does nothing
     mTree.initializeRoot(TEST_PERMISSION_STATUS);
     verifyPermissionChecker(true, root.getUserName(), "test-supergroup");
-    Inode newRoot = mTree.getInodeByPath(new TachyonURI("/"));
+    Inode newRoot = mTree.getInodeByPath(new AlluxioURI("/"));
     Assert.assertEquals(root, newRoot);
   }
 
   /**
-   * Tests the {@link InodeTree#createPath(TachyonURI, CreatePathOptions)} method for creating
+   * Tests the {@link InodeTree#createPath(AlluxioURI, CreatePathOptions)} method for creating
    * directories.
    *
    * @throws Exception if creating the directory fails
@@ -204,7 +204,7 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#createPath(TachyonURI, CreatePathOptions)} method for creating a
+   * Tests the {@link InodeTree#createPath(AlluxioURI, CreatePathOptions)} method for creating a
    * file.
    *
    * @throws Exception if creating the directory fails
@@ -223,7 +223,7 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#createPath(TachyonURI, CreatePathOptions)} method.
+   * Tests the {@link InodeTree#createPath(AlluxioURI, CreatePathOptions)} method.
    *
    * @throws Exception if creating the path fails
    */
@@ -287,7 +287,7 @@ public final class InodeTreeTest {
     mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage("/");
 
-    mTree.createPath(new TachyonURI("/"), sFileOptions);
+    mTree.createPath(new AlluxioURI("/"), sFileOptions);
   }
 
   /**
@@ -359,7 +359,7 @@ public final class InodeTreeTest {
         + " Component test is not a directory.");
 
     mTree.createPath(NESTED_URI, sNestedFileOptions);
-    mTree.createPath(new TachyonURI("/nested/test/test"), sNestedFileOptions);
+    mTree.createPath(new AlluxioURI("/nested/test/test"), sNestedFileOptions);
   }
 
   /**
@@ -420,17 +420,17 @@ public final class InodeTreeTest {
   public void getPathTest() throws Exception {
     Inode root = mTree.getInodeById(0);
     // test root path
-    Assert.assertEquals(new TachyonURI("/"), mTree.getPath(root));
+    Assert.assertEquals(new AlluxioURI("/"), mTree.getPath(root));
 
     // test one level
     InodeTree.CreatePathResult createResult = mTree.createPath(TEST_URI, sDirectoryOptions);
     List<Inode> created = createResult.getCreated();
-    Assert.assertEquals(new TachyonURI("/test"), mTree.getPath(created.get(created.size() - 1)));
+    Assert.assertEquals(new AlluxioURI("/test"), mTree.getPath(created.get(created.size() - 1)));
 
     // test nesting
     createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     created = createResult.getCreated();
-    Assert.assertEquals(new TachyonURI("/nested/test"),
+    Assert.assertEquals(new AlluxioURI("/nested/test"),
         mTree.getPath(created.get(created.size() - 1)));
   }
 
@@ -535,7 +535,7 @@ public final class InodeTreeTest {
     verifyJournal(mTree, Lists.newArrayList(root, nested, test, file));
 
     // add a sibling of test and verify journaling is in correct order (breadth first)
-    mTree.createPath(new TachyonURI("/nested/test1/file1"), sNestedFileOptions);
+    mTree.createPath(new AlluxioURI("/nested/test1/file1"), sNestedFileOptions);
     InodeDirectory test1 = (InodeDirectory) nested.getChild("test1");
     Inode file1 = test1.getChild("file1");
     verifyJournal(mTree, Lists.newArrayList(root, nested, test, test1, file, file1));
@@ -550,7 +550,7 @@ public final class InodeTreeTest {
   @Test
   public void addInodeFromJournalTest() throws Exception {
     mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
-    mTree.createPath(new TachyonURI("/nested/test1/file1"), sNestedFileOptions);
+    mTree.createPath(new AlluxioURI("/nested/test1/file1"), sNestedFileOptions);
     InodeDirectory root = mTree.getRoot();
     InodeDirectory nested = (InodeDirectory) root.getChild("nested");
     InodeDirectory test = (InodeDirectory) nested.getChild("test");

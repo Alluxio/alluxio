@@ -20,7 +20,7 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.security.group.GroupMappingService;
 
 /**
@@ -42,7 +42,7 @@ public final class IdentityUserGroupsMapping implements GroupMappingService {
   }
 
   @Override
-  public void setConf(TachyonConf conf) {
+  public void setConf(Configuration conf) {
     // does nothing in this provider of user to groups mapping
   }
 

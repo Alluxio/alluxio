@@ -38,8 +38,8 @@ import com.google.common.collect.Sets;
 
 import alluxio.Constants;
 import alluxio.Sessions;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.underfs.UnderFileSystem;
@@ -71,7 +71,7 @@ public final class FileDataManager {
   @GuardedBy("mLock")
   private final Set<Long> mPersistedFiles;
 
-  private final TachyonConf mTachyonConf;
+  private final Configuration mConfiguration;
   private final Object mLock = new Object();
 
   /**
@@ -83,10 +83,10 @@ public final class FileDataManager {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mPersistingInProgressFiles = Maps.newHashMap();
     mPersistedFiles = Sets.newHashSet();
-    mTachyonConf = WorkerContext.getConf();
+    mConfiguration = WorkerContext.getConf();
     // Create Under FileSystem Client
-    String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
-    mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
+    String ufsAddress = mConfiguration.get(Constants.UNDERFS_ADDRESS);
+    mUfs = UnderFileSystem.get(ufsAddress, mConfiguration);
   }
 
   /**
@@ -155,7 +155,7 @@ public final class FileDataManager {
    * @throws IOException an I/O exception occurs
    */
   private synchronized boolean fileExistsInUfs(long fileId) throws IOException {
-    String ufsRoot = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = mConfiguration.get(Constants.UNDERFS_ADDRESS);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
 
@@ -282,9 +282,9 @@ public final class FileDataManager {
    * @throws IOException if the folder creation fails
    */
   private String prepareUfsFilePath(long fileId) throws IOException {
-    String ufsRoot = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = mConfiguration.get(Constants.UNDERFS_ADDRESS);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    TachyonURI uri = new TachyonURI(fileInfo.getPath());
+    AlluxioURI uri = new AlluxioURI(fileInfo.getPath());
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     LOG.info("persist file {} at {}", fileId, dstPath);
     String parentPath = PathUtils.concatPath(ufsRoot, uri.getParent().getPath());

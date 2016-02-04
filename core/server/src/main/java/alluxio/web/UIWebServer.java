@@ -36,8 +36,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 /**
  * Class that bootstraps and starts the web server for the web interface.
@@ -49,7 +49,7 @@ public abstract class UIWebServer {
   protected final WebAppContext mWebAppContext;
   private final Server mServer;
   private final ServiceType mService;
-  private final TachyonConf mTachyonConf;
+  private final Configuration mConfiguration;
   private InetSocketAddress mAddress;
 
   /**
@@ -60,17 +60,17 @@ public abstract class UIWebServer {
    * @param address address of the server
    * @param conf Tachyon configuration
    */
-  public UIWebServer(ServiceType service, InetSocketAddress address, TachyonConf conf) {
+  public UIWebServer(ServiceType service, InetSocketAddress address, Configuration conf) {
     Preconditions.checkNotNull(service, "Service type cannot be null");
     Preconditions.checkNotNull(address, "Server address cannot be null");
     Preconditions.checkNotNull(conf, "Configuration cannot be null");
 
     mAddress = address;
     mService = service;
-    mTachyonConf = conf;
+    mConfiguration = conf;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    int webThreadCount = mTachyonConf.getInt(Constants.WEB_THREAD_COUNT);
+    int webThreadCount = mConfiguration.getInt(Constants.WEB_THREAD_COUNT);
 
     mServer = new Server();
     SelectChannelConnector connector = new SelectChannelConnector();
@@ -85,8 +85,8 @@ public abstract class UIWebServer {
     mServer.setThreadPool(threadPool);
 
     mWebAppContext = new WebAppContext();
-    mWebAppContext.setContextPath(TachyonURI.SEPARATOR);
-    File warPath = new File(mTachyonConf.get(Constants.WEB_RESOURCES));
+    mWebAppContext.setContextPath(AlluxioURI.SEPARATOR);
+    File warPath = new File(mConfiguration.get(Constants.WEB_RESOURCES));
     mWebAppContext.setWar(warPath.getAbsolutePath());
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mWebAppContext, new DefaultHandler()});
@@ -166,7 +166,7 @@ public abstract class UIWebServer {
         int webPort = mServer.getConnectors()[0].getLocalPort();
         mAddress = new InetSocketAddress(mAddress.getHostName(), webPort);
         // reset web service port
-        mTachyonConf.set(mService.getPortKey(), Integer.toString(webPort));
+        mConfiguration.set(mService.getPortKey(), Integer.toString(webPort));
       }
       LOG.info("{} started @ {}", mService.getServiceName(), mAddress);
     } catch (Exception e) {

@@ -26,14 +26,14 @@ import org.apache.thrift.TException;
 
 import alluxio.Constants;
 import alluxio.MasterClientBase;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.LineageDoesNotExistException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.job.CommandLineJob;
 import alluxio.thrift.LineageMasterClientService;
-import alluxio.thrift.TachyonService;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.ThriftUtils;
 
@@ -51,14 +51,14 @@ public final class LineageMasterClient extends MasterClientBase {
    * Creates a new lineage master client.
    *
    * @param masterAddress the master address
-   * @param tachyonConf the Tachyon configuration
+   * @param configuration the Tachyon configuration
    */
-  public LineageMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
-    super(masterAddress, tachyonConf);
+  public LineageMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
+    super(masterAddress, configuration);
   }
 
   @Override
-  protected TachyonService.Client getClient() {
+  protected AlluxioService.Client getClient() {
     return mClient;
   }
 
@@ -85,14 +85,14 @@ public final class LineageMasterClient extends MasterClientBase {
    * @param job the job used for the creation
    * @return the value of the lineage creation result
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if a Tachyon exception occurs
+   * @throws AlluxioException if a Tachyon exception occurs
    */
   public synchronized long createLineage(final List<String> inputFiles,
       final List<String> outputFiles, final CommandLineJob job) throws IOException,
-      TachyonException {
+      AlluxioException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
-      public Long call() throws TachyonTException, TException {
+      public Long call() throws AlluxioTException, TException {
         return mClient.createLineage(inputFiles, outputFiles,
             ThriftUtils.toThrift(job.generateCommandLineJobInfo()));
       }
@@ -106,13 +106,13 @@ public final class LineageMasterClient extends MasterClientBase {
    * @param cascade true if the deletion is cascading, false otherwise
    * @return true if the deletion was successful, false otherwise
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if a Tachyon exception occurs
+   * @throws AlluxioException if a Tachyon exception occurs
    */
   public synchronized boolean deleteLineage(final long lineageId, final boolean cascade)
-      throws IOException, TachyonException {
+      throws IOException, AlluxioException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
-      public Boolean call() throws TachyonTException, TException {
+      public Boolean call() throws AlluxioTException, TException {
         return mClient.deleteLineage(lineageId, cascade);
       }
     });
@@ -127,13 +127,13 @@ public final class LineageMasterClient extends MasterClientBase {
    * @return the value of the lineage creation result
    * @throws IOException if a non-Tachyon exception occurs
    * @throws LineageDoesNotExistException if the file does not exist
-   * @throws TachyonException if a Tachyon exception occurs
+   * @throws AlluxioException if a Tachyon exception occurs
    */
   public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
-      final long ttl) throws IOException, LineageDoesNotExistException, TachyonException {
+      final long ttl) throws IOException, LineageDoesNotExistException, AlluxioException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
-      public Long call() throws TachyonTException, TException {
+      public Long call() throws AlluxioTException, TException {
         return mClient.reinitializeFile(path, blockSizeBytes, ttl);
       }
     });
@@ -165,12 +165,12 @@ public final class LineageMasterClient extends MasterClientBase {
    *
    * @param path the path to the lost file
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if a Tachyon exception occurs
+   * @throws AlluxioException if a Tachyon exception occurs
    */
-  public synchronized void reportLostFile(final String path) throws IOException, TachyonException {
+  public synchronized void reportLostFile(final String path) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
-      public Void call() throws TachyonTException, TException {
+      public Void call() throws AlluxioTException, TException {
         mClient.reportLostFile(path);
         return null;
       }

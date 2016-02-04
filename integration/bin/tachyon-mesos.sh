@@ -46,7 +46,7 @@ mkdir -p "${TACHYON_LOGS_DIR}"
   -Djava.library.path="${MESOS_LIBRARY_PATH}" \
   -Dalluxio.home="${TACHYON_HOME}" \
   -Dalluxio.logs.dir="${TACHYON_LOGS_DIR}" \
-  alluxio.mesos.TachyonFramework "${MESOS_MASTER_ADDRESS}" > "${TACHYON_LOGS_DIR}"/framework.out 2>&1 &
+  alluxio.mesos.AlluxioFramework "${MESOS_MASTER_ADDRESS}" > "${TACHYON_LOGS_DIR}"/framework.out 2>&1 &
 
 if [[ "${wait}" ]]; then
   wait

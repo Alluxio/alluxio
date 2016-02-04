@@ -20,7 +20,7 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -39,9 +39,9 @@ import alluxio.wire.WorkerNetAddress;
 @Deprecated
 public final class TachyonFile {
   private final FileSystem mFileSystem;
-  private final TachyonURI mPath;
+  private final AlluxioURI mPath;
 
-  protected TachyonFile(TachyonURI path, FileSystem fs) {
+  protected TachyonFile(AlluxioURI path, FileSystem fs) {
     mFileSystem = fs;
     mPath = path;
   }

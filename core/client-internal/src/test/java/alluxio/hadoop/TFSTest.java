@@ -39,13 +39,12 @@ import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
 import alluxio.client.ClientContext;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.util.ClientTestUtils;
 
 /**
- * Unit tests for {@link TFS}.
+ * Unit tests for {@link FileSystem}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, UserGroupInformation.class})
@@ -97,7 +96,7 @@ public class TFSTest {
   public void hadoopShouldLoadTfsFtWhenConfigured() throws IOException {
     final Configuration conf = new Configuration();
     if (isHadoop1x()) {
-      conf.set("fs." + Constants.SCHEME_FT + ".impl", TFSFT.class.getName());
+      conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
     }
 
     // when
@@ -110,10 +109,10 @@ public class TFSTest {
 
     final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
-    Assert.assertTrue(fs instanceof TFSFT);
+    Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
 
     PowerMockito.verifyStatic();
-    FileSystem.Factory.get();
+    alluxio.client.file.FileSystem.Factory.get();
     ClientTestUtils.resetClientContext();
   }
 
@@ -126,7 +125,7 @@ public class TFSTest {
   public void hadoopShouldLoadTfsWhenConfigured() throws IOException {
     final Configuration conf = new Configuration();
     if (isHadoop1x()) {
-      conf.set("fs." + Constants.SCHEME + ".impl", TFS.class.getName());
+      conf.set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
     }
 
     // when
@@ -139,10 +138,10 @@ public class TFSTest {
 
     final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
-    Assert.assertTrue(fs instanceof TFS);
+    Assert.assertTrue(fs instanceof FileSystem);
 
     PowerMockito.verifyStatic();
-    FileSystem.Factory.get();
+    alluxio.client.file.FileSystem.Factory.get();
     ClientTestUtils.resetClientContext();
   }
 

@@ -21,22 +21,22 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.URIStatus;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.master.MasterContext;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
-import alluxio.shell.AbstractTfsShellTest;
-import alluxio.shell.TfsShellUtilsTest;
+import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.shell.AlluxioShellUtilsTest;
 
 /**
  * Tests for ls command.
  */
-public class LsCommandTest extends AbstractTfsShellTest {
+public class LsCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void lsTest() throws IOException, TachyonException {
+  public void lsTest() throws IOException, AlluxioException {
     MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
 
@@ -46,13 +46,13 @@ public class LsCommandTest extends AbstractTfsShellTest {
 
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
-    files[0] = mFileSystem.getStatus(new TachyonURI("/testRoot/testFileA"));
+    files[0] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
         WriteType.MUST_CACHE, 20);
-    files[1] = mFileSystem.getStatus(new TachyonURI("/testRoot/testDir"));
-    files[2] = mFileSystem.getStatus(new TachyonURI("/testRoot/testDir/testFileB"));
+    files[1] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir"));
+    files[2] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"));
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WriteType.THROUGH, 30);
-    files[3] = mFileSystem.getStatus(new TachyonURI("/testRoot/testFileC"));
+    files[3] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileC"));
     mFsShell.run("ls", "/testRoot");
     String expected = "";
     expected +=
@@ -69,25 +69,25 @@ public class LsCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void lsWildcardTest() throws IOException, TachyonException {
+  public void lsWildcardTest() throws IOException, AlluxioException {
     MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
     String testUser = "test_user_lsWildcard";
     clearAndLogin(testUser);
 
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
 
     String expect = "";
-    expect += getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30, testUser, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10, testUser, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI("/testWildCards/bar/foobar3"), 30, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI("/testWildCards/foo/foobar1"), 10, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI("/testWildCards/foo/foobar2"), 20, testUser, testUser);
     mFsShell.run("ls", "/testWildCards/*/foo*");
     Assert.assertEquals(expect, mOutput.toString());
 
-    expect += getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30, testUser, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10, testUser, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20, testUser, testUser);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foobar4"), 40, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI("/testWildCards/bar/foobar3"), 30, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI("/testWildCards/foo/foobar1"), 10, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI("/testWildCards/foo/foobar2"), 20, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI("/testWildCards/foobar4"), 40, testUser, testUser);
     mFsShell.run("ls", "/testWildCards/*");
     Assert.assertEquals(expect, mOutput.toString());
     MasterContext.reset();

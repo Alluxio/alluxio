@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.ByteIOUtils;
 
@@ -112,7 +112,7 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
       }
 
       @Override
-      public KeyValuePair next() throws IOException, TachyonException {
+      public KeyValuePair next() throws IOException, AlluxioException {
         if (!hasNext()) {
           throw new NoSuchElementException();
         }
@@ -124,7 +124,7 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
   }
 
   @Override
-  public int size() throws IOException, TachyonException {
+  public int size() throws IOException, AlluxioException {
     return mIndex.keyCount();
   }
 

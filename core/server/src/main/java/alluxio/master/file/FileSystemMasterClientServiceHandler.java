@@ -24,10 +24,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -39,12 +39,12 @@ import alluxio.thrift.FileBlockInfo;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.SetAttributeTOptions;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 import alluxio.wire.ThriftUtils;
 
 /**
- * This class is a Thrift handler for file system master RPCs invoked by a Tachyon client.
+ * This class is a Thrift handler for file system master RPCs invoked by a Alluxio client.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
 public final class FileSystemMasterClientServiceHandler implements
@@ -67,85 +67,85 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public void completeFile(String path, CompleteFileTOptions options) throws TachyonTException {
+  public void completeFile(String path, CompleteFileTOptions options) throws AlluxioTException {
     try {
-      mFileSystemMaster.completeFile(new TachyonURI(path), new CompleteFileOptions(options));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      mFileSystemMaster.completeFile(new AlluxioURI(path), new CompleteFileOptions(options));
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
   public void createDirectory(String path, CreateDirectoryTOptions options)
-      throws TachyonTException, ThriftIOException {
+      throws AlluxioTException, ThriftIOException {
     try {
-      mFileSystemMaster.mkdir(new TachyonURI(path), new CreateDirectoryOptions(options));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      mFileSystemMaster.mkdir(new AlluxioURI(path), new CreateDirectoryOptions(options));
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }
   }
 
   @Override
-  public void createFile(String path, CreateFileTOptions options) throws TachyonTException,
+  public void createFile(String path, CreateFileTOptions options) throws AlluxioTException,
       ThriftIOException {
     try {
-      mFileSystemMaster.create(new TachyonURI(path), new CreateFileOptions(options));
+      mFileSystemMaster.create(new AlluxioURI(path), new CreateFileOptions(options));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
-  public void free(String path, boolean recursive) throws TachyonTException {
+  public void free(String path, boolean recursive) throws AlluxioTException {
     try {
-      mFileSystemMaster.free(new TachyonURI(path), recursive);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      mFileSystemMaster.free(new AlluxioURI(path), recursive);
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
-  public List<FileBlockInfo> getFileBlockInfoList(String path) throws TachyonTException {
+  public List<FileBlockInfo> getFileBlockInfoList(String path) throws AlluxioTException {
     try {
       List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
       for (alluxio.wire.FileBlockInfo fileBlockInfo :
-          mFileSystemMaster.getFileBlockInfoList(new TachyonURI(path))) {
+          mFileSystemMaster.getFileBlockInfoList(new AlluxioURI(path))) {
         result.add(ThriftUtils.toThrift(fileBlockInfo));
       }
       return result;
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
-  public long getNewBlockIdForFile(String path) throws TachyonTException {
+  public long getNewBlockIdForFile(String path) throws AlluxioTException {
     try {
-      return mFileSystemMaster.getNewBlockIdForFile(new TachyonURI(path));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      return mFileSystemMaster.getNewBlockIdForFile(new AlluxioURI(path));
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
-  public FileInfo getStatus(String path) throws TachyonTException {
+  public FileInfo getStatus(String path) throws AlluxioTException {
     try {
-      return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(new TachyonURI(path)));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(new AlluxioURI(path)));
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
-  public FileInfo getStatusInternal(long fileId) throws TachyonTException {
+  public FileInfo getStatusInternal(long fileId) throws AlluxioTException {
     try {
       return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(fileId));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
@@ -155,38 +155,38 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public List<FileInfo> listStatus(String path) throws TachyonTException {
+  public List<FileInfo> listStatus(String path) throws AlluxioTException {
     try {
       List<FileInfo> result = new ArrayList<FileInfo>();
       for (alluxio.wire.FileInfo fileInfo :
-          mFileSystemMaster.getFileInfoList(new TachyonURI(path))) {
+          mFileSystemMaster.getFileInfoList(new AlluxioURI(path))) {
         result.add(ThriftUtils.toThrift(fileInfo));
       }
       return result;
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
-  public long loadMetadata(String tachyonPath, boolean recursive)
-      throws TachyonTException, ThriftIOException {
+  public long loadMetadata(String alluxioPath, boolean recursive)
+      throws AlluxioTException, ThriftIOException {
     try {
-      return mFileSystemMaster.loadMetadata(new TachyonURI(tachyonPath), recursive);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      return mFileSystemMaster.loadMetadata(new AlluxioURI(alluxioPath), recursive);
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }
   }
 
   @Override
-  public void mount(String tachyonPath, String ufsPath)
-      throws TachyonTException, ThriftIOException {
+  public void mount(String alluxioPath, String ufsPath)
+      throws AlluxioTException, ThriftIOException {
     try {
-      mFileSystemMaster.mount(new TachyonURI(tachyonPath), new TachyonURI(ufsPath));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath));
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }
@@ -194,11 +194,11 @@ public final class FileSystemMasterClientServiceHandler implements
 
   @Override
   public void remove(String path, boolean recursive)
-      throws TachyonTException, ThriftIOException {
+      throws AlluxioTException, ThriftIOException {
     try {
-      mFileSystemMaster.deleteFile(new TachyonURI(path), recursive);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      mFileSystemMaster.deleteFile(new AlluxioURI(path), recursive);
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }
@@ -206,43 +206,43 @@ public final class FileSystemMasterClientServiceHandler implements
 
   @Override
   public void rename(String srcPath, String dstPath)
-      throws TachyonTException, ThriftIOException {
+      throws AlluxioTException, ThriftIOException {
     try {
-      mFileSystemMaster.rename(new TachyonURI(srcPath), new TachyonURI(dstPath));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath));
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }
   }
 
   @Override
-  public void scheduleAsyncPersist(String path) throws TachyonTException {
+  public void scheduleAsyncPersist(String path) throws AlluxioTException {
     try {
-      mFileSystemMaster.scheduleAsyncPersistence(new TachyonURI(path));
+      mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
     } catch (FileDoesNotExistException e) {
-      throw e.toTachyonTException();
+      throw e.toAlluxioTException();
     } catch (InvalidPathException e) {
-      throw e.toTachyonTException();
+      throw e.toAlluxioTException();
     }
   }
 
   // TODO(calvin): Do not rely on client side options
   @Override
-  public void setAttribute(String path, SetAttributeTOptions options) throws TachyonTException {
+  public void setAttribute(String path, SetAttributeTOptions options) throws AlluxioTException {
     try {
-      mFileSystemMaster.setAttribute(new TachyonURI(path), new SetAttributeOptions(options));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      mFileSystemMaster.setAttribute(new AlluxioURI(path), new SetAttributeOptions(options));
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
-  public void unmount(String tachyonPath) throws TachyonTException, ThriftIOException {
+  public void unmount(String alluxioPath) throws AlluxioTException, ThriftIOException {
     try {
-      mFileSystemMaster.unmount(new TachyonURI(tachyonPath));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      mFileSystemMaster.unmount(new AlluxioURI(alluxioPath));
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }

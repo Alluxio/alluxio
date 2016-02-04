@@ -19,7 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.internal.util.reflection.Whitebox;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.UnderStorageType;
 import alluxio.client.file.options.OutStreamOptions;
 
@@ -36,7 +36,7 @@ public final class LineageFileOutStreamTest {
   @Test
   public void outStreamCreationTest() throws Exception {
     LineageFileOutStream stream =
-        new LineageFileOutStream(new TachyonURI("/path"), OutStreamOptions.defaults());
+        new LineageFileOutStream(new AlluxioURI("/path"), OutStreamOptions.defaults());
     UnderStorageType underStorageType =
         (UnderStorageType) Whitebox.getInternalState(stream, "mUnderStorageType");
     Assert.assertEquals(UnderStorageType.ASYNC_PERSIST, underStorageType);

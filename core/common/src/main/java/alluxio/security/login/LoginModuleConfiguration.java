@@ -50,7 +50,7 @@ public final class LoginModuleConfiguration extends Configuration {
 
   /** Login module that allows a user name provided by a Tachyon specific login module. */
   private static final AppConfigurationEntry TACHYON_LOGIN = new AppConfigurationEntry(
-      TachyonLoginModule.class.getName(), LoginModuleControlFlag.REQUIRED, EMPTY_JAAS_OPTIONS);
+      AlluxioLoginModule.class.getName(), LoginModuleControlFlag.REQUIRED, EMPTY_JAAS_OPTIONS);
 
   // TODO(dong): add Kerberos_LOGIN module
   // private static final AppConfigurationEntry KERBEROS_LOGIN = ...

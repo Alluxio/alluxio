@@ -26,7 +26,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.conf.TachyonConf;
 import alluxio.worker.WorkerContext;
 
 /**
@@ -93,7 +92,7 @@ public class Sessions {
       if (mSessions.containsKey(sessionId)) {
         mSessions.get(sessionId).heartbeat();
       } else {
-        TachyonConf conf = WorkerContext.getConf();
+        Configuration conf = WorkerContext.getConf();
         int sessionTimeoutMs = conf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
         mSessions.put(sessionId, new SessionInfo(sessionId, sessionTimeoutMs));
       }

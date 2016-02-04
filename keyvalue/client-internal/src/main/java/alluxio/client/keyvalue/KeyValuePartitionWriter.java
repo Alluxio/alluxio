@@ -20,11 +20,11 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.Cancelable;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * Interface for a writer which creates a Tachyon key-value partition.
@@ -42,10 +42,10 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
      * @param uri URI of the key-value partition file to write to
      * @return an instance of a {@link KeyValuePartitionWriter}
      * @throws IOException if a non-Tachyon exception occurs
-     * @throws TachyonException if an unexpected Tachyon exception is thrown
+     * @throws AlluxioException if an unexpected Tachyon exception is thrown
      */
-    public static KeyValuePartitionWriter create(TachyonURI uri)
-        throws TachyonException, IOException {
+    public static KeyValuePartitionWriter create(AlluxioURI uri)
+        throws AlluxioException, IOException {
       Preconditions.checkNotNull(uri);
       FileSystem fs = FileSystem.Factory.get();
       FileOutStream fileOutStream = fs.createFile(uri);

@@ -246,12 +246,12 @@ case ${COMMAND} in
 
   ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio formatWorker
 
-  echo "Formatting Tachyon Master @ ${TACHYON_MASTER_ADDRESS}"
+  echo "Formatting Alluxio Master @ ${TACHYON_MASTER_ADDRESS}"
   CLASS=alluxio.Format
   PARAMETER=master
 ;;
 "formatWorker")
-  echo "Formatting Tachyon Worker @ `hostname -f`"
+  echo "Formatting Alluxio Worker @ `hostname -f`"
   CLASS=alluxio.Format
   PARAMETER=worker
 ;;

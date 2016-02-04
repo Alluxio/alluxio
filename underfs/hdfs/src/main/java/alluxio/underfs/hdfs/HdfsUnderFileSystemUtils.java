@@ -17,10 +17,8 @@ package alluxio.underfs.hdfs;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.apache.hadoop.conf.Configuration;
-
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 
 /**
@@ -31,15 +29,16 @@ public class HdfsUnderFileSystemUtils {
   /**
    * Replaces default key with user provided key.
    *
-   * @param conf configuration to replace the key in
-   * @param tachyonConf Tachyon configuration with the key
+   * @param hadoopConf configuration to replace the key in
+   * @param conf Tachyon configuration with the key
    * @param key the key to replace
    */
-  public static void addKey(Configuration conf, TachyonConf tachyonConf, String key) {
+  public static void addKey(org.apache.hadoop.conf.Configuration hadoopConf, Configuration conf,
+      String key) {
     if (System.getProperty(key) != null) {
-      conf.set(key, System.getProperty(key));
-    } else if (tachyonConf.get(key) != null) {
-      conf.set(key, tachyonConf.get(key));
+      hadoopConf.set(key, System.getProperty(key));
+    } else if (conf.get(key) != null) {
+      hadoopConf.set(key, conf.get(key));
     }
   }
 
@@ -49,7 +48,7 @@ public class HdfsUnderFileSystemUtils {
    *
    * @param conf the Hadoop configuration
    */
-  public static void addS3Credentials(Configuration conf) {
+  public static void addS3Credentials(org.apache.hadoop.conf.Configuration conf) {
     String accessKeyConf = Constants.S3_ACCESS_KEY;
     if (System.getProperty(accessKeyConf) != null && conf.get(accessKeyConf) == null) {
       conf.set(accessKeyConf, System.getProperty(accessKeyConf));

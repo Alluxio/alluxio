@@ -21,25 +21,25 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Tests for setTtl command.
  */
-public class SetTtlCommandTest extends AbstractTfsShellTest {
+public class SetTtlCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void setTtlTest() throws Exception {
     String filePath = "/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
-    Assert.assertEquals(Constants.NO_TTL, mFileSystem.getStatus(new TachyonURI("/testFile"))
+    Assert.assertEquals(Constants.NO_TTL, mFileSystem.getStatus(new AlluxioURI("/testFile"))
         .getTtl());
     long[] ttls = new long[] {0L, 1000L};
     for (long ttl : ttls) {
       Assert.assertEquals(0, mFsShell.run("setTtl", filePath, String.valueOf(ttl)));
-      Assert.assertEquals(ttl, mFileSystem.getStatus(new TachyonURI("/testFile")).getTtl());
+      Assert.assertEquals(ttl, mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
     }
   }
 

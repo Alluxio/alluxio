@@ -28,15 +28,15 @@ import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemMasterWorkerService;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioTException;
 import alluxio.wire.ThriftUtils;
 
 /**
- * This class is a Thrift handler for file system master RPCs invoked by a Tachyon worker.
+ * This class is a Thrift handler for file system master RPCs invoked by a Alluxio worker.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
 public final class FileSystemMasterWorkerServiceHandler
@@ -59,11 +59,11 @@ public final class FileSystemMasterWorkerServiceHandler
   }
 
   @Override
-  public FileInfo getFileInfo(long fileId) throws TachyonTException {
+  public FileInfo getFileInfo(long fileId) throws AlluxioTException {
     try {
       return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(fileId));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
@@ -74,15 +74,15 @@ public final class FileSystemMasterWorkerServiceHandler
 
   @Override
   public FileSystemCommand heartbeat(long workerId, List<Long> persistedFiles)
-      throws TachyonTException, TException {
+      throws AlluxioTException, TException {
     try {
       return mFileSystemMaster.workerHeartbeat(workerId, persistedFiles);
     } catch (FileDoesNotExistException e) {
-      throw e.toTachyonTException();
+      throw e.toAlluxioTException();
     } catch (InvalidPathException e) {
-      throw e.toTachyonTException();
+      throw e.toAlluxioTException();
     } catch (AccessControlException e) {
-      throw e.toTachyonTException();
+      throw e.toAlluxioTException();
     }
   }
 }

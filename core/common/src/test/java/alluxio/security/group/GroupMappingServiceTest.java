@@ -19,7 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
 /**
@@ -36,7 +36,7 @@ public final class GroupMappingServiceTest {
   public void groupTest() throws Throwable {
     String userName = "alluxio-user1";
 
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
     GroupMappingService groups = GroupMappingService.Factory.getUserToGroupsMappingService(conf);
 

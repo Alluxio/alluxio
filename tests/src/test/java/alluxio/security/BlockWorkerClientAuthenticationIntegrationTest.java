@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
+import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.ClientContext;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.util.ClientTestUtils;
@@ -41,8 +41,8 @@ import alluxio.worker.ClientMetrics;
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
 public final class BlockWorkerClientAuthenticationIntegrationTest {
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource();
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource();
   private ExecutorService mExecutorService;
 
   @Rule
@@ -61,21 +61,21 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
   }
 
   @Test
-  @LocalTachyonClusterResource.Config(
+  @LocalAlluxioClusterResource.Config(
       tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void noAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest();
   }
 
   @Test
-  @LocalTachyonClusterResource.Config(
+  @LocalAlluxioClusterResource.Config(
       tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
   public void simpleAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest();
   }
 
   @Test
-  @LocalTachyonClusterResource.Config(
+  @LocalAlluxioClusterResource.Config(
       tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
           Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
@@ -85,7 +85,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
   }
 
   @Test(timeout = 10000)
-  @LocalTachyonClusterResource.Config(tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
+  @LocalAlluxioClusterResource.Config(tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
       "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
       NameMatchAuthenticationProvider.FULL_CLASS_NAME,
       Constants.SECURITY_LOGIN_USERNAME, "tachyon"})
@@ -94,7 +94,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
     mThrown.expectMessage("Failed to connect to the worker");
 
     BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
-        mLocalTachyonClusterResource.get().getWorkerAddress(),
+        mLocalAlluxioClusterResource.get().getWorkerAddress(),
         mExecutorService, ClientContext.getConf(),
         1 /* fake session id */, true, new ClientMetrics());
     try {
@@ -115,8 +115,8 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
    */
   private void authenticationOperationTest() throws Exception {
     BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
-        mLocalTachyonClusterResource.get().getWorkerAddress(),
-        mExecutorService, mLocalTachyonClusterResource.get().getWorkerTachyonConf(),
+        mLocalAlluxioClusterResource.get().getWorkerAddress(),
+        mExecutorService, mLocalAlluxioClusterResource.get().getWorkerTachyonConf(),
         1 /* fake session id */, true, new ClientMetrics());
 
     Assert.assertFalse(blockWorkerClient.isConnected());

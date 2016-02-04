@@ -22,7 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
@@ -34,19 +34,19 @@ public class GlusterFSUnderFileSystemFactoryTest {
   private UnderFileSystem mGfs = null;
   private String mMount = null;
   private String mVolume = null;
-  private TachyonConf mTachyonConf;
+  private Configuration mConfiguration;
 
   /**
    * Sets the volume and the mount directory before a test runs.
    */
   @Before
   public final void before() {
-    mTachyonConf = new TachyonConf();
-    if (mTachyonConf.containsKey(Constants.UNDERFS_GLUSTERFS_MR_DIR)) {
-      mMount = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR);
+    mConfiguration = new Configuration();
+    if (mConfiguration.containsKey(Constants.UNDERFS_GLUSTERFS_MR_DIR)) {
+      mMount = mConfiguration.get(Constants.UNDERFS_GLUSTERFS_MR_DIR);
     }
-    if (mTachyonConf.containsKey(Constants.UNDERFS_GLUSTERFS_VOLUMES)) {
-      mVolume = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES);
+    if (mConfiguration.containsKey(Constants.UNDERFS_GLUSTERFS_VOLUMES)) {
+      mVolume = mConfiguration.get(Constants.UNDERFS_GLUSTERFS_VOLUMES);
     }
   }
 
@@ -62,22 +62,22 @@ public class GlusterFSUnderFileSystemFactoryTest {
     Assume.assumeTrue(!StringUtils.isEmpty(mMount));
     Assume.assumeTrue(!StringUtils.isEmpty(mVolume));
 
-    mGfs = UnderFileSystem.get("glusterfs:///", mTachyonConf);
+    mGfs = UnderFileSystem.get("glusterfs:///", mConfiguration);
     Assert.assertNotNull(mGfs.create("tachyon_test"));
   }
 
   /**
-   * Tests the {@link UnderFileSystemRegistry#find(String, TachyonConf)} method.
+   * Tests the {@link UnderFileSystemRegistry#find(String, Configuration)} method.
    */
   @Test
   public void factoryTest() {
     UnderFileSystemFactory factory =
-        UnderFileSystemRegistry.find("glusterfs://localhost/test/path", mTachyonConf);
+        UnderFileSystemRegistry.find("glusterfs://localhost/test/path", mConfiguration);
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for Gluster FS paths when using this module",
         factory);
 
-    factory = UnderFileSystemRegistry.find("alluxio://localhost/test/path", mTachyonConf);
+    factory = UnderFileSystemRegistry.find("alluxio://localhost/test/path", mConfiguration);
     Assert.assertNull("A UnderFileSystemFactory should not exist for unsupported paths when using"
         + " this module.", factory);
   }

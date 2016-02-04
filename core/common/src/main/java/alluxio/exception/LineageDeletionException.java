@@ -21,10 +21,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * The exception thrown when a lineage deletion fails in Tachyon.
  */
 @ThreadSafe
-public class LineageDeletionException extends TachyonException {
+public class LineageDeletionException extends AlluxioException {
   private static final long serialVersionUID = -1183157316281653017L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE = TachyonExceptionType.LINEAGE_DELETION;
+  private static final AlluxioExceptionType EXCEPTION_TYPE = AlluxioExceptionType.LINEAGE_DELETION;
 
   /**
    * Constructs a new exception with the specified detail message.

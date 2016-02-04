@@ -26,21 +26,21 @@ import org.junit.Test;
 
 import com.google.common.collect.Sets;
 
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.worker.file.FileSystemMasterClient;
 
 public final class PinIntegrationTest {
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource();
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource();
   private FileSystem mFileSystem = null;
   private FileSystemMasterClient mFSMasterClient;
   private SetAttributeOptions mSetPinned;
@@ -48,11 +48,11 @@ public final class PinIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mFileSystem = mLocalTachyonClusterResource.get().getClient();
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mFSMasterClient = new FileSystemMasterClient(
-        new InetSocketAddress(mLocalTachyonClusterResource.get().getMasterHostname(),
-            mLocalTachyonClusterResource.get().getMasterPort()),
-        mLocalTachyonClusterResource.get().getWorkerTachyonConf());
+        new InetSocketAddress(mLocalAlluxioClusterResource.get().getMasterHostname(),
+            mLocalAlluxioClusterResource.get().getMasterPort()),
+        mLocalAlluxioClusterResource.get().getWorkerTachyonConf());
     mSetPinned = SetAttributeOptions.defaults().setPinned(true);
     mUnsetPinned = SetAttributeOptions.defaults().setPinned(false);
   }
@@ -64,8 +64,8 @@ public final class PinIntegrationTest {
 
   @Test
   public void recursivePinness() throws Exception {
-    TachyonURI folderURI = new TachyonURI("/myFolder");
-    TachyonURI fileURI = new TachyonURI("/myFolder/myFile");
+    AlluxioURI folderURI = new AlluxioURI("/myFolder");
+    AlluxioURI fileURI = new AlluxioURI("/myFolder/myFile");
 
     mFileSystem.createDirectory(folderURI);
 
@@ -109,10 +109,10 @@ public final class PinIntegrationTest {
     // Children should inherit the isPinned value of their parents on creation.
 
     // Pin root
-    mFileSystem.setAttribute(new TachyonURI("/"), mSetPinned);
+    mFileSystem.setAttribute(new AlluxioURI("/"), mSetPinned);
 
     // Child file should be pinned
-    TachyonURI file0 = new TachyonURI("/file0");
+    AlluxioURI file0 = new AlluxioURI("/file0");
     createEmptyFile(file0);
     URIStatus status0 = mFileSystem.getStatus(file0);
     Assert.assertTrue(status0.isPinned());
@@ -120,12 +120,12 @@ public final class PinIntegrationTest {
         Sets.newHashSet(status0.getFileId()));
 
     // Child folder should be pinned
-    TachyonURI folder = new TachyonURI("/folder");
+    AlluxioURI folder = new AlluxioURI("/folder");
     mFileSystem.createDirectory(folder);
     Assert.assertTrue(mFileSystem.getStatus(folder).isPinned());
 
     // Grandchild file also pinned
-    TachyonURI file1 = new TachyonURI("/folder/file1");
+    AlluxioURI file1 = new AlluxioURI("/folder/file1");
     createEmptyFile(file1);
     URIStatus status1 = mFileSystem.getStatus(file1);
     Assert.assertTrue(status1.isPinned());
@@ -140,20 +140,20 @@ public final class PinIntegrationTest {
         Sets.newHashSet(status0.getFileId()));
 
     // And new grandchildren should be unpinned too.
-    createEmptyFile(new TachyonURI("/folder/file2"));
-    Assert.assertFalse(mFileSystem.getStatus(new TachyonURI("/folder/file2")).isPinned());
+    createEmptyFile(new AlluxioURI("/folder/file2"));
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/folder/file2")).isPinned());
     Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
         Sets.newHashSet(status0.getFileId()));
 
     // But top level children still should be pinned!
-    createEmptyFile(new TachyonURI("/file3"));
-    URIStatus status3 = mFileSystem.getStatus(new TachyonURI("/file3"));
+    createEmptyFile(new AlluxioURI("/file3"));
+    URIStatus status3 = mFileSystem.getStatus(new AlluxioURI("/file3"));
     Assert.assertTrue(status3.isPinned());
     Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
         Sets.newHashSet(status0.getFileId(), status3.getFileId()));
   }
 
-  private void createEmptyFile(TachyonURI fileURI) throws IOException, TachyonException {
+  private void createEmptyFile(AlluxioURI fileURI) throws IOException, AlluxioException {
     CreateFileOptions options = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
     FileOutStream os = mFileSystem.createFile(fileURI, options);
     os.close();

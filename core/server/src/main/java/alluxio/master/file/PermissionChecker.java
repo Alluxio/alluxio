@@ -21,7 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
@@ -73,7 +73,7 @@ public final class PermissionChecker {
    * @throws InvalidPathException if the path is invalid
    */
   public static void checkParentPermission(String user, List<String> groups,
-      FileSystemAction action, TachyonURI path, List<FileInfo> fileInfoList)
+      FileSystemAction action, AlluxioURI path, List<FileInfo> fileInfoList)
       throws AccessControlException, InvalidPathException {
     // root "/" has no parent, so return without checking
     if (PathUtils.isRoot(path.getPath())) {
@@ -101,7 +101,7 @@ public final class PermissionChecker {
    * @throws InvalidPathException if the path is invalid
    */
   public static void checkPermission(String user, List<String> groups, FileSystemAction action,
-      TachyonURI path, List<FileInfo> fileInfoList) throws AccessControlException,
+      AlluxioURI path, List<FileInfo> fileInfoList) throws AccessControlException,
       InvalidPathException {
     String[] pathComponents = PathUtils.getPathComponents(path.getPath());
 
@@ -121,7 +121,7 @@ public final class PermissionChecker {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public static void checkOwner(String user, List<String> groups, TachyonURI path,
+  public static void checkOwner(String user, List<String> groups, AlluxioURI path,
       List<FileInfo> fileInfoList) throws AccessControlException, InvalidPathException {
     String[] pathComponents = PathUtils.getPathComponents(path.getPath());
 

@@ -64,10 +64,10 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
       String name) {
     mZookeeperAddress = zookeeperAddress;
     mElectionPath = electionPath;
-    if (leaderPath.endsWith(TachyonURI.SEPARATOR)) {
+    if (leaderPath.endsWith(AlluxioURI.SEPARATOR)) {
       mLeaderFolder = leaderPath;
     } else {
-      mLeaderFolder = leaderPath + TachyonURI.SEPARATOR;
+      mLeaderFolder = leaderPath + AlluxioURI.SEPARATOR;
     }
     mName = name;
 

@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
 import alluxio.client.ReadType;
-import alluxio.client.TachyonStorageType;
+import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 
@@ -125,18 +125,18 @@ public final class Utils {
   }
 
   /**
-   * Provides the options to show in the usage for a {@link TachyonStorageType}.
+   * Provides the options to show in the usage for a {@link AlluxioStorageType}.
    *
    * @param args the arguments to parse
    * @param index the index of the option
    * @param defaultValue the default value
    * @return either the value of the index of the arguments or the default value
    */
-  public static TachyonStorageType option(String[] args, int index,
-      TachyonStorageType defaultValue) {
+  public static AlluxioStorageType option(String[] args, int index,
+                                          AlluxioStorageType defaultValue) {
     if (index < args.length && index >= 0) {
       try {
-        return TachyonStorageType.valueOf(args[index]);
+        return AlluxioStorageType.valueOf(args[index]);
       } catch (IllegalArgumentException e) {
         System.err.println("Unable to parse TachyonStorageType;" + e.getMessage());
         System.err.println("Defaulting to " + defaultValue);

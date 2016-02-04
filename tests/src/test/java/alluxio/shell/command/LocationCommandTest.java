@@ -21,12 +21,12 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.exception.ExceptionMessage;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Test for location command.
  */
-public class LocationCommandTest extends AbstractTfsShellTest {
+public class LocationCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void locationNotExistTest() throws IOException {
     int ret = mFsShell.run("location", "/NotExistFile");

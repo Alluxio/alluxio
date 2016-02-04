@@ -26,7 +26,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.security.authorization.FileSystemPermission;
@@ -290,7 +290,7 @@ public final class UIFileInfo {
    * @return the file name
    */
   public String getName() {
-    if (TachyonURI.SEPARATOR.equals(mAbsolutePath)) {
+    if (AlluxioURI.SEPARATOR.equals(mAbsolutePath)) {
       return "root";
     } else {
       return mName;

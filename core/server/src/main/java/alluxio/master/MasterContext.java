@@ -17,20 +17,20 @@ package alluxio.master;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
- * A MasterContext object stores {@link TachyonConf}.
+ * A MasterContext object stores {@link Configuration}.
  */
 @ThreadSafe
 public final class MasterContext {
   private MasterContext() {} // to prevent initialization
 
   /**
-   * The static configuration object. There is only one {@link TachyonConf} object shared within
+   * The static configuration object. There is only one {@link Configuration} object shared within
    * the same master process.
    */
-  private static TachyonConf sTachyonConf = new TachyonConf();
+  private static Configuration sConfiguration = new Configuration();
 
   /**
    * The {@link MasterSource} for collecting master metrics.
@@ -38,13 +38,13 @@ public final class MasterContext {
   private static MasterSource sMasterSource = new MasterSource();
 
   /**
-   * Returns the one and only static {@link TachyonConf} object which is shared among all classes
+   * Returns the one and only static {@link Configuration} object which is shared among all classes
    * within the master process.
    *
-   * @return the {@link TachyonConf} for the master process
+   * @return the {@link Configuration} for the master process
    */
-  public static TachyonConf getConf() {
-    return sTachyonConf;
+  public static Configuration getConf() {
+    return sConfiguration;
   }
 
   /**
@@ -62,7 +62,7 @@ public final class MasterContext {
    * TODO(binfan): consider a better way to mock test TachyonConf
    */
   public static void reset() {
-    reset(new TachyonConf());
+    reset(new Configuration());
   }
 
   /**
@@ -71,8 +71,8 @@ public final class MasterContext {
    *
    * @param conf the configuration for Tachyon
    */
-  public static void reset(TachyonConf conf) {
-    sTachyonConf = conf;
+  public static void reset(Configuration conf) {
+    sConfiguration = conf;
     sMasterSource = new MasterSource();
   }
 }

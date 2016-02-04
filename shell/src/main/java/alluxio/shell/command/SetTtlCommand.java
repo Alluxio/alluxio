@@ -23,22 +23,22 @@ import org.apache.commons.cli.CommandLine;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Sets a new TTL value for the file at path both of the TTL value and the path are specified by
  * args.
  */
 @ThreadSafe
-public final class SetTtlCommand extends AbstractTfsShellCommand {
+public final class SetTtlCommand extends AbstractShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public SetTtlCommand(TachyonConf conf, FileSystem fs) {
+  public SetTtlCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -57,7 +57,7 @@ public final class SetTtlCommand extends AbstractTfsShellCommand {
     String[] args = cl.getArgs();
     long ttlMs = Long.parseLong(args[1]);
     Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
-    TachyonURI path = new TachyonURI(args[0]);
+    AlluxioURI path = new AlluxioURI(args[0]);
     CommandUtils.setTtl(mFileSystem, path, ttlMs);
     System.out.println("TTL of file '" + path + "' was successfully set to " + ttlMs
         + " milliseconds.");

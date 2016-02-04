@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.io.Files;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.ShellUtils;
 
@@ -79,7 +79,7 @@ public final class FileUtils {
     try {
       // Support for sticky bit is platform specific. Check if the path starts with "/" and if so,
       // assume that the host supports the chmod command.
-      if (dir.startsWith(TachyonURI.SEPARATOR)) {
+      if (dir.startsWith(AlluxioURI.SEPARATOR)) {
         Runtime.getRuntime().exec("chmod +t " + dir);
       }
     } catch (IOException e) {

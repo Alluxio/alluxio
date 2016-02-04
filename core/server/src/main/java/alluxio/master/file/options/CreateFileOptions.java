@@ -18,7 +18,7 @@ package alluxio.master.file.options;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.master.MasterContext;
 import alluxio.thrift.CreateFileTOptions;
 
@@ -42,7 +42,7 @@ public final class CreateFileOptions {
      *
      * @param conf a Tachyon configuration
      */
-    public Builder(TachyonConf conf) {
+    public Builder(Configuration conf) {
       mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mOperationTimeMs = System.currentTimeMillis();
       mPersisted = false;

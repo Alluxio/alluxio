@@ -27,8 +27,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
@@ -41,14 +41,14 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Override
-  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object unusedConf) {
+  public UnderFileSystem create(String path, Configuration configuration, Object unusedConf) {
     Preconditions.checkNotNull(path);
-    Preconditions.checkNotNull(tachyonConf);
+    Preconditions.checkNotNull(configuration);
 
-    if (addAndCheckAWSCredentials(tachyonConf)) {
-      TachyonURI uri = new TachyonURI(path);
+    if (addAndCheckAWSCredentials(configuration)) {
+      AlluxioURI uri = new AlluxioURI(path);
       try {
-        return new S3UnderFileSystem(uri.getHost(), tachyonConf);
+        return new S3UnderFileSystem(uri.getHost(), configuration);
       } catch (ServiceException e) {
         LOG.error("Failed to create S3UnderFileSystem.", e);
         throw Throwables.propagate(e);
@@ -61,7 +61,7 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   @Override
-  public boolean supportsPath(String path, TachyonConf tachyonConf) {
+  public boolean supportsPath(String path, Configuration configuration) {
     return path != null && path.startsWith(Constants.HEADER_S3N);
   }
 
@@ -69,19 +69,19 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
    * Adds AWS credentials from system properties to the Tachyon configuration if they are not
    * already present.
    *
-   * @param tachyonConf the Tachyon configuration to check and add credentials to
+   * @param configuration the Tachyon configuration to check and add credentials to
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean addAndCheckAWSCredentials(TachyonConf tachyonConf) {
+  private boolean addAndCheckAWSCredentials(Configuration configuration) {
     String accessKeyConf = Constants.S3_ACCESS_KEY;
-    if (System.getProperty(accessKeyConf) != null && tachyonConf.get(accessKeyConf) == null) {
-      tachyonConf.set(accessKeyConf, System.getProperty(accessKeyConf));
+    if (System.getProperty(accessKeyConf) != null && configuration.get(accessKeyConf) == null) {
+      configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
     String secretKeyConf = Constants.S3_SECRET_KEY;
-    if (System.getProperty(secretKeyConf) != null && tachyonConf.get(secretKeyConf) == null) {
-      tachyonConf.set(secretKeyConf, System.getProperty(secretKeyConf));
+    if (System.getProperty(secretKeyConf) != null && configuration.get(secretKeyConf) == null) {
+      configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
-    return tachyonConf.get(accessKeyConf) != null
-        && tachyonConf.get(secretKeyConf) != null;
+    return configuration.get(accessKeyConf) != null
+        && configuration.get(secretKeyConf) != null;
   }
 }

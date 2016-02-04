@@ -19,8 +19,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
@@ -31,18 +31,18 @@ import alluxio.underfs.UnderFileSystemFactory;
 public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
-  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object ufsConf) {
+  public UnderFileSystem create(String path, Configuration configuration, Object ufsConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
-    return new LocalUnderFileSystem(tachyonConf);
+    return new LocalUnderFileSystem(configuration);
   }
 
   @Override
-  public boolean supportsPath(String path, TachyonConf tachyonConf) {
+  public boolean supportsPath(String path, Configuration configuration) {
     if (path == null) {
       return false;
     }
-    return path.startsWith(TachyonURI.SEPARATOR)
+    return path.startsWith(AlluxioURI.SEPARATOR)
         || path.startsWith("file://")
-        || TachyonURI.hasWindowsDrive(path, false);
+        || AlluxioURI.hasWindowsDrive(path, false);
   }
 }

@@ -27,7 +27,7 @@ import io.netty.channel.socket.SocketChannel;
 
 import alluxio.Constants;
 import alluxio.client.ClientContext;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.network.ChannelType;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCMessageDecoder;
@@ -43,7 +43,7 @@ public final class NettyClient {
   private static final RPCMessageEncoder ENCODER = new RPCMessageEncoder();
   private static final RPCMessageDecoder DECODER = new RPCMessageDecoder();
 
-  private static final TachyonConf TACHYON_CONF = ClientContext.getConf();
+  private static final Configuration TACHYON_CONF = ClientContext.getConf();
   private static final ChannelType CHANNEL_TYPE =
       TACHYON_CONF.getEnum(Constants.USER_NETWORK_NETTY_CHANNEL, ChannelType.class);
   private static final Class<? extends SocketChannel> CLIENT_CHANNEL_CLASS = NettyUtils

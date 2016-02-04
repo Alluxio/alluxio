@@ -53,7 +53,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
@@ -138,7 +138,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
    */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath) {
-    this(numWorkers, masterAddress, resourcePath, new TachyonConf());
+    this(numWorkers, masterAddress, resourcePath, new Configuration());
   }
 
   /**
@@ -148,7 +148,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param conf Tachyon configuration
    */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath,
-      TachyonConf conf) {
+      Configuration conf) {
     mMasterCpu = conf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
     mMasterMemInMB =
         (int) (conf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
@@ -259,7 +259,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mYarnClient.start();
 
     // Register with ResourceManager
-    String hostname = NetworkAddressUtils.getLocalHostName(new TachyonConf());
+    String hostname = NetworkAddressUtils.getLocalHostName(new Configuration());
     mRMClient.registerApplicationMaster(hostname, 0 /* port */, "" /* tracking url */);
     LOG.info("ApplicationMaster registered");
   }

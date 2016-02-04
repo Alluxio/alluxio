@@ -29,7 +29,7 @@ import org.junit.rules.ExpectedException;
 import alluxio.security.User;
 
 /**
- * Unit test for the login modules defined in {@link alluxio.security.login.TachyonLoginModule} and
+ * Unit test for the login modules defined in {@link AlluxioLoginModule} and
  * used in {@link LoginModuleConfiguration}.
  */
 public class LoginModuleTest {

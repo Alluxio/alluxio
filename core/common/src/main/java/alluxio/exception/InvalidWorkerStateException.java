@@ -22,11 +22,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * to the session id.
  */
 @ThreadSafe
-public class InvalidWorkerStateException extends TachyonException {
+public class InvalidWorkerStateException extends AlluxioException {
   private static final long serialVersionUID = -5416224494611880597L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.INVALID_WORKER_STATE;
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.INVALID_WORKER_STATE;
 
   /**
    * Constructs a new exception with the specified detail message.

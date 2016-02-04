@@ -14,15 +14,15 @@ struct WorkerInfo {
 }
 
 /**
- * This interface contains block master service endpoints for Tachyon clients.
+ * This interface contains block master service endpoints for Alluxio clients.
  */
-service BlockMasterClientService extends common.TachyonService {
+service BlockMasterClientService extends common.AlluxioService {
 
   /**
    * Returns the block information for the given block id.
    */
   common.BlockInfo getBlockInfo( /** the id of the block */  1: i64 blockId)
-    throws (1: exception.TachyonTException e)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Returns the capacity (in bytes).
@@ -41,9 +41,9 @@ service BlockMasterClientService extends common.TachyonService {
 }
 
 /**
- * This interface contains block master service endpoints for Tachyon workers.
+ * This interface contains block master service endpoints for Alluxio workers.
  */
-service BlockMasterWorkerService extends common.TachyonService {
+service BlockMasterWorkerService extends common.AlluxioService {
 
   /**
    * Marks the given block as committed.
@@ -75,5 +75,5 @@ service BlockMasterWorkerService extends common.TachyonService {
       /** the map of total bytes on each tier */  3: map<string, i64> totalBytesOnTiers,
       /** the map of used bytes on each tier */  4: map<string, i64> usedBytesOnTiers,
       /** the map of list of blocks on each tier */  5: map<string, list<i64>> currentBlocksOnTiers)
-    throws (1: exception.TachyonTException e)
+    throws (1: exception.AlluxioTException e)
 }

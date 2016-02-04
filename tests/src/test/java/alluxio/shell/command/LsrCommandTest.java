@@ -21,21 +21,21 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.URIStatus;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.master.MasterContext;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Test for lsr command.
  */
-public class LsrCommandTest extends AbstractTfsShellTest {
+public class LsrCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void lsrTest() throws IOException, TachyonException {
+  public void lsrTest() throws IOException, AlluxioException {
     MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
 
@@ -45,13 +45,13 @@ public class LsrCommandTest extends AbstractTfsShellTest {
 
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
-    files[0] = mFileSystem.getStatus(new TachyonURI("/testRoot/testFileA"));
+    files[0] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
         WriteType.MUST_CACHE, 20);
-    files[1] = mFileSystem.getStatus(new TachyonURI("/testRoot/testDir"));
-    files[2] = mFileSystem.getStatus(new TachyonURI("/testRoot/testDir/testFileB"));
+    files[1] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir"));
+    files[2] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"));
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WriteType.THROUGH, 30);
-    files[3] = mFileSystem.getStatus(new TachyonURI("/testRoot/testFileC"));
+    files[3] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileC"));
     mFsShell.run("lsr", "/testRoot");
     String expected = "";
     expected += "WARNING: lsr is deprecated. Please use ls -R instead.\n";

@@ -29,10 +29,10 @@ import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.TaskAttemptID;
 import org.apache.hadoop.util.Progressable;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * An {@link OutputFormat} implementation to let MapReduce job write to a key-value store under the
@@ -51,7 +51,7 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
    * @param conf MapReduce job configuration
    * @return the task's temporary output path ${mapred.out.dir}/_temporary/_${taskid}
    */
-  public static TachyonURI getTaskOutputURI(JobConf conf) {
+  public static AlluxioURI getTaskOutputURI(JobConf conf) {
     return getJobOutputURI(conf).join(FileOutputCommitter.TEMP_DIR_NAME)
         .join("_" + TaskAttemptID.forName(conf.get("mapred.task.id")).toString());
   }
@@ -60,8 +60,8 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
    * @param conf MapReduce job configuration
    * @return the job's output path
    */
-  public static TachyonURI getJobOutputURI(JobConf conf) {
-    return new TachyonURI(FileOutputFormat.getOutputPath(conf).toString());
+  public static AlluxioURI getJobOutputURI(JobConf conf) {
+    return new AlluxioURI(FileOutputFormat.getOutputPath(conf).toString());
   }
 
   @Override
@@ -86,7 +86,7 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
     try {
       KeyValueSystem.Factory.create().createStore(KeyValueOutputFormat.getJobOutputURI(conf))
           .close();
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     }
   }
