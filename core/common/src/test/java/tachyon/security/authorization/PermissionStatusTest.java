@@ -85,8 +85,6 @@ public final class PermissionStatusTest {
 
   /**
    * Tests the {@link PermissionStatus#get(TachyonConf, boolean)} method.
-   *
-   * @throws Exception thrown if the status cannot be retrieved
    */
   @Test
   public void getPermissionStatusTest() throws Exception {
@@ -115,8 +113,6 @@ public final class PermissionStatusTest {
 
   /**
    * Tests that retrieving the {@link PermissionStatus} with multiple groups works as expected.
-   *
-   * @throws Exception if the permission status cannot be retrieved
    */
   @Test
   public void getPermissionStatusWithMultiGroupsTest() throws Exception {

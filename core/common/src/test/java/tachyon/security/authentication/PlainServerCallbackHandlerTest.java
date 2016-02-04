@@ -79,8 +79,6 @@ public class PlainServerCallbackHandlerTest {
 
   /**
    * Tests that the authentication callbacks do not match.
-   *
-   * @throws Exception thrown if the handler fails
    */
   @Test
   public void authenticateNameNotMatchTest() throws Exception {

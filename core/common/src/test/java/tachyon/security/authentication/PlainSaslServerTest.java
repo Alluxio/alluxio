@@ -91,8 +91,6 @@ public class PlainSaslServerTest{
 
   /**
    * Tests the {@link PlainSaslServer#evaluateResponse(byte[])} method when the password is not set.
-   *
-   * @throws Exception if the bytes for the user and password cannot be retrieved
    */
   @Test
   public void passwordIsNotSetTest() throws Exception {
@@ -113,8 +111,6 @@ public class PlainSaslServerTest{
 
   /**
    * Tests the {@link PlainSaslServer#getAuthorizationID()} to retrieve the correct user.
-   *
-   * @throws Exception if the bytes for the user and password cannot be retrieved
    */
   @Test
   public void userPasswordReceiveTest() throws Exception {
