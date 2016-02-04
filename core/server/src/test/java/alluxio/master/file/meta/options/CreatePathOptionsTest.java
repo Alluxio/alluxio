@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.master.MasterContext;
 
 /**
@@ -43,7 +43,7 @@ public class CreatePathOptionsTest {
     boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
 
-    CreatePathOptions options = new CreatePathOptions.Builder(new TachyonConf())
+    CreatePathOptions options = new CreatePathOptions.Builder(new Configuration())
         .setAllowExists(allowExists)
         .setBlockSizeBytes(blockSize)
         .setDirectory(directory)
@@ -67,7 +67,7 @@ public class CreatePathOptionsTest {
    */
   @Test
   public void defaultsTest() {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     MasterContext.reset(conf);
 

@@ -22,15 +22,15 @@ import org.junit.Test;
 
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
-import alluxio.shell.TfsShellUtilsTest;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.io.BufferUtils;
 
 /**
  * Tests for tail command.
  */
-public class TailCommandTest extends AbstractTfsShellTest {
+public class TailCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void tailEmptyFileTest() throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/emptyFile", WriteType.MUST_CACHE, 0);
@@ -61,8 +61,8 @@ public class TailCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void tailWildcardTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+  public void tailWildcardTest() throws IOException, AlluxioException {
+    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
 
     // the expect contents (remember that the order is based on the path)
     byte[] exp1 = BufferUtils.getIncreasingByteArray(30); // testWildCards/bar/foobar3

@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import com.codahale.metrics.MetricRegistry;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.Sink;
 import alluxio.metrics.source.Source;
@@ -56,7 +56,7 @@ public class MetricsSystem {
   private MetricRegistry mMetricRegistry = new MetricRegistry();
   private MetricsConfig mMetricsConfig;
   private boolean mRunning = false;
-  private TachyonConf mTachyonConf;
+  private Configuration mConfiguration;
   private MetricsServlet mMetricsServlet;
 
   /**
@@ -97,13 +97,13 @@ public class MetricsSystem {
    * Creates a {@code MetricsSystem} using the default metrics config.
    *
    * @param instance the instance name
-   * @param tachyonConf the {@link TachyonConf} instance for configuration properties
+   * @param configuration the {@link Configuration} instance for configuration properties
    */
-  public MetricsSystem(String instance, TachyonConf tachyonConf) {
+  public MetricsSystem(String instance, Configuration configuration) {
     mInstance = instance;
-    mTachyonConf = tachyonConf;
+    mConfiguration = configuration;
     String metricsConfFile = null;
-    metricsConfFile = mTachyonConf.get(Constants.METRICS_CONF_FILE);
+    metricsConfFile = mConfiguration.get(Constants.METRICS_CONF_FILE);
     mMetricsConfig = new MetricsConfig(metricsConfFile);
   }
 
@@ -112,12 +112,12 @@ public class MetricsSystem {
    *
    * @param instance the instance name
    * @param metricsConfig the {@code MetricsConfig} object
-   * @param tachyonConf the {@link TachyonConf} instance for configuration properties
+   * @param configuration the {@link Configuration} instance for configuration properties
    */
-  public MetricsSystem(String instance, MetricsConfig metricsConfig, TachyonConf tachyonConf) {
+  public MetricsSystem(String instance, MetricsConfig metricsConfig, Configuration configuration) {
     mInstance = instance;
     mMetricsConfig = metricsConfig;
-    mTachyonConf = tachyonConf;
+    mConfiguration = configuration;
   }
 
   /***

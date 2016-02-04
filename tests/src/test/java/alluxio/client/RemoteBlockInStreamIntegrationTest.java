@@ -31,19 +31,19 @@ import org.junit.runners.Parameterized;
 
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.block.RemoteBlockInStream;
-import alluxio.client.block.TachyonBlockStore;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -60,12 +60,12 @@ public class RemoteBlockInStreamIntegrationTest {
   private static final int DELTA = 33;
 
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource;
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource;
   private FileSystem mFileSystem = null;
   private String mDataServerClass;
   private String mNettyTransferType;
   private String mRemoteReaderClass;
-  private TachyonConf mTachyonConf;
+  private Configuration mConfiguration;
   private CreateFileOptions mWriteTachyon;
   private CreateFileOptions mWriteUnderStore;
   private OpenFileOptions mReadNoCache;
@@ -92,7 +92,7 @@ public class RemoteBlockInStreamIntegrationTest {
     mNettyTransferType = transferType;
     mRemoteReaderClass = reader;
 
-    mLocalTachyonClusterResource = new LocalTachyonClusterResource(Constants.GB,
+    mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(Constants.GB,
         Constants.GB, Constants.WORKER_DATA_SERVER, mDataServerClass,
         Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType,
         Constants.USER_BLOCK_REMOTE_READER, mRemoteReaderClass,
@@ -104,24 +104,24 @@ public class RemoteBlockInStreamIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
-    mFileSystem = mLocalTachyonClusterResource.get().getClient();
-    mWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(mTachyonConf);
-    mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(mTachyonConf);
-    mReadCache = StreamOptionUtils.getOpenFileOptionsCache(mTachyonConf);
-    mReadNoCache = StreamOptionUtils.getOpenFileOptionsNoCache(mTachyonConf);
+    mConfiguration = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+    mWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(mConfiguration);
+    mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(mConfiguration);
+    mReadCache = StreamOptionUtils.getOpenFileOptionsCache(mConfiguration);
+    mReadNoCache = StreamOptionUtils.getOpenFileOptionsNoCache(mConfiguration);
     mWorkerToMasterHeartbeatIntervalMs =
-        mTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
+        mConfiguration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
   }
 
   /**
    * Test {@link RemoteBlockInStream#read()}. Read from underfs.
    */
   @Test
-  public void readTest1() throws IOException, TachyonException {
+  public void readTest1() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
+      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, k);
 
       FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
@@ -179,10 +179,10 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
    */
   @Test
-  public void readTest2() throws IOException, TachyonException {
+  public void readTest2() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
+      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, k);
 
       FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
@@ -216,10 +216,10 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test {@link RemoteBlockInStream#read(byte[], int, int)}. Read from underfs.
    */
   @Test
-  public void readTest3() throws IOException, TachyonException {
+  public void readTest3() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
+      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, k);
 
       FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
@@ -253,14 +253,14 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test {@link RemoteBlockInStream#read()}. Read from remote data server.
    */
   @Test
-  public void readTest4() throws IOException, TachyonException {
+  public void readTest4() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
+      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteTachyon, k);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
-      BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
+      BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
           new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
@@ -285,14 +285,14 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test {@link RemoteBlockInStream#read(byte[])}. Read from remote data server.
    */
   @Test
-  public void readTest5() throws IOException, TachyonException {
+  public void readTest5() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
+      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteTachyon, k);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
-      BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
+      BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
           new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
@@ -313,14 +313,14 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test {@link RemoteBlockInStream#read(byte[], int, int)}. Read from remote data server.
    */
   @Test
-  public void readTest6() throws IOException, TachyonException {
+  public void readTest6() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
+      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteTachyon, k);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
-      BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
+      BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
           new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
@@ -341,10 +341,10 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
    */
   @Test
-  public void readTest7() throws IOException, TachyonException {
+  public void readTest7() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
+      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, k);
 
       FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
@@ -362,15 +362,15 @@ public class RemoteBlockInStreamIntegrationTest {
    * negative position.
    *
    * @throws IOException
-   * @throws TachyonException
+   * @throws AlluxioException
    */
   @Test
-  public void seekExceptionTest1() throws IOException, TachyonException {
+  public void seekExceptionTest1() throws IOException, AlluxioException {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE, -1));
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
+      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, k);
 
       FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
@@ -387,15 +387,15 @@ public class RemoteBlockInStreamIntegrationTest {
    * position that is past block size.
    *
    * @throws IOException
-   * @throws TachyonException
+   * @throws AlluxioException
    */
   @Test
-  public void seekExceptionTest2() throws IOException, TachyonException {
+  public void seekExceptionTest2() throws IOException, AlluxioException {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, 1));
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
+      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, k);
 
       FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
@@ -411,13 +411,13 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test {@link RemoteBlockInStream#seek(long)}.
    *
    * @throws IOException
-   * @throws TachyonException
+   * @throws AlluxioException
    */
   @Test
-  public void seekTest() throws IOException, TachyonException {
+  public void seekTest() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
+      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, k);
 
       FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
@@ -437,10 +437,10 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test {@link RemoteBlockInStream#skip(long)}.
    */
   @Test
-  public void skipTest() throws IOException, TachyonException {
+  public void skipTest() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
+      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, k);
 
       FileInStream is = mFileSystem.openFile(uri, mReadCache);
@@ -466,10 +466,10 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests that reading a file the whole way through with the STORE ReadType will recache it
    */
   @Test
-  public void completeFileReadTriggersRecache() throws IOException, TachyonException {
+  public void completeFileReadTriggersRecache() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     int len = 2;
-    TachyonURI uri = new TachyonURI(uniqPath);
+    AlluxioURI uri = new AlluxioURI(uniqPath);
     FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, len);
 
     FileInStream is = mFileSystem.openFile(uri, mReadCache);
@@ -485,9 +485,9 @@ public class RemoteBlockInStreamIntegrationTest {
    * recache
    */
   @Test
-  public void incompleteFileReadCancelsRecache() throws IOException, TachyonException {
+  public void incompleteFileReadCancelsRecache() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
-    TachyonURI uri = new TachyonURI(uniqPath);
+    AlluxioURI uri = new AlluxioURI(uniqPath);
     FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, 2);
 
     FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
@@ -502,11 +502,11 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests that reading a file consisting of more than one block from the underfs works
    */
   @Test
-  public void readMultiBlockFile() throws IOException, TachyonException {
+  public void readMultiBlockFile() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     int blockSizeByte = 10;
     int numBlocks = 10;
-    TachyonURI uri = new TachyonURI(uniqPath);
+    AlluxioURI uri = new AlluxioURI(uniqPath);
     FileOutStream os = mFileSystem.createFile(uri, mWriteUnderStore);
     for (int i = 0; i < numBlocks; i ++) {
       for (int j = 0; j < blockSizeByte; j ++) {
@@ -527,11 +527,11 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests that seeking around a file cached locally works.
    */
   @Test
-  public void seekAroundLocalBlock() throws IOException, TachyonException {
+  public void seekAroundLocalBlock() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     // The number of bytes per remote block read should be set to 100 in the before function
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath, 200, mWriteTachyon);
-    FileInStream is = mFileSystem.openFile(new TachyonURI(uniqPath), mReadNoCache);
+    FileInStream is = mFileSystem.openFile(new AlluxioURI(uniqPath), mReadNoCache);
     Assert.assertEquals(0, is.read());
     is.seek(199);
     Assert.assertEquals(199, is.read());
@@ -547,11 +547,11 @@ public class RemoteBlockInStreamIntegrationTest {
   public void remoteReadLockTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      TachyonURI uri = new TachyonURI(uniqPath + "/file_" + k);
+      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteTachyon, k);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
-      BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
+      BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       InetSocketAddress workerInetAddr =

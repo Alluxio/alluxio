@@ -25,25 +25,25 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.util.io.PathUtils;
 
 public final class UnderStorageSystemInterfaceIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
 
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource();
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource();
   private String mUnderfsAddress = null;
   private UnderFileSystem mUfs = null;
 
   @Before
   public final void before() throws Exception {
-    TachyonConf masterConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
+    Configuration masterConf = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
     mUnderfsAddress = masterConf.get(Constants.UNDERFS_ADDRESS);
-    mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR, masterConf);
+    mUfs = UnderFileSystem.get(mUnderfsAddress + AlluxioURI.SEPARATOR, masterConf);
   }
 
   /**

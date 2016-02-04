@@ -18,14 +18,13 @@ package alluxio.underfs.hdfs;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.UnderFileSystemUtils;
@@ -41,23 +40,23 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    */
   public static void main(String[] args) throws Exception {
     LocalMiniDFSCluster cluster = null;
-    TachyonConf tachyonConf = new TachyonConf();
+    Configuration configuration = new Configuration();
     try {
-      cluster = new LocalMiniDFSCluster("/tmp/dfs", 1, 54321, tachyonConf);
+      cluster = new LocalMiniDFSCluster("/tmp/dfs", 1, 54321, configuration);
       cluster.start();
       System.out.println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
       Thread.sleep(10);
       DistributedFileSystem dfs = cluster.getDFSClient();
       dfs.mkdirs(new Path("/1"));
-      mkdirs(cluster.getUnderFilesystemAddress() + "/1/2", tachyonConf);
-      FileStatus[] fs = dfs.listStatus(new Path(TachyonURI.SEPARATOR));
+      mkdirs(cluster.getUnderFilesystemAddress() + "/1/2", configuration);
+      FileStatus[] fs = dfs.listStatus(new Path(AlluxioURI.SEPARATOR));
       assert fs.length != 0;
       System.out.println(fs[0].getPath().toUri());
       dfs.close();
 
       cluster.shutdown();
 
-      cluster = new LocalMiniDFSCluster("/tmp/dfs", 3, tachyonConf);
+      cluster = new LocalMiniDFSCluster("/tmp/dfs", 3, configuration);
       cluster.start();
       System.out.println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
 
@@ -66,7 +65,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
       UnderFileSystemUtils.touch(
           cluster.getUnderFilesystemAddress() + "/1" + "/_format_" + System.currentTimeMillis(),
-          tachyonConf);
+          configuration);
       fs = dfs.listStatus(new Path("/1"));
       assert fs.length != 0;
       System.out.println(fs[0].getPath().toUri());
@@ -80,12 +79,12 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     }
   }
 
-  public static boolean mkdirs(String path, TachyonConf tachyonConf) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
+  public static boolean mkdirs(String path, Configuration configuration) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path, configuration);
     return ufs.mkdirs(path, true);
   }
 
-  private Configuration mConf = new Configuration();
+  private org.apache.hadoop.conf.Configuration mConf = new org.apache.hadoop.conf.Configuration();
   private int mNamenodePort;
 
   private int mNumDataNode;
@@ -100,10 +99,10 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    *
    * @param dfsBaseDirs the base directory for both namenode and datanode. The dfs.name.dir and
    *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
-   * @param tachyonConf the {@link alluxio.conf.TachyonConf} instance
+   * @param configuration the {@link Configuration} instance
    */
-  public LocalMiniDFSCluster(String dfsBaseDirs, TachyonConf tachyonConf) {
-    this(dfsBaseDirs, 1, 0, tachyonConf);
+  public LocalMiniDFSCluster(String dfsBaseDirs, Configuration configuration) {
+    this(dfsBaseDirs, 1, 0, configuration);
   }
 
   /**
@@ -112,10 +111,10 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    * @param dfsBaseDirs the base directory for both namenode and datanode. The dfs.name.dir and
    *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
    * @param numDataNode the number of datanode
-   * @param tachyonConf the {@link alluxio.conf.TachyonConf} instance
+   * @param configuration the {@link Configuration} instance
    */
-  public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode, TachyonConf tachyonConf) {
-    this(dfsBaseDirs, numDataNode, 0, tachyonConf);
+  public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode, Configuration configuration) {
+    this(dfsBaseDirs, numDataNode, 0, configuration);
   }
 
   /**
@@ -126,11 +125,11 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    * @param numDataNode The number of datanode
    * @param nameNodePort the port of namenode. If it is 0, the real namenode port can be retrieved
    *        by {@link #getNameNodePort()} after the cluster started
-   * @param tachyonConf the {@link alluxio.conf.TachyonConf} instance
+   * @param configuration the {@link Configuration} instance
    */
   public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode, int nameNodePort,
-      TachyonConf tachyonConf) {
-    super(dfsBaseDirs, tachyonConf);
+      Configuration configuration) {
+    super(dfsBaseDirs, configuration);
     mNamenodePort = nameNodePort;
     mNumDataNode = numDataNode;
   }
@@ -145,11 +144,11 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    * @param numDataNode the number of datanode
    * @param nameNodePort the port of namenode. If it is 0, the real namenode port can be retrieved
    *        by {@link #getNameNodePort()} after the cluster started
-   * @param tachyonConf the {@link alluxio.conf.TachyonConf} instance
+   * @param configuration the {@link Configuration} instance
    */
-  public LocalMiniDFSCluster(Configuration conf, String dfsBaseDirs, int numDataNode,
-      int nameNodePort, TachyonConf tachyonConf) {
-    super(dfsBaseDirs, tachyonConf);
+  public LocalMiniDFSCluster(org.apache.hadoop.conf.Configuration conf, String dfsBaseDirs, int numDataNode,
+                             int nameNodePort, Configuration configuration) {
+    super(dfsBaseDirs, configuration);
     mConf = conf;
     mNamenodePort = nameNodePort;
     mNumDataNode = numDataNode;
@@ -220,7 +219,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     if (!mIsStarted) {
 
       delete(mBaseDir, true);
-      if (!mkdirs(mBaseDir, mTachyonConf)) {
+      if (!mkdirs(mBaseDir, mConfiguration)) {
         throw new IOException("Failed to make folder: " + mBaseDir);
       }
 

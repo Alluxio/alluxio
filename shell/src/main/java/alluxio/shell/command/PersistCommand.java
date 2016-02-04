@@ -25,24 +25,24 @@ import com.google.common.base.Joiner;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Persists a file or directory currently stored only in Tachyon to the UnderFileSystem
  */
 @ThreadSafe
-public final class PersistCommand extends AbstractTfsShellCommand {
+public final class PersistCommand extends AbstractShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public PersistCommand(TachyonConf conf, FileSystem fs) {
+  public PersistCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -59,24 +59,24 @@ public final class PersistCommand extends AbstractTfsShellCommand {
   @Override
   public void run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
-    TachyonURI inputPath = new TachyonURI(args[0]);
+    AlluxioURI inputPath = new AlluxioURI(args[0]);
     persist(inputPath);
   }
 
   /**
    * Persists a file or directory currently stored only in Tachyon to the UnderFileSystem.
    *
-   * @param filePath the {@link TachyonURI} path to persist to the UnderFileSystem
+   * @param filePath the {@link AlluxioURI} path to persist to the UnderFileSystem
    * @throws IOException when a Tachyon or I/O error occurs
    */
-  private void persist(TachyonURI filePath) throws IOException {
+  private void persist(AlluxioURI filePath) throws IOException {
     try {
       URIStatus status = mFileSystem.getStatus(filePath);
       if (status.isFolder()) {
         List<URIStatus> statuses = mFileSystem.listStatus(filePath);
         List<String> errorMessages = new ArrayList<String>();
         for (URIStatus uriStatus : statuses) {
-          TachyonURI newPath = new TachyonURI(uriStatus.getPath());
+          AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
           try {
             persist(newPath);
           } catch (IOException e) {
@@ -89,10 +89,10 @@ public final class PersistCommand extends AbstractTfsShellCommand {
       } else if (status.isPersisted()) {
         System.out.println(filePath + " is already persisted");
       } else {
-        long size = FileSystemUtils.persistFile(mFileSystem, filePath, status, mTachyonConf);
+        long size = FileSystemUtils.persistFile(mFileSystem, filePath, status, mConfiguration);
         System.out.println("persisted file " + filePath + " with size " + size);
       }
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
   }

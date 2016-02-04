@@ -28,14 +28,15 @@ import org.slf4j.LoggerFactory;
 import com.google.common.io.Closer;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioExceptionType;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 
@@ -60,13 +61,13 @@ public final class FileSystemUtils {
    *         before the file was complete.
    * @throws IOException in case there are problems contacting the Tachyon master for the file
    *         status
-   * @throws TachyonException if a Tachyon Exception occurs
+   * @throws AlluxioException if a Tachyon Exception occurs
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
-   * @see #waitCompleted(FileSystem, TachyonURI, long, TimeUnit)
+   * @see #waitCompleted(FileSystem, AlluxioURI, long, TimeUnit)
    */
-  public static boolean waitCompleted(FileSystem fs, TachyonURI uri)
-      throws IOException, TachyonException, InterruptedException {
+  public static boolean waitCompleted(FileSystem fs, AlluxioURI uri)
+      throws IOException, AlluxioException, InterruptedException {
     return FileSystemUtils.waitCompleted(fs, uri, -1, TimeUnit.MILLISECONDS);
   }
 
@@ -83,8 +84,8 @@ public final class FileSystemUtils {
    * Note that the file whose uri is specified, might not exist at the moment this method this call.
    * The method will deliberately block anyway for the specified amount of time, waiting for the
    * file to be created and eventually completed. Note also that the file might be moved or deleted
-   * while it is waited upon. In such cases the method will throw the a {@link TachyonException}
-   * with the appropriate {@link alluxio.exception.TachyonExceptionType}
+   * while it is waited upon. In such cases the method will throw the a {@link AlluxioException}
+   * with the appropriate {@link AlluxioExceptionType}
    * <p/>
    * <i>IMPLEMENTATION NOTES</i> This method is implemented by periodically polling the master about
    * the file status. The polling period is controlled by the
@@ -98,13 +99,13 @@ public final class FileSystemUtils {
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
    * @throws IOException in case there are problems contacting the Tachyonmaster for the file status
-   * @throws TachyonException if a Tachyon Exception occurs
+   * @throws AlluxioException if a Tachyon Exception occurs
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
    */
-  public static boolean waitCompleted(final FileSystem fs, final TachyonURI uri,
+  public static boolean waitCompleted(final FileSystem fs, final AlluxioURI uri,
       final long timeout, final TimeUnit tunit)
-          throws IOException, TachyonException, InterruptedException {
+          throws IOException, AlluxioException, InterruptedException {
 
     final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
     final long pollPeriod =
@@ -145,22 +146,22 @@ public final class FileSystemUtils {
    * @param fs {@link FileSystem} to carry out Tachyon operations
    * @param uri the uri of the file to persist
    * @param status the status info of the file
-   * @param tachyonConf TachyonConf object
+   * @param configuration TachyonConf object
    * @return the size of the file persisted
    * @throws IOException if an I/O error occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws TachyonException if an unexpected Tachyon error occurs
+   * @throws AlluxioException if an unexpected Tachyon error occurs
    */
-  public static long persistFile(FileSystem fs, TachyonURI uri, URIStatus status,
-      TachyonConf tachyonConf) throws IOException, FileDoesNotExistException, TachyonException {
+  public static long persistFile(FileSystem fs, AlluxioURI uri, URIStatus status,
+                                 Configuration configuration) throws IOException, FileDoesNotExistException, AlluxioException {
     // TODO(manugoyal) move this logic to the worker, as it deals with the under file system
     Closer closer = Closer.create();
     long ret;
     try {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream in = closer.register(fs.openFile(uri, options));
-      TachyonURI dstPath = new TachyonURI(status.getUfsPath());
-      UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString(), tachyonConf);
+      AlluxioURI dstPath = new AlluxioURI(status.getUfsPath());
+      UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString(), configuration);
       String parentPath = dstPath.getParent().toString();
       if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
         throw new IOException("Failed to create " + parentPath);

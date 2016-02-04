@@ -30,14 +30,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 
 /**
@@ -48,8 +48,8 @@ public final class HdfsFileInputStreamIntegrationTest {
   private static final int BUFFER_SIZE = 50;
 
   @ClassRule
-  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource();
+  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource();
   private static FileSystem sFileSystem = null;
   private HdfsFileInputStream mInMemInputStream;
   private HdfsFileInputStream mUfsInputStream;
@@ -59,7 +59,7 @@ public final class HdfsFileInputStreamIntegrationTest {
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sFileSystem = sLocalTachyonClusterResource.get().getClient();
+    sFileSystem = sLocalAlluxioClusterResource.get().getClient();
     FileSystemTestUtils
         .createByteFile(sFileSystem, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFile2", WriteType.THROUGH, FILE_LEN);
@@ -72,13 +72,13 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   @Before
-  public final void before() throws IOException, TachyonException {
-    TachyonURI file1 = new TachyonURI("/testFile1");
+  public final void before() throws IOException, AlluxioException {
+    AlluxioURI file1 = new AlluxioURI("/testFile1");
     URIStatus fileStatus1 = sFileSystem.getStatus(file1);
     mInMemInputStream = new HdfsFileInputStream(file1, new Path(fileStatus1.getUfsPath()),
         new Configuration(), BUFFER_SIZE, null);
 
-    TachyonURI file2 = new TachyonURI("/testFile2");
+    AlluxioURI file2 = new AlluxioURI("/testFile2");
     URIStatus fileStatus2 = sFileSystem.getStatus(file2);
     mUfsInputStream = new HdfsFileInputStream(file2, new Path(fileStatus2.getUfsPath()),
         new Configuration(), BUFFER_SIZE, null);

@@ -27,12 +27,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
 import alluxio.util.io.BufferUtils;
 
@@ -45,7 +45,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
 
   private final FileSystem mFileSystem = FileSystem.Factory.get();
   private final KeyValueMasterClient mMasterClient;
-  private final TachyonURI mStoreUri;
+  private final AlluxioURI mStoreUri;
 
   private long mPartitionIndex;
   private KeyValuePartitionWriter mWriter = null;
@@ -60,13 +60,13 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
 
   /**
    * Constructs a {@link BaseKeyValueStoreWriter}. This constructor will create a new key-value
-   * store at the given {@link TachyonURI}.
+   * store at the given {@link AlluxioURI}.
    *
    * @param uri URI of the store
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Tachyon exception is thrown
    */
-  BaseKeyValueStoreWriter(TachyonURI uri) throws IOException, TachyonException {
+  BaseKeyValueStoreWriter(AlluxioURI uri) throws IOException, AlluxioException {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
     mMasterClient =
         new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
@@ -90,7 +90,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
         completePartition();
         mMasterClient.completeStore(mStoreUri);
       }
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     } finally {
       mMasterClient.close();
@@ -105,7 +105,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   }
 
   @Override
-  public void put(byte[] key, byte[] value) throws IOException, TachyonException {
+  public void put(byte[] key, byte[] value) throws IOException, AlluxioException {
     Preconditions.checkNotNull(key, PreconditionMessage.ERR_PUT_NULL_KEY);
     Preconditions.checkNotNull(value, PreconditionMessage.ERR_PUT_NULL_KEY);
     Preconditions.checkArgument(key.length > 0, PreconditionMessage.ERR_PUT_EMPTY_KEY);
@@ -147,7 +147,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   }
 
   @Override
-  public void put(ByteBuffer key, ByteBuffer value) throws IOException, TachyonException {
+  public void put(ByteBuffer key, ByteBuffer value) throws IOException, AlluxioException {
     Preconditions.checkNotNull(key, PreconditionMessage.ERR_PUT_NULL_KEY);
     Preconditions.checkNotNull(value, PreconditionMessage.ERR_PUT_NULL_VALUE);
     // TODO(binfan): make efficient implementation
@@ -157,19 +157,19 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   }
 
   /**
-   * @return {@link TachyonURI} to the current partition file
+   * @return {@link AlluxioURI} to the current partition file
    */
-  private TachyonURI getPartitionName() {
-    return new TachyonURI(String.format("%s/part-%05d", mStoreUri, mPartitionIndex));
+  private AlluxioURI getPartitionName() {
+    return new AlluxioURI(String.format("%s/part-%05d", mStoreUri, mPartitionIndex));
   }
 
   /**
    * Completes the current partition.
    *
    * @throws IOException if non-Tachyon error occurs
-   * @throws TachyonException if Tachyon error occurs
+   * @throws AlluxioException if Tachyon error occurs
    */
-  private void completePartition() throws IOException, TachyonException {
+  private void completePartition() throws IOException, AlluxioException {
     if (mWriter == null) {
       return;
     }

@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 
 import alluxio.annotation.PublicApi;
 import alluxio.client.Cancelable;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * Interface for writers which create new key-value stores in Tachyon.
@@ -34,9 +34,9 @@ public interface KeyValueStoreWriter extends Closeable, Cancelable {
    * @param key key to put, cannot be null
    * @param value value to put, cannot be null
    * @throws IOException if non-Tachyon error occurs
-   * @throws TachyonException if Tachyon error occurs
+   * @throws AlluxioException if Tachyon error occurs
    */
-  void put(byte[] key, byte[] value) throws IOException, TachyonException;
+  void put(byte[] key, byte[] value) throws IOException, AlluxioException;
 
   /**
    * Adds a key and its associated value to this store.
@@ -44,8 +44,8 @@ public interface KeyValueStoreWriter extends Closeable, Cancelable {
    * @param key key to put, cannot be null
    * @param value value to put, cannot be null
    * @throws IOException if non-Tachyon error occurs
-   * @throws TachyonException if Tachyon error occurs
+   * @throws AlluxioException if Tachyon error occurs
    */
-  void put(ByteBuffer key, ByteBuffer value) throws IOException, TachyonException;
+  void put(ByteBuffer key, ByteBuffer value) throws IOException, AlluxioException;
 
 }

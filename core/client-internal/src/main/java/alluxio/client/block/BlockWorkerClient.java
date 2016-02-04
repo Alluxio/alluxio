@@ -34,9 +34,9 @@ import com.google.common.base.Preconditions;
 
 import alluxio.ClientBase;
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -44,8 +44,8 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.security.authentication.AuthenticationUtils;
 import alluxio.thrift.BlockWorkerClientService;
-import alluxio.thrift.TachyonService;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.ThriftUtils;
@@ -87,7 +87,7 @@ public final class BlockWorkerClient extends ClientBase {
    * @param clientMetrics metrics of the client
    */
   public BlockWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
-      TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
+                           Configuration conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "blockWorker");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
@@ -121,13 +121,13 @@ public final class BlockWorkerClient extends ClientBase {
    * @param fileId The id of the file
    * @return true if success, false otherwise
    * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
+   * @throws AlluxioException if a Tachyon error occurs
    */
   public synchronized boolean asyncCheckpoint(final long fileId) throws IOException,
-      TachyonException {
+      AlluxioException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
-      public Boolean call() throws TachyonTException, TException {
+      public Boolean call() throws AlluxioTException, TException {
         return mClient.asyncCheckpoint(fileId);
       }
     });
@@ -138,12 +138,12 @@ public final class BlockWorkerClient extends ClientBase {
    *
    * @param blockId The id of the block
    * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
+   * @throws AlluxioException if a Tachyon error occurs
    */
-  public synchronized void cacheBlock(final long blockId) throws IOException, TachyonException {
+  public synchronized void cacheBlock(final long blockId) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
-      public Void call() throws TachyonTException, TException {
+      public Void call() throws AlluxioTException, TException {
         mClient.cacheBlock(mSessionId, blockId);
         return null;
       }
@@ -155,12 +155,12 @@ public final class BlockWorkerClient extends ClientBase {
    *
    * @param blockId The Id of the block to be cancelled
    * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
+   * @throws AlluxioException if a Tachyon error occurs
    */
-  public synchronized void cancelBlock(final long blockId) throws IOException, TachyonException {
+  public synchronized void cancelBlock(final long blockId) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
-      public Void call() throws TachyonTException, TException {
+      public Void call() throws AlluxioTException, TException {
         mClient.cancelBlock(mSessionId, blockId);
         return null;
       }
@@ -183,7 +183,7 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   @Override
-  protected synchronized TachyonService.Client getClient() {
+  protected synchronized AlluxioService.Client getClient() {
     return mClient;
   }
 
@@ -207,7 +207,7 @@ public final class BlockWorkerClient extends ClientBase {
       LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mAddress);
 
       TProtocol binaryProtocol =
-          new TBinaryProtocol(AuthenticationUtils.getClientTransport(mTachyonConf, mAddress));
+          new TBinaryProtocol(AuthenticationUtils.getClientTransport(mConfiguration, mAddress));
       mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       mClient = new BlockWorkerClientService.Client(mProtocol);
 
@@ -222,7 +222,7 @@ public final class BlockWorkerClient extends ClientBase {
       // only start the heartbeat thread if the connection is successful and if there is not
       // another heartbeat thread running
       if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
-        final int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
+        final int interval = mConfiguration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
         mHeartbeat =
             mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
                 mHeartbeatExecutor, interval));
@@ -283,11 +283,11 @@ public final class BlockWorkerClient extends ClientBase {
     try {
       return retryRPC(new RpcCallableThrowsTachyonTException<LockBlockResult>() {
         @Override
-        public LockBlockResult call() throws TachyonTException, TException {
+        public LockBlockResult call() throws AlluxioTException, TException {
           return ThriftUtils.fromThrift(mClient.lockBlock(blockId, mSessionId));
         }
       });
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       if (e instanceof FileDoesNotExistException) {
         return null;
       } else {
@@ -320,13 +320,13 @@ public final class BlockWorkerClient extends ClientBase {
    * @param blockId The id of the block that will be promoted
    * @return true if succeed, false otherwise
    * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
+   * @throws AlluxioException if a Tachyon error occurs
    */
   public synchronized boolean promoteBlock(final long blockId) throws IOException,
-      TachyonException {
+      AlluxioException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
-      public Boolean call() throws TachyonTException, TException {
+      public Boolean call() throws AlluxioTException, TException {
         return mClient.promoteBlock(blockId);
       }
     });
@@ -345,11 +345,11 @@ public final class BlockWorkerClient extends ClientBase {
     try {
       return retryRPC(new RpcCallableThrowsTachyonTException<String>() {
         @Override
-        public String call() throws TachyonTException, TException {
+        public String call() throws AlluxioTException, TException {
           return mClient.requestBlockLocation(mSessionId, blockId, initialBytes);
         }
       });
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       if (e instanceof WorkerOutOfSpaceException) {
         throw new IOException("Failed to request " + initialBytes, e);
       } else {
@@ -371,11 +371,11 @@ public final class BlockWorkerClient extends ClientBase {
     try {
       return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
         @Override
-        public Boolean call() throws TachyonTException, TException {
+        public Boolean call() throws AlluxioTException, TException {
           return mClient.requestSpace(mSessionId, blockId, requestBytes);
         }
       });
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       if (e instanceof WorkerOutOfSpaceException) {
         return false;
       } else {

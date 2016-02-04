@@ -28,11 +28,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.MasterContext;
-import alluxio.master.TachyonMaster;
+import alluxio.master.AlluxioMaster;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.PlainSaslServer;
 import alluxio.util.SecurityUtils;
@@ -44,14 +44,14 @@ import alluxio.wire.FileInfo;
 @ThreadSafe
 public final class WebInterfaceMemoryServlet extends HttpServlet {
   private static final long serialVersionUID = 4293149962399443914L;
-  private final transient TachyonMaster mMaster;
+  private final transient AlluxioMaster mMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceMemoryServlet}.
    *
    * @param master Tachyon master
    */
-  public WebInterfaceMemoryServlet(TachyonMaster master) {
+  public WebInterfaceMemoryServlet(AlluxioMaster master) {
     mMaster = Preconditions.checkNotNull(master);
   }
 
@@ -73,11 +73,11 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("fatalError", "");
 
-    List<TachyonURI> inMemoryFiles = mMaster.getFileSystemMaster().getInMemoryFiles();
+    List<AlluxioURI> inMemoryFiles = mMaster.getFileSystemMaster().getInMemoryFiles();
     Collections.sort(inMemoryFiles);
 
     List<UIFileInfo> fileInfos = new ArrayList<UIFileInfo>(inMemoryFiles.size());
-    for (TachyonURI file : inMemoryFiles) {
+    for (AlluxioURI file : inMemoryFiles) {
       try {
         long fileId = mMaster.getFileSystemMaster().getFileId(file);
         FileInfo fileInfo = mMaster.getFileSystemMaster().getFileInfo(fileId);

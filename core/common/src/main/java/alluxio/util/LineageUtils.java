@@ -18,7 +18,7 @@ package alluxio.util;
 import javax.annotation.concurrent.ThreadSafe;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Utility methods for lineage.
@@ -33,7 +33,7 @@ public final class LineageUtils {
    * @param conf the configuration for Tachyon
    * @return true if lineage is enabled, false otherwise
    */
-  public static boolean isLineageEnabled(TachyonConf conf) {
+  public static boolean isLineageEnabled(Configuration conf) {
     return conf.getBoolean(Constants.USER_LINEAGE_ENABLED);
   }
 }

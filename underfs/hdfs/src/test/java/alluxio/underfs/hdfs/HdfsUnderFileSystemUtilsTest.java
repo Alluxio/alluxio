@@ -15,11 +15,10 @@
 
 package alluxio.underfs.hdfs;
 
-import org.apache.hadoop.conf.Configuration;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Tests {@link HdfsUnderFileSystemUtils}.
@@ -27,21 +26,21 @@ import alluxio.conf.TachyonConf;
 public final class HdfsUnderFileSystemUtilsTest {
 
   /**
-   * Tests the {@link HdfsUnderFileSystemUtils#addKey(Configuration, TachyonConf, String)} method.
+   * Tests the {@link HdfsUnderFileSystemUtils#addKey(org.apache.hadoop.conf.Configuration, Configuration, String)} method.
    */
   @Test
   public void addKeyTest() {
     String key = "key";
-    Configuration conf = new Configuration();
-    TachyonConf tachyonConf = new TachyonConf();
-    tachyonConf.set(key, "tachyonKey");
+    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
+    Configuration configuration = new Configuration();
+    configuration.set(key, "tachyonKey");
 
     System.setProperty(key, "systemKey");
-    HdfsUnderFileSystemUtils.addKey(conf, tachyonConf, key);
+    HdfsUnderFileSystemUtils.addKey(conf, configuration, key);
     Assert.assertEquals("systemKey", conf.get(key));
 
     System.clearProperty(key);
-    HdfsUnderFileSystemUtils.addKey(conf, tachyonConf, key);
+    HdfsUnderFileSystemUtils.addKey(conf, configuration, key);
     Assert.assertEquals("tachyonKey", conf.get(key));
   }
 }

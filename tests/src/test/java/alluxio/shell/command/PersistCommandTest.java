@@ -21,57 +21,57 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.ClientContext;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
-import alluxio.shell.TfsShellUtilsTest;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.shell.AlluxioShellUtilsTest;
 
 /**
  * Tests for persist command.
  */
-public class PersistCommandTest extends AbstractTfsShellTest {
+public class PersistCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void persistTest() throws IOException, TachyonException {
+  public void persistTest() throws IOException, AlluxioException {
     String testFilePath = "/testPersist/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WriteType.MUST_CACHE, 10);
     Assert
-        .assertFalse(mFileSystem.getStatus(new TachyonURI("/testPersist/testFile")).isPersisted());
+        .assertFalse(mFileSystem.getStatus(new AlluxioURI("/testPersist/testFile")).isPersisted());
 
     int ret = mFsShell.run("persist", testFilePath);
     Assert.assertEquals(0, ret);
     Assert.assertEquals("persisted file " + testFilePath + " with size 10\n", mOutput.toString());
-    checkFilePersisted(new TachyonURI("/testPersist/testFile"), 10);
+    checkFilePersisted(new AlluxioURI("/testPersist/testFile"), 10);
   }
 
   @Test
-  public void persistDirectoryTest() throws IOException, TachyonException {
+  public void persistDirectoryTest() throws IOException, AlluxioException {
     // Set the default write type to MUST_CACHE, so that directories are not persisted by default
     ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
-    Assert.assertFalse(mFileSystem.getStatus(new TachyonURI("/testWildCards")).isPersisted());
+    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/testWildCards")).isPersisted());
     Assert
-        .assertFalse(mFileSystem.getStatus(new TachyonURI("/testWildCards/foo")).isPersisted());
+        .assertFalse(mFileSystem.getStatus(new AlluxioURI("/testWildCards/foo")).isPersisted());
     Assert
-        .assertFalse(mFileSystem.getStatus(new TachyonURI("/testWildCards/bar")).isPersisted());
+        .assertFalse(mFileSystem.getStatus(new AlluxioURI("/testWildCards/bar")).isPersisted());
     int ret = mFsShell.run("persist", "/testWildCards");
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(mFileSystem.getStatus(new TachyonURI("/testWildCards")).isPersisted());
+    Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI("/testWildCards")).isPersisted());
     Assert
-        .assertTrue(mFileSystem.getStatus(new TachyonURI("/testWildCards/foo")).isPersisted());
+        .assertTrue(mFileSystem.getStatus(new AlluxioURI("/testWildCards/foo")).isPersisted());
     Assert
-        .assertTrue(mFileSystem.getStatus(new TachyonURI("/testWildCards/bar")).isPersisted());
-    checkFilePersisted(new TachyonURI("/testWildCards/foo/foobar1"), 10);
-    checkFilePersisted(new TachyonURI("/testWildCards/foo/foobar2"), 20);
-    checkFilePersisted(new TachyonURI("/testWildCards/bar/foobar3"), 30);
-    checkFilePersisted(new TachyonURI("/testWildCards/foobar4"), 40);
+        .assertTrue(mFileSystem.getStatus(new AlluxioURI("/testWildCards/bar")).isPersisted());
+    checkFilePersisted(new AlluxioURI("/testWildCards/foo/foobar1"), 10);
+    checkFilePersisted(new AlluxioURI("/testWildCards/foo/foobar2"), 20);
+    checkFilePersisted(new AlluxioURI("/testWildCards/bar/foobar3"), 30);
+    checkFilePersisted(new AlluxioURI("/testWildCards/foobar4"), 40);
   }
 
   @Test
-  public void persistNonexistentFileTest() throws IOException, TachyonException {
+  public void persistNonexistentFileTest() throws IOException, AlluxioException {
     // Cannot persist a nonexistent file
     String path = "/testPersistNonexistent";
     int ret = mFsShell.run("persist", path);
@@ -81,18 +81,18 @@ public class PersistCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void persistTwiceTest() throws IOException, TachyonException {
+  public void persistTwiceTest() throws IOException, AlluxioException {
     // Persisting an already-persisted file is okay
     String testFilePath = "/testPersist/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WriteType.MUST_CACHE, 10);
     Assert
-        .assertFalse(mFileSystem.getStatus(new TachyonURI("/testPersist/testFile")).isPersisted());
+        .assertFalse(mFileSystem.getStatus(new AlluxioURI("/testPersist/testFile")).isPersisted());
     int ret = mFsShell.run("persist", testFilePath);
     Assert.assertEquals(0, ret);
     ret = mFsShell.run("persist", testFilePath);
     Assert.assertEquals(0, ret);
     Assert.assertEquals("persisted file " + testFilePath + " with size 10\n" + testFilePath
         + " is already persisted\n", mOutput.toString());
-    checkFilePersisted(new TachyonURI("/testPersist/testFile"), 10);
+    checkFilePersisted(new AlluxioURI("/testPersist/testFile"), 10);
   }
 }

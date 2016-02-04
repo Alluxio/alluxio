@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -82,29 +82,29 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * Constructs a new instance of {@link S3UnderFileSystem}.
    *
    * @param bucketName the name of the bucket
-   * @param tachyonConf the configuration for Tachyon
+   * @param configuration the configuration for Tachyon
    * @throws ServiceException when a connection to S3 could not be created
    */
-  public S3UnderFileSystem(String bucketName, TachyonConf tachyonConf) throws ServiceException {
-    super(tachyonConf);
-    Preconditions.checkArgument(tachyonConf.containsKey(Constants.S3_ACCESS_KEY),
+  public S3UnderFileSystem(String bucketName, Configuration configuration) throws ServiceException {
+    super(configuration);
+    Preconditions.checkArgument(configuration.containsKey(Constants.S3_ACCESS_KEY),
         "Property " + Constants.S3_ACCESS_KEY + " is required to connect to S3");
-    Preconditions.checkArgument(tachyonConf.containsKey(Constants.S3_SECRET_KEY),
+    Preconditions.checkArgument(configuration.containsKey(Constants.S3_SECRET_KEY),
         "Property " + Constants.S3_SECRET_KEY + " is required to connect to S3");
     AWSCredentials awsCredentials =
-        new AWSCredentials(tachyonConf.get(Constants.S3_ACCESS_KEY), tachyonConf.get(
+        new AWSCredentials(configuration.get(Constants.S3_ACCESS_KEY), configuration.get(
             Constants.S3_SECRET_KEY));
     mBucketName = bucketName;
 
     Jets3tProperties props = new Jets3tProperties();
-    if (tachyonConf.containsKey(Constants.UNDERFS_S3_PROXY_HOST)) {
+    if (configuration.containsKey(Constants.UNDERFS_S3_PROXY_HOST)) {
       props.setProperty("httpclient.proxy-autodetect", "false");
-      props.setProperty("httpclient.proxy-host", tachyonConf.get(Constants.UNDERFS_S3_PROXY_HOST));
-      props.setProperty("httpclient.proxy-port", tachyonConf.get(Constants.UNDERFS_S3_PROXY_PORT));
+      props.setProperty("httpclient.proxy-host", configuration.get(Constants.UNDERFS_S3_PROXY_HOST));
+      props.setProperty("httpclient.proxy-port", configuration.get(Constants.UNDERFS_S3_PROXY_PORT));
     }
-    if (tachyonConf.containsKey(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
+    if (configuration.containsKey(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
       props.setProperty("s3service.https-only",
-          Boolean.toString(tachyonConf.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)));
+          Boolean.toString(configuration.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)));
     }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
@@ -121,12 +121,12 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(TachyonConf conf, String hostname) {
+  public void connectFromMaster(Configuration conf, String hostname) {
     // Authentication is taken care of in the constructor
   }
 
   @Override
-  public void connectFromWorker(TachyonConf conf, String hostname) {
+  public void connectFromWorker(Configuration conf, String hostname) {
     // Authentication is taken care of in the constructor
   }
 

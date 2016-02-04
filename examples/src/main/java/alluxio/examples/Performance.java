@@ -23,7 +23,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel.MapMode;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,13 +31,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.Version;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
@@ -52,7 +51,7 @@ public class Performance {
   private static final String FOLDER = "/mnt/ramdisk/";
 
   private static FileSystem sFileSystem = null;
-  private static TachyonURI sMasterAddress = null;
+  private static AlluxioURI sMasterAddress = null;
   private static String sFileName = null;
   private static int sBlockSizeBytes = -1;
   private static long sBlocksPerFile = -1;
@@ -69,13 +68,13 @@ public class Performance {
   /**
    * Creates the files for this example.
    *
-   * @throws TachyonException if creating a file fails
+   * @throws AlluxioException if creating a file fails
    * @throws IOException if a non-Tachyon related exception occurs
    */
-  public static void createFiles() throws TachyonException, IOException {
+  public static void createFiles() throws AlluxioException, IOException {
     final long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < sFiles; k ++) {
-      sFileSystem.createFile(new TachyonURI(sFileName + (k + sBaseFileNumber))).close();
+      sFileSystem.createFile(new AlluxioURI(sFileName + (k + sBaseFileNumber))).close();
       LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile"));
     }
   }
@@ -222,7 +221,7 @@ public class Performance {
   /**
    * A worker in Tachyon for write operations.
    */
-  public static class TachyonWriterWorker extends Worker {
+  public static class AlluxioWriterWorker extends Worker {
     private FileSystem mFileSystem;
 
     /**
@@ -232,7 +231,7 @@ public class Performance {
      * @param buf the buffer to write
      * @throws IOException if a non-Tachyon related exception occurs
      */
-    public TachyonWriterWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
+    public AlluxioWriterWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
       mFileSystem = FileSystem.Factory.get();
     }
@@ -241,10 +240,10 @@ public class Performance {
      * Writes a partition.
      *
      * @throws IOException if a non-Tachyon related exception occurs
-     * @throws TachyonException if the write stream cannot be retrieved
+     * @throws AlluxioException if the write stream cannot be retrieved
      */
     public void writePartition()
-            throws IOException, TachyonException {
+            throws IOException, AlluxioException {
       if (sDebugMode) {
         mBuf.flip();
         LOG.info(FormatUtils.byteBufferToString(mBuf));
@@ -254,7 +253,7 @@ public class Performance {
       for (int pId = mLeft; pId < mRight; pId ++) {
         final long startTimeMs = System.currentTimeMillis();
         FileOutStream os =
-            mFileSystem.createFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
+            mFileSystem.createFile(new AlluxioURI(sFileName + (pId + sBaseFileNumber)));
         for (int k = 0; k < sBlocksPerFile; k ++) {
           mBuf.putInt(0, k + mWorkerId);
           os.write(mBuf.array());
@@ -278,7 +277,7 @@ public class Performance {
   /**
    * A worker in Tachyon for read operations.
    */
-  public static class TachyonReadWorker extends Worker {
+  public static class AlluxioReadWorker extends Worker {
     private FileSystem mFileSystem;
 
     /**
@@ -288,7 +287,7 @@ public class Performance {
      * @param buf the buffer to read
      * @throws IOException if a non-Tachyon related exception occurs
      */
-    public TachyonReadWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
+    public AlluxioReadWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
       mFileSystem = FileSystem.Factory.get();
     }
@@ -297,17 +296,17 @@ public class Performance {
      * Reads a partition.
      *
      * @throws IOException if a non-Tachyon related exception occurs
-     * @throws TachyonException if the file cannot be opened or the stream cannot be retrieved
+     * @throws AlluxioException if the file cannot be opened or the stream cannot be retrieved
      */
     public void readPartition()
-            throws IOException, TachyonException {
+            throws IOException, AlluxioException {
       if (sDebugMode) {
         ByteBuffer buf = ByteBuffer.allocate(sBlockSizeBytes);
         LOG.info("Verifying the reading data...");
 
         for (int pId = mLeft; pId < mRight; pId ++) {
           InputStream is =
-              mFileSystem.openFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
+              mFileSystem.openFile(new AlluxioURI(sFileName + (pId + sBaseFileNumber)));
           is.read(buf.array());
           buf.order(ByteOrder.nativeOrder());
           for (int i = 0; i < sBlocksPerFile; i ++) {
@@ -329,7 +328,7 @@ public class Performance {
         for (int pId = mLeft; pId < mRight; pId ++) {
           final long startTimeMs = System.currentTimeMillis();
           InputStream is =
-              mFileSystem.openFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
+              mFileSystem.openFile(new AlluxioURI(sFileName + (pId + sBaseFileNumber)));
           long len = sBlocksPerFile * sBlockSizeBytes;
 
           while (len > 0) {
@@ -344,7 +343,7 @@ public class Performance {
         for (int pId = mLeft; pId < mRight; pId ++) {
           final long startTimeMs = System.currentTimeMillis();
           InputStream is =
-              mFileSystem.openFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
+              mFileSystem.openFile(new AlluxioURI(sFileName + (pId + sBaseFileNumber)));
           for (int i = 0; i < sBlocksPerFile; i ++) {
             is.read(mBuf.array());
           }
@@ -397,7 +396,7 @@ public class Performance {
       mWrite = write;
       mMsg = msg;
 
-      Configuration tConf = new Configuration();
+      org.apache.hadoop.conf.Configuration tConf = new org.apache.hadoop.conf.Configuration();
       tConf.set("fs.default.name", sFileName);
       tConf.set("fs.defaultFS", sFileName);
       tConf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
@@ -526,10 +525,10 @@ public class Performance {
     for (int thread = 0; thread < sThreads; thread ++) {
       if (write) {
         workerThreads[thread] =
-            new TachyonWriterWorker(thread, t * thread, t * (thread + 1), bufs[thread]);
+            new AlluxioWriterWorker(thread, t * thread, t * (thread + 1), bufs[thread]);
       } else {
         workerThreads[thread] =
-            new TachyonReadWorker(thread, t * thread, t * (thread + 1), bufs[thread]);
+            new AlluxioReadWorker(thread, t * thread, t * (thread + 1), bufs[thread]);
       }
     }
 
@@ -608,7 +607,7 @@ public class Performance {
       System.exit(-1);
     }
 
-    sMasterAddress = new TachyonURI(args[0]);
+    sMasterAddress = new AlluxioURI(args[0]);
     sFileName = args[1];
     sBlockSizeBytes = Integer.parseInt(args[2]);
     sBlocksPerFile = Long.parseLong(args[3]);
@@ -621,9 +620,9 @@ public class Performance {
     sFileBytes = sBlocksPerFile * sBlockSizeBytes;
     sFilesBytes = 1L * sFileBytes * sFiles;
 
-    TachyonConf tachyonConf = ClientContext.getConf();
+    Configuration configuration = ClientContext.getConf();
 
-    long fileBufferBytes = tachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    long fileBufferBytes = configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     sResultPrefix = String.format(
         "Threads %d FilesPerThread %d TotalFiles %d "
             + "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d "
@@ -633,8 +632,8 @@ public class Performance {
 
     CommonUtils.warmUpLoop();
 
-    tachyonConf.set(Constants.MASTER_HOSTNAME, sMasterAddress.getHost());
-    tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(sMasterAddress.getPort()));
+    configuration.set(Constants.MASTER_HOSTNAME, sMasterAddress.getHost());
+    configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(sMasterAddress.getPort()));
 
     if (testCase == 1) {
       sResultPrefix = "TachyonFilesWriteTest " + sResultPrefix;

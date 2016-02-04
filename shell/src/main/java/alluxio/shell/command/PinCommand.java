@@ -21,9 +21,9 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Pins the given file or folder (recursively pinning all children if a folder). Pinned files are
@@ -36,7 +36,7 @@ public final class PinCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public PinCommand(TachyonConf conf, FileSystem fs) {
+  public PinCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -46,7 +46,7 @@ public final class PinCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
+  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
     CommandUtils.setPinned(mFileSystem, path, true);
     System.out.println("File '" + path + "' was successfully pinned.");
   }

@@ -32,8 +32,8 @@ import com.google.common.collect.Lists;
 import com.google.protobuf.Message;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
@@ -81,7 +81,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 public final class LineageMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final TachyonConf mTachyonConf;
+  private final Configuration mConfiguration;
   private final LineageStore mLineageStore;
   private final FileSystemMaster mFileSystemMaster;
   private final LineageIdGenerator mLineageIdGenerator;
@@ -114,7 +114,7 @@ public final class LineageMaster extends MasterBase {
   public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal, 2);
 
-    mTachyonConf = MasterContext.getConf();
+    mConfiguration = MasterContext.getConf();
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageIdGenerator = new LineageIdGenerator();
     mLineageStore = new LineageStore(mLineageIdGenerator);
@@ -155,12 +155,12 @@ public final class LineageMaster extends MasterBase {
       mCheckpointExecutionService = getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
               new CheckpointSchedulingExcecutor(this, mFileSystemMaster),
-              mTachyonConf.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
+              mConfiguration.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService = getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_FILE_RECOMPUTATION,
               new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
                   mFileSystemMaster),
-              mTachyonConf.getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
+              mConfiguration.getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
     }
   }
 
@@ -191,11 +191,11 @@ public final class LineageMaster extends MasterBase {
    * @throws IOException if the creation of a file fails
    * @throws AccessControlException if the permission check fails
    */
-  public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
-      Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
+  public synchronized long createLineage(List<AlluxioURI> inputFiles, List<AlluxioURI> outputFiles,
+                                         Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
       IOException, AccessControlException {
     List<Long> inputTachyonFiles = Lists.newArrayList();
-    for (TachyonURI inputFile : inputFiles) {
+    for (AlluxioURI inputFile : inputFiles) {
       long fileId;
       fileId = mFileSystemMaster.getFileId(inputFile);
       if (fileId == IdUtils.INVALID_FILE_ID) {
@@ -206,7 +206,7 @@ public final class LineageMaster extends MasterBase {
     }
     // create output files
     List<Long> outputTachyonFiles = Lists.newArrayList();
-    for (TachyonURI outputFile : outputFiles) {
+    for (AlluxioURI outputFile : outputFiles) {
       long fileId;
       // TODO(yupeng): delete the placeholder files if the creation fails.
       // Create the file initialized with block size 1KB as placeholder.
@@ -288,7 +288,7 @@ public final class LineageMaster extends MasterBase {
    */
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
       throws InvalidPathException, LineageDoesNotExistException, AccessControlException {
-    long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
+    long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
     FileInfo fileInfo;
     try {
       fileInfo = mFileSystemMaster.getFileInfo(fileId);
@@ -298,7 +298,7 @@ public final class LineageMaster extends MasterBase {
     }
     if (!fileInfo.isCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
       LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
-      return mFileSystemMaster.reinitializeFile(new TachyonURI(path), blockSizeBytes, ttl);
+      return mFileSystemMaster.reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl);
     }
     return -1;
   }
@@ -375,7 +375,7 @@ public final class LineageMaster extends MasterBase {
    */
   public synchronized void reportLostFile(String path) throws FileDoesNotExistException,
       AccessControlException {
-    long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
+    long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
     mFileSystemMaster.reportLostFile(fileId);
   }
 }

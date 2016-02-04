@@ -31,7 +31,7 @@ import com.google.common.collect.Lists;
 
 import alluxio.Constants;
 import alluxio.client.ClientContext;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -141,7 +141,7 @@ public final class BlockStoreContextTest {
     final List<BlockWorkerClient> clients = Lists.newArrayList();
 
     // Reduce the size of the worker thread pool to lower the chance of a timeout.
-    TachyonConf conf = Whitebox.getInternalState(ClientContext.class, "sTachyonConf");
+    Configuration conf = Whitebox.getInternalState(ClientContext.class, "sTachyonConf");
     conf.set(Constants.USER_BLOCK_WORKER_CLIENT_THREADS, "10");
 
     // Acquire all the clients

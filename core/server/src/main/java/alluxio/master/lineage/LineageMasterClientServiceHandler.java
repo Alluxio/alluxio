@@ -25,19 +25,19 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
-import alluxio.exception.TachyonException;
+import alluxio.AlluxioURI;
+import alluxio.exception.AlluxioException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.thrift.CommandLineJobInfo;
 import alluxio.thrift.LineageInfo;
 import alluxio.thrift.LineageMasterClientService;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 import alluxio.wire.ThriftUtils;
 
 /**
- * This class is a Thrift handler for lineage master RPCs invoked by a Tachyon client.
+ * This class is a Thrift handler for lineage master RPCs invoked by a Alluxio client.
  */
 @ThreadSafe
 public final class LineageMasterClientServiceHandler implements LineageMasterClientService.Iface {
@@ -60,66 +60,66 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
 
   @Override
   public long createLineage(List<String> inputFiles, List<String> outputFiles,
-      CommandLineJobInfo jobInfo) throws TachyonTException, ThriftIOException {
+      CommandLineJobInfo jobInfo) throws AlluxioTException, ThriftIOException {
     // deserialization
-    List<TachyonURI> inputFilesUri = Lists.newArrayList();
+    List<AlluxioURI> inputFilesUri = Lists.newArrayList();
     for (String inputFile : inputFiles) {
-      inputFilesUri.add(new TachyonURI(inputFile));
+      inputFilesUri.add(new AlluxioURI(inputFile));
     }
-    List<TachyonURI> outputFilesUri = Lists.newArrayList();
+    List<AlluxioURI> outputFilesUri = Lists.newArrayList();
     for (String outputFile : outputFiles) {
-      outputFilesUri.add(new TachyonURI(outputFile));
+      outputFilesUri.add(new AlluxioURI(outputFile));
     }
 
     CommandLineJob job =
         new CommandLineJob(jobInfo.getCommand(), new JobConf(jobInfo.getConf().getOutputFile()));
     try {
       return mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }
   }
 
   @Override
-  public boolean deleteLineage(long lineageId, boolean cascade) throws TachyonTException {
+  public boolean deleteLineage(long lineageId, boolean cascade) throws AlluxioTException {
     try {
       return mLineageMaster.deleteLineage(lineageId, cascade);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
   public long reinitializeFile(String path, long blockSizeBytes, long ttl)
-      throws TachyonTException {
+      throws AlluxioTException {
     try {
       return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
-  public void reportLostFile(String path) throws TachyonTException, ThriftIOException {
+  public void reportLostFile(String path) throws AlluxioTException, ThriftIOException {
     try {
       mLineageMaster.reportLostFile(path);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
-  public List<LineageInfo> getLineageInfoList() throws TachyonTException {
+  public List<LineageInfo> getLineageInfoList() throws AlluxioTException {
     try {
       List<LineageInfo> result = new ArrayList<LineageInfo>();
       for (alluxio.wire.LineageInfo lineageInfo : mLineageMaster.getLineageInfoList()) {
         result.add(ThriftUtils.toThrift(lineageInfo));
       }
       return result;
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 }

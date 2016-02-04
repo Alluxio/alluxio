@@ -21,7 +21,6 @@ import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.Path;
@@ -33,17 +32,17 @@ import org.slf4j.LoggerFactory;
 import com.google.common.primitives.Ints;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 
 /**
@@ -55,7 +54,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   private long mCurrentPosition;
   private Path mHdfsPath;
-  private Configuration mHadoopConf;
+  private org.apache.hadoop.conf.Configuration mHadoopConf;
   private int mHadoopBufferSize;
   private Statistics mStatistics;
   private URIStatus mFileInfo;
@@ -80,12 +79,12 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    * @param stats filesystem statistics
    * @throws IOException if the underlying file does not exist or its stream cannot be created
    */
-  public HdfsFileInputStream(TachyonURI uri, Path hdfsPath, Configuration conf, int bufferSize,
-      org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
+  public HdfsFileInputStream(AlluxioURI uri, Path hdfsPath, org.apache.hadoop.conf.Configuration conf, int bufferSize,
+                             org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
     LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", uri, hdfsPath, conf,
         bufferSize, stats);
-    TachyonConf tachyonConf = ClientContext.getConf();
-    long bufferBytes = tachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    Configuration configuration = ClientContext.getConf();
+    long bufferBytes = configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
     mCurrentPosition = 0;
     FileSystem fs = FileSystem.Factory.get();
@@ -100,7 +99,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(
           ExceptionMessage.HDFS_FILE_NOT_FOUND.getMessage(hdfsPath, uri));
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     }
   }

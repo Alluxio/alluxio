@@ -28,8 +28,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import alluxio.Constants;
-import alluxio.exception.TachyonException;
-import alluxio.thrift.TachyonTException;
+import alluxio.exception.AlluxioException;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
 /**
@@ -115,9 +115,9 @@ public final class ReplayCache<V> {
      * Calls the RPC handler.
      *
      * @return the results of the handler
-     * @throws TachyonException if an unexpected exception in Tachyon is thrown
+     * @throws AlluxioException if an unexpected exception in Tachyon is thrown
      */
-    V call() throws TachyonException;
+    V call() throws AlluxioException;
   }
 
   /**
@@ -131,10 +131,10 @@ public final class ReplayCache<V> {
      * Calls the RPC handler.
      *
      * @return the result of the handler
-     * @throws TachyonException if an unexpected exception in Tachyon is thrown
+     * @throws AlluxioException if an unexpected exception in Tachyon is thrown
      * @throws IOException if a non-Tachyon exception occurs
      */
-    V call() throws TachyonException, IOException;
+    V call() throws AlluxioException, IOException;
   }
 
   /**
@@ -146,22 +146,22 @@ public final class ReplayCache<V> {
    * @param replayCallable the handler logic for the RPC
    * @return the result of executing {@code replayCallable}, or the cached value from a previous
    *         invocation
-   * @throws TachyonTException when {@link TachyonException} is thrown by the handler call
+   * @throws AlluxioTException when {@link AlluxioException} is thrown by the handler call
    */
-  public V run(String key, final ReplayCallable<V> replayCallable) throws TachyonTException {
+  public V run(String key, final ReplayCallable<V> replayCallable) throws AlluxioTException {
     try {
       return mCache.get(key, new Callable<V>() {
         @Override
         public V call() throws Exception {
           try {
             return replayCallable.call();
-          } catch (TachyonException e) {
-            throw e.toTachyonTException();
+          } catch (AlluxioException e) {
+            throw e.toAlluxioTException();
           }
         }
       });
     } catch (ExecutionException e) {
-      Throwables.propagateIfInstanceOf(e.getCause(), TachyonTException.class);
+      Throwables.propagateIfInstanceOf(e.getCause(), AlluxioTException.class);
       throw Throwables.propagate(e.getCause());
     } catch (UncheckedExecutionException e) {
       throw Throwables.propagate(e.getCause());
@@ -175,26 +175,26 @@ public final class ReplayCache<V> {
    * @param key the key for the RPC
    * @param replayCallable the handler logic for the RPC
    * @return the result of executing replayCallable, or the cached value from a previous invocation
-   * @throws TachyonTException when {@link TachyonException} is thrown by the handler call
+   * @throws AlluxioTException when {@link AlluxioException} is thrown by the handler call
    * @throws ThriftIOException when {@link IOException} is thrown by the handler call
    */
   public V run(String key, final ReplayCallableThrowsIOException<V> replayCallable)
-      throws TachyonTException, ThriftIOException {
+      throws AlluxioTException, ThriftIOException {
     try {
       return mCache.get(key, new Callable<V>() {
         @Override
         public V call() throws Exception {
           try {
             return replayCallable.call();
-          } catch (TachyonException e) {
-            throw e.toTachyonTException();
+          } catch (AlluxioException e) {
+            throw e.toAlluxioTException();
           } catch (IOException e) {
             throw new ThriftIOException(e.getMessage());
           }
         }
       });
     } catch (ExecutionException e) {
-      Throwables.propagateIfInstanceOf(e.getCause(), TachyonTException.class);
+      Throwables.propagateIfInstanceOf(e.getCause(), AlluxioTException.class);
       Throwables.propagateIfInstanceOf(e.getCause(), ThriftIOException.class);
       throw Throwables.propagate(e.getCause());
     } catch (UncheckedExecutionException e) {

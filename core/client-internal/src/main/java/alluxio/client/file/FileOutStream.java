@@ -28,12 +28,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
 import alluxio.client.ClientUtils;
 import alluxio.client.OutStreamBase;
-import alluxio.client.TachyonStorageType;
+import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.file.options.CompleteFileOptions;
@@ -41,7 +41,7 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -59,7 +59,7 @@ public class FileOutStream extends OutStreamBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mBlockSize;
-  protected final TachyonStorageType mTachyonStorageType;
+  protected final AlluxioStorageType mAlluxioStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
   private final OutputStream mUnderStorageOutputStream;
@@ -73,7 +73,7 @@ public class FileOutStream extends OutStreamBase {
   protected BufferedBlockOutStream mCurrentBlockOutStream;
   protected List<BufferedBlockOutStream> mPreviousBlockOutStreams;
 
-  protected final TachyonURI mUri;
+  protected final AlluxioURI mUri;
 
   /**
    * Creates a new file output stream.
@@ -82,11 +82,11 @@ public class FileOutStream extends OutStreamBase {
    * @param options the client options
    * @throws IOException if an I/O error occurs
    */
-  public FileOutStream(TachyonURI path, OutStreamOptions options) throws IOException {
+  public FileOutStream(AlluxioURI path, OutStreamOptions options) throws IOException {
     mUri = Preconditions.checkNotNull(path);
     mNonce = ClientUtils.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
-    mTachyonStorageType = options.getTachyonStorageType();
+    mAlluxioStorageType = options.getTachyonStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
@@ -102,7 +102,7 @@ public class FileOutStream extends OutStreamBase {
     }
     mClosed = false;
     mCanceled = false;
-    mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
+    mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
     mBytesWritten = 0;
     mLocationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
         PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
@@ -153,7 +153,7 @@ public class FileOutStream extends OutStreamBase {
       }
     }
 
-    if (mTachyonStorageType.isStore()) {
+    if (mAlluxioStorageType.isStore()) {
       try {
         if (mCanceled) {
           for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
@@ -174,7 +174,7 @@ public class FileOutStream extends OutStreamBase {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
         masterClient.completeFile(mUri, options);
-      } catch (TachyonException e) {
+      } catch (AlluxioException e) {
         throw new IOException(e);
       } finally {
         mContext.releaseMasterClient(masterClient);
@@ -264,14 +264,14 @@ public class FileOutStream extends OutStreamBase {
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
-    if (mTachyonStorageType.isStore()) {
+    if (mAlluxioStorageType.isStore()) {
       try {
         WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
             mContext.getTachyonBlockStore().getWorkerInfoList(), mBlockSize);
         mCurrentBlockOutStream =
             mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, address);
         mShouldCacheCurrentBlock = true;
-      } catch (TachyonException e) {
+      } catch (AlluxioException e) {
         throw new IOException(e);
       }
     }
@@ -281,7 +281,7 @@ public class FileOutStream extends OutStreamBase {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getNewBlockIdForFile(mUri);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);
@@ -305,7 +305,7 @@ public class FileOutStream extends OutStreamBase {
     try {
       URIStatus status = client.getStatus(mUri);
       mUfsPath = status.getUfsPath();
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(client);
@@ -321,7 +321,7 @@ public class FileOutStream extends OutStreamBase {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.scheduleAsyncPersist(mUri);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);

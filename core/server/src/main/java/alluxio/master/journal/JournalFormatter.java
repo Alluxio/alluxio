@@ -22,7 +22,7 @@ import java.io.OutputStream;
 import com.google.common.base.Throwables;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 
@@ -41,7 +41,7 @@ public interface JournalFormatter {
      * @param conf TachyonConf to get the type of {@link JournalFormatter}
      * @return the created formatter
      */
-    public static JournalFormatter create(TachyonConf conf) {
+    public static JournalFormatter create(Configuration conf) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<JournalFormatter>getClass(Constants.MASTER_JOURNAL_FORMATTER_CLASS), null, null);

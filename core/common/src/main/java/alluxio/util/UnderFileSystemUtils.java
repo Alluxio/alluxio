@@ -20,7 +20,7 @@ import java.io.OutputStream;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 
 /**
@@ -34,11 +34,11 @@ public final class UnderFileSystemUtils {
    * Deletes the directory at the given path.
    *
    * @param path path to the directory
-   * @param tachyonConf Tachyon configuration
+   * @param configuration Tachyon configuration
    * @throws IOException if the directory cannot be deleted
    */
-  public static void deleteDir(final String path, TachyonConf tachyonConf) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
+  public static void deleteDir(final String path, Configuration configuration) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path, configuration);
 
     if (ufs.exists(path) && !ufs.delete(path, true)) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
@@ -49,12 +49,12 @@ public final class UnderFileSystemUtils {
    * Attempts to create the directory if it does not already exist.
    *
    * @param path path to the directory
-   * @param tachyonConf Tachyon configuration
+   * @param configuration Tachyon configuration
    * @throws IOException if the directory cannot be created
    */
-  public static void mkdirIfNotExists(final String path, TachyonConf tachyonConf)
+  public static void mkdirIfNotExists(final String path, Configuration configuration)
       throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
+    UnderFileSystem ufs = UnderFileSystem.get(path, configuration);
 
     if (!ufs.exists(path)) {
       if (!ufs.mkdirs(path, true)) {
@@ -67,11 +67,11 @@ public final class UnderFileSystemUtils {
    * Creates an empty file.
    *
    * @param path path to the file
-   * @param tachyonConf Tachyon Configuration
+   * @param configuration Tachyon Configuration
    * @throws IOException if the file cannot be created
    */
-  public static void touch(final String path, TachyonConf tachyonConf) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
+  public static void touch(final String path, Configuration configuration) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path, configuration);
     OutputStream os = ufs.create(path);
     os.close();
   }

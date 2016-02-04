@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 import com.google.common.base.Throwables;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.CommonUtils;
 
 /**
@@ -41,7 +41,7 @@ public interface RemoteBlockReader extends Closeable {
      * @param conf Tachyon configuration
      * @return a new instance of {@link RemoteBlockReader}
      */
-    public static RemoteBlockReader create(TachyonConf conf) {
+    public static RemoteBlockReader create(Configuration conf) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<RemoteBlockReader>getClass(Constants.USER_BLOCK_REMOTE_READER), null, null);

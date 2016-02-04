@@ -20,7 +20,7 @@ import java.io.IOException;
 import org.powermock.reflect.Whitebox;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Utility methods for the tests using {@link LoginUser}.
@@ -39,11 +39,11 @@ public final class LoginUserTestUtils {
   /**
    * Resets the {@link LoginUser} and re-login with new user
    *
-   * @param conf the instance of {@link TachyonConf}
+   * @param conf the instance of {@link Configuration}
    * @param user the new user
    * @throws IOException if login fails
    */
-  public static void resetLoginUser(TachyonConf conf, String user) throws IOException {
+  public static void resetLoginUser(Configuration conf, String user) throws IOException {
     synchronized (LoginUser.class) {
       resetLoginUser();
       conf.set(Constants.SECURITY_LOGIN_USERNAME, user);

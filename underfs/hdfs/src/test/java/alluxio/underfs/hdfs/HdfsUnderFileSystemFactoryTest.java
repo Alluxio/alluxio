@@ -18,7 +18,7 @@ package alluxio.underfs.hdfs;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
 
@@ -32,7 +32,7 @@ public class HdfsUnderFileSystemFactoryTest {
    */
   @Test
   public void factoryTest() {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
 
     UnderFileSystemFactory factory =
         UnderFileSystemRegistry.find("hdfs://localhost/test/path", conf);

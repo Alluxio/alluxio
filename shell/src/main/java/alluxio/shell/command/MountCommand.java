@@ -21,22 +21,22 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Mounts a UFS path onto a Tachyon path.
  */
 @ThreadSafe
-public final class MountCommand extends AbstractTfsShellCommand {
+public final class MountCommand extends AbstractShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public MountCommand(TachyonConf conf, FileSystem fs) {
+  public MountCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -53,12 +53,12 @@ public final class MountCommand extends AbstractTfsShellCommand {
   @Override
   public void run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
-    TachyonURI tachyonPath = new TachyonURI(args[0]);
-    TachyonURI ufsPath = new TachyonURI(args[1]);
+    AlluxioURI tachyonPath = new AlluxioURI(args[0]);
+    AlluxioURI ufsPath = new AlluxioURI(args[1]);
     try {
       mFileSystem.mount(tachyonPath, ufsPath);
       System.out.println("Mounted " + ufsPath + " at " + tachyonPath);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
   }

@@ -26,13 +26,13 @@ import com.google.common.base.Preconditions;
 import alluxio.Constants;
 import alluxio.client.Cancelable;
 import alluxio.client.ClientContext;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
 /**
  * Provides a stream API to write a block to Tachyon. An instance of this class can be obtained by
- * calling {@link TachyonBlockStore#getOutStream}. Only one {@link BufferedBlockOutStream} should be
+ * calling {@link AlluxioBlockStore#getOutStream}. Only one {@link BufferedBlockOutStream} should be
  * opened for a block.
  *
  * <p>
@@ -145,7 +145,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
    * @return a newly allocated byte buffer of the user defined default size
    */
   private ByteBuffer allocateBuffer() {
-    TachyonConf conf = ClientContext.getConf();
+    Configuration conf = ClientContext.getConf();
     return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_FILE_BUFFER_BYTES));
   }
 }

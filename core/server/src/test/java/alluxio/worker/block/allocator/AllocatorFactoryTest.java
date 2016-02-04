@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -33,7 +33,7 @@ import alluxio.worker.block.TieredBlockStoreTestUtils;
  * conf and test if it generates the correct {@link Allocator} instance.
  */
 public class AllocatorFactoryTest {
-  private TachyonConf mTachyonConf;
+  private Configuration mConfiguration;
   private BlockMetadataManagerView mManagerView;
 
   /** Rule to create a new temporary folder during each test. */
@@ -49,7 +49,7 @@ public class AllocatorFactoryTest {
   public void before() throws Exception {
     String baseDir = mTestFolder.newFolder().getAbsolutePath();
     mManagerView = TieredBlockStoreTestUtils.defaultMetadataManagerView(baseDir);
-    mTachyonConf = WorkerContext.getConf();
+    mConfiguration = WorkerContext.getConf();
   }
 
   /**
@@ -62,43 +62,43 @@ public class AllocatorFactoryTest {
 
   /**
    * Tests the creation of the {@link GreedyAllocator} via the
-   * {@link alluxio.worker.block.allocator.Allocator.Factory#create(TachyonConf,
+   * {@link alluxio.worker.block.allocator.Allocator.Factory#create(Configuration,
    *        BlockMetadataManagerView)} method.
    */
   @Test
   public void createGreedyAllocatorTest() {
-    mTachyonConf.set(Constants.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(mTachyonConf, mManagerView);
+    mConfiguration.set(Constants.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.create(mConfiguration, mManagerView);
     Assert.assertTrue(allocator instanceof GreedyAllocator);
   }
 
   /**
    * Tests the creation of the {@link MaxFreeAllocator} via the
-   * {@link alluxio.worker.block.allocator.Allocator.Factory#create(TachyonConf,
+   * {@link alluxio.worker.block.allocator.Allocator.Factory#create(Configuration,
    *        BlockMetadataManagerView)} method.
    */
   @Test
   public void createMaxFreeAllocatorTest() {
-    mTachyonConf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(mTachyonConf, mManagerView);
+    mConfiguration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.create(mConfiguration, mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
   }
 
   /**
    * Tests the creation of the {@link RoundRobinAllocator} via the
-   * {@link alluxio.worker.block.allocator.Allocator.Factory#create(TachyonConf,
+   * {@link alluxio.worker.block.allocator.Allocator.Factory#create(Configuration,
    *        BlockMetadataManagerView)} method.
    */
   @Test
   public void createRoundRobinAllocatorTest() {
-    mTachyonConf.set(Constants.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(mTachyonConf, mManagerView);
+    mConfiguration.set(Constants.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.create(mConfiguration, mManagerView);
     Assert.assertTrue(allocator instanceof RoundRobinAllocator);
   }
 
   /**
    * Tests the creation of the default allocator via the
-   * {@link alluxio.worker.block.allocator.Allocator.Factory#create(TachyonConf,
+   * {@link alluxio.worker.block.allocator.Allocator.Factory#create(Configuration,
    *        BlockMetadataManagerView)} method.
    */
   @Test
@@ -107,7 +107,7 @@ public class AllocatorFactoryTest {
      * create a new instance of TachyonConf with original
      * properties to test the default behavior of create
      */
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     Allocator allocator = Allocator.Factory.create(conf, mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
   }

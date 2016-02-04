@@ -26,11 +26,11 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.util.FormatUtils;
 
 /**
@@ -46,7 +46,7 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public LsCommand(TachyonConf conf, FileSystem fs) {
+  public LsCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -68,11 +68,11 @@ public final class LsCommand extends WithWildCardPathCommand {
   /**
    * Displays information for all directories and files directly under the path specified in args.
    *
-   * @param path The {@link TachyonURI} path as the input of the command
+   * @param path The {@link AlluxioURI} path as the input of the command
    * @param recursive Whether list the path recursively
    * @throws IOException if a non-Tachyon related exception occurs
    */
-  private void ls(TachyonURI path, boolean recursive) throws IOException {
+  private void ls(AlluxioURI path, boolean recursive) throws IOException {
     List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path);
     for (URIStatus status : statuses) {
       String inMemory = "";
@@ -89,17 +89,17 @@ public final class LsCommand extends WithWildCardPathCommand {
           FormatUtils.getSizeFromBytes(status.getLength()),
           CommandUtils.convertMsToDate(status.getCreationTimeMs()), inMemory, status.getPath());
       if (recursive && status.isFolder()) {
-        ls(new TachyonURI(path.getScheme(), path.getAuthority(), status.getPath()), true);
+        ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true);
       }
     }
   }
 
-  private List<URIStatus> listStatusSortedByIncreasingCreationTime(TachyonURI path)
+  private List<URIStatus> listStatusSortedByIncreasingCreationTime(AlluxioURI path)
       throws IOException {
     List<URIStatus> statuses;
     try {
       statuses = mFileSystem.listStatus(path);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
     Collections.sort(statuses, new Comparator<URIStatus>() {
@@ -120,7 +120,7 @@ public final class LsCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public void runCommand(TachyonURI path, CommandLine cl) throws IOException {
+  public void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
     ls(path, cl.hasOption("R"));
   }
 

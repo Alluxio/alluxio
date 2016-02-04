@@ -26,8 +26,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
@@ -39,14 +39,14 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Override
-  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object unusedConf) {
+  public UnderFileSystem create(String path, Configuration configuration, Object unusedConf) {
     Preconditions.checkNotNull(path);
-    Preconditions.checkNotNull(tachyonConf);
+    Preconditions.checkNotNull(configuration);
 
-    if (addAndCheckSwiftCredentials(tachyonConf)) {
-      TachyonURI uri = new TachyonURI(path);
+    if (addAndCheckSwiftCredentials(configuration)) {
+      AlluxioURI uri = new AlluxioURI(path);
       try {
-        return new SwiftUnderFileSystem(uri.getHost(), tachyonConf);
+        return new SwiftUnderFileSystem(uri.getHost(), configuration);
       } catch (Exception e) {
         LOG.error("Failed to create SwiftUnderFileSystem.", e);
         throw Throwables.propagate(e);
@@ -59,7 +59,7 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   @Override
-  public boolean supportsPath(String path, TachyonConf tachyonConf) {
+  public boolean supportsPath(String path, Configuration configuration) {
     return path != null && path.startsWith(Constants.HEADER_SWIFT);
   }
 
@@ -67,44 +67,44 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
    * Adds Swift credentials from system properties to the Tachyon configuration if they are not
    * already present.
    *
-   * @param tachyonConf the Tachyon configuration to check and add credentials to
+   * @param configuration the Tachyon configuration to check and add credentials to
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean addAndCheckSwiftCredentials(TachyonConf tachyonConf) {
+  private boolean addAndCheckSwiftCredentials(Configuration configuration) {
     String tenantApiKeyConf = Constants.SWIFT_API_KEY;
     if (System.getProperty(tenantApiKeyConf) != null
-        || (tachyonConf.containsKey(tenantApiKeyConf)
-            && tachyonConf.get(tenantApiKeyConf) == null)) {
-      tachyonConf.set(tenantApiKeyConf, System.getProperty(tenantApiKeyConf));
+        || (configuration.containsKey(tenantApiKeyConf)
+            && configuration.get(tenantApiKeyConf) == null)) {
+      configuration.set(tenantApiKeyConf, System.getProperty(tenantApiKeyConf));
     }
     String tenantKeyConf = Constants.SWIFT_TENANT_KEY;
     if (System.getProperty(tenantKeyConf) != null
-        || (tachyonConf.containsKey(tenantKeyConf)
-            && tachyonConf.get(tenantKeyConf) == null)) {
-      tachyonConf.set(tenantKeyConf, System.getProperty(tenantKeyConf));
+        || (configuration.containsKey(tenantKeyConf)
+            && configuration.get(tenantKeyConf) == null)) {
+      configuration.set(tenantKeyConf, System.getProperty(tenantKeyConf));
     }
     String tenantUserConf = Constants.SWIFT_USER_KEY;
     if (System.getProperty(tenantUserConf) != null
-        || (tachyonConf.containsKey(tenantUserConf)
-            && tachyonConf.get(tenantUserConf) == null)) {
-      tachyonConf.set(tenantUserConf, System.getProperty(tenantUserConf));
+        || (configuration.containsKey(tenantUserConf)
+            && configuration.get(tenantUserConf) == null)) {
+      configuration.set(tenantUserConf, System.getProperty(tenantUserConf));
     }
     String tenantAuthURLKeyConf = Constants.SWIFT_AUTH_URL_KEY;
     if (System.getProperty(tenantAuthURLKeyConf) != null
-        || (tachyonConf.containsKey(tenantAuthURLKeyConf)
-            && tachyonConf.get(tenantAuthURLKeyConf) == null)) {
-      tachyonConf.set(tenantAuthURLKeyConf, System.getProperty(tenantAuthURLKeyConf));
+        || (configuration.containsKey(tenantAuthURLKeyConf)
+            && configuration.get(tenantAuthURLKeyConf) == null)) {
+      configuration.set(tenantAuthURLKeyConf, System.getProperty(tenantAuthURLKeyConf));
     }
     String authMethodKeyConf = Constants.SWIFT_AUTH_METHOD_KEY;
     if (System.getProperty(authMethodKeyConf) != null
-        || (tachyonConf.containsKey(authMethodKeyConf)
-            && tachyonConf.get(authMethodKeyConf) == null)) {
-      tachyonConf.set(authMethodKeyConf, System.getProperty(authMethodKeyConf));
+        || (configuration.containsKey(authMethodKeyConf)
+            && configuration.get(authMethodKeyConf) == null)) {
+      configuration.set(authMethodKeyConf, System.getProperty(authMethodKeyConf));
     }
 
-    return tachyonConf.get(tenantApiKeyConf) != null
-        && tachyonConf.get(tenantKeyConf) != null
-        && tachyonConf.get(tenantAuthURLKeyConf) != null
-        && tachyonConf.get(tenantUserConf) != null;
+    return configuration.get(tenantApiKeyConf) != null
+        && configuration.get(tenantKeyConf) != null
+        && configuration.get(tenantAuthURLKeyConf) != null
+        && configuration.get(tenantUserConf) != null;
   }
 }

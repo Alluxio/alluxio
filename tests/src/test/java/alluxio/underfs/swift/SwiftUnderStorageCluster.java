@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 
@@ -41,8 +41,8 @@ public class SwiftUnderStorageCluster extends UnderFileSystemCluster {
 
   private String mSwiftContainer;
 
-  public SwiftUnderStorageCluster(String baseDir, TachyonConf tachyonConf) {
-    super(baseDir, tachyonConf);
+  public SwiftUnderStorageCluster(String baseDir, Configuration configuration) {
+    super(baseDir, configuration);
     String swiftAPIKey = System.getProperty(INTEGRATION_SWIFT_API_KEY);
     String tenantKey = System.getProperty(INTEGRATION_SWIFT_TENANT_KEY);
     String userKey = System.getProperty(INTEGRATION_SWIFT_USER_KEY);
@@ -63,7 +63,7 @@ public class SwiftUnderStorageCluster extends UnderFileSystemCluster {
   public void cleanup() throws IOException {
     String oldDir = mBaseDir;
     mBaseDir = mSwiftContainer + UUID.randomUUID();
-    UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mTachyonConf);
+    UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mConfiguration);
     ufs.delete(oldDir, true);
   }
 

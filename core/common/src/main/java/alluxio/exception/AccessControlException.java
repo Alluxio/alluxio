@@ -21,11 +21,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * Thrown when permission checking fails.
  */
 @ThreadSafe
-public class AccessControlException extends TachyonException {
+public class AccessControlException extends AlluxioException {
   private static final long serialVersionUID = 7147533331335543932L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.ACCESS_CONTROL;
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.ACCESS_CONTROL;
 
   /**
    * Constructs a new exception with the specified detail message.

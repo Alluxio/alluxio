@@ -25,15 +25,15 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.ClientContext;
 import alluxio.client.StreamOptionUtils;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.io.PathUtils;
 
 /**
@@ -45,17 +45,17 @@ public final class FileInStreamConcurrencyIntegrationTest {
       ClientContext.getConf().getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS) * 10;
 
   @ClassRule
-  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(Constants.GB, BLOCK_SIZE);
+  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE);
   private static FileSystem sFileSystem = null;
-  private static TachyonConf sTachyonConf;
+  private static Configuration sConfiguration;
   private static CreateFileOptions sWriteTachyon;
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sFileSystem = sLocalTachyonClusterResource.get().getClient();
-    sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
-    sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sTachyonConf);
+    sFileSystem = sLocalAlluxioClusterResource.get().getClient();
+    sConfiguration = sLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sConfiguration);
   }
 
   /**
@@ -68,16 +68,16 @@ public final class FileInStreamConcurrencyIntegrationTest {
 
     List<Thread> threads = Lists.newArrayList();
     for (int i = 0; i < READ_THREADS_NUM; i ++) {
-      threads.add(new Thread(new FileRead(new TachyonURI(uniqPath))));
+      threads.add(new Thread(new FileRead(new AlluxioURI(uniqPath))));
     }
 
     ConcurrencyTestUtils.assertConcurrent(threads, 100);
   }
 
   class FileRead implements Runnable {
-    private final TachyonURI mUri;
+    private final AlluxioURI mUri;
 
-    FileRead(TachyonURI uri) {
+    FileRead(AlluxioURI uri) {
       mUri = uri;
     }
 

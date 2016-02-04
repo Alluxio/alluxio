@@ -22,10 +22,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * be created or the bytes of the block size are invalid.
  */
 @ThreadSafe
-public class BlockInfoException extends TachyonException {
+public class BlockInfoException extends AlluxioException {
   private static final long serialVersionUID = 3516332549351705198L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE = TachyonExceptionType.BLOCK_INFO;
+  private static final AlluxioExceptionType EXCEPTION_TYPE = AlluxioExceptionType.BLOCK_INFO;
 
   /**
    * Constructs a new exception with the specified detail message.

@@ -21,13 +21,13 @@ import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * Utility class for testing the Tachyon file system.
@@ -45,7 +45,7 @@ public final class FileSystemTestUtils {
    */
   public static void createByteFile(FileSystem fs, String fileName, int len,
       CreateFileOptions options) throws IOException {
-    createByteFile(fs, new TachyonURI(fileName), options, len);
+    createByteFile(fs, new AlluxioURI(fileName), options, len);
   }
 
   /**
@@ -59,7 +59,7 @@ public final class FileSystemTestUtils {
    */
   public static void createByteFile(FileSystem fs, String fileName,
       WriteType writeType, int len) throws IOException {
-    createByteFile(fs, new TachyonURI(fileName), writeType, len);
+    createByteFile(fs, new AlluxioURI(fileName), writeType, len);
   }
 
   /**
@@ -71,7 +71,7 @@ public final class FileSystemTestUtils {
    * @param len file size
    * @throws IOException if {@code path} is invalid (e.g., illegal URI)
    */
-  public static void createByteFile(FileSystem fs, TachyonURI fileURI,
+  public static void createByteFile(FileSystem fs, AlluxioURI fileURI,
       WriteType writeType, int len) throws IOException {
     CreateFileOptions options = CreateFileOptions.defaults().setWriteType(writeType);
     createByteFile(fs, fileURI, options, len);
@@ -86,7 +86,7 @@ public final class FileSystemTestUtils {
    * @param len file size
    * @throws IOException if {@code path} is invalid (e.g., illegal URI)
    */
-  public static void createByteFile(FileSystem fs, TachyonURI fileURI,
+  public static void createByteFile(FileSystem fs, AlluxioURI fileURI,
       CreateFileOptions options, int len) throws IOException {
     try {
       FileOutStream os = fs.createFile(fileURI, options);
@@ -97,7 +97,7 @@ public final class FileSystemTestUtils {
       }
       os.write(arr);
       os.close();
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
   }
@@ -116,7 +116,7 @@ public final class FileSystemTestUtils {
       WriteType writeType, int len, long blockCapacityByte) throws IOException {
     CreateFileOptions options =
         CreateFileOptions.defaults().setWriteType(writeType).setBlockSizeBytes(blockCapacityByte);
-    createByteFile(fs, new TachyonURI(fileName), options, len);
+    createByteFile(fs, new AlluxioURI(fileName), options, len);
   }
 
   /**
@@ -129,7 +129,7 @@ public final class FileSystemTestUtils {
    */
   public static List<String> listFiles(FileSystem fs, String path) throws IOException {
     try {
-      List<URIStatus> statuses = fs.listStatus(new TachyonURI(path));
+      List<URIStatus> statuses = fs.listStatus(new AlluxioURI(path));
       List<String> res = new ArrayList<String>();
       for (URIStatus status : statuses) {
         res.add(status.getPath());
@@ -138,7 +138,7 @@ public final class FileSystemTestUtils {
         }
       }
       return res;
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
   }

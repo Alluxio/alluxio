@@ -20,28 +20,28 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Tests for chmodr command.
  */
-public class ChmodrCommandTest extends AbstractTfsShellTest {
+public class ChmodrCommandTest extends AbstractAlluxioShellTest {
 
   @Test
-  public void chmodrTest() throws IOException, TachyonException {
+  public void chmodrTest() throws IOException, AlluxioException {
     clearLoginUser();
     mFsShell.run("mkdir", "/testFolder1");
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFolder1/testFile", WriteType.MUST_CACHE,
         10);
     mFsShell.run("chmodr", "777", "/testFolder1");
-    int permission = mFileSystem.getStatus(new TachyonURI("/testFolder1")).getPermission();
+    int permission = mFileSystem.getStatus(new AlluxioURI("/testFolder1")).getPermission();
     Assert.assertEquals((short) 0777, permission);
     mFsShell.run("chmodr", "755", "/testFolder1");
-    permission = mFileSystem.getStatus(new TachyonURI("/testFolder1")).getPermission();
+    permission = mFileSystem.getStatus(new AlluxioURI("/testFolder1")).getPermission();
     Assert.assertEquals((short) 0755, permission);
   }
 

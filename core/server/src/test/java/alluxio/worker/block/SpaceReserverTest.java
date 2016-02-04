@@ -32,7 +32,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerContext;
 
@@ -82,7 +82,7 @@ public class SpaceReserverTest {
     PowerMockito.mockStatic(DataServer.Factory.class);
     PowerMockito
         .when(DataServer.Factory.create(Mockito.<InetSocketAddress>any(),
-            Mockito.<BlockWorker>any(), Mockito.<TachyonConf>any()))
+            Mockito.<BlockWorker>any(), Mockito.<Configuration>any()))
         .thenReturn(Mockito.mock(DataServer.class));
 
     BlockWorker blockWorker = new BlockWorker();

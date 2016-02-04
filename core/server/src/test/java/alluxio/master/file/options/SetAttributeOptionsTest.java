@@ -20,7 +20,7 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Unit tests for {@link SetAttributeOptions}.
@@ -36,7 +36,7 @@ public class SetAttributeOptionsTest {
     Long ttl = random.nextLong();
     Boolean persisted = random.nextBoolean();
 
-    SetAttributeOptions options = new SetAttributeOptions.Builder(new TachyonConf())
+    SetAttributeOptions options = new SetAttributeOptions.Builder(new Configuration())
         .setPinned(pinned)
         .setTtl(ttl)
         .setPersisted(persisted)

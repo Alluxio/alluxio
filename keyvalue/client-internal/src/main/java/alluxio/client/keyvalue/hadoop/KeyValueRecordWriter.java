@@ -24,10 +24,10 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.Progressable;
 import org.apache.http.annotation.ThreadSafe;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * A {@link RecordWriter} to write key-value pairs into a temporary key-value store.
@@ -44,10 +44,10 @@ class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable>
    * @param progress the object to be used for reporting progress
    * @throws IOException when instance creation fails
    */
-  public KeyValueRecordWriter(TachyonURI storeUri, Progressable progress) throws IOException {
+  public KeyValueRecordWriter(AlluxioURI storeUri, Progressable progress) throws IOException {
     try {
       mWriter = KeyValueSystem.Factory.create().createStore(storeUri);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     }
     mProgress = progress;
@@ -62,7 +62,7 @@ class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable>
           Arrays.copyOf(value.getBytes(), value.getLength()));
       // Sends a progress to the job manager to inform it that the task is still running.
       mProgress.progress();
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     }
   }

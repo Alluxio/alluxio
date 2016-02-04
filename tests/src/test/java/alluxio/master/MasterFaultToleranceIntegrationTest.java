@@ -27,17 +27,17 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.client.block.TachyonBlockStore;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.collections.Pair;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -47,23 +47,23 @@ public class MasterFaultToleranceIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static final int MASTERS = 5;
 
-  private LocalTachyonClusterMultiMaster mLocalTachyonClusterMultiMaster = null;
+  private LocalAlluxioClusterMultiMaster mLocalTachyonClusterMultiMaster = null;
   private FileSystem mFileSystem = null;
 
   @After
   public final void after() throws Exception {
     mLocalTachyonClusterMultiMaster.stop();
     // Reset the master conf.
-    MasterContext.getConf().merge(new TachyonConf());
+    MasterContext.getConf().merge(new Configuration());
   }
 
   @Before
   public final void before() throws Exception {
     // TODO(gpang): Implement multi-master cluster as a resource.
     // Reset the master conf.
-    MasterContext.getConf().merge(new TachyonConf());
+    MasterContext.getConf().merge(new Configuration());
     mLocalTachyonClusterMultiMaster =
-        new LocalTachyonClusterMultiMaster(WORKER_CAPACITY_BYTES, MASTERS, BLOCK_SIZE);
+        new LocalAlluxioClusterMultiMaster(WORKER_CAPACITY_BYTES, MASTERS, BLOCK_SIZE);
     mLocalTachyonClusterMultiMaster.start();
     mFileSystem = mLocalTachyonClusterMultiMaster.getClient();
   }
@@ -75,17 +75,17 @@ public class MasterFaultToleranceIntegrationTest {
    * @param answer the results, the mapping from file id to file path
    * @throws IOException if an error occurs creating the file
    */
-  private void faultTestDataCreation(TachyonURI folderName, List<Pair<Long, TachyonURI>> answer)
-      throws IOException, TachyonException {
+  private void faultTestDataCreation(AlluxioURI folderName, List<Pair<Long, AlluxioURI>> answer)
+      throws IOException, AlluxioException {
     mFileSystem.createDirectory(folderName);
     answer
-        .add(new Pair<Long, TachyonURI>(mFileSystem.getStatus(folderName).getFileId(), folderName));
+        .add(new Pair<Long, AlluxioURI>(mFileSystem.getStatus(folderName).getFileId(), folderName));
 
     for (int k = 0; k < 10; k ++) {
-      TachyonURI path =
-          new TachyonURI(PathUtils.concatPath(folderName, folderName.toString().substring(1) + k));
+      AlluxioURI path =
+          new AlluxioURI(PathUtils.concatPath(folderName, folderName.toString().substring(1) + k));
       mFileSystem.createFile(path).close();
-      answer.add(new Pair<Long, TachyonURI>(mFileSystem.getStatus(path).getFileId(), path));
+      answer.add(new Pair<Long, AlluxioURI>(mFileSystem.getStatus(path).getFileId(), path));
     }
   }
 
@@ -95,9 +95,9 @@ public class MasterFaultToleranceIntegrationTest {
    * @param answer the correct results
    * @throws IOException if an error occurs opening the file
    */
-  private void faultTestDataCheck(List<Pair<Long, TachyonURI>> answer) throws IOException,
-      TachyonException {
-    List<String> files = FileSystemTestUtils.listFiles(mFileSystem, TachyonURI.SEPARATOR);
+  private void faultTestDataCheck(List<Pair<Long, AlluxioURI>> answer) throws IOException,
+      AlluxioException {
+    List<String> files = FileSystemTestUtils.listFiles(mFileSystem, AlluxioURI.SEPARATOR);
     Collections.sort(files);
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
@@ -111,9 +111,9 @@ public class MasterFaultToleranceIntegrationTest {
   @Test
   public void createFileFaultTest() throws Exception {
     int clients = 10;
-    List<Pair<Long, TachyonURI>> answer = Lists.newArrayList();
+    List<Pair<Long, AlluxioURI>> answer = Lists.newArrayList();
     for (int k = 0; k < clients; k ++) {
-      faultTestDataCreation(new TachyonURI("/data" + k), answer);
+      faultTestDataCreation(new AlluxioURI("/data" + k), answer);
     }
     faultTestDataCheck(answer);
 
@@ -121,14 +121,14 @@ public class MasterFaultToleranceIntegrationTest {
       Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
       faultTestDataCheck(answer);
-      faultTestDataCreation(new TachyonURI("/data_kills_" + kills), answer);
+      faultTestDataCreation(new AlluxioURI("/data_kills_" + kills), answer);
     }
   }
 
   @Test
   public void deleteFileFaultTest() throws Exception {
     // Kill leader -> create files -> kill leader -> delete files, repeat.
-    List<Pair<Long, TachyonURI>> answer = Lists.newArrayList();
+    List<Pair<Long, AlluxioURI>> answer = Lists.newArrayList();
     for (int kills = 0; kills < MASTERS - 1; kills ++) {
       Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
@@ -140,8 +140,8 @@ public class MasterFaultToleranceIntegrationTest {
 
         // We can not call mFileSystem.delete(mFileSystem.open(new
         // TachyonURI(TachyonURI.SEPARATOR))) because root node can not be deleted.
-        for (URIStatus file : mFileSystem.listStatus(new TachyonURI(TachyonURI.SEPARATOR))) {
-          mFileSystem.delete(new TachyonURI(file.getPath()),
+        for (URIStatus file : mFileSystem.listStatus(new AlluxioURI(AlluxioURI.SEPARATOR))) {
+          mFileSystem.delete(new AlluxioURI(file.getPath()),
               DeleteOptions.defaults().setRecursive(true));
         }
         answer.clear();
@@ -152,8 +152,8 @@ public class MasterFaultToleranceIntegrationTest {
         Assert.assertEquals(0, answer.size());
         faultTestDataCheck(answer);
 
-        faultTestDataCreation(new TachyonURI(PathUtils.concatPath(
-            TachyonURI.SEPARATOR, "data_" + kills)), answer);
+        faultTestDataCreation(new AlluxioURI(PathUtils.concatPath(
+            AlluxioURI.SEPARATOR, "data_" + kills)), answer);
         faultTestDataCheck(answer);
       }
     }
@@ -165,13 +165,13 @@ public class MasterFaultToleranceIntegrationTest {
     CreateFileOptions option =
         CreateFileOptions.defaults().setBlockSizeBytes(1024).setWriteType(WriteType.THROUGH);
     for (int k = 0; k < clients; k ++) {
-      mFileSystem.createFile(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
+      mFileSystem.createFile(new AlluxioURI(AlluxioURI.SEPARATOR + k), option).close();
     }
-    List<String> files = FileSystemTestUtils.listFiles(mFileSystem, TachyonURI.SEPARATOR);
+    List<String> files = FileSystemTestUtils.listFiles(mFileSystem, AlluxioURI.SEPARATOR);
     Assert.assertEquals(clients, files.size());
     Collections.sort(files);
     for (int k = 0; k < clients; k ++) {
-      Assert.assertEquals(TachyonURI.SEPARATOR + k, files.get(k));
+      Assert.assertEquals(AlluxioURI.SEPARATOR + k, files.get(k));
     }
   }
 
@@ -183,9 +183,9 @@ public class MasterFaultToleranceIntegrationTest {
     int leaderIndex = mLocalTachyonClusterMultiMaster.getLeaderIndex();
     Assert.assertNotEquals(-1, leaderIndex);
 
-    List<Pair<Long, TachyonURI>> answer = Lists.newArrayList();
+    List<Pair<Long, AlluxioURI>> answer = Lists.newArrayList();
     for (int k = 0; k < 5; k ++) {
-      faultTestDataCreation(new TachyonURI("/data" + k), answer);
+      faultTestDataCreation(new AlluxioURI("/data" + k), answer);
     }
     faultTestDataCheck(answer);
 
@@ -197,15 +197,15 @@ public class MasterFaultToleranceIntegrationTest {
       Assert.assertEquals(leaderIndex, mLocalTachyonClusterMultiMaster.getLeaderIndex());
       // Cluster should still work.
       faultTestDataCheck(answer);
-      faultTestDataCreation(new TachyonURI("/data_kills_" + kills), answer);
+      faultTestDataCreation(new AlluxioURI("/data_kills_" + kills), answer);
     }
   }
 
   @Test
   public void workerReRegisterTest() throws Exception {
-    Assert.assertEquals(WORKER_CAPACITY_BYTES, TachyonBlockStore.get().getCapacityBytes());
+    Assert.assertEquals(WORKER_CAPACITY_BYTES, AlluxioBlockStore.get().getCapacityBytes());
 
-    List<Pair<Long, TachyonURI>> emptyAnswer = Lists.newArrayList();
+    List<Pair<Long, AlluxioURI>> emptyAnswer = Lists.newArrayList();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
@@ -214,7 +214,7 @@ public class MasterFaultToleranceIntegrationTest {
       faultTestDataCheck(emptyAnswer);
 
       // If worker is successfully re-registered, the capacity bytes should not change.
-      Assert.assertEquals(WORKER_CAPACITY_BYTES, TachyonBlockStore.get().getCapacityBytes());
+      Assert.assertEquals(WORKER_CAPACITY_BYTES, AlluxioBlockStore.get().getCapacityBytes());
     }
   }
 }

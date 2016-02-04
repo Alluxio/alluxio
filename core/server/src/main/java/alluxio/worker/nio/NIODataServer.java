@@ -37,7 +37,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.DataServerMessage;
@@ -78,10 +78,10 @@ public final class NIODataServer implements Runnable, DataServer {
    *
    * @param address the address of the data server
    * @param blockWorker the lock system for lock blocks
-   * @param tachyonConf Tachyon configuration
+   * @param configuration Tachyon configuration
    */
   public NIODataServer(final InetSocketAddress address, final BlockWorker blockWorker,
-      TachyonConf tachyonConf) {
+      Configuration configuration) {
     LOG.info("Starting DataServer @ {}", address);
     NetworkAddressUtils.assertValidPort(Preconditions.checkNotNull(address));
     mAddress = address;

@@ -30,7 +30,7 @@ import org.powermock.reflect.Whitebox;
 import com.google.common.collect.Lists;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.PlainSaslServer;
@@ -84,11 +84,11 @@ public final class PermissionStatusTest {
   }
 
   /**
-   * Tests the {@link PermissionStatus#get(TachyonConf, boolean)} method.
+   * Tests the {@link PermissionStatus#get(Configuration, boolean)} method.
    */
   @Test
   public void getPermissionStatusTest() throws Exception {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     PermissionStatus permissionStatus;
 
     // no authentication
@@ -117,14 +117,14 @@ public final class PermissionStatusTest {
   @Test
   public void getPermissionStatusWithMultiGroupsTest() throws Exception {
     // mock a multi-groups test case
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     PermissionStatus permissionStatus;
     GroupMappingService groupService = PowerMockito.mock(GroupMappingService.class);
     PowerMockito.when(groupService.getGroups(Mockito.anyString())).thenReturn(
         Lists.newArrayList("group1", "group2"));
     PowerMockito.mockStatic(GroupMappingService.Factory.class);
     Mockito.when(
-        GroupMappingService.Factory.getUserToGroupsMappingService(Mockito.any(TachyonConf.class)))
+        GroupMappingService.Factory.getUserToGroupsMappingService(Mockito.any(Configuration.class)))
         .thenReturn(groupService);
 
     // no authentication
@@ -152,14 +152,14 @@ public final class PermissionStatusTest {
   @Test
   public void getPermissionStatusWithEmptyGroupsTest() throws Exception {
     // mock an empty group test case
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     PermissionStatus permissionStatus;
     GroupMappingService groupService = PowerMockito.mock(GroupMappingService.class);
     PowerMockito.when(groupService.getGroups(Mockito.anyString())).thenReturn(
         Lists.newArrayList(""));
     PowerMockito.mockStatic(GroupMappingService.Factory.class);
     Mockito.when(
-        GroupMappingService.Factory.getUserToGroupsMappingService(Mockito.any(TachyonConf.class)))
+        GroupMappingService.Factory.getUserToGroupsMappingService(Mockito.any(Configuration.class)))
         .thenReturn(groupService);
 
     // no authentication
