@@ -56,6 +56,17 @@ public final class CompleteFileOptions {
   }
 
   /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("CompleteFileOptions(");
+    sb.append(super.toString()).append(", UFS Length: ").append(mUfsLength);
+    sb.append(")");
+    return sb.toString();
+  }
+
+  /**
    * @return Thrift representation of the options
    */
   public CompleteFileTOptions toThrift() {

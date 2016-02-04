@@ -18,40 +18,44 @@ package tachyon.master.file.options;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import tachyon.Constants;
-import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.ExceptionMessage;
 import tachyon.master.MasterContext;
+import tachyon.thrift.SetAttributeTOptions;
 
 /**
- * Method option for setting the acl.
+ * Method option for setting the attributes.
  */
 @NotThreadSafe
-public class SetAclOptions {
-
+public class SetAttributeOptions {
   /**
-   * Builder for {@link SetAclOptions}
+   * Builder for {@link SetAttributeOptions}
    */
   public static class Builder {
+    private Boolean mPinned;
+    private Long mTtl;
+    private Boolean mPersisted;
     private String mOwner;
     private String mGroup;
-    private short mPermission;
+    private Short mPermission;
     private boolean mRecursive;
     private long mOperationTimeMs;
 
     /**
-     * Creates a new builder for {@link SetAclOptions}.
+     * Creates a new builder for {@link SetAttributeOptions}.
      */
     public Builder() {
       this(MasterContext.getConf());
     }
 
     /**
-     * Creates a new builder for {@link SetAclOptions}.
+     * Creates a new builder for {@link SetAttributeOptions}.
      *
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
+      mPinned = null;
+      mTtl = null;
+      mPersisted = null;
       mOwner = null;
       mGroup = null;
       mPermission = Constants.INVALID_PERMISSION;
@@ -60,9 +64,34 @@ public class SetAclOptions {
     }
 
     /**
-     * Sets the owner of a path.
-     *
-     * @param owner to be set as the owner of a path
+     * @param pinned the pinned flag value to use
+     * @return the builder
+     */
+    public Builder setPinned(boolean pinned) {
+      mPinned = pinned;
+      return this;
+    }
+
+    /**
+     * @param ttl the time-to-live (in seconds) to use
+     * @return the builder
+     */
+    public Builder setTtl(long ttl) {
+      mTtl = ttl;
+      return this;
+    }
+
+    /**
+     * @param persisted the persisted flag value to use
+     * @return the builder
+     */
+    public Builder setPersisted(boolean persisted) {
+      mPersisted = persisted;
+      return this;
+    }
+
+    /**
+     * @param owner the owner to use
      * @return the builder
      */
     public Builder setOwner(String owner) {
@@ -71,9 +100,7 @@ public class SetAclOptions {
     }
 
     /**
-     * Sets the group of a path.
-     *
-     * @param group to be set as the group of a path
+     * @param group the group to use
      * @return the builder
      */
     public Builder setGroup(String group) {
@@ -82,9 +109,7 @@ public class SetAclOptions {
     }
 
     /**
-     * Sets the permission of a path.
-     *
-     * @param permission to be set as the permission of a path
+     * @param permission the permission bits to use
      * @return the builder
      */
     public Builder setPermission(short permission) {
@@ -93,9 +118,7 @@ public class SetAclOptions {
     }
 
     /**
-     * Sets the recursive flag.
-     *
-     * @param recursive whether to set acl recursively under a directory
+     * @param recursive whether owner / group / permission should be updated recursively
      * @return the builder
      */
     public Builder setRecursive(boolean recursive) {
@@ -104,8 +127,6 @@ public class SetAclOptions {
     }
 
     /**
-     * Sets the operation time.
-     *
      * @param operationTimeMs the operation time to use
      * @return the builder
      */
@@ -115,41 +136,52 @@ public class SetAclOptions {
     }
 
     /**
-     * Builds a new instance of {@link SetAclOptions}.
+     * Builds a new instance of {@link SetAttributeOptions}.
      *
-     * @return a {@link SetAclOptions} instance
+     * @return a {@link SetAttributeOptions} instance
      */
-    public SetAclOptions build() {
-      SetAclOptions options = new SetAclOptions(this);
-      if (options.isValid()) {
-        return options;
-      }
-      throw new IllegalArgumentException(
-          ExceptionMessage.INVALID_SET_ACL_OPTIONS.getMessage(mOwner, mGroup, mPermission));
+    public SetAttributeOptions build() {
+      return new SetAttributeOptions(this);
     }
   }
 
+  private final Boolean mPinned;
+  private final Long mTtl;
+  private final Boolean mPersisted;
   private final String mOwner;
   private final String mGroup;
-  private final short mPermission;
+  private final Short mPermission;
   private final boolean mRecursive;
   private long mOperationTimeMs;
 
   /**
-   * Constructs a new method option for setting the acl.
+   * Constructs a new method option for setting the attributes.
    *
-   * @param options the options for setting the acl
+   * @param options the options for setting the attributes
    */
-  public SetAclOptions(SetAttributeOptions options) {
-    mOwner = options.hasOwner() ? options.getOwner() : null;
-    mGroup = options.hasGroup() ? options.getGroup() : null;
+  public SetAttributeOptions(SetAttributeTOptions options) {
+    mPinned = options.isSetPinned() ? options.isPinned() : null;
+    mTtl = options.isSetTtl() ? options.getTtl() : null;
+    mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
+    mOwner = options.isSetOwner() ? options.getOwner() : null;
+    mGroup = options.isSetGroup() ? options.getGroup() : null;
     mPermission =
-        options.hasPermission() ? (short) options.getPermission() : Constants.INVALID_PERMISSION;
-    mRecursive = options.hasRecursive() ? options.getRecursive() : false;
+        options.isSetPermission() ? options.getPermission() : Constants.INVALID_PERMISSION;
+    mRecursive = options.isRecursive();
     mOperationTimeMs = System.currentTimeMillis();
   }
 
-  private SetAclOptions(Builder builder) {
+  /**
+   * @return the default {@link SetAttributeOptions}
+   */
+  public static SetAttributeOptions defaults() {
+    return new Builder(MasterContext.getConf()).build();
+  }
+
+  private SetAttributeOptions(Builder builder) {
+    mPinned = builder.mPinned;
+    mTtl = builder.mTtl;
+    mPersisted = builder.mPersisted;
     mOwner = builder.mOwner;
     mGroup = builder.mGroup;
     mPermission = builder.mPermission;
@@ -158,13 +190,24 @@ public class SetAclOptions {
   }
 
   /**
-   * Checks whether the instance of {@link SetAclOptions} is valid,
-   * which means at least one of three attributes (owner, group, permission) takes effect.
-   *
-   * @return true if the instance of {@link SetAclOptions} is valid, false otherwise
+   * @return the pinned flag value
    */
-  public boolean isValid() {
-    return mOwner != null || mGroup != null || mPermission != Constants.INVALID_PERMISSION;
+  public Boolean getPinned() {
+    return mPinned;
+  }
+
+  /**
+   * @return the time-to-live (in seconds)
+   */
+  public Long getTtl() {
+    return mTtl;
+  }
+
+  /**
+   * @return the persisted flag value
+   */
+  public Boolean getPersisted() {
+    return mPersisted;
   }
 
   /**
@@ -182,9 +225,9 @@ public class SetAclOptions {
   }
 
   /**
-   * @return the permission
+   * @return the permission bits
    */
-  public short getPermission() {
+  public Short getPermission() {
     return mPermission;
   }
 
@@ -196,7 +239,7 @@ public class SetAclOptions {
   }
 
   /**
-   * @return the operation time
+   * @return the operation time (in milliseconds)
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
