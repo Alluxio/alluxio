@@ -26,7 +26,6 @@ import org.junit.Test;
 
 import com.google.common.collect.Sets;
 
-import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.WriteType;
@@ -38,10 +37,10 @@ import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.TachyonException;
 import tachyon.worker.file.FileSystemMasterClient;
 
-public class PinIntegrationTest {
+public final class PinIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(1000, 1000, Constants.GB);
+      new LocalTachyonClusterResource();
   private FileSystem mFileSystem = null;
   private FileSystemMasterClient mFSMasterClient;
   private SetAttributeOptions mSetPinned;

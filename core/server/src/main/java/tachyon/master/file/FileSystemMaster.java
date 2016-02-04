@@ -42,7 +42,6 @@ import com.google.protobuf.Message;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
@@ -77,7 +76,7 @@ import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateDirectoryOptions;
 import tachyon.master.file.options.CreateFileOptions;
-import tachyon.master.file.options.SetAclOptions;
+import tachyon.master.file.options.SetAttributeOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
@@ -93,30 +92,29 @@ import tachyon.proto.journal.File.InodeLastModificationTimeEntry;
 import tachyon.proto.journal.File.PersistDirectoryEntry;
 import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
-import tachyon.proto.journal.File.SetAclEntry;
-import tachyon.proto.journal.File.SetStateEntry;
+import tachyon.proto.journal.File.SetAttributeEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.security.User;
 import tachyon.security.authentication.PlainSaslServer;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.security.group.GroupMappingService;
-import tachyon.thrift.BlockInfo;
-import tachyon.thrift.BlockLocation;
 import tachyon.thrift.CommandType;
-import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.FileSystemCommandOptions;
 import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.PersistCommandOptions;
 import tachyon.thrift.PersistFile;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
 import tachyon.util.SecurityUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.wire.BlockInfo;
+import tachyon.wire.BlockLocation;
+import tachyon.wire.FileBlockInfo;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -248,9 +246,9 @@ public final class FileSystemMaster extends MasterBase {
       } catch (FileAlreadyCompletedException e) {
         throw new RuntimeException(e);
       }
-    } else if (innerEntry instanceof SetStateEntry) {
+    } else if (innerEntry instanceof SetAttributeEntry) {
       try {
-        setStateFromEntry((SetStateEntry) innerEntry);
+        setAttributeFromEntry((SetAttributeEntry) innerEntry);
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
@@ -283,12 +281,6 @@ public final class FileSystemMaster extends MasterBase {
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       } catch (InvalidPathException e) {
-        throw new RuntimeException(e);
-      }
-    } else if (innerEntry instanceof SetAclEntry) {
-      try {
-        setAclFromEntry((SetAclEntry) innerEntry);
-      } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
     } else {
@@ -982,7 +974,7 @@ public final class FileSystemMaster extends MasterBase {
           }
           // The resolved port is the data transfer port not the rpc port
           fileBlockInfo.getUfsLocations().add(
-                  new WorkerNetAddress(resolvedHost, -1, resolvedPort, -1));
+              new WorkerNetAddress().setHost(resolvedHost).setDataPort(resolvedPort));
         }
       }
     }
@@ -1705,36 +1697,80 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Sets the file state.
+   * Sets the file attribute.
    *
-   * @param path the path to set state
+   * @param path the path to set attribute for
    * @param options attributes to be set, see {@link SetAttributeOptions}
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
    */
-  public void setState(TachyonURI path, SetAttributeOptions options)
+  public void setAttribute(TachyonURI path, SetAttributeOptions options)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException {
-    MasterContext.getMasterSource().incSetStateOps(1);
+    MasterContext.getMasterSource().incSetAttributeOps(1);
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.WRITE, path, false);
       long fileId = mInodeTree.getInodeByPath(path).getId();
       long opTimeMs = System.currentTimeMillis();
-      setStateInternal(fileId, opTimeMs, options);
-      SetStateEntry.Builder setState =
-          SetStateEntry.newBuilder().setId(fileId).setOpTimeMs(opTimeMs);
-      if (options.hasPinned()) {
-        setState.setPinned(options.getPinned());
+
+      Inode targetInode = mInodeTree.getInodeByPath(path);
+      if (options.isRecursive() && targetInode.isDirectory()) {
+        List<Inode> inodeChildren =
+            mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
+        for (Inode inode : inodeChildren) {
+          if (options.getGroup() != null
+              || options.getPermission() != Constants.INVALID_PERMISSION) {
+            checkOwner(path);
+          }
+          checkPermission(FileSystemAction.WRITE, mInodeTree.getPath(inode), false);
+        }
+        for (Inode inode : inodeChildren) {
+          long id = inode.getId();
+          setAttributeInternal(id, opTimeMs, options);
+          journalSetAttribute(id, opTimeMs, options);
+        }
       }
-      if (options.hasTtl()) {
-        setState.setTtl(options.getTtl());
+      if (options.getOwner() != null) {
+        PermissionChecker.checkSuperuser(getClientUser(), getGroups(getClientUser()));
       }
-      if (options.hasPersisted()) {
-        setState.setPersisted(options.getPersisted());
+      if (options.getGroup() != null || options.getPermission() != Constants.INVALID_PERMISSION) {
+        checkOwner(path);
       }
-      writeJournalEntry(JournalEntry.newBuilder().setSetState(setState).build());
-      flushJournal();
+      checkPermission(FileSystemAction.WRITE, path, false);
+      setAttributeInternal(fileId, opTimeMs, options);
+      journalSetAttribute(fileId, opTimeMs, options);
     }
+  }
+
+  /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
+   * @param fileId the file id to use
+   * @param opTimeMs the operation time (in milliseconds)
+   * @param options the method options
+   */
+  private void journalSetAttribute(long fileId, long opTimeMs, SetAttributeOptions options) {
+    SetAttributeEntry.Builder builder =
+        SetAttributeEntry.newBuilder().setId(fileId).setOpTimeMs(opTimeMs);
+    if (options.getPinned() != null) {
+      builder.setPinned(options.getPinned());
+    }
+    if (options.getTtl() != null) {
+      builder.setTtl(options.getTtl());
+    }
+    if (options.getPersisted() != null) {
+      builder.setPersisted(options.getPersisted());
+    }
+    if (options.getOwner() != null) {
+      builder.setOwner(options.getOwner());
+    }
+    if (options.getGroup() != null) {
+      builder.setGroup(options.getGroup());
+    }
+    if (options.getPermission() != Constants.INVALID_PERMISSION) {
+      builder.setPermission(options.getPermission().shortValue());
+    }
+    writeJournalEntry(JournalEntry.newBuilder().setSetAttribute(builder).build());
+    flushJournal();
   }
 
   /**
@@ -1891,7 +1927,7 @@ public final class FileSystemMaster extends MasterBase {
   public synchronized FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     for (long fileId : persistedFiles) {
-      setState(getPath(fileId), SetAttributeOptions.defaults().setPersisted(true));
+      setAttribute(getPath(fileId), new SetAttributeOptions.Builder().setPersisted(true).build());
     }
 
     // get the files for the given worker to checkpoint
@@ -1912,14 +1948,14 @@ public final class FileSystemMaster extends MasterBase {
    * @param options the method options
    * @throws FileDoesNotExistException
    */
-  private void setStateInternal(long fileId, long opTimeMs, SetAttributeOptions options)
+  private void setAttributeInternal(long fileId, long opTimeMs, SetAttributeOptions options)
       throws FileDoesNotExistException {
     Inode inode = mInodeTree.getInodeById(fileId);
-    if (options.hasPinned()) {
+    if (options.getPinned() != null) {
       mInodeTree.setPinned(inode, options.getPinned(), opTimeMs);
       inode.setLastModificationTimeMs(opTimeMs);
     }
-    if (options.hasTtl()) {
+    if (options.getTtl() != null) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.TTL_ONLY_FOR_FILE);
       long ttl = options.getTtl();
       InodeFile file = (InodeFile) inode;
@@ -1930,7 +1966,7 @@ public final class FileSystemMaster extends MasterBase {
         file.setLastModificationTimeMs(opTimeMs);
       }
     }
-    if (options.hasPersisted()) {
+    if (options.getPersisted() != null) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);
       Preconditions.checkArgument(((InodeFile) inode).isCompleted(),
           PreconditionMessage.FILE_TO_PERSIST_MUST_BE_COMPLETE);
@@ -1945,6 +1981,15 @@ public final class FileSystemMaster extends MasterBase {
         MasterContext.getMasterSource().incFilesPersisted(1);
       }
     }
+    if (options.getOwner() != null) {
+      inode.setUserName(options.getOwner());
+    }
+    if (options.getGroup() != null) {
+      inode.setGroupName(options.getGroup());
+    }
+    if (options.getPermission() != Constants.INVALID_PERMISSION) {
+      inode.setPermission(options.getPermission().shortValue());
+    }
   }
 
   /**
@@ -1953,9 +1998,8 @@ public final class FileSystemMaster extends MasterBase {
    * @param entry the entry to use
    * @throws FileDoesNotExistException if the file does not exist
    */
-  // TODO(calvin): Rename SetStateEntry to SetAttributeEntry, do not rely on client side options.
-  private void setStateFromEntry(SetStateEntry entry) throws FileDoesNotExistException {
-    SetAttributeOptions options = SetAttributeOptions.defaults();
+  private void setAttributeFromEntry(SetAttributeEntry entry) throws FileDoesNotExistException {
+    SetAttributeOptions.Builder options = new SetAttributeOptions.Builder();
     if (entry.hasPinned()) {
       options.setPinned(entry.getPinned());
     }
@@ -1965,148 +2009,16 @@ public final class FileSystemMaster extends MasterBase {
     if (entry.hasPersisted()) {
       options.setPersisted(entry.getPersisted());
     }
-    setStateInternal(entry.getId(), entry.getOpTimeMs(), options);
-  }
-
-  /**
-   * Sets the acl of a file or directory. At least one of owner, group, or permission in the
-   * {@link SetAclOptions} could be set at a time.
-   *
-   * @param path to be set acl on
-   * @param options acl option to be set
-   * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
-   */
-  public void setAcl(TachyonURI path, SetAclOptions options) throws AccessControlException,
-      InvalidPathException {
-    Preconditions.checkArgument(options.isValid(), PreconditionMessage.INVALID_SET_ACL_OPTIONS,
-        options.getOwner(), options.getGroup(), options.getPermission());
-
-    if (options.getOwner() != null) {
-      setOwner(path,new SetAclOptions.Builder().setOwner(options.getOwner())
-          .setRecursive(options.isRecursive()).build());
+    if (entry.hasOwner()) {
+      options.setOwner(entry.getOwner());
     }
-
-    if (options.getGroup() != null
-        || options.getPermission() != Constants.INVALID_PERMISSION) {
-      setGroupOrPermission(path, new SetAclOptions.Builder().setGroup(options.getGroup())
-          .setPermission(options.getPermission()).setRecursive(options.isRecursive()).build());
-    }
-  }
-
-  /**
-   * Sets the user to be the owner of the path. Only a super user can change the owner of a path.
-   *
-   * @param path to be set owner on
-   * @param options acl option to be set
-   * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
-   */
-  private void setOwner(TachyonURI path, SetAclOptions options)
-      throws AccessControlException, InvalidPathException {
-    PermissionChecker.checkSuperuser(getClientUser(), getGroups(getClientUser()));
-    synchronized (mInodeTree) {
-      long opTimeMs = System.currentTimeMillis();
-      Inode targetInode = mInodeTree.getInodeByPath(path);
-      if (options.isRecursive() && targetInode.isDirectory()) {
-        List<Inode> inodeChildren =
-            mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
-        for (Inode inode : inodeChildren) {
-          setAclInternal(inode, opTimeMs, options);
-        }
-      }
-      setAclInternal(targetInode, opTimeMs, options);
-    }
-  }
-
-  /**
-   * Sets the group or permission of the path. Only a super user or the path owner can change.
-   *
-   * @param path to be set permission on
-   * @param options acl option to be set
-   * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
-   */
-  private void setGroupOrPermission(TachyonURI path, SetAclOptions options) throws
-      AccessControlException, InvalidPathException {
-    synchronized (mInodeTree) {
-      checkOwner(path);
-      long opTimeMs = System.currentTimeMillis();
-      Inode targetInode = mInodeTree.getInodeByPath(path);
-      if (options.isRecursive() && targetInode.isDirectory()) {
-        List<Inode> inodeChildren =
-            mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
-        for (Inode inode : inodeChildren) {
-          checkOwner(mInodeTree.getPath(inode));
-        }
-        for (Inode inode : inodeChildren) {
-          setAclInternal(inode, opTimeMs, options);
-        }
-      }
-      setAclInternal(targetInode, opTimeMs, options);
-    }
-  }
-
-  /**
-   * Sets acl attributes to the inode. At least one of user, group, or permission in
-   * {@link SetAclOptions} is set.
-   *
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
-   * @param inode the inode to be set on
-   * @param opTimeMs the time of the operation
-   * @param options acl option to be set
-   * @throws AccessControlException if security is not enabled
-   */
-  // TODO(jiri): To be consistent with the rest of the code base, use setAclInternal to implement
-  // setAclFromEntry, not the other way around.
-  private void setAclInternal(Inode inode, long opTimeMs, SetAclOptions options)
-      throws AccessControlException {
-    // throws exception if security is not enabled.
-    if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
-      throw new AccessControlException(ExceptionMessage.SECURITY_IS_NOT_ENABLED.getMessage());
-    }
-
-    SetAclEntry.Builder setAcl = SetAclEntry.newBuilder().setId(inode.getId())
-        .setOpTimeMs(opTimeMs);
-    if (options.getOwner() != null) {
-      setAcl.setUserName(options.getOwner());
-    }
-    if (options.getGroup() != null) {
-      setAcl.setGroupName(options.getGroup());
-    }
-    if (options.getPermission() != Constants.INVALID_PERMISSION) {
-      setAcl.setPermission(options.getPermission());
-    }
-
-    try {
-      setAclFromEntry(setAcl.build());
-    } catch (FileDoesNotExistException e) {
-      LOG.warn("Exception happens when setting acl: ", e);
-    }
-
-    writeJournalEntry(JournalEntry.newBuilder().setSetAcl(setAcl).build());
-    flushJournal();
-  }
-
-  /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
-   * @param entry the entry to use
-   * @throws FileDoesNotExistException if the file does not exist
-   */
-  private void setAclFromEntry(SetAclEntry entry) throws FileDoesNotExistException {
-    Inode inode = mInodeTree.getInodeById(entry.getId());
-    inode.setLastModificationTimeMs(entry.getOpTimeMs());
-    if (entry.hasUserName()) {
-      inode.setUserName(entry.getUserName());
-    }
-    if (entry.hasGroupName()) {
-      inode.setGroupName(entry.getGroupName());
+    if (entry.hasGroup()) {
+      options.setGroup(entry.getGroup());
     }
     if (entry.hasPermission()) {
-      inode.setPermission((short) entry.getPermission());
+      options.setPermission((short) entry.getPermission());
     }
+    setAttributeInternal(entry.getId(), entry.getOpTimeMs(), options.build());
   }
 
   /**
@@ -2137,8 +2049,7 @@ public final class FileSystemMaster extends MasterBase {
 
   /**
    * Checks user's permission on a path. If the path is invalid, it should bypass the
-   * {@link InvalidPathException} and the logic at operation will handle it. The caller should lock
-   * mInodeTree before calling it.
+   * {@link InvalidPathException} and the logic at operation will handle it.
    *
    * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *

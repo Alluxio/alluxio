@@ -53,6 +53,9 @@ public class OpenFileOptionsTest {
     Assert.assertEquals(policy, options.getLocationPolicy());
   }
 
+  /**
+   * Tests conversion to {@link InStreamOptions}.
+   */
   @Test
   public void toInStreamOptionsTest() {
     OpenFileOptions options = OpenFileOptions.defaults();

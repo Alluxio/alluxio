@@ -26,7 +26,7 @@ import org.apache.http.annotation.ThreadSafe;
 
 import tachyon.TachyonURI;
 import tachyon.client.keyvalue.KeyValueStoreWriter;
-import tachyon.client.keyvalue.KeyValueStores;
+import tachyon.client.keyvalue.KeyValueSystem;
 import tachyon.exception.TachyonException;
 
 /**
@@ -46,7 +46,7 @@ class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable>
    */
   public KeyValueRecordWriter(TachyonURI storeUri, Progressable progress) throws IOException {
     try {
-      mWriter = KeyValueStores.Factory.create().create(storeUri);
+      mWriter = KeyValueSystem.Factory.create().createStore(storeUri);
     } catch (TachyonException e) {
       throw new IOException(e);
     }

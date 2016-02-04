@@ -25,9 +25,9 @@ import com.google.common.io.Closer;
 import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.LockBlockResult;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.wire.LockBlockResult;
 import tachyon.worker.block.io.LocalFileBlockReader;
 
 /**

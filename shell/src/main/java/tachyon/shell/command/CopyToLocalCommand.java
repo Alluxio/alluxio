@@ -26,6 +26,8 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ReadType;
@@ -63,7 +65,8 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     TachyonURI srcPath = new TachyonURI(args[0]);
     File dstFile = new File(args[1]);
     List<TachyonURI> srcPaths = TfsShellUtils.getTachyonURIs(mFileSystem, srcPath);

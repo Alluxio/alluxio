@@ -15,6 +15,7 @@
 
 package tachyon.master.block;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -27,6 +28,7 @@ import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterClientService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.WorkerInfo;
+import tachyon.wire.ThriftUtils;
 
 /**
  * This class is a Thrift handler for block master RPCs invoked by a Tachyon client.
@@ -38,7 +40,7 @@ public class BlockMasterClientServiceHandler implements BlockMasterClientService
   /**
    * Creates a new instance of {@link BlockMasterClientServiceHandler}.
    *
-   * @param blockMaster the {@BlockMaster} the handler uses internally
+   * @param blockMaster the {@link BlockMaster} the handler uses internally
    */
   public BlockMasterClientServiceHandler(BlockMaster blockMaster) {
     Preconditions.checkNotNull(blockMaster);
@@ -52,7 +54,11 @@ public class BlockMasterClientServiceHandler implements BlockMasterClientService
 
   @Override
   public List<WorkerInfo> getWorkerInfoList() {
-    return mBlockMaster.getWorkerInfoList();
+    List<WorkerInfo> workerInfos = new ArrayList<WorkerInfo>();
+    for (tachyon.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
+      workerInfos.add(ThriftUtils.toThrift(workerInfo));
+    }
+    return workerInfos;
   }
 
   @Override
@@ -68,7 +74,7 @@ public class BlockMasterClientServiceHandler implements BlockMasterClientService
   @Override
   public BlockInfo getBlockInfo(long blockId) throws TachyonTException {
     try {
-      return mBlockMaster.getBlockInfo(blockId);
+      return ThriftUtils.toThrift(mBlockMaster.getBlockInfo(blockId));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }

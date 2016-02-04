@@ -39,10 +39,10 @@ public interface AuthenticationProvider {
         throws AuthenticationException {
       switch (authType) {
         case SIMPLE:
-          return new SimpleAuthenticationProviderImpl();
+          return new SimpleAuthenticationProvider();
         case CUSTOM:
           String customProviderName = conf.get(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER);
-          return new CustomAuthenticationProviderImpl(customProviderName);
+          return new CustomAuthenticationProvider(customProviderName);
         default:
           throw new AuthenticationException("Unsupported AuthType: " + authType.getAuthName());
       }

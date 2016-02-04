@@ -44,7 +44,7 @@ import tachyon.client.file.options.OpenFileOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.client.file.options.UnmountOptions;
-import tachyon.thrift.FileInfo;
+import tachyon.wire.FileInfo;
 
 /**
 * Unit test for functionality in {@link BaseFileSystem}.
@@ -69,7 +69,6 @@ public final class BaseFileSystemTest {
    */
   @Before
   public void before() {
-    ClientContext.reset();
     mFileSystem = new DummyTachyonFileSystem();
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     Whitebox.setInternalState(mFileSystem, "mContext", mFileContext);

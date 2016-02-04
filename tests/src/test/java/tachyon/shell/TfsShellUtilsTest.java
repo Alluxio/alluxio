@@ -45,11 +45,10 @@ import tachyon.master.LocalTachyonCluster;
  * covered in {@link TfsShellUtils#getFilePath(String, TachyonConf)}. Hence only getFilePathTest is
  * specified.
  */
-public class TfsShellUtilsTest {
-  private static final int SIZE_BYTES = Constants.MB * 10;
+public final class TfsShellUtilsTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(SIZE_BYTES, 1000, Constants.MB);
+      new LocalTachyonClusterResource();
   private FileSystem mFileSystem = null;
 
   @Before
