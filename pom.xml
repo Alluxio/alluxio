@@ -1,23 +1,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.tachyonproject</groupId>
-  <artifactId>tachyon-parent</artifactId>
-  <version>0.9.0-RC3</version>
+  <groupId>org.alluxio.alluxio</groupId>
+  <artifactId>alluxio-parent</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Tachyon Parent</name>
-  <description>Parent POM of Tachyon project: a Reliable Memory Centric Distributed Storage System</description>
-  <url>http://tachyon-project.org/</url>
+  <name>Alluxio Parent</name>
+  <description>Parent POM of Alluxio project: a Reliable Memory Centric Distributed Storage System</description>
+  <url>http://alluxio.org/</url>
   <licenses>
     <license>
       <name>Apache License</name>
-      <url>https://github.com/amplab/tachyon/blob/master/LICENSE</url>
+      <url>https://github.com/AlluxioOpenFoundation/alluxio/blob/master/LICENSE</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git@github.com:amplab/tachyon.git</connection>
-    <developerConnection>scm:git:git@github.com:amplab/tachyon.git</developerConnection>
-    <url>scm:git:git@github.com:amplab/tachyon.git</url>
+    <connection>scm:git:git@github.com:AlluxioOpenFoundation/alluxio.git</connection>
+    <developerConnection>scm:git:git@github.com:AlluxioOpenFoundation/alluxio.git</developerConnection>
+    <url>scm:git:git@github.com:AlluxioOpenFoundation/alluxio.git</url>
     <tag>HEAD</tag>
   </scm>
   <developers>
@@ -32,7 +32,7 @@
   </developers>
   <issueManagement>
     <system>github</system>
-    <url>https://tachyon.atlassian.net</url>
+    <url>https://alluxio.atlassian.net</url>
   </issueManagement>
 
   <parent>
@@ -444,7 +444,7 @@
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>2.13</version>
         <configuration>
-          <configLocation>${checkstyle.path}tachyon_checks.xml</configLocation>
+          <configLocation>${checkstyle.path}alluxio_checks.xml</configLocation>
           <suppressionsLocation>${checkstyle.path}suppressions.xml</suppressionsLocation>
           <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
@@ -504,7 +504,7 @@
             <exclude>**/conf/testsuite/*</exclude>
             <exclude>**/libexec/*</exclude>
             <exclude>**/src/main/findbugs/*</exclude>
-            <exclude>**/src/main/resources/tachyon_checks*</exclude>
+            <exclude>**/src/main/resources/alluxio_checks*</exclude>
             <exclude>**/src/main/assembly/*</exclude>
 
             <!-- Documentation Exclusions -->
@@ -612,7 +612,7 @@
       </modules>
     </profile>
 
-    <!-- profile that Tachyon developers should use -->
+    <!-- profile that Alluxio developers should use -->
     <profile>
       <id>developer</id>
       <modules>
