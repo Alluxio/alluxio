@@ -42,7 +42,7 @@ import alluxio.master.file.FileSystemMaster;
 @ThreadSafe
 public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
-  private static final String TACHYON_CONF_PREFIX = "tachyon";
+  private static final String TACHYON_CONF_PREFIX = "alluxio";
   private static final Set<String> TACHYON_CONF_EXCLUDES = new HashSet<String>(
       Arrays.asList(Constants.MASTER_WHITELIST));
 
