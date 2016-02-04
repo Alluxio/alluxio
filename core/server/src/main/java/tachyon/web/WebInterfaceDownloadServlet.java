@@ -40,8 +40,8 @@ import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.security.LoginUser;
 import tachyon.security.authentication.PlainSaslServer;
-import tachyon.thrift.FileInfo;
 import tachyon.util.SecurityUtils;
+import tachyon.wire.FileInfo;
 
 /**
  * Servlet for downloading a file.
