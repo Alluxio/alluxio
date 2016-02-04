@@ -141,7 +141,7 @@ public final class BlockStoreContextTest {
     final List<BlockWorkerClient> clients = Lists.newArrayList();
 
     // Reduce the size of the worker thread pool to lower the chance of a timeout.
-    Configuration conf = Whitebox.getInternalState(ClientContext.class, "sTachyonConf");
+    Configuration conf = Whitebox.getInternalState(ClientContext.class, "sConf");
     conf.set(Constants.USER_BLOCK_WORKER_CLIENT_THREADS, "10");
 
     // Acquire all the clients

@@ -61,7 +61,7 @@ public final class Constants {
 
   public static final int BYTES_IN_INTEGER = 4;
 
-  public static final String SCHEME = "tachyon";
+  public static final String SCHEME = "alluxio";
   public static final String HEADER = SCHEME + "://";
 
   public static final String SCHEME_FT = "alluxio-ft";
