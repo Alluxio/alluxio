@@ -21,22 +21,22 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Renames a file or directory specified by args. Will fail if the new path name already exists.
  */
 @ThreadSafe
-public final class MvCommand extends AbstractTfsShellCommand {
+public final class MvCommand extends AbstractShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public MvCommand(TachyonConf conf, FileSystem fs) {
+  public MvCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -53,12 +53,12 @@ public final class MvCommand extends AbstractTfsShellCommand {
   @Override
   public void run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
-    TachyonURI srcPath = new TachyonURI(args[0]);
-    TachyonURI dstPath = new TachyonURI(args[1]);
+    AlluxioURI srcPath = new AlluxioURI(args[0]);
+    AlluxioURI dstPath = new AlluxioURI(args[1]);
     try {
       mFileSystem.rename(srcPath, dstPath);
       System.out.println("Renamed " + srcPath + " to " + dstPath);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
   }

@@ -21,11 +21,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * The exception thrown when a block already exists in Tachyon.
  */
 @ThreadSafe
-public class BlockAlreadyExistsException extends TachyonException {
+public class BlockAlreadyExistsException extends AlluxioException {
   private static final long serialVersionUID = -127826899023625880L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.BLOCK_ALREADY_EXISTS;
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.BLOCK_ALREADY_EXISTS;
 
   /**
    * Constructs a new exception with the specified detail message.

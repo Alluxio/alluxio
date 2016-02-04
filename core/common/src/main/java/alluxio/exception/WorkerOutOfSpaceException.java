@@ -21,11 +21,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * The exception thrown when a worker is out of space.
  */
 @ThreadSafe
-public class WorkerOutOfSpaceException extends TachyonException {
+public class WorkerOutOfSpaceException extends AlluxioException {
   private static final long serialVersionUID = 8148784998226149669L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.WORKER_OUT_OF_SPACE;
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.WORKER_OUT_OF_SPACE;
 
   /**
    * Constructs a new exception with the specified detail message.

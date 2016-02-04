@@ -23,10 +23,10 @@ import java.util.Date;
 import javax.annotation.concurrent.ThreadSafe;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * Common util methods for executing commands.
@@ -48,11 +48,11 @@ public final class CommandUtils {
    *        whether the file is pinned; {@link Constants#NO_TTL} means to unset the TTL value
    * @throws IOException when failing to set/unset the TTL
    */
-  public static void setTtl(FileSystem fs, TachyonURI path, long ttlMs) throws IOException {
+  public static void setTtl(FileSystem fs, AlluxioURI path, long ttlMs) throws IOException {
     try {
       SetAttributeOptions options = SetAttributeOptions.defaults().setTtl(ttlMs);
       fs.setAttribute(path, options);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
   }
@@ -72,16 +72,16 @@ public final class CommandUtils {
    * Sets pin state for the input path
    *
    * @param fs The {@link FileSystem} client
-   * @param path The {@link TachyonURI} path as the input of the command
+   * @param path The {@link AlluxioURI} path as the input of the command
    * @param pinned the state to be set
    * @throws IOException if a non-Tachyon related exception occurs
    */
-  public static void setPinned(FileSystem fs, TachyonURI path, boolean pinned)
+  public static void setPinned(FileSystem fs, AlluxioURI path, boolean pinned)
       throws IOException {
     try {
       SetAttributeOptions options = SetAttributeOptions.defaults().setPinned(pinned);
       fs.setAttribute(path, options);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
   }

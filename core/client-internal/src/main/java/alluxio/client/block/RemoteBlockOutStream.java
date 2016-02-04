@@ -21,7 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import alluxio.client.ClientContext;
 import alluxio.client.RemoteBlockWriter;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.wire.WorkerNetAddress;
 
 /**
@@ -85,7 +85,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     mRemoteWriter.close();
     try {
       mBlockWorkerClient.cancelBlock(mBlockId);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     }
     mContext.releaseWorkerClient(mBlockWorkerClient);
@@ -102,14 +102,14 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     if (mFlushedBytes > 0) {
       try {
         mBlockWorkerClient.cacheBlock(mBlockId);
-      } catch (TachyonException e) {
+      } catch (AlluxioException e) {
         throw new IOException(e);
       }
       ClientContext.getClientMetrics().incBlocksWrittenRemote(1);
     } else {
       try {
         mBlockWorkerClient.cancelBlock(mBlockId);
-      } catch (TachyonException e) {
+      } catch (AlluxioException e) {
         throw new IOException(e);
       }
     }

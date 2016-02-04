@@ -19,12 +19,12 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.exception.ExceptionMessage;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Test for loadMetadata command.
  */
-public class LoadMetadataCommandTest extends AbstractTfsShellTest {
+public class LoadMetadataCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void loadMetadataErrorMessageTest() {
     int ret = mFsShell.run("loadMetadata", "/nonexistent");

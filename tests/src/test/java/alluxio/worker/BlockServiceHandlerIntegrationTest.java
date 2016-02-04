@@ -31,8 +31,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
@@ -40,12 +40,12 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.block.BlockId;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioTException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -60,13 +60,13 @@ public class BlockServiceHandlerIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
   private BlockWorkerClientServiceHandler mBlockWorkerServiceHandler = null;
   private FileSystem mFileSystem = null;
-  private TachyonConf mMasterTachyonConf;
-  private TachyonConf mWorkerTachyonConf;
+  private Configuration mMasterConfiguration;
+  private Configuration mWorkerConfiguration;
   private BlockMasterClient mBlockMasterClient;
 
   @BeforeClass
@@ -83,16 +83,16 @@ public class BlockServiceHandlerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mFileSystem = mLocalTachyonClusterResource.get().getClient();
-    mMasterTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
-    mWorkerTachyonConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+    mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    mWorkerConfiguration = mLocalAlluxioClusterResource.get().getWorkerTachyonConf();
     mBlockWorkerServiceHandler =
-        mLocalTachyonClusterResource.get().getWorker().getBlockWorkerServiceHandler();
+        mLocalAlluxioClusterResource.get().getWorker().getBlockWorkerServiceHandler();
 
     mBlockMasterClient = new BlockMasterClient(
-        new InetSocketAddress(mLocalTachyonClusterResource.get().getMasterHostname(),
-            mLocalTachyonClusterResource.get().getMasterPort()),
-        mWorkerTachyonConf);
+        new InetSocketAddress(mLocalAlluxioClusterResource.get().getMasterHostname(),
+            mLocalAlluxioClusterResource.get().getMasterPort()),
+        mWorkerConfiguration);
   }
 
   @After
@@ -103,8 +103,8 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that caching a block successfully persists the block if the block exists
   @Test
   public void cacheBlockTest() throws Exception {
-    mFileSystem.createFile(new TachyonURI("/testFile"));
-    URIStatus file = mFileSystem.getStatus(new TachyonURI("/testFile"));
+    mFileSystem.createFile(new AlluxioURI("/testFile"));
+    URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
     // Construct the block ids for the file.
@@ -132,8 +132,8 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that cancelling a block will remove the temporary file
   @Test
   public void cancelBlockTest() throws Exception {
-    mFileSystem.createFile(new TachyonURI("/testFile"));
-    URIStatus file = mFileSystem.getStatus(new TachyonURI("/testFile"));
+    mFileSystem.createFile(new AlluxioURI("/testFile"));
+    URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
@@ -159,8 +159,8 @@ public class BlockServiceHandlerIntegrationTest {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(blockSize)
             .setWriteType(WriteType.MUST_CACHE);
-    FileOutStream out = mFileSystem.createFile(new TachyonURI("/testFile"), options);
-    URIStatus file = mFileSystem.getStatus(new TachyonURI("/testFile"));
+    FileOutStream out = mFileSystem.createFile(new AlluxioURI("/testFile"), options);
+    URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
 
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
 
@@ -172,7 +172,7 @@ public class BlockServiceHandlerIntegrationTest {
     // The local path should exist
     Assert.assertNotNull(localPath);
 
-    UnderFileSystem ufs = UnderFileSystem.get(localPath, mMasterTachyonConf);
+    UnderFileSystem ufs = UnderFileSystem.get(localPath, mMasterConfiguration);
     byte[] data = new byte[blockSize];
     int bytesRead = ufs.open(localPath).read(data);
 
@@ -186,14 +186,14 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that lock block returns error on failure
   @Test
   public void lockBlockFailureTest() throws Exception {
-    mFileSystem.createFile(new TachyonURI("/testFile"));
-    URIStatus file = mFileSystem.getStatus(new TachyonURI("/testFile"));
+    mFileSystem.createFile(new AlluxioURI("/testFile"));
+    URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
 
     Exception exception = null;
     try {
       mBlockWorkerServiceHandler.lockBlock(blockId, SESSION_ID);
-    } catch (TachyonTException e) {
+    } catch (AlluxioTException e) {
       exception = e;
     }
 
@@ -205,14 +205,14 @@ public class BlockServiceHandlerIntegrationTest {
   @Test
   public void evictionTest() throws Exception {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
-    TachyonURI file1 = new TachyonURI("/file1");
+    AlluxioURI file1 = new AlluxioURI("/file1");
     FileSystemTestUtils.createByteFile(mFileSystem, file1, WriteType.MUST_CACHE, blockSize);
 
     // File should be in memory after it is written with MUST_CACHE
     URIStatus fileInfo1 = mFileSystem.getStatus(file1);
     Assert.assertEquals(100, fileInfo1.getInMemoryPercentage());
 
-    TachyonURI file2 = new TachyonURI("/file2");
+    AlluxioURI file2 = new AlluxioURI("/file2");
     FileSystemTestUtils.createByteFile(mFileSystem, file2, WriteType.MUST_CACHE, blockSize);
 
     // Both file 1 and 2 should be in memory since the combined size is not larger than worker space
@@ -221,7 +221,7 @@ public class BlockServiceHandlerIntegrationTest {
     Assert.assertEquals(100, fileInfo1.getInMemoryPercentage());
     Assert.assertEquals(100, fileInfo2.getInMemoryPercentage());
 
-    TachyonURI file3 = new TachyonURI("/file3");
+    AlluxioURI file3 = new AlluxioURI("/file3");
     FileSystemTestUtils.createByteFile(mFileSystem, file3, WriteType.MUST_CACHE, blockSize);
 
     waitForHeartbeat();
@@ -262,7 +262,7 @@ public class BlockServiceHandlerIntegrationTest {
     try {
       mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId2,
           WORKER_CAPACITY_BYTES + 1);
-    } catch (TachyonTException e) {
+    } catch (AlluxioTException e) {
       exception = e;
     }
     Assert.assertNotNull(exception);
@@ -293,7 +293,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Creates a block file and write an increasing byte array into it
   private void createBlockFile(String filename, int len) throws IOException, InvalidPathException {
-    UnderFileSystem ufs = UnderFileSystem.get(filename, mMasterTachyonConf);
+    UnderFileSystem ufs = UnderFileSystem.get(filename, mMasterConfiguration);
     ufs.mkdirs(PathUtils.getParent(filename), true);
     OutputStream out = ufs.create(filename);
     out.write(BufferUtils.getIncreasingByteArray(len), 0, len);

@@ -25,7 +25,7 @@ import org.apache.hadoop.fs.Path;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
@@ -44,7 +44,7 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
   private Map<Path, HdfsUnderFileSystem> mHdfsUfsCache = Maps.newHashMap();
 
   @Override
-  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
+  public UnderFileSystem create(String path, Configuration configuration, Object conf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     // Normalize the path to just its root. This is all that's needed to identify which FileSystem
@@ -52,7 +52,7 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
     Path rootPath = getRoot(new Path(path));
     synchronized (mHdfsUfsCache) {
       if (!mHdfsUfsCache.containsKey(rootPath)) {
-        mHdfsUfsCache.put(rootPath, new HdfsUnderFileSystem(path, tachyonConf, conf));
+        mHdfsUfsCache.put(rootPath, new HdfsUnderFileSystem(path, configuration, conf));
       }
       return mHdfsUfsCache.get(rootPath);
     }
@@ -67,7 +67,7 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
   }
 
   @Override
-  public boolean supportsPath(String path, TachyonConf conf) {
+  public boolean supportsPath(String path, Configuration conf) {
     if (path == null) {
       return false;
     }

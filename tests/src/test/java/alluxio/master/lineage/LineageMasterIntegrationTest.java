@@ -34,8 +34,8 @@ import com.google.common.collect.Lists;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.IntegrationTestUtils;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -44,9 +44,9 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.lineage.LineageFileSystem;
 import alluxio.client.lineage.LineageMasterClient;
-import alluxio.client.lineage.TachyonLineage;
+import alluxio.client.lineage.AlluxioLineage;
 import alluxio.client.lineage.options.DeleteLineageOptions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.job.CommandLineJob;
@@ -68,7 +68,7 @@ public final class LineageMasterIntegrationTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource = new LocalTachyonClusterResource(
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(
       WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES,
       Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
       Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER,
@@ -76,7 +76,7 @@ public final class LineageMasterIntegrationTest {
       Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS, "1000");
 
   private static final String OUT_FILE = "/test";
-  private TachyonConf mTestConf;
+  private Configuration mTestConf;
   private CommandLineJob mJob;
 
   @BeforeClass
@@ -90,7 +90,7 @@ public final class LineageMasterIntegrationTest {
   @Before
   public void before() throws Exception {
     mJob = new CommandLineJob("test", new JobConf("output"));
-    mTestConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
+    mTestConf = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
   }
 
   @Test
@@ -103,7 +103,7 @@ public final class LineageMasterIntegrationTest {
 
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
       Assert.assertEquals(1, infos.size());
-      TachyonURI uri = new TachyonURI(infos.get(0).getOutputFiles().get(0));
+      AlluxioURI uri = new AlluxioURI(infos.get(0).getOutputFiles().get(0));
       URIStatus status = getFileSystemMasterClient().getStatus(uri);
       Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
       Assert.assertFalse(status.isCompleted());
@@ -128,13 +128,13 @@ public final class LineageMasterIntegrationTest {
       CreateFileOptions options =
           CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
               .setBlockSizeBytes(BLOCK_SIZE_BYTES);
-      LineageFileSystem fs = (LineageFileSystem) mLocalTachyonClusterResource.get().getClient();
-      FileOutStream outputStream = fs.createFile(new TachyonURI(OUT_FILE), options);
+      LineageFileSystem fs = (LineageFileSystem) mLocalAlluxioClusterResource.get().getClient();
+      FileOutStream outputStream = fs.createFile(new AlluxioURI(OUT_FILE), options);
       outputStream.write(1);
       outputStream.close();
 
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
-      TachyonURI uri = new TachyonURI(infos.get(0).getOutputFiles().get(0));
+      AlluxioURI uri = new AlluxioURI(infos.get(0).getOutputFiles().get(0));
       URIStatus status = getFileSystemMasterClient().getStatus(uri);
       Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
       Assert.assertTrue(status.isCompleted());
@@ -150,7 +150,7 @@ public final class LineageMasterIntegrationTest {
       status = getFileSystemMasterClient().getStatus(uri);
       Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(), status.getPersistenceState());
 
-      IntegrationTestUtils.waitForPersist(mLocalTachyonClusterResource, status.getFileId());
+      IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, status.getFileId());
 
       // worker notifies the master
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
@@ -179,7 +179,7 @@ public final class LineageMasterIntegrationTest {
     try {
       lineageClient.createLineage(ImmutableList.<String>of(), ImmutableList.of("/testFile"),
           new CommandLineJob("echo hello world", new JobConf(logFile.getAbsolutePath())));
-      FileOutStream out = fs.createFile(new TachyonURI("/testFile"));
+      FileOutStream out = fs.createFile(new AlluxioURI("/testFile"));
       out.write("foo".getBytes());
       out.close();
       lineageClient.reportLostFile("/testFile");
@@ -210,18 +210,18 @@ public final class LineageMasterIntegrationTest {
   public void docExampleTest() throws Exception {
     // create input files
     FileSystem fs = FileSystem.Factory.get();
-    fs.createFile(new TachyonURI("/inputFile1")).close();
-    fs.createFile(new TachyonURI("/inputFile2")).close();
+    fs.createFile(new AlluxioURI("/inputFile1")).close();
+    fs.createFile(new AlluxioURI("/inputFile2")).close();
 
     // ------ code block from docs ------
-    TachyonLineage tl = TachyonLineage.get();
+    AlluxioLineage tl = AlluxioLineage.get();
     // input file paths
-    TachyonURI input1 = new TachyonURI("/inputFile1");
-    TachyonURI input2 = new TachyonURI("/inputFile2");
-    List<TachyonURI> inputFiles = Lists.newArrayList(input1, input2);
+    AlluxioURI input1 = new AlluxioURI("/inputFile1");
+    AlluxioURI input2 = new AlluxioURI("/inputFile2");
+    List<AlluxioURI> inputFiles = Lists.newArrayList(input1, input2);
     // output file paths
-    TachyonURI output = new TachyonURI("/outputFile");
-    List<TachyonURI> outputFiles = Lists.newArrayList(output);
+    AlluxioURI output = new AlluxioURI("/outputFile");
+    List<AlluxioURI> outputFiles = Lists.newArrayList(output);
     // command-line job
     JobConf conf = new JobConf("/tmp/recompute.log");
     CommandLineJob job = new CommandLineJob("my-spark-job.sh", conf);
@@ -231,7 +231,7 @@ public final class LineageMasterIntegrationTest {
     DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(true);
     tl.deleteLineage(lineageId);
 
-    fs.delete(new TachyonURI("/outputFile"));
+    fs.delete(new AlluxioURI("/outputFile"));
     lineageId = tl.createLineage(inputFiles, outputFiles, job);
 
     // ------ code block from docs ------
@@ -239,12 +239,12 @@ public final class LineageMasterIntegrationTest {
   }
 
   private LineageMasterClient getLineageMasterClient() {
-    return new LineageMasterClient(mLocalTachyonClusterResource.get().getMaster().getAddress(),
+    return new LineageMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
         mTestConf);
   }
 
   private FileSystemMasterClient getFileSystemMasterClient() {
-    return new FileSystemMasterClient(mLocalTachyonClusterResource.get().getMaster().getAddress(),
+    return new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
         mTestConf);
   }
 }

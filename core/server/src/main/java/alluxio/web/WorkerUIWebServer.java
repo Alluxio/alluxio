@@ -23,7 +23,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.block.BlockWorker;
 
@@ -45,7 +45,7 @@ public final class WorkerUIWebServer extends UIWebServer {
    */
   public WorkerUIWebServer(ServiceType serviceType, InetSocketAddress webAddress,
       BlockWorker blockWorker, InetSocketAddress workerAddress, long startTimeMs,
-      TachyonConf conf) {
+      Configuration conf) {
     super(serviceType, webAddress, conf);
     Preconditions.checkNotNull(blockWorker, "Block Worker cannot be null");
     Preconditions.checkNotNull(workerAddress, "Worker address cannot be null");

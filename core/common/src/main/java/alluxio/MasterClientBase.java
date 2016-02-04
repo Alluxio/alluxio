@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
-import alluxio.conf.TachyonConf;
 import alluxio.util.network.NetworkAddressUtils;
 
 /**
@@ -45,11 +44,11 @@ public abstract class MasterClientBase extends ClientBase {
    * Creates a new master client base.
    *
    * @param masterAddress the master address
-   * @param tachyonConf the Tachyon configuration
+   * @param configuration the Tachyon configuration
    */
-  public MasterClientBase(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
-    super(masterAddress, tachyonConf, "master");
-    mUseZookeeper = mTachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED);
+  public MasterClientBase(InetSocketAddress masterAddress, Configuration configuration) {
+    super(masterAddress, configuration, "master");
+    mUseZookeeper = mConfiguration.getBoolean(Constants.ZOOKEEPER_ENABLED);
   }
 
   /**
@@ -64,11 +63,11 @@ public abstract class MasterClientBase extends ClientBase {
       return super.getAddress();
     }
 
-    Preconditions.checkState(mTachyonConf.containsKey(Constants.ZOOKEEPER_ADDRESS));
-    Preconditions.checkState(mTachyonConf.containsKey(Constants.ZOOKEEPER_LEADER_PATH));
+    Preconditions.checkState(mConfiguration.containsKey(Constants.ZOOKEEPER_ADDRESS));
+    Preconditions.checkState(mConfiguration.containsKey(Constants.ZOOKEEPER_LEADER_PATH));
     LeaderInquireClient leaderInquireClient =
-        LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS),
-            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH), mTachyonConf);
+        LeaderInquireClient.getClient(mConfiguration.get(Constants.ZOOKEEPER_ADDRESS),
+            mConfiguration.get(Constants.ZOOKEEPER_LEADER_PATH), mConfiguration);
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return NetworkAddressUtils.parseInetSocketAddress(temp);

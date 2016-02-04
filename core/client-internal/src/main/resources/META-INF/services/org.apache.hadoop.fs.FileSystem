@@ -1,2 +1,2 @@
-alluxio.hadoop.TFS
-alluxio.hadoop.TFSFT
+alluxio.hadoop.FileSystem
+alluxio.hadoop.FaultTolerantFileSystem

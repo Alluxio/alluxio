@@ -18,7 +18,7 @@ package alluxio.worker.block.allocator;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Unit tests for {@link RoundRobinAllocator}.
@@ -32,7 +32,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
    */
   @Test
   public void allocateBlockTest() throws Exception {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
     mAllocator = Allocator.Factory.create(conf, getManagerView());
     //

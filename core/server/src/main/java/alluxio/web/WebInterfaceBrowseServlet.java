@@ -29,18 +29,18 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.collect.Lists;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.TachyonException;
-import alluxio.master.TachyonMaster;
+import alluxio.exception.AlluxioException;
+import alluxio.master.AlluxioMaster;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.PlainSaslServer;
 import alluxio.util.SecurityUtils;
@@ -58,17 +58,17 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
 
   private static final long serialVersionUID = 6121623049981468871L;
 
-  private final transient TachyonMaster mMaster;
-  private final transient TachyonConf mTachyonConf;
+  private final transient AlluxioMaster mMaster;
+  private final transient Configuration mConfiguration;
 
   /**
    * Creates a new instance of {@link WebInterfaceBrowseServlet}.
    *
    * @param master the Tachyon master
    */
-  public WebInterfaceBrowseServlet(TachyonMaster master) {
+  public WebInterfaceBrowseServlet(AlluxioMaster master) {
     mMaster = master;
-    mTachyonConf = new TachyonConf();
+    mConfiguration = new Configuration();
   }
 
   /**
@@ -81,8 +81,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws IOException if an I/O error occurs
    * @throws InvalidPathException if an invalid path is encountered
    */
-  private void displayFile(TachyonURI path, HttpServletRequest request, long offset)
-      throws FileDoesNotExistException, InvalidPathException, IOException, TachyonException {
+  private void displayFile(AlluxioURI path, HttpServletRequest request, long offset)
+      throws FileDoesNotExistException, InvalidPathException, IOException, AlluxioException {
     FileSystem fs = FileSystem.Factory.get();
     String fileData = null;
     URIStatus status = fs.getStatus(path);
@@ -138,9 +138,9 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (SecurityUtils.isSecurityEnabled(mTachyonConf)
-        && PlainSaslServer.AuthorizedClientUser.get(mTachyonConf) == null) {
-      PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(mTachyonConf).getName());
+    if (SecurityUtils.isSecurityEnabled(mConfiguration)
+        && PlainSaslServer.AuthorizedClientUser.get(mConfiguration) == null) {
+      PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(mConfiguration).getName());
     }
     request.setAttribute("debug", Constants.DEBUG);
     request.setAttribute("viewLog", false);
@@ -150,9 +150,9 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     List<FileInfo> filesInfo;
     String requestPath = request.getParameter("path");
     if (requestPath == null || requestPath.isEmpty()) {
-      requestPath = TachyonURI.SEPARATOR;
+      requestPath = AlluxioURI.SEPARATOR;
     }
-    TachyonURI currentPath = new TachyonURI(requestPath);
+    AlluxioURI currentPath = new AlluxioURI(requestPath);
     request.setAttribute("currentPath", currentPath.toString());
     request.setAttribute("viewingOffset", 0);
 
@@ -165,7 +165,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       }
       request.setAttribute("currentDirectory", currentFileInfo);
       request.setAttribute("blockSizeBytes", currentFileInfo.getBlockSizeBytes());
-      request.setAttribute("workerWebPort", mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
+      request.setAttribute("workerWebPort", mConfiguration.getInt(Constants.WORKER_WEB_PORT));
       if (!currentFileInfo.getIsDirectory()) {
         String offsetParam = request.getParameter("offset");
         long relativeOffset = 0;
@@ -191,8 +191,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
           offset = fileInfo.getLength();
         }
         try {
-          displayFile(new TachyonURI(currentFileInfo.getAbsolutePath()), request, offset);
-        } catch (TachyonException e) {
+          displayFile(new AlluxioURI(currentFileInfo.getAbsolutePath()), request, offset);
+        } catch (AlluxioException e) {
           throw new IOException(e);
         }
         request.setAttribute("viewingOffset", offset);
@@ -228,7 +228,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
           FileBlockInfo blockInfo =
               mMaster.getFileSystemMaster()
-                  .getFileBlockInfoList(new TachyonURI(toAdd.getAbsolutePath())).get(0);
+                  .getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath())).get(0);
           List<WorkerNetAddress> addrs = Lists.newArrayList();
           // add the in-memory block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
@@ -294,7 +294,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws AccessControlException if permission checking fails
    */
-  private void setPathDirectories(TachyonURI path, HttpServletRequest request)
+  private void setPathDirectories(AlluxioURI path, HttpServletRequest request)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     if (path.isRoot()) {
       request.setAttribute("pathInfos", new UIFileInfo[0]);
@@ -303,7 +303,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
 
     String[] splitPath = PathUtils.getPathComponents(path.toString());
     UIFileInfo[] pathInfos = new UIFileInfo[splitPath.length - 1];
-    TachyonURI currentPath = new TachyonURI(TachyonURI.SEPARATOR);
+    AlluxioURI currentPath = new AlluxioURI(AlluxioURI.SEPARATOR);
     long fileId = mMaster.getFileSystemMaster().getFileId(currentPath);
     pathInfos[0] = new UIFileInfo(mMaster.getFileSystemMaster().getFileInfo(fileId));
     for (int i = 1; i < splitPath.length - 1; i ++) {

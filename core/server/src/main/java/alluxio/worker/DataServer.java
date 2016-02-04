@@ -23,7 +23,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Throwables;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockWorker;
 
@@ -46,11 +46,11 @@ public interface DataServer extends Closeable {
      * @return the generated {@link DataServer}
      */
     public static DataServer create(final InetSocketAddress dataAddress,
-        final BlockWorker blockWorker, TachyonConf conf) {
+        final BlockWorker blockWorker, Configuration conf) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<DataServer>getClass(Constants.WORKER_DATA_SERVER),
-            new Class[] { InetSocketAddress.class, BlockWorker.class, TachyonConf.class },
+            new Class[] { InetSocketAddress.class, BlockWorker.class, Configuration.class },
             new Object[] { dataAddress, blockWorker, conf });
       } catch (Exception e) {
         throw Throwables.propagate(e);

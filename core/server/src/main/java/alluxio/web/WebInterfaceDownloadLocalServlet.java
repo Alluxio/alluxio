@@ -31,8 +31,8 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.io.ByteStreams;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 
 /**
  * Servlet for downloading a local file.
@@ -41,13 +41,13 @@ import alluxio.conf.TachyonConf;
 public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
   private static final long serialVersionUID = 7260819317567193560L;
 
-  private final transient TachyonConf mTachyonConf;
+  private final transient Configuration mConfiguration;
 
   /**
    * Creates a new instance of {@link WebInterfaceDownloadLocalServlet}.
    */
   public WebInterfaceDownloadLocalServlet() {
-    mTachyonConf = new TachyonConf();
+    mConfiguration = new Configuration();
   }
 
   /**
@@ -63,11 +63,11 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
       throws ServletException, IOException {
     String requestPath = request.getParameter("path");
     if (requestPath == null || requestPath.isEmpty()) {
-      requestPath = TachyonURI.SEPARATOR;
+      requestPath = AlluxioURI.SEPARATOR;
     }
 
     // Download a file from the local filesystem.
-    File logsDir = new File(mTachyonConf.get(Constants.LOGS_DIR));
+    File logsDir = new File(mConfiguration.get(Constants.LOGS_DIR));
 
     // Only allow filenames as the path, to avoid downloading arbitrary local files.
     requestPath = new File(requestPath).getName();

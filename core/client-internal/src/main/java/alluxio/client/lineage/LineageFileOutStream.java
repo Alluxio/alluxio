@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
@@ -45,7 +45,7 @@ public class LineageFileOutStream extends FileOutStream {
    * @param options the set of options specific to this operation
    * @throws IOException if an I/O error occurs
    */
-  public LineageFileOutStream(TachyonURI path, OutStreamOptions options) throws IOException {
+  public LineageFileOutStream(AlluxioURI path, OutStreamOptions options) throws IOException {
     super(path, updateOutStreamOptions(options));
   }
 

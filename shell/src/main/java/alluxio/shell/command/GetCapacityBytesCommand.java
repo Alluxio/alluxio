@@ -21,15 +21,15 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.client.block.TachyonBlockStore;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Gets the capacity of the {@link FileSystem}.
  */
 @ThreadSafe
-public final class GetCapacityBytesCommand extends AbstractTfsShellCommand {
+public final class GetCapacityBytesCommand extends AbstractShellCommand {
 
   /**
    * Constructs a new instance to get the capacity of the {@link FileSystem}.
@@ -37,7 +37,7 @@ public final class GetCapacityBytesCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public GetCapacityBytesCommand(TachyonConf conf, FileSystem fs) {
+  public GetCapacityBytesCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -53,7 +53,7 @@ public final class GetCapacityBytesCommand extends AbstractTfsShellCommand {
 
   @Override
   public void run(CommandLine cl) throws IOException {
-    long capacityBytes = TachyonBlockStore.get().getCapacityBytes();
+    long capacityBytes = AlluxioBlockStore.get().getCapacityBytes();
     System.out.println("Capacity Bytes: " + capacityBytes);
   }
 

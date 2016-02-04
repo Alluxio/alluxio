@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.master.MasterSource;
 import alluxio.worker.WorkerSource;
 
@@ -30,14 +30,14 @@ import alluxio.worker.WorkerSource;
  */
 public class MetricsSystemTest {
   private MetricsConfig mMetricsConfig;
-  private TachyonConf mTachyonConf;
+  private Configuration mConfiguration;
 
   /**
    * Sets up the properties for the configuration of the metrics before a test runs.
    */
   @Before
   public final void before() {
-    mTachyonConf = new TachyonConf();
+    mConfiguration = new Configuration();
     Properties metricsProps = new Properties();
     metricsProps.setProperty("*.sink.console.class", "alluxio.metrics.sink.ConsoleSink");
     metricsProps.setProperty("*.sink.console.period", "15");
@@ -53,7 +53,7 @@ public class MetricsSystemTest {
    */
   @Test
   public void metricsSystemTest() {
-    MetricsSystem masterMetricsSystem = new MetricsSystem("master", mMetricsConfig, mTachyonConf);
+    MetricsSystem masterMetricsSystem = new MetricsSystem("master", mMetricsConfig, mConfiguration);
     masterMetricsSystem.start();
 
     Assert.assertNotNull(masterMetricsSystem.getServletHandler());
@@ -63,7 +63,7 @@ public class MetricsSystemTest {
     Assert.assertEquals(2, masterMetricsSystem.getSources().size());
     masterMetricsSystem.stop();
 
-    MetricsSystem workerMetricsSystem = new MetricsSystem("worker", mMetricsConfig, mTachyonConf);
+    MetricsSystem workerMetricsSystem = new MetricsSystem("worker", mMetricsConfig, mConfiguration);
     workerMetricsSystem.start();
 
     Assert.assertNotNull(workerMetricsSystem.getServletHandler());

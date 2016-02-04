@@ -18,7 +18,7 @@ package alluxio.worker.block.allocator;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Unit tests for {@link GreedyAllocator}.
@@ -32,7 +32,7 @@ public class GreedyAllocatorTest extends BaseAllocatorTest {
    */
   @Test
   public void allocateBlockTest() throws Exception {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
     mAllocator = Allocator.Factory.create(conf, getManagerView());
     //

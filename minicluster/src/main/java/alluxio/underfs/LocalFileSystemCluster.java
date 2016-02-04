@@ -20,7 +20,7 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * The mock cluster for local file system.
@@ -30,10 +30,10 @@ public class LocalFileSystemCluster extends UnderFileSystemCluster {
 
   /**
    * @param baseDir the base directory
-   * @param tachyonConf the configuration for Tachyon
+   * @param configuration the configuration for Tachyon
    */
-  public LocalFileSystemCluster(String baseDir, TachyonConf tachyonConf) {
-    super(baseDir, tachyonConf);
+  public LocalFileSystemCluster(String baseDir, Configuration configuration) {
+    super(baseDir, configuration);
   }
 
   @Override

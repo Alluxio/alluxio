@@ -14,4 +14,4 @@ mkdir -p "${TACHYON_LOGS_DIR}"
   -Dalluxio.home="${TACHYON_HOME}" \
   -Dalluxio.logger.type="MASTER_LOGGER" \
   -Dalluxio.logs.dir="${TACHYON_LOGS_DIR}" \
-  alluxio.mesos.TachyonMasterExecutor > "${TACHYON_LOGS_DIR}"/master.out 2>&1
+  alluxio.mesos.AlluxioMasterExecutor > "${TACHYON_LOGS_DIR}"/master.out 2>&1

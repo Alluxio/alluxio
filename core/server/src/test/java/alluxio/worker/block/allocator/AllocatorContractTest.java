@@ -29,7 +29,7 @@ import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.worker.WorkerContext;
 
 /**
@@ -73,7 +73,7 @@ public class AllocatorContractTest extends BaseAllocatorTest {
    */
   @Test
   public void shouldNotAllocateTest() throws Exception {
-    TachyonConf conf = WorkerContext.getConf();
+    Configuration conf = WorkerContext.getConf();
     for (String strategyName : mStrategies) {
       conf.set(Constants.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
@@ -93,7 +93,7 @@ public class AllocatorContractTest extends BaseAllocatorTest {
    */
   @Test
   public void shouldAllocateTest() throws Exception {
-    TachyonConf conf = WorkerContext.getConf();
+    Configuration conf = WorkerContext.getConf();
     for (String strategyName : mStrategies) {
       conf.set(Constants.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();

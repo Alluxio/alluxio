@@ -25,7 +25,7 @@ import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.login.AppLoginModule;
 import alluxio.security.login.LoginModuleConfiguration;
@@ -55,7 +55,7 @@ public final class LoginUser {
    * @return the login user
    * @throws java.io.IOException if login fails
    */
-  public static User get(TachyonConf conf) throws IOException {
+  public static User get(Configuration conf) throws IOException {
     if (sLoginUser == null) {
       synchronized (LoginUser.class) {
         if (sLoginUser == null) {
@@ -73,7 +73,7 @@ public final class LoginUser {
    * @return the login user
    * @throws IOException if login fails
    */
-  private static User login(TachyonConf conf) throws IOException {
+  private static User login(Configuration conf) throws IOException {
     AuthType authType = conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     checkSecurityEnabled(authType);
 

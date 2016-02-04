@@ -33,7 +33,7 @@ import com.google.common.collect.Iterators;
 
 import alluxio.Constants;
 import alluxio.collections.Pair;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
@@ -63,7 +63,7 @@ public final class LRFUEvictor extends EvictorBase {
   private final double mStepFactor;
   // In the range of [2, INF]
   private final double mAttenuationFactor;
-  private final TachyonConf mTachyonConf;
+  private final Configuration mConfiguration;
 
   //logic time count
   private AtomicLong mLogicTimeCount = new AtomicLong(0L);
@@ -76,10 +76,10 @@ public final class LRFUEvictor extends EvictorBase {
    */
   public LRFUEvictor(BlockMetadataManagerView view, Allocator allocator) {
     super(view, allocator);
-    mTachyonConf = WorkerContext.getConf();
-    mStepFactor = mTachyonConf
+    mConfiguration = WorkerContext.getConf();
+    mStepFactor = mConfiguration
         .getDouble(Constants.WORKER_EVICTOR_LRFU_STEP_FACTOR);
-    mAttenuationFactor = mTachyonConf
+    mAttenuationFactor = mConfiguration
         .getDouble(Constants.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
     Preconditions.checkArgument(mStepFactor >= 0.0 && mStepFactor <= 1.0,
         "Step factor should be in the range of [0.0, 1.0]");

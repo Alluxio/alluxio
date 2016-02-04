@@ -28,7 +28,7 @@ import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.security.User;
 
 /**
@@ -153,7 +153,7 @@ public final class AppLoginModule implements LoginModule {
     /**
      * @param conf the configuration for Tachyon
      */
-    public AppCallbackHandler(TachyonConf conf) {
+    public AppCallbackHandler(Configuration conf) {
       if (conf.containsKey(Constants.SECURITY_LOGIN_USERNAME)) {
         mUserName = conf.get(Constants.SECURITY_LOGIN_USERNAME);
       } else {

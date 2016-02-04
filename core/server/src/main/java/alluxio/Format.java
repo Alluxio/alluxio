@@ -22,8 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.conf.TachyonConf;
-import alluxio.master.TachyonMaster;
+import alluxio.master.AlluxioMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -37,9 +36,9 @@ public final class Format {
   private static final String USAGE = String.format("java -cp %s alluxio.Format <MASTER/WORKER>",
       Version.TACHYON_JAR);
 
-  private static boolean formatFolder(String name, String folder, TachyonConf tachyonConf)
+  private static boolean formatFolder(String name, String folder, Configuration configuration)
       throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(folder, tachyonConf);
+    UnderFileSystem ufs = UnderFileSystem.get(folder, configuration);
     LOG.info("Formatting {}:{}", name, folder);
     if (ufs.exists(folder)) {
       for (String file : ufs.list(folder)) {
@@ -67,19 +66,19 @@ public final class Format {
       System.exit(-1);
     }
 
-    TachyonConf tachyonConf = new TachyonConf();
+    Configuration configuration = new Configuration();
 
     if ("MASTER".equals(args[0].toUpperCase())) {
 
       String masterJournal =
-          tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
-      if (!formatFolder("JOURNAL_FOLDER", masterJournal, tachyonConf)) {
+          configuration.get(Constants.MASTER_JOURNAL_FOLDER);
+      if (!formatFolder("JOURNAL_FOLDER", masterJournal, configuration)) {
         System.exit(-1);
       }
 
-      for (String masterServiceName : TachyonMaster.getServiceNames()) {
+      for (String masterServiceName : AlluxioMaster.getServiceNames()) {
         if (!formatFolder(masterServiceName + "_JOURNAL_FOLDER", PathUtils.concatPath(masterJournal,
-            masterServiceName), tachyonConf)) {
+            masterServiceName), configuration)) {
           System.exit(-1);
         }
       }
@@ -88,20 +87,20 @@ public final class Format {
       // present under the folder.
       UnderFileSystemUtils.touch(
           PathUtils.concatPath(masterJournal, Constants.FORMAT_FILE_PREFIX
-              + System.currentTimeMillis()), tachyonConf);
+              + System.currentTimeMillis()), configuration);
     } else if ("WORKER".equals(args[0].toUpperCase())) {
-      String workerDataFolder = tachyonConf.get(Constants.WORKER_DATA_FOLDER);
-      int storageLevels = tachyonConf.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
+      String workerDataFolder = configuration.get(Constants.WORKER_DATA_FOLDER);
+      int storageLevels = configuration.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
       for (int level = 0; level < storageLevels; level ++) {
         String tierLevelDirPath =
             String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
-        String[] dirPaths = tachyonConf.get(tierLevelDirPath).split(",");
+        String[] dirPaths = configuration.get(tierLevelDirPath).split(",");
         String name = "TIER_" + level + "_DIR_PATH";
         for (String dirPath : dirPaths) {
           String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
-          UnderFileSystem ufs = UnderFileSystem.get(dirWorkerDataFolder, tachyonConf);
+          UnderFileSystem ufs = UnderFileSystem.get(dirWorkerDataFolder, configuration);
           if (ufs.exists(dirWorkerDataFolder)) {
-            if (!formatFolder(name, dirWorkerDataFolder, tachyonConf)) {
+            if (!formatFolder(name, dirWorkerDataFolder, configuration)) {
               System.exit(-1);
             }
           }

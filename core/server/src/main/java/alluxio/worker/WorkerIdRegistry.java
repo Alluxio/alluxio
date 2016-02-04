@@ -31,7 +31,7 @@ import alluxio.worker.block.BlockMasterSync;
 /**
  * The single place to get, set, and update worker id.
  *
- * When worker process starts in {@link TachyonWorker}, worker is temporarily lost from master,
+ * When worker process starts in {@link AlluxioWorker}, worker is temporarily lost from master,
  * or when leader master is down in fault tolerant mode, this class will try to get a new worker id
  * from {@link BlockMaster}.
  *

@@ -17,8 +17,6 @@ package alluxio;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import alluxio.conf.TachyonConf;
-
 /**
  * The version of the current build.
  */
@@ -29,8 +27,8 @@ public final class Version {
   private Version() {} // prevent instantiation
 
   static {
-    TachyonConf tachyonConf = new TachyonConf();
-    VERSION = tachyonConf.get(Constants.TACHYON_VERSION);
+    Configuration configuration = new Configuration();
+    VERSION = configuration.get(Constants.TACHYON_VERSION);
   }
 
   /** The relative path to the Tachyon target jar. */

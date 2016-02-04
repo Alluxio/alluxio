@@ -25,8 +25,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
@@ -41,8 +41,8 @@ import alluxio.security.authentication.AuthenticationProvider;
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
 public final class MasterClientAuthenticationIntegrationTest {
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource();
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -58,21 +58,21 @@ public final class MasterClientAuthenticationIntegrationTest {
   }
 
   @Test
-  @LocalTachyonClusterResource.Config(
+  @LocalAlluxioClusterResource.Config(
       tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void noAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest("/file-nosasl");
   }
 
   @Test
-  @LocalTachyonClusterResource.Config(
+  @LocalAlluxioClusterResource.Config(
       tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
   public void simpleAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest("/file-simple");
   }
 
   @Test
-  @LocalTachyonClusterResource.Config(tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
+  @LocalAlluxioClusterResource.Config(tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
       "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
       NameMatchAuthenticationProvider.FULL_CLASS_NAME,
       Constants.SECURITY_LOGIN_USERNAME, "tachyon"})
@@ -81,7 +81,7 @@ public final class MasterClientAuthenticationIntegrationTest {
   }
 
   @Test
-  @LocalTachyonClusterResource.Config(tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
+  @LocalAlluxioClusterResource.Config(tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
       "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
       NameMatchAuthenticationProvider.FULL_CLASS_NAME,
       Constants.SECURITY_LOGIN_USERNAME, "tachyon"})
@@ -89,7 +89,7 @@ public final class MasterClientAuthenticationIntegrationTest {
     mThrown.expect(ConnectionFailedException.class);
 
     FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalTachyonClusterResource.get().getMaster().getAddress(),
+        new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
             ClientContext.getConf());
     try {
       Assert.assertFalse(masterClient.isConnected());
@@ -110,13 +110,13 @@ public final class MasterClientAuthenticationIntegrationTest {
    */
   private void authenticationOperationTest(String filename) throws Exception {
     FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalTachyonClusterResource.get().getMaster().getAddress(),
-            mLocalTachyonClusterResource.get().getMasterTachyonConf());
+        new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
+            mLocalAlluxioClusterResource.get().getMasterTachyonConf());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
-    masterClient.createFile(new TachyonURI(filename), CreateFileOptions.defaults());
-    Assert.assertNotNull(masterClient.getStatus(new TachyonURI(filename)));
+    masterClient.createFile(new AlluxioURI(filename), CreateFileOptions.defaults());
+    Assert.assertNotNull(masterClient.getStatus(new AlluxioURI(filename)));
     masterClient.disconnect();
     masterClient.close();
   }

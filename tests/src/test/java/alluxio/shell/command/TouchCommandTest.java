@@ -20,34 +20,34 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Tests for touch command.
  */
-public class TouchCommandTest extends AbstractTfsShellTest {
+public class TouchCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void touchTest() throws IOException, TachyonException {
+  public void touchTest() throws IOException, AlluxioException {
     String[] argv = new String[] {"touch", "/testFile"};
     mFsShell.run(argv);
-    URIStatus status = mFileSystem.getStatus(new TachyonURI("/testFile"));
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI("/testFile"));
     Assert.assertNotNull(status);
     Assert.assertEquals(getCommandOutput(argv), mOutput.toString());
     Assert.assertFalse(status.isFolder());
   }
 
   @Test
-  public void touchTestWithFullURI() throws IOException, TachyonException {
+  public void touchTestWithFullURI() throws IOException, AlluxioException {
     String tachyonURI = "alluxio://" + mLocalTachyonCluster.getMasterHostname() + ":"
         + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
     // when
     String[] argv = new String[] {"touch", tachyonURI};
     mFsShell.run(argv);
     // then
-    URIStatus status = mFileSystem.getStatus(new TachyonURI("/destFileURI"));
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI("/destFileURI"));
     Assert.assertNotNull(status);
     Assert.assertEquals(getCommandOutput(argv), mOutput.toString());
     Assert.assertFalse(status.isFolder());

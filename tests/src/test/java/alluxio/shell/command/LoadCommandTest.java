@@ -20,24 +20,24 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.URIStatus;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Tests for load command.
  */
-public class LoadCommandTest extends AbstractTfsShellTest {
+public class LoadCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void loadDirTest() throws IOException, TachyonException {
+  public void loadDirTest() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.THROUGH, 10);
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testRoot/testFileB", WriteType.MUST_CACHE, 10);
-    TachyonURI uriA = new TachyonURI("/testRoot/testFileA");
-    TachyonURI uriB = new TachyonURI("/testRoot/testFileB");
+    AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
+    AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
 
     URIStatus statusA = mFileSystem.getStatus(uriA);
     URIStatus statusB = mFileSystem.getStatus(uriB);
@@ -52,9 +52,9 @@ public class LoadCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void loadFileTest() throws IOException, TachyonException {
+  public void loadFileTest() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.THROUGH, 10);
-    TachyonURI uri = new TachyonURI("/testFile");
+    AlluxioURI uri = new AlluxioURI("/testFile");
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertFalse(status.getInMemoryPercentage() == 100);
     // Testing loading of a single file

@@ -21,11 +21,11 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.LineageFileSystem;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Reports to the master that a file is lost.
@@ -37,7 +37,7 @@ public final class ReportCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public ReportCommand(TachyonConf conf, FileSystem fs) {
+  public ReportCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -47,11 +47,11 @@ public final class ReportCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
+  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
     try {
       LineageFileSystem.get().reportLostFile(path);
       System.out.println(path + " has reported been reported as lost.");
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
   }

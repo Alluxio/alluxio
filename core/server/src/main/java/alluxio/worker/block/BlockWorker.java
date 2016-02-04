@@ -32,12 +32,12 @@ import com.google.common.base.Throwables;
 
 import alluxio.Constants;
 import alluxio.Sessions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -94,7 +94,7 @@ public final class BlockWorker extends WorkerBase {
   private final FileSystemMasterClient mFileSystemMasterClient;
 
   /** Configuration object. */
-  private final TachyonConf mTachyonConf;
+  private final Configuration mConf;
 
   /** Space reserver for the block data manager. */
   private SpaceReserver mSpaceReserver = null;
@@ -143,21 +143,21 @@ public final class BlockWorker extends WorkerBase {
   public BlockWorker() throws IOException {
     super(Executors.newFixedThreadPool(4,
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
-    mTachyonConf = WorkerContext.getConf();
+    mConf = WorkerContext.getConf();
 
     // Setup BlockMasterClient
     mBlockMasterClient = new BlockMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
 
     mFileSystemMasterClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
 
     // Setup DataServer
     mDataServer = DataServer.Factory.create(
-        NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mTachyonConf),
-        this, mTachyonConf);
+        NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mConf),
+        this, mConf);
     // Reset data server port
-    mTachyonConf.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
+    mConf.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
     // Setup RPC ServerHandler
     mServiceHandler = new BlockWorkerClientServiceHandler(this);
@@ -214,7 +214,7 @@ public final class BlockWorker extends WorkerBase {
     mSessionCleanerThread = new SessionCleaner(this);
 
     // Setup space reserver
-    if (mTachyonConf.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
+    if (mConf.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
       mSpaceReserver = new SpaceReserver(this);
     }
 
@@ -616,7 +616,7 @@ public final class BlockWorker extends WorkerBase {
   public FileInfo getFileInfo(long fileId) throws IOException {
     try {
       return mFileSystemMasterClient.getFileInfo(fileId);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     }
   }

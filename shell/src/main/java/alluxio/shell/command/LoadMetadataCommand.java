@@ -21,17 +21,17 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.LoadMetadataOptions;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Loads metadata for the given Tachyon path from UFS.
  */
 @ThreadSafe
-public final class LoadMetadataCommand extends AbstractTfsShellCommand {
+public final class LoadMetadataCommand extends AbstractShellCommand {
 
   /**
    * Constructs a new instance to load metadata for the given Tachyon path from UFS.
@@ -39,7 +39,7 @@ public final class LoadMetadataCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public LoadMetadataCommand(TachyonConf conf, FileSystem fs) {
+  public LoadMetadataCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -56,12 +56,12 @@ public final class LoadMetadataCommand extends AbstractTfsShellCommand {
   @Override
   public void run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
-    TachyonURI inputPath = new TachyonURI(args[0]);
+    AlluxioURI inputPath = new AlluxioURI(args[0]);
 
     try {
       LoadMetadataOptions options = LoadMetadataOptions.defaults().setRecursive(true);
       mFileSystem.loadMetadata(inputPath, options);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
   }

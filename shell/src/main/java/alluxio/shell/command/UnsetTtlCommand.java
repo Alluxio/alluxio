@@ -22,20 +22,20 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.apache.commons.cli.CommandLine;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Unsets the TTL value for the given path.
  */
 @ThreadSafe
-public final class UnsetTtlCommand extends AbstractTfsShellCommand {
+public final class UnsetTtlCommand extends AbstractShellCommand {
   /**
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public UnsetTtlCommand(TachyonConf conf, FileSystem fs) {
+  public UnsetTtlCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -52,7 +52,7 @@ public final class UnsetTtlCommand extends AbstractTfsShellCommand {
   @Override
   public void run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
-    TachyonURI inputPath = new TachyonURI(args[0]);
+    AlluxioURI inputPath = new AlluxioURI(args[0]);
     CommandUtils.setTtl(mFileSystem, inputPath, Constants.NO_TTL);
     System.out.println("TTL of file '" + inputPath + "' was successfully removed.");
   }

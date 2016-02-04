@@ -35,9 +35,9 @@ import alluxio.client.keyvalue.Index;
 import alluxio.client.keyvalue.PayloadReader;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.KeyValueWorkerClientService;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.BlockWorker;
@@ -72,19 +72,19 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
    * @param blockId block Id
    * @param key key to fetch
    * @return value or null if not found
-   * @throws TachyonTException if an exception in Tachyon occurs
-   * @throws ThriftIOException if a non-Tachyon related exception occurs
+   * @throws AlluxioTException if an exception in Alluxio occurs
+   * @throws ThriftIOException if a non-Alluxio related exception occurs
    */
   @Override
-  public ByteBuffer get(long blockId, ByteBuffer key) throws TachyonTException, ThriftIOException {
+  public ByteBuffer get(long blockId, ByteBuffer key) throws AlluxioTException, ThriftIOException {
     try {
       ByteBuffer value = getInternal(blockId, key);
       if (value == null) {
         return ByteBuffer.allocate(0);
       }
       return copyAsNonDirectBuffer(value);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }
@@ -131,7 +131,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
 
   @Override
   public List<ByteBuffer> getNextKeys(long blockId, ByteBuffer currentKey, int numKeys)
-      throws TachyonTException, ThriftIOException {
+      throws AlluxioTException, ThriftIOException {
     try {
       final long sessionId = Sessions.KEYVALUE_SESSION_ID;
       final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
@@ -157,8 +157,8 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
         mBlockWorker.unlockBlock(lockId);
       }
       return Collections.emptyList();
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }
@@ -166,7 +166,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
 
   // TODO(cc): Try to remove the duplicated try-catch logic in other methods like getNextKeys.
   @Override
-  public int getSize(long blockId) throws TachyonTException, ThriftIOException {
+  public int getSize(long blockId) throws AlluxioTException, ThriftIOException {
     try {
       final long sessionId = Sessions.KEYVALUE_SESSION_ID;
       final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
@@ -179,8 +179,8 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
         mBlockWorker.unlockBlock(lockId);
       }
       return 0;
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }

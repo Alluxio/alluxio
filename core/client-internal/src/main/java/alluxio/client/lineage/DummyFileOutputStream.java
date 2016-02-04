@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
 
@@ -37,7 +37,7 @@ public final class DummyFileOutputStream extends FileOutStream {
    * @param options the set of options specific to this operation
    * @throws IOException if an I/O error occurs
    */
-  public DummyFileOutputStream(TachyonURI path, OutStreamOptions options) throws IOException {
+  public DummyFileOutputStream(AlluxioURI path, OutStreamOptions options) throws IOException {
     super(path, options);
   }
 

@@ -18,7 +18,7 @@ package alluxio.master.file.meta.options;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.master.MasterContext;
 import alluxio.security.authorization.PermissionStatus;
 
@@ -53,7 +53,7 @@ public final class CreatePathOptions {
      *
      * @param conf a Tachyon configuration
      */
-    public Builder(TachyonConf conf) {
+    public Builder(Configuration conf) {
       mAllowExists = false;
       mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mDirectory = false;

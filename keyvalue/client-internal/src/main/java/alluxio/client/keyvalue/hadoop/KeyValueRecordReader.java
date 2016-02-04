@@ -26,7 +26,7 @@ import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValuePartitionReader;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 
 /**
@@ -51,9 +51,9 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
    *
    * @param split the split for a block
    * @throws IOException if non-Tachyon error occurs
-   * @throws TachyonException if Tachyon error occurs
+   * @throws AlluxioException if Tachyon error occurs
    */
-  public KeyValueRecordReader(KeyValueInputSplit split) throws IOException, TachyonException {
+  public KeyValueRecordReader(KeyValueInputSplit split) throws IOException, AlluxioException {
     mReader = KeyValuePartitionReader.Factory.create(split.getPartitionId());
     mKeyValuePairIterator = mReader.iterator();
     mKeyValuePairsBytesRead = 0;
@@ -71,7 +71,7 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
     KeyValuePair pair;
     try {
       pair = mKeyValuePairIterator.next();
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     }
 

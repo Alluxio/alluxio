@@ -20,7 +20,7 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Unit tests for {@link CompleteFileOptions}.
@@ -37,7 +37,7 @@ public class CompleteFileOptionsTest {
     long operationTimeMs = random.nextLong();
 
     CompleteFileOptions options =
-        new CompleteFileOptions.Builder(new TachyonConf())
+        new CompleteFileOptions.Builder(new Configuration())
             .setUfsLength(ufsLength)
             .setOperationTimeMs(operationTimeMs)
             .build();

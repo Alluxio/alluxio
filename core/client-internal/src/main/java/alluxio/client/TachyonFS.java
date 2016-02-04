@@ -17,10 +17,10 @@ package alluxio.client;
 
 import java.io.IOException;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.DeleteOptions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * @deprecated {@see FileSystem} for the supported API.
@@ -35,7 +35,7 @@ public final class TachyonFS {
    * @param conf configuration to use
    * @return an instance of TachyonFS
    */
-  public static TachyonFS get(TachyonURI path, TachyonConf conf) {
+  public static TachyonFS get(AlluxioURI path, Configuration conf) {
     return new TachyonFS();
   }
 
@@ -56,7 +56,7 @@ public final class TachyonFS {
    * @param path the path to create
    * @return the file id, in this case always -1
    */
-  public long createFile(TachyonURI path) {
+  public long createFile(AlluxioURI path) {
     // Do nothing
     return -1;
   }
@@ -67,7 +67,7 @@ public final class TachyonFS {
    * @return true if the file was deleted
    * @throws IOException if the file was unable to be deleted
    */
-  public boolean delete(TachyonURI path) throws IOException {
+  public boolean delete(AlluxioURI path) throws IOException {
     try {
       mFileSystem.delete(path);
       return true;
@@ -83,7 +83,7 @@ public final class TachyonFS {
    * @return true if the file was deleted
    * @throws IOException if the file was unable to be deleted
    */
-  public boolean delete(TachyonURI path, boolean recursive) throws IOException {
+  public boolean delete(AlluxioURI path, boolean recursive) throws IOException {
     try {
       mFileSystem.delete(path, DeleteOptions.defaults().setRecursive(recursive));
       return true;
@@ -97,7 +97,7 @@ public final class TachyonFS {
    * @return true if the path exists, false otherwise
    * @throws IOException if an error occurs when interacting with a non Tachyon component
    */
-  public boolean exist(TachyonURI path) throws IOException {
+  public boolean exist(AlluxioURI path) throws IOException {
     try {
       return mFileSystem.exists(path);
     } catch (Exception e) {
@@ -109,7 +109,7 @@ public final class TachyonFS {
    * @param path the path specifying the file to get
    * @return the {@link TachyonFile} object referencing the resource at the path
    */
-  public TachyonFile getFile(TachyonURI path) {
+  public TachyonFile getFile(AlluxioURI path) {
     return new TachyonFile(path, mFileSystem);
   }
 
@@ -118,7 +118,7 @@ public final class TachyonFS {
    * @return true if successful
    * @throws IOException if the directory could not be created
    */
-  public boolean mkdir(TachyonURI path) throws IOException {
+  public boolean mkdir(AlluxioURI path) throws IOException {
     try {
       mFileSystem.createDirectory(path);
       return true;

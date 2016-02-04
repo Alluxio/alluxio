@@ -21,11 +21,11 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.FreeOptions;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Frees the given file or folder from Tachyon in-memory (recursively freeing all children if a
@@ -40,7 +40,7 @@ public final class FreeCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public FreeCommand(TachyonConf conf, FileSystem fs) {
+  public FreeCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -50,12 +50,12 @@ public final class FreeCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
+  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
     try {
       FreeOptions options = FreeOptions.defaults().setRecursive(true);
       mFileSystem.free(path, options);
       System.out.println(path + " was successfully freed from memory.");
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
   }

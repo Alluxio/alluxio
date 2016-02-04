@@ -28,8 +28,8 @@ import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
 import alluxio.client.ClientContext;
-import alluxio.client.block.TachyonBlockStore;
-import alluxio.exception.TachyonException;
+import alluxio.client.block.AlluxioBlockStore;
+import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -51,12 +51,12 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
    * Constructs {@link BaseKeyValuePartitionReader} given a block id.
    *
    * @param blockId blockId of the key-value file to read from
-   * @throws TachyonException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Tachyon exception is thrown
    * @throws IOException if a non-Tachyon exception occurs
    */
-  BaseKeyValuePartitionReader(long blockId) throws TachyonException, IOException {
+  BaseKeyValuePartitionReader(long blockId) throws AlluxioException, IOException {
     mBlockId = blockId;
-    BlockInfo info = TachyonBlockStore.get().getInfo(mBlockId);
+    BlockInfo info = AlluxioBlockStore.get().getInfo(mBlockId);
     WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
     mClient = new KeyValueWorkerClient(workerAddr, ClientContext.getConf());
     mClosed = false;
@@ -64,7 +64,7 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
 
   // This could be slow when value size is large, use with caution.
   @Override
-  public byte[] get(byte[] key) throws IOException, TachyonException {
+  public byte[] get(byte[] key) throws IOException, AlluxioException {
     ByteBuffer keyBuffer = ByteBuffer.wrap(key);
     ByteBuffer value = getInternal(keyBuffer);
     if (value == null) {
@@ -74,7 +74,7 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
   }
 
   @Override
-  public ByteBuffer get(ByteBuffer key) throws IOException, TachyonException {
+  public ByteBuffer get(ByteBuffer key) throws IOException, AlluxioException {
     return getInternal(key);
   }
 
@@ -93,9 +93,9 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
    * @param key the key to lookup
    * @return the value of this key
    * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
+   * @throws AlluxioException if a Tachyon error occurs
    */
-  private ByteBuffer getInternal(ByteBuffer key) throws IOException, TachyonException {
+  private ByteBuffer getInternal(ByteBuffer key) throws IOException, AlluxioException {
     Preconditions.checkState(!mClosed, "Can not query a reader closed");
     ByteBuffer value = mClient.get(mBlockId, key);
     if (value.remaining() == 0) {
@@ -111,9 +111,9 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
      * Gets the first key-value pair and constructs a new key-value partition iterator.
      *
      * @throws IOException if a non-Tachyon error happens when getting the first key-value pair
-     * @throws TachyonException if a Tachyon error happens when getting the first key-value pair
+     * @throws AlluxioException if a Tachyon error happens when getting the first key-value pair
      */
-    public Iterator() throws IOException, TachyonException {
+    public Iterator() throws IOException, AlluxioException {
       mNextKey = nextKey(null);
     }
 
@@ -123,13 +123,13 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
     }
 
     @Override
-    public KeyValuePair next() throws IOException, TachyonException {
+    public KeyValuePair next() throws IOException, AlluxioException {
       KeyValuePair ret = new KeyValuePair(mNextKey, get(mNextKey));
       mNextKey = nextKey(mNextKey);
       return ret;
     }
 
-    private ByteBuffer nextKey(ByteBuffer key) throws IOException, TachyonException {
+    private ByteBuffer nextKey(ByteBuffer key) throws IOException, AlluxioException {
       List<ByteBuffer> nextKeys = mClient.getNextKeys(mBlockId, key, 1);
       if (nextKeys.size() > 0) {
         return nextKeys.get(0);
@@ -139,12 +139,12 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
   }
 
   @Override
-  public KeyValueIterator iterator() throws IOException, TachyonException {
+  public KeyValueIterator iterator() throws IOException, AlluxioException {
     return new Iterator();
   }
 
   @Override
-  public int size() throws IOException, TachyonException {
+  public int size() throws IOException, AlluxioException {
     return mClient.getSize(mBlockId);
   }
 }

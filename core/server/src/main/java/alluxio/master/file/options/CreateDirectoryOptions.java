@@ -17,7 +17,7 @@ package alluxio.master.file.options;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.master.MasterContext;
 import alluxio.thrift.CreateDirectoryTOptions;
 
@@ -40,7 +40,7 @@ public final class CreateDirectoryOptions {
      *
      * @param conf a Tachyon configuration
      */
-    public Builder(TachyonConf conf) {
+    public Builder(Configuration conf) {
       mOperationTimeMs = System.currentTimeMillis();
       mPersisted = false;
       mRecursive = false;

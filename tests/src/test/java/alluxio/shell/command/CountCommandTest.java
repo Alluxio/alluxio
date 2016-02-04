@@ -23,12 +23,12 @@ import org.junit.Test;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.exception.ExceptionMessage;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Tests for count command.
  */
-public class CountCommandTest extends AbstractTfsShellTest {
+public class CountCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void countNotExistTest() throws IOException {
     int ret = mFsShell.run("count", "/NotExistFile");
