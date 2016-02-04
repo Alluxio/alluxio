@@ -1,46 +1,46 @@
-tachyon.user.block.master.client.threads:
+alluxio.user.block.master.client.threads:
   The number of threads used by a block master client to talk to the block master.
-tachyon.user.block.worker.client.threads:
+alluxio.user.block.worker.client.threads:
   How many threads to use for block worker client pool to read from a local block worker.
-tachyon.user.block.remote.read.buffer.size.bytes:
+alluxio.user.block.remote.read.buffer.size.bytes:
   The size of the file buffer to read data from remote Tachyon worker.
-tachyon.user.block.remote.reader.class:
+alluxio.user.block.remote.reader.class:
   Selects networking stack to run the client with. Currently only
-  `tachyon.client.netty.NettyRemoteBlockReader` (read remote data using netty) is valid.
-tachyon.user.block.remote.writer.class:
+  `alluxio.client.netty.NettyRemoteBlockReader` (read remote data using netty) is valid.
+alluxio.user.block.remote.writer.class:
   Selects networking stack to run the client with for block writes.
-tachyon.user.block.size.bytes.default:
+alluxio.user.block.size.bytes.default:
   Default block size for Tachyon files.
-tachyon.user.failed.space.request.limits:
+alluxio.user.failed.space.request.limits:
   The number of times to request space from the file system before aborting.
-tachyon.user.file.buffer.bytes:
+alluxio.user.file.buffer.bytes:
   The size of the file buffer to use for file system reads/writes.
-tachyon.user.file.master.client.threads:
+alluxio.user.file.master.client.threads:
   The number of threads used by a file master client to talk to the file master.
-tachyon.user.file.waitcompleted.poll.ms:
+alluxio.user.file.waitcompleted.poll.ms:
   The time interval to poll a file for its completion status when using waitCompleted.
-tachyon.user.file.write.location.policy.class:
+alluxio.user.file.write.location.policy.class:
   The default location policy for choosing workers for writing a file's blocks
-tachyon.user.file.readtype.default:
+alluxio.user.file.readtype.default:
   Default read type when creating Tachyon files.
   Valid options are `CACHE_PROMOTE` (move data to highest tier if already in Tachyon storage,
   write data into highest tier of local Tachyon if data needs to be read from under storage),
   `CACHE` (write data into highest tier of local Tachyon if data needs to be read from under
   storage), `NO_CACHE` (no data interaction with Tachyon, if the read is from Tachyon data
   migration or eviction will not occur).
-tachyon.user.file.writetype.default:
+alluxio.user.file.writetype.default:
   Default write type when creating Tachyon files.
   Valid options are `MUST_CACHE` (write will only go to Tachyon and must be stored in Tachyon),
   `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to
   UnderFS synchronously).
-tachyon.user.heartbeat.interval.ms:
+alluxio.user.heartbeat.interval.ms:
   The interval (in milliseconds) between Tachyon worker's heartbeats
-tachyon.user.lineage.enabled:
+alluxio.user.lineage.enabled:
   Flag to enable lineage feature.
-tachyon.user.lineage.master.client.threads:
+alluxio.user.lineage.master.client.threads:
   The number of threads used by a lineage master client to talk to the lineage master.
-tachyon.user.network.netty.timeout.ms:
+alluxio.user.network.netty.timeout.ms:
   The maximum number of milliseconds for a netty client (for block reads and block writes) to
   wait for a response from the data server.
-tachyon.user.network.netty.worker.threads:
+alluxio.user.network.netty.worker.threads:
   How many threads to use for remote block worker client to read from remote block workers.

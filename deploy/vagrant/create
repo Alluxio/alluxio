@@ -40,7 +40,7 @@ TOTAL="$1"
 shift
 
 TACHYON_MASTERS=$(grep Masters conf/tachyon.yml | cut -d':' -f 2 | tr -d ' ')
-[[ "$TOTAL" -lt "$TACHYON_MASTERS" ]] && error_exit "Total number of machines must be at least the same with Masters in conf/tachyon.yml"
+[[ "$TOTAL" -lt "$TACHYON_MASTERS" ]] && error_exit "Total number of machines must be at least the same with Masters in conf/alluxio.yml"
 
 PROVIDER="$1"
 [[ "${PROVIDERS[*]}" =~ (^| )$PROVIDER( |$) ]] || error_exit "Provider $PROVIDER is not supported yet"
@@ -82,8 +82,8 @@ if [[ ! -f ./files/id_rsa ]]; then
   ssh-keygen -f ./files/id_rsa -t rsa -N '' &>/dev/null
 fi
 
-# files/workers, order matters, 
-# when in Tachyon fault tolerant mode, the last one is often also chosen as Tachyon leader(not sure), 
+# files/workers, order matters,
+# when in Tachyon fault tolerant mode, the last one is often also chosen as Tachyon leader(not sure),
 # when not in fault tolerant mode, the last one is Tachyon master,
 # currently, for other systems like HDFS, fault tolerant mode hasn't been enabled, the last one is the single master.
 rm -f files/workers

@@ -1,5 +1,5 @@
 <%@ page import="java.util.*" %>
-<%@ page import="tachyon.web.*" %>
+<%@ page import="alluxio.web.*" %>
 
 <html>
 <head>

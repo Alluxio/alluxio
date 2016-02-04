@@ -10,8 +10,8 @@ mkdir -p "${TACHYON_LOGS_DIR}"
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_MASTER_JAVA_OPTS} \
   -Djava.library.path="${MESOS_LIBRARY_PATH}" \
-  -Dtachyon.accesslogger.type="MASTER_ACCESS_LOGGER" \
-  -Dtachyon.home="${TACHYON_HOME}" \
-  -Dtachyon.logger.type="MASTER_LOGGER" \
-  -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" \
-  tachyon.mesos.TachyonMasterExecutor > "${TACHYON_LOGS_DIR}"/master.out 2>&1
+  -Dalluxio.accesslogger.type="MASTER_ACCESS_LOGGER" \
+  -Dalluxio.home="${TACHYON_HOME}" \
+  -Dalluxio.logger.type="MASTER_LOGGER" \
+  -Dalluxio.logs.dir="${TACHYON_LOGS_DIR}" \
+  alluxio.mesos.TachyonMasterExecutor > "${TACHYON_LOGS_DIR}"/master.out 2>&1

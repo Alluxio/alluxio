@@ -155,7 +155,7 @@
           <skipAssembly>false</skipAssembly>
           <appendAssemblyId>false</appendAssemblyId>
           <attach>false</attach>
-          <finalName>tachyon-${project.version}</finalName>
+          <finalName>alluxio-${project.version}</finalName>
           <descriptors>
             <descriptor>src/main/assembly/tachyon-dist.xml</descriptor>
           </descriptors>

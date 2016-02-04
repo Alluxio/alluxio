@@ -14,4 +14,4 @@ echo "Launching Application Master"
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_JAVA_OPTS} \
   -Xmx256M \
-  tachyon.yarn.ApplicationMaster $@
+  alluxio.yarn.ApplicationMaster $@

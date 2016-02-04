@@ -8,9 +8,9 @@ CONTAINER_TYPE=$1
 shift
 
 # launch master or worker on this container
-if [ $CONTAINER_TYPE = 'tachyon-master' ]; then
+if [ $CONTAINER_TYPE = 'alluxio-master' ]; then
   ./integration/bin/tachyon-master-yarn.sh $@
-elif [ $CONTAINER_TYPE = 'tachyon-worker' ]; then
+elif [ $CONTAINER_TYPE = 'alluxio-worker' ]; then
   ./integration/bin/tachyon-worker-yarn.sh $@
 elif [ $CONTAINER_TYPE = 'application-master' ]; then
   ./integration/bin/tachyon-application-master.sh $@
