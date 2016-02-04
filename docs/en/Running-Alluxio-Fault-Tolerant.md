@@ -1,62 +1,62 @@
 ---
 layout: global
-title: Tachyon Standalone with Fault Tolerance
-nickname: Tachyon Standalone with Fault Tolerance
+title: Alluxio Standalone with Fault Tolerance
+nickname: Alluxio Standalone with Fault Tolerance
 group: User Guide
 priority: 3
 ---
 
-Fault Tolerance in Tachyon is based upon a multi-master approach where multiple master processes
+Fault Tolerance in Alluxio is based upon a multi-master approach where multiple master processes
 are running. One of these processes is elected the leader and is used by all workers and clients as the
 primary point of contact. The other masters act as standbys using the shared journal to ensure that
 they maintain the same file system metadata as a new leader and can rapidly take over in the event
 of the leader failing.
 
 If the leader fails, a new leader is automatically selected from the available standby masters and
-Tachyon proceeds as usual. Note that while the switchover to a standby master happens clients may
+Alluxio proceeds as usual. Note that while the switchover to a standby master happens clients may
 experience brief delays or transient errors.
 
 ## Prerequisites
 
-There are two prerequisites for setting up a fault tolerant Tachyon cluster:
+There are two prerequisites for setting up a fault tolerant Alluxio cluster:
 
 * [ZooKeeper](http://zookeeper.apache.org/)
 * A shared reliable under filesystem on which to place the journal
 
-Tachyon requires ZooKeeper for fault tolerance, for leader selection. This ensures that there is at
-most one leader master for Tachyon at any given time.
+Alluxio requires ZooKeeper for fault tolerance, for leader selection. This ensures that there is at
+most one leader master for Alluxio at any given time.
 
-Tachyon also requires a shared under filesystem on which to place the journal. This shared
+Alluxio also requires a shared under filesystem on which to place the journal. This shared
 filesystem must be accessible by all the masters, and possible options include
-[HDFS](Configuring-Tachyon-with-HDFS.html), [Amazon S3](Configuring-Tachyon-with-S3.html), or
-[GlusterFS](Configuring-Tachyon-with-GlusterFS.html). The leader master writes the journal to the
+[HDFS](Configuring-Alluxio-with-HDFS.html), [Amazon S3](Configuring-Alluxio-with-S3.html), or
+[GlusterFS](Configuring-Alluxio-with-GlusterFS.html). The leader master writes the journal to the
 shared filesystem, while the other (standby) masters continually replay the journal entries to stay
 up-to-date.
 
 ### ZooKeeper
 
-Tachyon uses ZooKeeper to achieve master fault tolerance. Tachyon masters use ZooKeeper for leader
-election. Tachyon clients also use ZooKeeper to inquire about the identity and address of the
+Alluxio uses ZooKeeper to achieve master fault tolerance. Alluxio masters use ZooKeeper for leader
+election. Alluxio clients also use ZooKeeper to inquire about the identity and address of the
 current leader.
 
 ZooKeeper must be set up independently
 (see [ZooKeeper Getting Started](http://zookeeper.apache.org/doc/r3.4.5/zookeeperStarted.html)).
 
-After ZooKeeper is deployed, note the address and port for configuring Tachyon below.
+After ZooKeeper is deployed, note the address and port for configuring Alluxio below.
 
 ### Shared Filesystem for Journal
 
-Tachyon requires a shared filesystem to store the journal. All masters must be able to read and
+Alluxio requires a shared filesystem to store the journal. All masters must be able to read and
 write to the shared filesystem. Only the leader master will be writing to the journal at any given
-time, but all masters read the shared journal to replay the state of Tachyon.
+time, but all masters read the shared journal to replay the state of Alluxio.
 
-The shared filesystem must be set up independently from Tachyon, and should already be running
-before Tachyon is started.
+The shared filesystem must be set up independently from Alluxio, and should already be running
+before Alluxio is started.
 
 For example, if using HDFS for the shared journal, you need to note address and port running your
-NameNode, as you will need to configure Tachyon below.
+NameNode, as you will need to configure Alluxio below.
 
-## Configuring Tachyon
+## Configuring Alluxio
 
 Once you have ZooKeeper and your shared filesystem running, you need to set up your `tachyon-env.sh`
 appropriately on each host.
@@ -64,14 +64,14 @@ appropriately on each host.
 ### Externally Visible Address
 
 In the following sections we refer to an "externally visible address". This is simply the address of
-an interface on the machine being configured that can be seen by other nodes in the Tachyon cluster.
+an interface on the machine being configured that can be seen by other nodes in the Alluxio cluster.
 On EC2, you should use the `ip-x-x-x-x` address. In particular, don't use `localhost` or `127.0.0.1`, as
 other nodes will then be unable to reach your node.
 
-### Configuring Fault Tolerant Tachyon
+### Configuring Fault Tolerant Alluxio
 
-In order to enable fault tolerance for Tachyon, additional configuration settings must be set for
-Tachyon masters, workers, and clients. In `conf/tachyon-env.sh`, these java options must be set:
+In order to enable fault tolerance for Alluxio, additional configuration settings must be set for
+Alluxio masters, workers, and clients. In `conf/tachyon-env.sh`, these java options must be set:
 
 <table class="table">
 <tr><th>Property Name</th><th>Value</th><th>Meaning</th></tr>
@@ -100,7 +100,7 @@ details about setting configuration parameters can be found in
 
 ### Master Configuration
 
-In addition to the above configuration settings, Tachyon masters need additional configuration. The
+In addition to the above configuration settings, Alluxio masters need additional configuration. The
 following variable must be set appropriately in `conf/tachyon-env.sh`:
 
     export TACHYON_MASTER_ADDRESS=[externally visible address of this machine]
@@ -110,8 +110,8 @@ for `TACHYON_JAVA_OPTS`. For example, if you are using HDFS for the journal, you
 
     -Dtachyon.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/path/to/tachyon/journal
 
-Once all the Tachyon masters are configured in this way, they can all be started for fault tolerant
-Tachyon. One of the masters will become the leader, and the others will replay the journal and wait
+Once all the Alluxio masters are configured in this way, they can all be started for fault tolerant
+Alluxio. One of the masters will become the leader, and the others will replay the journal and wait
 until the current master dies.
 
 ### Worker Configuration

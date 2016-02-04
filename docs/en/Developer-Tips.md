@@ -8,11 +8,11 @@ group: Resources
 * Table of Contents
 {:toc}
 
-This page is a collection of tips and howtos geared towards developers of Tachyon.
+This page is a collection of tips and howtos geared towards developers of Alluxio.
 
 ### Change a Thrift RPC definition
 
-Tachyon uses thrift for RPC communication between clients and servers. The `.thrift`
+Alluxio uses thrift for RPC communication between clients and servers. The `.thrift`
 files defined in `common/src/thrift/` are used to auto-generate Java code for calling the
 RPCs on clients and implementing the RPCs on servers. To change a Thrift definition, you
 must first [install the Thrift compiler](https://thrift.apache.org/docs/install/).
@@ -30,7 +30,7 @@ $ bin/tachyon thriftGen
 
 ### Change a Protocol Buffer Message
 
-Tachyon uses protocol buffers to read and write journal messages. The `.proto` files
+Alluxio uses protocol buffers to read and write journal messages. The `.proto` files
 defined in `core/server/src/proto/journal/` are used to auto-generate Java definitions for
 the protocol buffer messages. To change one of these messages, first read about
 [updating a message type](https://developers.google.com/protocol-buffers/docs/proto#updating)
@@ -58,13 +58,13 @@ the syntax of each command.
 <tr>
   <td>format</td>
   <td>[-s]</td>
-  <td>Format Tachyon Master and all Workers. The option [-s] indicates that the command should only
+  <td>Format Alluxio Master and all Workers. The option [-s] indicates that the command should only
   format when the underfs is local and doesn't already exist.</td>
 </tr>
 <tr>
   <td>formatWorker</td>
   <td>None</td>
-  <td>Format Tachyon Worker storage on this local node.</td>
+  <td>Format Alluxio Worker storage on this local node.</td>
 </tr>
 <tr>
   <td>bootstrap-conf</td>
@@ -75,27 +75,27 @@ the syntax of each command.
 <tr>
   <td>tfs</td>
   <td>[tfs-commands]</td>
-  <td>Interact with Tachyon in command line style for basic file system operations.
+  <td>Interact with Alluxio in command line style for basic file system operations.
   See <a href="Command-Line-Interface.html">Command Line</a> for more information.</td>
 </tr>
 <tr>
   <td>loadufs</td>
-  <td>&lt;TachyonPath&gt; &lt;UfsPath&gt; [ExcludePathPrefixes]</td>
-  <td>Loads files under <code>UfsPath</code> to the given <code>TachyonPath</code>.
+  <td>&lt;AlluxioPath&gt; &lt;UfsPath&gt; [ExcludePathPrefixes]</td>
+  <td>Loads files under <code>UfsPath</code> to the given <code>AlluxioPath</code>.
   <code>ExcludePathPrefixes</code> can be a set of prefixes which are separated by ';'.
   The paths with a prefix in <code>ExcludePathPrefixes</code> will not be loaded.</td>
 </tr>
 <tr>
   <td>runTest</td>
   <td>&lt;Example&gt; &lt;ReadType&gt; &lt;WriteType&gt;</td>
-  <td>Run an end-to-end test on a Tachyon cluster. <code>Example</code> should be "Basic" or
+  <td>Run an end-to-end test on a Alluxio cluster. <code>Example</code> should be "Basic" or
   "BasicNonByteBuffer". <code>ReadType</code> should be "CACHE_PROMOTE", "CACHE",
   or "NO_CACHE". <code>WriteType</code> should be "MUST_CACHE", "CACHE_THROUGH" or "THROUGH".</td>
 </tr>
 <tr>
   <td>runTests</td>
   <td>None</td>
-  <td>Run all end-to-end tests on a Tachyon cluster. That is, execute the <code>runTest</code> command
+  <td>Run all end-to-end tests on a Alluxio cluster. That is, execute the <code>runTest</code> command
   with all the possible args.</td>
 </tr>
 <tr>
@@ -108,7 +108,7 @@ the syntax of each command.
 <tr>
   <td>readJournal</td>
   <td>[-help] [-noTimeout]</td>
-  <td>Read a Tachyon journal file from stdin and write a human-readable version of it to stdout. You
+  <td>Read a Alluxio journal file from stdin and write a human-readable version of it to stdout. You
   can run this on the journal file as <code>tachyon readJournal < journal/FileSystemMaster/log.out</code>.</td>
 </tr>
 <tr>
@@ -141,17 +141,17 @@ the syntax of each command.
 <tr>
   <td>version</td>
   <td>None</td>
-  <td>Print Tachyon version.</td>
+  <td>Print Alluxio version.</td>
 </tr>
 <tr>
   <td>validateConf</td>
   <td>None</td>
-  <td>Validate Tachyon conf.</td>
+  <td>Validate Alluxio conf.</td>
 </tr>
 </table>
 
 In addition, these commands have different prerequisites. The prerequisite for the `format`,
 `formatWorker`, `journalCrashTest`, `readJournal`, `version` and `validateConf` commands is that you
-have already built Tachyon (see [Build Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
-about how to build Tachyon manually). Further, the prerequisite for the `tfs`, `loadufs`, `runTest`
-and `runTests` commands is that you have a running Tachyon system.
+have already built Alluxio (see [Build Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
+about how to build Alluxio manually). Further, the prerequisite for the `tfs`, `loadufs`, `runTest`
+and `runTests` commands is that you have a running Alluxio system.

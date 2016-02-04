@@ -157,7 +157,7 @@ $ sudo make install
 
 # Generate Java files from Thrift
 
-Tachyon defines a its RPC services using the thrift file located in in:
+Alluxio defines a its RPC services using the thrift file located in in:
 
     ./common/src/thrift/tachyon.thrift
 
