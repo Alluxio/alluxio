@@ -21,8 +21,9 @@ import java.io.IOException;
 import java.util.concurrent.Callable;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.Version;
+import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -31,7 +32,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * Basic example of using the {@link FileSystem} for writing to and reading from files.
@@ -42,13 +43,13 @@ import alluxio.exception.TachyonException;
  * </p>
  * <p>
  * This example also let users play around with how to work with files a bit more. The
- * {@link alluxio.client.TachyonStorageType} is something that can be set, as well as ability to
+ * {@link AlluxioStorageType} is something that can be set, as well as ability to
  * delete file if exists.
  * </p>
  */
 public final class BasicNonByteBufferOperations implements Callable<Boolean> {
-  private final TachyonURI mMasterLocation;
-  private final TachyonURI mFilePath;
+  private final AlluxioURI mMasterLocation;
+  private final AlluxioURI mFilePath;
   private final ReadType mReadType;
   private final WriteType mWriteType;
   private final boolean mDeleteIfExists;
@@ -62,7 +63,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
    * @param deleteIfExists delete files if they already exist
    * @param length the number of files
    */
-  public BasicNonByteBufferOperations(TachyonURI masterLocation, TachyonURI filePath, ReadType
+  public BasicNonByteBufferOperations(AlluxioURI masterLocation, AlluxioURI filePath, ReadType
       readType, WriteType writeType, boolean deleteIfExists, int length) {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
@@ -82,7 +83,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     return read(tachyonClient);
   }
 
-  private void write(FileSystem tachyonClient) throws IOException, TachyonException {
+  private void write(FileSystem tachyonClient) throws IOException, AlluxioException {
     FileOutStream fileOutStream = createFile(tachyonClient, mFilePath, mDeleteIfExists);
     DataOutputStream os = new DataOutputStream(fileOutStream);
     try {
@@ -95,8 +96,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     }
   }
 
-  private FileOutStream createFile(FileSystem fileSystem, TachyonURI filePath,
-      boolean deleteIfExists) throws IOException, TachyonException {
+  private FileOutStream createFile(FileSystem fileSystem, AlluxioURI filePath,
+      boolean deleteIfExists) throws IOException, AlluxioException {
     CreateFileOptions options = CreateFileOptions.defaults().setWriteType(mWriteType);
     if (!fileSystem.exists(filePath)) {
       // file doesn't exist yet, so create it
@@ -110,7 +111,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     throw new FileAlreadyExistsException("File exists and deleteIfExists is false");
   }
 
-  private boolean read(FileSystem tachyonClient) throws IOException, TachyonException {
+  private boolean read(FileSystem tachyonClient) throws IOException, AlluxioException {
     OpenFileOptions options = OpenFileOptions.defaults().setReadType(mReadType);
 
     DataInputStream input = new DataInputStream(tachyonClient.openFile(mFilePath, options));
@@ -140,7 +141,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
       usage();
     }
 
-    Utils.runExample(new BasicNonByteBufferOperations(new TachyonURI(args[0]), new TachyonURI(
+    Utils.runExample(new BasicNonByteBufferOperations(new AlluxioURI(args[0]), new AlluxioURI(
         args[1]), Utils.option(args, 2, ReadType.CACHE), Utils.option(args, 3,
         WriteType.CACHE_THROUGH), Utils.option(args, 4, true), Utils.option(args, 5, 20)));
   }

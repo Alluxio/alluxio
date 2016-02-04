@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
 
@@ -190,7 +190,7 @@ public final class CommonUtils {
    * @return primary group name
    * @throws IOException if getting group failed
    */
-  public static String getPrimaryGroupName(TachyonConf conf, String userName) throws IOException {
+  public static String getPrimaryGroupName(Configuration conf, String userName) throws IOException {
     GroupMappingService groupMappingService =
         GroupMappingService.Factory.getUserToGroupsMappingService(conf);
     List<String> groups = groupMappingService.getGroups(userName);

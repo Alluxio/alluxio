@@ -18,7 +18,7 @@ package alluxio.util;
 import javax.annotation.concurrent.ThreadSafe;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.security.authentication.AuthType;
 
 /**
@@ -34,7 +34,7 @@ public final class SecurityUtils {
    * @param conf the configuration for Tachyon
    * @return true if security is enabled, false otherwise
    */
-  public static boolean isSecurityEnabled(TachyonConf conf) {
+  public static boolean isSecurityEnabled(Configuration conf) {
     return isAuthenticationEnabled(conf) && isAuthorizationEnabled(conf);
   }
 
@@ -44,7 +44,7 @@ public final class SecurityUtils {
    * @param conf the configuration for Tachyon
    * @return true if authentication is enabled, false otherwise
    */
-  public static boolean isAuthenticationEnabled(TachyonConf conf) {
+  public static boolean isAuthenticationEnabled(Configuration conf) {
     return !conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class)
         .equals(AuthType.NOSASL);
   }
@@ -55,7 +55,7 @@ public final class SecurityUtils {
    * @param conf the configuration for Tachyon
    * @return true if authorization is enabled, false otherwise
    */
-  public static boolean isAuthorizationEnabled(TachyonConf conf) {
+  public static boolean isAuthorizationEnabled(Configuration conf) {
     return conf.getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
   }
 }

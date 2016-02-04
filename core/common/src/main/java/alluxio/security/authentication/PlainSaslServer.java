@@ -30,7 +30,7 @@ import javax.security.sasl.SaslServer;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.User;
 import alluxio.util.SecurityUtils;
@@ -252,7 +252,7 @@ public final class PlainSaslServer implements SaslServer {
      * @return the client user
      * @throws IOException if authentication is not enabled
      */
-    public static User get(TachyonConf conf) throws IOException {
+    public static User get(Configuration conf) throws IOException {
       if (!SecurityUtils.isAuthenticationEnabled(conf)) {
         throw new IOException(ExceptionMessage.AUTHENTICATION_IS_NOT_ENABLED.getMessage());
       }

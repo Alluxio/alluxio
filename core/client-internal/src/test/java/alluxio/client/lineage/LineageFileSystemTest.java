@@ -26,7 +26,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
@@ -73,7 +73,7 @@ public final class LineageFileSystemTest {
    */
   @Test
   public void getLineageOutStreamTest() throws Exception {
-    TachyonURI path = new TachyonURI("test");
+    AlluxioURI path = new AlluxioURI("test");
     Mockito.when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0))
         .thenReturn(1L);
     CreateFileOptions options =
@@ -91,7 +91,7 @@ public final class LineageFileSystemTest {
    */
   @Test
   public void getDummyOutStreamTest() throws Exception {
-    TachyonURI path = new TachyonURI("test");
+    AlluxioURI path = new AlluxioURI("test");
     Mockito.when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0))
         .thenReturn(-1L);
     CreateFileOptions options =
@@ -109,7 +109,7 @@ public final class LineageFileSystemTest {
    */
   @Test
   public void getNonLineageStreamTest() throws Exception {
-    TachyonURI path = new TachyonURI("test");
+    AlluxioURI path = new AlluxioURI("test");
     Mockito.when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0))
         .thenThrow(new LineageDoesNotExistException("lineage does not exist"));
 
@@ -130,7 +130,7 @@ public final class LineageFileSystemTest {
    */
   @Test
   public void reportLostFileTest() throws Exception {
-    TachyonURI path = new TachyonURI("test");
+    AlluxioURI path = new AlluxioURI("test");
     mTachyonLineageFileSystem.reportLostFile(path);
     Mockito.verify(mLineageMasterClient).reportLostFile("test");
     // verify client is released

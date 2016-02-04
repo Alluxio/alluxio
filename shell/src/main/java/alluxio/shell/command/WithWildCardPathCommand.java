@@ -27,10 +27,10 @@ import com.google.common.base.Joiner;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.TachyonConf;
-import alluxio.shell.TfsShellUtils;
+import alluxio.Configuration;
+import alluxio.shell.AlluxioShellUtils;
 
 /**
  * An abstract class for the commands that take exactly one path that could contain wildcard
@@ -39,9 +39,9 @@ import alluxio.shell.TfsShellUtils;
  * It will first do a glob against the input pattern then run the command for each expanded path.
  */
 @ThreadSafe
-public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
+public abstract class WithWildCardPathCommand extends AbstractShellCommand {
 
-  protected WithWildCardPathCommand(TachyonConf conf, FileSystem fs) {
+  protected WithWildCardPathCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -52,7 +52,7 @@ public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
    * @param cl the parsed command line object including options
    * @throws IOException if the command fails
    */
-  abstract void runCommand(TachyonURI path, CommandLine cl) throws IOException;
+  abstract void runCommand(AlluxioURI path, CommandLine cl) throws IOException;
 
   @Override
   protected int getNumOfArgs() {
@@ -62,16 +62,16 @@ public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
   @Override
   public void run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
-    TachyonURI inputPath = new TachyonURI(args[0]);
+    AlluxioURI inputPath = new AlluxioURI(args[0]);
 
-    List<TachyonURI> paths = TfsShellUtils.getTachyonURIs(mFileSystem, inputPath);
+    List<AlluxioURI> paths = AlluxioShellUtils.getTachyonURIs(mFileSystem, inputPath);
     if (paths.size() == 0) { // A unified sanity check on the paths
       throw new IOException(inputPath + " does not exist.");
     }
     Collections.sort(paths, createTachyonURIComparator());
 
     List<String> errorMessages = new ArrayList<String>();
-    for (TachyonURI path : paths) {
+    for (AlluxioURI path : paths) {
       try {
         runCommand(path, cl);
       } catch (IOException e) {
@@ -84,10 +84,10 @@ public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
     }
   }
 
-  private static Comparator<TachyonURI> createTachyonURIComparator() {
-    return new Comparator<TachyonURI>() {
+  private static Comparator<AlluxioURI> createTachyonURIComparator() {
+    return new Comparator<AlluxioURI>() {
       @Override
-      public int compare(TachyonURI tUri1, TachyonURI tUri2) {
+      public int compare(AlluxioURI tUri1, AlluxioURI tUri2) {
         // ascending order
         return tUri1.getPath().compareTo(tUri2.getPath());
       }

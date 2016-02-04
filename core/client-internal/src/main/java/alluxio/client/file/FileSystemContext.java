@@ -18,7 +18,7 @@ package alluxio.client.file;
 import javax.annotation.concurrent.ThreadSafe;
 
 import alluxio.client.ClientContext;
-import alluxio.client.block.TachyonBlockStore;
+import alluxio.client.block.AlluxioBlockStore;
 
 /**
  * A shared context in each client JVM for common file master client functionality such as a pool of
@@ -35,7 +35,7 @@ public enum FileSystemContext {
   INSTANCE;
 
   private FileSystemMasterClientPool mFileSystemMasterClientPool;
-  private final TachyonBlockStore mTachyonBlockStore;
+  private final AlluxioBlockStore mAlluxioBlockStore;
 
   /**
    * Creates a new file stream context.
@@ -43,7 +43,7 @@ public enum FileSystemContext {
   FileSystemContext() {
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(ClientContext.getMasterAddress());
-    mTachyonBlockStore = TachyonBlockStore.get();
+    mAlluxioBlockStore = AlluxioBlockStore.get();
   }
 
   /**
@@ -67,8 +67,8 @@ public enum FileSystemContext {
   /**
    * @return the Tachyon block store
    */
-  public TachyonBlockStore getTachyonBlockStore() {
-    return mTachyonBlockStore;
+  public AlluxioBlockStore getTachyonBlockStore() {
+    return mAlluxioBlockStore;
   }
 
   /**

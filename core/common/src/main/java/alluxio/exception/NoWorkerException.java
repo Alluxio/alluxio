@@ -21,10 +21,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * The exception thrown when a worker does not exist, i.e. the id of the worker cannot be found.
  */
 @ThreadSafe
-public class NoWorkerException extends TachyonException {
+public class NoWorkerException extends AlluxioException {
   private static final long serialVersionUID = -4513463729402967717L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE = TachyonExceptionType.NO_WORKER;
+  private static final AlluxioExceptionType EXCEPTION_TYPE = AlluxioExceptionType.NO_WORKER;
 
   /**
    * Constructs a new exception with the specified detail message.

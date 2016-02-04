@@ -21,12 +21,12 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
-import alluxio.client.block.TachyonBlockStore;
+import alluxio.AlluxioURI;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Displays the file's all blocks info.
@@ -38,7 +38,7 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public FileInfoCommand(TachyonConf conf, FileSystem fs) {
+  public FileInfoCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -48,11 +48,11 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
+  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
     URIStatus status;
     try {
       status = mFileSystem.getStatus(path);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
 
@@ -63,7 +63,7 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
     System.out.println(status);
     System.out.println("Containing the following blocks: ");
     for (long blockId : status.getBlockIds()) {
-      System.out.println(TachyonBlockStore.get().getInfo(blockId));
+      System.out.println(AlluxioBlockStore.get().getInfo(blockId));
     }
   }
 

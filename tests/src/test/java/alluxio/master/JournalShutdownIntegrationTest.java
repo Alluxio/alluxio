@@ -27,9 +27,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.util.CommonUtils;
@@ -72,7 +72,7 @@ public class JournalShutdownIntegrationTest {
         while (true) {
           if (mOpType == 0) {
             try {
-              mFileSystem.createFile(new TachyonURI(TEST_FILE_DIR + mSuccessNum)).close();
+              mFileSystem.createFile(new AlluxioURI(TEST_FILE_DIR + mSuccessNum)).close();
             } catch (IOException e) {
               break;
             }
@@ -102,7 +102,7 @@ public class JournalShutdownIntegrationTest {
   private ClientThread mCreateFileThread = null;
   /** Executor for running client threads */
   private final ExecutorService mExecutorsForClient = Executors.newFixedThreadPool(1);
-  private TachyonConf mMasterTachyonConf = null;
+  private Configuration mMasterConfiguration = null;
 
   @After
   public final void after() throws Exception {
@@ -116,7 +116,7 @@ public class JournalShutdownIntegrationTest {
   }
 
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
-    return MasterTestUtils.createFileSystemMasterFromJournal(mMasterTachyonConf);
+    return MasterTestUtils.createFileSystemMasterFromJournal(mMasterConfiguration);
   }
 
   /**
@@ -125,33 +125,33 @@ public class JournalShutdownIntegrationTest {
   private void reproduceAndCheckState(int successFiles) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
-    int actualFiles = fsMaster.getFileInfoList(new TachyonURI(TEST_FILE_DIR)).size();
+    int actualFiles = fsMaster.getFileInfoList(new AlluxioURI(TEST_FILE_DIR)).size();
     Assert.assertTrue((successFiles == actualFiles) || (successFiles + 1 == actualFiles));
     for (int f = 0; f < successFiles; f ++) {
       Assert.assertTrue(
-          fsMaster.getFileId(new TachyonURI(TEST_FILE_DIR + f)) != IdUtils.INVALID_FILE_ID);
+          fsMaster.getFileId(new AlluxioURI(TEST_FILE_DIR + f)) != IdUtils.INVALID_FILE_ID);
     }
     fsMaster.stop();
   }
 
-  private LocalTachyonClusterMultiMaster setupMultiMasterCluster()
+  private LocalAlluxioClusterMultiMaster setupMultiMasterCluster()
       throws IOException, ConnectionFailedException {
     // Setup and start the alluxio-ft cluster.
-    LocalTachyonClusterMultiMaster cluster =
-        new LocalTachyonClusterMultiMaster(100, TEST_NUM_MASTERS, TEST_BLOCK_SIZE);
+    LocalAlluxioClusterMultiMaster cluster =
+        new LocalAlluxioClusterMultiMaster(100, TEST_NUM_MASTERS, TEST_BLOCK_SIZE);
     cluster.start();
-    mMasterTachyonConf = cluster.getMasterTachyonConf();
+    mMasterConfiguration = cluster.getMasterTachyonConf();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
   }
 
-  private LocalTachyonCluster setupSingleMasterCluster()
+  private LocalAlluxioCluster setupSingleMasterCluster()
       throws IOException, ConnectionFailedException {
     // Setup and start the local alluxio cluster.
-    LocalTachyonCluster cluster = new LocalTachyonCluster(100, TEST_BLOCK_SIZE);
+    LocalAlluxioCluster cluster = new LocalAlluxioCluster(100, TEST_BLOCK_SIZE);
     cluster.start();
-    mMasterTachyonConf = cluster.getMasterTachyonConf();
+    mMasterConfiguration = cluster.getMasterTachyonConf();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
@@ -159,7 +159,7 @@ public class JournalShutdownIntegrationTest {
 
   @Test
   public void singleMasterJournalCrashIntegrationTest() throws Exception {
-    LocalTachyonCluster cluster = setupSingleMasterCluster();
+    LocalAlluxioCluster cluster = setupSingleMasterCluster();
     CommonUtils.sleepMs(TEST_TIME_MS);
     // Shutdown the cluster
     cluster.stopTFS();
@@ -175,7 +175,7 @@ public class JournalShutdownIntegrationTest {
   @Ignore
   @Test
   public void multiMasterJournalCrashIntegrationTest() throws Exception {
-    LocalTachyonClusterMultiMaster cluster = setupMultiMasterCluster();
+    LocalAlluxioClusterMultiMaster cluster = setupMultiMasterCluster();
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills ++) {
       CommonUtils.sleepMs(TEST_TIME_MS);

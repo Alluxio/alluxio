@@ -99,7 +99,7 @@ start_master() {
   fi
 
   echo "Starting master @ $MASTER_ADDRESS. Logging to $TACHYON_LOGS_DIR"
-  (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$TACHYON_HOME -Dalluxio.logs.dir=$TACHYON_LOGS_DIR -Dalluxio.logger.type="MASTER_LOGGER" -Dalluxio.accesslogger.type="MASTER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_MASTER_JAVA_OPTS alluxio.master.TachyonMaster > $TACHYON_LOGS_DIR/master.out 2>&1) &
+  (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$TACHYON_HOME -Dalluxio.logs.dir=$TACHYON_LOGS_DIR -Dalluxio.logger.type="MASTER_LOGGER" -Dalluxio.accesslogger.type="MASTER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_MASTER_JAVA_OPTS alluxio.master.AlluxioMaster > $TACHYON_LOGS_DIR/master.out 2>&1) &
 }
 
 start_worker() {
@@ -114,7 +114,7 @@ start_worker() {
   fi
 
   echo "Starting worker @ `hostname -f`. Logging to $TACHYON_LOGS_DIR"
-  (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$TACHYON_HOME -Dalluxio.logs.dir=$TACHYON_LOGS_DIR -Dalluxio.logger.type="WORKER_LOGGER" -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_WORKER_JAVA_OPTS alluxio.worker.TachyonWorker > $TACHYON_LOGS_DIR/worker.out 2>&1 ) &
+  (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$TACHYON_HOME -Dalluxio.logs.dir=$TACHYON_LOGS_DIR -Dalluxio.logger.type="WORKER_LOGGER" -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_WORKER_JAVA_OPTS alluxio.worker.AlluxioWorker > $TACHYON_LOGS_DIR/worker.out 2>&1 ) &
 }
 
 restart_worker() {
@@ -122,17 +122,17 @@ restart_worker() {
     TACHYON_WORKER_JAVA_OPTS=$TACHYON_JAVA_OPTS
   fi
 
-  RUN=`ps -ef | grep "alluxio.worker.TachyonWorker" | grep "java" | wc | cut -d" " -f7`
+  RUN=`ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | cut -d" " -f7`
   if [[ $RUN -eq 0 ]] ; then
     echo "Restarting worker @ `hostname -f`. Logging to $TACHYON_LOGS_DIR"
-    (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$TACHYON_HOME -Dalluxio.logs.dir=$TACHYON_LOGS_DIR -Dalluxio.logger.type="WORKER_LOGGER" -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_WORKER_JAVA_OPTS alluxio.worker.TachyonWorker > $TACHYON_LOGS_DIR/worker.out 2>&1) &
+    (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$TACHYON_HOME -Dalluxio.logs.dir=$TACHYON_LOGS_DIR -Dalluxio.logger.type="WORKER_LOGGER" -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_WORKER_JAVA_OPTS alluxio.worker.AlluxioWorker > $TACHYON_LOGS_DIR/worker.out 2>&1) &
   fi
 }
 
 run_safe() {
   while [ 1 ]
   do
-    RUN=`ps -ef | grep "alluxio.master.TachyonMaster" | grep "java" | wc | cut -d" " -f7`
+    RUN=`ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | wc | cut -d" " -f7`
     if [[ $RUN -eq 0 ]] ; then
       echo "Restarting the system master..."
       start_master

@@ -28,11 +28,11 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.Command;
 import alluxio.util.ThreadFactoryUtils;
@@ -88,7 +88,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       BlockMasterClient masterClient) {
     mBlockWorker = blockWorker;
     mWorkerAddress = workerAddress;
-    TachyonConf conf = WorkerContext.getConf();
+    Configuration conf = WorkerContext.getConf();
     mMasterClient = masterClient;
     mHeartbeatTimeoutMs = conf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
 
@@ -120,7 +120,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     } catch (IOException e) {
       LOG.error("Failed to register with master.", e);
       throw e;
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       LOG.error("Failed to register with master.", e);
       throw new IOException(e);
     }

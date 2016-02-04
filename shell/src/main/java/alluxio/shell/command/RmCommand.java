@@ -22,11 +22,11 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.DeleteOptions;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Removes the file specified by argv.
@@ -38,7 +38,7 @@ public final class RmCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public RmCommand(TachyonConf conf, FileSystem fs) {
+  public RmCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -58,7 +58,7 @@ public final class RmCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
+  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
     // TODO(calvin): Remove explicit state checking.
     try {
       boolean recursive = cl.hasOption("R");
@@ -72,7 +72,7 @@ public final class RmCommand extends WithWildCardPathCommand {
       DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
       mFileSystem.delete(path, options);
       System.out.println(path + " has been removed");
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     }
   }

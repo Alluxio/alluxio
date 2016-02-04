@@ -42,7 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.swift.http.SwiftDirectClient;
 
@@ -75,18 +75,18 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * Constructs a new Swift {@link UnderFileSystem}.
    *
    * @param containerName the name of the container
-   * @param tachyonConf the configuration for Tachyon
+   * @param configuration the configuration for Tachyon
    */
   public SwiftUnderFileSystem(String containerName,
-      TachyonConf tachyonConf) {
-    super(tachyonConf);
+      Configuration configuration) {
+    super(configuration);
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
-    config.setUsername(tachyonConf.get(Constants.SWIFT_USER_KEY));
-    config.setTenantName(tachyonConf.get(Constants.SWIFT_TENANT_KEY));
-    config.setPassword(tachyonConf.get(Constants.SWIFT_API_KEY));
-    config.setAuthUrl(tachyonConf.get(Constants.SWIFT_AUTH_URL_KEY));
-    String authMethod = tachyonConf.get(Constants.SWIFT_AUTH_METHOD_KEY);
+    config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
+    config.setTenantName(configuration.get(Constants.SWIFT_TENANT_KEY));
+    config.setPassword(configuration.get(Constants.SWIFT_API_KEY));
+    config.setAuthUrl(configuration.get(Constants.SWIFT_AUTH_URL_KEY));
+    String authMethod = configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
     if (authMethod != null && authMethod.equals("keystone")) {
       config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
     } else {
@@ -111,12 +111,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(TachyonConf conf, String hostname) {
+  public void connectFromMaster(Configuration conf, String hostname) {
     LOG.debug("connect from master");
   }
 
   @Override
-  public void connectFromWorker(TachyonConf conf, String hostname) {
+  public void connectFromWorker(Configuration conf, String hostname) {
     LOG.debug("connect from worker");
   }
 

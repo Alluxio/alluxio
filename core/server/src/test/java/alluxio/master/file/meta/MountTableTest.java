@@ -19,7 +19,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
@@ -46,11 +46,11 @@ public class MountTableTest {
   @Test
   public void pathTest() throws Exception {
     // Test add()
-    mMountTable.add(new TachyonURI("/mnt/foo"), new TachyonURI("/foo"));
-    mMountTable.add(new TachyonURI("/mnt/bar"), new TachyonURI("/bar"));
+    mMountTable.add(new AlluxioURI("/mnt/foo"), new AlluxioURI("/foo"));
+    mMountTable.add(new AlluxioURI("/mnt/bar"), new AlluxioURI("/bar"));
 
     try {
-      mMountTable.add(new TachyonURI("/mnt/foo"), new TachyonURI("/foo2"));
+      mMountTable.add(new AlluxioURI("/mnt/foo"), new AlluxioURI("/foo2"));
       Assert.fail("Should not be able to add a mount to an existing mount.");
     } catch (FileAlreadyExistsException e) {
       // Exception expected
@@ -59,7 +59,7 @@ public class MountTableTest {
     }
 
     try {
-      mMountTable.add(new TachyonURI("/mnt/bar/baz"), new TachyonURI("/baz"));
+      mMountTable.add(new AlluxioURI("/mnt/bar/baz"), new AlluxioURI("/baz"));
     } catch (InvalidPathException e) {
       // Exception expected
       Assert.assertEquals(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage("/mnt/bar",
@@ -67,40 +67,40 @@ public class MountTableTest {
     }
 
     // Test resolve()
-    Assert.assertEquals(new TachyonURI("/foo"), mMountTable.resolve(new TachyonURI("/mnt/foo")));
+    Assert.assertEquals(new AlluxioURI("/foo"), mMountTable.resolve(new AlluxioURI("/mnt/foo")));
     Assert
-        .assertEquals(new TachyonURI("/foo/x"), mMountTable.resolve(new TachyonURI("/mnt/foo/x")));
-    Assert.assertEquals(new TachyonURI("/bar"), mMountTable.resolve(new TachyonURI("/mnt/bar")));
+        .assertEquals(new AlluxioURI("/foo/x"), mMountTable.resolve(new AlluxioURI("/mnt/foo/x")));
+    Assert.assertEquals(new AlluxioURI("/bar"), mMountTable.resolve(new AlluxioURI("/mnt/bar")));
     Assert
-        .assertEquals(new TachyonURI("/bar/y"), mMountTable.resolve(new TachyonURI("/mnt/bar/y")));
-    Assert.assertEquals(new TachyonURI("/bar/baz"),
-        mMountTable.resolve(new TachyonURI("/mnt/bar/baz")));
-    Assert.assertEquals(new TachyonURI("/foobar"), mMountTable.resolve(new TachyonURI("/foobar")));
-    Assert.assertEquals(new TachyonURI("/"), mMountTable.resolve(new TachyonURI("/")));
+        .assertEquals(new AlluxioURI("/bar/y"), mMountTable.resolve(new AlluxioURI("/mnt/bar/y")));
+    Assert.assertEquals(new AlluxioURI("/bar/baz"),
+        mMountTable.resolve(new AlluxioURI("/mnt/bar/baz")));
+    Assert.assertEquals(new AlluxioURI("/foobar"), mMountTable.resolve(new AlluxioURI("/foobar")));
+    Assert.assertEquals(new AlluxioURI("/"), mMountTable.resolve(new AlluxioURI("/")));
 
     // Test getMountPoint()
-    Assert.assertEquals("/mnt/foo", mMountTable.getMountPoint(new TachyonURI("/mnt/foo")));
-    Assert.assertEquals("/mnt/foo", mMountTable.getMountPoint(new TachyonURI("/mnt/foo/x")));
-    Assert.assertEquals("/mnt/bar", mMountTable.getMountPoint(new TachyonURI("/mnt/bar")));
-    Assert.assertEquals("/mnt/bar", mMountTable.getMountPoint(new TachyonURI("/mnt/bar/y")));
-    Assert.assertEquals("/mnt/bar", mMountTable.getMountPoint(new TachyonURI("/mnt/bar/baz")));
-    Assert.assertNull(mMountTable.getMountPoint(new TachyonURI("/mnt")));
-    Assert.assertNull(mMountTable.getMountPoint(new TachyonURI("/")));
+    Assert.assertEquals("/mnt/foo", mMountTable.getMountPoint(new AlluxioURI("/mnt/foo")));
+    Assert.assertEquals("/mnt/foo", mMountTable.getMountPoint(new AlluxioURI("/mnt/foo/x")));
+    Assert.assertEquals("/mnt/bar", mMountTable.getMountPoint(new AlluxioURI("/mnt/bar")));
+    Assert.assertEquals("/mnt/bar", mMountTable.getMountPoint(new AlluxioURI("/mnt/bar/y")));
+    Assert.assertEquals("/mnt/bar", mMountTable.getMountPoint(new AlluxioURI("/mnt/bar/baz")));
+    Assert.assertNull(mMountTable.getMountPoint(new AlluxioURI("/mnt")));
+    Assert.assertNull(mMountTable.getMountPoint(new AlluxioURI("/")));
 
     // Test isMountPoint()
-    Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI("/")));
-    Assert.assertTrue(mMountTable.isMountPoint(new TachyonURI("/mnt/foo")));
-    Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI("/mnt/foo/bar")));
-    Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI("/mnt")));
-    Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI("/mnt/foo3")));
-    Assert.assertTrue(mMountTable.isMountPoint(new TachyonURI("/mnt/bar")));
-    Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI("/mnt/bar/baz")));
+    Assert.assertFalse(mMountTable.isMountPoint(new AlluxioURI("/")));
+    Assert.assertTrue(mMountTable.isMountPoint(new AlluxioURI("/mnt/foo")));
+    Assert.assertFalse(mMountTable.isMountPoint(new AlluxioURI("/mnt/foo/bar")));
+    Assert.assertFalse(mMountTable.isMountPoint(new AlluxioURI("/mnt")));
+    Assert.assertFalse(mMountTable.isMountPoint(new AlluxioURI("/mnt/foo3")));
+    Assert.assertTrue(mMountTable.isMountPoint(new AlluxioURI("/mnt/bar")));
+    Assert.assertFalse(mMountTable.isMountPoint(new AlluxioURI("/mnt/bar/baz")));
 
     // Test delete()
-    Assert.assertTrue(mMountTable.delete(new TachyonURI("/mnt/bar")));
-    Assert.assertTrue(mMountTable.delete(new TachyonURI("/mnt/foo")));
-    Assert.assertFalse(mMountTable.delete(new TachyonURI("/mnt/foo")));
-    Assert.assertFalse(mMountTable.delete(new TachyonURI("/")));
+    Assert.assertTrue(mMountTable.delete(new AlluxioURI("/mnt/bar")));
+    Assert.assertTrue(mMountTable.delete(new AlluxioURI("/mnt/foo")));
+    Assert.assertFalse(mMountTable.delete(new AlluxioURI("/mnt/foo")));
+    Assert.assertFalse(mMountTable.delete(new AlluxioURI("/")));
   }
 
   /**
@@ -111,13 +111,13 @@ public class MountTableTest {
   @Test
   public void uriTest() throws Exception {
     // Test add()
-    mMountTable.add(new TachyonURI("alluxio://localhost:1234/mnt/foo"), new TachyonURI(
+    mMountTable.add(new AlluxioURI("alluxio://localhost:1234/mnt/foo"), new AlluxioURI(
         "hdfs://localhost:5678/foo"));
-    mMountTable.add(new TachyonURI("alluxio://localhost:1234/mnt/bar"), new TachyonURI(
+    mMountTable.add(new AlluxioURI("alluxio://localhost:1234/mnt/bar"), new AlluxioURI(
         "hdfs://localhost:5678/bar"));
 
     try {
-      mMountTable.add(new TachyonURI("alluxio://localhost:1234/mnt/foo"), new TachyonURI(
+      mMountTable.add(new AlluxioURI("alluxio://localhost:1234/mnt/foo"), new AlluxioURI(
           "hdfs://localhost:5678/foo2"));
     } catch (FileAlreadyExistsException e) {
       // Exception expected
@@ -126,7 +126,7 @@ public class MountTableTest {
     }
 
     try {
-      mMountTable.add(new TachyonURI("alluxio://localhost:1234/mnt/bar/baz"), new TachyonURI(
+      mMountTable.add(new AlluxioURI("alluxio://localhost:1234/mnt/bar/baz"), new AlluxioURI(
           "hdfs://localhost:5678/baz"));
     } catch (InvalidPathException e) {
       Assert.assertEquals(
@@ -135,45 +135,45 @@ public class MountTableTest {
     }
 
     // Test resolve()
-    Assert.assertEquals(new TachyonURI("hdfs://localhost:5678/foo"),
-        mMountTable.resolve(new TachyonURI("alluxio://localhost:1234/mnt/foo")));
-    Assert.assertEquals(new TachyonURI("hdfs://localhost:5678/bar"),
-        mMountTable.resolve(new TachyonURI("alluxio://localhost:1234/mnt/bar")));
-    Assert.assertEquals(new TachyonURI("hdfs://localhost:5678/bar/y"),
-        mMountTable.resolve(new TachyonURI("alluxio://localhost:1234/mnt/bar/y")));
-    Assert.assertEquals(new TachyonURI("hdfs://localhost:5678/bar/baz"),
-        mMountTable.resolve(new TachyonURI("alluxio://localhost:1234/mnt/bar/baz")));
+    Assert.assertEquals(new AlluxioURI("hdfs://localhost:5678/foo"),
+        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/foo")));
+    Assert.assertEquals(new AlluxioURI("hdfs://localhost:5678/bar"),
+        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/bar")));
+    Assert.assertEquals(new AlluxioURI("hdfs://localhost:5678/bar/y"),
+        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/bar/y")));
+    Assert.assertEquals(new AlluxioURI("hdfs://localhost:5678/bar/baz"),
+        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/bar/baz")));
 
     // Test getMountPoint()
     Assert.assertEquals("/mnt/foo",
-        mMountTable.getMountPoint(new TachyonURI("alluxio://localhost:1234/mnt/foo")));
+        mMountTable.getMountPoint(new AlluxioURI("alluxio://localhost:1234/mnt/foo")));
     Assert.assertEquals("/mnt/bar",
-        mMountTable.getMountPoint(new TachyonURI("alluxio://localhost:1234/mnt/bar")));
+        mMountTable.getMountPoint(new AlluxioURI("alluxio://localhost:1234/mnt/bar")));
     Assert.assertEquals("/mnt/bar",
-        mMountTable.getMountPoint(new TachyonURI("alluxio://localhost:1234/mnt/bar/y")));
+        mMountTable.getMountPoint(new AlluxioURI("alluxio://localhost:1234/mnt/bar/y")));
     Assert.assertEquals("/mnt/bar",
-        mMountTable.getMountPoint(new TachyonURI("alluxio://localhost:1234/mnt/bar/baz")));
-    Assert.assertNull(mMountTable.getMountPoint(new TachyonURI("alluxio://localhost:1234/mnt")));
-    Assert.assertNull(mMountTable.getMountPoint(new TachyonURI("alluxio://localhost:1234/")));
+        mMountTable.getMountPoint(new AlluxioURI("alluxio://localhost:1234/mnt/bar/baz")));
+    Assert.assertNull(mMountTable.getMountPoint(new AlluxioURI("alluxio://localhost:1234/mnt")));
+    Assert.assertNull(mMountTable.getMountPoint(new AlluxioURI("alluxio://localhost:1234/")));
 
     // Test isMountPoint()
-    Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI("alluxio://localhost:1234/")));
-    Assert.assertTrue(mMountTable.isMountPoint(new TachyonURI("alluxio://localhost:1234/mnt/foo")));
+    Assert.assertFalse(mMountTable.isMountPoint(new AlluxioURI("alluxio://localhost:1234/")));
+    Assert.assertTrue(mMountTable.isMountPoint(new AlluxioURI("alluxio://localhost:1234/mnt/foo")));
     Assert.assertFalse(
-        mMountTable.isMountPoint(new TachyonURI("alluxio://localhost:1234/mnt/foo/bar")));
-    Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI("alluxio://localhost:1234/mnt")));
+        mMountTable.isMountPoint(new AlluxioURI("alluxio://localhost:1234/mnt/foo/bar")));
+    Assert.assertFalse(mMountTable.isMountPoint(new AlluxioURI("alluxio://localhost:1234/mnt")));
     Assert
-        .assertFalse(mMountTable.isMountPoint(new TachyonURI("alluxio://localhost:1234/mnt/foo2")));
+        .assertFalse(mMountTable.isMountPoint(new AlluxioURI("alluxio://localhost:1234/mnt/foo2")));
     Assert
-        .assertFalse(mMountTable.isMountPoint(new TachyonURI("alluxio://localhost:1234/mnt/foo3")));
-    Assert.assertTrue(mMountTable.isMountPoint(new TachyonURI("alluxio://localhost:1234/mnt/bar")));
+        .assertFalse(mMountTable.isMountPoint(new AlluxioURI("alluxio://localhost:1234/mnt/foo3")));
+    Assert.assertTrue(mMountTable.isMountPoint(new AlluxioURI("alluxio://localhost:1234/mnt/bar")));
     Assert.assertFalse(
-        mMountTable.isMountPoint(new TachyonURI("alluxio://localhost:1234/mnt/bar/baz")));
+        mMountTable.isMountPoint(new AlluxioURI("alluxio://localhost:1234/mnt/bar/baz")));
 
     // Test delete()
-    Assert.assertTrue(mMountTable.delete(new TachyonURI("alluxio://localhost:1234/mnt/bar")));
-    Assert.assertTrue(mMountTable.delete(new TachyonURI("alluxio://localhost:1234/mnt/foo")));
-    Assert.assertFalse(mMountTable.delete(new TachyonURI("alluxio://localhost:1234/mnt/foo")));
-    Assert.assertFalse(mMountTable.delete(new TachyonURI("alluxio://localhost:1234/")));
+    Assert.assertTrue(mMountTable.delete(new AlluxioURI("alluxio://localhost:1234/mnt/bar")));
+    Assert.assertTrue(mMountTable.delete(new AlluxioURI("alluxio://localhost:1234/mnt/foo")));
+    Assert.assertFalse(mMountTable.delete(new AlluxioURI("alluxio://localhost:1234/mnt/foo")));
+    Assert.assertFalse(mMountTable.delete(new AlluxioURI("alluxio://localhost:1234/")));
   }
 }

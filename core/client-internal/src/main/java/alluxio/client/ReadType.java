@@ -23,7 +23,7 @@ import alluxio.annotation.PublicApi;
  * Convenience modes for commonly used read types.
  *
  * For finer grained control over data storage, advanced users may specify
- * {@link TachyonStorageType} and {@link UnderStorageType}.
+ * {@link AlluxioStorageType} and {@link UnderStorageType}.
  */
 @PublicApi
 @ThreadSafe
@@ -52,17 +52,17 @@ public enum ReadType {
   }
 
   /**
-   * @return the {@link alluxio.client.TachyonStorageType} associated with this read type
+   * @return the {@link AlluxioStorageType} associated with this read type
    */
-  public TachyonStorageType getTachyonStorageType() {
+  public AlluxioStorageType getTachyonStorageType() {
     if (isPromote()) { // CACHE_PROMOTE
-      return TachyonStorageType.PROMOTE;
+      return AlluxioStorageType.PROMOTE;
     }
     if (isCache()) { // CACHE
-      return TachyonStorageType.STORE;
+      return AlluxioStorageType.STORE;
     }
     // NO_CACHE
-    return TachyonStorageType.NO_STORE;
+    return AlluxioStorageType.NO_STORE;
   }
 
   /**

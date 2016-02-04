@@ -39,7 +39,7 @@ import com.aliyun.oss.model.ObjectMetadata;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -74,21 +74,21 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /** The OSS endpoint. */
   private final String mEndPoint;
 
-  protected OSSUnderFileSystem(String bucketName, TachyonConf tachyonConf) throws Exception {
-    super(tachyonConf);
-    Preconditions.checkArgument(tachyonConf.containsKey(Constants.OSS_ACCESS_KEY),
+  protected OSSUnderFileSystem(String bucketName, Configuration configuration) throws Exception {
+    super(configuration);
+    Preconditions.checkArgument(configuration.containsKey(Constants.OSS_ACCESS_KEY),
         "Property " + Constants.OSS_ACCESS_KEY + " is required to connect to OSS");
-    Preconditions.checkArgument(tachyonConf.containsKey(Constants.OSS_SECRET_KEY),
+    Preconditions.checkArgument(configuration.containsKey(Constants.OSS_SECRET_KEY),
         "Property " + Constants.OSS_SECRET_KEY + " is required to connect to OSS");
-    Preconditions.checkArgument(tachyonConf.containsKey(Constants.OSS_ENDPOINT_KEY),
+    Preconditions.checkArgument(configuration.containsKey(Constants.OSS_ENDPOINT_KEY),
         "Property " + Constants.OSS_ENDPOINT_KEY + " is required to connect to OSS");
-    mAccessId = tachyonConf.get(Constants.OSS_ACCESS_KEY);
-    mAccessKey = tachyonConf.get(Constants.OSS_SECRET_KEY);
+    mAccessId = configuration.get(Constants.OSS_ACCESS_KEY);
+    mAccessKey = configuration.get(Constants.OSS_SECRET_KEY);
     mBucketName = bucketName;
     mBucketPrefix = Constants.HEADER_OSS + mBucketName + PATH_SEPARATOR;
-    mEndPoint = tachyonConf.get(Constants.OSS_ENDPOINT_KEY);
+    mEndPoint = configuration.get(Constants.OSS_ENDPOINT_KEY);
 
-    ClientConfiguration ossClientConf = initializeOSSClientConfig(tachyonConf);
+    ClientConfiguration ossClientConf = initializeOSSClientConfig(configuration);
     mOssClient = new OSSClient(mEndPoint, mAccessId, mAccessKey, ossClientConf);
   }
 
@@ -98,12 +98,12 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(TachyonConf conf, String hostname) throws IOException {
+  public void connectFromMaster(Configuration conf, String hostname) throws IOException {
     // Authentication is taken care of in the constructor
   }
 
   @Override
-  public void connectFromWorker(TachyonConf conf, String hostname) throws IOException {
+  public void connectFromWorker(Configuration conf, String hostname) throws IOException {
     // Authentication is taken care of in the constructor
   }
 
@@ -410,17 +410,17 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /**
    * Creates an OSS {@code ClientConfiguration} using a Tachyon configuration.
    *
-   * @param tachyonConf Tachyon configuration
+   * @param configuration Tachyon configuration
    * @return the OSS {@link ClientConfiguration}
    */
-  private ClientConfiguration initializeOSSClientConfig(TachyonConf tachyonConf) {
+  private ClientConfiguration initializeOSSClientConfig(Configuration configuration) {
     ClientConfiguration ossClientConf = new ClientConfiguration();
     ossClientConf.setConnectionTimeout(
-        tachyonConf.getInt(Constants.UNDERFS_OSS_CONNECT_TIMEOUT));
+        configuration.getInt(Constants.UNDERFS_OSS_CONNECT_TIMEOUT));
     ossClientConf.setSocketTimeout(
-        tachyonConf.getInt(Constants.UNDERFS_OSS_SOCKET_TIMEOUT));
-    ossClientConf.setConnectionTTL(tachyonConf.getLong(Constants.UNDERFS_OSS_CONNECT_TTL));
-    ossClientConf.setMaxConnections(tachyonConf.getInt(Constants.UNDERFS_OSS_CONNECT_MAX));
+        configuration.getInt(Constants.UNDERFS_OSS_SOCKET_TIMEOUT));
+    ossClientConf.setConnectionTTL(configuration.getLong(Constants.UNDERFS_OSS_CONNECT_TTL));
+    ossClientConf.setMaxConnections(configuration.getInt(Constants.UNDERFS_OSS_CONNECT_MAX));
     return ossClientConf;
   }
 

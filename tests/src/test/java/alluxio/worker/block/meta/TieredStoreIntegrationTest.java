@@ -26,8 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
@@ -36,8 +36,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 
@@ -49,7 +49,7 @@ public class TieredStoreIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
-  private TachyonConf mWorkerConf;
+  private Configuration mWorkerConf;
   private FileSystem mFileSystem;
   private int mWorkerToMasterHeartbeatIntervalMs;
   private SetAttributeOptions mSetPinned;
@@ -58,14 +58,14 @@ public class TieredStoreIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(MEM_CAPACITY_BYTES, 1000,
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource(MEM_CAPACITY_BYTES, 1000,
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
 
   @Before
   public final void before() throws Exception {
-    mFileSystem = mLocalTachyonClusterResource.get().getClient();
-    mWorkerConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+    mWorkerConf = mLocalAlluxioClusterResource.get().getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
         mWorkerConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
     mSetPinned = SetAttributeOptions.defaults().setPinned(true);
@@ -76,11 +76,11 @@ public class TieredStoreIntegrationTest {
    * Tests that deletes go through despite failing initially due to concurrent read.
    *
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected alluxio exception is thrown
+   * @throws AlluxioException if an unexpected alluxio exception is thrown
    */
   @Test
-  public void deleteWhileReadTest() throws IOException, TachyonException {
-    TachyonURI file = new TachyonURI("/test1");
+  public void deleteWhileReadTest() throws IOException, AlluxioException {
+    AlluxioURI file = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, file, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
@@ -109,7 +109,7 @@ public class TieredStoreIntegrationTest {
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // After the file is closed, the master's delete should go through and new files can be created
-    TachyonURI newFile = new TachyonURI("/test2");
+    AlluxioURI newFile = new AlluxioURI("/test2");
     FileSystemTestUtils.createByteFile(mFileSystem, newFile, WriteType.MUST_CACHE,
         MEM_CAPACITY_BYTES);
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
@@ -120,12 +120,12 @@ public class TieredStoreIntegrationTest {
    * Tests that pinning a file prevents it from being evicted.
    *
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected alluxio exception is thrown
+   * @throws AlluxioException if an unexpected alluxio exception is thrown
    */
   @Test
-  public void pinFileTest() throws IOException, TachyonException {
+  public void pinFileTest() throws IOException, AlluxioException {
     // Create a file that fills the entire Tachyon store
-    TachyonURI file = new TachyonURI("/test1");
+    AlluxioURI file = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, file, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
     // Pin the file
@@ -145,12 +145,12 @@ public class TieredStoreIntegrationTest {
    * Tests that pinning a file and then unpinning.
    *
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected alluxio exception is thrown
+   * @throws AlluxioException if an unexpected alluxio exception is thrown
    */
   @Test
-  public void unpinFileTest() throws IOException, TachyonException {
+  public void unpinFileTest() throws IOException, AlluxioException {
     // Create a file that fills the entire Tachyon store
-    TachyonURI file1 = new TachyonURI("/test1");
+    AlluxioURI file1 = new AlluxioURI("/test1");
     FileSystemTestUtils
         .createByteFile(mFileSystem, file1, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
@@ -169,7 +169,7 @@ public class TieredStoreIntegrationTest {
 
     // Try to create a file that cannot be stored unless the previous file is evicted, this
     // should succeed
-    TachyonURI file2 = new TachyonURI("/test2");
+    AlluxioURI file2 = new AlluxioURI("/test2");
     FileSystemTestUtils
         .createByteFile(mFileSystem, file2, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
@@ -183,13 +183,13 @@ public class TieredStoreIntegrationTest {
    * Tests the promotion of a file.
    *
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected alluxio exception is thrown
+   * @throws AlluxioException if an unexpected alluxio exception is thrown
    */
   @Test
-  public void promoteBlock() throws IOException, TachyonException {
-    TachyonURI uri1 = new TachyonURI("/file1");
-    TachyonURI uri2 = new TachyonURI("/file2");
-    TachyonURI uri3 = new TachyonURI("/file3");
+  public void promoteBlock() throws IOException, AlluxioException {
+    AlluxioURI uri1 = new AlluxioURI("/file1");
+    AlluxioURI uri2 = new AlluxioURI("/file2");
+    AlluxioURI uri3 = new AlluxioURI("/file3");
     FileSystemTestUtils.createByteFile(mFileSystem, uri1, WriteType.CACHE_THROUGH,
         MEM_CAPACITY_BYTES / 6);
     FileSystemTestUtils.createByteFile(mFileSystem, uri2, WriteType.CACHE_THROUGH,
@@ -199,7 +199,7 @@ public class TieredStoreIntegrationTest {
 
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
-    TachyonURI toPromote = null;
+    AlluxioURI toPromote = null;
     int toPromoteLen = 0;
     URIStatus file1Info = mFileSystem.getStatus(uri1);
     URIStatus file2Info = mFileSystem.getStatus(uri2);

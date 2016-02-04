@@ -61,7 +61,7 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.yarn.YarnUtils.YarnContainerType;
@@ -76,7 +76,7 @@ import alluxio.yarn.YarnUtils.YarnContainerType;
 public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
   private static final String RESOURCE_ADDRESS = "/tmp/resource";
-  private static final TachyonConf CONF = new TachyonConf();
+  private static final Configuration CONF = new Configuration();
   private static final int NUM_WORKERS = 25;
   private static final int MASTER_MEM_MB =
       (int) CONF.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
@@ -131,7 +131,7 @@ public class ApplicationMasterTest {
   }
 
   private void setupApplicationMaster(Map<String, String> properties) throws Exception {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     for (Entry<String, String> entry : properties.entrySet()) {
       conf.set(entry.getKey(), entry.getValue());
     }
@@ -174,7 +174,7 @@ public class ApplicationMasterTest {
    */
   @Test
   public void startTest() throws Exception {
-    String hostname = NetworkAddressUtils.getLocalHostName(new TachyonConf());
+    String hostname = NetworkAddressUtils.getLocalHostName(new Configuration());
     Mockito.verify(mRMClient).registerApplicationMaster(hostname, 0, "");
   }
 
@@ -441,7 +441,7 @@ public class ApplicationMasterTest {
    */
   @Test
   public void bigContainerRequestTest() {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.INTEGRATION_MASTER_RESOURCE_MEM, "128gb");
     conf.set(Constants.INTEGRATION_WORKER_RESOURCE_MEM, "64gb");
     conf.set(Constants.WORKER_MEMORY_SIZE, "256gb");

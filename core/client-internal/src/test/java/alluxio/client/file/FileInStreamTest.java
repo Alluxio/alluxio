@@ -37,7 +37,7 @@ import com.google.common.collect.Lists;
 import alluxio.client.ReadType;
 import alluxio.client.block.BlockInStream;
 import alluxio.client.block.BufferedBlockInStream;
-import alluxio.client.block.TachyonBlockStore;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.TestBufferedBlockInStream;
 import alluxio.client.block.TestBufferedBlockOutStream;
 import alluxio.client.file.options.InStreamOptions;
@@ -57,14 +57,14 @@ import alluxio.wire.WorkerNetAddress;
  * Tests for the {@link FileInStream} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, TachyonBlockStore.class, UnderFileSystem.class})
+@PrepareForTest({FileSystemContext.class, AlluxioBlockStore.class, UnderFileSystem.class})
 public class FileInStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;
   private static final long FILE_LENGTH = 350L;
   private static final long NUM_STREAMS = ((FILE_LENGTH - 1) / BLOCK_LENGTH) + 1;
 
-  private TachyonBlockStore mBlockStore;
+  private AlluxioBlockStore mBlockStore;
   private FileSystemContext mContext;
   private FileInfo mInfo;
   private URIStatus mStatus;
@@ -85,7 +85,7 @@ public class FileInStreamTest {
     ClientTestUtils.setSmallBufferSizes();
 
     mContext = PowerMockito.mock(FileSystemContext.class);
-    mBlockStore = PowerMockito.mock(TachyonBlockStore.class);
+    mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     Mockito.when(mContext.getTachyonBlockStore()).thenReturn(mBlockStore);
 
     // Set up BufferedBlockInStreams and caching streams
@@ -307,7 +307,7 @@ public class FileInStreamTest {
   }
 
   /**
-   * Tests that {@link IOException}s thrown by the {@link TachyonBlockStore} are properly
+   * Tests that {@link IOException}s thrown by the {@link AlluxioBlockStore} are properly
    * propagated.
    *
    * @throws IOException when an operation on the BlockStore or on the stream fails

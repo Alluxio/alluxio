@@ -19,19 +19,19 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Test for unsetTtl command.
  */
-public class UnsetTtlTest extends AbstractTfsShellTest {
+public class UnsetTtlTest extends AbstractAlluxioShellTest {
   @Test
   public void unsetTtlTest() throws Exception {
     String filePath = "/testFile";
-    TachyonURI uri = new TachyonURI("/testFile");
+    AlluxioURI uri = new AlluxioURI("/testFile");
     FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL, mFileSystem.getStatus(uri).getTtl());
 

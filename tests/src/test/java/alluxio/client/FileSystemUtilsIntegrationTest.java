@@ -26,15 +26,15 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -45,8 +45,8 @@ public class FileSystemUtilsIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 2 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @ClassRule
-  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
+  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
           Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
   private static CreateFileOptions sWriteBoth;
   private static FileSystem sFileSystem = null;
@@ -56,16 +56,16 @@ public class FileSystemUtilsIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sFileSystem = sLocalTachyonClusterResource.get().getClient();
-    TachyonConf conf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
+    sFileSystem = sLocalAlluxioClusterResource.get().getClient();
+    Configuration conf = sLocalAlluxioClusterResource.get().getMasterTachyonConf();
     sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(conf);
   }
 
   @Test
-  public void waitCompletedTest1() throws IOException, TachyonException, InterruptedException {
+  public void waitCompletedTest1() throws IOException, AlluxioException, InterruptedException {
     final String uniqPath = PathUtils.uniqPath();
     final int numWrites = 4; // random value chosen through a fair dice roll :P
-    final TachyonURI uri = new TachyonURI(uniqPath);
+    final AlluxioURI uri = new AlluxioURI(uniqPath);
 
     final Runnable writer = new Runnable() {
       @Override
@@ -114,10 +114,10 @@ public class FileSystemUtilsIntegrationTest {
   }
 
   @Test
-  public void waitCompletedTest2() throws IOException, TachyonException, InterruptedException {
+  public void waitCompletedTest2() throws IOException, AlluxioException, InterruptedException {
     final String uniqPath = PathUtils.uniqPath();
     final int numWrites = 4; // random value chosen through a fair dice roll :P
-    final TachyonURI uri = new TachyonURI(uniqPath);
+    final AlluxioURI uri = new AlluxioURI(uniqPath);
 
     final Runnable writer = new Runnable() {
       @Override

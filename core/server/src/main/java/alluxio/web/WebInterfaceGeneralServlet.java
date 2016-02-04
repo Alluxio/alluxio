@@ -29,8 +29,8 @@ import javax.servlet.http.HttpServletResponse;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.Version;
-import alluxio.conf.TachyonConf;
-import alluxio.master.TachyonMaster;
+import alluxio.Configuration;
+import alluxio.master.AlluxioMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.FormatUtils;
 
@@ -104,14 +104,14 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
 
   private static final long serialVersionUID = 2335205655766736309L;
 
-  private final transient TachyonMaster mMaster;
+  private final transient AlluxioMaster mMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceGeneralServlet}.
    *
    * @param master Tachyon master
    */
-  public WebInterfaceGeneralServlet(TachyonMaster master) {
+  public WebInterfaceGeneralServlet(AlluxioMaster master) {
     mMaster = master;
   }
 
@@ -195,7 +195,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
                 - mMaster.getBlockMaster().getUsedBytes()));
 
     // TODO(jiri): Should we use MasterContext here instead?
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     String ufsRoot = conf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, conf);
 

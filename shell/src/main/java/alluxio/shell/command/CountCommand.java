@@ -22,23 +22,23 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Displays the number of folders and files matching the specified prefix in args.
  */
 @ThreadSafe
-public final class CountCommand extends AbstractTfsShellCommand {
+public final class CountCommand extends AbstractShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public CountCommand(TachyonConf conf, FileSystem fs) {
+  public CountCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -55,7 +55,7 @@ public final class CountCommand extends AbstractTfsShellCommand {
   @Override
   public void run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
-    TachyonURI inputPath = new TachyonURI(args[0]);
+    AlluxioURI inputPath = new AlluxioURI(args[0]);
 
     long[] values = countHelper(inputPath);
     String format = "%-25s%-25s%-15s%n";
@@ -63,11 +63,11 @@ public final class CountCommand extends AbstractTfsShellCommand {
     System.out.format(format, values[0], values[1], values[2]);
   }
 
-  private long[] countHelper(TachyonURI path) throws IOException {
+  private long[] countHelper(AlluxioURI path) throws IOException {
     URIStatus status;
     try {
       status = mFileSystem.getStatus(path);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
 
@@ -80,11 +80,11 @@ public final class CountCommand extends AbstractTfsShellCommand {
     List<URIStatus> statuses;
     try {
       statuses = mFileSystem.listStatus(path);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
     for (URIStatus uriStatus : statuses) {
-      long[] toAdd = countHelper(new TachyonURI(uriStatus.getPath()));
+      long[] toAdd = countHelper(new AlluxioURI(uriStatus.getPath()));
       rtn[0] += toAdd[0];
       rtn[1] += toAdd[1];
       rtn[2] += toAdd[2];

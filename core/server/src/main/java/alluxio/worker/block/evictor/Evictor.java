@@ -21,7 +21,7 @@ import com.google.common.base.Throwables;
 
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
@@ -41,12 +41,12 @@ public interface Evictor {
     /**
      * Factory for {@link Evictor}.
      *
-     * @param conf {@link TachyonConf} to determine the {@link Evictor} type
+     * @param conf {@link Configuration} to determine the {@link Evictor} type
      * @param view {@link BlockMetadataManagerView} to pass to {@link Evictor}
      * @param allocator an allocation policy
      * @return the generated {@link Evictor}
      */
-    public static Evictor create(TachyonConf conf, BlockMetadataManagerView view,
+    public static Evictor create(Configuration conf, BlockMetadataManagerView view,
                                  Allocator allocator) {
       try {
         return CommonUtils.createNewClassInstance(

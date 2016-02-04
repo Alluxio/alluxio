@@ -24,14 +24,14 @@ import org.junit.Before;
 import org.junit.Rule;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 
 public class CapacityUsageIntegrationTest {
@@ -41,8 +41,8 @@ public class CapacityUsageIntegrationTest {
   private static final int HEARTBEAT_INTERVAL_MS = 30;
 
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(MEM_CAPACITY_BYTES,
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource(MEM_CAPACITY_BYTES,
           MEM_CAPACITY_BYTES / 2, Constants.WORKER_TIERED_STORE_LEVELS, "2",
           String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 1), "HDD",
           String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 1), "/disk1",
@@ -53,11 +53,11 @@ public class CapacityUsageIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mFileSystem = mLocalTachyonClusterResource.get().getClient();
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 
-  private void createAndWriteFile(TachyonURI filePath, WriteType writeType, int len)
-      throws IOException, TachyonException {
+  private void createAndWriteFile(AlluxioURI filePath, WriteType writeType, int len)
+      throws IOException, AlluxioException {
     ByteBuffer buf = ByteBuffer.allocate(len);
     buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < len; k ++) {
@@ -70,9 +70,9 @@ public class CapacityUsageIntegrationTest {
     os.close();
   }
 
-  private void deleteDuringEviction(int i) throws IOException, TachyonException {
-    final TachyonURI fileName1 = new TachyonURI("/file" + i + "_1");
-    final TachyonURI fileName2 = new TachyonURI("/file" + i + "_2");
+  private void deleteDuringEviction(int i) throws IOException, AlluxioException {
+    final AlluxioURI fileName1 = new AlluxioURI("/file" + i + "_1");
+    final AlluxioURI fileName2 = new AlluxioURI("/file" + i + "_2");
     createAndWriteFile(fileName1, WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES);
     URIStatus fileStatus1 = mFileSystem.getStatus(fileName1);
     Assert.assertTrue(fileStatus1.getInMemoryPercentage() == 100);
@@ -87,7 +87,7 @@ public class CapacityUsageIntegrationTest {
 
   // TODO(calvin): Rethink the approach of this test and what it should be testing.
   // @Test
-  public void deleteDuringEvictionTest() throws IOException, TachyonException {
+  public void deleteDuringEvictionTest() throws IOException, AlluxioException {
     // This test may not trigger eviction each time, repeat it 20 times.
     for (int i = 0; i < 20; i ++) {
       deleteDuringEviction(i);

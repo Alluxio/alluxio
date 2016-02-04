@@ -18,14 +18,14 @@ package alluxio.security.authentication;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.sasl.AuthenticationException;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.CommonUtils;
 
 /**
  * An authentication provider implementation that allows {@link AuthenticationProvider} to be
  * customized at configuration time. This authentication provider is created if authentication type
- * specified in {@link TachyonConf} is {@link AuthType#CUSTOM}. It requires the property
- * {@code alluxio.security.authentication.custom.provider} to be set in {@link TachyonConf
+ * specified in {@link Configuration} is {@link AuthType#CUSTOM}. It requires the property
+ * {@code alluxio.security.authentication.custom.provider} to be set in {@link Configuration
  * Configuration} to determine which provider to load.
  */
 @NotThreadSafe

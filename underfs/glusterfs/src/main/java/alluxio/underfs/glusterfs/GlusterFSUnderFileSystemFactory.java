@@ -19,7 +19,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
@@ -30,13 +30,13 @@ import alluxio.underfs.UnderFileSystemFactory;
 public class GlusterFSUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
-  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
+  public UnderFileSystem create(String path, Configuration configuration, Object conf) {
     Preconditions.checkArgument(path != null, "path may not be null");
-    return new GlusterFSUnderFileSystem(path, tachyonConf, conf);
+    return new GlusterFSUnderFileSystem(path, configuration, conf);
   }
 
   @Override
-  public boolean supportsPath(String path, TachyonConf conf) {
+  public boolean supportsPath(String path, Configuration conf) {
     if (path == null) {
       return false;
     }

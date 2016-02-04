@@ -29,7 +29,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 
 /**
  * Tests for the {@link FileUtils} class.
@@ -174,7 +174,7 @@ public class FileUtilsTest {
     File tempFolder = mTestFolder.newFolder("dirToModify");
     // Only test this functionality of the absolute path of the temporary directory starts with "/",
     // which implies the host should support "chmod".
-    if (tempFolder.getAbsolutePath().startsWith(TachyonURI.SEPARATOR)) {
+    if (tempFolder.getAbsolutePath().startsWith(AlluxioURI.SEPARATOR)) {
       FileUtils.setLocalDirStickyBit(tempFolder.getAbsolutePath());
       List<String> commands = new ArrayList<String>();
       commands.add("/bin/ls");

@@ -21,7 +21,7 @@ import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -41,7 +41,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
 * Default implementation of the {@link FileSystem} interface. Developers can extend this class
@@ -65,14 +65,14 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void createDirectory(TachyonURI path)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException {
+  public void createDirectory(AlluxioURI path)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     createDirectory(path, CreateDirectoryOptions.defaults());
   }
 
   @Override
-  public void createDirectory(TachyonURI path, CreateDirectoryOptions options)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException {
+  public void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.createDirectory(path, options);
@@ -82,14 +82,14 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public FileOutStream createFile(TachyonURI path)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException {
+  public FileOutStream createFile(AlluxioURI path)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     return createFile(path, CreateFileOptions.defaults());
   }
 
   @Override
-  public FileOutStream createFile(TachyonURI path, CreateFileOptions options)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException {
+  public FileOutStream createFile(AlluxioURI path, CreateFileOptions options)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.createFile(path, options);
@@ -100,14 +100,14 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void delete(TachyonURI path)
-      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, TachyonException {
+  public void delete(AlluxioURI path)
+      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
     delete(path, DeleteOptions.defaults());
   }
 
   @Override
-  public void delete(TachyonURI path, DeleteOptions options)
-      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, TachyonException {
+  public void delete(AlluxioURI path, DeleteOptions options)
+      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.delete(path, options);
@@ -117,14 +117,14 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public boolean exists(TachyonURI path)
-      throws InvalidPathException, IOException, TachyonException {
+  public boolean exists(AlluxioURI path)
+      throws InvalidPathException, IOException, AlluxioException {
     return exists(path, ExistsOptions.defaults());
   }
 
   @Override
-  public boolean exists(TachyonURI path, ExistsOptions options)
-      throws InvalidPathException, IOException, TachyonException {
+  public boolean exists(AlluxioURI path, ExistsOptions options)
+      throws InvalidPathException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this more efficient
@@ -140,14 +140,14 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void free(TachyonURI path)
-      throws FileDoesNotExistException, IOException, TachyonException {
+  public void free(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     free(path, FreeOptions.defaults());
   }
 
   @Override
-  public void free(TachyonURI path, FreeOptions options)
-      throws FileDoesNotExistException, IOException, TachyonException {
+  public void free(AlluxioURI path, FreeOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.free(path, options);
@@ -157,14 +157,14 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public URIStatus getStatus(TachyonURI path)
-      throws FileDoesNotExistException, IOException, TachyonException {
+  public URIStatus getStatus(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     return getStatus(path, GetStatusOptions.defaults());
   }
 
   @Override
-  public URIStatus getStatus(TachyonURI path, GetStatusOptions options)
-      throws FileDoesNotExistException, IOException, TachyonException {
+  public URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getStatus(path);
@@ -178,14 +178,14 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public List<URIStatus> listStatus(TachyonURI path)
-      throws FileDoesNotExistException, IOException, TachyonException {
+  public List<URIStatus> listStatus(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     return listStatus(path, ListStatusOptions.defaults());
   }
 
   @Override
-  public List<URIStatus> listStatus(TachyonURI path, ListStatusOptions options)
-      throws FileDoesNotExistException, IOException, TachyonException {
+  public List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     // TODO(calvin): Fix the exception handling in the master
     try {
@@ -198,14 +198,14 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void loadMetadata(TachyonURI path)
-      throws FileDoesNotExistException, IOException, TachyonException {
+  public void loadMetadata(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     loadMetadata(path, LoadMetadataOptions.defaults());
   }
 
   @Override
-  public void loadMetadata(TachyonURI path, LoadMetadataOptions options)
-      throws FileDoesNotExistException, IOException, TachyonException {
+  public void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.loadMetadata(path, options);
@@ -215,13 +215,13 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void mount(TachyonURI src, TachyonURI dst) throws IOException, TachyonException {
+  public void mount(AlluxioURI src, AlluxioURI dst) throws IOException, AlluxioException {
     mount(src, dst, MountOptions.defaults());
   }
 
   @Override
-  public void mount(TachyonURI src, TachyonURI dst, MountOptions options)
-      throws IOException, TachyonException {
+  public void mount(AlluxioURI src, AlluxioURI dst, MountOptions options)
+      throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this fail on the master side
@@ -232,14 +232,14 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public FileInStream openFile(TachyonURI path)
-      throws FileDoesNotExistException, IOException, TachyonException {
+  public FileInStream openFile(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     return openFile(path, OpenFileOptions.defaults());
   }
 
   @Override
-  public FileInStream openFile(TachyonURI path, OpenFileOptions options)
-      throws FileDoesNotExistException, IOException, TachyonException {
+  public FileInStream openFile(AlluxioURI path, OpenFileOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     URIStatus status = getStatus(path);
     if (status.isFolder()) {
       throw new FileNotFoundException(
@@ -249,14 +249,14 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void rename(TachyonURI src, TachyonURI dst)
-      throws FileDoesNotExistException, IOException, TachyonException {
+  public void rename(AlluxioURI src, AlluxioURI dst)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     rename(src, dst, RenameOptions.defaults());
   }
 
   @Override
-  public void rename(TachyonURI src, TachyonURI dst, RenameOptions options)
-      throws FileDoesNotExistException, IOException, TachyonException {
+  public void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO(calvin): Update this code on the master side.
@@ -267,14 +267,14 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void setAttribute(TachyonURI path)
-      throws FileDoesNotExistException, IOException, TachyonException {
+  public void setAttribute(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     setAttribute(path, SetAttributeOptions.defaults());
   }
 
   @Override
-  public void setAttribute(TachyonURI path, SetAttributeOptions options)
-      throws FileDoesNotExistException, IOException, TachyonException {
+  public void setAttribute(AlluxioURI path, SetAttributeOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.setAttribute(path, options);
@@ -284,13 +284,13 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void unmount(TachyonURI path) throws IOException, TachyonException {
+  public void unmount(AlluxioURI path) throws IOException, AlluxioException {
     unmount(path, UnmountOptions.defaults());
   }
 
   @Override
-  public void unmount(TachyonURI path, UnmountOptions options)
-      throws IOException, TachyonException {
+  public void unmount(AlluxioURI path, UnmountOptions options)
+      throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.unmount(path);

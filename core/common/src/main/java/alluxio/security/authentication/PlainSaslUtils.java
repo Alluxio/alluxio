@@ -32,7 +32,7 @@ import org.apache.thrift.transport.TSaslServerTransport;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism. There is a new
@@ -58,12 +58,12 @@ public final class PlainSaslUtils {
    * for specific authentication methods.
    *
    * @param authType the authentication type
-   * @param conf {@link TachyonConf}
+   * @param conf {@link Configuration}
    * @return a corresponding TTransportFactory, which is PLAIN mechanism
    * @throws SaslException if an {@link AuthenticationProvider} is not found
    */
   public static TTransportFactory getPlainServerTransportFactory(AuthType authType,
-      TachyonConf conf) throws SaslException {
+      Configuration conf) throws SaslException {
     TSaslServerTransport.Factory saslFactory = new TSaslServerTransport.Factory();
     AuthenticationProvider provider =
         AuthenticationProvider.Factory.create(authType, conf);

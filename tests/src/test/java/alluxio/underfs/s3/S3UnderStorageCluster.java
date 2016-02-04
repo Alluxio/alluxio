@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
@@ -44,8 +44,8 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
   private boolean mStarted;
   private String mS3Bucket;
 
-  public S3UnderStorageCluster(String baseDir, TachyonConf tachyonConf) {
-    super(baseDir, tachyonConf);
+  public S3UnderStorageCluster(String baseDir, Configuration configuration) {
+    super(baseDir, configuration);
     mS3Bucket = PathUtils.concatPath(System.getProperty(INTEGRATION_S3_BUCKET), UUID.randomUUID());
     Preconditions.checkState(mS3Bucket != null && mS3Bucket != "",
         PreconditionMessage.S3_BUCKET_MUST_BE_SET, INTEGRATION_S3_BUCKET);
@@ -71,7 +71,7 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
   @Override
   public void shutdown() throws IOException {
     LOG.info("Shutting down S3 testing cluster, deleting bucket contents in: " + mS3Bucket);
-    UnderFileSystem ufs = UnderFileSystem.get(mS3Bucket, mTachyonConf);
+    UnderFileSystem ufs = UnderFileSystem.get(mS3Bucket, mConfiguration);
     ufs.delete(mS3Bucket, true);
   }
 

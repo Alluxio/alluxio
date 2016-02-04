@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Supplier;
 
 import alluxio.client.file.FileSystem;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Keeps a collection of all clients ({@link FileSystem}) returned. The main reason for this is
@@ -43,11 +43,11 @@ public final class ClientPool implements Closeable {
    * Returns a {@link FileSystem} client. This client does not need to be
    * closed directly, but can be closed by calling {@link #close()} on this object.
    *
-   * @param tachyonConf Tachyon configuration
+   * @param configuration Tachyon configuration
    * @return a TachyonFS client
    * @throws IOException when the operation fails
    */
-  public FileSystem getClient(TachyonConf tachyonConf) throws IOException {
+  public FileSystem getClient(Configuration configuration) throws IOException {
     final FileSystem fs = FileSystem.Factory.get();
     mClients.add(fs);
     return fs;

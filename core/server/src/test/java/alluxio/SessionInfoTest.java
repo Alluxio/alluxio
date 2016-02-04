@@ -19,8 +19,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import alluxio.conf.TachyonConf;
-
 /**
  * Unit tests for {@link SessionInfo}.
  */
@@ -39,8 +37,8 @@ public final class SessionInfoTest {
    */
   @Before
   public final void before() {
-    TachyonConf tachyonConf = new TachyonConf();
-    mSessionTimeoutMs = tachyonConf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
+    Configuration configuration = new Configuration();
+    mSessionTimeoutMs = configuration.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
   }
 
   /**

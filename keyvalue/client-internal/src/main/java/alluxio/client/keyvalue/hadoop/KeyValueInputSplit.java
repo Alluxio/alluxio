@@ -25,9 +25,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 import org.apache.hadoop.mapred.InputSplit;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.TachyonBlockStore;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
 
 /**
@@ -38,7 +38,7 @@ final class KeyValueInputSplit implements InputSplit {
   private static final long INVALID_BLOCK_ID = -1;
 
   /** The block store client */
-  private TachyonBlockStore mBlockStore;
+  private AlluxioBlockStore mBlockStore;
   // TODO(cc): Use the concept of partition ID in the future.
   /** The ID of the block represented by this split */
   private long mBlockId;
@@ -48,7 +48,7 @@ final class KeyValueInputSplit implements InputSplit {
    * de-serializing {@link KeyValueInputSplit}.
    */
   public KeyValueInputSplit() {
-    mBlockStore = TachyonBlockStore.get();
+    mBlockStore = AlluxioBlockStore.get();
     mBlockId = INVALID_BLOCK_ID;
   }
 
@@ -58,7 +58,7 @@ final class KeyValueInputSplit implements InputSplit {
    * @param partitionInfo the partition info
    */
   public KeyValueInputSplit(PartitionInfo partitionInfo) {
-    mBlockStore = TachyonBlockStore.get();
+    mBlockStore = AlluxioBlockStore.get();
     mBlockId = partitionInfo.getBlockId();
   }
 
@@ -77,7 +77,7 @@ final class KeyValueInputSplit implements InputSplit {
         locations[i] = workersInfo.get(i).getNetAddress().getHost();
       }
       return locations;
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     }
   }
@@ -89,7 +89,7 @@ final class KeyValueInputSplit implements InputSplit {
 
   @Override
   public void readFields(DataInput dataInput) throws IOException {
-    mBlockStore = TachyonBlockStore.get();
+    mBlockStore = AlluxioBlockStore.get();
     mBlockId = dataInput.readLong();
   }
 

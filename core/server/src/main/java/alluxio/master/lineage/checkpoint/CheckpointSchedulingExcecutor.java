@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.MasterContext;
@@ -37,7 +37,7 @@ import alluxio.master.lineage.LineageMaster;
 public final class CheckpointSchedulingExcecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final TachyonConf mTachyonConf;
+  private final Configuration mConfiguration;
   private final LineageMaster mLineageMaster;
   private final FileSystemMaster mFileSystemMaster;
   private final CheckpointPlanner mPlanner;
@@ -50,9 +50,9 @@ public final class CheckpointSchedulingExcecutor implements HeartbeatExecutor {
       FileSystemMaster fileSystemMaster) {
     mLineageMaster = Preconditions.checkNotNull(lineageMaster);
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
-    mTachyonConf = MasterContext.getConf();
+    mConfiguration = MasterContext.getConf();
     mPlanner =
-        CheckpointPlanner.Factory.create(mTachyonConf, mLineageMaster.getLineageStoreView(),
+        CheckpointPlanner.Factory.create(mConfiguration, mLineageMaster.getLineageStoreView(),
             mFileSystemMaster.getFileSystemMasterView());
   }
 

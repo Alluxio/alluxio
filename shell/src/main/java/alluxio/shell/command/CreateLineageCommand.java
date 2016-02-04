@@ -25,12 +25,12 @@ import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
-import alluxio.client.lineage.TachyonLineage;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.client.lineage.AlluxioLineage;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 
@@ -38,13 +38,13 @@ import alluxio.job.JobConf;
  * Creates a lineage for the given input files, output files, and command line job.
  */
 @ThreadSafe
-public final class CreateLineageCommand extends AbstractTfsShellCommand {
+public final class CreateLineageCommand extends AbstractShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public CreateLineageCommand(TachyonConf conf, FileSystem fs) {
+  public CreateLineageCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -71,17 +71,17 @@ public final class CreateLineageCommand extends AbstractTfsShellCommand {
   @Override
   public void run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
-    TachyonLineage tl = TachyonLineage.get();
+    AlluxioLineage tl = AlluxioLineage.get();
     // TODO(yupeng) more validation
-    List<TachyonURI> inputFiles = Lists.newArrayList();
+    List<AlluxioURI> inputFiles = Lists.newArrayList();
     if (!args[0].equals("noInput")) {
       for (String path : args[0].split(",")) {
-        inputFiles.add(new TachyonURI(path));
+        inputFiles.add(new AlluxioURI(path));
       }
     }
-    List<TachyonURI> outputFiles = Lists.newArrayList();
+    List<AlluxioURI> outputFiles = Lists.newArrayList();
     for (String path : args[1].split(",")) {
-      outputFiles.add(new TachyonURI(path));
+      outputFiles.add(new AlluxioURI(path));
     }
     String cmd = "";
     for (int i = 2; i < args.length; i ++) {
@@ -96,7 +96,7 @@ public final class CreateLineageCommand extends AbstractTfsShellCommand {
     long lineageId;
     try {
       lineageId = tl.createLineage(inputFiles, outputFiles, job);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
     System.out.println("Lineage " + lineageId + " has been created.");

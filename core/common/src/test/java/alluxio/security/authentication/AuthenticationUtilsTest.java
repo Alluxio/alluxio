@@ -34,7 +34,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.network.NetworkAddressUtils;
 
 /**
@@ -46,7 +46,7 @@ import alluxio.util.network.NetworkAddressUtils;
 public class AuthenticationUtilsTest {
 
   private TThreadPoolServer mServer;
-  private TachyonConf mTachyonConf;
+  private Configuration mConfiguration;
   private InetSocketAddress mServerAddress;
   private TServerSocket mServerTSocket;
   private TSocket mClientTSocket;
@@ -64,14 +64,14 @@ public class AuthenticationUtilsTest {
    */
   @Before
   public void before() throws Exception {
-    mTachyonConf = new TachyonConf();
+    mConfiguration = new Configuration();
     // Use port 0 to assign each test case an available port (possibly different)
-    String localhost = NetworkAddressUtils.getLocalHostName(new TachyonConf());
+    String localhost = NetworkAddressUtils.getLocalHostName(new Configuration());
     mServerTSocket = new TServerSocket(new InetSocketAddress(localhost, 0));
     int port = NetworkAddressUtils.getThriftPort(mServerTSocket);
     mServerAddress = new InetSocketAddress(localhost, port);
     mClientTSocket = AuthenticationUtils.createTSocket(mServerAddress,
-        mTachyonConf.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS));
+        mConfiguration.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS));
   }
 
   /**
@@ -81,13 +81,13 @@ public class AuthenticationUtilsTest {
    */
   @Test
   public void nosaslAuthenticationTest() throws Exception {
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL");
 
     // start server
     startServerThread();
 
     // create client and connect to server
-    TTransport client = AuthenticationUtils.getClientTransport(mTachyonConf, mServerAddress);
+    TTransport client = AuthenticationUtils.getClientTransport(mConfiguration, mServerAddress);
     client.open();
     Assert.assertTrue(client.isOpen());
 
@@ -105,7 +105,7 @@ public class AuthenticationUtilsTest {
    */
   @Test
   public void simpleAuthenticationTest() throws Exception {
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
 
     // start server
     startServerThread();
@@ -128,7 +128,7 @@ public class AuthenticationUtilsTest {
    */
   @Test
   public void simpleAuthenticationNullUserTest() throws Exception {
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
 
     // check case that user is null
     mThrown.expect(SaslException.class);
@@ -143,7 +143,7 @@ public class AuthenticationUtilsTest {
    */
   @Test
   public void simpleAuthenticationNullPasswordTest() throws Exception {
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
 
     // check case that password is null
     mThrown.expect(SaslException.class);
@@ -159,7 +159,7 @@ public class AuthenticationUtilsTest {
    */
   @Test
   public void simpleAuthenticationEmptyUserTest() throws Exception {
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
 
     // start server
     startServerThread();
@@ -186,7 +186,7 @@ public class AuthenticationUtilsTest {
    */
   @Test
   public void simpleAuthenticationEmptyPasswordTest() throws Exception {
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
 
     // start server
     startServerThread();
@@ -213,8 +213,8 @@ public class AuthenticationUtilsTest {
    */
   @Test
   public void customAuthenticationExactNamePasswordMatchTest() throws Exception {
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
@@ -240,8 +240,8 @@ public class AuthenticationUtilsTest {
    */
   @Test
   public void customAuthenticationExactNamePasswordNotMatchTest() throws Exception {
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
@@ -267,7 +267,7 @@ public class AuthenticationUtilsTest {
    */
   @Test
   public void customAuthenticationNullUserTest() throws Exception {
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
 
     // check case that user is null
     mThrown.expect(SaslException.class);
@@ -282,7 +282,7 @@ public class AuthenticationUtilsTest {
    */
   @Test
   public void customAuthenticationNullPasswordTest() throws Exception {
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
 
     // check case that password is null
     mThrown.expect(SaslException.class);
@@ -298,8 +298,8 @@ public class AuthenticationUtilsTest {
    */
   @Test
   public void customAuthenticationEmptyUserTest() throws Exception {
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
@@ -326,8 +326,8 @@ public class AuthenticationUtilsTest {
    */
   @Test
   public void customAuthenticationEmptyPasswordTest() throws Exception {
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
@@ -353,7 +353,7 @@ public class AuthenticationUtilsTest {
    */
   @Test
   public void kerberosAuthenticationTest() throws Exception {
-    mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "KERBEROS");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "KERBEROS");
 
     // throw unsupported exception currently
     mThrown.expect(UnsupportedOperationException.class);
@@ -364,7 +364,7 @@ public class AuthenticationUtilsTest {
   private void startServerThread() throws Exception {
     // create args and use them to build a Thrift TServer
     TTransportFactory tTransportFactory =
-        AuthenticationUtils.getServerTransportFactory(mTachyonConf);
+        AuthenticationUtils.getServerTransportFactory(mConfiguration);
 
     mServer =
         new TThreadPoolServer(new TThreadPoolServer.Args(mServerTSocket).maxWorkerThreads(2)

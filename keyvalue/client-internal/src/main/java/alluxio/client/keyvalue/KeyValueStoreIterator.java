@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
 
 /**
@@ -41,11 +41,11 @@ public final class KeyValueStoreIterator implements KeyValueIterator {
   /**
    * @param partitions the partitions to use
    * @throws IOException if a non-Tachyon related exception occurs
-   * @throws TachyonException if a {@link KeyValuePartitionReader} cannot be created or iterated
+   * @throws AlluxioException if a {@link KeyValuePartitionReader} cannot be created or iterated
    *         over
    */
   public KeyValueStoreIterator(List<PartitionInfo> partitions)
-      throws IOException, TachyonException {
+      throws IOException, AlluxioException {
     mPartitions = Preconditions.checkNotNull(partitions);
     if (mPartitions.size() > 0) {
       mPartitionIndex = 0;
@@ -61,7 +61,7 @@ public final class KeyValueStoreIterator implements KeyValueIterator {
   }
 
   @Override
-  public KeyValuePair next() throws IOException, TachyonException {
+  public KeyValuePair next() throws IOException, AlluxioException {
     if (!hasNext()) {
       throw new NoSuchElementException();
     }

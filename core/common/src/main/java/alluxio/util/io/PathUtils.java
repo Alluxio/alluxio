@@ -26,13 +26,13 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.OSUtils;
 
 /**
- * Utilities related to both Tachyon paths like {@link alluxio.TachyonURI} and local file paths.
+ * Utilities related to both Tachyon paths like {@link AlluxioURI} and local file paths.
  */
 @ThreadSafe
 public final class PathUtils {
@@ -76,23 +76,23 @@ public final class PathUtils {
     Preconditions.checkArgument(paths != null, "Failed to concatPath: a null set of paths");
     List<String> trimmedPathList = new ArrayList<String>();
     String trimmedBase =
-        CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(base.toString().trim());
+        CharMatcher.is(AlluxioURI.SEPARATOR.charAt(0)).trimTrailingFrom(base.toString().trim());
     trimmedPathList.add(trimmedBase);
     for (Object path : paths) {
       if (path == null) {
         continue;
       }
       String trimmedPath =
-          CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path.toString().trim());
+          CharMatcher.is(AlluxioURI.SEPARATOR.charAt(0)).trimFrom(path.toString().trim());
       if (!trimmedPath.isEmpty()) {
         trimmedPathList.add(trimmedPath);
       }
     }
     if (trimmedPathList.size() == 1 && trimmedBase.isEmpty()) {
       // base must be "[/]+"
-      return TachyonURI.SEPARATOR;
+      return AlluxioURI.SEPARATOR;
     }
-    return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
+    return Joiner.on(AlluxioURI.SEPARATOR).join(trimmedPathList);
 
   }
 
@@ -109,7 +109,7 @@ public final class PathUtils {
     String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
     if (parent.isEmpty()) {
       // The parent is the root path
-      return TachyonURI.SEPARATOR;
+      return AlluxioURI.SEPARATOR;
     }
     return parent;
   }
@@ -128,7 +128,7 @@ public final class PathUtils {
       ret[0] = "";
       return ret;
     }
-    return path.split(TachyonURI.SEPARATOR);
+    return path.split(AlluxioURI.SEPARATOR);
   }
 
   /**
@@ -163,7 +163,7 @@ public final class PathUtils {
    * @throws InvalidPathException if the path is invalid
    */
   public static boolean isRoot(String path) throws InvalidPathException {
-    return TachyonURI.SEPARATOR.equals(cleanPath(path));
+    return AlluxioURI.SEPARATOR.equals(cleanPath(path));
   }
 
   /**
@@ -175,7 +175,7 @@ public final class PathUtils {
   public static void validatePath(String path) throws InvalidPathException {
     boolean invalid = (path == null || path.isEmpty() || path.contains(" "));
     if (!OSUtils.isWindows()) {
-      invalid = (invalid || !path.startsWith(TachyonURI.SEPARATOR));
+      invalid = (invalid || !path.startsWith(AlluxioURI.SEPARATOR));
     }
 
     if (invalid) {

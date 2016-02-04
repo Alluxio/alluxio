@@ -27,7 +27,7 @@ import org.apache.thrift.TProcessor;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.WorkerBase;
@@ -40,7 +40,7 @@ import alluxio.worker.block.BlockWorker;
 @ThreadSafe
 public class KeyValueWorker extends WorkerBase {
   /** Configuration object */
-  private final TachyonConf mTachyonConf;
+  private final Configuration mConfiguration;
   /** BlockWorker handle for access block info */
   private final BlockWorker mBlockWorker;
   /** Logic for handling key-value RPC requests. */
@@ -55,7 +55,7 @@ public class KeyValueWorker extends WorkerBase {
     // TODO(binfan): figure out do we really need thread pool for key-value worker (and for what)
     super(Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("keyvalue-worker-heartbeat-%d", true)));
-    mTachyonConf = WorkerContext.getConf();
+    mConfiguration = WorkerContext.getConf();
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mKeyValueServiceHandler = new KeyValueWorkerClientServiceHandler(mBlockWorker);
   }
