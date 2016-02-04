@@ -42,8 +42,6 @@ public class PlainClientCallbackHandlerTest {
 
   /**
    * Tests that the callback is handled correctly.
-   *
-   * @throws Exception thrown when the callback fails
    */
   @Test
   public void clientCallbackHandlerTest() throws Exception {
@@ -63,8 +61,6 @@ public class PlainClientCallbackHandlerTest {
 
   /**
    * Tests that an exception is thrown in case an unsupported callback is used.
-   *
-   * @throws Exception thrown when the callback fails
    */
   @Test
   public void unsupportCallbackTest() throws Exception {
@@ -85,8 +81,6 @@ public class PlainClientCallbackHandlerTest {
 
   /**
    * Tests that the callback can handle a non-existent user.
-   *
-   * @throws Exception thrown when the callback fails
    */
   @Test
   public void nullNameCallbackTest() throws Exception {
@@ -105,8 +99,6 @@ public class PlainClientCallbackHandlerTest {
 
   /**
    * Tests that the callback can handle a non-existent password.
-   *
-   * @throws Exception thrown when the callback fails
    */
   @Test
   public void nullPasswordCallbackTest() throws Exception {
@@ -125,8 +117,6 @@ public class PlainClientCallbackHandlerTest {
 
   /**
    * Tests that an exception is thrown when a callback is {@code null}.
-   *
-   * @throws Exception thrown when the callback fails
    */
   @Test
   public void nullCallbackTest() throws Exception {
