@@ -76,39 +76,39 @@
           <table class="table">
             <tbody>
               <tr>
-                <th>CompleteFile Ops</th>
+                <th>CompleteFile Operations</th>
                 <th><%= request.getAttribute("master.CompleteFileOps") %></th>
-                <th>CreateDirectory Ops</th>
+                <th>CreateDirectory Operations</th>
                 <th><%= request.getAttribute("master.CreateDirectoryOps") %></th>
               </tr>
               <tr>
-                <th>CreateFile Ops</th>
+                <th>CreateFile Operations</th>
                 <th><%= request.getAttribute("master.CreateFileOps") %></th>
-                <th>DeletePath Ops</th>
+                <th>DeletePath Operations</th>
                 <th><%= request.getAttribute("master.DeletePathOps") %></th>
               </tr>
               <tr>
-                <th>FreeFile Ops</th>
+                <th>FreeFile Operations</th>
                 <th><%= request.getAttribute("master.FreeFileOps") %></th>
-                <th>GetFileBlockInfo Ops</th>
+                <th>GetFileBlockInfo Operations</th>
                 <th><%= request.getAttribute("master.GetFileBlockInfoOps") %></th>
               </tr>
               <tr>
-                <th>GetFileInfo Ops</th>
+                <th>GetFileInfo Operations</th>
                 <th><%= request.getAttribute("master.GetFileInfoOps") %></th>
-                <th>GetNewBlock Ops</th>
+                <th>GetNewBlock Operations</th>
                 <th><%= request.getAttribute("master.GetNewBlockOps") %></th>
               </tr>
               <tr>
-                <th>Mount Ops</th>
+                <th>Mount Operations</th>
                 <th><%= request.getAttribute("master.MountOps") %></th>
-                <th>RenamePath Ops</th>
+                <th>RenamePath Operations</th>
                 <th><%= request.getAttribute("master.RenamePathOps") %></th>
               </tr>
               <tr>
-                <th>SetState Ops</th>
-                <th><%= request.getAttribute("master.SetStateOps") %></th>
-                <th>Unmount Ops</th>
+                <th>SetAttribute Operations</th>
+                <th><%= request.getAttribute("master.SetAttributeOps") %></th>
+                <th>Unmount Operations</th>
                 <th><%= request.getAttribute("master.UnmountOps") %></th>
               </tr>
             </tbody>
