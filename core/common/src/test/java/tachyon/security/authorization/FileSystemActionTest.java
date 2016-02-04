@@ -24,6 +24,21 @@ import org.junit.Test;
 public final class FileSystemActionTest {
 
   /**
+   * Tests the {@link FileSystemAction#getSymbol()} method.
+   */
+  @Test
+  public void getSymbolTest() {
+    Assert.assertEquals("---", FileSystemAction.NONE.getSymbol());
+    Assert.assertEquals("r--", FileSystemAction.READ.getSymbol());
+    Assert.assertEquals("-w-", FileSystemAction.WRITE.getSymbol());
+    Assert.assertEquals("--x", FileSystemAction.EXECUTE.getSymbol());
+    Assert.assertEquals("rw-", FileSystemAction.READ_WRITE.getSymbol());
+    Assert.assertEquals("r-x", FileSystemAction.READ_EXECUTE.getSymbol());
+    Assert.assertEquals("-wx", FileSystemAction.WRITE_EXECUTE.getSymbol());
+    Assert.assertEquals("rwx", FileSystemAction.ALL.getSymbol());
+  }
+
+  /**
    * Tests the {@link FileSystemAction#imply(FileSystemAction)} method.
    */
   @Test
