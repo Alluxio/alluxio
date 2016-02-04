@@ -35,7 +35,7 @@ public class WorkerInfoTest {
   @Test
   public void thriftTest() {
     WorkerInfo workerInfo = createRandom();
-    WorkerInfo other = new WorkerInfo(workerInfo.toThrift());
+    WorkerInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(workerInfo));
     checkEquality(workerInfo, other);
   }
 

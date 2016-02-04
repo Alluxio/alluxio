@@ -33,6 +33,7 @@ import tachyon.thrift.BlockMasterClientService;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.wire.BlockInfo;
+import tachyon.wire.ThriftUtils;
 import tachyon.wire.WorkerInfo;
 
 /**
@@ -89,7 +90,7 @@ public final class BlockMasterClient extends MasterClientBase {
       public List<WorkerInfo> call() throws TException {
         List<WorkerInfo> result = new ArrayList<WorkerInfo>();
         for (tachyon.thrift.WorkerInfo workerInfo : mClient.getWorkerInfoList()) {
-          result.add(new WorkerInfo(workerInfo));
+          result.add(ThriftUtils.fromThrift(workerInfo));
         }
         return result;
       }
@@ -109,7 +110,7 @@ public final class BlockMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<BlockInfo>() {
       @Override
       public BlockInfo call() throws TachyonTException, TException {
-        return new BlockInfo(mClient.getBlockInfo(blockId));
+        return ThriftUtils.fromThrift(mClient.getBlockInfo(blockId));
       }
     });
   }

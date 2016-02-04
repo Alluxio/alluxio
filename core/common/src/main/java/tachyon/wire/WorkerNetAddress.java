@@ -27,7 +27,7 @@ import tachyon.annotation.PublicApi;
  */
 @PublicApi
 @ThreadSafe
-public final class WorkerNetAddress implements WireType<tachyon.thrift.WorkerNetAddress> {
+public final class WorkerNetAddress {
   private String mHost = "";
   private int mRpcPort;
   private int mDataPort;
@@ -37,18 +37,6 @@ public final class WorkerNetAddress implements WireType<tachyon.thrift.WorkerNet
    * Creates a new instance of {@WorkerNetAddress}.
    */
   public WorkerNetAddress() {}
-
-  /**
-   * Creates a new instance of {@WorkerNetAddress} from thrift representation.
-   *
-   * @param workerNetAddress the thrift net address
-   */
-  public WorkerNetAddress(tachyon.thrift.WorkerNetAddress workerNetAddress) {
-    mHost = workerNetAddress.getHost();
-    mRpcPort = workerNetAddress.getRpcPort();
-    mDataPort = workerNetAddress.getDataPort();
-    mWebPort = workerNetAddress.getWebPort();
-  }
 
   /**
    * @return the host of the worker
@@ -113,14 +101,6 @@ public final class WorkerNetAddress implements WireType<tachyon.thrift.WorkerNet
   public WorkerNetAddress setWebPort(int webPort) {
     mWebPort = webPort;
     return this;
-  }
-
-  /**
-   * @return a net address of thrift construct
-   */
-  @Override
-  public tachyon.thrift.WorkerNetAddress toThrift() {
-    return new tachyon.thrift.WorkerNetAddress(mHost, mRpcPort, mDataPort, mWebPort);
   }
 
   @Override

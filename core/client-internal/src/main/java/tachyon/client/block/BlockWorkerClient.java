@@ -48,6 +48,7 @@ import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.wire.LockBlockResult;
+import tachyon.wire.ThriftUtils;
 import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.ClientMetrics;
 
@@ -283,7 +284,7 @@ public final class BlockWorkerClient extends ClientBase {
       return retryRPC(new RpcCallableThrowsTachyonTException<LockBlockResult>() {
         @Override
         public LockBlockResult call() throws TachyonTException, TException {
-          return new LockBlockResult(mClient.lockBlock(blockId, mSessionId));
+          return ThriftUtils.fromThrift(mClient.lockBlock(blockId, mSessionId));
         }
       });
     } catch (TachyonException e) {

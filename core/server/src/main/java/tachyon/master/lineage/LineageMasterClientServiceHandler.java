@@ -34,6 +34,7 @@ import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterClientService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
+import tachyon.wire.ThriftUtils;
 
 /**
  * This class is a Thrift handler for lineage master RPCs invoked by a Tachyon client.
@@ -114,7 +115,7 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
     try {
       List<LineageInfo> result = new ArrayList<LineageInfo>();
       for (tachyon.wire.LineageInfo lineageInfo : mLineageMaster.getLineageInfoList()) {
-        result.add(lineageInfo.toThrift());
+        result.add(ThriftUtils.toThrift(lineageInfo));
       }
       return result;
     } catch (TachyonException e) {

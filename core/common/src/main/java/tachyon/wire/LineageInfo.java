@@ -30,7 +30,7 @@ import tachyon.annotation.PublicApi;
  */
 @NotThreadSafe
 @PublicApi
-public final class LineageInfo implements WireType<tachyon.thrift.LineageInfo> {
+public final class LineageInfo {
   private long mId;
   private List<String> mInputFiles;
   private List<String> mOutputFiles;
@@ -48,21 +48,6 @@ public final class LineageInfo implements WireType<tachyon.thrift.LineageInfo> {
     mJob = new CommandLineJobInfo();
     mParents = Lists.newArrayList();
     mChildren = Lists.newArrayList();
-  }
-
-  /**
-   * Creates a new instance of {@link LineageInfo} from a thrift representation.
-   *
-   * @param lineageInfo the thrift representation of a lineage descriptor
-   */
-  public LineageInfo(tachyon.thrift.LineageInfo lineageInfo) {
-    mId = lineageInfo.getId();
-    mInputFiles = lineageInfo.getInputFiles();
-    mOutputFiles = lineageInfo.getOutputFiles();
-    mJob = new CommandLineJobInfo(lineageInfo.getJob());
-    mCreationTimeMs = lineageInfo.getCreationTimeMs();
-    mParents = lineageInfo.getParents();
-    mChildren = lineageInfo.getChildren();
   }
 
   /**
@@ -180,15 +165,6 @@ public final class LineageInfo implements WireType<tachyon.thrift.LineageInfo> {
     Preconditions.checkNotNull(children);
     mChildren = children;
     return this;
-  }
-
-  /**
-   * @return thrift representation of the lineage descriptor
-   */
-  @Override
-  public tachyon.thrift.LineageInfo toThrift() {
-    return new tachyon.thrift.LineageInfo(mId, mInputFiles, mOutputFiles, mJob.toThrift(),
-        mCreationTimeMs, mParents, mChildren);
   }
 
   @Override

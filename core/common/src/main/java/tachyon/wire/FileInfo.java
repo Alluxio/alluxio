@@ -28,7 +28,7 @@ import com.google.common.collect.Lists;
  */
 @NotThreadSafe
 // TODO(jiri): Consolidate with URIStatus
-public final class FileInfo implements WireType<tachyon.thrift.FileInfo> {
+public final class FileInfo {
   private long mFileId;
   private String mName = "";
   private String mPath = "";
@@ -54,34 +54,6 @@ public final class FileInfo implements WireType<tachyon.thrift.FileInfo> {
    * Creates a new instance of {@link FileInfo}.
    */
   public FileInfo() {}
-
-  /**
-   * Creates a new instance of {@link FileInfo} from thrift representation.
-   *
-   * @param fileInfo the thrift representation of a file descriptor
-   */
-  public FileInfo(tachyon.thrift.FileInfo fileInfo) {
-    mFileId = fileInfo.getFileId();
-    mName = fileInfo.getName();
-    mPath = fileInfo.getPath();
-    mUfsPath = fileInfo.getUfsPath();
-    mLength = fileInfo.getLength();
-    mBlockSizeBytes = fileInfo.getBlockSizeBytes();
-    mCreationTimeMs = fileInfo.getCreationTimeMs();
-    mCompleted = fileInfo.isCompleted();
-    mFolder = fileInfo.isFolder();
-    mPinned = fileInfo.isPinned();
-    mCacheable = fileInfo.isCacheable();
-    mPersisted = fileInfo.isPersisted();
-    mBlockIds = fileInfo.getBlockIds();
-    mInMemoryPercentage = fileInfo.getInMemoryPercentage();
-    mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
-    mTtl = fileInfo.getTtl();
-    mUserName = fileInfo.getUserName();
-    mGroupName = fileInfo.getGroupName();
-    mPermission = fileInfo.getPermission();
-    mPersistenceState = fileInfo.getPersistenceState();
-  }
 
   /**
    * @return the file id
@@ -408,17 +380,6 @@ public final class FileInfo implements WireType<tachyon.thrift.FileInfo> {
     Preconditions.checkNotNull(persistenceState);
     mPersistenceState = persistenceState;
     return this;
-  }
-
-  /**
-   * @return thrift representation of the file descriptor
-   */
-  @Override
-  public tachyon.thrift.FileInfo toThrift() {
-    return new tachyon.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
-        mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
-        mInMemoryPercentage, mLastModificationTimeMs, mTtl, mUserName, mGroupName, mPermission,
-        mPersistenceState);
   }
 
   @Override

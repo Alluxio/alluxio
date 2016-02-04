@@ -114,7 +114,8 @@ public final class BlockMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
-        return mClient.getWorkerId(address.toThrift());
+        return mClient.getWorkerId(new tachyon.thrift.WorkerNetAddress(address.getHost(),
+            address.getRpcPort(), address.getDataPort(), address.getWebPort()));
       }
     });
   }

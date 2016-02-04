@@ -41,7 +41,7 @@ import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.wire.FileBlockInfo;
-import tachyon.wire.FileInfo;
+import tachyon.wire.ThriftUtils;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by tachyon clients.
@@ -192,7 +192,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
         for (tachyon.thrift.FileBlockInfo fileBlockInfo :
             mClient.getFileBlockInfoList(path.getPath())) {
-          result.add(new FileBlockInfo(fileBlockInfo));
+          result.add(ThriftUtils.fromThrift(fileBlockInfo));
         }
         return result;
       }
@@ -210,7 +210,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<URIStatus>() {
       @Override
       public URIStatus call() throws TachyonTException, TException {
-        return new URIStatus(new FileInfo(mClient.getStatus(path.getPath())));
+        return new URIStatus(ThriftUtils.fromThrift(mClient.getStatus(path.getPath())));
       }
     });
   }
@@ -229,7 +229,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<URIStatus>() {
       @Override
       public URIStatus call() throws TachyonTException, TException {
-        return new URIStatus(new FileInfo(mClient.getStatusInternal(fileId)));
+        return new URIStatus(ThriftUtils.fromThrift(mClient.getStatusInternal(fileId)));
       }
     });
   }
@@ -277,7 +277,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
       public List<URIStatus> call() throws TachyonTException, TException {
         List<URIStatus> result = new ArrayList<URIStatus>();
         for (tachyon.thrift.FileInfo fileInfo : mClient.listStatus(path.getPath())) {
-          result.add(new URIStatus(new FileInfo(fileInfo)));
+          result.add(new URIStatus(ThriftUtils.fromThrift(fileInfo)));
         }
         return result;
       }

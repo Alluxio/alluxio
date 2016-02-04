@@ -24,26 +24,10 @@ import com.google.common.base.Preconditions;
  * The location of a block.
  */
 @NotThreadSafe
-public final class BlockLocation implements WireType<tachyon.thrift.BlockLocation> {
+public final class BlockLocation {
   private long mWorkerId;
   private WorkerNetAddress mWorkerAddress = new WorkerNetAddress();
   private String mTierAlias = "";
-
-  /**
-   * Creates a new instance of {@BlockLocation}.
-   */
-  public BlockLocation() {}
-
-  /**
-   * Creates a new instance of {@link BlockLocation} from a thrift representation.
-   *
-   * @param blockLocation the thrift representation of a block location
-   */
-  public BlockLocation(tachyon.thrift.BlockLocation blockLocation) {
-    mWorkerId = blockLocation.getWorkerId();
-    mWorkerAddress = new WorkerNetAddress(blockLocation.getWorkerAddress());
-    mTierAlias = blockLocation.getTierAlias();
-  }
 
   /**
    * @return the worker id
@@ -93,14 +77,6 @@ public final class BlockLocation implements WireType<tachyon.thrift.BlockLocatio
     Preconditions.checkNotNull(tierAlias);
     mTierAlias = tierAlias;
     return this;
-  }
-
-  /**
-   * @return thrift representation of the block location
-   */
-  @Override
-  public tachyon.thrift.BlockLocation toThrift() {
-    return new tachyon.thrift.BlockLocation(mWorkerId, mWorkerAddress.toThrift(), mTierAlias);
   }
 
   @Override
