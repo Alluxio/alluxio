@@ -31,7 +31,6 @@ import com.codahale.metrics.MetricRegistry;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.metrics.sink.CsvSink;
 import tachyon.metrics.sink.MetricsServlet;
 import tachyon.metrics.sink.Sink;
 import tachyon.metrics.source.Source;
@@ -54,7 +53,7 @@ public class MetricsSystem {
   private String mInstance;
   private List<Sink> mSinks = new ArrayList<Sink>();
   private List<Source> mSources = new ArrayList<Source>();
-  private TachyonMetricRegistry mMetricRegistry = new TachyonMetricRegistry();
+  private MetricRegistry mMetricRegistry = new MetricRegistry();
   private MetricsConfig mMetricsConfig;
   private boolean mRunning = false;
   private TachyonConf mTachyonConf;
@@ -184,11 +183,6 @@ public class MetricsSystem {
                   clazz.getConstructor(Properties.class, MetricRegistry.class)
                           .newInstance(entry.getValue(), mMetricRegistry);
 
-          if (clazz.equals(CsvSink.class)) {
-            mMetricRegistry.setHistoryEnabled(true);
-            mMetricRegistry.setCsvPath(((CsvSink) sink).getPollDir());
-          }
-
           if (entry.getKey().equals("servlet")) {
             mMetricsServlet = (MetricsServlet) sink;
           } else {
@@ -253,7 +247,7 @@ public class MetricsSystem {
   /**
    * @return the metric registry
    */
-  public TachyonMetricRegistry getMetricRegistry() {
+  public MetricRegistry getMetricRegistry() {
     return mMetricRegistry;
   }
 }

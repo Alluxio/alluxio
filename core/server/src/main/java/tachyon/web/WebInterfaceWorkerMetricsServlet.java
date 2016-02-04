@@ -25,8 +25,8 @@ import javax.servlet.http.HttpServletResponse;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
+import com.codahale.metrics.MetricRegistry;
 
-import tachyon.metrics.TachyonMetricRegistry;
 import tachyon.worker.TachyonWorker;
 
 /**
@@ -76,7 +76,7 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
    * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    TachyonMetricRegistry mr = mWorker.getWorkerMetricsSystem().getMetricRegistry();
+    MetricRegistry mr = mWorker.getWorkerMetricsSystem().getMetricRegistry();
 
     Long workerCapacityTotal = (Long) mr.getGauges().get("worker.CapacityTotal").getValue();
     Long workerCapacityUsed = (Long) mr.getGauges().get("worker.CapacityUsed").getValue();
@@ -103,6 +103,6 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
     operations.putAll(counters);
     operations.put("worker.BlocksCached", mr.getGauges().get("worker.BlocksCached"));
 
-    populateCountersValues(mr,operations,rpcInvocations, request);
+    populateCountersValues(operations,rpcInvocations, request);
   }
 }
