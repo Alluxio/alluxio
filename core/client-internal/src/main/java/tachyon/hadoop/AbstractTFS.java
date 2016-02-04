@@ -48,7 +48,7 @@ import tachyon.client.file.URIStatus;
 import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.DeleteOptions;
-import tachyon.client.file.options.SetAclOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
@@ -56,9 +56,9 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
+import tachyon.wire.FileBlockInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Base class for Apache Hadoop based Tachyon {@link org.apache.hadoop.fs.FileSystem}. This class
@@ -83,7 +83,6 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
   private Statistics mStatistics = null;
   private FileSystem mFileSystem = null;
   private String mTachyonHeader = null;
-  private final TachyonConf mTachyonConf = ClientContext.getConf();
 
   @Override
   public FSDataOutputStream append(Path cPath, int bufferSize, Progressable progress)
@@ -92,7 +91,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-    TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
+    TachyonURI path = new TachyonURI(HadoopUtils.getPathWithoutScheme(cPath));
     try {
       if (!mFileSystem.exists(path)) {
         return new FSDataOutputStream(mFileSystem.createFile(path), mStatistics);
@@ -135,7 +134,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     }
 
     // Check whether the file already exists, and delete it if overwrite is true
-    TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
+    TachyonURI path = new TachyonURI(HadoopUtils.getPathWithoutScheme(cPath));
     try {
       if (mFileSystem.exists(path)) {
         if (!overwrite) {
@@ -186,7 +185,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
   public FSDataOutputStream createNonRecursive(Path cPath, FsPermission permission,
       boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress)
           throws IOException {
-    TachyonURI parentPath = new TachyonURI(Utils.getPathWithoutScheme(cPath.getParent()));
+    TachyonURI parentPath = new TachyonURI(HadoopUtils.getPathWithoutScheme(cPath.getParent()));
     ensureExists(parentPath);
     return this.create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
@@ -220,7 +219,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-    TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
+    TachyonURI path = new TachyonURI(HadoopUtils.getPathWithoutScheme(cPath));
     DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
     try {
       mFileSystem.delete(path, options);
@@ -238,7 +237,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public long getDefaultBlockSize() {
-    return mTachyonConf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return ClientContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -251,7 +250,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementReadOps(1);
     }
 
-    TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(file.getPath()));
+    TachyonURI path = new TachyonURI(HadoopUtils.getPathWithoutScheme(file.getPath()));
     URIStatus status;
     try {
       status = mFileSystem.getStatus(path);
@@ -271,7 +270,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
         ArrayList<String> hosts = new ArrayList<String>();
         List<WorkerNetAddress> addrs = Lists.newArrayList();
         // add the existing in-memory block locations first
-        for (tachyon.thrift.BlockLocation location : info.getBlockInfo().getLocations()) {
+        for (tachyon.wire.BlockLocation location : info.getBlockInfo().getLocations()) {
           addrs.add(location.getWorkerAddress());
         }
         // then add under file system location
@@ -300,8 +299,8 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
    */
   @Override
   public FileStatus getFileStatus(Path path) throws IOException {
-    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
-    Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
+    TachyonURI tPath = new TachyonURI(HadoopUtils.getPathWithoutScheme(path));
+    Path hdfsPath = HadoopUtils.getHDFSPath(tPath, mUnderFSAddress);
 
     LOG.info("getFileStatus({}): HDFS Path: {} Tachyon Path: {}{}", path, hdfsPath, mTachyonHeader,
         tPath);
@@ -337,12 +336,12 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
   @Override
   public void setOwner(Path path, final String username, final String groupname)
       throws IOException {
-    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
-    Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
+    TachyonURI tPath = new TachyonURI(HadoopUtils.getPathWithoutScheme(path));
+    Path hdfsPath = HadoopUtils.getHDFSPath(tPath, mUnderFSAddress);
     LOG.info("setOwner({},{},{}) HDFS Path: {} Tachyon Path: {}{}", path, username, groupname,
         hdfsPath, mTachyonHeader, tPath);
     try {
-      SetAclOptions options = SetAclOptions.defaults();
+      SetAttributeOptions options = SetAttributeOptions.defaults();
       boolean ownerOrGroupChanged = false;
       if (username != null && !username.isEmpty()) {
         options.setOwner(username).setRecursive(false);
@@ -353,7 +352,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
         ownerOrGroupChanged = true;
       }
       if (ownerOrGroupChanged) {
-        mFileSystem.setAcl(tPath, options);
+        mFileSystem.setAttribute(tPath, options);
       }
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -368,14 +367,14 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
    * @throws IOException if the path failed to be changed permission
    */
   public void setPermission(Path path, FsPermission permission) throws IOException {
-    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
-    Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
+    TachyonURI tPath = new TachyonURI(HadoopUtils.getPathWithoutScheme(path));
+    Path hdfsPath = HadoopUtils.getHDFSPath(tPath, mUnderFSAddress);
     LOG.info("setPermission({},{}) HDFS Path: {} Tachyon Path: {}{}", path, permission.toString(),
         hdfsPath, mTachyonHeader, tPath);
     try {
-      SetAclOptions options =
-          SetAclOptions.defaults().setPermission(permission.toShort()).setRecursive(false);
-      mFileSystem.setAcl(tPath, options);
+      SetAttributeOptions options =
+          SetAttributeOptions.defaults().setPermission(permission.toShort()).setRecursive(false);
+      mFileSystem.setAttribute(tPath, options);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -415,7 +414,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
     super.initialize(uri, conf);
     LOG.info("initialize({}, {}). Connecting to Tachyon: {}", uri, conf, uri.toString());
-    Utils.addS3Credentials(conf);
+    HadoopUtils.addS3Credentials(conf);
     setConf(conf);
     mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
 
@@ -424,13 +423,14 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
 
     // Load TachyonConf if any and merge to the one in TachyonFS
     TachyonConf siteConf = ConfUtils.loadFromHadoopConfiguration(conf);
+    // These modifications to ClientContext are global, affecting every Tachyon client in this JVM.
+    // We assume here that this client is the only client.
     if (siteConf != null) {
-      mTachyonConf.merge(siteConf);
+      ClientContext.getConf().merge(siteConf);
     }
-    mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
-    mTachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
-    ClientContext.reset(mTachyonConf);
+    ClientContext.getConf().set(Constants.MASTER_HOSTNAME, uri.getHost());
+    ClientContext.getConf().set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+    ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
 
     mFileSystem = FileSystem.Factory.get();
     mUri = URI.create(mTachyonHeader);
@@ -449,8 +449,8 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public FileStatus[] listStatus(Path path) throws IOException {
-    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
-    Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
+    TachyonURI tPath = new TachyonURI(HadoopUtils.getPathWithoutScheme(path));
+    Path hdfsPath = HadoopUtils.getHDFSPath(tPath, mUnderFSAddress);
     LOG.info("listStatus({}): HDFS Path: {}", path, hdfsPath);
 
     if (mStatistics != null) {
@@ -489,7 +489,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-    TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
+    TachyonURI path = new TachyonURI(HadoopUtils.getPathWithoutScheme(cPath));
     CreateDirectoryOptions options =
         CreateDirectoryOptions.defaults().setRecursive(true).setAllowExists(true);
     try {
@@ -515,9 +515,9 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementReadOps(1);
     }
 
-    TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    return new FSDataInputStream(new HdfsFileInputStream(path, Utils.getHDFSPath(path,
-        mUnderFSAddress), getConf(), bufferSize, mStatistics));
+    TachyonURI path = new TachyonURI(HadoopUtils.getPathWithoutScheme(cPath));
+    return new FSDataInputStream(new HdfsFileInputStream(path, HadoopUtils.getHDFSPath(path,
+            mUnderFSAddress), getConf(), bufferSize, mStatistics));
   }
 
   @Override
@@ -527,8 +527,8 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementWriteOps(1);
     }
 
-    TachyonURI srcPath = new TachyonURI(Utils.getPathWithoutScheme(src));
-    TachyonURI dstPath = new TachyonURI(Utils.getPathWithoutScheme(dst));
+    TachyonURI srcPath = new TachyonURI(HadoopUtils.getPathWithoutScheme(src));
+    TachyonURI dstPath = new TachyonURI(HadoopUtils.getPathWithoutScheme(dst));
     ensureExists(srcPath);
     URIStatus dstStatus;
     try {

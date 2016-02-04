@@ -1,0 +1,30 @@
+tachyon.integration.master.resource.cpu:
+  运行Tachon master所需要的cpu核数。
+tachyon.integration.master.resource.mem:
+  运行Tachyon master所需要的内存大小。
+tachyon.integration.mesos.executor.dependency.path:
+  Mesos executor下载Tachyon依赖的URL。
+tachyon.integration.mesos.jre.path:
+  在JRE URL中可获取的压缩包中JRE目录的相对路径。
+tachyon.integration.mesos.jre.url:
+  Mesos executor下载JRE的URL。
+tachyon.integration.mesos.master.name:
+  Mesos运行Tachyon master的任务名称。
+tachyon.integration.mesos.master.node.count:
+  启动Tachyon master的进程数目。
+tachyon.integration.mesos.principal:
+  Tachyon框架账户。
+tachyon.integration.mesos.role:
+  Tachyon框架在Mesos集群中的角色。
+tachyon.integration.mesos.secret:
+  Tachyon框架密码。
+tachyon.integration.mesos.user:
+  Mesos executor运行Tachyon worker使用的账户。
+tachyon.integration.mesos.worker.name:
+  Mesos运行Tachyon worker的任务名称。
+tachyon.integration.yarn.max.workers.per.host:
+  单个主机上能启动的Tachyon worker的最大数目。
+tachyon.integration.worker.resource.cpu:
+  运行Tachon worker所需要的cpu核数。
+tachyon.integration.worker.resource.mem:
+  运行Tachyon worker所需要的内存大小，该部分内存不包含为层次化存储配置的内容。

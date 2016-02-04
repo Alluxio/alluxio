@@ -44,12 +44,14 @@ public class RmrCommandTest extends AbstractTfsShellTest {
     Assert.assertTrue(fileExist(testFolder2));
     Assert.assertTrue(fileExist(testFile2));
     mFsShell.run("rmr", "/testFolder1/testFolder2/testFile2");
+    toCompare.append("WARNING: rmr is deprecated. Please use rm -R instead.\n");
     toCompare.append(getCommandOutput(new String[] {"rm", "/testFolder1/testFolder2/testFile2"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
     Assert.assertTrue(fileExist(testFolder1));
     Assert.assertTrue(fileExist(testFolder2));
     Assert.assertFalse(fileExist(testFile2));
     mFsShell.run("rmr", "/testFolder1");
+    toCompare.append("WARNING: rmr is deprecated. Please use rm -R instead.\n");
     toCompare.append(getCommandOutput(new String[] {"rmr", "/testFolder1"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
     Assert.assertFalse(fileExist(testFolder1));

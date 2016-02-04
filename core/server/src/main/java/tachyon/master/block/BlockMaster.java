@@ -62,17 +62,17 @@ import tachyon.master.journal.JournalProtoUtils;
 import tachyon.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import tachyon.proto.journal.Block.BlockInfoEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
-import tachyon.thrift.BlockInfo;
-import tachyon.thrift.BlockLocation;
 import tachyon.thrift.BlockMasterClientService;
 import tachyon.thrift.BlockMasterWorkerService;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
-import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.NetAddress;
+import tachyon.wire.BlockInfo;
+import tachyon.wire.BlockLocation;
+import tachyon.wire.WorkerInfo;
+import tachyon.wire.WorkerNetAddress;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -484,10 +484,10 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   /**
    * Returns a worker id for the given worker.
    *
-   * @param workerNetAddress the worker {@link NetAddress}
+   * @param workerNetAddress the worker {@link WorkerNetAddress}
    * @return the worker id for this worker
    */
-  public long getWorkerId(NetAddress workerNetAddress) {
+  public long getWorkerId(WorkerNetAddress workerNetAddress) {
     // TODO(gene): This NetAddress cloned in case thrift re-uses the object. Does thrift re-use it?
     synchronized (mWorkers) {
       if (mWorkers.contains(mAddressIndex, workerNetAddress)) {
@@ -675,7 +675,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    */
   private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) {
     // "Join" to get all the addresses of the workers.
-    List<BlockLocation> ret = new ArrayList<BlockLocation>();
+    List<BlockLocation> locations = new ArrayList<BlockLocation>();
     List<MasterBlockLocation> blockLocations = masterBlockInfo.getBlockLocations();
     // Sort the block locations by their alias ordinal in the master storage tier mapping
     Collections.sort(blockLocations, new Comparator<MasterBlockLocation>() {
@@ -689,11 +689,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
       if (workerInfo != null) {
-        ret.add(new BlockLocation(masterBlockLocation.getWorkerId(),
-            workerInfo.getWorkerAddress().toThrift(), masterBlockLocation.getTierAlias()));
+        locations.add(new BlockLocation().setWorkerId(masterBlockLocation.getWorkerId())
+            .setWorkerAddress(workerInfo.getWorkerAddress())
+            .setTierAlias(masterBlockLocation.getTierAlias()));
       }
     }
-    return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), ret);
+    return new BlockInfo().setBlockId(masterBlockInfo.getBlockId())
+        .setLength(masterBlockInfo.getLength()).setLocations(locations);
   }
 
   /**

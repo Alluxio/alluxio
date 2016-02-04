@@ -107,20 +107,14 @@ message RenameEntry {
   optional int64 op_time_ms = 3;
 }
 
-// next available id: 6
-message SetAclEntry {
-  optional int64 id = 1;
-  optional int64 op_time_ms = 2;
-  optional string user_name = 3;
-  optional string group_name = 4;
-  optional int32 permission = 5;
-}
-
-// next available id: 6
-message SetStateEntry {
+// next available id: 9
+message SetAttributeEntry {
   optional int64 id = 1;
   optional int64 op_time_ms = 2;
   optional bool pinned = 3;
   optional int64 ttl = 4;
   optional bool persisted = 5;
+  optional string owner = 6;
+  optional string group = 7;
+  optional int32 permission = 8;
 }

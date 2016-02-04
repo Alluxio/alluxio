@@ -44,12 +44,13 @@ import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.BlockWorkerClientService;
-import tachyon.thrift.LockBlockResult;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.wire.LockBlockResult;
+import tachyon.wire.ThriftUtils;
+import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.ClientMetrics;
-import tachyon.worker.NetAddress;
 
 /**
  * The client talks to a block worker server. It keeps sending keep alive message to the worker
@@ -85,7 +86,7 @@ public final class BlockWorkerClient extends ClientBase {
    * @param isLocal true if it is a local client, false otherwise
    * @param clientMetrics metrics of the client
    */
-  public BlockWorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
+  public BlockWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
       TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "blockWorker");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
@@ -193,7 +194,7 @@ public final class BlockWorkerClient extends ClientBase {
 
   @Override
   protected long getServiceVersion() {
-    return Constants.BLOCK_WORKER_SERVICE_VERSION;
+    return Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION;
   }
 
   /**
@@ -283,7 +284,7 @@ public final class BlockWorkerClient extends ClientBase {
       return retryRPC(new RpcCallableThrowsTachyonTException<LockBlockResult>() {
         @Override
         public LockBlockResult call() throws TachyonTException, TException {
-          return mClient.lockBlock(blockId, mSessionId);
+          return ThriftUtils.fromThrift(mClient.lockBlock(blockId, mSessionId));
         }
       });
     } catch (TachyonException e) {

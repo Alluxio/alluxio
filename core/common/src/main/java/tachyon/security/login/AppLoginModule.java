@@ -28,11 +28,12 @@ import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.security.User;
 
 /**
  * An app login module that creates a user based on the user name provided through application
- * configuration. Specifically, through Java system property tachyon.security.login.username. This
+ * configuration. Specifically, through Tachyon property tachyon.security.login.username. This
  * module is useful if multiple Tachyon clients running under same OS user name want to get
  * different identifies (for resource and data management), or if Tachyon clients running under
  * different OS user names want to get same identify.
@@ -140,5 +141,37 @@ public final class AppLoginModule implements LoginModule {
     }
 
     return true;
+  }
+
+  /**
+   * A callback handler for {@link AppLoginModule}.
+   */
+  @NotThreadSafe
+  public static final class AppCallbackHandler implements CallbackHandler {
+    private String mUserName;
+
+    /**
+     * @param conf the configuration for Tachyon
+     */
+    public AppCallbackHandler(TachyonConf conf) {
+      if (conf.containsKey(Constants.SECURITY_LOGIN_USERNAME)) {
+        mUserName = conf.get(Constants.SECURITY_LOGIN_USERNAME);
+      } else {
+        mUserName = "";
+      }
+    }
+
+    @Override
+    public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+      for (Callback callback : callbacks) {
+        if (callback instanceof NameCallback) {
+          NameCallback nameCallback = (NameCallback) callback;
+          nameCallback.setName(mUserName);
+        } else {
+          Class<?> callbackClass = (callback == null) ? null : callback.getClass();
+          throw new UnsupportedCallbackException(callback, callbackClass + " is unsupported.");
+        }
+      }
+    }
   }
 }

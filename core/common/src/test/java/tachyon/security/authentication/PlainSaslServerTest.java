@@ -91,8 +91,6 @@ public class PlainSaslServerTest{
 
   /**
    * Tests the {@link PlainSaslServer#evaluateResponse(byte[])} method when the password is not set.
-   *
-   * @throws Exception if the bytes for the user and password cannot be retrieved
    */
   @Test
   public void passwordIsNotSetTest() throws Exception {
@@ -113,8 +111,6 @@ public class PlainSaslServerTest{
 
   /**
    * Tests the {@link PlainSaslServer#getAuthorizationID()} to retrieve the correct user.
-   *
-   * @throws Exception if the bytes for the user and password cannot be retrieved
    */
   @Test
   public void userPasswordReceiveTest() throws Exception {
@@ -135,5 +131,33 @@ public class PlainSaslServerTest{
       }
       ac.setAuthorized(true);
     }
+  }
+
+  private static class MockCallbackHandlerUnauthorized implements CallbackHandler {
+    @Override
+    public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+      AuthorizeCallback ac = null;
+      for (Callback callback : callbacks) {
+        if (callback instanceof AuthorizeCallback) {
+          ac = (AuthorizeCallback)callback;
+        }
+      }
+      ac.setAuthorized(false);
+    }
+  }
+
+  /*
+   * Tests the {@link PlainSaslServer#evaluateResponse(byte[])} method when AuthorizeCallback is
+   * not authorized.
+   */
+  @Test
+  public void unauthorizedCallbackTest() throws Exception {
+    String testUser = "tachyon";
+    String password = "anonymous";
+    mPlainSaslServer = new PlainSaslServer(new MockCallbackHandlerUnauthorized());
+
+    mThrown.expect(SaslException.class);
+    mThrown.expectMessage("Plain authentication failed: AuthorizeCallback authorized failure");
+    mPlainSaslServer.evaluateResponse(getUserInfo(testUser, password));
   }
 }

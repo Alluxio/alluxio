@@ -38,10 +38,10 @@ import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.client.block.BlockStoreContext;
+import tachyon.client.block.BlockWorkerClient;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.TachyonBlockStore;
@@ -53,13 +53,12 @@ import tachyon.client.file.policy.LocalFirstPolicy;
 import tachyon.client.file.policy.RoundRobinPolicy;
 import tachyon.client.util.ClientMockUtils;
 import tachyon.client.util.ClientTestUtils;
-import tachyon.client.block.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
-import tachyon.worker.NetAddress;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Tests for the {@link FileOutStream} class.
@@ -121,7 +120,7 @@ public class FileOutStreamTest {
     // Set up out streams. When they are created, add them to outStreamMap
     final Map<Long, TestBufferedBlockOutStream> outStreamMap = Maps.newHashMap();
     Mockito.when(mBlockStore.getOutStream(Mockito.anyLong(), Mockito.eq(BLOCK_LENGTH),
-        Mockito.any(NetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
+        Mockito.any(WorkerNetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
           @Override
           public BufferedBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
             Long blockId = invocation.getArgumentAt(0, Long.class);
@@ -134,7 +133,8 @@ public class FileOutStreamTest {
           }
         });
     BlockWorkerInfo workerInfo =
-        new BlockWorkerInfo(new NetAddress("localhost", 1, 2, 3), Constants.GB, 0);
+        new BlockWorkerInfo(new WorkerNetAddress().setHost("localhost").setRpcPort(1)
+            .setDataPort(2).setWebPort(3), Constants.GB, 0);
     Mockito.when(mBlockStore.getWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
     mTachyonOutStreamMap = outStreamMap;
 
@@ -159,12 +159,9 @@ public class FileOutStreamTest {
     mTestStream = createTestStream(FILE_NAME, options);
   }
 
-  /**
-   * Resets the context after a test ran.
-   */
   @After
   public void after() {
-    ClientContext.reset();
+    ClientTestUtils.resetClientContext();
   }
 
   /**

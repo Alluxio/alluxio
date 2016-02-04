@@ -25,6 +25,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Joiner;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -47,9 +49,10 @@ public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
    * Actually runs the command against one expanded path.
    *
    * @param path the expanded input path
+   * @param cl the parsed command line object including options
    * @throws IOException if the command fails
    */
-  abstract void runCommand(TachyonURI path) throws IOException;
+  abstract void runCommand(TachyonURI path, CommandLine cl) throws IOException;
 
   @Override
   protected int getNumOfArgs() {
@@ -57,7 +60,8 @@ public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     TachyonURI inputPath = new TachyonURI(args[0]);
 
     List<TachyonURI> paths = TfsShellUtils.getTachyonURIs(mFileSystem, inputPath);
@@ -69,7 +73,7 @@ public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
     List<String> errorMessages = new ArrayList<String>();
     for (TachyonURI path : paths) {
       try {
-        runCommand(path);
+        runCommand(path, cl);
       } catch (IOException e) {
         errorMessages.add(e.getMessage());
       }

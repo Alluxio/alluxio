@@ -30,8 +30,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
-import tachyon.thrift.CommandLineJobInfo;
-import tachyon.thrift.JobConfInfo;
+import tachyon.wire.CommandLineJobInfo;
+import tachyon.wire.JobConfInfo;
 
 /**
  * A job that wraps a programmed run by command line. This job's caller should ensure the execution
@@ -45,7 +45,7 @@ public class CommandLineJob extends Job {
   private final String mCommand;
 
   /**
-   * Constructor.
+   * Creates a new instance of {@link CommandLineJob}.
    *
    * @param command the command that can run in shell
    * @param jobConf the job configuration
@@ -61,7 +61,8 @@ public class CommandLineJob extends Job {
    * @return the {@link CommandLineJobInfo} for RPC
    */
   public CommandLineJobInfo generateCommandLineJobInfo() {
-    return new CommandLineJobInfo(mCommand, new JobConfInfo(getJobConf().getOutputFilePath()));
+    return new CommandLineJobInfo().setCommand(mCommand).setConf(
+        new JobConfInfo().setOutputFile(getJobConf().getOutputFilePath()));
   }
 
   /**

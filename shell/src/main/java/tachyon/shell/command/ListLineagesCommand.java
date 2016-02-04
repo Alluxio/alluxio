@@ -20,10 +20,12 @@ import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.client.file.FileSystem;
 import tachyon.client.lineage.TachyonLineage;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.LineageInfo;
+import tachyon.wire.LineageInfo;
 
 /**
  * Lists all the lineages.
@@ -52,7 +54,7 @@ public final class ListLineagesCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
     TachyonLineage tl = TachyonLineage.get();
     List<LineageInfo> infos = tl.getLineageInfoList();
     for (LineageInfo info : infos) {

@@ -47,9 +47,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.network.protocol.RPCResponse;
-import tachyon.thrift.BlockInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
+import tachyon.wire.BlockInfo;
 
 /**
  * Integration tests for {@link DataServer}.
@@ -91,7 +91,7 @@ public class DataServerIntegrationTest {
     mBlockReader = blockReader;
 
     mLocalTachyonClusterResource = new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES,
-        USER_QUOTA_UNIT_BYTES, Constants.MB, Constants.WORKER_DATA_SERVER, mDataServerClass,
+        Constants.MB, Constants.WORKER_DATA_SERVER, mDataServerClass,
         Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType,
         Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100), Constants.USER_BLOCK_REMOTE_READER,
         mBlockReader);

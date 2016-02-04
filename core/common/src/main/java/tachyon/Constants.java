@@ -84,7 +84,7 @@ public final class Constants {
   // Service versions should be incremented every time a backwards incompatible change occurs.
   public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 1;
-  public static final long BLOCK_WORKER_SERVICE_VERSION = 1;
+  public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 1;
   public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 1;
@@ -282,6 +282,8 @@ public final class Constants {
       "tachyon.worker.tieredstore.levels";
   public static final String WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
       "tachyon.worker.filesystem.heartbeat.interval.ms";
+  public static final String WORKER_FILE_PERSIST_POOL_SIZE =
+      "tachyon.worker.file.persist.pool.size";
 
   public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
       "tachyon.worker.tieredstore.block.locks";
@@ -321,7 +323,6 @@ public final class Constants {
 
   public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
       "tachyon.user.failed.space.request.limits";
-  public static final String USER_QUOTA_UNIT_BYTES = "tachyon.user.quota.unit.bytes";
   public static final String USER_FILE_BUFFER_BYTES = "tachyon.user.file.buffer.bytes";
   public static final String USER_HEARTBEAT_INTERVAL_MS = "tachyon.user.heartbeat.interval.ms";
   public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
@@ -416,30 +417,28 @@ public final class Constants {
   // ttl related
   public static final long NO_TTL = -1;
 
-  // TODO(binfan): explaine the following three properties in the configuration page in docs/
   /** Security */
-  public static final String SECURITY_LOGIN_USERNAME = "tachyon.security.login.username";
   // Authentication
   public static final String SECURITY_AUTHENTICATION_TYPE = "tachyon.security.authentication.type";
   public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER =
       "tachyon.security.authentication.custom.provider.class";
   public static final String SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
       "tachyon.security.authentication.socket.timeout.ms";
+  public static final String SECURITY_LOGIN_USERNAME = "tachyon.security.login.username";
   // Authorization
+  public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
+      "tachyon.security.authorization.permission.enabled";
   public static final String SECURITY_AUTHORIZATION_PERMISSIONS_UMASK =
       "tachyon.security.authorization.permission.umask";
+  public static final String SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
+      "tachyon.security.authorization.permission.supergroup";
+  // Group Mapping
+  public static final String SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping.class";
+
+  // Security related constant value
   public static final int DEFAULT_FS_PERMISSIONS_UMASK = 0022;
   public static final short DEFAULT_FS_FULL_PERMISSION = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
-  // Group Mapping
-  public static final String SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
-
-  // TODO(dong): TACHYON-1462. Document these security related properties in configuration page
-  public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
-      "tachyon.security.authorization.permission.enabled";
-  public static final String SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
-      "tachyon.security.authorization.permission.supergroup";
-
   public static final short INVALID_PERMISSION = -1;
 
   private Constants() {} // prevent instantiation

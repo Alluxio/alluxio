@@ -45,7 +45,7 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.authorization.PermissionStatus;
-import tachyon.thrift.FileInfo;
+import tachyon.wire.FileInfo;
 
 /**
  * Unit tests for {@link PermissionChecker}.
