@@ -35,7 +35,7 @@ public class BlockLocationTest {
   @Test
   public void thriftTest() {
     BlockLocation blockLocation = createRandom();
-    BlockLocation other = new BlockLocation(blockLocation.toThrift());
+    BlockLocation other = ThriftUtils.fromThrift(ThriftUtils.toThrift(blockLocation));
     checkEquality(blockLocation, other);
   }
 

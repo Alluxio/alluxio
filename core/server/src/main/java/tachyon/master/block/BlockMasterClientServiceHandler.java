@@ -28,6 +28,7 @@ import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterClientService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.WorkerInfo;
+import tachyon.wire.ThriftUtils;
 
 /**
  * This class is a Thrift handler for block master RPCs invoked by a Tachyon client.
@@ -55,7 +56,7 @@ public class BlockMasterClientServiceHandler implements BlockMasterClientService
   public List<WorkerInfo> getWorkerInfoList() {
     List<WorkerInfo> workerInfos = new ArrayList<WorkerInfo>();
     for (tachyon.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
-      workerInfos.add(workerInfo.toThrift());
+      workerInfos.add(ThriftUtils.toThrift(workerInfo));
     }
     return workerInfos;
   }
@@ -73,7 +74,7 @@ public class BlockMasterClientServiceHandler implements BlockMasterClientService
   @Override
   public BlockInfo getBlockInfo(long blockId) throws TachyonTException {
     try {
-      return mBlockMaster.getBlockInfo(blockId).toThrift();
+      return ThriftUtils.toThrift(mBlockMaster.getBlockInfo(blockId));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }

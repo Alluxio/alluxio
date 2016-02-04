@@ -35,7 +35,7 @@ public class CommandLineJobInfoTest {
   @Test
   public void thriftTest() {
     CommandLineJobInfo jobInfo = createRandom();
-    CommandLineJobInfo other = new CommandLineJobInfo(jobInfo.toThrift());
+    CommandLineJobInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(jobInfo));
     checkEquality(jobInfo, other);
   }
 

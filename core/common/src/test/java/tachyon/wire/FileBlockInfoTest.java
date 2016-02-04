@@ -38,7 +38,7 @@ public class FileBlockInfoTest {
   @Test
   public void thriftTest() {
     FileBlockInfo fileBlockInfo = createRandom();
-    FileBlockInfo other = new FileBlockInfo(fileBlockInfo.toThrift());
+    FileBlockInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(fileBlockInfo));
     checkEquality(fileBlockInfo, other);
   }
 

@@ -37,7 +37,7 @@ public class LineageInfoTest {
   @Test
   public void thriftTest() {
     LineageInfo lineageInfo = createRandom();
-    LineageInfo other = new LineageInfo(lineageInfo.toThrift());
+    LineageInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(lineageInfo));
     checkEquality(lineageInfo, other);
   }
 

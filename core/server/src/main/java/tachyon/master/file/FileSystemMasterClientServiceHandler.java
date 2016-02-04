@@ -41,6 +41,7 @@ import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.SetAttributeTOptions;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
+import tachyon.wire.ThriftUtils;
 
 /**
  * This class is a Thrift handler for file system master RPCs invoked by a Tachyon client.
@@ -114,7 +115,7 @@ public final class FileSystemMasterClientServiceHandler implements
       List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
       for (tachyon.wire.FileBlockInfo fileBlockInfo :
           mFileSystemMaster.getFileBlockInfoList(new TachyonURI(path))) {
-        result.add(fileBlockInfo.toThrift());
+        result.add(ThriftUtils.toThrift(fileBlockInfo));
       }
       return result;
     } catch (TachyonException e) {
@@ -134,7 +135,7 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public FileInfo getStatus(String path) throws TachyonTException {
     try {
-      return mFileSystemMaster.getFileInfo(new TachyonURI(path)).toThrift();
+      return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(new TachyonURI(path)));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -143,7 +144,7 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public FileInfo getStatusInternal(long fileId) throws TachyonTException {
     try {
-      return mFileSystemMaster.getFileInfo(fileId).toThrift();
+      return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(fileId));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -160,7 +161,7 @@ public final class FileSystemMasterClientServiceHandler implements
       List<FileInfo> result = new ArrayList<FileInfo>();
       for (tachyon.wire.FileInfo fileInfo :
           mFileSystemMaster.getFileInfoList(new TachyonURI(path))) {
-        result.add(fileInfo.toThrift());
+        result.add(ThriftUtils.toThrift(fileInfo));
       }
       return result;
     } catch (TachyonException e) {

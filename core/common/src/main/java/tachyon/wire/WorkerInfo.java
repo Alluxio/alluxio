@@ -24,7 +24,7 @@ import com.google.common.base.Preconditions;
  * The worker descriptor.
  */
 @NotThreadSafe
-public final class WorkerInfo implements WireType<tachyon.thrift.WorkerInfo> {
+public final class WorkerInfo {
   private long mId;
   private WorkerNetAddress mAddress;
   private int mLastContactSec;
@@ -39,21 +39,6 @@ public final class WorkerInfo implements WireType<tachyon.thrift.WorkerInfo> {
   public WorkerInfo() {
     mAddress = new WorkerNetAddress();
     mState = "";
-  }
-
-  /**
-   * Creates a new instance of {@link WorkerInfo} from a thrift representation.
-   *
-   * @param workerInfo the thrift representation of a worker descriptor
-   */
-  public WorkerInfo(tachyon.thrift.WorkerInfo workerInfo) {
-    mId = workerInfo.getId();
-    mAddress = new WorkerNetAddress(workerInfo.getAddress());
-    mLastContactSec = workerInfo.getLastContactSec();
-    mState = workerInfo.getState();
-    mCapacityBytes = workerInfo.getCapacityBytes();
-    mUsedBytes = workerInfo.getUsedBytes();
-    mStartTimeMs = workerInfo.getStartTimeMs();
   }
 
   /**
@@ -168,15 +153,6 @@ public final class WorkerInfo implements WireType<tachyon.thrift.WorkerInfo> {
   public WorkerInfo setStartTimeMs(long startTimeMs) {
     mStartTimeMs = startTimeMs;
     return this;
-  }
-
-  /**
-   * @return thrift representation of the worker descriptor
-   */
-  @Override
-  public tachyon.thrift.WorkerInfo toThrift() {
-    return new tachyon.thrift.WorkerInfo(mId, mAddress.toThrift(), mLastContactSec, mState,
-        mCapacityBytes, mUsedBytes, mStartTimeMs);
   }
 
   @Override

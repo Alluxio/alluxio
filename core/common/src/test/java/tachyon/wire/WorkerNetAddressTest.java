@@ -35,7 +35,7 @@ public class WorkerNetAddressTest {
   @Test
   public void thriftTest() {
     WorkerNetAddress workerNetAddress = createRandom();
-    WorkerNetAddress other = new WorkerNetAddress(workerNetAddress.toThrift());
+    WorkerNetAddress other = ThriftUtils.fromThrift(ThriftUtils.toThrift(workerNetAddress));
     checkEquality(workerNetAddress, other);
   }
 

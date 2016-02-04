@@ -24,7 +24,7 @@ import com.google.common.base.Preconditions;
  * The lock block operation result.
  */
 @NotThreadSafe
-public final class LockBlockResult implements WireType<tachyon.thrift.LockBlockResult> {
+public final class LockBlockResult {
   private long mLockId;
   private String mBlockPath;
 
@@ -33,16 +33,6 @@ public final class LockBlockResult implements WireType<tachyon.thrift.LockBlockR
    */
   public LockBlockResult() {
     mBlockPath = "";
-  }
-
-  /**
-   * Creates a new instance of {@link LockBlockResult} from a thrift representation.
-   *
-   * @param lockBlockResult the thrift representation of a lock block operation result
-   */
-  public LockBlockResult(tachyon.thrift.LockBlockResult lockBlockResult) {
-    mLockId = lockBlockResult.getLockId();
-    mBlockPath = lockBlockResult.getBlockPath();
   }
 
   /**
@@ -76,14 +66,6 @@ public final class LockBlockResult implements WireType<tachyon.thrift.LockBlockR
     Preconditions.checkNotNull(blockPath);
     mBlockPath = blockPath;
     return this;
-  }
-
-  /**
-   * @return thrift representation of the block descriptor
-   */
-  @Override
-  public tachyon.thrift.LockBlockResult toThrift() {
-    return new tachyon.thrift.LockBlockResult(mLockId, mBlockPath);
   }
 
   @Override

@@ -37,7 +37,7 @@ public class BlockInfoTest {
   @Test
   public void thriftTest() {
     BlockInfo blockInfo = createRandom();
-    BlockInfo other = new BlockInfo(blockInfo.toThrift());
+    BlockInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(blockInfo));
     checkEquality(blockInfo, other);
   }
 

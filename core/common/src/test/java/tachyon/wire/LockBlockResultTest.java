@@ -35,7 +35,7 @@ public class LockBlockResultTest {
   @Test
   public void thriftTest() {
     LockBlockResult lockBlockResult = createRandom();
-    LockBlockResult other = new LockBlockResult(lockBlockResult.toThrift());
+    LockBlockResult other = ThriftUtils.fromThrift(ThriftUtils.toThrift(lockBlockResult));
     checkEquality(lockBlockResult, other);
   }
 

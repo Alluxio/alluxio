@@ -35,6 +35,7 @@ import tachyon.thrift.LineageMasterClientService;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.wire.LineageInfo;
+import tachyon.wire.ThriftUtils;
 
 /**
  * A wrapper for the thrift client to interact with the lineage master, used by tachyon clients.
@@ -93,7 +94,7 @@ public final class LineageMasterClient extends MasterClientBase {
       @Override
       public Long call() throws TachyonTException, TException {
         return mClient.createLineage(inputFiles, outputFiles,
-            job.generateCommandLineJobInfo().toThrift());
+            ThriftUtils.toThrift(job.generateCommandLineJobInfo()));
       }
     });
   }
@@ -152,7 +153,7 @@ public final class LineageMasterClient extends MasterClientBase {
       public List<LineageInfo> call() throws TException {
         List<LineageInfo> result = new ArrayList<LineageInfo>();
         for (tachyon.thrift.LineageInfo lineageInfo : mClient.getLineageInfoList()) {
-          result.add(new LineageInfo(lineageInfo));
+          result.add(ThriftUtils.fromThrift(lineageInfo));
         }
         return result;
       }
