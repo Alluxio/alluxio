@@ -43,7 +43,7 @@ import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.StorageTierAssoc;
 import alluxio.collections.IndexedSet;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.NoWorkerException;
@@ -716,7 +716,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     @Override
     public void heartbeat() {
       LOG.debug("System status checking.");
-      TachyonConf conf = MasterContext.getConf();
+      Configuration conf = MasterContext.getConf();
 
       int masterWorkerTimeoutMs = conf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
       synchronized (mBlocks) {

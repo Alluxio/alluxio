@@ -22,11 +22,11 @@ import com.google.common.base.Throwables;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
-import alluxio.client.TachyonStorageType;
+import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.CommonUtils;
 
 /**
@@ -48,7 +48,7 @@ public final class OutStreamOptions {
   }
 
   private OutStreamOptions() {
-    TachyonConf conf = ClientContext.getConf();
+    Configuration conf = ClientContext.getConf();
     mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
     try {
@@ -79,7 +79,7 @@ public final class OutStreamOptions {
   /**
    * @return the Tachyon storage type
    */
-  public TachyonStorageType getTachyonStorageType() {
+  public AlluxioStorageType getTachyonStorageType() {
     return mWriteType.getTachyonStorageType();
   }
 

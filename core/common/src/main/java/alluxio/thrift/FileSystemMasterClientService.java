@@ -38,9 +38,9 @@ import org.slf4j.LoggerFactory;
 public class FileSystemMasterClientService {
 
   /**
-   * This interface contains file system master service endpoints for Tachyon clients.
+   * This interface contains file system master service endpoints for Alluxio clients.
    */
-  public interface Iface extends alluxio.thrift.TachyonService.Iface {
+  public interface Iface extends alluxio.thrift.AlluxioService.Iface {
 
     /**
      * Marks a file as completed.
@@ -49,7 +49,7 @@ public class FileSystemMasterClientService {
      * 
      * @param options the method options
      */
-    public void completeFile(String path, CompleteFileTOptions options) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public void completeFile(String path, CompleteFileTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Creates a directory.
@@ -58,7 +58,7 @@ public class FileSystemMasterClientService {
      * 
      * @param options the method options
      */
-    public void createDirectory(String path, CreateDirectoryTOptions options) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void createDirectory(String path, CreateDirectoryTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Creates a file.
@@ -67,44 +67,44 @@ public class FileSystemMasterClientService {
      * 
      * @param options the options for creating the file
      */
-    public void createFile(String path, CreateFileTOptions options) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void createFile(String path, CreateFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
-     * Frees the given file or directory from Tachyon.
+     * Frees the given file or directory from Alluxio.
      * 
      * @param path the path of the file or directory
      * 
      * @param recursive whether to free recursively
      */
-    public void free(String path, boolean recursive) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public void free(String path, boolean recursive) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Returns the list of file blocks information for the given file.
      * 
      * @param path the path of the file
      */
-    public List<alluxio.thrift.FileBlockInfo> getFileBlockInfoList(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public List<alluxio.thrift.FileBlockInfo> getFileBlockInfoList(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Returns the status of the file or directory.
      * 
      * @param path the path of the file or directory
      */
-    public FileInfo getStatus(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public FileInfo getStatus(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Returns the status of the file or directory, only used internally by servers.
      * 
      * @param fileId the id of the file or directory
      */
-    public FileInfo getStatusInternal(long fileId) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public FileInfo getStatusInternal(long fileId) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Generates a new block id for the given file.
      * 
      * @param path the path of the file
      */
-    public long getNewBlockIdForFile(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public long getNewBlockIdForFile(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Returns the UFS address of the root mount point.
@@ -118,26 +118,26 @@ public class FileSystemMasterClientService {
      * 
      * @param path the path of the file or directory
      */
-    public List<FileInfo> listStatus(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public List<FileInfo> listStatus(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
-     * Loads metadata for the object identified by the given Tachyon path from UFS into Tachyon.
+     * Loads metadata for the object identified by the given Alluxio path from UFS into Alluxio.
      * 
      * @param ufsPath the path of the under file system
      * 
      * @param recursive whether to load meta data recursively
      */
-    public long loadMetadata(String ufsPath, boolean recursive) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public long loadMetadata(String ufsPath, boolean recursive) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
-     * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
+     * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given
      * path. The path should not exist and should not be nested under any existing mount point.
      * 
-     * @param tachyonPath the path of alluxio mount point
+     * @param alluxioPath the path of alluxio mount point
      * 
      * @param ufsPath the path of the under file system
      */
-    public void mount(String tachyonPath, String ufsPath) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void mount(String alluxioPath, String ufsPath) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Deletes a file or a directory and returns whether the remove operation succeeded.
@@ -147,7 +147,7 @@ public class FileSystemMasterClientService {
      * 
      * @param recursive whether to remove recursively
      */
-    public void remove(String path, boolean recursive) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public void remove(String path, boolean recursive) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Renames a file or a directory.
@@ -156,7 +156,7 @@ public class FileSystemMasterClientService {
      * 
      * @param dstPath the desinationpath of the file
      */
-    public void rename(String path, String dstPath) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void rename(String path, String dstPath) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Sets file or directory attributes.
@@ -165,27 +165,27 @@ public class FileSystemMasterClientService {
      * 
      * @param options the method options
      */
-    public void setAttribute(String path, SetAttributeTOptions options) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public void setAttribute(String path, SetAttributeTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Schedules async persistence.
      * 
      * @param path the path of the file
      */
-    public void scheduleAsyncPersist(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public void scheduleAsyncPersist(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
-     * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
+     * Deletes an existing "mount point", voiding the Alluxio namespace at the given path. The path
      * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
-     * will be persisted before they are removed from the Tachyon namespace.
+     * will be persisted before they are removed from the Alluxio namespace.
      * 
-     * @param tachyonPath the path of the alluxio mount point
+     * @param alluxioPath the path of the alluxio mount point
      */
-    public void unmount(String tachyonPath) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void unmount(String alluxioPath) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
   }
 
-  public interface AsyncIface extends alluxio.thrift.TachyonService .AsyncIface {
+  public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
 
     public void completeFile(String path, CompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -209,7 +209,7 @@ public class FileSystemMasterClientService {
 
     public void loadMetadata(String ufsPath, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void mount(String tachyonPath, String ufsPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void mount(String alluxioPath, String ufsPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void remove(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -219,11 +219,11 @@ public class FileSystemMasterClientService {
 
     public void scheduleAsyncPersist(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void unmount(String tachyonPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void unmount(String alluxioPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
-  public static class Client extends alluxio.thrift.TachyonService.Client implements Iface {
+  public static class Client extends alluxio.thrift.AlluxioService.Client implements Iface {
     public static class Factory implements org.apache.thrift.TServiceClientFactory<Client> {
       public Factory() {}
       public Client getClient(org.apache.thrift.protocol.TProtocol prot) {
@@ -243,7 +243,7 @@ public class FileSystemMasterClientService {
       super(iprot, oprot);
     }
 
-    public void completeFile(String path, CompleteFileTOptions options) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void completeFile(String path, CompleteFileTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_completeFile(path, options);
       recv_completeFile();
@@ -257,7 +257,7 @@ public class FileSystemMasterClientService {
       sendBase("completeFile", args);
     }
 
-    public void recv_completeFile() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void recv_completeFile() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       completeFile_result result = new completeFile_result();
       receiveBase(result, "completeFile");
@@ -267,7 +267,7 @@ public class FileSystemMasterClientService {
       return;
     }
 
-    public void createDirectory(String path, CreateDirectoryTOptions options) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void createDirectory(String path, CreateDirectoryTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_createDirectory(path, options);
       recv_createDirectory();
@@ -281,7 +281,7 @@ public class FileSystemMasterClientService {
       sendBase("createDirectory", args);
     }
 
-    public void recv_createDirectory() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void recv_createDirectory() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       createDirectory_result result = new createDirectory_result();
       receiveBase(result, "createDirectory");
@@ -294,7 +294,7 @@ public class FileSystemMasterClientService {
       return;
     }
 
-    public void createFile(String path, CreateFileTOptions options) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void createFile(String path, CreateFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_createFile(path, options);
       recv_createFile();
@@ -308,7 +308,7 @@ public class FileSystemMasterClientService {
       sendBase("createFile", args);
     }
 
-    public void recv_createFile() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void recv_createFile() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       createFile_result result = new createFile_result();
       receiveBase(result, "createFile");
@@ -321,7 +321,7 @@ public class FileSystemMasterClientService {
       return;
     }
 
-    public void free(String path, boolean recursive) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void free(String path, boolean recursive) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_free(path, recursive);
       recv_free();
@@ -335,7 +335,7 @@ public class FileSystemMasterClientService {
       sendBase("free", args);
     }
 
-    public void recv_free() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void recv_free() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       free_result result = new free_result();
       receiveBase(result, "free");
@@ -345,7 +345,7 @@ public class FileSystemMasterClientService {
       return;
     }
 
-    public List<alluxio.thrift.FileBlockInfo> getFileBlockInfoList(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public List<alluxio.thrift.FileBlockInfo> getFileBlockInfoList(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_getFileBlockInfoList(path);
       return recv_getFileBlockInfoList();
@@ -358,7 +358,7 @@ public class FileSystemMasterClientService {
       sendBase("getFileBlockInfoList", args);
     }
 
-    public List<alluxio.thrift.FileBlockInfo> recv_getFileBlockInfoList() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public List<alluxio.thrift.FileBlockInfo> recv_getFileBlockInfoList() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       getFileBlockInfoList_result result = new getFileBlockInfoList_result();
       receiveBase(result, "getFileBlockInfoList");
@@ -371,7 +371,7 @@ public class FileSystemMasterClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getFileBlockInfoList failed: unknown result");
     }
 
-    public FileInfo getStatus(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public FileInfo getStatus(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_getStatus(path);
       return recv_getStatus();
@@ -384,7 +384,7 @@ public class FileSystemMasterClientService {
       sendBase("getStatus", args);
     }
 
-    public FileInfo recv_getStatus() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public FileInfo recv_getStatus() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       getStatus_result result = new getStatus_result();
       receiveBase(result, "getStatus");
@@ -397,7 +397,7 @@ public class FileSystemMasterClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getStatus failed: unknown result");
     }
 
-    public FileInfo getStatusInternal(long fileId) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public FileInfo getStatusInternal(long fileId) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_getStatusInternal(fileId);
       return recv_getStatusInternal();
@@ -410,7 +410,7 @@ public class FileSystemMasterClientService {
       sendBase("getStatusInternal", args);
     }
 
-    public FileInfo recv_getStatusInternal() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public FileInfo recv_getStatusInternal() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       getStatusInternal_result result = new getStatusInternal_result();
       receiveBase(result, "getStatusInternal");
@@ -423,7 +423,7 @@ public class FileSystemMasterClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getStatusInternal failed: unknown result");
     }
 
-    public long getNewBlockIdForFile(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public long getNewBlockIdForFile(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_getNewBlockIdForFile(path);
       return recv_getNewBlockIdForFile();
@@ -436,7 +436,7 @@ public class FileSystemMasterClientService {
       sendBase("getNewBlockIdForFile", args);
     }
 
-    public long recv_getNewBlockIdForFile() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public long recv_getNewBlockIdForFile() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       getNewBlockIdForFile_result result = new getNewBlockIdForFile_result();
       receiveBase(result, "getNewBlockIdForFile");
@@ -471,7 +471,7 @@ public class FileSystemMasterClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUfsAddress failed: unknown result");
     }
 
-    public List<FileInfo> listStatus(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public List<FileInfo> listStatus(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_listStatus(path);
       return recv_listStatus();
@@ -484,7 +484,7 @@ public class FileSystemMasterClientService {
       sendBase("listStatus", args);
     }
 
-    public List<FileInfo> recv_listStatus() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public List<FileInfo> recv_listStatus() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       listStatus_result result = new listStatus_result();
       receiveBase(result, "listStatus");
@@ -497,7 +497,7 @@ public class FileSystemMasterClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "listStatus failed: unknown result");
     }
 
-    public long loadMetadata(String ufsPath, boolean recursive) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public long loadMetadata(String ufsPath, boolean recursive) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_loadMetadata(ufsPath, recursive);
       return recv_loadMetadata();
@@ -511,7 +511,7 @@ public class FileSystemMasterClientService {
       sendBase("loadMetadata", args);
     }
 
-    public long recv_loadMetadata() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public long recv_loadMetadata() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       loadMetadata_result result = new loadMetadata_result();
       receiveBase(result, "loadMetadata");
@@ -527,21 +527,21 @@ public class FileSystemMasterClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "loadMetadata failed: unknown result");
     }
 
-    public void mount(String tachyonPath, String ufsPath) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void mount(String alluxioPath, String ufsPath) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
-      send_mount(tachyonPath, ufsPath);
+      send_mount(alluxioPath, ufsPath);
       recv_mount();
     }
 
-    public void send_mount(String tachyonPath, String ufsPath) throws org.apache.thrift.TException
+    public void send_mount(String alluxioPath, String ufsPath) throws org.apache.thrift.TException
     {
       mount_args args = new mount_args();
-      args.setTachyonPath(tachyonPath);
+      args.setAlluxioPath(alluxioPath);
       args.setUfsPath(ufsPath);
       sendBase("mount", args);
     }
 
-    public void recv_mount() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void recv_mount() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       mount_result result = new mount_result();
       receiveBase(result, "mount");
@@ -554,7 +554,7 @@ public class FileSystemMasterClientService {
       return;
     }
 
-    public void remove(String path, boolean recursive) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void remove(String path, boolean recursive) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_remove(path, recursive);
       recv_remove();
@@ -568,7 +568,7 @@ public class FileSystemMasterClientService {
       sendBase("remove", args);
     }
 
-    public void recv_remove() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void recv_remove() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       remove_result result = new remove_result();
       receiveBase(result, "remove");
@@ -578,7 +578,7 @@ public class FileSystemMasterClientService {
       return;
     }
 
-    public void rename(String path, String dstPath) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void rename(String path, String dstPath) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_rename(path, dstPath);
       recv_rename();
@@ -592,7 +592,7 @@ public class FileSystemMasterClientService {
       sendBase("rename", args);
     }
 
-    public void recv_rename() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void recv_rename() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       rename_result result = new rename_result();
       receiveBase(result, "rename");
@@ -605,7 +605,7 @@ public class FileSystemMasterClientService {
       return;
     }
 
-    public void setAttribute(String path, SetAttributeTOptions options) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void setAttribute(String path, SetAttributeTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_setAttribute(path, options);
       recv_setAttribute();
@@ -619,7 +619,7 @@ public class FileSystemMasterClientService {
       sendBase("setAttribute", args);
     }
 
-    public void recv_setAttribute() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void recv_setAttribute() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       setAttribute_result result = new setAttribute_result();
       receiveBase(result, "setAttribute");
@@ -629,7 +629,7 @@ public class FileSystemMasterClientService {
       return;
     }
 
-    public void scheduleAsyncPersist(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void scheduleAsyncPersist(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_scheduleAsyncPersist(path);
       recv_scheduleAsyncPersist();
@@ -642,7 +642,7 @@ public class FileSystemMasterClientService {
       sendBase("scheduleAsyncPersist", args);
     }
 
-    public void recv_scheduleAsyncPersist() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void recv_scheduleAsyncPersist() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       scheduleAsyncPersist_result result = new scheduleAsyncPersist_result();
       receiveBase(result, "scheduleAsyncPersist");
@@ -652,20 +652,20 @@ public class FileSystemMasterClientService {
       return;
     }
 
-    public void unmount(String tachyonPath) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void unmount(String alluxioPath) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
-      send_unmount(tachyonPath);
+      send_unmount(alluxioPath);
       recv_unmount();
     }
 
-    public void send_unmount(String tachyonPath) throws org.apache.thrift.TException
+    public void send_unmount(String alluxioPath) throws org.apache.thrift.TException
     {
       unmount_args args = new unmount_args();
-      args.setTachyonPath(tachyonPath);
+      args.setAlluxioPath(alluxioPath);
       sendBase("unmount", args);
     }
 
-    public void recv_unmount() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void recv_unmount() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       unmount_result result = new unmount_result();
       receiveBase(result, "unmount");
@@ -679,7 +679,7 @@ public class FileSystemMasterClientService {
     }
 
   }
-  public static class AsyncClient extends alluxio.thrift.TachyonService.AsyncClient implements AsyncIface {
+  public static class AsyncClient extends alluxio.thrift.AlluxioService.AsyncClient implements AsyncIface {
     public static class Factory implements org.apache.thrift.async.TAsyncClientFactory<AsyncClient> {
       private org.apache.thrift.async.TAsyncClientManager clientManager;
       private org.apache.thrift.protocol.TProtocolFactory protocolFactory;
@@ -721,7 +721,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -756,7 +756,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -791,7 +791,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -826,7 +826,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -858,7 +858,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public List<alluxio.thrift.FileBlockInfo> getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public List<alluxio.thrift.FileBlockInfo> getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -890,7 +890,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public FileInfo getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public FileInfo getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -922,7 +922,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public FileInfo getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public FileInfo getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -954,7 +954,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public long getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public long getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1015,7 +1015,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public List<FileInfo> getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public List<FileInfo> getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1050,7 +1050,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public long getResult() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public long getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1060,32 +1060,32 @@ public class FileSystemMasterClientService {
       }
     }
 
-    public void mount(String tachyonPath, String ufsPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void mount(String alluxioPath, String ufsPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      mount_call method_call = new mount_call(tachyonPath, ufsPath, resultHandler, this, ___protocolFactory, ___transport);
+      mount_call method_call = new mount_call(alluxioPath, ufsPath, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class mount_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String tachyonPath;
+      private String alluxioPath;
       private String ufsPath;
-      public mount_call(String tachyonPath, String ufsPath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public mount_call(String alluxioPath, String ufsPath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.tachyonPath = tachyonPath;
+        this.alluxioPath = alluxioPath;
         this.ufsPath = ufsPath;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("mount", org.apache.thrift.protocol.TMessageType.CALL, 0));
         mount_args args = new mount_args();
-        args.setTachyonPath(tachyonPath);
+        args.setAlluxioPath(alluxioPath);
         args.setUfsPath(ufsPath);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1120,7 +1120,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1155,7 +1155,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1190,7 +1190,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1222,7 +1222,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1232,29 +1232,29 @@ public class FileSystemMasterClientService {
       }
     }
 
-    public void unmount(String tachyonPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void unmount(String alluxioPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      unmount_call method_call = new unmount_call(tachyonPath, resultHandler, this, ___protocolFactory, ___transport);
+      unmount_call method_call = new unmount_call(alluxioPath, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class unmount_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String tachyonPath;
-      public unmount_call(String tachyonPath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private String alluxioPath;
+      public unmount_call(String alluxioPath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.tachyonPath = tachyonPath;
+        this.alluxioPath = alluxioPath;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("unmount", org.apache.thrift.protocol.TMessageType.CALL, 0));
         unmount_args args = new unmount_args();
-        args.setTachyonPath(tachyonPath);
+        args.setAlluxioPath(alluxioPath);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1266,7 +1266,7 @@ public class FileSystemMasterClientService {
 
   }
 
-  public static class Processor<I extends Iface> extends alluxio.thrift.TachyonService.Processor<I> implements org.apache.thrift.TProcessor {
+  public static class Processor<I extends Iface> extends alluxio.thrift.AlluxioService.Processor<I> implements org.apache.thrift.TProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(Processor.class.getName());
     public Processor(I iface) {
       super(iface, getProcessMap(new HashMap<String, org.apache.thrift.ProcessFunction<I, ? extends org.apache.thrift.TBase>>()));
@@ -1314,7 +1314,7 @@ public class FileSystemMasterClientService {
         completeFile_result result = new completeFile_result();
         try {
           iface.completeFile(args.path, args.options);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -1338,7 +1338,7 @@ public class FileSystemMasterClientService {
         createDirectory_result result = new createDirectory_result();
         try {
           iface.createDirectory(args.path, args.options);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
           result.ioe = ioe;
@@ -1364,7 +1364,7 @@ public class FileSystemMasterClientService {
         createFile_result result = new createFile_result();
         try {
           iface.createFile(args.path, args.options);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
           result.ioe = ioe;
@@ -1390,7 +1390,7 @@ public class FileSystemMasterClientService {
         free_result result = new free_result();
         try {
           iface.free(args.path, args.recursive);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -1414,7 +1414,7 @@ public class FileSystemMasterClientService {
         getFileBlockInfoList_result result = new getFileBlockInfoList_result();
         try {
           result.success = iface.getFileBlockInfoList(args.path);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -1438,7 +1438,7 @@ public class FileSystemMasterClientService {
         getStatus_result result = new getStatus_result();
         try {
           result.success = iface.getStatus(args.path);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -1462,7 +1462,7 @@ public class FileSystemMasterClientService {
         getStatusInternal_result result = new getStatusInternal_result();
         try {
           result.success = iface.getStatusInternal(args.fileId);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -1487,7 +1487,7 @@ public class FileSystemMasterClientService {
         try {
           result.success = iface.getNewBlockIdForFile(args.path);
           result.setSuccessIsSet(true);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -1531,7 +1531,7 @@ public class FileSystemMasterClientService {
         listStatus_result result = new listStatus_result();
         try {
           result.success = iface.listStatus(args.path);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -1556,7 +1556,7 @@ public class FileSystemMasterClientService {
         try {
           result.success = iface.loadMetadata(args.ufsPath, args.recursive);
           result.setSuccessIsSet(true);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
           result.ioe = ioe;
@@ -1581,8 +1581,8 @@ public class FileSystemMasterClientService {
       public mount_result getResult(I iface, mount_args args) throws org.apache.thrift.TException {
         mount_result result = new mount_result();
         try {
-          iface.mount(args.tachyonPath, args.ufsPath);
-        } catch (alluxio.thrift.TachyonTException e) {
+          iface.mount(args.alluxioPath, args.ufsPath);
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
           result.ioe = ioe;
@@ -1608,7 +1608,7 @@ public class FileSystemMasterClientService {
         remove_result result = new remove_result();
         try {
           iface.remove(args.path, args.recursive);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -1632,7 +1632,7 @@ public class FileSystemMasterClientService {
         rename_result result = new rename_result();
         try {
           iface.rename(args.path, args.dstPath);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
           result.ioe = ioe;
@@ -1658,7 +1658,7 @@ public class FileSystemMasterClientService {
         setAttribute_result result = new setAttribute_result();
         try {
           iface.setAttribute(args.path, args.options);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -1682,7 +1682,7 @@ public class FileSystemMasterClientService {
         scheduleAsyncPersist_result result = new scheduleAsyncPersist_result();
         try {
           iface.scheduleAsyncPersist(args.path);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -1705,8 +1705,8 @@ public class FileSystemMasterClientService {
       public unmount_result getResult(I iface, unmount_args args) throws org.apache.thrift.TException {
         unmount_result result = new unmount_result();
         try {
-          iface.unmount(args.tachyonPath);
-        } catch (alluxio.thrift.TachyonTException e) {
+          iface.unmount(args.alluxioPath);
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
           result.ioe = ioe;
@@ -1717,7 +1717,7 @@ public class FileSystemMasterClientService {
 
   }
 
-  public static class AsyncProcessor<I extends AsyncIface> extends alluxio.thrift.TachyonService.AsyncProcessor<I> {
+  public static class AsyncProcessor<I extends AsyncIface> extends alluxio.thrift.AlluxioService.AsyncProcessor<I> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncProcessor.class.getName());
     public AsyncProcessor(I iface) {
       super(iface, getProcessMap(new HashMap<String, org.apache.thrift.AsyncProcessFunction<I, ? extends org.apache.thrift.TBase, ?>>()));
@@ -1774,8 +1774,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             completeFile_result result = new completeFile_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -1830,8 +1830,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             createDirectory_result result = new createDirectory_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -1891,8 +1891,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             createFile_result result = new createFile_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -1952,8 +1952,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             free_result result = new free_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -2009,8 +2009,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getFileBlockInfoList_result result = new getFileBlockInfoList_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -2066,8 +2066,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getStatus_result result = new getStatus_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -2123,8 +2123,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getStatusInternal_result result = new getStatusInternal_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -2181,8 +2181,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getNewBlockIdForFile_result result = new getNewBlockIdForFile_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -2289,8 +2289,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             listStatus_result result = new listStatus_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -2347,8 +2347,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             loadMetadata_result result = new loadMetadata_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -2408,8 +2408,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             mount_result result = new mount_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -2439,7 +2439,7 @@ public class FileSystemMasterClientService {
       }
 
       public void start(I iface, mount_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.mount(args.tachyonPath, args.ufsPath,resultHandler);
+        iface.mount(args.alluxioPath, args.ufsPath,resultHandler);
       }
     }
 
@@ -2469,8 +2469,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             remove_result result = new remove_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -2525,8 +2525,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             rename_result result = new rename_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -2586,8 +2586,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             setAttribute_result result = new setAttribute_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -2642,8 +2642,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             scheduleAsyncPersist_result result = new scheduleAsyncPersist_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -2698,8 +2698,8 @@ public class FileSystemMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             unmount_result result = new unmount_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -2729,7 +2729,7 @@ public class FileSystemMasterClientService {
       }
 
       public void start(I iface, unmount_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.unmount(args.tachyonPath,resultHandler);
+        iface.unmount(args.alluxioPath,resultHandler);
       }
     }
 
@@ -3235,7 +3235,7 @@ public class FileSystemMasterClientService {
       schemes.put(TupleScheme.class, new completeFile_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -3309,7 +3309,7 @@ public class FileSystemMasterClientService {
     }
 
     public completeFile_result(
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.e = e;
@@ -3320,7 +3320,7 @@ public class FileSystemMasterClientService {
      */
     public completeFile_result(completeFile_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -3333,11 +3333,11 @@ public class FileSystemMasterClientService {
       this.e = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public completeFile_result setE(alluxio.thrift.TachyonTException e) {
+    public completeFile_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -3363,7 +3363,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -3519,7 +3519,7 @@ public class FileSystemMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -3578,7 +3578,7 @@ public class FileSystemMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -4088,7 +4088,7 @@ public class FileSystemMasterClientService {
       schemes.put(TupleScheme.class, new createDirectory_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
     private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -4168,7 +4168,7 @@ public class FileSystemMasterClientService {
     }
 
     public createDirectory_result(
-      alluxio.thrift.TachyonTException e,
+      alluxio.thrift.AlluxioTException e,
       alluxio.thrift.ThriftIOException ioe)
     {
       this();
@@ -4181,7 +4181,7 @@ public class FileSystemMasterClientService {
      */
     public createDirectory_result(createDirectory_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
       if (other.isSetIoe()) {
         this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
@@ -4198,11 +4198,11 @@ public class FileSystemMasterClientService {
       this.ioe = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public createDirectory_result setE(alluxio.thrift.TachyonTException e) {
+    public createDirectory_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -4252,7 +4252,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -4453,7 +4453,7 @@ public class FileSystemMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -4532,7 +4532,7 @@ public class FileSystemMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -5047,7 +5047,7 @@ public class FileSystemMasterClientService {
       schemes.put(TupleScheme.class, new createFile_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
     private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -5127,7 +5127,7 @@ public class FileSystemMasterClientService {
     }
 
     public createFile_result(
-      alluxio.thrift.TachyonTException e,
+      alluxio.thrift.AlluxioTException e,
       alluxio.thrift.ThriftIOException ioe)
     {
       this();
@@ -5140,7 +5140,7 @@ public class FileSystemMasterClientService {
      */
     public createFile_result(createFile_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
       if (other.isSetIoe()) {
         this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
@@ -5157,11 +5157,11 @@ public class FileSystemMasterClientService {
       this.ioe = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public createFile_result setE(alluxio.thrift.TachyonTException e) {
+    public createFile_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -5211,7 +5211,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -5412,7 +5412,7 @@ public class FileSystemMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -5491,7 +5491,7 @@ public class FileSystemMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -5998,7 +5998,7 @@ public class FileSystemMasterClientService {
       schemes.put(TupleScheme.class, new free_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -6072,7 +6072,7 @@ public class FileSystemMasterClientService {
     }
 
     public free_result(
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.e = e;
@@ -6083,7 +6083,7 @@ public class FileSystemMasterClientService {
      */
     public free_result(free_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -6096,11 +6096,11 @@ public class FileSystemMasterClientService {
       this.e = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public free_result setE(alluxio.thrift.TachyonTException e) {
+    public free_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -6126,7 +6126,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -6282,7 +6282,7 @@ public class FileSystemMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -6341,7 +6341,7 @@ public class FileSystemMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -6733,7 +6733,7 @@ public class FileSystemMasterClientService {
     }
 
     private List<alluxio.thrift.FileBlockInfo> success; // required
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -6814,7 +6814,7 @@ public class FileSystemMasterClientService {
 
     public getFileBlockInfoList_result(
       List<alluxio.thrift.FileBlockInfo> success,
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
@@ -6833,7 +6833,7 @@ public class FileSystemMasterClientService {
         this.success = __this__success;
       }
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -6886,11 +6886,11 @@ public class FileSystemMasterClientService {
       }
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public getFileBlockInfoList_result setE(alluxio.thrift.TachyonTException e) {
+    public getFileBlockInfoList_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -6924,7 +6924,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -7136,7 +7136,7 @@ public class FileSystemMasterClientService {
               break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -7233,7 +7233,7 @@ public class FileSystemMasterClientService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -7625,7 +7625,7 @@ public class FileSystemMasterClientService {
     }
 
     private FileInfo success; // required
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -7705,7 +7705,7 @@ public class FileSystemMasterClientService {
 
     public getStatus_result(
       FileInfo success,
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
@@ -7720,7 +7720,7 @@ public class FileSystemMasterClientService {
         this.success = new FileInfo(other.success);
       }
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -7758,11 +7758,11 @@ public class FileSystemMasterClientService {
       }
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public getStatus_result setE(alluxio.thrift.TachyonTException e) {
+    public getStatus_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -7796,7 +7796,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -8001,7 +8001,7 @@ public class FileSystemMasterClientService {
               break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -8076,7 +8076,7 @@ public class FileSystemMasterClientService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -8466,7 +8466,7 @@ public class FileSystemMasterClientService {
     }
 
     private FileInfo success; // required
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -8546,7 +8546,7 @@ public class FileSystemMasterClientService {
 
     public getStatusInternal_result(
       FileInfo success,
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
@@ -8561,7 +8561,7 @@ public class FileSystemMasterClientService {
         this.success = new FileInfo(other.success);
       }
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -8599,11 +8599,11 @@ public class FileSystemMasterClientService {
       }
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public getStatusInternal_result setE(alluxio.thrift.TachyonTException e) {
+    public getStatusInternal_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -8637,7 +8637,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -8842,7 +8842,7 @@ public class FileSystemMasterClientService {
               break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -8917,7 +8917,7 @@ public class FileSystemMasterClientService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -9309,7 +9309,7 @@ public class FileSystemMasterClientService {
     }
 
     private long success; // required
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -9391,7 +9391,7 @@ public class FileSystemMasterClientService {
 
     public getNewBlockIdForFile_result(
       long success,
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
@@ -9406,7 +9406,7 @@ public class FileSystemMasterClientService {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -9444,11 +9444,11 @@ public class FileSystemMasterClientService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public getNewBlockIdForFile_result setE(alluxio.thrift.TachyonTException e) {
+    public getNewBlockIdForFile_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -9482,7 +9482,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -9681,7 +9681,7 @@ public class FileSystemMasterClientService {
               break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -9755,7 +9755,7 @@ public class FileSystemMasterClientService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -10756,7 +10756,7 @@ public class FileSystemMasterClientService {
     }
 
     private List<FileInfo> success; // required
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -10837,7 +10837,7 @@ public class FileSystemMasterClientService {
 
     public listStatus_result(
       List<FileInfo> success,
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
@@ -10856,7 +10856,7 @@ public class FileSystemMasterClientService {
         this.success = __this__success;
       }
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -10909,11 +10909,11 @@ public class FileSystemMasterClientService {
       }
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public listStatus_result setE(alluxio.thrift.TachyonTException e) {
+    public listStatus_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -10947,7 +10947,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -11159,7 +11159,7 @@ public class FileSystemMasterClientService {
               break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -11256,7 +11256,7 @@ public class FileSystemMasterClientService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -11761,7 +11761,7 @@ public class FileSystemMasterClientService {
     }
 
     private long success; // required
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
     private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -11849,7 +11849,7 @@ public class FileSystemMasterClientService {
 
     public loadMetadata_result(
       long success,
-      alluxio.thrift.TachyonTException e,
+      alluxio.thrift.AlluxioTException e,
       alluxio.thrift.ThriftIOException ioe)
     {
       this();
@@ -11866,7 +11866,7 @@ public class FileSystemMasterClientService {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
       if (other.isSetIoe()) {
         this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
@@ -11908,11 +11908,11 @@ public class FileSystemMasterClientService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public loadMetadata_result setE(alluxio.thrift.TachyonTException e) {
+    public loadMetadata_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -11970,7 +11970,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -12214,7 +12214,7 @@ public class FileSystemMasterClientService {
               break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -12308,7 +12308,7 @@ public class FileSystemMasterClientService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -12325,7 +12325,7 @@ public class FileSystemMasterClientService {
   public static class mount_args implements org.apache.thrift.TBase<mount_args, mount_args._Fields>, java.io.Serializable, Cloneable, Comparable<mount_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("mount_args");
 
-    private static final org.apache.thrift.protocol.TField TACHYON_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("tachyonPath", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField ALLUXIO_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("alluxioPath", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField UFS_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsPath", org.apache.thrift.protocol.TType.STRING, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -12334,7 +12334,7 @@ public class FileSystemMasterClientService {
       schemes.put(TupleScheme.class, new mount_argsTupleSchemeFactory());
     }
 
-    private String tachyonPath; // required
+    private String alluxioPath; // required
     private String ufsPath; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -12342,7 +12342,7 @@ public class FileSystemMasterClientService {
       /**
        * the path of alluxio mount point
        */
-      TACHYON_PATH((short)1, "tachyonPath"),
+      ALLUXIO_PATH((short)1, "alluxioPath"),
       /**
        * the path of the under file system
        */
@@ -12361,8 +12361,8 @@ public class FileSystemMasterClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // TACHYON_PATH
-            return TACHYON_PATH;
+          case 1: // ALLUXIO_PATH
+            return ALLUXIO_PATH;
           case 2: // UFS_PATH
             return UFS_PATH;
           default:
@@ -12408,7 +12408,7 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.TACHYON_PATH, new org.apache.thrift.meta_data.FieldMetaData("tachyonPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.ALLUXIO_PATH, new org.apache.thrift.meta_data.FieldMetaData("alluxioPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
@@ -12420,11 +12420,11 @@ public class FileSystemMasterClientService {
     }
 
     public mount_args(
-      String tachyonPath,
+      String alluxioPath,
       String ufsPath)
     {
       this();
-      this.tachyonPath = tachyonPath;
+      this.alluxioPath = alluxioPath;
       this.ufsPath = ufsPath;
     }
 
@@ -12432,8 +12432,8 @@ public class FileSystemMasterClientService {
      * Performs a deep copy on <i>other</i>.
      */
     public mount_args(mount_args other) {
-      if (other.isSetTachyonPath()) {
-        this.tachyonPath = other.tachyonPath;
+      if (other.isSetAlluxioPath()) {
+        this.alluxioPath = other.alluxioPath;
       }
       if (other.isSetUfsPath()) {
         this.ufsPath = other.ufsPath;
@@ -12446,37 +12446,37 @@ public class FileSystemMasterClientService {
 
     @Override
     public void clear() {
-      this.tachyonPath = null;
+      this.alluxioPath = null;
       this.ufsPath = null;
     }
 
     /**
      * the path of alluxio mount point
      */
-    public String getTachyonPath() {
-      return this.tachyonPath;
+    public String getAlluxioPath() {
+      return this.alluxioPath;
     }
 
     /**
      * the path of alluxio mount point
      */
-    public mount_args setTachyonPath(String tachyonPath) {
-      this.tachyonPath = tachyonPath;
+    public mount_args setAlluxioPath(String alluxioPath) {
+      this.alluxioPath = alluxioPath;
       return this;
     }
 
-    public void unsetTachyonPath() {
-      this.tachyonPath = null;
+    public void unsetAlluxioPath() {
+      this.alluxioPath = null;
     }
 
-    /** Returns true if field tachyonPath is set (has been assigned a value) and false otherwise */
-    public boolean isSetTachyonPath() {
-      return this.tachyonPath != null;
+    /** Returns true if field alluxioPath is set (has been assigned a value) and false otherwise */
+    public boolean isSetAlluxioPath() {
+      return this.alluxioPath != null;
     }
 
-    public void setTachyonPathIsSet(boolean value) {
+    public void setAlluxioPathIsSet(boolean value) {
       if (!value) {
-        this.tachyonPath = null;
+        this.alluxioPath = null;
       }
     }
 
@@ -12512,11 +12512,11 @@ public class FileSystemMasterClientService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case TACHYON_PATH:
+      case ALLUXIO_PATH:
         if (value == null) {
-          unsetTachyonPath();
+          unsetAlluxioPath();
         } else {
-          setTachyonPath((String)value);
+          setAlluxioPath((String)value);
         }
         break;
 
@@ -12533,8 +12533,8 @@ public class FileSystemMasterClientService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case TACHYON_PATH:
-        return getTachyonPath();
+      case ALLUXIO_PATH:
+        return getAlluxioPath();
 
       case UFS_PATH:
         return getUfsPath();
@@ -12550,8 +12550,8 @@ public class FileSystemMasterClientService {
       }
 
       switch (field) {
-      case TACHYON_PATH:
-        return isSetTachyonPath();
+      case ALLUXIO_PATH:
+        return isSetAlluxioPath();
       case UFS_PATH:
         return isSetUfsPath();
       }
@@ -12571,12 +12571,12 @@ public class FileSystemMasterClientService {
       if (that == null)
         return false;
 
-      boolean this_present_tachyonPath = true && this.isSetTachyonPath();
-      boolean that_present_tachyonPath = true && that.isSetTachyonPath();
-      if (this_present_tachyonPath || that_present_tachyonPath) {
-        if (!(this_present_tachyonPath && that_present_tachyonPath))
+      boolean this_present_alluxioPath = true && this.isSetAlluxioPath();
+      boolean that_present_alluxioPath = true && that.isSetAlluxioPath();
+      if (this_present_alluxioPath || that_present_alluxioPath) {
+        if (!(this_present_alluxioPath && that_present_alluxioPath))
           return false;
-        if (!this.tachyonPath.equals(that.tachyonPath))
+        if (!this.alluxioPath.equals(that.alluxioPath))
           return false;
       }
 
@@ -12596,10 +12596,10 @@ public class FileSystemMasterClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_tachyonPath = true && (isSetTachyonPath());
-      list.add(present_tachyonPath);
-      if (present_tachyonPath)
-        list.add(tachyonPath);
+      boolean present_alluxioPath = true && (isSetAlluxioPath());
+      list.add(present_alluxioPath);
+      if (present_alluxioPath)
+        list.add(alluxioPath);
 
       boolean present_ufsPath = true && (isSetUfsPath());
       list.add(present_ufsPath);
@@ -12617,12 +12617,12 @@ public class FileSystemMasterClientService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetTachyonPath()).compareTo(other.isSetTachyonPath());
+      lastComparison = Boolean.valueOf(isSetAlluxioPath()).compareTo(other.isSetAlluxioPath());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetTachyonPath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.tachyonPath, other.tachyonPath);
+      if (isSetAlluxioPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.alluxioPath, other.alluxioPath);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -12657,11 +12657,11 @@ public class FileSystemMasterClientService {
       StringBuilder sb = new StringBuilder("mount_args(");
       boolean first = true;
 
-      sb.append("tachyonPath:");
-      if (this.tachyonPath == null) {
+      sb.append("alluxioPath:");
+      if (this.alluxioPath == null) {
         sb.append("null");
       } else {
-        sb.append(this.tachyonPath);
+        sb.append(this.alluxioPath);
       }
       first = false;
       if (!first) sb.append(", ");
@@ -12715,10 +12715,10 @@ public class FileSystemMasterClientService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // TACHYON_PATH
+            case 1: // ALLUXIO_PATH
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.tachyonPath = iprot.readString();
-                struct.setTachyonPathIsSet(true);
+                struct.alluxioPath = iprot.readString();
+                struct.setAlluxioPathIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -12746,9 +12746,9 @@ public class FileSystemMasterClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.tachyonPath != null) {
-          oprot.writeFieldBegin(TACHYON_PATH_FIELD_DESC);
-          oprot.writeString(struct.tachyonPath);
+        if (struct.alluxioPath != null) {
+          oprot.writeFieldBegin(ALLUXIO_PATH_FIELD_DESC);
+          oprot.writeString(struct.alluxioPath);
           oprot.writeFieldEnd();
         }
         if (struct.ufsPath != null) {
@@ -12774,15 +12774,15 @@ public class FileSystemMasterClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, mount_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetTachyonPath()) {
+        if (struct.isSetAlluxioPath()) {
           optionals.set(0);
         }
         if (struct.isSetUfsPath()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
-        if (struct.isSetTachyonPath()) {
-          oprot.writeString(struct.tachyonPath);
+        if (struct.isSetAlluxioPath()) {
+          oprot.writeString(struct.alluxioPath);
         }
         if (struct.isSetUfsPath()) {
           oprot.writeString(struct.ufsPath);
@@ -12794,8 +12794,8 @@ public class FileSystemMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.tachyonPath = iprot.readString();
-          struct.setTachyonPathIsSet(true);
+          struct.alluxioPath = iprot.readString();
+          struct.setAlluxioPathIsSet(true);
         }
         if (incoming.get(1)) {
           struct.ufsPath = iprot.readString();
@@ -12818,7 +12818,7 @@ public class FileSystemMasterClientService {
       schemes.put(TupleScheme.class, new mount_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
     private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -12898,7 +12898,7 @@ public class FileSystemMasterClientService {
     }
 
     public mount_result(
-      alluxio.thrift.TachyonTException e,
+      alluxio.thrift.AlluxioTException e,
       alluxio.thrift.ThriftIOException ioe)
     {
       this();
@@ -12911,7 +12911,7 @@ public class FileSystemMasterClientService {
      */
     public mount_result(mount_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
       if (other.isSetIoe()) {
         this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
@@ -12928,11 +12928,11 @@ public class FileSystemMasterClientService {
       this.ioe = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public mount_result setE(alluxio.thrift.TachyonTException e) {
+    public mount_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -12982,7 +12982,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -13183,7 +13183,7 @@ public class FileSystemMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -13262,7 +13262,7 @@ public class FileSystemMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -13769,7 +13769,7 @@ public class FileSystemMasterClientService {
       schemes.put(TupleScheme.class, new remove_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -13843,7 +13843,7 @@ public class FileSystemMasterClientService {
     }
 
     public remove_result(
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.e = e;
@@ -13854,7 +13854,7 @@ public class FileSystemMasterClientService {
      */
     public remove_result(remove_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -13867,11 +13867,11 @@ public class FileSystemMasterClientService {
       this.e = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public remove_result setE(alluxio.thrift.TachyonTException e) {
+    public remove_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -13897,7 +13897,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -14053,7 +14053,7 @@ public class FileSystemMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -14112,7 +14112,7 @@ public class FileSystemMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -14617,7 +14617,7 @@ public class FileSystemMasterClientService {
       schemes.put(TupleScheme.class, new rename_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
     private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -14697,7 +14697,7 @@ public class FileSystemMasterClientService {
     }
 
     public rename_result(
-      alluxio.thrift.TachyonTException e,
+      alluxio.thrift.AlluxioTException e,
       alluxio.thrift.ThriftIOException ioe)
     {
       this();
@@ -14710,7 +14710,7 @@ public class FileSystemMasterClientService {
      */
     public rename_result(rename_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
       if (other.isSetIoe()) {
         this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
@@ -14727,11 +14727,11 @@ public class FileSystemMasterClientService {
       this.ioe = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public rename_result setE(alluxio.thrift.TachyonTException e) {
+    public rename_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -14781,7 +14781,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -14982,7 +14982,7 @@ public class FileSystemMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -15061,7 +15061,7 @@ public class FileSystemMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -15575,7 +15575,7 @@ public class FileSystemMasterClientService {
       schemes.put(TupleScheme.class, new setAttribute_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -15649,7 +15649,7 @@ public class FileSystemMasterClientService {
     }
 
     public setAttribute_result(
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.e = e;
@@ -15660,7 +15660,7 @@ public class FileSystemMasterClientService {
      */
     public setAttribute_result(setAttribute_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -15673,11 +15673,11 @@ public class FileSystemMasterClientService {
       this.e = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public setAttribute_result setE(alluxio.thrift.TachyonTException e) {
+    public setAttribute_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -15703,7 +15703,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -15859,7 +15859,7 @@ public class FileSystemMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -15918,7 +15918,7 @@ public class FileSystemMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -16308,7 +16308,7 @@ public class FileSystemMasterClientService {
       schemes.put(TupleScheme.class, new scheduleAsyncPersist_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -16382,7 +16382,7 @@ public class FileSystemMasterClientService {
     }
 
     public scheduleAsyncPersist_result(
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.e = e;
@@ -16393,7 +16393,7 @@ public class FileSystemMasterClientService {
      */
     public scheduleAsyncPersist_result(scheduleAsyncPersist_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -16406,11 +16406,11 @@ public class FileSystemMasterClientService {
       this.e = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public scheduleAsyncPersist_result setE(alluxio.thrift.TachyonTException e) {
+    public scheduleAsyncPersist_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -16436,7 +16436,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -16592,7 +16592,7 @@ public class FileSystemMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -16651,7 +16651,7 @@ public class FileSystemMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -16663,7 +16663,7 @@ public class FileSystemMasterClientService {
   public static class unmount_args implements org.apache.thrift.TBase<unmount_args, unmount_args._Fields>, java.io.Serializable, Cloneable, Comparable<unmount_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("unmount_args");
 
-    private static final org.apache.thrift.protocol.TField TACHYON_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("tachyonPath", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField ALLUXIO_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("alluxioPath", org.apache.thrift.protocol.TType.STRING, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -16671,14 +16671,14 @@ public class FileSystemMasterClientService {
       schemes.put(TupleScheme.class, new unmount_argsTupleSchemeFactory());
     }
 
-    private String tachyonPath; // required
+    private String alluxioPath; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
        * the path of the alluxio mount point
        */
-      TACHYON_PATH((short)1, "tachyonPath");
+      ALLUXIO_PATH((short)1, "alluxioPath");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -16693,8 +16693,8 @@ public class FileSystemMasterClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // TACHYON_PATH
-            return TACHYON_PATH;
+          case 1: // ALLUXIO_PATH
+            return ALLUXIO_PATH;
           default:
             return null;
         }
@@ -16738,7 +16738,7 @@ public class FileSystemMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.TACHYON_PATH, new org.apache.thrift.meta_data.FieldMetaData("tachyonPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.ALLUXIO_PATH, new org.apache.thrift.meta_data.FieldMetaData("alluxioPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(unmount_args.class, metaDataMap);
@@ -16748,18 +16748,18 @@ public class FileSystemMasterClientService {
     }
 
     public unmount_args(
-      String tachyonPath)
+      String alluxioPath)
     {
       this();
-      this.tachyonPath = tachyonPath;
+      this.alluxioPath = alluxioPath;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public unmount_args(unmount_args other) {
-      if (other.isSetTachyonPath()) {
-        this.tachyonPath = other.tachyonPath;
+      if (other.isSetAlluxioPath()) {
+        this.alluxioPath = other.alluxioPath;
       }
     }
 
@@ -16769,46 +16769,46 @@ public class FileSystemMasterClientService {
 
     @Override
     public void clear() {
-      this.tachyonPath = null;
+      this.alluxioPath = null;
     }
 
     /**
      * the path of the alluxio mount point
      */
-    public String getTachyonPath() {
-      return this.tachyonPath;
+    public String getAlluxioPath() {
+      return this.alluxioPath;
     }
 
     /**
      * the path of the alluxio mount point
      */
-    public unmount_args setTachyonPath(String tachyonPath) {
-      this.tachyonPath = tachyonPath;
+    public unmount_args setAlluxioPath(String alluxioPath) {
+      this.alluxioPath = alluxioPath;
       return this;
     }
 
-    public void unsetTachyonPath() {
-      this.tachyonPath = null;
+    public void unsetAlluxioPath() {
+      this.alluxioPath = null;
     }
 
-    /** Returns true if field tachyonPath is set (has been assigned a value) and false otherwise */
-    public boolean isSetTachyonPath() {
-      return this.tachyonPath != null;
+    /** Returns true if field alluxioPath is set (has been assigned a value) and false otherwise */
+    public boolean isSetAlluxioPath() {
+      return this.alluxioPath != null;
     }
 
-    public void setTachyonPathIsSet(boolean value) {
+    public void setAlluxioPathIsSet(boolean value) {
       if (!value) {
-        this.tachyonPath = null;
+        this.alluxioPath = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case TACHYON_PATH:
+      case ALLUXIO_PATH:
         if (value == null) {
-          unsetTachyonPath();
+          unsetAlluxioPath();
         } else {
-          setTachyonPath((String)value);
+          setAlluxioPath((String)value);
         }
         break;
 
@@ -16817,8 +16817,8 @@ public class FileSystemMasterClientService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case TACHYON_PATH:
-        return getTachyonPath();
+      case ALLUXIO_PATH:
+        return getAlluxioPath();
 
       }
       throw new IllegalStateException();
@@ -16831,8 +16831,8 @@ public class FileSystemMasterClientService {
       }
 
       switch (field) {
-      case TACHYON_PATH:
-        return isSetTachyonPath();
+      case ALLUXIO_PATH:
+        return isSetAlluxioPath();
       }
       throw new IllegalStateException();
     }
@@ -16850,12 +16850,12 @@ public class FileSystemMasterClientService {
       if (that == null)
         return false;
 
-      boolean this_present_tachyonPath = true && this.isSetTachyonPath();
-      boolean that_present_tachyonPath = true && that.isSetTachyonPath();
-      if (this_present_tachyonPath || that_present_tachyonPath) {
-        if (!(this_present_tachyonPath && that_present_tachyonPath))
+      boolean this_present_alluxioPath = true && this.isSetAlluxioPath();
+      boolean that_present_alluxioPath = true && that.isSetAlluxioPath();
+      if (this_present_alluxioPath || that_present_alluxioPath) {
+        if (!(this_present_alluxioPath && that_present_alluxioPath))
           return false;
-        if (!this.tachyonPath.equals(that.tachyonPath))
+        if (!this.alluxioPath.equals(that.alluxioPath))
           return false;
       }
 
@@ -16866,10 +16866,10 @@ public class FileSystemMasterClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_tachyonPath = true && (isSetTachyonPath());
-      list.add(present_tachyonPath);
-      if (present_tachyonPath)
-        list.add(tachyonPath);
+      boolean present_alluxioPath = true && (isSetAlluxioPath());
+      list.add(present_alluxioPath);
+      if (present_alluxioPath)
+        list.add(alluxioPath);
 
       return list.hashCode();
     }
@@ -16882,12 +16882,12 @@ public class FileSystemMasterClientService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetTachyonPath()).compareTo(other.isSetTachyonPath());
+      lastComparison = Boolean.valueOf(isSetAlluxioPath()).compareTo(other.isSetAlluxioPath());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetTachyonPath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.tachyonPath, other.tachyonPath);
+      if (isSetAlluxioPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.alluxioPath, other.alluxioPath);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -16912,11 +16912,11 @@ public class FileSystemMasterClientService {
       StringBuilder sb = new StringBuilder("unmount_args(");
       boolean first = true;
 
-      sb.append("tachyonPath:");
-      if (this.tachyonPath == null) {
+      sb.append("alluxioPath:");
+      if (this.alluxioPath == null) {
         sb.append("null");
       } else {
-        sb.append(this.tachyonPath);
+        sb.append(this.alluxioPath);
       }
       first = false;
       sb.append(")");
@@ -16962,10 +16962,10 @@ public class FileSystemMasterClientService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // TACHYON_PATH
+            case 1: // ALLUXIO_PATH
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.tachyonPath = iprot.readString();
-                struct.setTachyonPathIsSet(true);
+                struct.alluxioPath = iprot.readString();
+                struct.setAlluxioPathIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -16985,9 +16985,9 @@ public class FileSystemMasterClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.tachyonPath != null) {
-          oprot.writeFieldBegin(TACHYON_PATH_FIELD_DESC);
-          oprot.writeString(struct.tachyonPath);
+        if (struct.alluxioPath != null) {
+          oprot.writeFieldBegin(ALLUXIO_PATH_FIELD_DESC);
+          oprot.writeString(struct.alluxioPath);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -17008,12 +17008,12 @@ public class FileSystemMasterClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, unmount_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetTachyonPath()) {
+        if (struct.isSetAlluxioPath()) {
           optionals.set(0);
         }
         oprot.writeBitSet(optionals, 1);
-        if (struct.isSetTachyonPath()) {
-          oprot.writeString(struct.tachyonPath);
+        if (struct.isSetAlluxioPath()) {
+          oprot.writeString(struct.alluxioPath);
         }
       }
 
@@ -17022,8 +17022,8 @@ public class FileSystemMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.tachyonPath = iprot.readString();
-          struct.setTachyonPathIsSet(true);
+          struct.alluxioPath = iprot.readString();
+          struct.setAlluxioPathIsSet(true);
         }
       }
     }
@@ -17042,7 +17042,7 @@ public class FileSystemMasterClientService {
       schemes.put(TupleScheme.class, new unmount_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
     private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -17122,7 +17122,7 @@ public class FileSystemMasterClientService {
     }
 
     public unmount_result(
-      alluxio.thrift.TachyonTException e,
+      alluxio.thrift.AlluxioTException e,
       alluxio.thrift.ThriftIOException ioe)
     {
       this();
@@ -17135,7 +17135,7 @@ public class FileSystemMasterClientService {
      */
     public unmount_result(unmount_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
       if (other.isSetIoe()) {
         this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
@@ -17152,11 +17152,11 @@ public class FileSystemMasterClientService {
       this.ioe = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public unmount_result setE(alluxio.thrift.TachyonTException e) {
+    public unmount_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -17206,7 +17206,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -17407,7 +17407,7 @@ public class FileSystemMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -17486,7 +17486,7 @@ public class FileSystemMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }

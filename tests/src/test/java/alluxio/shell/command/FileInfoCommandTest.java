@@ -21,14 +21,14 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
-import alluxio.shell.TfsShellUtilsTest;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.shell.AlluxioShellUtilsTest;
 
 /**
  * Tests for fileInfo command.
  */
-public class FileInfoCommandTest extends AbstractTfsShellTest {
+public class FileInfoCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void fileinfoNotExistTest() throws IOException {
     int ret = mFsShell.run("fileInfo", "/NotExistFile");
@@ -38,8 +38,8 @@ public class FileInfoCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void fileinfoWildCardTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+  public void fileinfoWildCardTest() throws IOException, AlluxioException {
+    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
 
     mFsShell.run("fileInfo", "/testWildCards/*");
     String res1 = mOutput.toString();

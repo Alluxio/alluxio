@@ -34,13 +34,13 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.master.MasterBase;
 import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
@@ -126,7 +126,7 @@ public final class KeyValueMaster extends MasterBase {
       } else {
         throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
       }
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new RuntimeException(e);
     }
   }
@@ -166,7 +166,7 @@ public final class KeyValueMaster extends MasterBase {
    * @throws FileDoesNotExistException if the key-value store URI does not exists
    * @throws AccessControlException if permission checking fails
    */
-  public synchronized void completePartition(TachyonURI path, PartitionInfo info)
+  public synchronized void completePartition(AlluxioURI path, PartitionInfo info)
       throws FileDoesNotExistException, AccessControlException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
@@ -207,7 +207,7 @@ public final class KeyValueMaster extends MasterBase {
    * @throws FileDoesNotExistException if the key-value store URI does not exists
    * @throws AccessControlException if permission checking fails
    */
-  public synchronized void completeStore(TachyonURI path) throws FileDoesNotExistException,
+  public synchronized void completeStore(AlluxioURI path) throws FileDoesNotExistException,
       AccessControlException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
@@ -243,7 +243,7 @@ public final class KeyValueMaster extends MasterBase {
    * @throws InvalidPathException if the given path is invalid
    * @throws AccessControlException if permission checking fails
    */
-  public synchronized void createStore(TachyonURI path)
+  public synchronized void createStore(AlluxioURI path)
       throws FileAlreadyExistsException, InvalidPathException, AccessControlException {
     try {
       // Create this dir
@@ -280,14 +280,14 @@ public final class KeyValueMaster extends MasterBase {
   /**
    * Deletes a completed key-value store.
    *
-   * @param uri {@link TachyonURI} to the store
+   * @param uri {@link AlluxioURI} to the store
    * @throws IOException if non-Tachyon error occurs
    * @throws InvalidPathException if the uri exists but is not a key-value store
    * @throws FileDoesNotExistException if the uri does not exist
-   * @throws TachyonException if other Tachyon error occurs
+   * @throws AlluxioException if other Tachyon error occurs
    */
-  public synchronized void deleteStore(TachyonURI uri)
-      throws IOException, InvalidPathException, FileDoesNotExistException, TachyonException {
+  public synchronized void deleteStore(AlluxioURI uri)
+      throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException {
     long fileId = getFileId(uri);
     checkIsCompletePartition(fileId, uri);
     mFileSystemMaster.deleteFile(uri, true);
@@ -306,7 +306,7 @@ public final class KeyValueMaster extends MasterBase {
     mCompleteStoreToPartitions.remove(fileId);
   }
 
-  private long getFileId(TachyonURI uri) throws AccessControlException, FileDoesNotExistException {
+  private long getFileId(AlluxioURI uri) throws AccessControlException, FileDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(uri);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));
@@ -314,7 +314,7 @@ public final class KeyValueMaster extends MasterBase {
     return fileId;
   }
 
-  void checkIsCompletePartition(long fileId, TachyonURI uri) throws InvalidPathException {
+  void checkIsCompletePartition(long fileId, AlluxioURI uri) throws InvalidPathException {
     if (!mCompleteStoreToPartitions.containsKey(fileId)) {
       throw new InvalidPathException(ExceptionMessage.INVALID_KEY_VALUE_STORE_URI.getMessage(uri));
     }
@@ -323,15 +323,15 @@ public final class KeyValueMaster extends MasterBase {
   /**
    * Merges one completed key-value store to another completed key-value store.
    *
-   * @param fromUri the {@link TachyonURI} to the store to be merged
-   * @param toUri the {@link TachyonURI} to the store to be merged to
+   * @param fromUri the {@link AlluxioURI} to the store to be merged
+   * @param toUri the {@link AlluxioURI} to the store to be merged to
    * @throws IOException if non-Tachyon error occurs
    * @throws InvalidPathException if the uri exists but is not a key-value store
    * @throws FileDoesNotExistException if the uri does not exist
-   * @throws TachyonException if other Tachyon error occurs
+   * @throws AlluxioException if other Tachyon error occurs
    */
-  public synchronized void mergeStore(TachyonURI fromUri, TachyonURI toUri)
-      throws IOException, FileDoesNotExistException, InvalidPathException, TachyonException {
+  public synchronized void mergeStore(AlluxioURI fromUri, AlluxioURI toUri)
+      throws IOException, FileDoesNotExistException, InvalidPathException, AlluxioException {
     long fromFileId = getFileId(fromUri);
     long toFileId = getFileId(toUri);
     checkIsCompletePartition(fromFileId, fromUri);
@@ -339,7 +339,7 @@ public final class KeyValueMaster extends MasterBase {
 
     // Rename fromUri to "toUri/%s-%s" % (last component of fromUri, UUID).
     // NOTE: rename does not change the existing block IDs.
-    mFileSystemMaster.rename(fromUri, new TachyonURI(PathUtils.concatPath(toUri.toString(),
+    mFileSystemMaster.rename(fromUri, new AlluxioURI(PathUtils.concatPath(toUri.toString(),
         String.format("%s-%s", fromUri.getName(), UUID.randomUUID().toString()))));
     mergeStoreInternal(fromFileId, toFileId);
 
@@ -367,7 +367,7 @@ public final class KeyValueMaster extends MasterBase {
    * @throws FileDoesNotExistException if the key-value store URI does not exists
    * @throws AccessControlException if permission checking fails
    */
-  public synchronized List<PartitionInfo> getPartitionInfo(TachyonURI path)
+  public synchronized List<PartitionInfo> getPartitionInfo(AlluxioURI path)
       throws FileDoesNotExistException, AccessControlException {
     long fileId = getFileId(path);
     List<PartitionInfo> partitions = mCompleteStoreToPartitions.get(fileId);

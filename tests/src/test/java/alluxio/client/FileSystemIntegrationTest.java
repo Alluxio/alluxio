@@ -24,18 +24,18 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
@@ -46,8 +46,8 @@ public class FileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 2 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
           Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
   private FileSystem mFileSystem = null;
   private CreateFileOptions mWriteBoth;
@@ -57,58 +57,58 @@ public class FileSystemIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    mFileSystem = mLocalTachyonClusterResource.get().getClient();
-    TachyonConf conf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+    Configuration conf = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
     mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(conf);
   }
 
   @Test
-  public void getRootTest() throws IOException, TachyonException {
-    Assert.assertEquals(0, mFileSystem.getStatus(new TachyonURI("/")).getFileId());
+  public void getRootTest() throws IOException, AlluxioException {
+    Assert.assertEquals(0, mFileSystem.getStatus(new AlluxioURI("/")).getFileId());
   }
 
   @Test
-  public void createFileTest() throws IOException, TachyonException {
+  public void createFileTest() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = 1; k < 5; k ++) {
-      TachyonURI uri = new TachyonURI(uniqPath + k);
+      AlluxioURI uri = new AlluxioURI(uniqPath + k);
       mFileSystem.createFile(uri, mWriteBoth).close();
       Assert.assertNotNull(mFileSystem.getStatus(uri));
     }
   }
 
   @Test
-  public void createFileWithFileAlreadyExistsExceptionTest() throws IOException, TachyonException {
-    TachyonURI uri = new TachyonURI(PathUtils.uniqPath());
+  public void createFileWithFileAlreadyExistsExceptionTest() throws IOException, AlluxioException {
+    AlluxioURI uri = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createFile(uri, mWriteBoth).close();
     Assert.assertNotNull(mFileSystem.getStatus(uri));
     try {
       mFileSystem.createFile(uri, mWriteBoth);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       Assert.assertTrue(e instanceof FileAlreadyExistsException);
     }
   }
 
   @Test
-  public void createFileWithInvalidPathExceptionTest() throws IOException, TachyonException {
+  public void createFileWithInvalidPathExceptionTest() throws IOException, AlluxioException {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage(ExceptionMessage.PATH_INVALID.getMessage("root/testFile1"));
-    mFileSystem.createFile(new TachyonURI("root/testFile1"), mWriteBoth);
+    mFileSystem.createFile(new AlluxioURI("root/testFile1"), mWriteBoth);
   }
 
   @Test
-  public void deleteFileTest() throws IOException, TachyonException {
+  public void deleteFileTest() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
 
     for (int k = 0; k < 5; k ++) {
-      TachyonURI fileURI = new TachyonURI(uniqPath + k);
+      AlluxioURI fileURI = new AlluxioURI(uniqPath + k);
       FileSystemTestUtils.createByteFile(mFileSystem, fileURI.getPath(), k, mWriteBoth);
       Assert.assertTrue(mFileSystem.getStatus(fileURI).getInMemoryPercentage() == 100);
       Assert.assertNotNull(mFileSystem.getStatus(fileURI));
     }
 
     for (int k = 0; k < 5; k ++) {
-      TachyonURI fileURI = new TachyonURI(uniqPath + k);
+      AlluxioURI fileURI = new AlluxioURI(uniqPath + k);
       mFileSystem.delete(fileURI);
       Assert.assertFalse(mFileSystem.exists(fileURI));
       mThrown.expect(FileDoesNotExistException.class);
@@ -117,10 +117,10 @@ public class FileSystemIntegrationTest {
   }
 
   @Test
-  public void getFileStatusTest() throws IOException, TachyonException {
+  public void getFileStatusTest() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
-    TachyonURI uri = new TachyonURI(uniqPath);
+    AlluxioURI uri = new AlluxioURI(uniqPath);
     FileSystemTestUtils.createByteFile(mFileSystem, uri.getPath(), writeBytes, mWriteBoth);
     Assert.assertTrue(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
 
@@ -128,13 +128,13 @@ public class FileSystemIntegrationTest {
   }
 
   @Test
-  public void mkdirTest() throws IOException, TachyonException {
+  public void mkdirTest() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
     for (int k = 0; k < 10; k ++) {
-      mFileSystem.createDirectory(new TachyonURI(uniqPath + k), options);
+      mFileSystem.createDirectory(new AlluxioURI(uniqPath + k), options);
       try {
-        mFileSystem.createDirectory(new TachyonURI(uniqPath + k), options);
+        mFileSystem.createDirectory(new AlluxioURI(uniqPath + k), options);
         Assert.fail("mkdir should throw FileAlreadyExistsException");
       } catch (FileAlreadyExistsException e) {
         Assert.assertEquals(e.getMessage(),
@@ -144,13 +144,13 @@ public class FileSystemIntegrationTest {
   }
 
   @Test
-  public void renameFileTest1() throws IOException, TachyonException {
+  public void renameFileTest1() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
-    TachyonURI path1 = new TachyonURI(uniqPath + 1);
+    AlluxioURI path1 = new AlluxioURI(uniqPath + 1);
     mFileSystem.createFile(path1, mWriteBoth).close();
     for (int k = 1; k < 10; k ++) {
-      TachyonURI fileA = new TachyonURI(uniqPath + k);
-      TachyonURI fileB = new TachyonURI(uniqPath + (k + 1));
+      AlluxioURI fileA = new AlluxioURI(uniqPath + k);
+      AlluxioURI fileB = new AlluxioURI(uniqPath + (k + 1));
       URIStatus existingFile = mFileSystem.getStatus(fileA);
       long oldFileId = existingFile.getFileId();
       Assert.assertNotNull(existingFile);
@@ -162,8 +162,8 @@ public class FileSystemIntegrationTest {
   }
 
   @Test
-  public void renameFileTest2() throws IOException, TachyonException {
-    TachyonURI uniqUri = new TachyonURI(PathUtils.uniqPath());
+  public void renameFileTest2() throws IOException, AlluxioException {
+    AlluxioURI uniqUri = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createFile(uniqUri, mWriteBoth).close();
     URIStatus f = mFileSystem.getStatus(uniqUri);
     long oldFileId = f.getFileId();
@@ -179,12 +179,12 @@ public class FileSystemIntegrationTest {
    * @throws IOException if a UnderFS I/O error occurs
    */
   private String createAlternateUfs() throws InvalidPathException, IOException {
-    TachyonURI parentURI =
-        new TachyonURI(mLocalTachyonClusterResource.getTestConf().get(Constants.UNDERFS_ADDRESS))
+    AlluxioURI parentURI =
+        new AlluxioURI(mLocalAlluxioClusterResource.getTestConf().get(Constants.UNDERFS_ADDRESS))
             .getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     UnderFileSystemUtils.mkdirIfNotExists(alternateUfsRoot,
-        mLocalTachyonClusterResource.getTestConf());
+        mLocalAlluxioClusterResource.getTestConf());
     return alternateUfsRoot;
   }
 
@@ -194,18 +194,18 @@ public class FileSystemIntegrationTest {
    * @throws IOException if an UnderFS I/O error occurs
    */
   private void destroyAlternateUfs(String alternateUfsRoot) throws IOException {
-    UnderFileSystemUtils.deleteDir(alternateUfsRoot, mLocalTachyonClusterResource.getTestConf());
+    UnderFileSystemUtils.deleteDir(alternateUfsRoot, mLocalAlluxioClusterResource.getTestConf());
   }
 
   @Test
-  public void mountAlternateUfsTest() throws IOException, TachyonException {
+  public void mountAlternateUfsTest() throws IOException, AlluxioException {
     String alternateUfsRoot = createAlternateUfs();
     try {
       String filePath = PathUtils.concatPath(alternateUfsRoot, "file1");
-      UnderFileSystemUtils.touch(filePath, mLocalTachyonClusterResource.getTestConf());
-      mFileSystem.mount(new TachyonURI("/d1"), new TachyonURI(alternateUfsRoot));
-      mFileSystem.loadMetadata(new TachyonURI("/d1/file1"));
-      Assert.assertEquals("file1", mFileSystem.listStatus(new TachyonURI("/d1")).get(0).getName());
+      UnderFileSystemUtils.touch(filePath, mLocalAlluxioClusterResource.getTestConf());
+      mFileSystem.mount(new AlluxioURI("/d1"), new AlluxioURI(alternateUfsRoot));
+      mFileSystem.loadMetadata(new AlluxioURI("/d1/file1"));
+      Assert.assertEquals("file1", mFileSystem.listStatus(new AlluxioURI("/d1")).get(0).getName());
     } finally {
       destroyAlternateUfs(alternateUfsRoot);
     }
@@ -215,7 +215,7 @@ public class FileSystemIntegrationTest {
   public void mountAlternateUfsSubdirsTest() throws Exception {
     String alternateUfsRoot = createAlternateUfs();
     try {
-      TachyonConf testConf = mLocalTachyonClusterResource.getTestConf();
+      Configuration testConf = mLocalAlluxioClusterResource.getTestConf();
       String dirPath1 = PathUtils.concatPath(alternateUfsRoot, "dir1");
       String dirPath2 = PathUtils.concatPath(alternateUfsRoot, "dir2");
       UnderFileSystemUtils.mkdirIfNotExists(dirPath1, testConf);
@@ -225,12 +225,12 @@ public class FileSystemIntegrationTest {
       UnderFileSystemUtils.touch(filePath1, testConf);
       UnderFileSystemUtils.touch(filePath2, testConf);
 
-      mFileSystem.mount(new TachyonURI("/d1"), new TachyonURI(dirPath1));
-      mFileSystem.mount(new TachyonURI("/d2"), new TachyonURI(dirPath2));
-      mFileSystem.loadMetadata(new TachyonURI("/d1/file1"));
-      mFileSystem.loadMetadata(new TachyonURI("/d2/file2"));
-      Assert.assertEquals("file1", mFileSystem.listStatus(new TachyonURI("/d1")).get(0).getName());
-      Assert.assertEquals("file2", mFileSystem.listStatus(new TachyonURI("/d2")).get(0).getName());
+      mFileSystem.mount(new AlluxioURI("/d1"), new AlluxioURI(dirPath1));
+      mFileSystem.mount(new AlluxioURI("/d2"), new AlluxioURI(dirPath2));
+      mFileSystem.loadMetadata(new AlluxioURI("/d1/file1"));
+      mFileSystem.loadMetadata(new AlluxioURI("/d2/file2"));
+      Assert.assertEquals("file1", mFileSystem.listStatus(new AlluxioURI("/d1")).get(0).getName());
+      Assert.assertEquals("file2", mFileSystem.listStatus(new AlluxioURI("/d2")).get(0).getName());
     } finally {
       destroyAlternateUfs(alternateUfsRoot);
     }
@@ -238,13 +238,13 @@ public class FileSystemIntegrationTest {
 
   @Test
   public void mountPrefixUfsTest() throws Exception {
-    TachyonConf testConf = mLocalTachyonClusterResource.getTestConf();
+    Configuration testConf = mLocalAlluxioClusterResource.getTestConf();
     // Primary UFS cannot be re-mounted
     String ufsRoot = testConf.get(Constants.UNDERFS_ADDRESS);
     String ufsSubdir = PathUtils.concatPath(ufsRoot, "dir1");
     UnderFileSystemUtils.mkdirIfNotExists(ufsSubdir, testConf);
     try {
-      mFileSystem.mount(new TachyonURI("/dir"), new TachyonURI(ufsSubdir));
+      mFileSystem.mount(new AlluxioURI("/dir"), new AlluxioURI(ufsSubdir));
       Assert.fail("Cannot remount primary ufs.");
     } catch (InvalidPathException e) {
       // Exception expected
@@ -255,17 +255,17 @@ public class FileSystemIntegrationTest {
       String midDirPath = PathUtils.concatPath(alternateUfsRoot, "mid");
       String innerDirPath = PathUtils.concatPath(midDirPath, "inner");
       UnderFileSystemUtils.mkdirIfNotExists(innerDirPath, testConf);
-      mFileSystem.mount(new TachyonURI("/mid"), new TachyonURI(midDirPath));
+      mFileSystem.mount(new AlluxioURI("/mid"), new AlluxioURI(midDirPath));
       // Cannot mount suffix of already-mounted directory
       try {
-        mFileSystem.mount(new TachyonURI("/inner"), new TachyonURI(innerDirPath));
+        mFileSystem.mount(new AlluxioURI("/inner"), new AlluxioURI(innerDirPath));
         Assert.fail("Cannot mount suffix of already-mounted directory");
       } catch (InvalidPathException e) {
         // Exception expected, continue
       }
       // Cannot mount prefix of already-mounted directory
       try {
-        mFileSystem.mount(new TachyonURI("/root"), new TachyonURI(alternateUfsRoot));
+        mFileSystem.mount(new AlluxioURI("/root"), new AlluxioURI(alternateUfsRoot));
         Assert.fail("Cannot mount prefix of already-mounted directory");
       } catch (InvalidPathException e) {
         // Exception expected, continue
@@ -277,7 +277,7 @@ public class FileSystemIntegrationTest {
 
   @Test
   public void mountShadowUfsTest() throws Exception {
-    TachyonConf testConf = mLocalTachyonClusterResource.getTestConf();
+    Configuration testConf = mLocalAlluxioClusterResource.getTestConf();
     String ufsRoot = testConf.get(Constants.UNDERFS_ADDRESS);
     String ufsSubdir = PathUtils.concatPath(ufsRoot, "dir1");
     UnderFileSystemUtils.mkdirIfNotExists(ufsSubdir, testConf);
@@ -287,7 +287,7 @@ public class FileSystemIntegrationTest {
       String subdirPath = PathUtils.concatPath(alternateUfsRoot, "subdir");
       UnderFileSystemUtils.mkdirIfNotExists(subdirPath, testConf);
       // Cannot mount to path that shadows a file in the primary UFS
-      mFileSystem.mount(new TachyonURI("/dir1"), new TachyonURI(subdirPath));
+      mFileSystem.mount(new AlluxioURI("/dir1"), new AlluxioURI(subdirPath));
       Assert.fail("Cannot mount to path that shadows a file in the primary UFS");
     } catch (IOException e) {
       // Exception expected, continue

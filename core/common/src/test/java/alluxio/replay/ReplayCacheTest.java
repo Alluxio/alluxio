@@ -24,11 +24,11 @@ import org.junit.Test;
 import com.google.common.base.Throwables;
 
 import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.TachyonException;
-import alluxio.exception.TachyonExceptionType;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.AlluxioExceptionType;
 import alluxio.replay.ReplayCache.ReplayCallable;
 import alluxio.replay.ReplayCache.ReplayCallableThrowsIOException;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
 /**
@@ -122,8 +122,8 @@ public final class ReplayCacheTest {
   }
 
   /**
-   * Tests for {@link ReplayCallable}s that {@link TachyonException}s are properly re-thrown as
-   * {@link TachyonTException}s.
+   * Tests for {@link ReplayCallable}s that {@link AlluxioException}s are properly re-thrown as
+   * {@link AlluxioTException}s.
    *
    * @throws Exception when the replay logic fails
    */
@@ -132,15 +132,15 @@ public final class ReplayCacheTest {
     try {
       mCache.run("key", new ThrowingCallable(new FileAlreadyExistsException(TEST_ERROR_MESSAGE)));
       Assert.fail("Should have thrown TachyonTException");
-    } catch (TachyonTException e) {
+    } catch (AlluxioTException e) {
       Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
-      Assert.assertEquals(TachyonExceptionType.FILE_ALREADY_EXISTS.name(), e.getType());
+      Assert.assertEquals(AlluxioExceptionType.FILE_ALREADY_EXISTS.name(), e.getType());
     }
   }
 
   /**
-   * Tests for {@link ReplayCallableThrowsIOException}s that {@link TachyonException}s are properly
-   * rethrown as {@link TachyonTException}s.
+   * Tests for {@link ReplayCallableThrowsIOException}s that {@link AlluxioException}s are properly
+   * rethrown as {@link AlluxioTException}s.
    *
    * @throws Exception when the replay logic fails
    */
@@ -150,9 +150,9 @@ public final class ReplayCacheTest {
       mCache.run("key", new ThrowingCallableThrowsIOException(
           new FileAlreadyExistsException(TEST_ERROR_MESSAGE)));
       Assert.fail("Should have thrown TachyonTException");
-    } catch (TachyonTException e) {
+    } catch (AlluxioTException e) {
       Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
-      Assert.assertEquals(TachyonExceptionType.FILE_ALREADY_EXISTS.name(), e.getType());
+      Assert.assertEquals(AlluxioExceptionType.FILE_ALREADY_EXISTS.name(), e.getType());
     }
   }
 
@@ -212,7 +212,7 @@ public final class ReplayCacheTest {
     private long mCount = 0;
 
     @Override
-    public Long call() throws TachyonException {
+    public Long call() throws AlluxioException {
       return ++ mCount;
     }
   }
@@ -224,14 +224,14 @@ public final class ReplayCacheTest {
     private long mCount = 0;
 
     @Override
-    public Long call() throws TachyonException, IOException {
+    public Long call() throws AlluxioException, IOException {
       return ++ mCount;
     }
   }
 
   /**
    * Class which throws the given {@link Exception}, which should be either a
-   * {@link TachyonException} or {@link RuntimeException}.
+   * {@link AlluxioException} or {@link RuntimeException}.
    */
   private class ThrowingCallable implements ReplayCallable<Long> {
     private final Exception mException;
@@ -241,15 +241,15 @@ public final class ReplayCacheTest {
     }
 
     @Override
-    public Long call() throws TachyonException {
+    public Long call() throws AlluxioException {
       // If it's a TachyonException, don't wrap it in RuntimeException
-      Throwables.propagateIfInstanceOf(mException, TachyonException.class);
+      Throwables.propagateIfInstanceOf(mException, AlluxioException.class);
       throw Throwables.propagate(mException);
     }
   }
 
   /**
-   * Class which throws the given {@link Exception}, which should be a {@link TachyonException},
+   * Class which throws the given {@link Exception}, which should be a {@link AlluxioException},
    * {@link IOException}, or {@link RuntimeException}.
    */
   private class ThrowingCallableThrowsIOException implements ReplayCallableThrowsIOException<Long> {
@@ -260,9 +260,9 @@ public final class ReplayCacheTest {
     }
 
     @Override
-    public Long call() throws TachyonException, IOException {
+    public Long call() throws AlluxioException, IOException {
       // If it's a TachyonException or IOException, don't wrap it in RuntimeException
-      Throwables.propagateIfInstanceOf(mException, TachyonException.class);
+      Throwables.propagateIfInstanceOf(mException, AlluxioException.class);
       Throwables.propagateIfInstanceOf(mException, IOException.class);
       throw Throwables.propagate(mException);
     }

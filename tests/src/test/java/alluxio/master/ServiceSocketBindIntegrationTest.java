@@ -27,11 +27,11 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
+import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -41,11 +41,11 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
  */
 public class ServiceSocketBindIntegrationTest {
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(100, Constants.GB, false);
-  private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonConf mWorkerTachyonConf = null;
-  private TachyonConf mMasterTachyonConf = null;
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource(100, Constants.GB, false);
+  private LocalAlluxioCluster mLocalTachyonCluster = null;
+  private Configuration mWorkerConfiguration = null;
+  private Configuration mMasterConfiguration = null;
 
   private BlockMasterClient mBlockMasterClient;
   private HttpURLConnection mMasterWebService;
@@ -55,19 +55,19 @@ public class ServiceSocketBindIntegrationTest {
 
   private void startCluster(String bindHost) throws Exception {
     for (ServiceType service : ServiceType.values()) {
-      mLocalTachyonClusterResource.getTestConf().set(service.getBindHostKey(), bindHost);
+      mLocalAlluxioClusterResource.getTestConf().set(service.getBindHostKey(), bindHost);
     }
-    mLocalTachyonClusterResource.start();
-    mLocalTachyonCluster = mLocalTachyonClusterResource.get();
-    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
+    mLocalAlluxioClusterResource.start();
+    mLocalTachyonCluster = mLocalAlluxioClusterResource.get();
+    mMasterConfiguration = mLocalTachyonCluster.getMasterTachyonConf();
+    mWorkerConfiguration = mLocalTachyonCluster.getWorkerTachyonConf();
   }
 
   private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
     mBlockMasterClient =
         new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
-            mLocalTachyonCluster.getMasterPort()), mMasterTachyonConf);
+            mLocalTachyonCluster.getMasterPort()), mMasterConfiguration);
     mBlockMasterClient.connect();
 
     // connect Worker RPC service
@@ -76,11 +76,11 @@ public class ServiceSocketBindIntegrationTest {
 
     // connect Worker data service
     mWorkerDataService = SocketChannel
-        .open(NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_DATA, mWorkerTachyonConf));
+        .open(NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_DATA, mWorkerConfiguration));
 
     // connect Master Web service
     InetSocketAddress masterWebAddr =
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, mMasterTachyonConf);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, mMasterConfiguration);
     mMasterWebService =
         (HttpURLConnection) new URL("http://" + masterWebAddr.getAddress().getHostAddress() + ":"
             + masterWebAddr.getPort() + "/css/tachyoncustom.min.css").openConnection();
@@ -88,7 +88,7 @@ public class ServiceSocketBindIntegrationTest {
 
     // connect Worker Web service
     InetSocketAddress workerWebAddr =
-        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_WEB, mWorkerTachyonConf);
+        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_WEB, mWorkerConfiguration);
     mWorkerWebService =
         (HttpURLConnection) new URL("http://" + workerWebAddr.getAddress().getHostAddress() + ":"
             + workerWebAddr.getPort() + "/css/tachyoncustom.min.css").openConnection();
@@ -203,7 +203,7 @@ public class ServiceSocketBindIntegrationTest {
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
     InetSocketAddress masterRPCAddr =
         new InetSocketAddress("127.0.0.1", mLocalTachyonCluster.getMaster().getRPCLocalPort());
-    mBlockMasterClient = new BlockMasterClient(masterRPCAddr, mMasterTachyonConf);
+    mBlockMasterClient = new BlockMasterClient(masterRPCAddr, mMasterConfiguration);
     try {
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to master RPC service.");

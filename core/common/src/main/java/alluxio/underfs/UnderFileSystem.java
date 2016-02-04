@@ -28,9 +28,9 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.io.PathUtils;
 
 /**
@@ -39,7 +39,7 @@ import alluxio.util.io.PathUtils;
  */
 @ThreadSafe
 public abstract class UnderFileSystem {
-  protected final TachyonConf mTachyonConf;
+  protected final Configuration mConfiguration;
 
   /**
    * This variable indicates whether the underFS actually provides storage. Most UnderFS should
@@ -86,11 +86,11 @@ public abstract class UnderFileSystem {
    * Gets the UnderFileSystem instance according to its schema.
    *
    * @param path file path storing over the ufs
-   * @param tachyonConf the {@link alluxio.conf.TachyonConf} instance
+   * @param configuration the {@link Configuration} instance
    * @return instance of the under layer file system
    */
-  public static UnderFileSystem get(String path, TachyonConf tachyonConf) {
-    return get(path, null, tachyonConf);
+  public static UnderFileSystem get(String path, Configuration configuration) {
+    return get(path, null, configuration);
   }
 
   /**
@@ -98,15 +98,15 @@ public abstract class UnderFileSystem {
    *
    * @param path file path storing over the ufs
    * @param ufsConf the configuration object for ufs only
-   * @param tachyonConf the {@link alluxio.conf.TachyonConf} instance
+   * @param configuration the {@link Configuration} instance
    * @return instance of the under layer file system
    */
-  public static UnderFileSystem get(String path, Object ufsConf, TachyonConf tachyonConf) {
+  public static UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
     Preconditions.checkArgument(path != null, "path may not be null");
-    Preconditions.checkNotNull(tachyonConf);
+    Preconditions.checkNotNull(configuration);
 
     // Use the registry to determine the factory to use to create the client
-    return UnderFileSystemRegistry.create(path, tachyonConf, ufsConf);
+    return UnderFileSystemRegistry.create(path, configuration, ufsConf);
   }
 
   /**
@@ -135,15 +135,15 @@ public abstract class UnderFileSystem {
    * {@link String#startsWith(String)} to see if the configured schemas are found.
    *
    * @param path the path in under filesystem
-   * @param tachyonConf the configuration for Tachyon
+   * @param configuration the configuration for Tachyon
    * @return true if the given path is on a Hadoop under file system, false otherwise
    */
-  public static boolean isHadoopUnderFS(final String path, TachyonConf tachyonConf) {
+  public static boolean isHadoopUnderFS(final String path, Configuration configuration) {
     // TODO(hy): In Hadoop 2.x this can be replaced with the simpler call to
     // FileSystem.getFileSystemClass() without any need for having users explicitly declare the file
     // system schemes to treat as being HDFS. However as long as pre 2.x versions of Hadoop are
     // supported this is not an option and we have to continue to use this method.
-    for (final String prefix : tachyonConf.getList(Constants.UNDERFS_HDFS_PREFIXS, ",")) {
+    for (final String prefix : configuration.getList(Constants.UNDERFS_HDFS_PREFIXS, ",")) {
       if (path.startsWith(prefix)) {
         return true;
       }
@@ -166,38 +166,38 @@ public abstract class UnderFileSystem {
    * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
    *
    * @param path the input path string
-   * @param tachyonConf the configuration for Tachyon
+   * @param configuration the configuration for Tachyon
    * @return null if path does not start with alluxio://, alluxio-ft://, hdfs://, s3://, s3n://,
    *         file://, /. Or a pair of strings denoting the under FS address and the relative path
    *         relative to that address. For local FS (with prefixes file:// or /), the under FS
    *         address is "/" and the path starts with "/".
    */
-  public static Pair<String, String> parse(TachyonURI path, TachyonConf tachyonConf) {
+  public static Pair<String, String> parse(AlluxioURI path, Configuration configuration) {
     Preconditions.checkNotNull(path);
 
     if (path.hasScheme()) {
       String header = path.getScheme() + "://";
       String authority = (path.hasAuthority()) ? path.getAuthority() : "";
       if (header.equals(Constants.HEADER) || header.equals(Constants.HEADER_FT)
-          || isHadoopUnderFS(header, tachyonConf) || header.equals(Constants.HEADER_S3)
+          || isHadoopUnderFS(header, configuration) || header.equals(Constants.HEADER_S3)
           || header.equals(Constants.HEADER_S3N) || header.equals(Constants.HEADER_OSS)) {
         if (path.getPath().isEmpty()) {
-          return new Pair<String, String>(header + authority, TachyonURI.SEPARATOR);
+          return new Pair<String, String>(header + authority, AlluxioURI.SEPARATOR);
         } else {
           return new Pair<String, String>(header + authority, path.getPath());
         }
       } else if (header.equals("file://")) {
-        return new Pair<String, String>(TachyonURI.SEPARATOR, path.getPath());
+        return new Pair<String, String>(AlluxioURI.SEPARATOR, path.getPath());
       }
     } else if (path.isPathAbsolute()) {
-      return new Pair<String, String>(TachyonURI.SEPARATOR, path.getPath());
+      return new Pair<String, String>(AlluxioURI.SEPARATOR, path.getPath());
     }
 
     return null;
   }
 
-  protected UnderFileSystem(TachyonConf tachyonConf) {
-    mTachyonConf = tachyonConf;
+  protected UnderFileSystem(Configuration configuration) {
+    mConfiguration = configuration;
   }
 
   /**
@@ -211,7 +211,7 @@ public abstract class UnderFileSystem {
    * @param hostname The host that wants to connect to the under file system
    * @throws IOException if a non-Tachyon error occurs
    */
-  public abstract void connectFromMaster(TachyonConf conf, String hostname) throws IOException;
+  public abstract void connectFromMaster(Configuration conf, String hostname) throws IOException;
 
   /**
    * Takes any necessary actions required to establish a connection to the under file system from
@@ -224,7 +224,7 @@ public abstract class UnderFileSystem {
    * @param hostname The host that wants to connect to the under file system
    * @throws IOException if a non-Tachyon error occurs
    */
-  public abstract void connectFromWorker(TachyonConf conf, String hostname) throws IOException;
+  public abstract void connectFromWorker(Configuration conf, String hostname) throws IOException;
 
   /**
    * Closes this under file system.
@@ -401,7 +401,7 @@ public abstract class UnderFileSystem {
    */
   public String[] listRecursive(String path) throws IOException {
     // Clean the path by creating a URI and turning it back to a string
-    TachyonURI uri = new TachyonURI(path);
+    AlluxioURI uri = new AlluxioURI(path);
     path = uri.toString();
     List<String> returnPaths = new ArrayList<String>();
     Queue<String> pathsToProcess = new ArrayDeque<String>();

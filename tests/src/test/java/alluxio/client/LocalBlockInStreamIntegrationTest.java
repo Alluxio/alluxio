@@ -26,15 +26,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
@@ -47,14 +47,14 @@ public final class LocalBlockInStreamIntegrationTest {
   private static final int DELTA = 33;
 
   @ClassRule
-  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource();
+  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource();
   private static FileSystem sFileSystem = null;
   private static CreateFileOptions sWriteBoth;
   private static CreateFileOptions sWriteTachyon;
   private static OpenFileOptions sReadNoCache;
   private static OpenFileOptions sReadCache;
-  private static TachyonConf sTachyonConf;
+  private static Configuration sConfiguration;
   private static String sTestPath;
 
   @Rule
@@ -62,18 +62,18 @@ public final class LocalBlockInStreamIntegrationTest {
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sFileSystem = sLocalTachyonClusterResource.get().getClient();
-    sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
-    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(sTachyonConf);
-    sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sTachyonConf);
-    sReadCache = StreamOptionUtils.getOpenFileOptionsCache(sTachyonConf);
-    sReadNoCache = StreamOptionUtils.getOpenFileOptionsNoCache(sTachyonConf);
+    sFileSystem = sLocalAlluxioClusterResource.get().getClient();
+    sConfiguration = sLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(sConfiguration);
+    sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sConfiguration);
+    sReadCache = StreamOptionUtils.getOpenFileOptionsCache(sConfiguration);
+    sReadNoCache = StreamOptionUtils.getOpenFileOptionsNoCache(sConfiguration);
     sTestPath = PathUtils.uniqPath();
 
     // Create files of varying size and write type to later read from
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI path = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
+        AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
         FileSystemTestUtils.createByteFile(sFileSystem, path, op, k);
       }
     }
@@ -90,10 +90,10 @@ public final class LocalBlockInStreamIntegrationTest {
    * Test {@link alluxio.client.block.LocalBlockInStream#read()}.
    */
   @Test
-  public void readTest1() throws IOException, TachyonException {
+  public void readTest1() throws IOException, AlluxioException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI uri = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
+        AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
         byte[] ret = new byte[k];
@@ -131,10 +131,10 @@ public final class LocalBlockInStreamIntegrationTest {
    * Test {@link alluxio.client.block.LocalBlockInStream#read(byte[])}.
    */
   @Test
-  public void readTest2() throws IOException, TachyonException {
+  public void readTest2() throws IOException, AlluxioException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI uri = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
+        AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
         byte[] ret = new byte[k];
@@ -156,10 +156,10 @@ public final class LocalBlockInStreamIntegrationTest {
    * Test {@link alluxio.client.block.LocalBlockInStream#read(byte[], int, int)}.
    */
   @Test
-  public void readTest3() throws IOException, TachyonException {
+  public void readTest3() throws IOException, AlluxioException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI uri = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
+        AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
         byte[] ret = new byte[k / 2];
@@ -182,15 +182,15 @@ public final class LocalBlockInStreamIntegrationTest {
    * exception for seeking a negative position.
    *
    * @throws IOException
-   * @throws TachyonException
+   * @throws AlluxioException
    */
   @Test
-  public void seekExceptionTest1() throws IOException, TachyonException {
+  public void seekExceptionTest1() throws IOException, AlluxioException {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE, -1));
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI uri = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
+        AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
 
@@ -208,16 +208,16 @@ public final class LocalBlockInStreamIntegrationTest {
    * exception for seeking a position that is past buffer limit.
    *
    * @throws IOException
-   * @throws TachyonException
+   * @throws AlluxioException
    */
   @Test
-  public void seekExceptionTest2() throws IOException, TachyonException {
+  public void seekExceptionTest2() throws IOException, AlluxioException {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, 1));
 
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI uri = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
+        AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
         try {
@@ -233,13 +233,13 @@ public final class LocalBlockInStreamIntegrationTest {
    * Test {@link alluxio.client.block.LocalBlockInStream#seek(long)}.
    *
    * @throws IOException
-   * @throws TachyonException
+   * @throws AlluxioException
    */
   @Test
-  public void seekTest() throws IOException, TachyonException {
+  public void seekTest() throws IOException, AlluxioException {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI uri = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
+        AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
 
@@ -258,10 +258,10 @@ public final class LocalBlockInStreamIntegrationTest {
    * Test {@link alluxio.client.block.LocalBlockInStream#skip(long)}.
    */
   @Test
-  public void skipTest() throws IOException, TachyonException {
+  public void skipTest() throws IOException, AlluxioException {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI uri = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
+        AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
         Assert.assertEquals(k / 2, is.skip(k / 2));

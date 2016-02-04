@@ -31,7 +31,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -55,14 +55,14 @@ import alluxio.wire.WorkerNetAddress;
  */
 public final class MasterSourceTest {
   private static final long TTLCHECKER_INTERVAL_MS = 0;
-  private static final TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
-  private static final TachyonURI ROOT_URI = new TachyonURI("/");
-  private static final TachyonURI ROOT_FILE_URI = new TachyonURI("/file");
-  private static final TachyonURI TEST_URI = new TachyonURI("/test");
+  private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
+  private static final AlluxioURI ROOT_URI = new AlluxioURI("/");
+  private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
+  private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
 
-  private static final TachyonURI DIRECTORY_URI = new TachyonURI("/directory");
-  private static final TachyonURI MOUNT_URI =
-      new TachyonURI("/tmp/mount-" + System.currentTimeMillis());
+  private static final AlluxioURI DIRECTORY_URI = new AlluxioURI("/directory");
+  private static final AlluxioURI MOUNT_URI =
+      new AlluxioURI("/tmp/mount-" + System.currentTimeMillis());
 
   private static CreateFileOptions sNestedFileOptions =
       new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
@@ -112,7 +112,7 @@ public final class MasterSourceTest {
     MasterContext.reset();
     mCounters = MasterContext.getMasterSource().getMetricRegistry().getCounters();
 
-    mUfs = UnderFileSystem.get(TachyonURI.SEPARATOR, MasterContext.getConf());
+    mUfs = UnderFileSystem.get(AlluxioURI.SEPARATOR, MasterContext.getConf());
   }
 
   /**
@@ -229,7 +229,7 @@ public final class MasterSourceTest {
 
     // trying to get block info list for a non-existent file
     try {
-      mFileSystemMaster.getFileBlockInfoList(new TachyonURI("/doesNotExist"));
+      mFileSystemMaster.getFileBlockInfoList(new AlluxioURI("/doesNotExist"));
       Assert.fail("get file block info for a non existing file must throw an exception");
     } catch (InvalidPathException e) {
       Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/doesNotExist"),
@@ -422,7 +422,7 @@ public final class MasterSourceTest {
     Assert.assertEquals(1, mCounters.get("UnmountOps").getCount());
   }
 
-  private void createCompleteFileWithSingleBlock(TachyonURI path) throws Exception {
+  private void createCompleteFileWithSingleBlock(AlluxioURI path) throws Exception {
     mFileSystemMaster.create(path, sNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(path);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, "MEM", blockId, Constants.KB);
@@ -431,13 +431,13 @@ public final class MasterSourceTest {
     mFileSystemMaster.completeFile(path, options);
   }
 
-  private long writeBlockForFile(TachyonURI path) throws Exception {
+  private long writeBlockForFile(AlluxioURI path) throws Exception {
     long blockId = mFileSystemMaster.getNewBlockIdForFile(path);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, "MEM", blockId, Constants.KB);
     return blockId;
   }
 
-  private void completeFile(TachyonURI path) throws Exception {
+  private void completeFile(AlluxioURI path) throws Exception {
     CompleteFileOptions options =
         new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(Constants.KB).build();
     mFileSystemMaster.completeFile(path, options);

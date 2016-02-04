@@ -31,15 +31,15 @@ import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.TachyonException;
-import alluxio.shell.TfsShellUtils;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AlluxioShellUtils;
 import alluxio.util.io.PathUtils;
 
 /**
@@ -47,13 +47,13 @@ import alluxio.util.io.PathUtils;
  * This command will fail if "remote path" already exists.
  */
 @ThreadSafe
-public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
+public final class CopyFromLocalCommand extends AbstractShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public CopyFromLocalCommand(TachyonConf conf, FileSystem fs) {
+  public CopyFromLocalCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -71,13 +71,13 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
   public void run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
     String srcPath = args[0];
-    TachyonURI dstPath = new TachyonURI(args[1]);
-    List<File> srcFiles = TfsShellUtils.getFiles(srcPath);
+    AlluxioURI dstPath = new AlluxioURI(args[1]);
+    List<File> srcFiles = AlluxioShellUtils.getFiles(srcPath);
     if (srcFiles.size() == 0) {
       throw new IOException("Local path " + srcPath + " does not exist.");
     }
 
-    if (srcPath.contains(TachyonURI.WILDCARD)) {
+    if (srcPath.contains(AlluxioURI.WILDCARD)) {
       copyFromLocalWildcard(srcFiles, dstPath);
     } else {
       copyFromLocal(new File(srcPath), dstPath);
@@ -90,22 +90,22 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
    * wildcards.
    *
    * @param srcFiles The list of files in the local filesystem
-   * @param dstPath The {@link TachyonURI} of the destination
+   * @param dstPath The {@link AlluxioURI} of the destination
    * @throws IOException if a non-Tachyon related exception occurs
    */
-  private void copyFromLocalWildcard(List<File> srcFiles, TachyonURI dstPath) throws IOException {
+  private void copyFromLocalWildcard(List<File> srcFiles, AlluxioURI dstPath) throws IOException {
     try {
       mFileSystem.createDirectory(dstPath);
     } catch (FileAlreadyExistsException e) {
       // it's fine if the directory already exists
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
 
     URIStatus dstStatus;
     try {
       dstStatus = mFileSystem.getStatus(dstPath);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
     if (!dstStatus.isFolder()) {
@@ -117,7 +117,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
     for (File srcFile : srcFiles) {
       try {
         copyFromLocal(srcFile,
-            new TachyonURI(PathUtils.concatPath(dstPath.getPath(), srcFile.getName())));
+            new AlluxioURI(PathUtils.concatPath(dstPath.getPath(), srcFile.getName())));
       } catch (IOException e) {
         errorMessages.add(e.getMessage());
       }
@@ -132,16 +132,16 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
    * Tachyon filesystem space. Will fail if the path given already exists in the filesystem.
    *
    * @param srcFile The source file in the local filesystem
-   * @param dstPath The {@link TachyonURI} of the destination
+   * @param dstPath The {@link AlluxioURI} of the destination
    * @throws IOException if a non-Tachyon related exception occurs
    */
-  private void copyFromLocal(File srcFile, TachyonURI dstPath)
+  private void copyFromLocal(File srcFile, AlluxioURI dstPath)
       throws IOException {
     copyPath(srcFile, dstPath);
     System.out.println("Copied " + srcFile.getPath() + " to " + dstPath);
   }
 
-  private void copyPath(File src, TachyonURI dstPath) throws IOException {
+  private void copyPath(File src, AlluxioURI dstPath) throws IOException {
     try {
       if (!src.isDirectory()) {
         // If the dstPath is a directory, then it should be updated to be the path of the file where
@@ -179,7 +179,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
         List<String> errorMessages = Lists.newArrayList();
         String[] fileList = src.list();
         for (String file : fileList) {
-          TachyonURI newPath = new TachyonURI(dstPath, new TachyonURI(file));
+          AlluxioURI newPath = new AlluxioURI(dstPath, new AlluxioURI(file));
           File srcFile = new File(src, file);
           try {
             copyPath(srcFile, newPath);
@@ -197,7 +197,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
           throw new IOException(Joiner.on('\n').join(errorMessages));
         }
       }
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
   }

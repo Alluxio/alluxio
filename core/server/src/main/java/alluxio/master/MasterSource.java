@@ -97,31 +97,31 @@ public class MasterSource implements Source {
   /**
    * Registers metric gauges.
    *
-   * @param tachyonMaster a Tachyon master handle
+   * @param alluxioMaster a Tachyon master handle
    */
-  public void registerGauges(final TachyonMaster tachyonMaster) {
+  public void registerGauges(final AlluxioMaster alluxioMaster) {
     if (mGaugesRegistered) {
       return;
     }
     mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
       @Override
       public Long getValue() {
-        return tachyonMaster.getBlockMaster().getCapacityBytes();
+        return alluxioMaster.getBlockMaster().getCapacityBytes();
       }
     });
 
     mMetricRegistry.register(MetricRegistry.name("CapacityUsed"), new Gauge<Long>() {
       @Override
       public Long getValue() {
-        return tachyonMaster.getBlockMaster().getUsedBytes();
+        return alluxioMaster.getBlockMaster().getUsedBytes();
       }
     });
 
     mMetricRegistry.register(MetricRegistry.name("CapacityFree"), new Gauge<Long>() {
       @Override
       public Long getValue() {
-        return tachyonMaster.getBlockMaster().getCapacityBytes()
-            - tachyonMaster.getBlockMaster().getUsedBytes();
+        return alluxioMaster.getBlockMaster().getCapacityBytes()
+            - alluxioMaster.getBlockMaster().getUsedBytes();
       }
     });
 
@@ -173,21 +173,21 @@ public class MasterSource implements Source {
     mMetricRegistry.register(MetricRegistry.name("Workers"), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
-        return tachyonMaster.getBlockMaster().getWorkerCount();
+        return alluxioMaster.getBlockMaster().getWorkerCount();
       }
     });
 
     mMetricRegistry.register(MetricRegistry.name("PathsTotal"), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
-        return tachyonMaster.getFileSystemMaster().getNumberOfPaths();
+        return alluxioMaster.getFileSystemMaster().getNumberOfPaths();
       }
     });
 
     mMetricRegistry.register(MetricRegistry.name("FilesPinned"), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
-        return tachyonMaster.getFileSystemMaster().getNumberOfPinnedFiles();
+        return alluxioMaster.getFileSystemMaster().getNumberOfPinnedFiles();
       }
     });
 

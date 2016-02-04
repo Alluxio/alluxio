@@ -30,10 +30,10 @@ import org.apache.hadoop.mapred.TaskAttemptContext;
 
 import com.google.common.collect.Lists;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * Extension of {@link FileOutputCommitter} where creating, completing, or deleting a
@@ -47,12 +47,12 @@ import alluxio.exception.TachyonException;
 public final class KeyValueOutputCommitter extends FileOutputCommitter {
   private static final KeyValueSystem KEY_VALUE_SYSTEM = KeyValueSystem.Factory.create();
 
-  private List<TachyonURI> getTaskTemporaryStores(JobConf conf) throws IOException {
-    TachyonURI taskOutputURI = KeyValueOutputFormat.getTaskOutputURI(conf);
+  private List<AlluxioURI> getTaskTemporaryStores(JobConf conf) throws IOException {
+    AlluxioURI taskOutputURI = KeyValueOutputFormat.getTaskOutputURI(conf);
     Path taskOutputPath = new Path(taskOutputURI.toString());
     FileSystem fs = taskOutputPath.getFileSystem(conf);
     FileStatus[] subDirs = fs.listStatus(taskOutputPath);
-    List<TachyonURI> temporaryStores = Lists.newArrayListWithExpectedSize(subDirs.length);
+    List<AlluxioURI> temporaryStores = Lists.newArrayListWithExpectedSize(subDirs.length);
     for (FileStatus subDir : subDirs) {
       temporaryStores.add(taskOutputURI.join(subDir.getPath().getName()));
     }
@@ -69,11 +69,11 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
   @Override
   public void commitTask(TaskAttemptContext context) throws IOException {
     JobConf conf = context.getJobConf();
-    TachyonURI jobOutputURI = KeyValueOutputFormat.getJobOutputURI(conf);
-    for (TachyonURI tempStoreUri : getTaskTemporaryStores(conf)) {
+    AlluxioURI jobOutputURI = KeyValueOutputFormat.getJobOutputURI(conf);
+    for (AlluxioURI tempStoreUri : getTaskTemporaryStores(conf)) {
       try {
         KEY_VALUE_SYSTEM.mergeStore(tempStoreUri, jobOutputURI);
-      } catch (TachyonException e) {
+      } catch (AlluxioException e) {
         throw new IOException(e);
       }
     }
@@ -88,10 +88,10 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
    */
   @Override
   public void abortTask(TaskAttemptContext context) throws IOException {
-    for (TachyonURI tempStoreUri : getTaskTemporaryStores(context.getJobConf())) {
+    for (AlluxioURI tempStoreUri : getTaskTemporaryStores(context.getJobConf())) {
       try {
         KEY_VALUE_SYSTEM.deleteStore(tempStoreUri);
-      } catch (TachyonException e) {
+      } catch (AlluxioException e) {
         throw new IOException(e);
       }
     }

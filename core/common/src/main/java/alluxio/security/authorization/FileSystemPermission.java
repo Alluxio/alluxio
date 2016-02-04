@@ -18,7 +18,7 @@ package alluxio.security.authorization;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
 
 /**
@@ -170,7 +170,7 @@ public final class FileSystemPermission {
    * @param conf the configuration to read the umask permission from
    * @return a new {@link FileSystemPermission}
    */
-  public FileSystemPermission applyUMask(TachyonConf conf) {
+  public FileSystemPermission applyUMask(Configuration conf) {
     return applyUMask(getUMask(conf));
   }
 
@@ -199,7 +199,7 @@ public final class FileSystemPermission {
    * @param conf the runtime configuration of Tachyon
    * @return the umask {@link FileSystemPermission}
    */
-  public static FileSystemPermission getUMask(TachyonConf conf) {
+  public static FileSystemPermission getUMask(Configuration conf) {
     int umask = Constants.DEFAULT_FS_PERMISSIONS_UMASK;
     if (conf != null) {
       String confUmask = conf.get(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK);

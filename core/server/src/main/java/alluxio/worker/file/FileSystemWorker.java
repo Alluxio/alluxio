@@ -28,7 +28,7 @@ import org.apache.thrift.TProcessor;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.util.ThreadFactoryUtils;
@@ -48,7 +48,7 @@ public final class FileSystemWorker extends WorkerBase {
   /** Client for file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterWorkerClient;
   /** Configuration object */
-  private final TachyonConf mTachyonConf;
+  private final Configuration mConf;
 
   /** The service that persists files */
   private Future<?> mFilePersistenceService;
@@ -63,12 +63,12 @@ public final class FileSystemWorker extends WorkerBase {
     super(Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
 
-    mTachyonConf = WorkerContext.getConf();
+    mConf = WorkerContext.getConf();
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker));
 
     // Setup MasterClientBase
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
   }
 
   /**
@@ -89,7 +89,7 @@ public final class FileSystemWorker extends WorkerBase {
     mFilePersistenceService = getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
             new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterWorkerClient),
-            mTachyonConf.getInt(Constants.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
+            mConf.getInt(Constants.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
   }
 
   /**

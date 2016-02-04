@@ -38,9 +38,9 @@ import org.slf4j.LoggerFactory;
 public class KeyValueMasterClientService {
 
   /**
-   * This interface contains key-value master service endpoints for Tachyon clients.
+   * This interface contains key-value master service endpoints for Alluxio clients.
    */
-  public interface Iface extends alluxio.thrift.TachyonService.Iface {
+  public interface Iface extends alluxio.thrift.AlluxioService.Iface {
 
     /**
      * Marks a partition complete and adds it to the store.
@@ -49,35 +49,35 @@ public class KeyValueMasterClientService {
      * 
      * @param info information about the partition to mark complete
      */
-    public void completePartition(String path, PartitionInfo info) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public void completePartition(String path, PartitionInfo info) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Marks a store complete with its filesystem path.
      * 
      * @param path the path of the store
      */
-    public void completeStore(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public void completeStore(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Creates a new key-value store on master.
      * 
      * @param path the path of the store
      */
-    public void createStore(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public void createStore(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Gets the partition information for the key-value store at the given filesystem path.
      * 
      * @param path the path of the store
      */
-    public List<PartitionInfo> getPartitionInfo(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public List<PartitionInfo> getPartitionInfo(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Deletes a completed key-value store.
      * 
      * @param path the path of the store
      */
-    public void deleteStore(String path) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void deleteStore(String path) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Merges one completed key-value store to another completed key-value store.
@@ -86,11 +86,11 @@ public class KeyValueMasterClientService {
      * 
      * @param toPath the path of the store to be merged to
      */
-    public void mergeStore(String fromPath, String toPath) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void mergeStore(String fromPath, String toPath) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
   }
 
-  public interface AsyncIface extends alluxio.thrift.TachyonService .AsyncIface {
+  public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
 
     public void completePartition(String path, PartitionInfo info, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -106,7 +106,7 @@ public class KeyValueMasterClientService {
 
   }
 
-  public static class Client extends alluxio.thrift.TachyonService.Client implements Iface {
+  public static class Client extends alluxio.thrift.AlluxioService.Client implements Iface {
     public static class Factory implements org.apache.thrift.TServiceClientFactory<Client> {
       public Factory() {}
       public Client getClient(org.apache.thrift.protocol.TProtocol prot) {
@@ -126,7 +126,7 @@ public class KeyValueMasterClientService {
       super(iprot, oprot);
     }
 
-    public void completePartition(String path, PartitionInfo info) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void completePartition(String path, PartitionInfo info) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_completePartition(path, info);
       recv_completePartition();
@@ -140,7 +140,7 @@ public class KeyValueMasterClientService {
       sendBase("completePartition", args);
     }
 
-    public void recv_completePartition() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void recv_completePartition() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       completePartition_result result = new completePartition_result();
       receiveBase(result, "completePartition");
@@ -150,7 +150,7 @@ public class KeyValueMasterClientService {
       return;
     }
 
-    public void completeStore(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void completeStore(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_completeStore(path);
       recv_completeStore();
@@ -163,7 +163,7 @@ public class KeyValueMasterClientService {
       sendBase("completeStore", args);
     }
 
-    public void recv_completeStore() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void recv_completeStore() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       completeStore_result result = new completeStore_result();
       receiveBase(result, "completeStore");
@@ -173,7 +173,7 @@ public class KeyValueMasterClientService {
       return;
     }
 
-    public void createStore(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void createStore(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_createStore(path);
       recv_createStore();
@@ -186,7 +186,7 @@ public class KeyValueMasterClientService {
       sendBase("createStore", args);
     }
 
-    public void recv_createStore() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void recv_createStore() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       createStore_result result = new createStore_result();
       receiveBase(result, "createStore");
@@ -196,7 +196,7 @@ public class KeyValueMasterClientService {
       return;
     }
 
-    public List<PartitionInfo> getPartitionInfo(String path) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public List<PartitionInfo> getPartitionInfo(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_getPartitionInfo(path);
       return recv_getPartitionInfo();
@@ -209,7 +209,7 @@ public class KeyValueMasterClientService {
       sendBase("getPartitionInfo", args);
     }
 
-    public List<PartitionInfo> recv_getPartitionInfo() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public List<PartitionInfo> recv_getPartitionInfo() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       getPartitionInfo_result result = new getPartitionInfo_result();
       receiveBase(result, "getPartitionInfo");
@@ -222,7 +222,7 @@ public class KeyValueMasterClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getPartitionInfo failed: unknown result");
     }
 
-    public void deleteStore(String path) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void deleteStore(String path) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_deleteStore(path);
       recv_deleteStore();
@@ -235,7 +235,7 @@ public class KeyValueMasterClientService {
       sendBase("deleteStore", args);
     }
 
-    public void recv_deleteStore() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void recv_deleteStore() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       deleteStore_result result = new deleteStore_result();
       receiveBase(result, "deleteStore");
@@ -248,7 +248,7 @@ public class KeyValueMasterClientService {
       return;
     }
 
-    public void mergeStore(String fromPath, String toPath) throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void mergeStore(String fromPath, String toPath) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_mergeStore(fromPath, toPath);
       recv_mergeStore();
@@ -262,7 +262,7 @@ public class KeyValueMasterClientService {
       sendBase("mergeStore", args);
     }
 
-    public void recv_mergeStore() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void recv_mergeStore() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       mergeStore_result result = new mergeStore_result();
       receiveBase(result, "mergeStore");
@@ -276,7 +276,7 @@ public class KeyValueMasterClientService {
     }
 
   }
-  public static class AsyncClient extends alluxio.thrift.TachyonService.AsyncClient implements AsyncIface {
+  public static class AsyncClient extends alluxio.thrift.AlluxioService.AsyncClient implements AsyncIface {
     public static class Factory implements org.apache.thrift.async.TAsyncClientFactory<AsyncClient> {
       private org.apache.thrift.async.TAsyncClientManager clientManager;
       private org.apache.thrift.protocol.TProtocolFactory protocolFactory;
@@ -318,7 +318,7 @@ public class KeyValueMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -350,7 +350,7 @@ public class KeyValueMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -382,7 +382,7 @@ public class KeyValueMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -414,7 +414,7 @@ public class KeyValueMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public List<PartitionInfo> getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public List<PartitionInfo> getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -446,7 +446,7 @@ public class KeyValueMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -481,7 +481,7 @@ public class KeyValueMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -493,7 +493,7 @@ public class KeyValueMasterClientService {
 
   }
 
-  public static class Processor<I extends Iface> extends alluxio.thrift.TachyonService.Processor<I> implements org.apache.thrift.TProcessor {
+  public static class Processor<I extends Iface> extends alluxio.thrift.AlluxioService.Processor<I> implements org.apache.thrift.TProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(Processor.class.getName());
     public Processor(I iface) {
       super(iface, getProcessMap(new HashMap<String, org.apache.thrift.ProcessFunction<I, ? extends org.apache.thrift.TBase>>()));
@@ -530,7 +530,7 @@ public class KeyValueMasterClientService {
         completePartition_result result = new completePartition_result();
         try {
           iface.completePartition(args.path, args.info);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -554,7 +554,7 @@ public class KeyValueMasterClientService {
         completeStore_result result = new completeStore_result();
         try {
           iface.completeStore(args.path);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -578,7 +578,7 @@ public class KeyValueMasterClientService {
         createStore_result result = new createStore_result();
         try {
           iface.createStore(args.path);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -602,7 +602,7 @@ public class KeyValueMasterClientService {
         getPartitionInfo_result result = new getPartitionInfo_result();
         try {
           result.success = iface.getPartitionInfo(args.path);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -626,7 +626,7 @@ public class KeyValueMasterClientService {
         deleteStore_result result = new deleteStore_result();
         try {
           iface.deleteStore(args.path);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
           result.ioe = ioe;
@@ -652,7 +652,7 @@ public class KeyValueMasterClientService {
         mergeStore_result result = new mergeStore_result();
         try {
           iface.mergeStore(args.fromPath, args.toPath);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
           result.ioe = ioe;
@@ -663,7 +663,7 @@ public class KeyValueMasterClientService {
 
   }
 
-  public static class AsyncProcessor<I extends AsyncIface> extends alluxio.thrift.TachyonService.AsyncProcessor<I> {
+  public static class AsyncProcessor<I extends AsyncIface> extends alluxio.thrift.AlluxioService.AsyncProcessor<I> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncProcessor.class.getName());
     public AsyncProcessor(I iface) {
       super(iface, getProcessMap(new HashMap<String, org.apache.thrift.AsyncProcessFunction<I, ? extends org.apache.thrift.TBase, ?>>()));
@@ -709,8 +709,8 @@ public class KeyValueMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             completePartition_result result = new completePartition_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -765,8 +765,8 @@ public class KeyValueMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             completeStore_result result = new completeStore_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -821,8 +821,8 @@ public class KeyValueMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             createStore_result result = new createStore_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -878,8 +878,8 @@ public class KeyValueMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getPartitionInfo_result result = new getPartitionInfo_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -934,8 +934,8 @@ public class KeyValueMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             deleteStore_result result = new deleteStore_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -995,8 +995,8 @@ public class KeyValueMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             mergeStore_result result = new mergeStore_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -1532,7 +1532,7 @@ public class KeyValueMasterClientService {
       schemes.put(TupleScheme.class, new completePartition_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -1606,7 +1606,7 @@ public class KeyValueMasterClientService {
     }
 
     public completePartition_result(
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.e = e;
@@ -1617,7 +1617,7 @@ public class KeyValueMasterClientService {
      */
     public completePartition_result(completePartition_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -1630,11 +1630,11 @@ public class KeyValueMasterClientService {
       this.e = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public completePartition_result setE(alluxio.thrift.TachyonTException e) {
+    public completePartition_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -1660,7 +1660,7 @@ public class KeyValueMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -1816,7 +1816,7 @@ public class KeyValueMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -1875,7 +1875,7 @@ public class KeyValueMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -2265,7 +2265,7 @@ public class KeyValueMasterClientService {
       schemes.put(TupleScheme.class, new completeStore_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -2339,7 +2339,7 @@ public class KeyValueMasterClientService {
     }
 
     public completeStore_result(
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.e = e;
@@ -2350,7 +2350,7 @@ public class KeyValueMasterClientService {
      */
     public completeStore_result(completeStore_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -2363,11 +2363,11 @@ public class KeyValueMasterClientService {
       this.e = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public completeStore_result setE(alluxio.thrift.TachyonTException e) {
+    public completeStore_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -2393,7 +2393,7 @@ public class KeyValueMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -2549,7 +2549,7 @@ public class KeyValueMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -2608,7 +2608,7 @@ public class KeyValueMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -2998,7 +2998,7 @@ public class KeyValueMasterClientService {
       schemes.put(TupleScheme.class, new createStore_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -3072,7 +3072,7 @@ public class KeyValueMasterClientService {
     }
 
     public createStore_result(
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.e = e;
@@ -3083,7 +3083,7 @@ public class KeyValueMasterClientService {
      */
     public createStore_result(createStore_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -3096,11 +3096,11 @@ public class KeyValueMasterClientService {
       this.e = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public createStore_result setE(alluxio.thrift.TachyonTException e) {
+    public createStore_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -3126,7 +3126,7 @@ public class KeyValueMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -3282,7 +3282,7 @@ public class KeyValueMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -3341,7 +3341,7 @@ public class KeyValueMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -3733,7 +3733,7 @@ public class KeyValueMasterClientService {
     }
 
     private List<PartitionInfo> success; // required
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -3814,7 +3814,7 @@ public class KeyValueMasterClientService {
 
     public getPartitionInfo_result(
       List<PartitionInfo> success,
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
@@ -3833,7 +3833,7 @@ public class KeyValueMasterClientService {
         this.success = __this__success;
       }
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -3886,11 +3886,11 @@ public class KeyValueMasterClientService {
       }
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public getPartitionInfo_result setE(alluxio.thrift.TachyonTException e) {
+    public getPartitionInfo_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -3924,7 +3924,7 @@ public class KeyValueMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -4136,7 +4136,7 @@ public class KeyValueMasterClientService {
               break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -4233,7 +4233,7 @@ public class KeyValueMasterClientService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -4624,7 +4624,7 @@ public class KeyValueMasterClientService {
       schemes.put(TupleScheme.class, new deleteStore_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
     private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -4704,7 +4704,7 @@ public class KeyValueMasterClientService {
     }
 
     public deleteStore_result(
-      alluxio.thrift.TachyonTException e,
+      alluxio.thrift.AlluxioTException e,
       alluxio.thrift.ThriftIOException ioe)
     {
       this();
@@ -4717,7 +4717,7 @@ public class KeyValueMasterClientService {
      */
     public deleteStore_result(deleteStore_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
       if (other.isSetIoe()) {
         this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
@@ -4734,11 +4734,11 @@ public class KeyValueMasterClientService {
       this.ioe = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public deleteStore_result setE(alluxio.thrift.TachyonTException e) {
+    public deleteStore_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -4788,7 +4788,7 @@ public class KeyValueMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -4989,7 +4989,7 @@ public class KeyValueMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -5068,7 +5068,7 @@ public class KeyValueMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -5578,7 +5578,7 @@ public class KeyValueMasterClientService {
       schemes.put(TupleScheme.class, new mergeStore_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
     private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -5658,7 +5658,7 @@ public class KeyValueMasterClientService {
     }
 
     public mergeStore_result(
-      alluxio.thrift.TachyonTException e,
+      alluxio.thrift.AlluxioTException e,
       alluxio.thrift.ThriftIOException ioe)
     {
       this();
@@ -5671,7 +5671,7 @@ public class KeyValueMasterClientService {
      */
     public mergeStore_result(mergeStore_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
       if (other.isSetIoe()) {
         this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
@@ -5688,11 +5688,11 @@ public class KeyValueMasterClientService {
       this.ioe = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public mergeStore_result setE(alluxio.thrift.TachyonTException e) {
+    public mergeStore_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -5742,7 +5742,7 @@ public class KeyValueMasterClientService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -5943,7 +5943,7 @@ public class KeyValueMasterClientService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -6022,7 +6022,7 @@ public class KeyValueMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }

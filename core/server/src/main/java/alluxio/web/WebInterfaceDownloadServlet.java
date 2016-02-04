@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -35,7 +35,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.security.LoginUser;
@@ -78,23 +78,23 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     }
     String requestPath = request.getParameter("path");
     if (requestPath == null || requestPath.isEmpty()) {
-      requestPath = TachyonURI.SEPARATOR;
+      requestPath = AlluxioURI.SEPARATOR;
     }
-    TachyonURI currentPath = new TachyonURI(requestPath);
+    AlluxioURI currentPath = new AlluxioURI(requestPath);
     try {
       long fileId = mFsMaster.getFileId(currentPath);
       FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
       if (fileInfo == null) {
         throw new FileDoesNotExistException(currentPath.toString());
       }
-      downloadFile(new TachyonURI(fileInfo.getPath()), request, response);
+      downloadFile(new AlluxioURI(fileInfo.getPath()), request, response);
     } catch (FileDoesNotExistException e) {
       request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
     } catch (InvalidPathException e) {
       request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       request.setAttribute("invalidPathError", "Error: " + e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
     }
@@ -109,9 +109,9 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  private void downloadFile(TachyonURI path, HttpServletRequest request,
+  private void downloadFile(AlluxioURI path, HttpServletRequest request,
       HttpServletResponse response) throws FileDoesNotExistException, IOException,
-      InvalidPathException, TachyonException {
+      InvalidPathException, AlluxioException {
     FileSystem tachyonClient = FileSystem.Factory.get();
     URIStatus status = tachyonClient.getStatus(path);
     long len = status.getLength();

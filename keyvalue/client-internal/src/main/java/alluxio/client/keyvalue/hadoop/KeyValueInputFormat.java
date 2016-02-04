@@ -30,12 +30,12 @@ import org.apache.hadoop.mapred.Reporter;
 
 import com.google.common.collect.Lists;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
 import alluxio.client.keyvalue.KeyValueMasterClient;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
 
 /**
@@ -68,12 +68,12 @@ public final class KeyValueInputFormat implements InputFormat {
     try {
       for (Path path : paths) {
         List<PartitionInfo> partitionInfos =
-            mKeyValueMasterClient.getPartitionInfo(new TachyonURI(path.toString()));
+            mKeyValueMasterClient.getPartitionInfo(new AlluxioURI(path.toString()));
         for (PartitionInfo partitionInfo : partitionInfos) {
           splits.add(new KeyValueInputSplit(partitionInfo));
         }
       }
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     }
     InputSplit[] ret = new InputSplit[splits.size()];
@@ -86,7 +86,7 @@ public final class KeyValueInputFormat implements InputFormat {
     if (inputSplit instanceof KeyValueInputSplit) {
       try {
         return new KeyValueRecordReader((KeyValueInputSplit) inputSplit);
-      } catch (TachyonException e) {
+      } catch (AlluxioException e) {
         throw new IOException(e);
       }
     } else {

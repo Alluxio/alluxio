@@ -22,17 +22,17 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Changes the owner of a file or directory specified by args.
  */
 @ThreadSafe
-public final class ChownCommand extends AbstractTfsShellCommand {
+public final class ChownCommand extends AbstractShellCommand {
 
   /**
    * Creates a new instance of {@link ChownCommand}.
@@ -40,7 +40,7 @@ public final class ChownCommand extends AbstractTfsShellCommand {
    * @param conf a Tachyon configuration
    * @param fs a Tachyon file system handle
    */
-  public ChownCommand(TachyonConf conf, FileSystem fs) {
+  public ChownCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -62,18 +62,18 @@ public final class ChownCommand extends AbstractTfsShellCommand {
   /**
    * Changes the owner for the directory or file with the path specified in args.
    *
-   * @param path The {@link TachyonURI} path as the input of the command
+   * @param path The {@link AlluxioURI} path as the input of the command
    * @param owner The owner to be updated to the file or directory
    * @param recursive Whether change the owner recursively
    * @throws IOException if command failed
    */
-  private void chown(TachyonURI path, String owner, boolean recursive) throws IOException {
+  private void chown(AlluxioURI path, String owner, boolean recursive) throws IOException {
     try {
       SetAttributeOptions options = SetAttributeOptions.defaults()
           .setOwner(owner).setRecursive(recursive);
       mFileSystem.setAttribute(path, options);
       System.out.println("Changed owner of " + path + " to " + owner);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException("Failed to changed owner of " + path + " to " + owner + " : "
           + e.getMessage());
     }
@@ -83,7 +83,7 @@ public final class ChownCommand extends AbstractTfsShellCommand {
   public void run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
     String owner = args[0];
-    TachyonURI path = new TachyonURI(args[1]);
+    AlluxioURI path = new AlluxioURI(args[1]);
     chown(path, owner, cl.hasOption("R"));
   }
 

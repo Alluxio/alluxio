@@ -20,15 +20,15 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.TachyonURI;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
-import alluxio.shell.TfsShellUtilsTest;
+import alluxio.AlluxioURI;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.shell.AlluxioShellUtilsTest;
 
 /**
  * Tests for rmr command.
  */
-public class RmrCommandTest extends AbstractTfsShellTest {
+public class RmrCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void rmrTest() throws IOException {
     StringBuilder toCompare = new StringBuilder();
@@ -37,9 +37,9 @@ public class RmrCommandTest extends AbstractTfsShellTest {
     mFsShell.run("touch", "/testFolder1/testFolder2/testFile2");
     toCompare
         .append(getCommandOutput(new String[] {"touch", "/testFolder1/testFolder2/testFile2"}));
-    TachyonURI testFolder1 = new TachyonURI("/testFolder1");
-    TachyonURI testFolder2 = new TachyonURI("/testFolder1/testFolder2");
-    TachyonURI testFile2 = new TachyonURI("/testFolder1/testFolder2/testFile2");
+    AlluxioURI testFolder1 = new AlluxioURI("/testFolder1");
+    AlluxioURI testFolder2 = new AlluxioURI("/testFolder1/testFolder2");
+    AlluxioURI testFile2 = new AlluxioURI("/testFolder1/testFolder2/testFile2");
     Assert.assertTrue(fileExist(testFolder1));
     Assert.assertTrue(fileExist(testFolder2));
     Assert.assertTrue(fileExist(testFile2));
@@ -60,23 +60,23 @@ public class RmrCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void rmrWildCardTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+  public void rmrWildCardTest() throws IOException, AlluxioException {
+    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
 
     mFsShell.run("rmr", "/testWildCards/foo/foo*");
-    Assert.assertFalse(fileExist(new TachyonURI("/testWildCards/foo/foobar1")));
-    Assert.assertFalse(fileExist(new TachyonURI("/testWildCards/foo/foobar2")));
-    Assert.assertTrue(fileExist(new TachyonURI("/testWildCards/foo")));
-    Assert.assertTrue(fileExist(new TachyonURI("/testWildCards/bar/foobar3")));
+    Assert.assertFalse(fileExist(new AlluxioURI("/testWildCards/foo/foobar1")));
+    Assert.assertFalse(fileExist(new AlluxioURI("/testWildCards/foo/foobar2")));
+    Assert.assertTrue(fileExist(new AlluxioURI("/testWildCards/foo")));
+    Assert.assertTrue(fileExist(new AlluxioURI("/testWildCards/bar/foobar3")));
 
     mFsShell.run("rmr", "/testWildCards/ba*");
-    Assert.assertFalse(fileExist(new TachyonURI("/testWildCards/bar")));
-    Assert.assertFalse(fileExist(new TachyonURI("/testWildCards/bar/foobar3")));
-    Assert.assertTrue(fileExist(new TachyonURI("/testWildCards/foobar4")));
+    Assert.assertFalse(fileExist(new AlluxioURI("/testWildCards/bar")));
+    Assert.assertFalse(fileExist(new AlluxioURI("/testWildCards/bar/foobar3")));
+    Assert.assertTrue(fileExist(new AlluxioURI("/testWildCards/foobar4")));
 
     mFsShell.run("rmr", "/testWildCards/*");
-    Assert.assertFalse(fileExist(new TachyonURI("/testWildCards/bar")));
-    Assert.assertFalse(fileExist(new TachyonURI("/testWildCards/foo")));
-    Assert.assertFalse(fileExist(new TachyonURI("/testWildCards/foobar4")));
+    Assert.assertFalse(fileExist(new AlluxioURI("/testWildCards/bar")));
+    Assert.assertFalse(fileExist(new AlluxioURI("/testWildCards/foo")));
+    Assert.assertFalse(fileExist(new AlluxioURI("/testWildCards/foobar4")));
   }
 }

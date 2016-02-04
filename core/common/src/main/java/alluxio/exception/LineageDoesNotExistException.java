@@ -21,11 +21,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * The exception thrown when a lineage does not exist in Tachyon.
  */
 @ThreadSafe
-public class LineageDoesNotExistException extends TachyonException {
+public class LineageDoesNotExistException extends AlluxioException {
   private static final long serialVersionUID = 6099440428939973308L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.LINEAGE_DOES_NOT_EXIST;
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.LINEAGE_DOES_NOT_EXIST;
 
   /**
    * Constructs a new exception with the specified detail message.

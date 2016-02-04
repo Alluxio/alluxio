@@ -20,21 +20,21 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Tests for mkdir command.
  */
-public class MkdirCommandTest extends AbstractTfsShellTest {
+public class MkdirCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void mkdirTest() throws IOException, TachyonException {
+  public void mkdirTest() throws IOException, AlluxioException {
     String qualifiedPath = "alluxio://" + mLocalTachyonCluster.getMasterHostname() + ":"
         + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
     mFsShell.run("mkdir", qualifiedPath);
-    URIStatus status = mFileSystem.getStatus(new TachyonURI("/root/testFile1"));
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI("/root/testFile1"));
     Assert.assertNotNull(status);
     Assert
         .assertEquals(getCommandOutput(new String[] {"mkdir", qualifiedPath}), mOutput.toString());
@@ -42,10 +42,10 @@ public class MkdirCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void mkdirComplexPathTest() throws IOException, TachyonException {
+  public void mkdirComplexPathTest() throws IOException, AlluxioException {
     mFsShell.run("mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File");
     URIStatus status =
-        mFileSystem.getStatus(new TachyonURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
+        mFileSystem.getStatus(new AlluxioURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
     Assert.assertNotNull(status);
     Assert.assertEquals(getCommandOutput(new String[] {"mkdir",
         "/Complex!@#$%^&*()-_=+[]{};\"'<>," + ".?/File"}), mOutput.toString());
@@ -64,30 +64,30 @@ public class MkdirCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void mkdirMultiPathTest() throws IOException, TachyonException {
+  public void mkdirMultiPathTest() throws IOException, AlluxioException {
     String path1 = "/testDir1";
     String path2 = "/testDir2";
     String path3 = "/testDir2/testDir2.1";
     Assert.assertEquals(0, mFsShell.run("mkdir", path1, path2, path3));
 
-    URIStatus status = mFileSystem.getStatus(new TachyonURI(path1));
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI(path1));
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isFolder());
 
-    status = mFileSystem.getStatus(new TachyonURI(path2));
+    status = mFileSystem.getStatus(new AlluxioURI(path2));
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isFolder());
 
-    status = mFileSystem.getStatus(new TachyonURI(path3));
+    status = mFileSystem.getStatus(new AlluxioURI(path3));
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isFolder());
 
   }
 
   @Test
-  public void mkdirShortPathTest() throws IOException, TachyonException {
+  public void mkdirShortPathTest() throws IOException, AlluxioException {
     mFsShell.run("mkdir", "/root/testFile1");
-    URIStatus status = mFileSystem.getStatus(new TachyonURI("/root/testFile1"));
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI("/root/testFile1"));
     Assert.assertNotNull(status);
     Assert.assertEquals(getCommandOutput(new String[]{"mkdir", "/root/testFile1"}),
         mOutput.toString());

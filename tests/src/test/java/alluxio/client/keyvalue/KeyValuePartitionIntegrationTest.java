@@ -28,10 +28,10 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.io.PathUtils;
 
 /**
@@ -50,7 +50,7 @@ public final class KeyValuePartitionIntegrationTest {
   private static FileSystem sFileSystem;
   private KeyValuePartitionWriter mKeyValuePartitionWriter;
   private KeyValuePartitionReader mKeyValuePartitionReader;
-  private TachyonURI mPartitionUri;
+  private AlluxioURI mPartitionUri;
 
   /**
    * Generate a sequence of key-value pairs in the format like
@@ -71,18 +71,18 @@ public final class KeyValuePartitionIntegrationTest {
   }
 
   @ClassRule
-  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(Constants.GB, BLOCK_SIZE,
+  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE,
           /* ensure key-value service is turned on */
           Constants.KEY_VALUE_ENABLED, "true");
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sFileSystem = sLocalTachyonClusterResource.get().getClient();
+    sFileSystem = sLocalAlluxioClusterResource.get().getClient();
   }
 
-  private TachyonURI getUniqURI() {
-    return new TachyonURI(PathUtils.uniqPath());
+  private AlluxioURI getUniqURI() {
+    return new AlluxioURI(PathUtils.uniqPath());
   }
 
   @Before
@@ -96,10 +96,10 @@ public final class KeyValuePartitionIntegrationTest {
    * keys store by the writer.
    *
    * @throws IOException if unexpected non-Tachyon error happens
-   * @throws TachyonException if unexpected Tachyon error happens
+   * @throws AlluxioException if unexpected Tachyon error happens
    */
   @Test
-  public void readerWriterTest() throws IOException, TachyonException {
+  public void readerWriterTest() throws IOException, AlluxioException {
     mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri);
     mKeyValuePartitionWriter.put(KEY1, VALUE1);
     mKeyValuePartitionWriter.put(KEY2, VALUE2);

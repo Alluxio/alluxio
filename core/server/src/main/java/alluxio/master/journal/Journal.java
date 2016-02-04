@@ -17,7 +17,7 @@ package alluxio.master.journal;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.master.MasterContext;
 
 /**
@@ -52,9 +52,9 @@ public abstract class Journal {
    * @param directory the base directory for this journal
    */
   public Journal(String directory) {
-    if (!directory.endsWith(TachyonURI.SEPARATOR)) {
+    if (!directory.endsWith(AlluxioURI.SEPARATOR)) {
       // Ensure directory format.
-      directory += TachyonURI.SEPARATOR;
+      directory += AlluxioURI.SEPARATOR;
     }
     mDirectory = directory;
     mJournalFormatter = JournalFormatter.Factory.create(MasterContext.getConf());

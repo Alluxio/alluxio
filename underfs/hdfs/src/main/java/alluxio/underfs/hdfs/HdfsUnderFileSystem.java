@@ -25,7 +25,6 @@ import java.util.Stack;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -41,7 +40,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.CountingRetry;
 import alluxio.underfs.UnderFileSystem;
@@ -64,19 +63,19 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    * Constructs a new HDFS {@link UnderFileSystem}.
    *
    * @param fsDefaultName the under FS prefix
-   * @param tachyonConf the configuration for Tachyon
+   * @param configuration the configuration for Tachyon
    * @param conf the configuration for Hadoop
    */
-  public HdfsUnderFileSystem(String fsDefaultName, TachyonConf tachyonConf, Object conf) {
-    super(tachyonConf);
+  public HdfsUnderFileSystem(String fsDefaultName, Configuration configuration, Object conf) {
+    super(configuration);
     mUfsPrefix = fsDefaultName;
-    Configuration tConf;
-    if (conf != null && conf instanceof Configuration) {
-      tConf = (Configuration) conf;
+    org.apache.hadoop.conf.Configuration tConf;
+    if (conf != null && conf instanceof org.apache.hadoop.conf.Configuration) {
+      tConf = (org.apache.hadoop.conf.Configuration) conf;
     } else {
-      tConf = new Configuration();
+      tConf = new org.apache.hadoop.conf.Configuration();
     }
-    prepareConfiguration(fsDefaultName, tachyonConf, tConf);
+    prepareConfiguration(fsDefaultName, configuration, tConf);
     tConf.addResource(new Path(tConf.get(Constants.UNDERFS_HDFS_CONFIGURATION)));
     HdfsUnderFileSystemUtils.addS3Credentials(tConf);
 
@@ -104,26 +103,27 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    * </p>
    *
    * @param path file system path
-   * @param tachyonConf Tachyon Configuration
-   * @param config Hadoop configuration
+   * @param conf Tachyon Configuration
+   * @param hadoopConf Hadoop configuration
    */
-  protected void prepareConfiguration(String path, TachyonConf tachyonConf, Configuration config) {
+  protected void prepareConfiguration(String path, Configuration conf,
+      org.apache.hadoop.conf.Configuration hadoopConf) {
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
     // discover available file system implementations. However this configuration setting is
     // required for earlier Hadoop versions plus it is still honoured as an override even in 2.x so
     // if present propagate it to the Hadoop configuration
-    String ufsHdfsImpl = mTachyonConf.get(Constants.UNDERFS_HDFS_IMPL);
+    String ufsHdfsImpl = mConfiguration.get(Constants.UNDERFS_HDFS_IMPL);
     if (!StringUtils.isEmpty(ufsHdfsImpl)) {
-      config.set("fs.hdfs.impl", ufsHdfsImpl);
+      hadoopConf.set("fs.hdfs.impl", ufsHdfsImpl);
     }
 
     // To disable the instance cache for hdfs client, otherwise it causes the
     // FileSystem closed exception. Being configurable for unit/integration
     // test only, and not expose to the end-user currently.
-    config.set("fs.hdfs.impl.disable.cache",
+    hadoopConf.set("fs.hdfs.impl.disable.cache",
         System.getProperty("fs.hdfs.impl.disable.cache", "false"));
 
-    HdfsUnderFileSystemUtils.addKey(config, tachyonConf, Constants.UNDERFS_HDFS_CONFIGURATION);
+    HdfsUnderFileSystemUtils.addKey(hadoopConf, conf, Constants.UNDERFS_HDFS_CONFIGURATION);
   }
 
   @Override
@@ -326,7 +326,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(TachyonConf conf, String host) throws IOException {
+  public void connectFromMaster(Configuration conf, String host) throws IOException {
     if (!conf.containsKey(Constants.MASTER_KEYTAB_KEY)
         || !conf.containsKey(Constants.MASTER_PRINCIPAL_KEY)) {
       return;
@@ -339,7 +339,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromWorker(TachyonConf conf, String host) throws IOException {
+  public void connectFromWorker(Configuration conf, String host) throws IOException {
     if (!conf.containsKey(Constants.WORKER_KEYTAB_KEY)
         || !conf.containsKey(Constants.WORKER_PRINCIPAL_KEY)) {
       return;
@@ -353,7 +353,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   private void login(String keytabFileKey, String keytabFile, String principalKey,
       String principal, String hostname) throws IOException {
-    Configuration conf = new Configuration();
+    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     conf.set(keytabFileKey, keytabFile);
     conf.set(principalKey, principal);
     SecurityUtil.login(conf, keytabFileKey, principalKey, hostname);
@@ -438,7 +438,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public void setConf(Object conf) {
-    mFileSystem.setConf((Configuration) conf);
+    mFileSystem.setConf((org.apache.hadoop.conf.Configuration) conf);
   }
 
   @Override

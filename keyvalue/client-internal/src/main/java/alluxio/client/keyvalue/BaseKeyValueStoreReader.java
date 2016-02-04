@@ -28,10 +28,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.ClientContext;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
 import alluxio.util.io.BufferUtils;
 
@@ -42,7 +42,7 @@ import alluxio.util.io.BufferUtils;
 class BaseKeyValueStoreReader implements KeyValueStoreReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final TachyonConf mConf = ClientContext.getConf();
+  private final Configuration mConf = ClientContext.getConf();
   private final InetSocketAddress mMasterAddress = ClientContext.getMasterAddress();
   private final KeyValueMasterClient mMasterClient;
 
@@ -54,9 +54,9 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
    *
    * @param uri URI of the key-value store
    * @throws IOException if non-Tachyon error occurs
-   * @throws TachyonException if Tachyon error occurs
+   * @throws AlluxioException if Tachyon error occurs
    */
-  BaseKeyValueStoreReader(TachyonURI uri) throws IOException, TachyonException {
+  BaseKeyValueStoreReader(AlluxioURI uri) throws IOException, AlluxioException {
     // TODO(binfan): use a thread pool to manage the client.
     LOG.info("Create KeyValueStoreReader for {}", uri);
     mMasterClient = new KeyValueMasterClient(mMasterAddress, mConf);
@@ -69,7 +69,7 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   }
 
   @Override
-  public byte[] get(byte[] key) throws IOException, TachyonException {
+  public byte[] get(byte[] key) throws IOException, AlluxioException {
     ByteBuffer value = get(ByteBuffer.wrap(key));
     if (value == null) {
       return null;
@@ -78,7 +78,7 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   }
 
   @Override
-  public ByteBuffer get(ByteBuffer key) throws IOException, TachyonException {
+  public ByteBuffer get(ByteBuffer key) throws IOException, AlluxioException {
     Preconditions.checkNotNull(key);
     // TODO(binfan): improve the inefficient for-loop to binary search.
     for (PartitionInfo partition : mPartitions) {
@@ -99,12 +99,12 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   }
 
   @Override
-  public KeyValueIterator iterator() throws IOException, TachyonException {
+  public KeyValueIterator iterator() throws IOException, AlluxioException {
     return new KeyValueStoreIterator(mPartitions);
   }
 
   @Override
-  public int size() throws IOException, TachyonException {
+  public int size() throws IOException, AlluxioException {
     int totalSize = 0;
     // TODO(cc): Put size into PartitionInfo.
     for (PartitionInfo partition : mPartitions) {

@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.lineage.options.CreateLineageOptions;
 import alluxio.client.lineage.options.DeleteLineageOptions;
@@ -36,7 +36,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDeletionException;
 import alluxio.exception.LineageDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
@@ -60,9 +60,9 @@ public abstract class AbstractLineageClient implements LineageClient {
   }
 
   @Override
-  public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job,
-      CreateLineageOptions options)
-          throws FileDoesNotExistException, TachyonException, IOException {
+  public long createLineage(List<AlluxioURI> inputFiles, List<AlluxioURI> outputFiles, Job job,
+      CreateLineageOptions options) throws FileDoesNotExistException, AlluxioException,
+      IOException {
     // TODO(yupeng): relax this to support other type of jobs
     Preconditions.checkState(job instanceof CommandLineJob,
         PreconditionMessage.COMMAND_LINE_LINEAGE_ONLY);
@@ -79,7 +79,7 @@ public abstract class AbstractLineageClient implements LineageClient {
 
   @Override
   public boolean deleteLineage(long lineageId, DeleteLineageOptions options)
-      throws IOException, LineageDoesNotExistException, LineageDeletionException, TachyonException {
+      throws IOException, LineageDoesNotExistException, LineageDeletionException, AlluxioException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       boolean result = masterClient.deleteLineage(lineageId, options.isCascade());
@@ -105,14 +105,14 @@ public abstract class AbstractLineageClient implements LineageClient {
   }
 
   /**
-   * Transforms the list of {@link TachyonURI} in a new list of Strings,
-   * where each string is {@link TachyonURI#getPath()}
-   * @param uris the list of {@link TachyonURI}s to be stripped
+   * Transforms the list of {@link AlluxioURI} in a new list of Strings,
+   * where each string is {@link AlluxioURI#getPath()}
+   * @param uris the list of {@link AlluxioURI}s to be stripped
    * @return a new list of strings mapping the input URIs to theri path component
    */
-  private List<String> stripURIList(List<TachyonURI> uris) {
+  private List<String> stripURIList(List<AlluxioURI> uris) {
     final List<String> pathStrings = new ArrayList<String>(uris.size());
-    for (final TachyonURI uri : uris) {
+    for (final AlluxioURI uri : uris) {
       pathStrings.add(uri.getPath());
     }
     return pathStrings;

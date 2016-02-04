@@ -22,16 +22,16 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Changes the permission of a file or directory specified by args.
  */
 @ThreadSafe
-public final class ChmodCommand extends AbstractTfsShellCommand {
+public final class ChmodCommand extends AbstractShellCommand {
 
   /**
    * Creates a new instance of {@link ChmodCommand}.
@@ -39,7 +39,7 @@ public final class ChmodCommand extends AbstractTfsShellCommand {
    * @param conf a Tachyon configuration
    * @param fs a Tachyon file system handle
    */
-  public ChmodCommand(TachyonConf conf, FileSystem fs) {
+  public ChmodCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -61,12 +61,12 @@ public final class ChmodCommand extends AbstractTfsShellCommand {
   /**
    * Changes the permissions of directory or file with the path specified in args.
    *
-   * @param path The {@link TachyonURI} path as the input of the command
+   * @param path The {@link AlluxioURI} path as the input of the command
    * @param modeStr The new permission to be updated to the file or directory
    * @param recursive Whether change the permission recursively
    * @throws IOException if command failed
    */
-  private void chmod(TachyonURI path, String modeStr, boolean recursive) throws IOException {
+  private void chmod(AlluxioURI path, String modeStr, boolean recursive) throws IOException {
     short newPermission = 0;
     try {
       newPermission = Short.parseShort(modeStr, 8);
@@ -85,7 +85,7 @@ public final class ChmodCommand extends AbstractTfsShellCommand {
   public void run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
     String modeStr = args[0];
-    TachyonURI path = new TachyonURI(args[1]);
+    AlluxioURI path = new AlluxioURI(args[1]);
     chmod(path, modeStr, cl.hasOption("R"));
   }
 

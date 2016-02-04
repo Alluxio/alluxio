@@ -24,7 +24,7 @@ import com.google.common.io.Closer;
 
 import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
@@ -83,7 +83,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
         ClientContext.getClientMetrics().incBlocksReadLocal(1);
       }
       mBlockWorkerClient.unlockBlock(mBlockId);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     } finally {
       mContext.releaseWorkerClient(mBlockWorkerClient);

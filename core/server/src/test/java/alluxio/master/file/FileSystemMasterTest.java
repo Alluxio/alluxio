@@ -37,8 +37,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -67,11 +67,11 @@ import alluxio.wire.WorkerNetAddress;
  */
 public final class FileSystemMasterTest {
   private static final long TTLCHECKER_INTERVAL_MS = 0;
-  private static final TachyonURI NESTED_URI = new TachyonURI("/nested/test");
-  private static final TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
-  private static final TachyonURI ROOT_URI = new TachyonURI("/");
-  private static final TachyonURI ROOT_FILE_URI = new TachyonURI("/file");
-  private static final TachyonURI TEST_URI = new TachyonURI("/test");
+  private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
+  private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
+  private static final AlluxioURI ROOT_URI = new AlluxioURI("/");
+  private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
+  private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static CreateFileOptions sNestedFileOptions;
   private static long sOldTtlIntervalMs;
 
@@ -93,7 +93,7 @@ public final class FileSystemMasterTest {
    */
   @BeforeClass
   public static void beforeClass() {
-    MasterContext.reset(new TachyonConf());
+    MasterContext.reset(new Configuration());
     sNestedFileOptions =
         new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
@@ -156,7 +156,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#deleteFile(TachyonURI, boolean)} method.
+   * Tests the {@link FileSystemMaster#deleteFile(AlluxioURI, boolean)} method.
    *
    * @throws Exception if deleting a file fails
    */
@@ -176,7 +176,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#deleteFile(TachyonURI, boolean)} method with a non-empty
+   * Tests the {@link FileSystemMaster#deleteFile(AlluxioURI, boolean)} method with a non-empty
    * directory.
    *
    * @throws Exception if deleting a directory fails
@@ -199,7 +199,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#deleteFile(TachyonURI, boolean)} method for a directory.
+   * Tests the {@link FileSystemMaster#deleteFile(AlluxioURI, boolean)} method for a directory.
    *
    * @throws Exception if deleting the directory fails
    */
@@ -214,7 +214,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#getNewBlockIdForFile(TachyonURI)} method.
+   * Tests the {@link FileSystemMaster#getNewBlockIdForFile(AlluxioURI)} method.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -240,7 +240,7 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that an exception is in the
-   * {@link FileSystemMaster#create(TachyonURI, CreateFileOptions)} with a TTL set in the
+   * {@link FileSystemMaster#create(AlluxioURI, CreateFileOptions)} with a TTL set in the
    * {@link CreateFileOptions} after the TTL check was done once.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
@@ -347,7 +347,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#setAttribute(TachyonURI, SetAttributeOptions)} method and
+   * Tests the {@link FileSystemMaster#setAttribute(AlluxioURI, SetAttributeOptions)} method and
    * that an exception is thrown when trying to set a TTL for a directory.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
@@ -419,7 +419,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#rename(TachyonURI, TachyonURI)} method.
+   * Tests the {@link FileSystemMaster#rename(AlluxioURI, AlluxioURI)} method.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -493,7 +493,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#free(TachyonURI, boolean)} method.
+   * Tests the {@link FileSystemMaster#free(AlluxioURI, boolean)} method.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -511,7 +511,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#free(TachyonURI, boolean)} method with a directory.
+   * Tests the {@link FileSystemMaster#free(AlluxioURI, boolean)} method with a directory.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -613,7 +613,7 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(PersistenceState.LOST.name(), fileInfo.getPersistenceState());
   }
 
-  private long createFileWithSingleBlock(TachyonURI uri) throws Exception {
+  private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
     mFileSystemMaster.create(uri, sNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);

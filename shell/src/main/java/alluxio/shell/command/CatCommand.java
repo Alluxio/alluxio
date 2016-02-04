@@ -21,15 +21,15 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * Prints the file's contents to the console.
@@ -41,7 +41,7 @@ public final class CatCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public CatCommand(TachyonConf conf, FileSystem fs) {
+  public CatCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -51,7 +51,7 @@ public final class CatCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
+  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
     try {
       URIStatus status = mFileSystem.getStatus(path);
 
@@ -71,7 +71,7 @@ public final class CatCommand extends WithWildCardPathCommand {
       } else {
         throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
       }
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
   }

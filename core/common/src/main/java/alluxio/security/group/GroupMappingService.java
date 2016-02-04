@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.CommonUtils;
 
 /**
@@ -47,7 +47,7 @@ public interface GroupMappingService {
      * @return the groups being used to map user-to-groups
      */
     public static GroupMappingService getUserToGroupsMappingService() {
-      return getUserToGroupsMappingService(new TachyonConf());
+      return getUserToGroupsMappingService(new Configuration());
     }
 
     /**
@@ -56,7 +56,7 @@ public interface GroupMappingService {
      * @param conf Tachyon configuration
      * @return the groups being used to map user-to-groups
      */
-    public static GroupMappingService getUserToGroupsMappingService(TachyonConf conf) {
+    public static GroupMappingService getUserToGroupsMappingService(Configuration conf) {
       GroupMappingService mGroupMappingService;
       if (LOG.isDebugEnabled()) {
         LOG.debug("Creating new Groups object");
@@ -90,5 +90,5 @@ public interface GroupMappingService {
    * @param conf The alluxio configuration set to GroupMappingService
    * @throws IOException if failed config GroupMappingService
    */
-  void setConf(TachyonConf conf) throws IOException;
+  void setConf(Configuration conf) throws IOException;
 }

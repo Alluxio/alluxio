@@ -22,8 +22,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 
@@ -33,7 +33,7 @@ import alluxio.wire.WorkerNetAddress;
 public class NetworkAddressUtilsTest {
 
   /**
-   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, TachyonConf)} method.
+   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, Configuration)} method.
    *
    * @throws Exception thrown if something goes wrong
    */
@@ -45,7 +45,7 @@ public class NetworkAddressUtilsTest {
   }
 
   private void getConnectAddress(ServiceType service) throws Exception {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     String localHostName = NetworkAddressUtils.getLocalHostName(conf);
     InetSocketAddress masterAddress;
 
@@ -107,7 +107,7 @@ public class NetworkAddressUtilsTest {
   }
 
   /**
-   * Tests the {@link NetworkAddressUtils#getBindAddress(ServiceType, TachyonConf)} method.
+   * Tests the {@link NetworkAddressUtils#getBindAddress(ServiceType, Configuration)} method.
    *
    * @throws Exception thrown if something goes wrong
    */
@@ -119,7 +119,7 @@ public class NetworkAddressUtilsTest {
   }
 
   private void getBindAddress(ServiceType service) throws Exception {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     String localHostName = NetworkAddressUtils.getLocalHostName(conf);
     InetSocketAddress workerAddress;
 
@@ -209,23 +209,23 @@ public class NetworkAddressUtilsTest {
   }
 
   /**
-   * Tests the {@link NetworkAddressUtils#replaceHostName(TachyonURI)} method.
+   * Tests the {@link NetworkAddressUtils#replaceHostName(AlluxioURI)} method.
    *
    * @throws UnknownHostException thrown if the host is unknown
    */
   @Test
   public void replaceHostNameTest() throws UnknownHostException {
-    Assert.assertEquals(NetworkAddressUtils.replaceHostName(TachyonURI.EMPTY_URI),
-        TachyonURI.EMPTY_URI);
+    Assert.assertEquals(NetworkAddressUtils.replaceHostName(AlluxioURI.EMPTY_URI),
+        AlluxioURI.EMPTY_URI);
     Assert.assertEquals(NetworkAddressUtils.replaceHostName(null), null);
 
-    TachyonURI[] paths =
-        new TachyonURI[] {new TachyonURI("hdfs://localhost:9000/dir"),
-            new TachyonURI("hdfs://localhost/dir"), new TachyonURI("hdfs://localhost/"),
-            new TachyonURI("hdfs://localhost"), new TachyonURI("file:///dir"),
-            new TachyonURI("/dir"), new TachyonURI("anythingElse")};
+    AlluxioURI[] paths =
+        new AlluxioURI[] {new AlluxioURI("hdfs://localhost:9000/dir"),
+            new AlluxioURI("hdfs://localhost/dir"), new AlluxioURI("hdfs://localhost/"),
+            new AlluxioURI("hdfs://localhost"), new AlluxioURI("file:///dir"),
+            new AlluxioURI("/dir"), new AlluxioURI("anythingElse")};
 
-    for (TachyonURI path : paths) {
+    for (AlluxioURI path : paths) {
       Assert.assertEquals(NetworkAddressUtils.replaceHostName(path), path);
     }
   }

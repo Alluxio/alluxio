@@ -24,8 +24,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.util.io.PathUtils;
 
 /**
@@ -70,14 +70,14 @@ public abstract class UnderFileSystemCluster {
    * Creates an underfs test bed and register the shutdown hook.
    *
    * @param baseDir base directory
-   * @param tachyonConf Tachyon configuration
+   * @param configuration Tachyon configuration
    * @throws IOException when the operation fails
    * @return an instance of the UnderFileSystemCluster class
    */
-  public static synchronized UnderFileSystemCluster get(String baseDir, TachyonConf tachyonConf)
+  public static synchronized UnderFileSystemCluster get(String baseDir, Configuration configuration)
       throws IOException {
     if (sUnderFSCluster == null) {
-      sUnderFSCluster = getUnderFilesystemCluster(baseDir, tachyonConf);
+      sUnderFSCluster = getUnderFilesystemCluster(baseDir, configuration);
     }
 
     if (!sUnderFSCluster.isStarted()) {
@@ -92,18 +92,18 @@ public abstract class UnderFileSystemCluster {
    * Gets the {@link UnderFileSystemCluster}.
    *
    * @param baseDir the base directory
-   * @param tachyonConf the configuration for Tachyon
+   * @param configuration the configuration for Tachyon
    * @return the {@link UnderFileSystemCluster}
    */
   public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir,
-      TachyonConf tachyonConf) {
+      Configuration configuration) {
     sUnderFSClass = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
 
     if (!StringUtils.isEmpty(sUnderFSClass)) {
       try {
         UnderFileSystemCluster ufsCluster =
             (UnderFileSystemCluster) Class.forName(sUnderFSClass).getConstructor(String.class,
-                TachyonConf.class).newInstance(baseDir, tachyonConf);
+                Configuration.class).newInstance(baseDir, configuration);
         System.out.println("Initialized under file system testing cluster of type "
             + ufsCluster.getClass().getCanonicalName() + " for integration testing");
         return ufsCluster;
@@ -114,7 +114,7 @@ public abstract class UnderFileSystemCluster {
       }
     }
     System.out.println("Using default LocalFilesystemCluster for integration testing");
-    return new LocalFileSystemCluster(baseDir, tachyonConf);
+    return new LocalFileSystemCluster(baseDir, configuration);
   }
 
   /**
@@ -130,15 +130,15 @@ public abstract class UnderFileSystemCluster {
 
   protected String mBaseDir;
 
-  protected final TachyonConf mTachyonConf;
+  protected final Configuration mConfiguration;
 
   /**
    * @param baseDir the base directory
-   * @param tachyonConf the configuration for Tachyon
+   * @param configuration the configuration for Tachyon
    */
-  public UnderFileSystemCluster(String baseDir, TachyonConf tachyonConf) {
+  public UnderFileSystemCluster(String baseDir, Configuration configuration) {
     mBaseDir = baseDir;
-    mTachyonConf = tachyonConf;
+    mConfiguration = configuration;
   }
 
   /**
@@ -151,8 +151,8 @@ public abstract class UnderFileSystemCluster {
    */
   public void cleanup() throws IOException {
     if (isStarted()) {
-      String path = getUnderFilesystemAddress() + TachyonURI.SEPARATOR;
-      UnderFileSystem ufs = UnderFileSystem.get(path, mTachyonConf);
+      String path = getUnderFilesystemAddress() + AlluxioURI.SEPARATOR;
+      UnderFileSystem ufs = UnderFileSystem.get(path, mConfiguration);
       for (String p : ufs.list(path)) {
         ufs.delete(PathUtils.concatPath(path, p), true);
       }

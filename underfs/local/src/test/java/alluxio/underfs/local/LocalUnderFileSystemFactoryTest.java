@@ -18,7 +18,7 @@ package alluxio.underfs.local;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
 
@@ -32,7 +32,7 @@ public class LocalUnderFileSystemFactoryTest {
    */
   @Test
   public void factoryTest() {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
 
     UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/local/test/path", conf);
     UnderFileSystemFactory factory2 = UnderFileSystemRegistry.find("file://local/test/path", conf);
