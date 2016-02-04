@@ -24,8 +24,6 @@ public class SimpleAuthenticationProviderTest {
 
   /**
    * Tests the {@link SimpleAuthenticationProvider#authenticate(String, String)}.
-   *
-   * @throws Exception thrown if the authentication fails
    */
   @Test
   public void anyUserAllowConnectTest() throws Exception {
