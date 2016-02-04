@@ -1760,6 +1760,15 @@ public final class FileSystemMaster extends MasterBase {
     if (options.getPersisted() != null) {
       builder.setPersisted(options.getPersisted());
     }
+    if (options.getOwner() != null) {
+      builder.setOwner(options.getOwner());
+    }
+    if (options.getGroup() != null) {
+      builder.setGroup(options.getGroup());
+    }
+    if (options.getPermission() != Constants.INVALID_PERMISSION) {
+      builder.setPermission(options.getPermission().shortValue());
+    }
     writeJournalEntry(JournalEntry.newBuilder().setSetAttribute(builder).build());
     flushJournal();
   }
