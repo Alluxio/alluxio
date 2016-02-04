@@ -28,9 +28,9 @@ import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.OpenFileOptions;
-import tachyon.thrift.BlockLocation;
-import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.WorkerNetAddress;
+import tachyon.wire.BlockLocation;
+import tachyon.wire.FileBlockInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * @deprecated {@see FileSystem} for the supported API.
