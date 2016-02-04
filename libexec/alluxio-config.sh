@@ -26,7 +26,7 @@ if [ -z "$TACHYON_SYSTEM_INSTALLATION" ]; then
   export TACHYON_HOME=${TACHYON_PREFIX}
   export TACHYON_CONF_DIR="$TACHYON_HOME/conf"
   export TACHYON_LOGS_DIR="$TACHYON_HOME/logs"
-  export TACHYON_JARS="$TACHYON_HOME/assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar"
+  export TACHYON_JARS="$TACHYON_HOME/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar"
 fi
 
 # Make sure alluxio-env.sh exists

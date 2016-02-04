@@ -1,14 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.tachyonproject</groupId>
-    <artifactId>tachyon-parent</artifactId>
+    <groupId>org.alluxioproject</groupId>
+    <artifactId>alluxio-parent</artifactId>
     <version>0.9.0-RC3</version>
   </parent>
-  <artifactId>tachyon-examples</artifactId>
+  <artifactId>alluxio-examples</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Examples</name>
-  <description>Example applications of Tachyon</description>
+  <name>Alluxio Examples</name>
+  <description>Example applications of Alluxio</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -34,18 +34,18 @@
       <artifactId>hadoop-client</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-client-internal</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-core-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-common</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-client-internal</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-keyvalue-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

@@ -1,15 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <artifactId>tachyon-parent</artifactId>
-    <groupId>org.tachyonproject</groupId>
+    <artifactId>alluxio-parent</artifactId>
+    <groupId>org.alluxioproject</groupId>
     <version>0.9.0-RC3</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>tachyon-minicluster</artifactId>
+  <artifactId>alluxio-minicluster</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon MiniCluster</name>
-  <description>Tachyon MiniCluster for testing</description>
+  <name>Alluxio MiniCluster</name>
+  <description>Alluxio MiniCluster for testing</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -26,31 +26,31 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-client-internal</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-core-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-common</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-server</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-core-server</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <!-- Other projects' test-jars -->
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-client-internal</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-core-client-internal</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-server</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-core-server</artifactId>
       <type>test-jar</type>
       <version>${project.version}</version>
     </dependency>
