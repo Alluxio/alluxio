@@ -24,7 +24,7 @@ import com.google.common.collect.Lists;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.master.file.meta.PersistenceState;
-import tachyon.thrift.FileInfo;
+import tachyon.wire.FileInfo;
 
 /**
  * Utility methods for checking the state of lineage files.

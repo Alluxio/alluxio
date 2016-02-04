@@ -28,7 +28,7 @@ import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.job.Job;
-import tachyon.thrift.LineageInfo;
+import tachyon.wire.LineageInfo;
 
 /**
  * User facing interface for the Tachyon Lineage client APIs.

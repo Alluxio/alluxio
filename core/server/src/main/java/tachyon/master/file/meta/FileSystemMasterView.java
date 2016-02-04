@@ -23,7 +23,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.thrift.FileInfo;
+import tachyon.wire.FileInfo;
 
 /**
  * This class exposes a read-only view of {@link FileSystemMaster}.

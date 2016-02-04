@@ -1,0 +1,9 @@
+number,permission,rwx
+7,"read, write and execute",rwx
+6,read and write,rw-
+5,read and execute,r-x
+4,read only,r--
+3,write and execute,-wx
+2,write only,-w-
+1,execute only,--x
+0,none,---

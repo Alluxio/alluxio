@@ -42,14 +42,14 @@ import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.thrift.BlockWorkerClientService;
-import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.DataServer;
-import tachyon.worker.NetAddress;
 import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
@@ -194,7 +194,7 @@ public final class BlockWorker extends WorkerBase {
    */
   @Override
   public void start() throws IOException {
-    NetAddress netAddress;
+    WorkerNetAddress netAddress;
     try {
       netAddress = WorkerContext.getNetAddress();
       WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, netAddress);

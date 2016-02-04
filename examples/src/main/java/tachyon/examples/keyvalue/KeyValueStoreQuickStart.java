@@ -19,7 +19,7 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.keyvalue.KeyValueStoreReader;
 import tachyon.client.keyvalue.KeyValueStoreWriter;
-import tachyon.client.keyvalue.KeyValueStores;
+import tachyon.client.keyvalue.KeyValueSystem;
 
 /**
  * A quick start tutorial for creating a key-value store, putting and getting some key-value pairs.
@@ -39,10 +39,10 @@ public final class KeyValueStoreQuickStart {
     }
 
     TachyonURI storeUri = new TachyonURI(args[0]);
-    KeyValueStores kvStore = KeyValueStores.Factory.create();
+    KeyValueSystem kvs = KeyValueSystem.Factory.create();
 
     // Creates a store.
-    KeyValueStoreWriter writer = kvStore.create(storeUri);
+    KeyValueStoreWriter writer = kvs.createStore(storeUri);
 
     // Puts a key-value pair ("key", "value").
     String key = "key";
@@ -54,7 +54,7 @@ public final class KeyValueStoreQuickStart {
     writer.close();
 
     // Opens a store.
-    KeyValueStoreReader reader = kvStore.open(storeUri);
+    KeyValueStoreReader reader = kvs.openStore(storeUri);
 
     // Gets the value for "key".
     System.out.println(String.format("Value for key '%s' got from the store is '%s'", key,
