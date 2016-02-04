@@ -62,9 +62,10 @@ public final class FileDataManager {
   /** Block worker handler for access block info */
   private final BlockWorker mBlockWorker;
 
-  /** The file being persisted. */
+  /** The file being persisted, and the inner map tracks the block id to lock id */
   @GuardedBy("mLock")
-  private final Set<Long> mPersistingInProgressFiles;
+  // the file being persisted,
+  private final Map<Long, Map<Long, Long>> mPersistingInProgressFiles;
 
   /** The file are persisted, but not sent back to master for confirmation yet. */
   @GuardedBy("mLock")
@@ -80,7 +81,7 @@ public final class FileDataManager {
    */
   public FileDataManager(BlockWorker blockWorker) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
-    mPersistingInProgressFiles = Sets.newHashSet();
+    mPersistingInProgressFiles = Maps.newHashMap();
     mPersistedFiles = Sets.newHashSet();
     mTachyonConf = WorkerContext.getConf();
     // Create Under FileSystem Client
@@ -162,6 +163,50 @@ public final class FileDataManager {
   }
 
   /**
+   * Locks all the blocks of a given file Id.
+   *
+   * @param fileId the id of the file
+   * @param blockIds the ids of the file's blocks
+   * @throws IOException when an I/O exception occurs
+   */
+  public void lockBlocks(long fileId, List<Long> blockIds) throws IOException {
+    Map<Long, Long> blockIdToLockId = Maps.newHashMap();
+    List<Throwable> errors = new ArrayList<Throwable>();
+    synchronized (mLock) {
+      if (mPersistingInProgressFiles.containsKey(fileId)) {
+        throw new IOException("the file " + fileId + " is already being persisted");
+      }
+      try {
+        // lock all the blocks to prevent any eviction
+        for (long blockId : blockIds) {
+          long lockId = mBlockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
+          blockIdToLockId.put(blockId, lockId);
+        }
+      } catch (BlockDoesNotExistException e) {
+        errors.add(e);
+        // make sure all the locks are released
+        for (long lockId : blockIdToLockId.values()) {
+          try {
+            mBlockWorker.unlockBlock(lockId);
+          } catch (BlockDoesNotExistException bdnee) {
+            errors.add(bdnee);
+          }
+        }
+
+        if (!errors.isEmpty()) {
+          StringBuilder errorStr = new StringBuilder();
+          errorStr.append("failed to lock all blocks of file ").append(fileId).append("\n");
+          for (Throwable error : errors) {
+            errorStr.append(error).append('\n');
+          }
+          throw new IOException(errorStr.toString());
+        }
+      }
+      mPersistingInProgressFiles.put(fileId, blockIdToLockId);
+    }
+  }
+
+  /**
    * Persists the blocks of a file into the under file system.
    *
    * @param fileId the id of the file
@@ -169,23 +214,20 @@ public final class FileDataManager {
    * @throws IOException if the file persistence fails
    */
   public void persistFile(long fileId, List<Long> blockIds) throws IOException {
+    Map<Long, Long> blockIdToLockId;
     synchronized (mLock) {
-      mPersistingInProgressFiles.add(fileId);
+      blockIdToLockId = mPersistingInProgressFiles.get(fileId);
+      if (blockIdToLockId == null || !blockIdToLockId.keySet().equals(Sets.newHashSet(blockIds))) {
+        throw new IOException("Not all the blocks of file " + fileId + " are blocked");
+      }
     }
 
     String dstPath = prepareUfsFilePath(fileId);
     OutputStream outputStream = mUfs.create(dstPath);
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
-    Map<Long, Long> blockIdToLockId = Maps.newHashMap();
     List<Throwable> errors = new ArrayList<Throwable>();
     try {
-      // lock all the blocks to prevent any eviction
-      for (long blockId : blockIds) {
-        long lockId = mBlockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
-        blockIdToLockId.put(blockId, lockId);
-      }
-
       for (long blockId : blockIds) {
         long lockId = blockIdToLockId.get(blockId);
 
