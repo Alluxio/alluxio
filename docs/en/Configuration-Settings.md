@@ -8,32 +8,32 @@ priority: 1
 * Table of Contents
 {:toc}
 
-There are two types of configuration parameters for Tachyon:
+There are two types of configuration parameters for Alluxio:
 
 1. [Configuration properties](#configuration-properties) are used to configure the runtime settings
-of Tachyon system, and
+of Alluxio system, and
 2. [System environment properties](#system-environment-properties) control the Java VM options to
-run Tachyon as well as some basic very setting.
+run Alluxio as well as some basic very setting.
 
 # Configuration properties
 
-On startup, Tachyon loads the default (and optionally a site specific) configuration properties file
+On startup, Alluxio loads the default (and optionally a site specific) configuration properties file
 to set the configuration properties.
 
-1. The default values of configuration properties of Tachyon are defined in
-`tachyon-default.properties`. This file can be found in Tachyon source tree and is typically
-distributed with Tachyon binaries. We do not recommend beginner users to edit this file directly.
+1. The default values of configuration properties of Alluxio are defined in
+`tachyon-default.properties`. This file can be found in Alluxio source tree and is typically
+distributed with Alluxio binaries. We do not recommend beginner users to edit this file directly.
 
 2. Each site deployment and application client can also override the default property values via
 `tachyon-site.properties` file. Note that, this file **must be in the classpath** of the Java VM in
-which Tachyon is running. The easiest way is to put the site properties file in directory
+which Alluxio is running. The easiest way is to put the site properties file in directory
 `$TACHYON_HOME/conf`.
 
-All Tachyon configuration properties fall into one of the six categories:
+All Alluxio configuration properties fall into one of the six categories:
 [Common](#common-configuration) (shared by Master and Worker),
 [Master specific](#master-configuration), [Worker specific](#worker-configuration),
 [User specific](#user-configuration), [Cluster specific](#cluster-management) (used for running
-Tachyon with cluster managers like Mesos and YARN), and
+Alluxio with cluster managers like Mesos and YARN), and
 [Security specific](#security-configuration) (shared by Master, Worker, and User).
 
 ## Common Configuration
@@ -101,7 +101,7 @@ The user configuration specifies values regarding file system access.
 
 ## Cluster Management
 
-When running Tachyon with cluster managers like Mesos and YARN, Tachyon has additional
+When running Alluxio with cluster managers like Mesos and YARN, Alluxio has additional
 configuration options.
 
 <table class="table table-striped">
@@ -147,7 +147,7 @@ See [Security](Security.html) for more information about security features.
   <td>tachyon.security.login.username</td>
   <td></td>
   <td>When tachyon.security.authentication.type is set to SIMPLE or CUSTOM, user application uses
-  this property to indicate the user requesting Tachyon service. If it is not set explicitly,
+  this property to indicate the user requesting Alluxio service. If it is not set explicitly,
   the OS login user will be used.</td>
 </tr>
 <tr>
@@ -165,7 +165,7 @@ See [Security](Security.html) for more information about security features.
 <tr>
   <td>tachyon.security.authorization.permission.supergroup</td>
   <td>supergroup</td>
-  <td>The super group of Tachyon file system. All users in this group have super permission.</td>
+  <td>The super group of Alluxio file system. All users in this group have super permission.</td>
 </tr>
 <tr>
   <td>tachyon.security.group.mapping.class</td>
@@ -179,25 +179,25 @@ See [Security](Security.html) for more information about security features.
 
 ## Configure multihomed networks
 
-Tachyon configuration provides a way to take advantage of multi-homed networks. If you have more
-than one NICs and you want your Tachyon master to listen on all NICs, you can specify
-`tachyon.master.bind.host` to be `0.0.0.0`. As a result, Tachyon clients can reach the master node
+Alluxio configuration provides a way to take advantage of multi-homed networks. If you have more
+than one NICs and you want your Alluxio master to listen on all NICs, you can specify
+`tachyon.master.bind.host` to be `0.0.0.0`. As a result, Alluxio clients can reach the master node
 from connecting to any of its NIC. This is also the same case for other properties suffixed with
 `bind.host`.
 
 # System environment properties
 
-To run Tachyon, it also requires some system environment variables being set which by default are
+To run Alluxio, it also requires some system environment variables being set which by default are
 configured in file `conf/tachyon-env.sh`. If this file does not exist yet, you can create one from a
 template we provided in the source code using:
 
 {% include Configuration-Settings/copy-tachyon-env.md %}
 
-There are a few frequently used Tachyon configuration properties that can be set via environment
+There are a few frequently used Alluxio configuration properties that can be set via environment
 variables. One can either set these variables through shell or modify their default values specified
 in `conf/tachyon-env.sh`.
 
-* `$TACHYON_MASTER_ADDRESS`: Tachyon master address, default to localhost.
+* `$TACHYON_MASTER_ADDRESS`: Alluxio master address, default to localhost.
 * `$TACHYON_UNDERFS_ADDRESS`: under storage system address, default to
 `${TACHYON_HOME}/underFSStorage` which is a local file system.
 * `$TACHYON_JAVA_OPTS`: Java VM options for both Master and Worker.
@@ -206,7 +206,7 @@ in `conf/tachyon-env.sh`.
 default `TACHYON_JAVA_OPTS` is included in both `TACHYON_MASTER_JAVA_OPTS` and
 `TACHYON_WORKER_JAVA_OPTS`.
 
-For example, if you would like to connect Tachyon to HDFS running at localhost and enable Java
+For example, if you would like to connect Alluxio to HDFS running at localhost and enable Java
 remote debugging at port 7001, you can do so using:
 
 {% include Configuration-Settings/more-conf.md %}

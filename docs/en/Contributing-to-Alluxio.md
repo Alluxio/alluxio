@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Contributing to Tachyon
+title: Contributing to Alluxio
 nickname: Contributor Guide
 group: Resources
 ---
@@ -8,22 +8,22 @@ group: Resources
 * Table of Contents
 {:toc}
 
-Thank you for your interest in Tachyon! We greatly appreciate any new features or fixes.
+Thank you for your interest in Alluxio! We greatly appreciate any new features or fixes.
 
-### Tachyon Getting Started Tasks
+### Alluxio Getting Started Tasks
 
-There are a few things that new contributors can do to familiarize themselves with Tachyon:
+There are a few things that new contributors can do to familiarize themselves with Alluxio:
 
-1.  [Run Tachyon Locally](Running-Tachyon-Locally.html)
+1.  [Run Alluxio Locally](Running-Alluxio-Locally.html)
 
-2.  [Run Tachyon on a Cluster](Running-Tachyon-on-a-Cluster.html)
+2.  [Run Alluxio on a Cluster](Running-Alluxio-on-a-Cluster.html)
 
 3.  Read [Configuration-Settings](Configuration-Settings.html) and [Command-Line Interface](Command-Line-Interface.html)
 
 4.  Read a
     [Code Example](https://github.com/amplab/tachyon/blob/master/examples/src/main/java/tachyon/examples/BasicOperations.java)
 
-5.  [Build Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
+5.  [Build Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
 
 6.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request. You are also welcome to address
 issues in our [JIRA](https://tachyon.atlassian.net/browse/TACHYON).
@@ -71,13 +71,13 @@ submiting the pull requests. For instance:
 [SMALLFIX] Fix formatting in Foo.java
 ~~~~~
 
--   For pull requests that improve the documentation of Tachyon project website (e.g., modify the
+-   For pull requests that improve the documentation of Alluxio project website (e.g., modify the
     markdown files in `docs` directory), you can prefix the titles of your pull requests with "[DOCFIX]".
-    For example, to edit this web page which is generated from `docs/Contributing-to-Tachyon.md`, the title
+    For example, to edit this web page which is generated from `docs/Contributing-to-Alluxio.md`, the title
     can be:
 
 ~~~~~
-[DOCFIX] Improve documentation of how to contribute to Tachyon
+[DOCFIX] Improve documentation of how to contribute to Alluxio
 ~~~~~
 
 #### Testing
@@ -94,7 +94,7 @@ submodule directory. For example, to run tests for HDFS you would run ``mvn test
 -Dtachyon.underfs.glusterfs.volumes=testvol test` (use GlusterFS as under filesystem,
 where `/vol` is a valid GlusterFS mount point)
 
--   Run a single unit test: `mvn -Dtest=TachyonFSTest#createFileTest -DfailIfNoTests=false test`
+-   Run a single unit test: `mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test`
 
 -   To quickly test the working of some APIs in an interactive manner, you may
 leverage the Scala shell, as discussed in this
@@ -138,34 +138,34 @@ leverage the Scala shell, as discussed in this
          [Rearranger Plugin](http://plugins.jetbrains.com/plugin/173), open Preferences, search for
          rearranger, remove the unnecessary comments, then right click, choose "Rearrange", codes
          will be formatted to what you want
--   Tachyon is using SLF4J for logging with typical usage pattern of:
+-   Alluxio is using SLF4J for logging with typical usage pattern of:
 
-{% include Contributing-to-Tachyon/slf4j.md %}
+{% include Contributing-to-Alluxio/slf4j.md %}
 
 -  To verify that the coding standards match, you should run
    [checkstyle](http://checkstyle.sourceforge.net) before sending a pull-request to verify no new
    warnings are introduced:
 
-{% include Contributing-to-Tachyon/checkstyle.md %}
+{% include Contributing-to-Alluxio/checkstyle.md %}
 
 #### FindBugs
 
 Before submitting the pull-request, run the latest code against
 [FindBugs](http://findbugs.sourceforge.net/) to verify no new warnings are introduced.
 
-{% include Contributing-to-Tachyon/findbugs.md %}
+{% include Contributing-to-Alluxio/findbugs.md %}
 
 ### IDE
 
 You can generate an Eclipse configuration file by running:
 
-{% include Contributing-to-Tachyon/eclipse-configuration.md %}
+{% include Contributing-to-Alluxio/eclipse-configuration.md %}
 
 Then import the folder into Eclipse.
 
 You may also have to add the classpath variable M2_REPO by running:
 
-{% include Contributing-to-Tachyon/M2_REPO.md %}
+{% include Contributing-to-Alluxio/M2_REPO.md %}
 
 If you are using IntelliJ IDEA, you may need to change the Maven profile to 'developer' in order
 to avoid import errors. You can do this by going to
@@ -175,20 +175,20 @@ to avoid import errors. You can do this by going to
 ### Presentations
 
 -   AMPCamp 6 (November, 2015)
-[SlideShare](http://www.slideshare.net/TachyonNexus/tachyon-presentation-at-ampcamp-6-november-2015)
+[SlideShare](http://www.slideshare.net/AlluxioNexus/tachyon-presentation-at-ampcamp-6-november-2015)
 -   Strata and Hadoop World 2015 (September, 2015)
-[SlideShare](http://www.slideshare.net/TachyonNexus/tachyon-an-open-source-memorycentric-distributed-storage-system)
+[SlideShare](http://www.slideshare.net/AlluxioNexus/tachyon-an-open-source-memorycentric-distributed-storage-system)
 -   Strata and Hadoop World 2014 (October, 2014)
-[pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pdf)
-[pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pptx)
+[pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Alluxio_2014-10-16-Strata.pdf)
+[pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Alluxio_2014-10-16-Strata.pptx)
 -   Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
 -   Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
 
 ### Readings
 
--   [Tachyon: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_tachyon.pdf)
+-   [Alluxio: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_tachyon.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *SOCC 2014*.
 -   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_tachyon.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *UC Berkeley EECS 2014*.
--   [Tachyon: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_tachyon.pdf)
+-   [Alluxio: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_tachyon.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Eric Baldeschwieler, Scott Shenker, Ion Stoica, *LADIS 2013*.

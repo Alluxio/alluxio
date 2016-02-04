@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Tiered Storage on Tachyon
+title: Tiered Storage on Alluxio
 nickname: Tiered Storage
 group: Features
 priority: 4
@@ -9,15 +9,15 @@ priority: 4
 * Table of Contents
 {:toc}
 
-Tachyon supports tiered storage, which allows Tachyon to manage other storage types in addition to
-memory. Currently, Tachyon Tiered Storage supports these storage types or tiers:
+Alluxio supports tiered storage, which allows Alluxio to manage other storage types in addition to
+memory. Currently, Alluxio Tiered Storage supports these storage types or tiers:
 
 * MEM (Memory)
 * SSD (Solid State Drives)
 * HDD (Hard Disk Drives)
 
-Using Tachyon with tiered storage allows Tachyon to store more data in the system at once,
-since memory capacity may be limited in some deployments. With tiered storage, Tachyon
+Using Alluxio with tiered storage allows Alluxio to store more data in the system at once,
+since memory capacity may be limited in some deployments. With tiered storage, Alluxio
 automatically manages blocks between all the configured tiers, so users and administrators do not
 have to manually manage the locations of the data. Users may specify their own data management
 strategies by implementing [allocators](#allocators) and [evictors](#evictors). In addition, manual
@@ -25,18 +25,18 @@ control over tier storage is possible, see [pinning files](#pinning-files).
 
 # Using Tiered Storage
 
-With the introduction of tiers, the data blocks managed by Tachyon are not necessarily in memory;
+With the introduction of tiers, the data blocks managed by Alluxio are not necessarily in memory;
 blocks can be in any of the available tiers. To manage the placement and movement of the blocks,
-Tachyon uses *allocators* and *evictors* to place and re-arrange blocks between the tiers. Tachyon
+Alluxio uses *allocators* and *evictors* to place and re-arrange blocks between the tiers. Alluxio
 assumes that tiers are ordered from top to bottom based on I/O performance. Therefore, the typical
 tiered storage configuration defines the top tier to be MEM, followed by SSD, and finally HDD.
 
 ## Storage Directories
 
-A tier is made up of at least one storage directory. This directory is a file path where the Tachyon
-blocks should be stored. Tachyon supports configuring multiple directories for a single tier,
+A tier is made up of at least one storage directory. This directory is a file path where the Alluxio
+blocks should be stored. Alluxio supports configuring multiple directories for a single tier,
 allowing multiple mount points or storage devices for a particular tier. For example, if you have
-five SSD devices on your Tachyon worker, you can configure Tachyon to use all five devices for the
+five SSD devices on your Alluxio worker, you can configure Alluxio to use all five devices for the
 SSD tier. Configuration for this is described [below](#enabling-and-configuring-tiered-storage).
 Choosing which directory the data should placed is determined by the [allocators](#allocators).
 
@@ -48,12 +48,12 @@ tier, then the evictor is triggered in order to free space for the new block.
 
 ## Reading Data
 
-Reading a data block with tiered storage is similar to standard Tachyon. Tachyon will simply read
-the block from where it is already stored. If Tachyon is configured with multiple tiers, then the
+Reading a data block with tiered storage is similar to standard Alluxio. Alluxio will simply read
+the block from where it is already stored. If Alluxio is configured with multiple tiers, then the
 block will not be necessarily read from the top tier, since it could have been moved to a lower tier
 transparently.
 
-Reading data with the TachyonStorageType.PROMOTE will ensure the data is first transferred to the
+Reading data with the AlluxioStorageType.PROMOTE will ensure the data is first transferred to the
 top tier before it is read from the worker. This can also be used as a data management strategy by
 explicitly moving hot data to higher tiers.
 
@@ -66,17 +66,17 @@ blocks of pinned files to move blocks to the top tier.
 An example of how to pin a file:
 
 ```java
-TachyonFile file = TachyonFileSystem.open("/myFile");
+AlluxioFile file = AlluxioFileSystem.open("/myFile");
 SetStateOptions pinOpt = new SetStateOptions.Builder(ClientContext.getConf()).setPinned(true);
-TachyonFileSystem.setState(file, pinOpt);
+AlluxioFileSystem.setState(file, pinOpt);
 ```
 
 Similarly, the file can be unpinned through:
 
 ```java
-TachyonFile file = TachyonFileSystem.open("/myFile");
+AlluxioFile file = AlluxioFileSystem.open("/myFile");
 SetStateOptions pinOpt = new SetStateOptions.Builder(ClientContext.getConf()).setPinned(false);
-TachyonFileSystem.setState(file, pinOpt);
+AlluxioFileSystem.setState(file, pinOpt);
 ```
 
 Since blocks of pinned files are no longer candidates for eviction, clients should make sure to
@@ -84,9 +84,9 @@ unpin files when appropriate.
 
 ## Allocators
 
-Tachyon uses allocators for choosing locations for writing new blocks. Tachyon has a framework for
+Alluxio uses allocators for choosing locations for writing new blocks. Alluxio has a framework for
 customized allocators, but there are a few default implementations of allocators. Here are the
-existing allocators in Tachyon:
+existing allocators in Alluxio:
 
 * **GreedyAllocator**
 
@@ -101,13 +101,13 @@ existing allocators in Tachyon:
     Allocates the block in the highest tier with space, the storage directory is chosen through
     round robin.
 
-In the future, additional allocators will be available. Since Tachyon supports custom allocators,
+In the future, additional allocators will be available. Since Alluxio supports custom allocators,
 you can also develop your own allocator appropriate for your workload.
 
 ## Evictors
 
-Tachyon uses evictors for deciding which blocks to move to a lower tier, when space needs to be
-freed. Tachyon supports custom evictors, and implementations include:
+Alluxio uses evictors for deciding which blocks to move to a lower tier, when space needs to be
+freed. Alluxio supports custom evictors, and implementations include:
 
 * **GreedyEvictor**
 
@@ -128,7 +128,7 @@ freed. Tachyon supports custom evictors, and implementations include:
     Evicts based on least-recently-used but will choose StorageDir with maximum free space and
     only evict from that StorageDir.
 
-In the future, additional evictors will be available. Since Tachyon supports custom evictors,
+In the future, additional evictors will be available. Since Alluxio supports custom evictors,
 you can also develop your own evictor appropriate for your workload.
 
 When using synchronous eviction, it is recommended to use small block size (around 64MB),
@@ -145,9 +145,9 @@ and configure the space reserver.
 
 # Enabling and Configuring Tiered Storage
 
-Tiered storage can be enabled in Tachyon using
-[configuration parameters](Configuration-Settings.html). By default, Tachyon only enables a single,
-memory tier. To specify additional tiers for Tachyon, use the following configuration parameters:
+Tiered storage can be enabled in Alluxio using
+[configuration parameters](Configuration-Settings.html). By default, Alluxio only enables a single,
+memory tier. To specify additional tiers for Alluxio, use the following configuration parameters:
 
     tachyon.worker.tieredstore.levels
     tachyon.worker.tieredstore.level{x}.alias
@@ -155,7 +155,7 @@ memory tier. To specify additional tiers for Tachyon, use the following configur
     tachyon.worker.tieredstore.level{x}.dirs.path
     tachyon.worker.tieredstore.level{x}.reserved.ratio
 
-For example, if you wanted to configure Tachyon to have two tiers -- memory and hard disk drive --
+For example, if you wanted to configure Alluxio to have two tiers -- memory and hard disk drive --
 you could use a configuration similar to:
 
     tachyon.worker.tieredstore.levels=2
@@ -170,7 +170,7 @@ you could use a configuration similar to:
 
 Here is the explanation of the example configuration:
 
-* `tachyon.worker.tieredstore.levels=2` configures 2 tiers in Tachyon
+* `tachyon.worker.tieredstore.levels=2` configures 2 tiers in Alluxio
 * `tachyon.worker.tieredstore.level0.alias=MEM` configures the first (top) tier to be a memory tier
 * `tachyon.worker.tieredstore.level0.dirs.path=/mnt/ramdisk` defines `/mnt/ramdisk` to be the file
 path to the first tier
@@ -187,7 +187,7 @@ the second layer to be 0.1
 
 There are a few restrictions to defining the tiers. First of all, there can be at most 3 tiers.
 Also, at most 1 tier can refer to a specific alias. For example, at most 1 tier can have the
-alias HDD. If you want Tachyon to use multiple hard drives for the HDD tier, you can configure that
+alias HDD. If you want Alluxio to use multiple hard drives for the HDD tier, you can configure that
 by using multiple paths for `tachyon.worker.tieredstore.level{x}.dirs.path`.
 
 Additionally, the specific evictor and allocator strategies can be configured. Those configuration
@@ -210,7 +210,7 @@ These are the configuration parameters for tiered storage.
   <td>tachyon.worker.tieredstore.levels</td>
   <td>1</td>
   <td>
-  The maximum number of storage tiers in Tachyon. Currently, Tachyon supports 1, 2, or 3 tiers.
+  The maximum number of storage tiers in Alluxio. Currently, Alluxio supports 1, 2, or 3 tiers.
   </td>
 </tr>
 <tr>
@@ -272,7 +272,7 @@ These are the configuration parameters for tiered storage.
   <td>tachyon.worker.allocator.class</td>
   <td><div>tachyon.worker.block.allocator.</div><div>MaxFreeAllocator</div></td>
   <td>
-  The class name of the allocation strategy to use for new blocks in Tachyon.
+  The class name of the allocation strategy to use for new blocks in Alluxio.
   </td>
 </tr>
 <tr>
