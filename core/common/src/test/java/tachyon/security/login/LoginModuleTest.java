@@ -41,10 +41,8 @@ public class LoginModuleTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   /**
-   * This test verify whether the simple login works in JAAS framework.
+   * This test verifies whether the simple login works in JAAS framework.
    * Simple mode login get the OS user and convert to Tachyon user.
-   *
-   * @throws Exception thrown when failing to set the context appropriately
    */
   @Test
   public void simpleLoginTest() throws Exception {
@@ -73,7 +71,7 @@ public class LoginModuleTest {
   }
 
    /**
-   * This test verify logging out a read only subject should fail.
+   * This test verifies that logging out a read only subject should fail.
    */
   @Test
   public void logoutReadOnlySubject() throws Exception {

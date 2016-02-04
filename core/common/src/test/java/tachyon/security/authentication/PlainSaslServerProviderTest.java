@@ -33,8 +33,6 @@ public class PlainSaslServerProviderTest {
   /**
    * Tests the {@link Sasl#createSaslServer(String, String, String, Map, CallbackHandler)} method to
    * work with the {@link PlainSaslServerProvider#MECHANISM} successfully.
-   *
-   * @throws Exception thrown if the server cannot be created
    */
   @Test
   public void createPlainSaslServerTest() throws Exception {
@@ -47,8 +45,6 @@ public class PlainSaslServerProviderTest {
   /**
    * Tests the {@link Sasl#createSaslServer(String, String, String, Map, CallbackHandler)} method to
    * be null when the provider is not plain.
-   *
-   * @throws Exception thrown if the server cannot be created
    */
   @Test
   public void createNoSupportSaslServerTest() throws Exception {
