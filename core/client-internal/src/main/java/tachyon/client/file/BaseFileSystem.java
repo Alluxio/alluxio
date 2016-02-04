@@ -34,7 +34,6 @@ import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenFileOptions;
 import tachyon.client.file.options.RenameOptions;
-import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.client.file.options.UnmountOptions;
 import tachyon.exception.DirectoryNotEmptyException;
@@ -246,7 +245,7 @@ public class BaseFileSystem implements FileSystem {
       throw new FileNotFoundException(
           ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
     }
-    return new FileInStream(status.getInfo(), options.toInStreamOptions());
+    return new FileInStream(status, options.toInStreamOptions());
   }
 
   @Override
@@ -262,17 +261,6 @@ public class BaseFileSystem implements FileSystem {
     try {
       // TODO(calvin): Update this code on the master side.
       masterClient.rename(src, dst);
-    } finally {
-      mContext.releaseMasterClient(masterClient);
-    }
-  }
-
-  @Override
-  public void setAcl(TachyonURI path, SetAclOptions options) throws TachyonException,
-      IOException {
-    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-    try {
-      masterClient.setAcl(path.getPath(), options);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

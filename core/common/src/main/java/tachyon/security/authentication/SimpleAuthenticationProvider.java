@@ -23,7 +23,7 @@ import javax.security.sasl.AuthenticationException;
  * password including empty strings.
  */
 @ThreadSafe
-public class SimpleAuthenticationProviderImpl implements AuthenticationProvider {
+public final class SimpleAuthenticationProvider implements AuthenticationProvider {
 
   @Override
   public void authenticate(String user, String password) throws AuthenticationException {
