@@ -1,14 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.tachyonproject</groupId>
-    <artifactId>tachyon-parent</artifactId>
+    <groupId>org.alluxioproject</groupId>
+    <artifactId>alluxio-parent</artifactId>
     <version>0.9.0-RC3</version>
   </parent>
-  <artifactId>tachyon-tests</artifactId>
+  <artifactId>alluxio-tests</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Tests</name>
-  <description>Integration tests for Tachyon</description>
+  <name>Alluxio Tests</name>
+  <description>Integration tests for Alluxio</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -49,44 +49,44 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-common</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-server</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-core-server</artifactId>
       <type>test-jar</type>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-client-internal</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-keyvalue-client-internal</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-server</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-keyvalue-server</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-local</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-underfs-local</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-minicluster</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-minicluster</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-shell</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-shell</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -97,8 +97,8 @@
       <id>hdfs1Test</id>
       <dependencies>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-underfs-hdfs</artifactId>
+          <groupId>org.alluxioproject</groupId>
+          <artifactId>alluxio-underfs-hdfs</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
@@ -122,8 +122,8 @@
       <id>hdfs2Test</id>
       <dependencies>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-underfs-hdfs</artifactId>
+          <groupId>org.alluxioproject</groupId>
+          <artifactId>alluxio-underfs-hdfs</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
@@ -147,8 +147,8 @@
       <id>glusterfsTest</id>
       <dependencies>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-underfs-glusterfs</artifactId>
+          <groupId>org.alluxioproject</groupId>
+          <artifactId>alluxio-underfs-glusterfs</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
@@ -178,8 +178,8 @@
       <id>s3Test</id>
       <dependencies>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-underfs-s3</artifactId>
+          <groupId>org.alluxioproject</groupId>
+          <artifactId>alluxio-underfs-s3</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
@@ -210,8 +210,8 @@
       <id>ossTest</id>
       <dependencies>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-underfs-oss</artifactId>
+          <groupId>org.alluxioproject</groupId>
+          <artifactId>alluxio-underfs-oss</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
@@ -249,8 +249,8 @@
       <id>swiftTest</id>
       <dependencies>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-underfs-swift</artifactId>
+          <groupId>org.alluxioproject</groupId>
+          <artifactId>alluxio-underfs-swift</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>

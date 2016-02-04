@@ -1,13 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.tachyonproject</groupId>
-    <artifactId>tachyon-parent</artifactId>
+    <groupId>org.alluxioproject</groupId>
+    <artifactId>alluxio-parent</artifactId>
     <version>0.9.0-RC3</version>
   </parent>
-  <artifactId>tachyon-assemblies</artifactId>
-  <name>Tachyon Assemblies</name>
-  <description>Assemblies of Tachyon system</description>
+  <artifactId>alluxio-assemblies</artifactId>
+  <name>Alluxio Assemblies</name>
+  <description>Assemblies of Alluxio system</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -20,53 +20,53 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-server</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-core-server</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-server</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-keyvalue-server</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-hdfs</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-underfs-hdfs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-glusterfs</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-underfs-glusterfs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-oss</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-underfs-oss</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-s3</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-underfs-s3</artifactId>
       <version>${project.version}</version>
     </dependency>
    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-swift</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-underfs-swift</artifactId>
       <version>${project.version}</version>
     </dependency>
      <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-local</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-underfs-local</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-examples</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-examples</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-shell</artifactId>
+      <groupId>org.alluxioproject</groupId>
+      <artifactId>alluxio-shell</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
@@ -76,8 +76,8 @@
       <id>mesos</id>
       <dependencies>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-integration-mesos</artifactId>
+          <groupId>org.alluxioproject</groupId>
+          <artifactId>alluxio-integration-mesos</artifactId>
           <version>${project.version}</version>
         </dependency>
       </dependencies>
@@ -87,8 +87,8 @@
       <id>yarn</id>
       <dependencies>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-integration-yarn</artifactId>
+          <groupId>org.alluxioproject</groupId>
+          <artifactId>alluxio-integration-yarn</artifactId>
           <version>${project.version}</version>
         </dependency>
       </dependencies>
@@ -98,13 +98,13 @@
       <id>developer</id>
       <dependencies>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-integration-mesos</artifactId>
+          <groupId>org.alluxioproject</groupId>
+          <artifactId>alluxio-integration-mesos</artifactId>
           <version>${project.version}</version>
         </dependency>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-integration-yarn</artifactId>
+          <groupId>org.alluxioproject</groupId>
+          <artifactId>alluxio-integration-yarn</artifactId>
           <version>${project.version}</version>
         </dependency>
       </dependencies>
@@ -157,7 +157,7 @@
           <attach>false</attach>
           <finalName>alluxio-${project.version}</finalName>
           <descriptors>
-            <descriptor>src/main/assembly/tachyon-dist.xml</descriptor>
+            <descriptor>src/main/assembly/alluxio-dist.xml</descriptor>
           </descriptors>
         </configuration>
       </plugin>
