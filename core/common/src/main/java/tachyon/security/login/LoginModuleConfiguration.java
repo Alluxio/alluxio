@@ -35,19 +35,20 @@ import tachyon.security.authentication.AuthType;
  * modules to be used.
  */
 @ThreadSafe
-public final class TachyonJaasConfiguration extends Configuration {
+public final class LoginModuleConfiguration extends Configuration {
 
   private static final Map<String, String> EMPTY_JAAS_OPTIONS = new HashMap<String, String>();
 
   /** Login module that allows a user name provided by OS. */
   private static final AppConfigurationEntry OS_SPECIFIC_LOGIN =
-      new AppConfigurationEntry(TachyonJaasProperties.OS_LOGIN_MODULE_NAME,
+      new AppConfigurationEntry(LoginModuleConfigurationUtils.OS_LOGIN_MODULE_NAME,
           LoginModuleControlFlag.REQUIRED, EMPTY_JAAS_OPTIONS);
 
   /** Login module that allows a user name provided by application to be specified. */
   private static final AppConfigurationEntry APP_LOGIN = new AppConfigurationEntry(
       AppLoginModule.class.getName(), LoginModuleControlFlag.SUFFICIENT, EMPTY_JAAS_OPTIONS);
 
+  /** Login module that allows a user name provided by a Tachyon specific login module. */
   private static final AppConfigurationEntry TACHYON_LOGIN = new AppConfigurationEntry(
       TachyonLoginModule.class.getName(), LoginModuleControlFlag.REQUIRED, EMPTY_JAAS_OPTIONS);
 

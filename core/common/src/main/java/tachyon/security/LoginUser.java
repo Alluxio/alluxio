@@ -28,7 +28,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.login.AppLoginModule;
-import tachyon.security.login.TachyonJaasConfiguration;
+import tachyon.security.login.LoginModuleConfiguration;
 
 /**
  * A Singleton of LoginUser, which is an instance of {@link tachyon.security.User}. It represents
@@ -86,10 +86,10 @@ public final class LoginUser {
       }
 
       // Create LoginContext based on authType, corresponding LoginModule should be registered
-      // under the authType name in TachyonJaasConfiguration.
+      // under the authType name in LoginModuleConfiguration.
       LoginContext loginContext =
           new LoginContext(authType.getAuthName(), subject, callbackHandler,
-              new TachyonJaasConfiguration());
+              new LoginModuleConfiguration());
       loginContext.login();
 
       Set<User> userSet = subject.getPrincipals(User.class);

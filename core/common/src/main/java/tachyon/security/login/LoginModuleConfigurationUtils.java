@@ -23,7 +23,7 @@ import tachyon.util.OSUtils;
  * This class provides constants used in JAAS login.
  */
 @ThreadSafe
-public final class TachyonJaasProperties {
+public final class LoginModuleConfigurationUtils {
   /** Login module according to different OS type */
   public static final String OS_LOGIN_MODULE_NAME;
   /** Class name of Principal according to different OS type */
