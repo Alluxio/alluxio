@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-parent</artifactId>
-  <version>0.9.0-RC2</version>
+  <version>0.9.0-RC3</version>
   <packaging>pom</packaging>
   <name>Tachyon Parent</name>
   <description>Parent POM of Tachyon project: a Reliable Memory Centric Distributed Storage System</description>
