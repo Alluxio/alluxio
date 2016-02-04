@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.alluxio.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>0.9.0-RC3</version>
+    <version>1.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-glusterfs</artifactId>
   <name>Alluxio Under File System - Gluster FS</name>
