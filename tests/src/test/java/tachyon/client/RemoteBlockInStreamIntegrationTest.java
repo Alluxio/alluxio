@@ -44,11 +44,11 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.BlockInfo;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.wire.BlockInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Integration tests for {@link tachyon.client.block.RemoteBlockInStream}.

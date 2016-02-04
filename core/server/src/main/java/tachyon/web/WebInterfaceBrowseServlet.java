@@ -43,12 +43,12 @@ import tachyon.exception.TachyonException;
 import tachyon.master.TachyonMaster;
 import tachyon.security.LoginUser;
 import tachyon.security.authentication.PlainSaslServer;
-import tachyon.thrift.BlockLocation;
-import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.FileInfo;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.SecurityUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.wire.BlockLocation;
+import tachyon.wire.FileBlockInfo;
+import tachyon.wire.FileInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Servlet that provides data for browsing the file system.

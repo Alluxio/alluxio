@@ -40,7 +40,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.util.OSUtils;
-import tachyon.worker.NetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Common network address related utilities shared by all components in Tachyon.
@@ -501,7 +501,7 @@ public final class NetworkAddressUtils {
    * @return the resolved FQDN host name
    * @throws UnknownHostException if the host is not known
    */
-  public static String getFqdnHost(NetAddress addr) throws UnknownHostException {
+  public static String getFqdnHost(WorkerNetAddress addr) throws UnknownHostException {
     return resolveHostName(addr.getHost());
   }
 
@@ -561,7 +561,7 @@ public final class NetworkAddressUtils {
    * @param netAddress the input network address representation
    * @return InetSocketAddress
    */
-  public static InetSocketAddress getRpcPortSocketAddress(NetAddress netAddress) {
+  public static InetSocketAddress getRpcPortSocketAddress(WorkerNetAddress netAddress) {
     try {
       String host = getFqdnHost(netAddress);
       int port = netAddress.getRpcPort();
@@ -577,7 +577,7 @@ public final class NetworkAddressUtils {
    * @param netAddress the input network address representation
    * @return InetSocketAddress
    */
-  public static InetSocketAddress getDataPortSocketAddress(NetAddress netAddress) {
+  public static InetSocketAddress getDataPortSocketAddress(WorkerNetAddress netAddress) {
     try {
       String host = getFqdnHost(netAddress);
       int port = netAddress.getDataPort();

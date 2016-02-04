@@ -17,6 +17,7 @@ package tachyon.client.lineage;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -30,10 +31,11 @@ import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
-import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterClientService;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
+import tachyon.wire.LineageInfo;
+import tachyon.wire.ThriftUtils;
 
 /**
  * A wrapper for the thrift client to interact with the lineage master, used by tachyon clients.
@@ -92,7 +94,7 @@ public final class LineageMasterClient extends MasterClientBase {
       @Override
       public Long call() throws TachyonTException, TException {
         return mClient.createLineage(inputFiles, outputFiles,
-            job.generateCommandLineJobInfo());
+            ThriftUtils.toThrift(job.generateCommandLineJobInfo()));
       }
     });
   }
@@ -149,7 +151,11 @@ public final class LineageMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallable<List<LineageInfo>>() {
       @Override
       public List<LineageInfo> call() throws TException {
-        return mClient.getLineageInfoList();
+        List<LineageInfo> result = new ArrayList<LineageInfo>();
+        for (tachyon.thrift.LineageInfo lineageInfo : mClient.getLineageInfoList()) {
+          result.add(ThriftUtils.fromThrift(lineageInfo));
+        }
+        return result;
       }
     });
   }

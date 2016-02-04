@@ -45,6 +45,7 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
+import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.BlockWorkerClientServiceHandler;
 import tachyon.worker.file.FileSystemWorker;
@@ -90,7 +91,7 @@ public final class TachyonWorker {
   private InetSocketAddress mWorkerAddress;
 
   /** Net address of this worker. */
-  private NetAddress mNetAddress;
+  private WorkerNetAddress mNetAddress;
 
   /** Worker start time in milliseconds. */
   private long mStartTimeMs;
@@ -223,12 +224,12 @@ public final class TachyonWorker {
   }
 
   /**
-   * Gets this worker's {@link NetAddress}, which is the worker's hostname, rpc
+   * Gets this worker's {@link WorkerNetAddress}, which is the worker's hostname, rpc
    * server port, data server port, and web server port.
    *
    * @return the worker's net address
    */
-  public NetAddress getNetAddress() {
+  public WorkerNetAddress getNetAddress() {
     return mNetAddress;
   }
 
@@ -252,10 +253,12 @@ public final class TachyonWorker {
     // Set updated net address for this worker in context
     // Requirement: RPC, web, and dataserver ports are updated
     // Consequence: create a NetAddress object and set it into WorkerContext
-    mNetAddress = new NetAddress(
-        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
-        mTachyonConf.getInt(Constants.WORKER_RPC_PORT), getDataLocalPort(),
-        mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
+    mNetAddress =
+        new WorkerNetAddress()
+            .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf))
+            .setRpcPort(mTachyonConf.getInt(Constants.WORKER_RPC_PORT))
+            .setDataPort(getDataLocalPort())
+            .setWebPort(mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
     WorkerContext.setWorkerNetAddress(mNetAddress);
 
     // Start each worker

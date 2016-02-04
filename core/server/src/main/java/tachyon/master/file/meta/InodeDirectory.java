@@ -27,7 +27,7 @@ import tachyon.collections.IndexedSet;
 import tachyon.proto.journal.File.InodeDirectoryEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.security.authorization.PermissionStatus;
-import tachyon.thrift.FileInfo;
+import tachyon.wire.FileInfo;
 
 /**
  * Tachyon file system's directory representation in the file system master.
@@ -114,7 +114,6 @@ public final class InodeDirectory extends Inode {
     ret.setPinned(isPinned());
     ret.setCacheable(false);
     ret.setPersisted(isPersisted());
-    ret.setBlockIds(null);
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
     ret.setTtl(Constants.NO_TTL);
     ret.setUserName(getUserName());
