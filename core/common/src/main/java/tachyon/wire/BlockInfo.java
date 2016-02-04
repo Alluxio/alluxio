@@ -15,6 +15,7 @@
 
 package tachyon.wire;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -36,6 +37,20 @@ public final class BlockInfo {
    * Creates a new instance of {@link BlockInfo}.
    */
   public BlockInfo() {}
+
+  /**
+   * Creates a new instance of {@link BlockInfo} from a thrift representation.
+   *
+   * @param blockInfo the thrift representation of a block descriptor
+   */
+  protected BlockInfo(tachyon.thrift.BlockInfo blockInfo) {
+    mBlockId = blockInfo.getBlockId();
+    mLength = blockInfo.getLength();
+    mLocations = new ArrayList<BlockLocation>();
+    for (tachyon.thrift.BlockLocation location : blockInfo.getLocations()) {
+      mLocations.add(new BlockLocation(location));
+    }
+  }
 
   /**
    * @return the block id
@@ -84,6 +99,17 @@ public final class BlockInfo {
     Preconditions.checkNotNull(locations);
     mLocations = locations;
     return this;
+  }
+
+  /**
+   * @return thrift representation of the block descriptor
+   */
+  protected tachyon.thrift.BlockInfo toThrift() {
+    List<tachyon.thrift.BlockLocation> locations = new ArrayList<tachyon.thrift.BlockLocation>();
+    for (BlockLocation location : mLocations) {
+      locations.add(location.toThrift());
+    }
+    return new tachyon.thrift.BlockInfo(mBlockId, mLength, locations);
   }
 
   @Override

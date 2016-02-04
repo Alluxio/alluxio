@@ -26,13 +26,21 @@ import com.google.common.base.Preconditions;
 @NotThreadSafe
 public final class LockBlockResult {
   private long mLockId;
-  private String mBlockPath;
+  private String mBlockPath = "";
 
   /**
    * Creates a new instance of {@link LockBlockResult}.
    */
-  public LockBlockResult() {
-    mBlockPath = "";
+  public LockBlockResult() {}
+
+  /**
+   * Creates a new instance of {@link LockBlockResult} from a thrift representation.
+   *
+   * @param lockBlockResult the thrift representation of a lock block operation result
+   */
+  protected LockBlockResult(tachyon.thrift.LockBlockResult lockBlockResult) {
+    mLockId = lockBlockResult.getLockId();
+    mBlockPath = lockBlockResult.getBlockPath();
   }
 
   /**
@@ -66,6 +74,13 @@ public final class LockBlockResult {
     Preconditions.checkNotNull(blockPath);
     mBlockPath = blockPath;
     return this;
+  }
+
+  /**
+   * @return thrift representation of the block descriptor
+   */
+  protected tachyon.thrift.LockBlockResult toThrift() {
+    return new tachyon.thrift.LockBlockResult(mLockId, mBlockPath);
   }
 
   @Override

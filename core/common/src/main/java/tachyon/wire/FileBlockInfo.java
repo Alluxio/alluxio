@@ -15,6 +15,7 @@
 
 package tachyon.wire;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -36,6 +37,20 @@ public final class FileBlockInfo {
    * Creates a new instance of {@link FileBlockInfo}.
    */
   public FileBlockInfo() {}
+
+  /**
+   * Creates a new instance of {@link FileBlockInfo} from a thrift representation.
+   *
+   * @param fileBlockInfo the thrift representation of a file block descriptor
+   */
+  protected FileBlockInfo(tachyon.thrift.FileBlockInfo fileBlockInfo) {
+    mBlockInfo = new BlockInfo(fileBlockInfo.getBlockInfo());
+    mOffset = fileBlockInfo.getOffset();
+    mUfsLocations = new ArrayList<WorkerNetAddress>();
+    for (tachyon.thrift.WorkerNetAddress ufsLocation : fileBlockInfo.getUfsLocations()) {
+      mUfsLocations.add(new WorkerNetAddress(ufsLocation));
+    }
+  }
 
   /**
    * @return the block info
@@ -85,6 +100,18 @@ public final class FileBlockInfo {
     Preconditions.checkNotNull(ufsLocations);
     mUfsLocations = ufsLocations;
     return this;
+  }
+
+  /**
+   * @return thrift representation of the file block descriptor
+   */
+  protected tachyon.thrift.FileBlockInfo toThrift() {
+    List<tachyon.thrift.WorkerNetAddress> ufsLocations =
+        new ArrayList<tachyon.thrift.WorkerNetAddress>();
+    for (WorkerNetAddress ufsLocation : mUfsLocations) {
+      ufsLocations.add(ufsLocation.toThrift());
+    }
+    return new tachyon.thrift.FileBlockInfo(mBlockInfo.toThrift(), mOffset, ufsLocations);
   }
 
   @Override
