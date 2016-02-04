@@ -38,7 +38,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.File.AddMountPointEntry;
@@ -85,9 +85,9 @@ public abstract class JournalFormatterTestBase {
   protected static final long TEST_TABLE_ID = 2L;
   protected static final long TEST_OP_TIME_MS = 1409349750338L;
   protected static final long TEST_SEQUENCE_NUMBER = 1945L;
-  protected static final TachyonURI TEST_TACHYON_PATH = new TachyonURI("/test/path");
+  protected static final AlluxioURI TEST_TACHYON_PATH = new AlluxioURI("/test/path");
   protected static final long TEST_TTL = 624L;
-  protected static final TachyonURI TEST_UFS_PATH = new TachyonURI("hdfs://host:port/test/path");
+  protected static final AlluxioURI TEST_UFS_PATH = new AlluxioURI("hdfs://host:port/test/path");
   protected static final String TEST_JOB_COMMAND = "Command";
   protected static final String TEST_JOB_OUTPUT_PATH = "/test/path";
   protected static final PermissionStatus TEST_PERMISSION_STATUS =

@@ -17,21 +17,21 @@ package alluxio.worker;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.wire.WorkerNetAddress;
 
 /**
- * A {@link WorkerContext} object stores {@link TachyonConf}.
+ * A {@link WorkerContext} object stores {@link Configuration}.
  */
 @NotThreadSafe
 public final class WorkerContext {
   private WorkerContext() {} // to prevent initialization
 
   /**
-   * The static configuration object. There is only one {@link TachyonConf} object shared within the
+   * The static configuration object. There is only one {@link Configuration} object shared within the
    * same worker process.
    */
-  private static TachyonConf sTachyonConf = new TachyonConf();
+  private static Configuration sConfiguration = new Configuration();
 
   /**
    * The {@link WorkerSource} for collecting worker metrics.
@@ -42,13 +42,13 @@ public final class WorkerContext {
   private static WorkerNetAddress sNetAddress;
 
   /**
-   * Returns the one and only static {@link TachyonConf} object which is shared among all classes
+   * Returns the one and only static {@link Configuration} object which is shared among all classes
    * within the worker process.
    *
    * @return the tachyonConf for the worker process
    */
-  public static TachyonConf getConf() {
-    return sTachyonConf;
+  public static Configuration getConf() {
+    return sConfiguration;
   }
 
   /**
@@ -82,7 +82,7 @@ public final class WorkerContext {
    * TODO(binfan): consider a better way to mock test TachyonConf
    */
   public static void reset() {
-    reset(new TachyonConf());
+    reset(new Configuration());
   }
 
   /**
@@ -91,7 +91,7 @@ public final class WorkerContext {
    *
    * @param conf the configuration for Tachyon
    */
-  public static void reset(TachyonConf conf) {
-    sTachyonConf = conf;
+  public static void reset(Configuration conf) {
+    sConfiguration = conf;
   }
 }

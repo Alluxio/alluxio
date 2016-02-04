@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.ClientMetrics;
 
@@ -35,7 +35,7 @@ import alluxio.worker.ClientMetrics;
 @ThreadSafe
 public final class ClientContext {
   private static ExecutorService sExecutorService;
-  private static TachyonConf sTachyonConf;
+  private static Configuration sConfiguration;
   private static InetSocketAddress sMasterAddress;
   private static ClientMetrics sClientMetrics;
 
@@ -49,7 +49,7 @@ public final class ClientContext {
    * This method is useful for undoing changes to TachyonConf made by unit tests.
    */
   private static void reset() {
-    sTachyonConf = new TachyonConf();
+    sConfiguration = new Configuration();
     init();
   }
 
@@ -58,26 +58,26 @@ public final class ClientContext {
    * the current TachyonConf.
    *
    * This method is useful for updating parts of {@link ClientContext} which depend on
-   * {@link TachyonConf} when {@link TachyonConf} is changed, e.g. the master hostname or port. This
-   * method requires that {@link sTachyonConf} has been initialized.
+   * {@link Configuration} when {@link Configuration} is changed, e.g. the master hostname or port. This
+   * method requires that {@link sConfiguration} has been initialized.
    */
   private static void init() {
-    String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
-    int masterPort = sTachyonConf.getInt(Constants.MASTER_RPC_PORT);
+    String masterHostname = Preconditions.checkNotNull(sConfiguration.get(Constants.MASTER_HOSTNAME));
+    int masterPort = sConfiguration.getInt(Constants.MASTER_RPC_PORT);
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
     sClientMetrics = new ClientMetrics();
 
     sExecutorService = Executors.newFixedThreadPool(
-        sTachyonConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
+        sConfiguration.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
   }
 
   /**
-   * @return the {@link TachyonConf} for the client process
+   * @return the {@link Configuration} for the client process
    */
-  public static TachyonConf getConf() {
-    return sTachyonConf;
+  public static Configuration getConf() {
+    return sConfiguration;
   }
 
   /**

@@ -25,13 +25,13 @@ import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
 import alluxio.client.ClientContext;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
 /**
  * Provides a stream API to read a block from Tachyon. An instance extending this class can be
- * obtained by calling {@link TachyonBlockStore#getInStream}. The buffer size of the stream can be
+ * obtained by calling {@link AlluxioBlockStore#getInStream}. The buffer size of the stream can be
  * set through configuration. Multiple {@link BufferedBlockInStream}s can be opened for a block.
  *
  * This class provides the same methods as a Java {@link InputStream} with additional methods from
@@ -210,7 +210,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
    * @return a heap buffer of user configured size
    */
   private ByteBuffer allocateBuffer() {
-    TachyonConf conf = ClientContext.getConf();
+    Configuration conf = ClientContext.getConf();
     return ByteBuffer.allocate(
         (int) conf.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES));
   }

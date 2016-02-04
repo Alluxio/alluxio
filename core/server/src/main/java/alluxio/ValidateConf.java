@@ -26,8 +26,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.conf.TachyonConf;
-
 /**
  * Validate the Tachyon configuration.
  *
@@ -73,9 +71,9 @@ public final class ValidateConf {
     Pattern reservedRatioPattern =
         Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.replace("%d",
             "\\d+").replace(".", "\\."));
-    TachyonConf tachyonConf = new TachyonConf();
+    Configuration configuration = new Configuration();
     boolean valid = true;
-    for (Entry<String, String> entry : tachyonConf.toMap().entrySet()) {
+    for (Entry<String, String> entry : configuration.toMap().entrySet()) {
       String propertyName = entry.getKey();
       if (aliasPattern.matcher(propertyName).matches()
           || dirsPathPattern.matcher(propertyName).matches()

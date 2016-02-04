@@ -20,17 +20,17 @@ import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystemCluster;
 
 public class GlusterFSCluster extends UnderFileSystemCluster {
 
-  public GlusterFSCluster(String baseDir, TachyonConf tachyonConf) {
-    super(baseDir, tachyonConf);
-    checkGlusterConfigured(tachyonConf);
+  public GlusterFSCluster(String baseDir, Configuration configuration) {
+    super(baseDir, configuration);
+    checkGlusterConfigured(configuration);
   }
 
-  private void checkGlusterConfigured(TachyonConf conf) {
+  private void checkGlusterConfigured(Configuration conf) {
     if (conf == null) {
       throw new NullPointerException("Null Tachyon Configuration provided");
     }
@@ -44,14 +44,14 @@ public class GlusterFSCluster extends UnderFileSystemCluster {
 
   @Override
   public String getUnderFilesystemAddress() {
-    checkGlusterConfigured(mTachyonConf);
+    checkGlusterConfigured(mConfiguration);
 
     return "glusterfs:///tachyon_test";
   }
 
   @Override
   public boolean isStarted() {
-    checkGlusterConfigured(mTachyonConf);
+    checkGlusterConfigured(mConfiguration);
     return true;
   }
 
@@ -61,6 +61,6 @@ public class GlusterFSCluster extends UnderFileSystemCluster {
 
   @Override
   public void start() throws IOException {
-    checkGlusterConfigured(mTachyonConf);
+    checkGlusterConfigured(mConfiguration);
   }
 }

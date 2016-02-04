@@ -21,21 +21,21 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Unmounts a Tachyon path.
  */
 @ThreadSafe
-public final class UnmountCommand extends AbstractTfsShellCommand {
+public final class UnmountCommand extends AbstractShellCommand {
   /**
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public UnmountCommand(TachyonConf conf, FileSystem fs) {
+  public UnmountCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -52,12 +52,12 @@ public final class UnmountCommand extends AbstractTfsShellCommand {
   @Override
   public void run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
-    TachyonURI inputPath = new TachyonURI(args[0]);
+    AlluxioURI inputPath = new AlluxioURI(args[0]);
 
     try {
       mFileSystem.unmount(inputPath);
       System.out.println("Unmounted " + inputPath);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
   }

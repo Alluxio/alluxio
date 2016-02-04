@@ -21,11 +21,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * The exception thrown when Tachyon failed to create a checkpoint.
  */
 @ThreadSafe
-public class FailedToCheckpointException extends TachyonException {
+public class FailedToCheckpointException extends AlluxioException {
   private static final long serialVersionUID = -3192642866222213537L;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.FAILED_TO_CHECKPOINT;
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.FAILED_TO_CHECKPOINT;
 
   /**
    * Constructs a new exception with the specified detail message

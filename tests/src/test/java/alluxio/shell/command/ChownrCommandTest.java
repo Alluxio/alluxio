@@ -20,27 +20,27 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Tests for chownr command.
  */
-public class ChownrCommandTest extends AbstractTfsShellTest {
+public class ChownrCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void chownrTest() throws IOException, TachyonException {
+  public void chownrTest() throws IOException, AlluxioException {
     clearLoginUser();
     mFsShell.run("mkdir", "/testFolder1");
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFolder1/testFile", WriteType.MUST_CACHE,
         10);
     mFsShell.run("chownr", "user1", "/testFolder1");
-    String owner = mFileSystem.getStatus(new TachyonURI("/testFolder1/testFile")).getUserName();
+    String owner = mFileSystem.getStatus(new AlluxioURI("/testFolder1/testFile")).getUserName();
     Assert.assertEquals("user1", owner);
     mFsShell.run("chownr", "user2", "/testFolder1");
-    owner = mFileSystem.getStatus(new TachyonURI("/testFolder1/testFile")).getUserName();
+    owner = mFileSystem.getStatus(new AlluxioURI("/testFolder1/testFile")).getUserName();
     Assert.assertEquals("user2", owner);
   }
 }

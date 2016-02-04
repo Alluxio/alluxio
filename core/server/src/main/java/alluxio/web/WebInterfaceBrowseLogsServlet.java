@@ -31,7 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Servlet that provides data for browsing log files.
@@ -40,7 +40,7 @@ import alluxio.conf.TachyonConf;
 public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
   private static final long serialVersionUID = 6589358568781503724L;
 
-  private final transient TachyonConf mTachyonConf;
+  private final transient Configuration mConfiguration;
   private final String mBrowseJsp;
   private final String mViewJsp;
   private static final FilenameFilter LOG_FILE_FILTER = new FilenameFilter() {
@@ -56,7 +56,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    * @param isMasterServlet whether this is a master servlet
    */
   public WebInterfaceBrowseLogsServlet(boolean isMasterServlet) {
-    mTachyonConf = new TachyonConf();
+    mConfiguration = new Configuration();
     String prefix = isMasterServlet ? "/" : "/worker/";
     mBrowseJsp = prefix + "browse.jsp";
     mViewJsp = prefix + "viewFile.jsp";
@@ -123,7 +123,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
     request.setAttribute("viewLog", true);
 
     String logsPath =
-        mTachyonConf.get(Constants.LOGS_DIR);
+        mConfiguration.get(Constants.LOGS_DIR);
     File logsDir = new File(logsPath);
     String requestFile = request.getParameter("path");
 

@@ -18,7 +18,7 @@ package alluxio.security.authentication;
 import javax.security.sasl.AuthenticationException;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Abstraction for an authentication provider for different authentication types.
@@ -35,7 +35,7 @@ public interface AuthenticationProvider {
      * @return the generated {@link AuthenticationProvider}
      * @throws AuthenticationException when unsupported authentication type is used
      */
-    public static AuthenticationProvider create(AuthType authType, TachyonConf conf)
+    public static AuthenticationProvider create(AuthType authType, Configuration conf)
         throws AuthenticationException {
       switch (authType) {
         case SIMPLE:

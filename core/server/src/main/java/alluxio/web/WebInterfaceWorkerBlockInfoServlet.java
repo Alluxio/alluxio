@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -39,7 +39,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.master.block.BlockId;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreMeta;
@@ -80,7 +80,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     if (!(filePath == null || filePath.isEmpty())) {
       // Display file block info
       try {
-        UIFileInfo uiFileInfo = getUiFileInfo(fs, new TachyonURI(filePath));
+        UIFileInfo uiFileInfo = getUiFileInfo(fs, new AlluxioURI(filePath));
         request.setAttribute("fileBlocksOnTier", uiFileInfo.getBlocksOnTier());
         request.setAttribute("blockSizeBytes", uiFileInfo.getBlockSizeBytes());
         request.setAttribute("path", filePath);
@@ -103,7 +103,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
             response);
         return;
-      } catch (TachyonException e) {
+      } catch (AlluxioException e) {
         request.setAttribute("fatalError", "Error: alluxio exception. " + e.getMessage());
         getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
             response);
@@ -154,7 +154,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       request.setAttribute("fatalError", e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       request.setAttribute("fatalError", e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
@@ -193,11 +193,11 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws IOException if an I/O error occurs
    */
   private UIFileInfo getUiFileInfo(FileSystem fileSystem, long fileId)
-      throws FileDoesNotExistException, BlockDoesNotExistException, IOException, TachyonException {
+      throws FileDoesNotExistException, BlockDoesNotExistException, IOException, AlluxioException {
     // TODO(calvin): Remove this dependency
     FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
-      return getUiFileInfo(fileSystem, new TachyonURI(masterClient.getStatusInternal(fileId)
+      return getUiFileInfo(fileSystem, new AlluxioURI(masterClient.getStatusInternal(fileId)
           .getPath()));
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
@@ -214,13 +214,13 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  private UIFileInfo getUiFileInfo(FileSystem fileSystem, TachyonURI filePath)
+  private UIFileInfo getUiFileInfo(FileSystem fileSystem, AlluxioURI filePath)
       throws BlockDoesNotExistException, FileDoesNotExistException, InvalidPathException,
-      IOException, TachyonException {
+      IOException, AlluxioException {
     URIStatus status;
     try {
       status = fileSystem.getStatus(filePath);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new FileDoesNotExistException(filePath.toString());
     }
     UIFileInfo uiFileInfo = new UIFileInfo(status);

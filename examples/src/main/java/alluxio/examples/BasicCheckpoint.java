@@ -25,12 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.Version;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * An example to show to how use Tachyon's API
@@ -57,10 +57,10 @@ public class BasicCheckpoint implements Callable<Boolean> {
     return readFile(tachyonClient);
   }
 
-  private boolean readFile(FileSystem tachyonClient) throws IOException, TachyonException {
+  private boolean readFile(FileSystem tachyonClient) throws IOException, AlluxioException {
     boolean pass = true;
     for (int i = 0; i < mNumFiles; i ++) {
-      TachyonURI filePath = new TachyonURI(mFileFolder + "/part-" + i);
+      AlluxioURI filePath = new AlluxioURI(mFileFolder + "/part-" + i);
       LOG.debug("Reading data from {}", filePath);
       FileInStream is = tachyonClient.openFile(filePath);
       URIStatus status = tachyonClient.getStatus(filePath);
@@ -75,7 +75,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
     return pass;
   }
 
-  private void writeFile(FileSystem tachyonClient) throws IOException, TachyonException {
+  private void writeFile(FileSystem tachyonClient) throws IOException, AlluxioException {
     for (int i = 0; i < mNumFiles; i ++) {
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
@@ -83,7 +83,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
         buf.putInt(k);
       }
       buf.flip();
-      TachyonURI filePath = new TachyonURI(mFileFolder + "/part-" + i);
+      AlluxioURI filePath = new AlluxioURI(mFileFolder + "/part-" + i);
       LOG.debug("Writing data to {}", filePath);
       OutputStream os = tachyonClient.createFile(filePath);
       os.write(buf.array());

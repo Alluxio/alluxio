@@ -32,7 +32,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.Lists;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.LineageDeletionException;
@@ -82,11 +82,11 @@ public final class LineageMasterTest {
    */
   @Test
   public void listLineagesTest() throws Exception {
-    mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
-        Lists.newArrayList(new TachyonURI("/test1")), mJob);
-    mLineageMaster.createLineage(Lists.newArrayList(new TachyonURI("/test1")),
-        Lists.newArrayList(new TachyonURI("/test2")), mJob);
-    Mockito.when(mFileSystemMaster.getPath(Mockito.anyLong())).thenReturn(new TachyonURI("test"));
+    mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(),
+        Lists.newArrayList(new AlluxioURI("/test1")), mJob);
+    mLineageMaster.createLineage(Lists.newArrayList(new AlluxioURI("/test1")),
+        Lists.newArrayList(new AlluxioURI("/test2")), mJob);
+    Mockito.when(mFileSystemMaster.getPath(Mockito.anyLong())).thenReturn(new AlluxioURI("test"));
     List<LineageInfo> info = mLineageMaster.getLineageInfoList();
     Assert.assertEquals(2, info.size());
   }
@@ -99,12 +99,12 @@ public final class LineageMasterTest {
    */
   @Test
   public void createLineageWithNonExistingFileTest() throws Exception {
-    TachyonURI missingInput = new TachyonURI("/test1");
+    AlluxioURI missingInput = new AlluxioURI("/test1");
     Mockito.when(mFileSystemMaster.getFileId(missingInput)).thenReturn(-1L);
     // try catch block used because ExpectedExceptionRule conflicts with Powermock
     try {
       mLineageMaster.createLineage(Lists.newArrayList(missingInput),
-          Lists.newArrayList(new TachyonURI("/test2")), mJob);
+          Lists.newArrayList(new AlluxioURI("/test2")), mJob);
       Assert.fail();
     } catch (InvalidPathException e) {
       Assert.assertEquals(ExceptionMessage.LINEAGE_INPUT_FILE_NOT_EXIST.getMessage("/test1"),
@@ -119,10 +119,10 @@ public final class LineageMasterTest {
    */
   @Test
   public void deleteLineageTest() throws Exception {
-    long l1 = mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
-        Lists.newArrayList(new TachyonURI("/test1")), mJob);
-    mLineageMaster.createLineage(Lists.newArrayList(new TachyonURI("/test1")),
-        Lists.newArrayList(new TachyonURI("/test2")), mJob);
+    long l1 = mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(),
+        Lists.newArrayList(new AlluxioURI("/test1")), mJob);
+    mLineageMaster.createLineage(Lists.newArrayList(new AlluxioURI("/test1")),
+        Lists.newArrayList(new AlluxioURI("/test2")), mJob);
     mLineageMaster.deleteLineage(l1, true);
     List<LineageInfo> info = mLineageMaster.getLineageInfoList();
     Assert.assertEquals(0, info.size());
@@ -154,10 +154,10 @@ public final class LineageMasterTest {
    */
   @Test
   public void deleteLineageWithChildrenTest() throws Exception {
-    long l1 = mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
-        Lists.newArrayList(new TachyonURI("/test1")), mJob);
-    mLineageMaster.createLineage(Lists.newArrayList(new TachyonURI("/test1")),
-        Lists.newArrayList(new TachyonURI("/test2")), mJob);
+    long l1 = mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(),
+        Lists.newArrayList(new AlluxioURI("/test1")), mJob);
+    mLineageMaster.createLineage(Lists.newArrayList(new AlluxioURI("/test1")),
+        Lists.newArrayList(new AlluxioURI("/test2")), mJob);
     try {
       mLineageMaster.deleteLineage(l1, false);
       Assert.fail();
@@ -174,13 +174,13 @@ public final class LineageMasterTest {
    */
   @Test
   public void reinitializeFileTest() throws Exception {
-    mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
-        Lists.newArrayList(new TachyonURI("/test1")), mJob);
+    mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(),
+        Lists.newArrayList(new AlluxioURI("/test1")), mJob);
     FileInfo fileInfo = new FileInfo();
     fileInfo.setCompleted(false);
     Mockito.when(mFileSystemMaster.getFileInfo(Mockito.any(Long.class))).thenReturn(fileInfo);
     mLineageMaster.reinitializeFile("/test1", 500L, 10L);
-    Mockito.verify(mFileSystemMaster).reinitializeFile(new TachyonURI("/test1"), 500L, 10L);
+    Mockito.verify(mFileSystemMaster).reinitializeFile(new AlluxioURI("/test1"), 500L, 10L);
   }
 
   /**
@@ -190,8 +190,8 @@ public final class LineageMasterTest {
    */
   @Test
   public void asyncCompleteFileTest() throws Exception {
-    TachyonURI file = new TachyonURI("/test1");
-    mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(), Lists.newArrayList(file), mJob);
+    AlluxioURI file = new AlluxioURI("/test1");
+    mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(), Lists.newArrayList(file), mJob);
     mFileSystemMaster.completeFile(file, CompleteFileOptions.defaults());
     Mockito.verify(mFileSystemMaster).completeFile(Mockito.eq(file),
         Mockito.any(CompleteFileOptions.class));

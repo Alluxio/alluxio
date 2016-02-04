@@ -20,7 +20,7 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Unit tests for {@link CreateDirectoryOptions}.
@@ -37,7 +37,7 @@ public class CreateDirectoryOptionsTest {
     boolean persisted = random.nextBoolean();
     boolean recursive = random.nextBoolean();
 
-    CreateDirectoryOptions options = new CreateDirectoryOptions.Builder(new TachyonConf())
+    CreateDirectoryOptions options = new CreateDirectoryOptions.Builder(new Configuration())
         .setAllowExists(allowExists)
         .setOperationTimeMs(operationTimeMs)
         .setPersisted(persisted)

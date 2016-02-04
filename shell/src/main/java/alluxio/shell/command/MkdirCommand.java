@@ -21,18 +21,18 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Creates a new directory specified by the path in args, including any parent folders that are
  * required. This command fails if a directory or file with the same path already exists.
  */
 @ThreadSafe
-public final class MkdirCommand extends AbstractTfsShellCommand {
+public final class MkdirCommand extends AbstractShellCommand {
 
   /**
    * Constructs a new instance to create a new directory.
@@ -40,7 +40,7 @@ public final class MkdirCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public MkdirCommand(TachyonConf conf, FileSystem fs) {
+  public MkdirCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -58,13 +58,13 @@ public final class MkdirCommand extends AbstractTfsShellCommand {
   public void run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
     for (String path : args) {
-      TachyonURI inputPath = new TachyonURI(path);
+      AlluxioURI inputPath = new AlluxioURI(path);
 
       try {
         CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
         mFileSystem.createDirectory(inputPath, options);
         System.out.println("Successfully created directory " + inputPath);
-      } catch (TachyonException e) {
+      } catch (AlluxioException e) {
         throw new IOException(e.getMessage());
       }
     }

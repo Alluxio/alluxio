@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 /**
@@ -31,12 +31,12 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 public class GetMasterWorkerAddressTest {
 
   /**
-   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, TachyonConf)} method for a
+   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, Configuration)} method for a
    * master node.
    */
   @Test
   public void getMasterAddressTest() {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.MASTER_HOSTNAME, "RemoteMaster1");
     conf.set(Constants.MASTER_RPC_PORT, "10000");
     String defaultHostname = NetworkAddressUtils.getLocalHostName(conf);
@@ -47,31 +47,31 @@ public class GetMasterWorkerAddressTest {
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster1", 10000), masterAddress);
 
-    conf = new TachyonConf();
+    conf = new Configuration();
     conf.set(Constants.MASTER_RPC_PORT, "20000");
     // port only
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 20000), masterAddress);
 
-    conf = new TachyonConf();
+    conf = new Configuration();
     conf.set(Constants.MASTER_HOSTNAME, "RemoteMaster3");
     // connect host only
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster3", defaultPort), masterAddress);
 
-    conf = new TachyonConf();
+    conf = new Configuration();
     // all default
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), masterAddress);
   }
 
   /**
-   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, TachyonConf)} method for a
+   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, Configuration)} method for a
    * worker node.
    */
   @Test
   public void getWorkerAddressTest() {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.WORKER_RPC_PORT, "10001");
 
     String defaultHostname = NetworkAddressUtils.getLocalHostName(conf);
@@ -82,7 +82,7 @@ public class GetMasterWorkerAddressTest {
         NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 10001), workerAddress);
 
-    conf = new TachyonConf();
+    conf = new Configuration();
     // all default
     workerAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), workerAddress);

@@ -20,7 +20,7 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
@@ -120,7 +120,7 @@ public final class PermissionStatus {
    * @return the {@link PermissionStatus} for a file or a directory
    * @throws java.io.IOException when getting login user fails
    */
-  public static PermissionStatus get(TachyonConf conf, boolean remote) throws IOException {
+  public static PermissionStatus get(Configuration conf, boolean remote) throws IOException {
     AuthType authType = conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     if (authType == AuthType.NOSASL) {
       // no authentication

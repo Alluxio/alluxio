@@ -30,13 +30,13 @@ import org.junit.rules.ExpectedException;
 import com.google.common.collect.Lists;
 
 import alluxio.Constants;
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
@@ -56,14 +56,14 @@ public final class KeyValueSystemIntegrationTest {
 
   private KeyValueStoreWriter mWriter;
   private KeyValueStoreReader mReader;
-  private TachyonURI mStoreUri;
+  private AlluxioURI mStoreUri;
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
   @ClassRule
-  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(Constants.GB, BLOCK_SIZE,
+  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE,
           /* ensure key-value service is turned on */
           Constants.KEY_VALUE_ENABLED, "true");
 
@@ -74,7 +74,7 @@ public final class KeyValueSystemIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    mStoreUri = new TachyonURI(PathUtils.uniqPath());
+    mStoreUri = new AlluxioURI(PathUtils.uniqPath());
   }
 
   /**
@@ -174,7 +174,7 @@ public final class KeyValueSystemIntegrationTest {
    */
   @Test
   public void noOrderIteratorTest() throws Exception {
-    List<TachyonURI> storeUris = Lists.newArrayList();
+    List<AlluxioURI> storeUris = Lists.newArrayList();
     List<List<KeyValuePair>> keyValuePairs = Lists.newArrayList();
 
     List<KeyValuePair> pairs = Lists.newArrayList();
@@ -282,8 +282,8 @@ public final class KeyValueSystemIntegrationTest {
    * @return the URI to the store
    * @throws Exception if any error happens
    */
-  private TachyonURI createStoreOfSize(int size, List<KeyValuePair> pairs) throws Exception {
-    TachyonURI path = new TachyonURI(PathUtils.uniqPath());
+  private AlluxioURI createStoreOfSize(int size, List<KeyValuePair> pairs) throws Exception {
+    AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
     KeyValueStoreWriter writer = sKeyValueSystem.createStore(path);
     for (int i = 0; i < size; i ++) {
       byte[] key = genBaseKey(i).getBytes();
@@ -300,7 +300,7 @@ public final class KeyValueSystemIntegrationTest {
     return path;
   }
 
-  private int getPartitionNumber(TachyonURI storeUri) throws Exception {
+  private int getPartitionNumber(AlluxioURI storeUri) throws Exception {
     KeyValueMasterClient client =
         new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
     return client.getPartitionInfo(storeUri).size();
@@ -316,8 +316,8 @@ public final class KeyValueSystemIntegrationTest {
    * @param keyValuePairs the key-value pairs in the store, null if you don't want to know them
    * @return the URI to the created store
    */
-  private TachyonURI createStoreOfMultiplePartitions(int partitionNumber,
-      List<KeyValuePair> keyValuePairs) throws Exception {
+  private AlluxioURI createStoreOfMultiplePartitions(int partitionNumber,
+                                                     List<KeyValuePair> keyValuePairs) throws Exception {
     // These sizes are carefully selected, one partition holds only one key-value pair.
     final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
     ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
@@ -325,7 +325,7 @@ public final class KeyValueSystemIntegrationTest {
     final int keyLength = 4; // 4Byte key
     final int valueLength = 500 * Constants.KB; // 500KB value
 
-    TachyonURI storeUri = new TachyonURI(PathUtils.uniqPath());
+    AlluxioURI storeUri = new AlluxioURI(PathUtils.uniqPath());
     mWriter = sKeyValueSystem.createStore(storeUri);
     for (int i = 0; i < partitionNumber; i ++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
@@ -342,13 +342,13 @@ public final class KeyValueSystemIntegrationTest {
     return storeUri;
   }
 
-  private void testDeleteStore(TachyonURI storeUri) throws Exception {
+  private void testDeleteStore(AlluxioURI storeUri) throws Exception {
     sKeyValueSystem.deleteStore(storeUri);
 
     // TachyonException is expected to be thrown.
     try {
       sKeyValueSystem.openStore(storeUri);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       Assert.assertEquals(e.getMessage(),
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(storeUri));
       return;
@@ -361,18 +361,18 @@ public final class KeyValueSystemIntegrationTest {
    */
   @Test
   public void deleteStoreTest() throws Exception {
-    List<TachyonURI> storeUris = Lists.newArrayList();
+    List<AlluxioURI> storeUris = Lists.newArrayList();
     storeUris.add(createStoreOfSize(0, null));
     storeUris.add(createStoreOfSize(2, null));
     storeUris.add(createStoreOfMultiplePartitions(3, null));
 
-    for (TachyonURI storeUri : storeUris) {
+    for (AlluxioURI storeUri : storeUris) {
       testDeleteStore(storeUri);
     }
   }
 
-  private void testMergeStore(TachyonURI store1, List<KeyValuePair> keyValuePairs1,
-      TachyonURI store2, List<KeyValuePair> keyValuePairs2) throws Exception {
+  private void testMergeStore(AlluxioURI store1, List<KeyValuePair> keyValuePairs1,
+                              AlluxioURI store2, List<KeyValuePair> keyValuePairs2) throws Exception {
     sKeyValueSystem.mergeStore(store1, store2);
 
     // store2 contains all key-value pairs in both store1 and store2.
@@ -396,7 +396,7 @@ public final class KeyValueSystemIntegrationTest {
     // TachyonException is expected to be thrown.
     try {
       sKeyValueSystem.openStore(store1);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       Assert.assertEquals(e.getMessage(),
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(store1));
       return;
@@ -423,13 +423,13 @@ public final class KeyValueSystemIntegrationTest {
         int method1 = storeCreationMethodAndParameter[i][0];
         int parameter1 = storeCreationMethodAndParameter[i][1];
         List<KeyValuePair> pairs1 = Lists.newArrayList();
-        TachyonURI storeUri1 = method1 == storeOfSize ? createStoreOfSize(parameter1, pairs1) :
+        AlluxioURI storeUri1 = method1 == storeOfSize ? createStoreOfSize(parameter1, pairs1) :
             createStoreOfMultiplePartitions(parameter1, pairs1);
 
         int method2 = storeCreationMethodAndParameter[j][0];
         int parameter2 = storeCreationMethodAndParameter[j][1];
         List<KeyValuePair> pairs2 = Lists.newArrayList();
-        TachyonURI storeUri2 = method2 == storeOfSize ? createStoreOfSize(parameter2, pairs2) :
+        AlluxioURI storeUri2 = method2 == storeOfSize ? createStoreOfSize(parameter2, pairs2) :
             createStoreOfMultiplePartitions(parameter2, pairs2);
 
         testMergeStore(storeUri1, pairs1, storeUri2, pairs2);

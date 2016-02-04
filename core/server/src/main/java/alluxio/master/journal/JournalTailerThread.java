@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.master.Master;
 import alluxio.master.MasterContext;
 import alluxio.util.CommonUtils;
@@ -61,7 +61,7 @@ public final class JournalTailerThread extends Thread {
   public JournalTailerThread(Master master, Journal journal) {
     mMaster = Preconditions.checkNotNull(master);
     mJournal = Preconditions.checkNotNull(journal);
-    TachyonConf conf = MasterContext.getConf();
+    Configuration conf = MasterContext.getConf();
     mShutdownQuietWaitTimeMs = conf.getInt(
         Constants.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
     mJournalTailerSleepTimeMs = conf.getInt(Constants.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);

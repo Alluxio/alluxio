@@ -23,12 +23,12 @@ import org.junit.Test;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.exception.ExceptionMessage;
-import alluxio.shell.AbstractTfsShellTest;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 /**
  * Test for du command.
  */
-public class DuCommandTest extends AbstractTfsShellTest {
+public class DuCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void duTest() throws IOException {
     FileSystemTestUtils

@@ -21,17 +21,17 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
-import alluxio.shell.TfsShellUtilsTest;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.shell.AlluxioShellUtilsTest;
 
 /**
  * Tests for copyToLocal command.
  */
-public class CopyToLocalCommandTest extends AbstractTfsShellTest {
+public class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void copyToLocalDirTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+  public void copyToLocalDirTest() throws IOException, AlluxioException {
+    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
     int ret =
         mFsShell.run("copyToLocal", "/testWildCards/", mLocalTachyonCluster.getTachyonHome()
             + "/testDir");
@@ -53,8 +53,8 @@ public class CopyToLocalCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void copyToLocalWildcardExistingDirTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+  public void copyToLocalWildcardExistingDirTest() throws IOException, AlluxioException {
+    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
 
     new File(mLocalTachyonCluster.getTachyonHome() + "/testDir").mkdir();
 
@@ -68,8 +68,8 @@ public class CopyToLocalCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void copyToLocalWildcardHierTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+  public void copyToLocalWildcardHierTest() throws IOException, AlluxioException {
+    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
     int ret =
         mFsShell.run("copyToLocal", "/testWildCards/*", mLocalTachyonCluster.getTachyonHome()
             + "/testDir");
@@ -81,8 +81,8 @@ public class CopyToLocalCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void copyToLocalWildcardNotDirTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+  public void copyToLocalWildcardNotDirTest() throws IOException, AlluxioException {
+    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
     new File(mLocalTachyonCluster.getTachyonHome() + "/testDir").mkdir();
     new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testFile").createNewFile();
 
@@ -93,8 +93,8 @@ public class CopyToLocalCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void copyToLocalWildcardTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+  public void copyToLocalWildcardTest() throws IOException, AlluxioException {
+    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
     int ret =
         mFsShell.run("copyToLocal", "/testWildCards/*/foo*", mLocalTachyonCluster.getTachyonHome()
             + "/testDir");

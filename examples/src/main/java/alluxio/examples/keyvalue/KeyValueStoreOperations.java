@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Maps;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.Version;
 import alluxio.client.ClientContext;
 import alluxio.client.keyvalue.KeyValueIterator;
@@ -33,7 +33,7 @@ import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.examples.Utils;
 import alluxio.util.io.BufferUtils;
 
@@ -48,22 +48,22 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
   private final int mValueLength = mPartitionLength / 2;
   private final int mNumKeyValuePairs = 10;
 
-  private TachyonURI mStoreUri;
+  private AlluxioURI mStoreUri;
   private Map<ByteBuffer, ByteBuffer> mKeyValuePairs = Maps.newHashMap();
 
   /**
    * @param storeUri URI of the key-value store to write to, should not exist before
    * @throws Exception if the instance fails to be created
    */
-  public KeyValueStoreOperations(TachyonURI storeUri) throws Exception {
+  public KeyValueStoreOperations(AlluxioURI storeUri) throws Exception {
     mStoreUri = storeUri;
   }
 
   @Override
   public Boolean call() throws Exception {
-    TachyonConf tachyonConf = ClientContext.getConf();
-    tachyonConf.set(Constants.KEY_VALUE_ENABLED, String.valueOf(true));
-    tachyonConf.set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(mPartitionLength));
+    Configuration configuration = ClientContext.getConf();
+    configuration.set(Constants.KEY_VALUE_ENABLED, String.valueOf(true));
+    configuration.set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(mPartitionLength));
 
     KeyValueSystem kvs = KeyValueSystem.Factory.create();
 
@@ -137,6 +137,6 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
       System.exit(-1);
     }
 
-    Utils.runExample(new KeyValueStoreOperations(new TachyonURI(args[0])));
+    Utils.runExample(new KeyValueStoreOperations(new AlluxioURI(args[0])));
   }
 }

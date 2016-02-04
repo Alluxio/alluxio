@@ -21,38 +21,38 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
-import alluxio.shell.TfsShellUtilsTest;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.CommonUtils;
 
 /**
  * Tests for free command.
  */
-public class FreeCommandTest extends AbstractTfsShellTest {
+public class FreeCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void freeTest() throws IOException, TachyonException {
+  public void freeTest() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("free", "/testFile");
-    TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    CommonUtils.sleepMs(tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+    Configuration configuration = mLocalTachyonCluster.getMasterTachyonConf();
+    CommonUtils.sleepMs(configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     Assert.assertFalse(
-        mFileSystem.getStatus(new TachyonURI("/testFile")).getInMemoryPercentage() == 100);
+        mFileSystem.getStatus(new AlluxioURI("/testFile")).getInMemoryPercentage() == 100);
   }
 
   @Test
-  public void freeWildCardTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+  public void freeWildCardTest() throws IOException, AlluxioException {
+    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
 
-    TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    Configuration configuration = mLocalTachyonCluster.getMasterTachyonConf();
 
     int ret = mFsShell.run("free", "/testWild*/foo/*");
     CommonUtils.sleepMs(null,
-        tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10);
+        configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar1"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar2"));
@@ -61,7 +61,7 @@ public class FreeCommandTest extends AbstractTfsShellTest {
 
     ret = mFsShell.run("free", "/testWild*/*/");
     CommonUtils.sleepMs(null,
-        tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10);
+        configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/bar/foobar3"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foobar4"));

@@ -37,14 +37,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.BufferedBlockOutStream;
-import alluxio.client.block.TachyonBlockStore;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.TestBufferedBlockOutStream;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
@@ -65,13 +65,13 @@ import alluxio.wire.WorkerNetAddress;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, BlockStoreContext.class, FileSystemMasterClient.class,
-    TachyonBlockStore.class, UnderFileSystem.class, BlockWorkerClient.class})
+    AlluxioBlockStore.class, UnderFileSystem.class, BlockWorkerClient.class})
 public class FileOutStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;
-  private static final TachyonURI FILE_NAME = new TachyonURI("/file");
+  private static final AlluxioURI FILE_NAME = new AlluxioURI("/file");
 
-  private TachyonBlockStore mBlockStore;
+  private AlluxioBlockStore mBlockStore;
   private BlockStoreContext mBlockStoreContext;
   private FileSystemContext mFileSystemContext;
   private FileSystemMasterClient mFileSystemMasterClient;
@@ -95,7 +95,7 @@ public class FileOutStreamTest {
 
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    mBlockStore = PowerMockito.mock(TachyonBlockStore.class);
+    mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
@@ -103,7 +103,7 @@ public class FileOutStreamTest {
     Mockito.when(mFileSystemContext.getTachyonBlockStore()).thenReturn(mBlockStore);
     Mockito.when(mBlockStoreContext.acquireWorkerClient()).thenReturn(mBlockWorkerClient);
     Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
-    Mockito.when(mFileSystemMasterClient.getStatus(Mockito.any(TachyonURI.class))).thenReturn(
+    Mockito.when(mFileSystemMasterClient.getStatus(Mockito.any(AlluxioURI.class))).thenReturn(
         new URIStatus(new FileInfo()));
 
     // Return sequentially increasing numbers for new block ids
@@ -483,7 +483,7 @@ public class FileOutStreamTest {
         mUnderStorageOutputStream.toByteArray());
   }
 
-  private FileOutStream createTestStream(TachyonURI path, OutStreamOptions options)
+  private FileOutStream createTestStream(AlluxioURI path, OutStreamOptions options)
       throws IOException {
     Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", mBlockStoreContext);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mFileSystemContext);

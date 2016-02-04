@@ -18,7 +18,7 @@ package alluxio.client.lineage;
 import java.io.IOException;
 import java.util.List;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.lineage.options.CreateLineageOptions;
 import alluxio.client.lineage.options.DeleteLineageOptions;
@@ -26,7 +26,7 @@ import alluxio.client.lineage.options.GetLineageInfoListOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDeletionException;
 import alluxio.exception.LineageDoesNotExistException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.job.Job;
 import alluxio.wire.LineageInfo;
 
@@ -48,10 +48,10 @@ interface LineageClient {
    * @throws IOException if the master cannot create the lineage
    * @throws FileDoesNotExistException an input file does not exist in Tachyon storage, nor is added
    *         as an output file of an existing lineage
-   * @throws TachyonException if an unexpected alluxio error occurs
+   * @throws AlluxioException if an unexpected alluxio error occurs
    */
-  long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job,
-      CreateLineageOptions options) throws FileDoesNotExistException, IOException, TachyonException;
+  long createLineage(List<AlluxioURI> inputFiles, List<AlluxioURI> outputFiles, Job job,
+                     CreateLineageOptions options) throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
    * Lists all the lineages.
@@ -74,8 +74,8 @@ interface LineageClient {
    * @throws IOException if the master cannot delete the lineage
    * @throws LineageDeletionException if the deletion is cascade but the lineage has children
    * @throws LineageDoesNotExistException if the lineage does not exist
-   * @throws TachyonException if an unexpected alluxio error occurs
+   * @throws AlluxioException if an unexpected alluxio error occurs
    */
   public boolean deleteLineage(long lineageId, DeleteLineageOptions options)
-      throws IOException, LineageDoesNotExistException, LineageDeletionException, TachyonException;
+      throws IOException, LineageDoesNotExistException, LineageDeletionException, AlluxioException;
 }

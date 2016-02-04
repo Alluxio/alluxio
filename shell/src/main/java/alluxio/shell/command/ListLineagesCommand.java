@@ -23,15 +23,15 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.apache.commons.cli.CommandLine;
 
 import alluxio.client.file.FileSystem;
-import alluxio.client.lineage.TachyonLineage;
-import alluxio.conf.TachyonConf;
+import alluxio.client.lineage.AlluxioLineage;
+import alluxio.Configuration;
 import alluxio.wire.LineageInfo;
 
 /**
  * Lists all the lineages.
  */
 @ThreadSafe
-public final class ListLineagesCommand extends AbstractTfsShellCommand {
+public final class ListLineagesCommand extends AbstractShellCommand {
 
   /**
    * Constructs a new instance to list all the lineages.
@@ -39,7 +39,7 @@ public final class ListLineagesCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public ListLineagesCommand(TachyonConf conf, FileSystem fs) {
+  public ListLineagesCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -55,7 +55,7 @@ public final class ListLineagesCommand extends AbstractTfsShellCommand {
 
   @Override
   public void run(CommandLine cl) throws IOException {
-    TachyonLineage tl = TachyonLineage.get();
+    AlluxioLineage tl = AlluxioLineage.get();
     List<LineageInfo> infos = tl.getLineageInfoList();
     for (LineageInfo info : infos) {
       System.out.println(info);

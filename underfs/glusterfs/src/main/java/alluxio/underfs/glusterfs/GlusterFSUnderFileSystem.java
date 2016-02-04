@@ -17,10 +17,8 @@ package alluxio.underfs.glusterfs;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.apache.hadoop.conf.Configuration;
-
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 
@@ -43,11 +41,11 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
    * Constructs a new Gluster FS {@link UnderFileSystem}.
    *
    * @param fsDefaultName the under FS prefix
-   * @param tachyonConf the configuration for Tachyon
+   * @param configuration the configuration for Tachyon
    * @param conf the configuration for Hadoop or GlusterFS
    */
-  public GlusterFSUnderFileSystem(String fsDefaultName, TachyonConf tachyonConf, Object conf) {
-    super(fsDefaultName, tachyonConf, conf);
+  public GlusterFSUnderFileSystem(String fsDefaultName, Configuration configuration, Object conf) {
+    super(fsDefaultName, configuration, conf);
   }
 
   @Override
@@ -56,22 +54,22 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
   }
 
   @Override
-  protected void prepareConfiguration(String path, TachyonConf tachyonConf, Configuration config) {
+  protected void prepareConfiguration(String path, Configuration configuration, org.apache.hadoop.conf.Configuration config) {
     if (path.startsWith(SCHEME)) {
       // Configure for Gluster FS
-      config.set("fs.glusterfs.impl", tachyonConf.get(Constants.UNDERFS_GLUSTERFS_IMPL));
+      config.set("fs.glusterfs.impl", configuration.get(Constants.UNDERFS_GLUSTERFS_IMPL));
       config.set("mapred.system.dir",
-          tachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR));
+          configuration.get(Constants.UNDERFS_GLUSTERFS_MR_DIR));
       config
-          .set("fs.glusterfs.volumes", tachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES));
+          .set("fs.glusterfs.volumes", configuration.get(Constants.UNDERFS_GLUSTERFS_VOLUMES));
       config.set(
-          "fs.glusterfs.volume.fuse." + tachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES),
-          tachyonConf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS));
+          "fs.glusterfs.volume.fuse." + configuration.get(Constants.UNDERFS_GLUSTERFS_VOLUMES),
+          configuration.get(Constants.UNDERFS_GLUSTERFS_MOUNTS));
     } else {
       // If not Gluster FS fall back to default HDFS behaviour
       // This should only happen if someone creates an instance of this directly rather than via the
       // registry and factory which enforces the GlusterFS prefix being present.
-      super.prepareConfiguration(path, tachyonConf, config);
+      super.prepareConfiguration(path, configuration, config);
     }
   }
 

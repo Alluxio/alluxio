@@ -21,13 +21,13 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 
 /**
  * Default implementation of the {@link KeyValueSystem} interface. Developers can extend this class
@@ -41,26 +41,26 @@ public class BaseKeyValueSystem implements KeyValueSystem {
       new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
 
   @Override
-  public KeyValueStoreReader openStore(TachyonURI uri) throws IOException, TachyonException {
+  public KeyValueStoreReader openStore(AlluxioURI uri) throws IOException, AlluxioException {
     Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
     return new BaseKeyValueStoreReader(uri);
   }
 
   @Override
-  public KeyValueStoreWriter createStore(TachyonURI uri) throws IOException, TachyonException {
+  public KeyValueStoreWriter createStore(AlluxioURI uri) throws IOException, AlluxioException {
     Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
     return new BaseKeyValueStoreWriter(uri);
   }
 
   @Override
-  public void deleteStore(TachyonURI uri)
-      throws IOException, InvalidPathException, FileDoesNotExistException, TachyonException {
+  public void deleteStore(AlluxioURI uri)
+      throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException {
     mMasterClient.deleteStore(uri);
   }
 
   @Override
-  public void mergeStore(TachyonURI fromUri, TachyonURI toUri)
-      throws IOException, TachyonException {
+  public void mergeStore(AlluxioURI fromUri, AlluxioURI toUri)
+      throws IOException, AlluxioException {
     mMasterClient.mergeStore(fromUri, toUri);
   }
 }

@@ -21,7 +21,7 @@ import org.junit.Test;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
-import alluxio.client.TachyonStorageType;
+import alluxio.client.AlluxioStorageType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.client.util.ClientTestUtils;
@@ -36,7 +36,7 @@ public class InStreamOptionsTest {
   @Test
   public void defaultsTest() {
     InStreamOptions options = InStreamOptions.defaults();
-    Assert.assertEquals(TachyonStorageType.PROMOTE, options.getTachyonStorageType());
+    Assert.assertEquals(AlluxioStorageType.PROMOTE, options.getTachyonStorageType());
   }
 
   /**

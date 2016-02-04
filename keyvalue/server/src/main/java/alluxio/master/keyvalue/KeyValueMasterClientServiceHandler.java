@@ -21,15 +21,15 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
-import alluxio.exception.TachyonException;
+import alluxio.AlluxioURI;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.KeyValueMasterClientService;
 import alluxio.thrift.PartitionInfo;
-import alluxio.thrift.TachyonTException;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
 /**
- * This class is a Thrift handler for key-value master RPCs invoked by a Tachyon client.
+ * This class is a Thrift handler for key-value master RPCs invoked by a Alluxio client.
  */
 @ThreadSafe
 public final class KeyValueMasterClientServiceHandler implements KeyValueMasterClientService.Iface {
@@ -50,47 +50,47 @@ public final class KeyValueMasterClientServiceHandler implements KeyValueMasterC
   }
 
   @Override
-  public void completePartition(String path, PartitionInfo info) throws TachyonTException {
+  public void completePartition(String path, PartitionInfo info) throws AlluxioTException {
     try {
-      mKeyValueMaster.completePartition(new TachyonURI(path), info);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      mKeyValueMaster.completePartition(new AlluxioURI(path), info);
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
-  public void createStore(String path) throws TachyonTException {
+  public void createStore(String path) throws AlluxioTException {
     try {
-      mKeyValueMaster.createStore(new TachyonURI(path));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      mKeyValueMaster.createStore(new AlluxioURI(path));
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
-  public void completeStore(String path) throws TachyonTException {
+  public void completeStore(String path) throws AlluxioTException {
     try {
-      mKeyValueMaster.completeStore(new TachyonURI(path));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      mKeyValueMaster.completeStore(new AlluxioURI(path));
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
-  public List<PartitionInfo> getPartitionInfo(String path) throws TachyonTException {
+  public List<PartitionInfo> getPartitionInfo(String path) throws AlluxioTException {
     try {
-      return mKeyValueMaster.getPartitionInfo(new TachyonURI(path));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      return mKeyValueMaster.getPartitionInfo(new AlluxioURI(path));
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     }
   }
 
   @Override
-  public void deleteStore(String path) throws TachyonTException, ThriftIOException {
+  public void deleteStore(String path) throws AlluxioTException, ThriftIOException {
     try {
-      mKeyValueMaster.deleteStore(new TachyonURI(path));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      mKeyValueMaster.deleteStore(new AlluxioURI(path));
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }
@@ -98,11 +98,11 @@ public final class KeyValueMasterClientServiceHandler implements KeyValueMasterC
 
   @Override
   public void mergeStore(String fromPath, String toPath)
-      throws TachyonTException, ThriftIOException {
+      throws AlluxioTException, ThriftIOException {
     try {
-      mKeyValueMaster.mergeStore(new TachyonURI(fromPath), new TachyonURI(toPath));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
+      mKeyValueMaster.mergeStore(new AlluxioURI(fromPath), new AlluxioURI(toPath));
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     }

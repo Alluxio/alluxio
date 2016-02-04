@@ -33,7 +33,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.master.file.FileSystemMaster;
 
 /**
@@ -47,7 +47,7 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
       Arrays.asList(Constants.MASTER_WHITELIST));
 
   private final transient FileSystemMaster mFsMaster;
-  private final transient TachyonConf mTachyonConf;
+  private final transient Configuration mConfiguration;
 
   /**
    * Creates a new instance of {@link WebInterfaceConfigurationServlet}.
@@ -56,7 +56,7 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
    */
   public WebInterfaceConfigurationServlet(FileSystemMaster fsMaster) {
     mFsMaster = fsMaster;
-    mTachyonConf = new TachyonConf();
+    mConfiguration = new Configuration();
   }
 
   /**
@@ -78,10 +78,10 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
 
   private SortedSet<Pair<String, String>> getSortedProperties() {
     TreeSet<Pair<String, String>> rtn = new TreeSet<Pair<String, String>>();
-    for (Map.Entry<Object, Object> entry : mTachyonConf.getInternalProperties().entrySet()) {
+    for (Map.Entry<Object, Object> entry : mConfiguration.getInternalProperties().entrySet()) {
       String key = entry.getKey().toString();
       if (key.startsWith(TACHYON_CONF_PREFIX) && !TACHYON_CONF_EXCLUDES.contains(key)) {
-        rtn.add(new ImmutablePair<String, String>(key, mTachyonConf.get(key)));
+        rtn.add(new ImmutablePair<String, String>(key, mConfiguration.get(key)));
       }
     }
     return rtn;

@@ -36,7 +36,7 @@ import com.google.common.collect.Sets;
 
 import alluxio.Constants;
 import alluxio.Sessions;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.underfs.UnderFileSystem;
@@ -82,7 +82,7 @@ public final class FileDataManagerTest {
 
     // mock ufs
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
-    String ufsRoot = new TachyonConf().get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = new Configuration().get(Constants.UNDERFS_ADDRESS);
     Mockito.when(ufs.exists(ufsRoot)).thenReturn(true);
     Whitebox.setInternalState(manager, "mUfs", ufs);
     OutputStream outputStream = Mockito.mock(OutputStream.class);
@@ -190,7 +190,7 @@ public final class FileDataManagerTest {
 
     // mock ufs
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
-    String ufsRoot = new TachyonConf().get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = new Configuration().get(Constants.UNDERFS_ADDRESS);
     Mockito.when(ufs.exists(ufsRoot)).thenReturn(true);
     Whitebox.setInternalState(manager, "mUfs", ufs);
     OutputStream outputStream = Mockito.mock(OutputStream.class);

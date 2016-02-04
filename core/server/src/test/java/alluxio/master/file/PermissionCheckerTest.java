@@ -29,8 +29,8 @@ import org.junit.rules.TemporaryFolder;
 import org.powermock.reflect.Whitebox;
 
 import alluxio.Constants;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
@@ -143,7 +143,7 @@ public class PermissionCheckerTest {
 
     blockMaster.start(true);
 
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
     MasterContext.reset(conf);
@@ -153,7 +153,7 @@ public class PermissionCheckerTest {
     verifyPermissionChecker(true, TEST_PERMISSION_STATUS_SUPER.getUserName(), TEST_SUPER_GROUP);
 
     // verify initializing root twice
-    Inode root = sTree.getInodeByPath(new TachyonURI("/"));
+    Inode root = sTree.getInodeByPath(new AlluxioURI("/"));
     sTree.initializeRoot(TEST_PERMISSION_STATUS_SUPER);
     verifyPermissionChecker(true, root.getUserName(), TEST_SUPER_GROUP);
 
@@ -162,18 +162,18 @@ public class PermissionCheckerTest {
   }
 
   private static void createFileAndDirs() throws Exception {
-    sTree.createPath(new TachyonURI(TEST_DIR_FILE_URI), NESTED_FILE_OPTIONS);
-    sTree.createPath(new TachyonURI(TEST_FILE_URI), FILE_OPTIONS);
-    sTree.createPath(new TachyonURI(TEST_WEIRD_FILE_URI), WEIRD_FILE_OPTIONS);
+    sTree.createPath(new AlluxioURI(TEST_DIR_FILE_URI), NESTED_FILE_OPTIONS);
+    sTree.createPath(new AlluxioURI(TEST_FILE_URI), FILE_OPTIONS);
+    sTree.createPath(new AlluxioURI(TEST_WEIRD_FILE_URI), WEIRD_FILE_OPTIONS);
 
     verifyInodesList(TEST_DIR_FILE_URI.split("/"),
-        sTree.collectInodes(new TachyonURI(TEST_DIR_FILE_URI)));
+        sTree.collectInodes(new AlluxioURI(TEST_DIR_FILE_URI)));
     verifyInodesList(TEST_FILE_URI.split("/"),
-        sTree.collectInodes(new TachyonURI(TEST_FILE_URI)));
+        sTree.collectInodes(new AlluxioURI(TEST_FILE_URI)));
     verifyInodesList(TEST_WEIRD_FILE_URI.split("/"),
-        sTree.collectInodes(new TachyonURI(TEST_WEIRD_FILE_URI)));
+        sTree.collectInodes(new AlluxioURI(TEST_WEIRD_FILE_URI)));
     verifyInodesList(new String[]{"", "testDir"},
-        sTree.collectInodes(new TachyonURI(TEST_NOT_EXIST_URI)));
+        sTree.collectInodes(new AlluxioURI(TEST_NOT_EXIST_URI)));
   }
 
   private static void verifyInodesList(String[] expectedInodes, List<Inode> inodes) {
@@ -289,24 +289,24 @@ public class PermissionCheckerTest {
 
     PermissionChecker.checkPermission(TEST_USER_2.getUser(),
         Lists.newArrayList(TEST_USER_2.getGroups().split(",")), FileSystemAction.WRITE,
-        new TachyonURI(""), fileInfos);
+        new AlluxioURI(""), fileInfos);
   }
 
   private void checkSelfPermission(TestUser user, FileSystemAction action, String path)
       throws Exception {
     PermissionChecker.checkPermission(user.getUser(),
-        Lists.newArrayList(user.getGroups().split(",")), action, new TachyonURI(path),
-        collectFileInfos(new TachyonURI(path)));
+        Lists.newArrayList(user.getGroups().split(",")), action, new AlluxioURI(path),
+        collectFileInfos(new AlluxioURI(path)));
   }
 
   private void checkParentOrAncestorPermission(TestUser user, FileSystemAction action, String path)
       throws Exception {
     PermissionChecker.checkParentPermission(user.getUser(), Lists.newArrayList(user
-        .getGroups().split(",")), action, new TachyonURI(path),
-        collectFileInfos(new TachyonURI(path)));
+        .getGroups().split(",")), action, new AlluxioURI(path),
+        collectFileInfos(new AlluxioURI(path)));
   }
 
-  private List<FileInfo> collectFileInfos(TachyonURI path) throws Exception {
+  private List<FileInfo> collectFileInfos(AlluxioURI path) throws Exception {
     List<Inode> inodes = sTree.collectInodes(path);
     List<FileInfo> fileInfos = new ArrayList<FileInfo>();
     for (Inode inode : inodes) {

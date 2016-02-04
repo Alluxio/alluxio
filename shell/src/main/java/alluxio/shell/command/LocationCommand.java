@@ -21,12 +21,12 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.TachyonURI;
-import alluxio.client.block.TachyonBlockStore;
+import alluxio.AlluxioURI;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.wire.BlockLocation;
 
 /**
@@ -42,7 +42,7 @@ public final class LocationCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param fs the filesystem of Tachyon
    */
-  public LocationCommand(TachyonConf conf, FileSystem fs) {
+  public LocationCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
@@ -52,17 +52,17 @@ public final class LocationCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
+  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
     URIStatus status;
     try {
       status = mFileSystem.getStatus(path);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
 
     System.out.println(path + " with file id " + status.getFileId() + " is on nodes: ");
     for (long blockId : status.getBlockIds()) {
-      for (BlockLocation location : TachyonBlockStore.get().getInfo(blockId).getLocations()) {
+      for (BlockLocation location : AlluxioBlockStore.get().getInfo(blockId).getLocations()) {
         System.out.println(location.getWorkerAddress().getHost());
       }
     }

@@ -22,12 +22,12 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import alluxio.LocalTachyonClusterResource;
-import alluxio.TachyonURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.conf.TachyonConf;
-import alluxio.exception.TachyonException;
+import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 
 /**
  * Test the internal implementation of alluxio Master via a
@@ -37,20 +37,20 @@ import alluxio.exception.TachyonException;
  */
 public final class FileSystemMasterClientIntegrationTest {
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource();
-  private TachyonConf mMasterTachyonConf = null;
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource();
+  private Configuration mMasterConfiguration = null;
 
   @Before
   public final void before() throws Exception {
-    mMasterTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
+    mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
   }
 
   @Test
-  public void openCloseTest() throws TachyonException, IOException {
+  public void openCloseTest() throws AlluxioException, IOException {
     FileSystemMasterClient fsMasterClient = new FileSystemMasterClient(
-        mLocalTachyonClusterResource.get().getMaster().getAddress(), mMasterTachyonConf);
-    TachyonURI file = new TachyonURI("/file");
+        mLocalAlluxioClusterResource.get().getMaster().getAddress(), mMasterConfiguration);
+    AlluxioURI file = new AlluxioURI("/file");
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
@@ -64,14 +64,14 @@ public final class FileSystemMasterClientIntegrationTest {
     fsMasterClient.close();
   }
 
-  @Test(timeout = 3000, expected = TachyonException.class)
-  public void getFileInfoReturnsOnErrorTest() throws IOException, TachyonException {
+  @Test(timeout = 3000, expected = AlluxioException.class)
+  public void getFileInfoReturnsOnErrorTest() throws IOException, AlluxioException {
     // This test was created to show that an infinite loop occurs.
     // The timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
     FileSystemMasterClient fsMasterClient = new FileSystemMasterClient(
-        mLocalTachyonClusterResource.get().getMaster().getAddress(), mMasterTachyonConf);
-    fsMasterClient.getStatus(new TachyonURI("/doesNotExist"));
+        mLocalAlluxioClusterResource.get().getMaster().getAddress(), mMasterConfiguration);
+    fsMasterClient.getStatus(new AlluxioURI("/doesNotExist"));
     fsMasterClient.close();
   }
 }

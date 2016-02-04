@@ -27,7 +27,6 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.conf.TachyonConf;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -46,15 +45,15 @@ public final class LeaderInquireClient {
    *
    * @param zookeeperAddress the address for Zookeeper
    * @param leaderPath the path of the leader
-   * @param tachyonConf the configuration for Tachyon
+   * @param configuration the configuration for Tachyon
    *
    * @return the client
    */
   public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
-      String leaderPath, TachyonConf tachyonConf) {
+      String leaderPath, Configuration configuration) {
     String key = zookeeperAddress + leaderPath;
     if (!sCreatedClients.containsKey(key)) {
-      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath, tachyonConf));
+      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath, configuration));
     }
     return sCreatedClients.get(key);
   }
@@ -64,7 +63,7 @@ public final class LeaderInquireClient {
   private final CuratorFramework mClient;
   private final int mMaxTry;
 
-  private LeaderInquireClient(String zookeeperAddress, String leaderPath, TachyonConf tachyonConf) {
+  private LeaderInquireClient(String zookeeperAddress, String leaderPath, Configuration configuration) {
     mZookeeperAddress = zookeeperAddress;
     mLeaderPath = leaderPath;
 
@@ -74,7 +73,7 @@ public final class LeaderInquireClient {
             Constants.SECOND_MS, 3));
     mClient.start();
 
-    mMaxTry = tachyonConf.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
+    mMaxTry = configuration.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
   }
 
   /**

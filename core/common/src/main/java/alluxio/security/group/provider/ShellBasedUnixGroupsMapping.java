@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.CommonUtils;
 
@@ -45,7 +45,7 @@ public final class ShellBasedUnixGroupsMapping implements GroupMappingService {
   }
 
   @Override
-  public void setConf(TachyonConf conf) {
+  public void setConf(Configuration conf) {
     // does nothing in this provider of user to groups mapping
   }
 }

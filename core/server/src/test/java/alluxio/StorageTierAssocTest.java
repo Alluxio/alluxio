@@ -22,13 +22,11 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.conf.TachyonConf;
-
 /**
  * Unit tests for {@link StorageTierAssoc}.
  */
 public class StorageTierAssocTest {
-  private void checkStorageTierAssoc(StorageTierAssoc assoc, TachyonConf conf,
+  private void checkStorageTierAssoc(StorageTierAssoc assoc, Configuration conf,
       String levelsProperty, String aliasFormat) {
     int size = conf.getInt(levelsProperty);
     Assert.assertEquals(size, assoc.size());
@@ -47,22 +45,22 @@ public class StorageTierAssocTest {
 
   /**
    * Tests the constructors of the {@link MasterStorageTierAssoc} and {@link WorkerStorageTierAssoc}
-   * classes with a {@link TachyonConf}.
+   * classes with a {@link Configuration}.
    */
   @Test
   public void masterWorkerConfConstructorTest() {
-    TachyonConf tachyonConf = new TachyonConf();
-    tachyonConf.set(Constants.MASTER_TIERED_STORE_GLOBAL_LEVELS, "4");
-    tachyonConf.set(String.format(Constants.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT, 3),
+    Configuration configuration = new Configuration();
+    configuration.set(Constants.MASTER_TIERED_STORE_GLOBAL_LEVELS, "4");
+    configuration.set(String.format(Constants.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT, 3),
         "BOTTOM");
-    tachyonConf.set(Constants.WORKER_TIERED_STORE_LEVELS, "2");
-    tachyonConf
+    configuration.set(Constants.WORKER_TIERED_STORE_LEVELS, "2");
+    configuration
         .set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 1), "BOTTOTM");
 
-    checkStorageTierAssoc(new MasterStorageTierAssoc(tachyonConf), tachyonConf,
+    checkStorageTierAssoc(new MasterStorageTierAssoc(configuration), configuration,
         Constants.MASTER_TIERED_STORE_GLOBAL_LEVELS,
         Constants.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT);
-    checkStorageTierAssoc(new WorkerStorageTierAssoc(tachyonConf), tachyonConf,
+    checkStorageTierAssoc(new WorkerStorageTierAssoc(configuration), configuration,
         Constants.WORKER_TIERED_STORE_LEVELS, Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
   }
 

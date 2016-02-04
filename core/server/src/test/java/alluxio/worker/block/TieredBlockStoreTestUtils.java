@@ -25,7 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -52,10 +52,10 @@ public class TieredBlockStoreTestUtils {
   public static final long[][] TIER_CAPACITY_BYTES = {{2000, 3000}, {10000, 20000, 30000}};
   public static final String WORKER_DATA_FOLDER = "/tachyonworker/";
 
-  public static TachyonConf sTachyonConf = WorkerContext.getConf();
+  public static Configuration sConfiguration = WorkerContext.getConf();
 
   /**
-   * Sets up a {@link TachyonConf} for a {@link TieredBlockStore} with several tiers configured by
+   * Sets up a {@link Configuration} for a {@link TieredBlockStore} with several tiers configured by
    * the parameters. For simplicity, you can use {@link #setupTachyonConfDefault(String)} which
    * calls this method with default values.
    *
@@ -91,7 +91,7 @@ public class TieredBlockStoreTestUtils {
     int nTier = tierOrdinal.length;
 
     tierPath = createDirHierarchy(baseDir, tierPath);
-    TachyonConf conf = WorkerContext.getConf();
+    Configuration conf = WorkerContext.getConf();
     if (workerDataFolder != null) {
       conf.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
     }
@@ -104,7 +104,7 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Sets up a {@link TachyonConf} for a {@link TieredBlockStore} with only *one tier* configured by
+   * Sets up a {@link Configuration} for a {@link TieredBlockStore} with only *one tier* configured by
    * the parameters. For simplicity, you can use {@link #setupTachyonConfDefault(String)} which sets
    * up the tierBlockStore with default values.
    *
@@ -126,7 +126,7 @@ public class TieredBlockStoreTestUtils {
     if (baseDir != null) {
       tierPath = createDirHierarchy(baseDir, tierPath);
     }
-    TachyonConf conf = WorkerContext.getConf();
+    Configuration conf = WorkerContext.getConf();
     if (workerDataFolder != null) {
       conf.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
     }
@@ -135,7 +135,7 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Sets up a specific tier's {@link TachyonConf} for a {@link TieredBlockStore}.
+   * Sets up a specific tier's {@link Configuration} for a {@link TieredBlockStore}.
    *
    * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
    *
@@ -151,7 +151,7 @@ public class TieredBlockStoreTestUtils {
     Preconditions.checkArgument(tierPath.length == tierCapacity.length,
         String.format("tierPath and tierCapacity should have the same length"));
 
-    TachyonConf conf = WorkerContext.getConf();
+    Configuration conf = WorkerContext.getConf();
 
     conf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, ordinal),
         tierAlias);
@@ -238,7 +238,7 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Sets up a {@link TachyonConf} with default values of {@link #TIER_ORDINAL}, {@link #TIER_ALIAS}
+   * Sets up a {@link Configuration} with default values of {@link #TIER_ORDINAL}, {@link #TIER_ALIAS}
    * , {@link #TIER_PATH} with the baseDir as path prefix, {@link #TIER_CAPACITY_BYTES}.
    *
    * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.

@@ -28,7 +28,7 @@ import com.google.common.io.Closer;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.LocalFileBlockWriter;
@@ -82,7 +82,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     mCloser.close();
     try {
       mBlockWorkerClient.cancelBlock(mBlockId);
-    } catch (TachyonException e) {
+    } catch (AlluxioException e) {
       throw new IOException(e);
     }
     mContext.releaseWorkerClient(mBlockWorkerClient);
@@ -99,7 +99,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     if (mWrittenBytes > 0) {
       try {
         mBlockWorkerClient.cacheBlock(mBlockId);
-      } catch (TachyonException e) {
+      } catch (AlluxioException e) {
         throw new IOException(e);
       }
       ClientContext.getClientMetrics().incBlocksWrittenLocal(1);

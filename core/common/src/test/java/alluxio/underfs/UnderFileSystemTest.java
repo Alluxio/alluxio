@@ -21,97 +21,97 @@ import org.junit.Before;
 import org.junit.Test;
 
 import alluxio.collections.Pair;
-import alluxio.TachyonURI;
-import alluxio.conf.TachyonConf;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 
 /**
  * Unit tests for {@link UnderFileSystem}
  */
 public final class UnderFileSystemTest {
-  private TachyonConf mTachyonConf;
+  private Configuration mConfiguration;
 
   /**
    * Sets up the configuration for Tachyon before running a test.
    */
   @Before
   public void before() {
-    mTachyonConf = new TachyonConf();
+    mConfiguration = new Configuration();
   }
 
   /**
-   * Tests the {@link UnderFileSystem#parse(TachyonURI, TachyonConf)} method.
+   * Tests the {@link UnderFileSystem#parse(AlluxioURI, Configuration)} method.
    */
   @Test
   public void parseTest() {
-    Pair<String, String> result = UnderFileSystem.parse(new TachyonURI("/path"), mTachyonConf);
+    Pair<String, String> result = UnderFileSystem.parse(new AlluxioURI("/path"), mConfiguration);
     Assert.assertEquals(result.getFirst(), "/");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    result = UnderFileSystem.parse(new TachyonURI("file:///path"), mTachyonConf);
+    result = UnderFileSystem.parse(new AlluxioURI("file:///path"), mConfiguration);
     Assert.assertEquals(result.getFirst(), "/");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    result = UnderFileSystem.parse(new TachyonURI("alluxio://localhost:19998"), mTachyonConf);
+    result = UnderFileSystem.parse(new AlluxioURI("alluxio://localhost:19998"), mConfiguration);
     Assert.assertEquals(result.getFirst(), "alluxio://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/");
 
-    result = UnderFileSystem.parse(new TachyonURI("alluxio://localhost:19998/"), mTachyonConf);
+    result = UnderFileSystem.parse(new AlluxioURI("alluxio://localhost:19998/"), mConfiguration);
     Assert.assertEquals(result.getFirst(), "alluxio://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/");
 
-    result = UnderFileSystem.parse(new TachyonURI("alluxio://localhost:19998/path"), mTachyonConf);
+    result = UnderFileSystem.parse(new AlluxioURI("alluxio://localhost:19998/path"), mConfiguration);
     Assert.assertEquals(result.getFirst(), "alluxio://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    result = UnderFileSystem.parse(new TachyonURI("alluxio-ft://localhost:19998/path"),
-        mTachyonConf);
+    result = UnderFileSystem.parse(new AlluxioURI("alluxio-ft://localhost:19998/path"),
+        mConfiguration);
     Assert.assertEquals(result.getFirst(), "alluxio-ft://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    result = UnderFileSystem.parse(new TachyonURI("hdfs://localhost:19998/path"), mTachyonConf);
+    result = UnderFileSystem.parse(new AlluxioURI("hdfs://localhost:19998/path"), mConfiguration);
     Assert.assertEquals(result.getFirst(), "hdfs://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    result = UnderFileSystem.parse(new TachyonURI("s3://localhost:19998/path"), mTachyonConf);
+    result = UnderFileSystem.parse(new AlluxioURI("s3://localhost:19998/path"), mConfiguration);
     Assert.assertEquals(result.getFirst(), "s3://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    result = UnderFileSystem.parse(new TachyonURI("s3n://localhost:19998/path"), mTachyonConf);
+    result = UnderFileSystem.parse(new AlluxioURI("s3n://localhost:19998/path"), mConfiguration);
     Assert.assertEquals(result.getFirst(), "s3n://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    result = UnderFileSystem.parse(new TachyonURI("oss://localhost:19998"), mTachyonConf);
+    result = UnderFileSystem.parse(new AlluxioURI("oss://localhost:19998"), mConfiguration);
     Assert.assertEquals(result.getFirst(), "oss://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/");
 
-    result = UnderFileSystem.parse(new TachyonURI("oss://localhost:19998/"), mTachyonConf);
+    result = UnderFileSystem.parse(new AlluxioURI("oss://localhost:19998/"), mConfiguration);
     Assert.assertEquals(result.getFirst(), "oss://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/");
 
-    result = UnderFileSystem.parse(new TachyonURI("oss://localhost:19998/path"), mTachyonConf);
+    result = UnderFileSystem.parse(new AlluxioURI("oss://localhost:19998/path"), mConfiguration);
     Assert.assertEquals(result.getFirst(), "oss://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    Assert.assertEquals(UnderFileSystem.parse(TachyonURI.EMPTY_URI, mTachyonConf), null);
-    Assert.assertEquals(UnderFileSystem.parse(new TachyonURI("anythingElse"), mTachyonConf), null);
+    Assert.assertEquals(UnderFileSystem.parse(AlluxioURI.EMPTY_URI, mConfiguration), null);
+    Assert.assertEquals(UnderFileSystem.parse(new AlluxioURI("anythingElse"), mConfiguration), null);
   }
 
   /**
-   * Tests the {@link UnderFileSystemRegistry#find(String, TachyonConf)} method when using a core
+   * Tests the {@link UnderFileSystemRegistry#find(String, Configuration)} method when using a core
    * factory.
    */
   @Test
   public void coreFactoryTest() {
     // Supported in core
-    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/test/path", mTachyonConf);
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/test/path", mConfiguration);
     Assert.assertNull("An UnderFileSystemFactory should not exist for local file paths", factory);
 
-    factory = UnderFileSystemRegistry.find("file:///test/path", mTachyonConf);
+    factory = UnderFileSystemRegistry.find("file:///test/path", mConfiguration);
     Assert.assertNull("An UnderFileSystemFactory should not exist for local file paths", factory);
   }
 
   /**
-   * Tests the {@link UnderFileSystemRegistry#find(String, TachyonConf)} method when using an
+   * Tests the {@link UnderFileSystemRegistry#find(String, Configuration)} method when using an
    * external factory.
    */
   @Test
@@ -125,27 +125,27 @@ public final class UnderFileSystemTest {
 
     // Requires additional modules
     UnderFileSystemFactory factory =
-        UnderFileSystemRegistry.find("hdfs://localhost/test/path", mTachyonConf);
+        UnderFileSystemRegistry.find("hdfs://localhost/test/path", mConfiguration);
     Assert.assertNull(
         "No UnderFileSystemFactory should exist for HDFS paths as it requires a separate module",
         factory);
 
-    factory = UnderFileSystemRegistry.find("oss://localhost/test/path", mTachyonConf);
+    factory = UnderFileSystemRegistry.find("oss://localhost/test/path", mConfiguration);
     Assert.assertNull(
         "No UnderFileSystemFactory should exist for OSS paths as it requires a separate module",
         factory);
 
-    factory = UnderFileSystemRegistry.find("s3://localhost/test/path", mTachyonConf);
+    factory = UnderFileSystemRegistry.find("s3://localhost/test/path", mConfiguration);
     Assert.assertNull(
         "No UnderFileSystemFactory should exist for S3 paths as it requires a separate module",
         factory);
 
-    factory = UnderFileSystemRegistry.find("s3n://localhost/test/path", mTachyonConf);
+    factory = UnderFileSystemRegistry.find("s3n://localhost/test/path", mConfiguration);
     Assert.assertNull(
         "No UnderFileSystemFactory should exist for S3 paths as it requires a separate module",
         factory);
 
-    factory = UnderFileSystemRegistry.find("glusterfs://localhost/test/path", mTachyonConf);
+    factory = UnderFileSystemRegistry.find("glusterfs://localhost/test/path", mConfiguration);
     Assert.assertNull("No UnderFileSystemFactory should exist for Gluster FS paths as it requires"
         + " a separate module", factory);
   }

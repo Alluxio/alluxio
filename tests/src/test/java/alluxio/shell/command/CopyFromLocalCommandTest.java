@@ -22,20 +22,20 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.exception.TachyonException;
-import alluxio.shell.AbstractTfsShellTest;
-import alluxio.shell.TfsShellUtilsTest;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.io.BufferUtils;
 
 /**
  * Tests for copyFromLocal command.
  */
-public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
+public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void copyDirectoryFromLocalAtomicTest() throws Exception {
     File localDir = new File(mLocalTachyonCluster.getTachyonHome() + "/localDir");
@@ -43,7 +43,7 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
     File testFile =
         generateFileContent("/localDir/testFile", BufferUtils.getIncreasingByteArray(10));
     File testDir = testFile.getParentFile();
-    TachyonURI tachyonDirPath = new TachyonURI("/testDir");
+    AlluxioURI tachyonDirPath = new AlluxioURI("/testDir");
     testFile.setReadable(false);
 
     String[] cmd = {"copyFromLocal", testDir.getPath(), tachyonDirPath.getPath()};
@@ -57,8 +57,8 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
     Assert.assertEquals(-1, mFsShell.run(cmd));
     Assert.assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
     Assert.assertTrue(mFileSystem.exists(tachyonDirPath));
-    Assert.assertTrue(mFileSystem.exists(new TachyonURI("/testDir/testFile2")));
-    Assert.assertFalse(mFileSystem.exists(new TachyonURI("/testDir/testFile")));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
   }
 
   @Test
@@ -66,7 +66,7 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
     // copyFromLocal should not leave around any empty file metadata if it fails in the middle of
     // copying a file
     File testFile1 = generateFileContent("/testFile1", BufferUtils.getIncreasingByteArray(10));
-    TachyonURI tachyonFilePath = new TachyonURI("/testFile");
+    AlluxioURI tachyonFilePath = new AlluxioURI("/testFile");
     // Set testFile1 to be not readable, so that when we try to open it, we fail. NOTE: for this to
     // test anything, we depend on the implementation of copyFromLocal creating the destination file
     // in Tachyon before it tries to open the source file
@@ -80,7 +80,7 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void copyFromLocalFileToDstPathTest() throws IOException, TachyonException {
+  public void copyFromLocalFileToDstPathTest() throws IOException, AlluxioException {
     String dataString = "copyFromLocalFileToDstPathTest";
     byte[] data = dataString.getBytes();
     File localDir = new File(mLocalTachyonCluster.getTachyonHome() + "/localDir");
@@ -89,7 +89,7 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
     mFsShell.run("mkdir", "/dstDir");
     mFsShell.run("copyFromLocal", localFile.getPath(), "/dstDir");
 
-    TachyonURI uri = new TachyonURI("/dstDir/testFile");
+    AlluxioURI uri = new AlluxioURI("/dstDir/testFile");
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertNotNull(status);
     byte[] read = readContent(uri, data.length);
@@ -97,7 +97,7 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void copyFromLocalLargeTest() throws IOException, TachyonException {
+  public void copyFromLocalLargeTest() throws IOException, AlluxioException {
     File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
@@ -108,7 +108,7 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
     Assert.assertEquals(
         getCommandOutput(new String[] {"copyFromLocal", testFile.getAbsolutePath(), "/testFile"}),
         mOutput.toString());
-    TachyonURI uri = new TachyonURI("/testFile");
+    AlluxioURI uri = new AlluxioURI("/testFile");
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertNotNull(status);
     Assert.assertEquals(SIZE_BYTES, status.getLength());
@@ -127,7 +127,7 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
     final int LEN2 = 20;
     File testFile1 = generateFileContent("/testFile1", BufferUtils.getIncreasingByteArray(LEN1));
     File testFile2 = generateFileContent("/testFile2", BufferUtils.getIncreasingByteArray(LEN2));
-    TachyonURI tachyonFilePath = new TachyonURI("/testFile");
+    AlluxioURI tachyonFilePath = new AlluxioURI("/testFile");
 
     // Write the first file
     String[] cmd1 = {"copyFromLocal", testFile1.getPath(), tachyonFilePath.getPath()};
@@ -147,7 +147,7 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void copyFromLocalTest() throws IOException, TachyonException {
+  public void copyFromLocalTest() throws IOException, AlluxioException {
     File testDir = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir");
     testDir.mkdir();
     File testDirInner = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testDirInner");
@@ -161,8 +161,8 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
     Assert.assertEquals(
         getCommandOutput(new String[]{"copyFromLocal", testFile.getParent(), "/testDir"}),
         mOutput.toString());
-    TachyonURI uri1 = new TachyonURI("/testDir/testFile");
-    TachyonURI uri2 = new TachyonURI("/testDir/testDirInner/testFile2");
+    AlluxioURI uri1 = new AlluxioURI("/testDir/testFile");
+    AlluxioURI uri2 = new AlluxioURI("/testDir/testDirInner/testFile2");
     URIStatus status1 = mFileSystem.getStatus(uri1);
     URIStatus status2 = mFileSystem.getStatus(uri2);
     Assert.assertNotNull(status1);
@@ -176,7 +176,7 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void copyFromLocalTestWithFullURI() throws IOException, TachyonException {
+  public void copyFromLocalTestWithFullURI() throws IOException, AlluxioException {
     File testFile = generateFileContent("/srcFileURI", BufferUtils.getIncreasingByteArray(10));
     String tachyonURI = "alluxio://" + mLocalTachyonCluster.getMasterHostname() + ":"
         + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
@@ -186,7 +186,7 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
         getCommandOutput(new String[]{"copyFromLocal", testFile.getPath(), tachyonURI});
     // then
     Assert.assertEquals(cmdOut, mOutput.toString());
-    TachyonURI uri = new TachyonURI("/destFileURI");
+    AlluxioURI uri = new AlluxioURI("/destFileURI");
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertEquals(10L, status.getLength());
     byte[] read = readContent(uri, 10);
@@ -194,35 +194,35 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
   }
 
   @Test
-  public void copyFromLocalWildcardExistingDirTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetLocalFileHierarchy(mLocalTachyonCluster);
-    mFileSystem.createDirectory(new TachyonURI("/testDir"));
+  public void copyFromLocalWildcardExistingDirTest() throws IOException, AlluxioException {
+    AlluxioShellUtilsTest.resetLocalFileHierarchy(mLocalTachyonCluster);
+    mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     int ret = mFsShell.run("copyFromLocal",
         mLocalTachyonCluster.getTachyonHome() + "/testWildCards/*/foo*", "/testDir");
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(fileExist(new TachyonURI("/testDir/foobar1")));
-    Assert.assertTrue(fileExist(new TachyonURI("/testDir/foobar2")));
-    Assert.assertTrue(fileExist(new TachyonURI("/testDir/foobar3")));
+    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar1")));
+    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar2")));
+    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar3")));
   }
 
   @Test
   public void copyFromLocalWildcardHierTest() throws IOException {
-    TfsShellUtilsTest.resetLocalFileHierarchy(mLocalTachyonCluster);
+    AlluxioShellUtilsTest.resetLocalFileHierarchy(mLocalTachyonCluster);
     int ret =
         mFsShell.run("copyFromLocal", mLocalTachyonCluster.getTachyonHome() + "/testWildCards/*",
             "/testDir");
 
     mFsShell.run("ls", "/testDir");
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(fileExist(new TachyonURI("/testDir/foo/foobar1")));
-    Assert.assertTrue(fileExist(new TachyonURI("/testDir/foo/foobar2")));
-    Assert.assertTrue(fileExist(new TachyonURI("/testDir/bar/foobar3")));
-    Assert.assertTrue(fileExist(new TachyonURI("/testDir/foobar4")));
+    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foo/foobar1")));
+    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foo/foobar2")));
+    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/bar/foobar3")));
+    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar4")));
   }
 
   @Test
-  public void copyFromLocalWildcardNotDirTest() throws IOException, TachyonException {
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+  public void copyFromLocalWildcardNotDirTest() throws IOException, AlluxioException {
+    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
     int ret =
         mFsShell.run("copyFromLocal", mLocalTachyonCluster.getTachyonHome()
             + "/testWildCards/*/foo*", "/testWildCards/foobar4");
@@ -231,14 +231,14 @@ public class CopyFromLocalCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void copyFromLocalWildcardTest() throws IOException {
-    TfsShellUtilsTest.resetLocalFileHierarchy(mLocalTachyonCluster);
+    AlluxioShellUtilsTest.resetLocalFileHierarchy(mLocalTachyonCluster);
     int ret =
         mFsShell.run("copyFromLocal", mLocalTachyonCluster.getTachyonHome()
             + "/testWildCards/*/foo*", "/testDir");
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(fileExist(new TachyonURI("/testDir/foobar1")));
-    Assert.assertTrue(fileExist(new TachyonURI("/testDir/foobar2")));
-    Assert.assertTrue(fileExist(new TachyonURI("/testDir/foobar3")));
-    Assert.assertFalse(fileExist(new TachyonURI("/testDir/foobar4")));
+    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar1")));
+    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar2")));
+    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar3")));
+    Assert.assertFalse(fileExist(new AlluxioURI("/testDir/foobar4")));
   }
 }

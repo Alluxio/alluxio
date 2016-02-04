@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -64,12 +64,12 @@ public class EvictorFactoryTest {
 
   /**
    * Tests that a {@link GreedyEvictor} can be created from
-   * {@link alluxio.worker.block.evictor.Evictor.Factory#create(TachyonConf,
+   * {@link alluxio.worker.block.evictor.Evictor.Factory#create(Configuration,
    *        BlockMetadataManagerView, Allocator)}.
    */
   @Test
   public void createGreedyEvictorTest() {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(conf, sBlockMetadataManagerView);
@@ -79,12 +79,12 @@ public class EvictorFactoryTest {
 
   /**
    * Tests that a {@link LRUEvictor} can be created from
-   * {@link alluxio.worker.block.evictor.Evictor.Factory#create(TachyonConf,
+   * {@link alluxio.worker.block.evictor.Evictor.Factory#create(Configuration,
    *        BlockMetadataManagerView, Allocator)}.
    */
   @Test
   public void createLRUEvictorTest() {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(conf, sBlockMetadataManagerView);
@@ -94,12 +94,12 @@ public class EvictorFactoryTest {
 
   /**
    * Tests that the default evictor can be created from
-   * {@link alluxio.worker.block.evictor.Evictor.Factory#create(TachyonConf,
+   * {@link alluxio.worker.block.evictor.Evictor.Factory#create(Configuration,
    *        BlockMetadataManagerView, Allocator)}.
    */
   @Test
   public void createDefaultEvictorTest() {
-    TachyonConf conf = new TachyonConf();
+    Configuration conf = new Configuration();
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(conf, sBlockMetadataManagerView);
     Evictor evictor = Evictor.Factory.create(conf, sBlockMetadataManagerView, allocator);

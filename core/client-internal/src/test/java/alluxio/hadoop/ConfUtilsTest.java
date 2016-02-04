@@ -15,12 +15,11 @@
 
 package alluxio.hadoop;
 
-import org.apache.hadoop.conf.Configuration;
 import org.junit.Assert;
 import org.junit.Test;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 /**
  * Tests for the {@link ConfUtils} class.
@@ -31,32 +30,32 @@ public final class ConfUtilsTest {
   private static final String TEST_WORKER_MEMORY_SIZE = Integer.toString(654321);
 
   /**
-   * Test for the {@link ConfUtils#loadFromHadoopConfiguration(Configuration)} method for an empty
+   * Test for the {@link ConfUtils#loadFromHadoopConfiguration(org.apache.hadoop.conf.Configuration)} method for an empty
    * configuration.
    */
   @Test
   public void loadFromEmptyHadoopConfigurationTest() {
-    Configuration hadoopConfig = new Configuration();
-    TachyonConf tachyonConf = ConfUtils.loadFromHadoopConfiguration(hadoopConfig);
-    Assert.assertEquals(0, tachyonConf.toMap().size());
+    org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
+    Configuration configuration = ConfUtils.loadFromHadoopConfiguration(hadoopConfig);
+    Assert.assertEquals(0, configuration.toMap().size());
   }
 
   /**
-   * Test for the {@link ConfUtils#loadFromHadoopConfiguration(Configuration)} method.
+   * Test for the {@link ConfUtils#loadFromHadoopConfiguration(org.apache.hadoop.conf.Configuration)} method.
    */
   @Test
   public void loadFromHadoopConfigurationTest() {
-    Configuration hadoopConfig = new Configuration();
+    org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
     hadoopConfig.set(Constants.S3_ACCESS_KEY, TEST_S3_ACCCES_KEY);
     hadoopConfig.set(Constants.S3_SECRET_KEY, TEST_S3_SECRET_KEY);
     hadoopConfig.set(Constants.WORKER_MEMORY_SIZE, TEST_WORKER_MEMORY_SIZE);
     // This hadoop config will not be loaded into TachyonConf.
     hadoopConfig.set("hadoop.config.parameter", "hadoop config value");
 
-    TachyonConf tachyonConf = ConfUtils.loadFromHadoopConfiguration(hadoopConfig);
-    Assert.assertEquals(3, tachyonConf.toMap().size());
-    Assert.assertEquals(TEST_S3_ACCCES_KEY, tachyonConf.get(Constants.S3_ACCESS_KEY));
-    Assert.assertEquals(TEST_S3_SECRET_KEY, tachyonConf.get(Constants.S3_SECRET_KEY));
-    Assert.assertEquals(TEST_WORKER_MEMORY_SIZE, tachyonConf.get(Constants.WORKER_MEMORY_SIZE));
+    Configuration configuration = ConfUtils.loadFromHadoopConfiguration(hadoopConfig);
+    Assert.assertEquals(3, configuration.toMap().size());
+    Assert.assertEquals(TEST_S3_ACCCES_KEY, configuration.get(Constants.S3_ACCESS_KEY));
+    Assert.assertEquals(TEST_S3_SECRET_KEY, configuration.get(Constants.S3_SECRET_KEY));
+    Assert.assertEquals(TEST_WORKER_MEMORY_SIZE, configuration.get(Constants.WORKER_MEMORY_SIZE));
   }
 }

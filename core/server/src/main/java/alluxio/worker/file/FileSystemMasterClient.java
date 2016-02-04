@@ -28,12 +28,12 @@ import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
 import alluxio.MasterClientBase;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.TachyonException;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemMasterWorkerService;
-import alluxio.thrift.TachyonService;
+import alluxio.thrift.AlluxioService;
 import alluxio.wire.FileInfo;
 import alluxio.wire.ThriftUtils;
 
@@ -53,14 +53,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Creates a instance of {@link FileSystemMasterClient}.
    *
    * @param masterAddress the master address
-   * @param tachyonConf the Tachyon configuration
+   * @param configuration the Tachyon configuration
    */
-  public FileSystemMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
-    super(masterAddress, tachyonConf);
+  public FileSystemMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
+    super(masterAddress, configuration);
   }
 
   @Override
-  protected TachyonService.Client getClient() {
+  protected AlluxioService.Client getClient() {
     return mClient;
   }
 
@@ -82,10 +82,10 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * @param fileId the id of the file for which to get the {@link FileInfo}
    * @return the file info for the given file id
-   * @throws TachyonException if a Tachyon error occurs
+   * @throws AlluxioException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
-  public synchronized FileInfo getFileInfo(final long fileId) throws TachyonException, IOException {
+  public synchronized FileInfo getFileInfo(final long fileId) throws AlluxioException, IOException {
     return retryRPC(new RpcCallableThrowsTachyonTException<FileInfo>() {
       @Override
       public FileInfo call() throws TException {

@@ -22,7 +22,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import alluxio.IntegrationTestUtils;
-import alluxio.TachyonURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.heartbeat.HeartbeatContext;
@@ -50,7 +50,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
         TimeUnit.SECONDS));
 
-    TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
+    AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
     FileOutStream os = mFileSystem.createFile(filePath, mWriteAsync);
     os.write((byte) 0);
@@ -68,7 +68,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
         TimeUnit.SECONDS));
 
-    IntegrationTestUtils.waitForPersist(mLocalTachyonClusterResource, status.getFileId());
+    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, status.getFileId());
 
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,

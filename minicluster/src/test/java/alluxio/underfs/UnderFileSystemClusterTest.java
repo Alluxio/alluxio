@@ -27,14 +27,14 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(UnderFileSystemCluster.class)
 public class UnderFileSystemClusterTest {
 
   private static final String BASE_DIR = "/tmp";
-  private static final TachyonConf TACHYON_CONF = new TachyonConf();
+  private static final Configuration TACHYON_CONF = new Configuration();
   private UnderFileSystemCluster mUnderFileSystemCluster;
 
   @Before

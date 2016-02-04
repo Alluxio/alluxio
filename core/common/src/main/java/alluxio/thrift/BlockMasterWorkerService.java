@@ -38,9 +38,9 @@ import org.slf4j.LoggerFactory;
 public class BlockMasterWorkerService {
 
   /**
-   * This interface contains block master service endpoints for Tachyon workers.
+   * This interface contains block master service endpoints for Alluxio workers.
    */
-  public interface Iface extends alluxio.thrift.TachyonService.Iface {
+  public interface Iface extends alluxio.thrift.AlluxioService.Iface {
 
     /**
      * Marks the given block as committed.
@@ -90,11 +90,11 @@ public class BlockMasterWorkerService {
      * 
      * @param currentBlocksOnTiers the map of list of blocks on each tier
      */
-    public void registerWorker(long workerId, List<String> storageTiers, Map<String,Long> totalBytesOnTiers, Map<String,Long> usedBytesOnTiers, Map<String,List<Long>> currentBlocksOnTiers) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException;
+    public void registerWorker(long workerId, List<String> storageTiers, Map<String,Long> totalBytesOnTiers, Map<String,Long> usedBytesOnTiers, Map<String,List<Long>> currentBlocksOnTiers) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
   }
 
-  public interface AsyncIface extends alluxio.thrift.TachyonService .AsyncIface {
+  public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
 
     public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId, long length, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -106,7 +106,7 @@ public class BlockMasterWorkerService {
 
   }
 
-  public static class Client extends alluxio.thrift.TachyonService.Client implements Iface {
+  public static class Client extends alluxio.thrift.AlluxioService.Client implements Iface {
     public static class Factory implements org.apache.thrift.TServiceClientFactory<Client> {
       public Factory() {}
       public Client getClient(org.apache.thrift.protocol.TProtocol prot) {
@@ -199,7 +199,7 @@ public class BlockMasterWorkerService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "heartbeat failed: unknown result");
     }
 
-    public void registerWorker(long workerId, List<String> storageTiers, Map<String,Long> totalBytesOnTiers, Map<String,Long> usedBytesOnTiers, Map<String,List<Long>> currentBlocksOnTiers) throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void registerWorker(long workerId, List<String> storageTiers, Map<String,Long> totalBytesOnTiers, Map<String,Long> usedBytesOnTiers, Map<String,List<Long>> currentBlocksOnTiers) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_registerWorker(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers, currentBlocksOnTiers);
       recv_registerWorker();
@@ -216,7 +216,7 @@ public class BlockMasterWorkerService {
       sendBase("registerWorker", args);
     }
 
-    public void recv_registerWorker() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException
+    public void recv_registerWorker() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       registerWorker_result result = new registerWorker_result();
       receiveBase(result, "registerWorker");
@@ -227,7 +227,7 @@ public class BlockMasterWorkerService {
     }
 
   }
-  public static class AsyncClient extends alluxio.thrift.TachyonService.AsyncClient implements AsyncIface {
+  public static class AsyncClient extends alluxio.thrift.AlluxioService.AsyncClient implements AsyncIface {
     public static class Factory implements org.apache.thrift.async.TAsyncClientFactory<AsyncClient> {
       private org.apache.thrift.async.TAsyncClientManager clientManager;
       private org.apache.thrift.protocol.TProtocolFactory protocolFactory;
@@ -395,7 +395,7 @@ public class BlockMasterWorkerService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.TachyonTException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -407,7 +407,7 @@ public class BlockMasterWorkerService {
 
   }
 
-  public static class Processor<I extends Iface> extends alluxio.thrift.TachyonService.Processor<I> implements org.apache.thrift.TProcessor {
+  public static class Processor<I extends Iface> extends alluxio.thrift.AlluxioService.Processor<I> implements org.apache.thrift.TProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(Processor.class.getName());
     public Processor(I iface) {
       super(iface, getProcessMap(new HashMap<String, org.apache.thrift.ProcessFunction<I, ? extends org.apache.thrift.TBase>>()));
@@ -503,7 +503,7 @@ public class BlockMasterWorkerService {
         registerWorker_result result = new registerWorker_result();
         try {
           iface.registerWorker(args.workerId, args.storageTiers, args.totalBytesOnTiers, args.usedBytesOnTiers, args.currentBlocksOnTiers);
-        } catch (alluxio.thrift.TachyonTException e) {
+        } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
         return result;
@@ -512,7 +512,7 @@ public class BlockMasterWorkerService {
 
   }
 
-  public static class AsyncProcessor<I extends AsyncIface> extends alluxio.thrift.TachyonService.AsyncProcessor<I> {
+  public static class AsyncProcessor<I extends AsyncIface> extends alluxio.thrift.AlluxioService.AsyncProcessor<I> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncProcessor.class.getName());
     public AsyncProcessor(I iface) {
       super(iface, getProcessMap(new HashMap<String, org.apache.thrift.AsyncProcessFunction<I, ? extends org.apache.thrift.TBase, ?>>()));
@@ -709,8 +709,8 @@ public class BlockMasterWorkerService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             registerWorker_result result = new registerWorker_result();
-            if (e instanceof alluxio.thrift.TachyonTException) {
-                        result.e = (alluxio.thrift.TachyonTException) e;
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
                         msg = result;
             }
@@ -4888,7 +4888,7 @@ public class BlockMasterWorkerService {
       schemes.put(TupleScheme.class, new registerWorker_resultTupleSchemeFactory());
     }
 
-    private alluxio.thrift.TachyonTException e; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -4962,7 +4962,7 @@ public class BlockMasterWorkerService {
     }
 
     public registerWorker_result(
-      alluxio.thrift.TachyonTException e)
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.e = e;
@@ -4973,7 +4973,7 @@ public class BlockMasterWorkerService {
      */
     public registerWorker_result(registerWorker_result other) {
       if (other.isSetE()) {
-        this.e = new alluxio.thrift.TachyonTException(other.e);
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -4986,11 +4986,11 @@ public class BlockMasterWorkerService {
       this.e = null;
     }
 
-    public alluxio.thrift.TachyonTException getE() {
+    public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public registerWorker_result setE(alluxio.thrift.TachyonTException e) {
+    public registerWorker_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -5016,7 +5016,7 @@ public class BlockMasterWorkerService {
         if (value == null) {
           unsetE();
         } else {
-          setE((alluxio.thrift.TachyonTException)value);
+          setE((alluxio.thrift.AlluxioTException)value);
         }
         break;
 
@@ -5172,7 +5172,7 @@ public class BlockMasterWorkerService {
           switch (schemeField.id) {
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.TachyonTException();
+                struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
               } else { 
@@ -5231,7 +5231,7 @@ public class BlockMasterWorkerService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.e = new alluxio.thrift.TachyonTException();
+          struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }

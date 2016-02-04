@@ -18,16 +18,16 @@ package alluxio.master;
 import java.io.IOException;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
 
 public class MasterTestUtils {
-  public static FileSystemMaster createFileSystemMasterFromJournal(TachyonConf tachyonConf)
+  public static FileSystemMaster createFileSystemMasterFromJournal(Configuration configuration)
       throws IOException {
-    String masterJournal = tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
+    String masterJournal = configuration.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal blockJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(masterJournal));
     Journal fsJournal = new ReadWriteJournal(FileSystemMaster.getJournalDirectory(masterJournal));
     BlockMaster blockMaster = new BlockMaster(blockJournal);

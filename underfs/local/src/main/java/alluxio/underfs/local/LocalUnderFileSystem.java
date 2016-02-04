@@ -29,7 +29,7 @@ import java.util.Stack;
 import javax.annotation.concurrent.ThreadSafe;
 
 import alluxio.Constants;
-import alluxio.conf.TachyonConf;
+import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -53,7 +53,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
    *
    * @param conf the configuration for Tachyon
    */
-  public LocalUnderFileSystem(TachyonConf conf) {
+  public LocalUnderFileSystem(Configuration conf) {
     super(conf);
   }
 
@@ -128,7 +128,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<String>();
-    ret.add(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf));
+    ret.add(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mConfiguration));
     return ret;
   }
 
@@ -237,12 +237,12 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(TachyonConf conf, String hostname) throws IOException {
+  public void connectFromMaster(Configuration conf, String hostname) throws IOException {
     // No-op
   }
 
   @Override
-  public void connectFromWorker(TachyonConf conf, String hostname) throws IOException {
+  public void connectFromWorker(Configuration conf, String hostname) throws IOException {
     // No-op
   }
 }
