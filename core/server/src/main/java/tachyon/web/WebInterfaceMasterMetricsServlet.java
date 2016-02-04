@@ -27,9 +27,9 @@ import javax.servlet.http.HttpServletResponse;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
+import com.codahale.metrics.MetricRegistry;
 
 import tachyon.master.TachyonMaster;
-import tachyon.metrics.TachyonMetricRegistry;
 
 /**
  * Servlet that provides data for viewing the metrics values
@@ -79,7 +79,7 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
    * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    TachyonMetricRegistry mr = mMaster.getMasterMetricsSystem().getMetricRegistry();
+    MetricRegistry mr = mMaster.getMasterMetricsSystem().getMetricRegistry();
 
     Long masterCapacityTotal = (Long) mr.getGauges().get("master.CapacityTotal").getValue();
     Long masterCapacityUsed = (Long) mr.getGauges().get("master.CapacityUsed").getValue();
@@ -118,6 +118,6 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     operations.putAll(counters);
     operations.put("master.FilesPinned", mr.getGauges().get("master.FilesPinned"));
 
-    populateCountersValues(mr,operations, rpcInvocations, request);
+    populateCountersValues(operations, rpcInvocations, request);
   }
 }

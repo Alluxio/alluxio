@@ -76,14 +76,8 @@
           
         </div>
       </div>
-    </div>    
-      <% if ((Boolean)request.getAttribute("historyEnabled")) { %>
-        <jsp:include page="metrics-history.jsp">
-          <jsp:param value="${operationMetrics}" name="operationMetrics" />
-        </jsp:include>
-      <% } else { %>
+    </div>
         <jsp:include page="metrics-summary.jsp" />
-      <% } %>
     </div>
   <%@ include file="footer.jsp" %>
 </div>
