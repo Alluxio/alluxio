@@ -28,10 +28,10 @@ public final class WorkerContext {
   private WorkerContext() {} // to prevent initialization
 
   /**
-   * The static configuration object. There is only one {@link Configuration} object shared within the
-   * same worker process.
+   * The static configuration object. There is only one {@link Configuration} object shared within
+   * the same worker process.
    */
-  private static Configuration sConfiguration = new Configuration();
+  private static Configuration sConf = new Configuration();
 
   /**
    * The {@link WorkerSource} for collecting worker metrics.
@@ -48,7 +48,7 @@ public final class WorkerContext {
    * @return the tachyonConf for the worker process
    */
   public static Configuration getConf() {
-    return sConfiguration;
+    return sConf;
   }
 
   /**
@@ -92,6 +92,6 @@ public final class WorkerContext {
    * @param conf the configuration for Tachyon
    */
   public static void reset(Configuration conf) {
-    sConfiguration = conf;
+    sConf = conf;
   }
 }

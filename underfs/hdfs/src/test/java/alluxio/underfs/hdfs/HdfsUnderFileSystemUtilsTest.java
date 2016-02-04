@@ -26,7 +26,7 @@ import alluxio.Configuration;
 public final class HdfsUnderFileSystemUtilsTest {
 
   /**
-   * Tests the {@link HdfsUnderFileSystemUtils#addKey(org.apache.hadoop.conf.Configuration, Configuration, String)} method.
+   * Tests the {@link HdfsUnderFileSystemUtils#addKey} method.
    */
   @Test
   public void addKeyTest() {

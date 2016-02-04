@@ -133,10 +133,10 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
-  protected void startWorker(Configuration testConf) throws IOException, ConnectionFailedException  {
+  protected void startWorker(Configuration conf) throws IOException, ConnectionFailedException {
     // We need to update the worker context with the most recent configuration so they know the
     // correct port to connect to master.
-    mWorkerConf = new Configuration(testConf.getInternalProperties());
+    mWorkerConf = new Configuration(conf.getInternalProperties());
     WorkerContext.reset(mWorkerConf);
 
     runWorker();

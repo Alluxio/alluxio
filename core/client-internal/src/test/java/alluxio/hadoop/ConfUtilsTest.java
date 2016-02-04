@@ -30,8 +30,7 @@ public final class ConfUtilsTest {
   private static final String TEST_WORKER_MEMORY_SIZE = Integer.toString(654321);
 
   /**
-   * Test for the {@link ConfUtils#loadFromHadoopConfiguration(org.apache.hadoop.conf.Configuration)} method for an empty
-   * configuration.
+   * Test for the {@link ConfUtils#loadFromHadoopConfiguration} method for an empty configuration.
    */
   @Test
   public void loadFromEmptyHadoopConfigurationTest() {
@@ -41,7 +40,7 @@ public final class ConfUtilsTest {
   }
 
   /**
-   * Test for the {@link ConfUtils#loadFromHadoopConfiguration(org.apache.hadoop.conf.Configuration)} method.
+   * Test for the {@link ConfUtils#loadFromHadoopConfiguration} method.
    */
   @Test
   public void loadFromHadoopConfigurationTest() {

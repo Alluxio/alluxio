@@ -29,15 +29,16 @@ public class HdfsUnderFileSystemUtils {
   /**
    * Replaces default key with user provided key.
    *
-   * @param conf configuration to replace the key in
-   * @param configuration Tachyon configuration with the key
+   * @param hadoopConf configuration to replace the key in
+   * @param conf Tachyon configuration with the key
    * @param key the key to replace
    */
-  public static void addKey(org.apache.hadoop.conf.Configuration conf, Configuration configuration, String key) {
+  public static void addKey(org.apache.hadoop.conf.Configuration hadoopConf, Configuration conf,
+      String key) {
     if (System.getProperty(key) != null) {
-      conf.set(key, System.getProperty(key));
-    } else if (configuration.get(key) != null) {
-      conf.set(key, configuration.get(key));
+      hadoopConf.set(key, System.getProperty(key));
+    } else if (conf.get(key) != null) {
+      hadoopConf.set(key, conf.get(key));
     }
   }
 

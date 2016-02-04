@@ -141,8 +141,8 @@ public final class FileSystemPermissionTest {
   }
 
   /**
-   * Tests the {@link FileSystemPermission#getUMask(Configuration)} method to thrown an exception when
-   * it exceeds the length.
+   * Tests the {@link FileSystemPermission#getUMask(Configuration)} method to thrown an exception
+   * when it exceeds the length.
    */
   @Test
   public void umaskExceedLengthTest() {
@@ -155,8 +155,8 @@ public final class FileSystemPermissionTest {
   }
 
   /**
-   * Tests the {@link FileSystemPermission#getUMask(Configuration)} method to thrown an exception when
-   * it is not an integer.
+   * Tests the {@link FileSystemPermission#getUMask(Configuration)} method to thrown an exception
+   * when it is not an integer.
    */
   @Test
   public void umaskNotIntegerTest() {

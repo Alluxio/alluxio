@@ -104,9 +104,9 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Sets up a {@link Configuration} for a {@link TieredBlockStore} with only *one tier* configured by
-   * the parameters. For simplicity, you can use {@link #setupTachyonConfDefault(String)} which sets
-   * up the tierBlockStore with default values.
+   * Sets up a {@link Configuration} for a {@link TieredBlockStore} with only *one tier* configured
+   * by the parameters. For simplicity, you can use {@link #setupTachyonConfDefault(String)} which
+   * sets up the tierBlockStore with default values.
    *
    * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
    *
@@ -238,8 +238,9 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Sets up a {@link Configuration} with default values of {@link #TIER_ORDINAL}, {@link #TIER_ALIAS}
-   * , {@link #TIER_PATH} with the baseDir as path prefix, {@link #TIER_CAPACITY_BYTES}.
+   * Sets up a {@link Configuration} with default values of {@link #TIER_ORDINAL},
+   * {@link #TIER_ALIAS}, {@link #TIER_PATH} with the baseDir as path prefix,
+   * {@link #TIER_CAPACITY_BYTES}.
    *
    * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
    *

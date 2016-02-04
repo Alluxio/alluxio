@@ -44,8 +44,9 @@ public final class ConfUtils {
    * @param source the {@link Configuration} to be stored
    * @param target the {@link org.apache.hadoop.conf.Configuration} target
    */
-  public static void storeToHadoopConfiguration(Configuration source, org.apache.hadoop.conf.Configuration target) {
-    // Need to set io.serializations key to prevent NPE when trying to get SerializationFactory.
+  public static void storeToHadoopConfiguration(Configuration source,
+      org.apache.hadoop.conf.Configuration target) {
+  // Need to set io.serializations key to prevent NPE when trying to get SerializationFactory.
     target.set("io.serializations", "org.apache.hadoop.io.serializer.JavaSerialization,"
         + "org.apache.hadoop.io.serializer.WritableSerialization");
     Properties confProperties = source.getInternalProperties();
@@ -63,7 +64,8 @@ public final class ConfUtils {
    * @param source the {@link org.apache.hadoop.conf.Configuration} to load from
    * @return instance of {@link Configuration} to be loaded
    */
-  public static Configuration loadFromHadoopConfiguration(org.apache.hadoop.conf.Configuration source) {
+  public static Configuration loadFromHadoopConfiguration(
+      org.apache.hadoop.conf.Configuration source) {
     // Load TachyonConf if any and merge to the one in TachyonFS
     // Push TachyonConf to the Job conf
     Properties tachyonConfProperties = null;

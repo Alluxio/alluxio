@@ -31,8 +31,8 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 public class GetMasterWorkerAddressTest {
 
   /**
-   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, Configuration)} method for a
-   * master node.
+   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, Configuration)} method for
+   * a master node.
    */
   @Test
   public void getMasterAddressTest() {
@@ -66,8 +66,8 @@ public class GetMasterWorkerAddressTest {
   }
 
   /**
-   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, Configuration)} method for a
-   * worker node.
+   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, Configuration)} method for
+   * a worker node.
    */
   @Test
   public void getWorkerAddressTest() {

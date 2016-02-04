@@ -45,15 +45,15 @@ public final class LeaderInquireClient {
    *
    * @param zookeeperAddress the address for Zookeeper
    * @param leaderPath the path of the leader
-   * @param configuration the configuration for Tachyon
+   * @param conf the configuration for Tachyon
    *
    * @return the client
    */
   public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
-      String leaderPath, Configuration configuration) {
+      String leaderPath, Configuration conf) {
     String key = zookeeperAddress + leaderPath;
     if (!sCreatedClients.containsKey(key)) {
-      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath, configuration));
+      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath, conf));
     }
     return sCreatedClients.get(key);
   }
@@ -63,7 +63,7 @@ public final class LeaderInquireClient {
   private final CuratorFramework mClient;
   private final int mMaxTry;
 
-  private LeaderInquireClient(String zookeeperAddress, String leaderPath, Configuration configuration) {
+  private LeaderInquireClient(String zookeeperAddress, String leaderPath, Configuration conf) {
     mZookeeperAddress = zookeeperAddress;
     mLeaderPath = leaderPath;
 
@@ -73,7 +73,7 @@ public final class LeaderInquireClient {
             Constants.SECOND_MS, 3));
     mClient.start();
 
-    mMaxTry = configuration.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
+    mMaxTry = conf.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
   }
 
   /**

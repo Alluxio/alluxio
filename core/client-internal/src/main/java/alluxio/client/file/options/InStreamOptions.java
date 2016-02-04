@@ -83,7 +83,7 @@ public final class InStreamOptions {
    * Sets the {@link ReadType}.
    *
    * @param readType the {@link ReadType} for this operation. Setting this will override the
-   *                 {@link AlluxioStorageType}.
+   *        {@link AlluxioStorageType}.
    * @return the updated options object
    */
   public InStreamOptions setReadType(ReadType readType) {

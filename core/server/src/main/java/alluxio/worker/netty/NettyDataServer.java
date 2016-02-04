@@ -45,7 +45,7 @@ import alluxio.worker.block.BlockWorker;
 public final class NettyDataServer implements DataServer {
   private final ServerBootstrap mBootstrap;
   private final ChannelFuture mChannelFuture;
-  private final Configuration mConfiguration;
+  private final Configuration mConf;
   // Use a shared handler for all pipelines.
   private final DataServerHandler mDataServerHandler;
 
@@ -58,9 +58,9 @@ public final class NettyDataServer implements DataServer {
    */
   public NettyDataServer(final InetSocketAddress address, final BlockWorker blockWorker,
       final Configuration configuration) {
-    mConfiguration = Preconditions.checkNotNull(configuration);
+    mConf = Preconditions.checkNotNull(configuration);
     mDataServerHandler =
-        new DataServerHandler(Preconditions.checkNotNull(blockWorker), mConfiguration);
+        new DataServerHandler(Preconditions.checkNotNull(blockWorker), mConf);
     mBootstrap = createBootstrap().childHandler(new PipelineHandler(mDataServerHandler));
 
     try {
@@ -72,8 +72,8 @@ public final class NettyDataServer implements DataServer {
 
   @Override
   public void close() throws IOException {
-    int quietPeriodSecs = mConfiguration.getInt(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
-    int timeoutSecs = mConfiguration.getInt(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT);
+    int quietPeriodSecs = mConf.getInt(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
+    int timeoutSecs = mConf.getInt(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT);
     // TODO(binfan): investigate when timeoutSecs is zero (e.g., set in integration tests), does
     // this still complete successfully.
     mChannelFuture.channel().close().awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
@@ -83,7 +83,7 @@ public final class NettyDataServer implements DataServer {
 
   private ServerBootstrap createBootstrap() {
     final ServerBootstrap boot =
-        createBootstrapOfType(mConfiguration.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL,
+        createBootstrapOfType(mConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL,
             ChannelType.class));
 
     // use pooled buffers
@@ -93,26 +93,26 @@ public final class NettyDataServer implements DataServer {
     // set write buffer
     // this is the default, but its recommended to set it in case of change in future netty.
     boot.childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK,
-        (int) mConfiguration.getBytes(Constants.WORKER_NETWORK_NETTY_WATERMARK_HIGH));
+        (int) mConf.getBytes(Constants.WORKER_NETWORK_NETTY_WATERMARK_HIGH));
     boot.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK,
-        (int) mConfiguration.getBytes(Constants.WORKER_NETWORK_NETTY_WATERMARK_LOW));
+        (int) mConf.getBytes(Constants.WORKER_NETWORK_NETTY_WATERMARK_LOW));
 
     // more buffer settings on Netty socket option, one can tune them by specifying
     // properties, e.g.:
     // alluxio.worker.network.netty.backlog=50
     // alluxio.worker.network.netty.buffer.send=64KB
     // alluxio.worker.network.netty.buffer.receive=64KB
-    if (mConfiguration.containsKey(Constants.WORKER_NETWORK_NETTY_BACKLOG)) {
+    if (mConf.containsKey(Constants.WORKER_NETWORK_NETTY_BACKLOG)) {
       boot.option(ChannelOption.SO_BACKLOG,
-          mConfiguration.getInt(Constants.WORKER_NETWORK_NETTY_BACKLOG));
+          mConf.getInt(Constants.WORKER_NETWORK_NETTY_BACKLOG));
     }
-    if (mConfiguration.containsKey(Constants.WORKER_NETWORK_NETTY_BUFFER_SEND)) {
+    if (mConf.containsKey(Constants.WORKER_NETWORK_NETTY_BUFFER_SEND)) {
       boot.option(ChannelOption.SO_SNDBUF,
-          (int) mConfiguration.getBytes(Constants.WORKER_NETWORK_NETTY_BUFFER_SEND));
+          (int) mConf.getBytes(Constants.WORKER_NETWORK_NETTY_BUFFER_SEND));
     }
-    if (mConfiguration.containsKey(Constants.WORKER_NETWORK_NETTY_BUFFER_RECEIVE)) {
+    if (mConf.containsKey(Constants.WORKER_NETWORK_NETTY_BUFFER_RECEIVE)) {
       boot.option(ChannelOption.SO_RCVBUF,
-          (int) mConfiguration.getBytes(Constants.WORKER_NETWORK_NETTY_BUFFER_RECEIVE));
+          (int) mConf.getBytes(Constants.WORKER_NETWORK_NETTY_BUFFER_RECEIVE));
     }
     return boot;
   }
@@ -147,10 +147,10 @@ public final class NettyDataServer implements DataServer {
    */
   private ServerBootstrap createBootstrapOfType(final ChannelType type) {
     final ServerBootstrap boot = new ServerBootstrap();
-    final int bossThreadCount = mConfiguration.getInt(Constants.WORKER_NETWORK_NETTY_BOSS_THREADS);
+    final int bossThreadCount = mConf.getInt(Constants.WORKER_NETWORK_NETTY_BOSS_THREADS);
     // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
     final int workerThreadCount =
-        mConfiguration.getInt(Constants.WORKER_NETWORK_NETTY_WORKER_THREADS);
+        mConf.getInt(Constants.WORKER_NETWORK_NETTY_WORKER_THREADS);
     final EventLoopGroup bossGroup =
         NettyUtils.createEventLoop(type, bossThreadCount, "data-server-boss-%d", false);
     final EventLoopGroup workerGroup =

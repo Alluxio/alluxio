@@ -47,8 +47,7 @@ public final class HdfsUnderFileSystemTest {
   }
 
   /**
-   * Tests the
-   * {@link HdfsUnderFileSystem#prepareConfiguration(String, Configuration, org.apache.hadoop.conf.Configuration)} method.
+   * Tests the {@link HdfsUnderFileSystem#prepareConfiguration} method.
    *
    * Checks the hdfs implements class and alluxio underfs config setting
    *

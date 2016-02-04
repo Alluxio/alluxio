@@ -317,7 +317,7 @@ public final class KeyValueSystemIntegrationTest {
    * @return the URI to the created store
    */
   private AlluxioURI createStoreOfMultiplePartitions(int partitionNumber,
-                                                     List<KeyValuePair> keyValuePairs) throws Exception {
+      List<KeyValuePair> keyValuePairs) throws Exception {
     // These sizes are carefully selected, one partition holds only one key-value pair.
     final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
     ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
@@ -372,7 +372,7 @@ public final class KeyValueSystemIntegrationTest {
   }
 
   private void testMergeStore(AlluxioURI store1, List<KeyValuePair> keyValuePairs1,
-                              AlluxioURI store2, List<KeyValuePair> keyValuePairs2) throws Exception {
+      AlluxioURI store2, List<KeyValuePair> keyValuePairs2) throws Exception {
     sKeyValueSystem.mergeStore(store1, store2);
 
     // store2 contains all key-value pairs in both store1 and store2.

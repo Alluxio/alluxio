@@ -192,7 +192,7 @@ public final class LineageMaster extends MasterBase {
    * @throws AccessControlException if the permission check fails
    */
   public synchronized long createLineage(List<AlluxioURI> inputFiles, List<AlluxioURI> outputFiles,
-                                         Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
+      Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
       IOException, AccessControlException {
     List<Long> inputTachyonFiles = Lists.newArrayList();
     for (AlluxioURI inputFile : inputFiles) {

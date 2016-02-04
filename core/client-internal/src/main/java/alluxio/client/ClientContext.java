@@ -35,7 +35,7 @@ import alluxio.worker.ClientMetrics;
 @ThreadSafe
 public final class ClientContext {
   private static ExecutorService sExecutorService;
-  private static Configuration sConfiguration;
+  private static Configuration sConf;
   private static InetSocketAddress sMasterAddress;
   private static ClientMetrics sClientMetrics;
 
@@ -49,27 +49,27 @@ public final class ClientContext {
    * This method is useful for undoing changes to TachyonConf made by unit tests.
    */
   private static void reset() {
-    sConfiguration = new Configuration();
+    sConf = new Configuration();
     init();
   }
 
   /**
-   * Initializes the client context singleton, bringing all non-TachyonConf state into sync with
-   * the current TachyonConf.
+   * Initializes the client context singleton, bringing all non-TachyonConf state into sync with the
+   * current TachyonConf.
    *
    * This method is useful for updating parts of {@link ClientContext} which depend on
-   * {@link Configuration} when {@link Configuration} is changed, e.g. the master hostname or port. This
-   * method requires that {@link sConfiguration} has been initialized.
+   * {@link Configuration} when {@link Configuration} is changed, e.g. the master hostname or port.
+   * This method requires that configuration has been initialized.
    */
   private static void init() {
-    String masterHostname = Preconditions.checkNotNull(sConfiguration.get(Constants.MASTER_HOSTNAME));
-    int masterPort = sConfiguration.getInt(Constants.MASTER_RPC_PORT);
+    String masterHostname = Preconditions.checkNotNull(sConf.get(Constants.MASTER_HOSTNAME));
+    int masterPort = sConf.getInt(Constants.MASTER_RPC_PORT);
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
     sClientMetrics = new ClientMetrics();
 
     sExecutorService = Executors.newFixedThreadPool(
-        sConfiguration.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
+        sConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
   }
 
@@ -77,7 +77,7 @@ public final class ClientContext {
    * @return the {@link Configuration} for the client process
    */
   public static Configuration getConf() {
-    return sConfiguration;
+    return sConf;
   }
 
   /**

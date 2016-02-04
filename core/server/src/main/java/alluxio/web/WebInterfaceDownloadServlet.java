@@ -110,7 +110,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
    * @throws IOException if an I/O error occurs
    */
   private void downloadFile(AlluxioURI path, HttpServletRequest request,
-                            HttpServletResponse response) throws FileDoesNotExistException, IOException,
+      HttpServletResponse response) throws FileDoesNotExistException, IOException,
       InvalidPathException, AlluxioException {
     FileSystem tachyonClient = FileSystem.Factory.get();
     URIStatus status = tachyonClient.getStatus(path);

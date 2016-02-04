@@ -76,8 +76,8 @@ public final class FileSystemAclIntegrationTest {
   }
 
   /**
-   * Test for {@link FileSystem#setPermission(Path, org.apache.hadoop.fs.permission.FsPermission)}. It
-   * will test changing the permission of file using TFS.
+   * Test for {@link FileSystem#setPermission(Path, org.apache.hadoop.fs.permission.FsPermission)}.
+   * It will test changing the permission of file using TFS.
    */
   @Test
   public void chmodTest() throws Exception {
@@ -93,8 +93,8 @@ public final class FileSystemAclIntegrationTest {
   }
 
   /**
-   * Test for {@link FileSystem#setOwner(Path, String, String)}. It will test only changing the owner of
-   * file using TFS.
+   * Test for {@link FileSystem#setOwner(Path, String, String)}. It will test only changing the
+   * owner of file using TFS.
    */
   @Test
   public void changeOwnerTest() throws Exception {
@@ -119,8 +119,8 @@ public final class FileSystemAclIntegrationTest {
   }
 
   /**
-   * Test for {@link FileSystem#setOwner(Path, String, String)}. It will test only changing the group of
-   * file using TFS.
+   * Test for {@link FileSystem#setOwner(Path, String, String)}. It will test only changing the
+   * group of file using TFS.
    */
   @Test
   public void changeGroupTest() throws Exception {
@@ -145,8 +145,8 @@ public final class FileSystemAclIntegrationTest {
   }
 
   /**
-   * Test for {@link FileSystem#setOwner(Path, String, String)}. It will test changing both owner and group
-   * of file using TFS.
+   * Test for {@link FileSystem#setOwner(Path, String, String)}. It will test changing both owner
+   * and group of file using TFS.
    */
   @Test
   public void changeOwnerAndGroupTest() throws Exception {
@@ -171,8 +171,8 @@ public final class FileSystemAclIntegrationTest {
   }
 
   /**
-   * Test for {@link FileSystem#setOwner(Path, String, String)}. It will test both owner and group are
-   * null.
+   * Test for {@link FileSystem#setOwner(Path, String, String)}. It will test both owner and group
+   * are null.
    */
   @Test
   public void checkNullOwnerAndGroupTest() throws Exception {

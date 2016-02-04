@@ -82,29 +82,29 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * Constructs a new instance of {@link S3UnderFileSystem}.
    *
    * @param bucketName the name of the bucket
-   * @param configuration the configuration for Tachyon
+   * @param conf the configuration for Tachyon
    * @throws ServiceException when a connection to S3 could not be created
    */
-  public S3UnderFileSystem(String bucketName, Configuration configuration) throws ServiceException {
-    super(configuration);
-    Preconditions.checkArgument(configuration.containsKey(Constants.S3_ACCESS_KEY),
+  public S3UnderFileSystem(String bucketName, Configuration conf) throws ServiceException {
+    super(conf);
+    Preconditions.checkArgument(conf.containsKey(Constants.S3_ACCESS_KEY),
         "Property " + Constants.S3_ACCESS_KEY + " is required to connect to S3");
-    Preconditions.checkArgument(configuration.containsKey(Constants.S3_SECRET_KEY),
+    Preconditions.checkArgument(conf.containsKey(Constants.S3_SECRET_KEY),
         "Property " + Constants.S3_SECRET_KEY + " is required to connect to S3");
     AWSCredentials awsCredentials =
-        new AWSCredentials(configuration.get(Constants.S3_ACCESS_KEY), configuration.get(
+        new AWSCredentials(conf.get(Constants.S3_ACCESS_KEY), conf.get(
             Constants.S3_SECRET_KEY));
     mBucketName = bucketName;
 
     Jets3tProperties props = new Jets3tProperties();
-    if (configuration.containsKey(Constants.UNDERFS_S3_PROXY_HOST)) {
+    if (conf.containsKey(Constants.UNDERFS_S3_PROXY_HOST)) {
       props.setProperty("httpclient.proxy-autodetect", "false");
-      props.setProperty("httpclient.proxy-host", configuration.get(Constants.UNDERFS_S3_PROXY_HOST));
-      props.setProperty("httpclient.proxy-port", configuration.get(Constants.UNDERFS_S3_PROXY_PORT));
+      props.setProperty("httpclient.proxy-host", conf.get(Constants.UNDERFS_S3_PROXY_HOST));
+      props.setProperty("httpclient.proxy-port", conf.get(Constants.UNDERFS_S3_PROXY_PORT));
     }
-    if (configuration.containsKey(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
+    if (conf.containsKey(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
       props.setProperty("s3service.https-only",
-          Boolean.toString(configuration.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)));
+          Boolean.toString(conf.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)));
     }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
