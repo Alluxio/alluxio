@@ -62,7 +62,7 @@ public class TailCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void tailWildcardTest() throws IOException, AlluxioException {
-    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     // the expect contents (remember that the order is based on the path)
     byte[] exp1 = BufferUtils.getIncreasingByteArray(30); // testWildCards/bar/foobar3

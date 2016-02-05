@@ -21,7 +21,7 @@ import java.util.Map;
 import org.apache.thrift.TProcessor;
 
 /**
- * Interface of a Tachyon worker.
+ * Interface of a Alluxio worker.
  */
 public interface Worker {
   /**

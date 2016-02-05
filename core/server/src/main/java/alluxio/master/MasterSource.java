@@ -97,7 +97,7 @@ public class MasterSource implements Source {
   /**
    * Registers metric gauges.
    *
-   * @param alluxioMaster a Tachyon master handle
+   * @param alluxioMaster a Alluxio master handle
    */
   public void registerGauges(final AlluxioMaster alluxioMaster) {
     if (mGaugesRegistered) {

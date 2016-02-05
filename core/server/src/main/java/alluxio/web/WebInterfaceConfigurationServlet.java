@@ -42,8 +42,8 @@ import alluxio.master.file.FileSystemMaster;
 @ThreadSafe
 public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
-  private static final String TACHYON_CONF_PREFIX = "alluxio";
-  private static final Set<String> TACHYON_CONF_EXCLUDES = new HashSet<String>(
+  private static final String ALLUXIO_CONF_PREFIX = "alluxio";
+  private static final Set<String> ALLUXIO_CONF_EXCLUDES = new HashSet<String>(
       Arrays.asList(Constants.MASTER_WHITELIST));
 
   private final transient FileSystemMaster mFsMaster;
@@ -80,7 +80,7 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
     TreeSet<Pair<String, String>> rtn = new TreeSet<Pair<String, String>>();
     for (Map.Entry<Object, Object> entry : mConfiguration.getInternalProperties().entrySet()) {
       String key = entry.getKey().toString();
-      if (key.startsWith(TACHYON_CONF_PREFIX) && !TACHYON_CONF_EXCLUDES.contains(key)) {
+      if (key.startsWith(ALLUXIO_CONF_PREFIX) && !ALLUXIO_CONF_EXCLUDES.contains(key)) {
         rtn.add(new ImmutablePair<String, String>(key, mConfiguration.get(key)));
       }
     }

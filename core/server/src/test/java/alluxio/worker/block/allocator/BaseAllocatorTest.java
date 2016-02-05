@@ -91,8 +91,8 @@ public class BaseAllocatorTest {
   }
 
   protected void resetManagerView() throws Exception {
-    String tachyonHome = mTestFolder.newFolder().getAbsolutePath();
-    TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(tachyonHome, TIER_LEVEL, TIER_ALIAS,
+    String alluxioHome = mTestFolder.newFolder().getAbsolutePath();
+    TieredBlockStoreTestUtils.setupConfWithMultiTier(alluxioHome, TIER_LEVEL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);
     mManager = BlockMetadataManager.createBlockMetadataManager();
   }

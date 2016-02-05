@@ -40,7 +40,7 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 /**
- * Integration tests on TachyonClient (Reuse the LocalTachyonCluster).
+ * Integration tests on Alluxio Client (reuse the {@link LocalAlluxioCluster}).
  */
 public class FileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 2 * Constants.MB;
@@ -58,7 +58,7 @@ public class FileSystemIntegrationTest {
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    Configuration conf = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    Configuration conf = mLocalAlluxioClusterResource.get().getMasterConf();
     mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(conf);
   }
 

@@ -42,7 +42,7 @@ public interface DataServer extends Closeable {
      *
      * @param dataAddress the address of the data server
      * @param blockWorker block worker handle
-     * @param conf Tachyon configuration
+     * @param conf Alluxio configuration
      * @return the generated {@link DataServer}
      */
     public static DataServer create(final InetSocketAddress dataAddress,

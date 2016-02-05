@@ -27,7 +27,7 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
 
 /**
- * Interface for the allocation policy of Tachyon managed data.
+ * Interface for the allocation policy of Alluxio managed data.
  */
 @PublicApi
 public interface Allocator {
@@ -39,7 +39,7 @@ public interface Allocator {
     /**
      * Factory for {@link Allocator}.
      *
-     * @param conf Tachyon configuration used to define the {@link Allocator} type
+     * @param conf Alluxio configuration used to define the {@link Allocator} type
      * @param view {@link BlockMetadataManagerView} to pass to {@link Allocator}
      * @return the generated {@link Allocator}, it will be a {@link MaxFreeAllocator} by default
      */

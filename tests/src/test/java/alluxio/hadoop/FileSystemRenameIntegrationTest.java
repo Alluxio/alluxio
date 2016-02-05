@@ -67,8 +67,8 @@ public final class FileSystemRenameIntegrationTest {
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
     sUfsRoot = PathUtils.concatPath(
-        sLocalAlluxioClusterResource.get().getMasterTachyonConf().get(Constants.UNDERFS_ADDRESS));
-    sUfs = UnderFileSystem.get(sUfsRoot, sLocalAlluxioClusterResource.get().getMasterTachyonConf());
+        sLocalAlluxioClusterResource.get().getMasterConf().get(Constants.UNDERFS_ADDRESS));
+    sUfs = UnderFileSystem.get(sUfsRoot, sLocalAlluxioClusterResource.get().getMasterConf());
   }
 
   @Test
@@ -213,7 +213,7 @@ public final class FileSystemRenameIntegrationTest {
   @Ignore
   // TODO(jiri): The test logic below does not work in the presence of transparent naming.
   // The current implementation renames files on UFS if they are marked as persisted. They are
-  // marked as persisted when they are closed. Thus, if the Tachyon path of the file being
+  // marked as persisted when they are closed. Thus, if the Alluxio path of the file being
   // written to changes before it is closed, renaming the temporary underlying file to its final
   // destination fails.
   public void basicRenameTest7() throws Exception {

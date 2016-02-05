@@ -109,7 +109,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * Creates a new instance of {@link WebInterfaceGeneralServlet}.
    *
-   * @param master Tachyon master
+   * @param master Alluxio master
    */
   public WebInterfaceGeneralServlet(AlluxioMaster master) {
     mMaster = master;

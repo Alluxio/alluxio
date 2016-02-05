@@ -49,13 +49,13 @@ public final class FileInStreamConcurrencyIntegrationTest {
       new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE);
   private static FileSystem sFileSystem = null;
   private static Configuration sConfiguration;
-  private static CreateFileOptions sWriteTachyon;
+  private static CreateFileOptions sWriteAlluxio;
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sConfiguration = sLocalAlluxioClusterResource.get().getMasterTachyonConf();
-    sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sConfiguration);
+    sConfiguration = sLocalAlluxioClusterResource.get().getMasterConf();
+    sWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache(sConfiguration);
   }
 
   /**
@@ -64,7 +64,7 @@ public final class FileInStreamConcurrencyIntegrationTest {
   @Test
   public void FileInStreamConcurrencyTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
-    FileSystemTestUtils.createByteFile(sFileSystem, uniqPath, BLOCK_SIZE * 2, sWriteTachyon);
+    FileSystemTestUtils.createByteFile(sFileSystem, uniqPath, BLOCK_SIZE * 2, sWriteAlluxio);
 
     List<Thread> threads = Lists.newArrayList();
     for (int i = 0; i < READ_THREADS_NUM; i ++) {

@@ -78,7 +78,7 @@ public class JournalShutdownIntegrationTest {
             }
           } else if (mOpType == 1) {
             // TODO(gene): Add this back when there is new RawTable client API.
-            // if (mFileSystem.createRawTable(new TachyonURI(TEST_TABLE_DIR + mSuccessNum), 1) ==
+            // if (mFileSystem.createRawTable(new AlluxioURI(TEST_TABLE_DIR + mSuccessNum), 1) ==
             // -1) {
             // break;
             // }
@@ -140,7 +140,7 @@ public class JournalShutdownIntegrationTest {
     LocalAlluxioClusterMultiMaster cluster =
         new LocalAlluxioClusterMultiMaster(100, TEST_NUM_MASTERS, TEST_BLOCK_SIZE);
     cluster.start();
-    mMasterConfiguration = cluster.getMasterTachyonConf();
+    mMasterConfiguration = cluster.getMasterConf();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
@@ -151,7 +151,7 @@ public class JournalShutdownIntegrationTest {
     // Setup and start the local alluxio cluster.
     LocalAlluxioCluster cluster = new LocalAlluxioCluster(100, TEST_BLOCK_SIZE);
     cluster.start();
-    mMasterConfiguration = cluster.getMasterTachyonConf();
+    mMasterConfiguration = cluster.getMasterConf();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
     return cluster;

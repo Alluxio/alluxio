@@ -84,16 +84,16 @@ public final class LocalAlluxioMaster {
    * Creates a new local alluxio master with a isolated home and port.
    *
    * @throws IOException when unable to do file operation or listen on port
-   * @return an instance of Tachyon master
+   * @return an instance of Alluxio master
    */
   public static LocalAlluxioMaster create() throws IOException {
-    final String tachyonHome = uniquePath();
+    final String alluxioHome = uniquePath();
     Configuration configuration = MasterContext.getConf();
-    UnderFileSystemUtils.deleteDir(tachyonHome, configuration);
-    UnderFileSystemUtils.mkdirIfNotExists(tachyonHome, configuration);
+    UnderFileSystemUtils.deleteDir(alluxioHome, configuration);
+    UnderFileSystemUtils.mkdirIfNotExists(alluxioHome, configuration);
 
-    // Update Tachyon home in the passed TachyonConf instance.
-    configuration.set(Constants.HOME, tachyonHome);
+    // Update Alluxio home in the passed Alluxio configuration instance.
+    configuration.set(Constants.HOME, alluxioHome);
 
     return new LocalAlluxioMaster();
   }
@@ -101,14 +101,14 @@ public final class LocalAlluxioMaster {
   /**
    * Creates a new local alluxio master with a isolated port.
    *
-   * @param tachyonHome Tachyon home directory, if the directory already exists, this method will
-   *                    reuse any directory/file if possible, no deletion will be made
-   * @return an instance of Tachyon master
+   * @param alluxioHome Alluxio home directory, if the directory already exists, this method will
+   *        reuse any directory/file if possible, no deletion will be made
+   * @return an instance of Alluxio master
    * @throws IOException when unable to do file operation or listen on port
    */
-  public static LocalAlluxioMaster create(final String tachyonHome) throws IOException {
+  public static LocalAlluxioMaster create(final String alluxioHome) throws IOException {
     Configuration configuration = MasterContext.getConf();
-    UnderFileSystemUtils.mkdirIfNotExists(tachyonHome, configuration);
+    UnderFileSystemUtils.mkdirIfNotExists(alluxioHome, configuration);
 
     return new LocalAlluxioMaster();
   }
@@ -226,7 +226,7 @@ public final class LocalAlluxioMaster {
   }
 
   private static String uniquePath() throws IOException {
-    return File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.nanoTime();
+    return File.createTempFile("Alluxio", "").getAbsoluteFile() + "U" + System.nanoTime();
   }
 
   /**

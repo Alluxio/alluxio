@@ -51,7 +51,7 @@ import alluxio.worker.block.BlockWorkerClientServiceHandler;
 import alluxio.worker.file.FileSystemWorker;
 
 /**
- * Entry point for the Tachyon worker program. This class is responsible for initializing the
+ * Entry point for the Alluxio worker program. This class is responsible for initializing the
  * different workers that are configured to run.
  */
 @NotThreadSafe
@@ -151,7 +151,7 @@ public final class AlluxioWorker {
   }
 
   /**
-   * Main method for Tachyon Worker. A Block Worker will be started and the Tachyon Worker will
+   * Main method for Alluxio Worker. A Block Worker will be started and the Alluxio Worker will
    * continue to run until the Block Worker thread exits.
    *
    * @param args command line arguments, should be empty
@@ -234,7 +234,7 @@ public final class AlluxioWorker {
   }
 
   /**
-   * Starts the Tachyon worker server.
+   * Starts the Alluxio worker server.
    *
    * @throws Exception if the workers fail to start
    */
@@ -270,24 +270,24 @@ public final class AlluxioWorker {
     mIsServingRPC = true;
 
     // Start serving RPC, this will block
-    LOG.info("Tachyon Worker version {} started @ {}", Version.VERSION, mWorkerAddress);
+    LOG.info("Alluxio Worker version {} started @ {}", Version.VERSION, mWorkerAddress);
     mThriftServer.serve();
-    LOG.info("Tachyon Worker version {} ended @ {}", Version.VERSION, mWorkerAddress);
+    LOG.info("Alluxio Worker version {} ended @ {}", Version.VERSION, mWorkerAddress);
   }
 
   /**
-   * Stops the Tachyon worker server.
+   * Stops the Alluxio worker server.
    *
    * @throws Exception if the workers fail to stop
    */
   public void stop() throws Exception {
     if (mIsServingRPC) {
-      LOG.info("Stopping RPC server on Tachyon Worker @ {}", mWorkerAddress);
+      LOG.info("Stopping RPC server on Alluxio Worker @ {}", mWorkerAddress);
       stopServing();
       stopWorkers();
       mIsServingRPC = false;
     } else {
-      LOG.info("Stopping Tachyon Worker @ {}", mWorkerAddress);
+      LOG.info("Stopping Alluxio Worker @ {}", mWorkerAddress);
     }
   }
 
@@ -386,7 +386,7 @@ public final class AlluxioWorker {
    */
   private static void checkArgs(String[] args) {
     if (args.length != 0) {
-      LOG.info("Usage: java TachyonWorker");
+      LOG.info("Usage: java AlluxioWorker");
       System.exit(-1);
     }
   }

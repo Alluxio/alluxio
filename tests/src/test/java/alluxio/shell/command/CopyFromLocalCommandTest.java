@@ -38,25 +38,25 @@ import alluxio.util.io.BufferUtils;
 public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void copyDirectoryFromLocalAtomicTest() throws Exception {
-    File localDir = new File(mLocalTachyonCluster.getTachyonHome() + "/localDir");
+    File localDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir");
     localDir.mkdir();
     File testFile =
         generateFileContent("/localDir/testFile", BufferUtils.getIncreasingByteArray(10));
     File testDir = testFile.getParentFile();
-    AlluxioURI tachyonDirPath = new AlluxioURI("/testDir");
+    AlluxioURI alluxioDirPath = new AlluxioURI("/testDir");
     testFile.setReadable(false);
 
-    String[] cmd = {"copyFromLocal", testDir.getPath(), tachyonDirPath.getPath()};
+    String[] cmd = {"copyFromLocal", testDir.getPath(), alluxioDirPath.getPath()};
     Assert.assertEquals(-1, mFsShell.run(cmd));
     Assert.assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
-    Assert.assertFalse(mFileSystem.exists(tachyonDirPath));
+    Assert.assertFalse(mFileSystem.exists(alluxioDirPath));
     mOutput.reset();
 
     // If we put a copyable file in the directory, we should be able to copy just that file
     generateFileContent("/localDir/testFile2", BufferUtils.getIncreasingByteArray(20));
     Assert.assertEquals(-1, mFsShell.run(cmd));
     Assert.assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
-    Assert.assertTrue(mFileSystem.exists(tachyonDirPath));
+    Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
     Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
   }
@@ -66,24 +66,24 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     // copyFromLocal should not leave around any empty file metadata if it fails in the middle of
     // copying a file
     File testFile1 = generateFileContent("/testFile1", BufferUtils.getIncreasingByteArray(10));
-    AlluxioURI tachyonFilePath = new AlluxioURI("/testFile");
+    AlluxioURI alluxioFilePath = new AlluxioURI("/testFile");
     // Set testFile1 to be not readable, so that when we try to open it, we fail. NOTE: for this to
     // test anything, we depend on the implementation of copyFromLocal creating the destination file
-    // in Tachyon before it tries to open the source file
+    // in Alluxio before it tries to open the source file
     testFile1.setReadable(false);
-    String[] cmd = {"copyFromLocal", testFile1.getPath(), tachyonFilePath.getPath()};
+    String[] cmd = {"copyFromLocal", testFile1.getPath(), alluxioFilePath.getPath()};
     Assert.assertEquals(-1, mFsShell.run(cmd));
     Assert.assertEquals(testFile1.getPath() + " (Permission denied)\n", mOutput.toString());
 
     // Make sure the alluxio file wasn't created anyways
-    Assert.assertFalse(mFileSystem.exists(tachyonFilePath));
+    Assert.assertFalse(mFileSystem.exists(alluxioFilePath));
   }
 
   @Test
   public void copyFromLocalFileToDstPathTest() throws IOException, AlluxioException {
     String dataString = "copyFromLocalFileToDstPathTest";
     byte[] data = dataString.getBytes();
-    File localDir = new File(mLocalTachyonCluster.getTachyonHome() + "/localDir");
+    File localDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir");
     localDir.mkdir();
     File localFile = generateFileContent("/localDir/testFile", data);
     mFsShell.run("mkdir", "/dstDir");
@@ -98,7 +98,7 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void copyFromLocalLargeTest() throws IOException, AlluxioException {
-    File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
+    File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
     byte[] toWrite = BufferUtils.getIncreasingByteArray(SIZE_BYTES);
@@ -122,35 +122,35 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void copyFromLocalOverwriteTest() throws Exception {
-    // This tests makes sure copyFromLocal will not overwrite an existing Tachyon file
+    // This tests makes sure copyFromLocal will not overwrite an existing Alluxio file
     final int LEN1 = 10;
     final int LEN2 = 20;
     File testFile1 = generateFileContent("/testFile1", BufferUtils.getIncreasingByteArray(LEN1));
     File testFile2 = generateFileContent("/testFile2", BufferUtils.getIncreasingByteArray(LEN2));
-    AlluxioURI tachyonFilePath = new AlluxioURI("/testFile");
+    AlluxioURI alluxioFilePath = new AlluxioURI("/testFile");
 
     // Write the first file
-    String[] cmd1 = {"copyFromLocal", testFile1.getPath(), tachyonFilePath.getPath()};
+    String[] cmd1 = {"copyFromLocal", testFile1.getPath(), alluxioFilePath.getPath()};
     mFsShell.run(cmd1);
     Assert.assertEquals(getCommandOutput(cmd1), mOutput.toString());
     mOutput.reset();
     Assert.assertTrue(BufferUtils
-        .equalIncreasingByteArray(LEN1, readContent(tachyonFilePath, LEN1)));
+        .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
 
     // Write the second file to the same location, which should cause an exception
-    String[] cmd2 = {"copyFromLocal", testFile2.getPath(), tachyonFilePath.getPath()};
+    String[] cmd2 = {"copyFromLocal", testFile2.getPath(), alluxioFilePath.getPath()};
     Assert.assertEquals(-1, mFsShell.run(cmd2));
-    Assert.assertEquals(tachyonFilePath.getPath() + " already exists\n", mOutput.toString());
+    Assert.assertEquals(alluxioFilePath.getPath() + " already exists\n", mOutput.toString());
     // Make sure the original file is intact
     Assert.assertTrue(BufferUtils
-        .equalIncreasingByteArray(LEN1, readContent(tachyonFilePath, LEN1)));
+        .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
   }
 
   @Test
   public void copyFromLocalTest() throws IOException, AlluxioException {
-    File testDir = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir");
+    File testDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
     testDir.mkdir();
-    File testDirInner = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testDirInner");
+    File testDirInner = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir/testDirInner");
     testDirInner.mkdir();
     File testFile =
         generateFileContent("/testDir/testFile", BufferUtils.getIncreasingByteArray(10));
@@ -178,12 +178,12 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void copyFromLocalTestWithFullURI() throws IOException, AlluxioException {
     File testFile = generateFileContent("/srcFileURI", BufferUtils.getIncreasingByteArray(10));
-    String tachyonURI = "alluxio://" + mLocalTachyonCluster.getMasterHostname() + ":"
-        + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
+    String alluxioURI = "alluxio://" + mLocalAlluxioCluster.getMasterHostname() + ":"
+        + mLocalAlluxioCluster.getMasterPort() + "/destFileURI";
     // when
-    mFsShell.run("copyFromLocal", testFile.getPath(), tachyonURI);
+    mFsShell.run("copyFromLocal", testFile.getPath(), alluxioURI);
     String cmdOut =
-        getCommandOutput(new String[]{"copyFromLocal", testFile.getPath(), tachyonURI});
+        getCommandOutput(new String[]{"copyFromLocal", testFile.getPath(), alluxioURI});
     // then
     Assert.assertEquals(cmdOut, mOutput.toString());
     AlluxioURI uri = new AlluxioURI("/destFileURI");
@@ -195,10 +195,10 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void copyFromLocalWildcardExistingDirTest() throws IOException, AlluxioException {
-    AlluxioShellUtilsTest.resetLocalFileHierarchy(mLocalTachyonCluster);
+    AlluxioShellUtilsTest.resetLocalFileHierarchy(mLocalAlluxioCluster);
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     int ret = mFsShell.run("copyFromLocal",
-        mLocalTachyonCluster.getTachyonHome() + "/testWildCards/*/foo*", "/testDir");
+        mLocalAlluxioCluster.getAlluxioHome() + "/testWildCards/*/foo*", "/testDir");
     Assert.assertEquals(0, ret);
     Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar1")));
     Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar2")));
@@ -207,9 +207,9 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void copyFromLocalWildcardHierTest() throws IOException {
-    AlluxioShellUtilsTest.resetLocalFileHierarchy(mLocalTachyonCluster);
+    AlluxioShellUtilsTest.resetLocalFileHierarchy(mLocalAlluxioCluster);
     int ret =
-        mFsShell.run("copyFromLocal", mLocalTachyonCluster.getTachyonHome() + "/testWildCards/*",
+        mFsShell.run("copyFromLocal", mLocalAlluxioCluster.getAlluxioHome() + "/testWildCards/*",
             "/testDir");
 
     mFsShell.run("ls", "/testDir");
@@ -222,18 +222,18 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void copyFromLocalWildcardNotDirTest() throws IOException, AlluxioException {
-    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret =
-        mFsShell.run("copyFromLocal", mLocalTachyonCluster.getTachyonHome()
+        mFsShell.run("copyFromLocal", mLocalAlluxioCluster.getAlluxioHome()
             + "/testWildCards/*/foo*", "/testWildCards/foobar4");
     Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void copyFromLocalWildcardTest() throws IOException {
-    AlluxioShellUtilsTest.resetLocalFileHierarchy(mLocalTachyonCluster);
+    AlluxioShellUtilsTest.resetLocalFileHierarchy(mLocalAlluxioCluster);
     int ret =
-        mFsShell.run("copyFromLocal", mLocalTachyonCluster.getTachyonHome()
+        mFsShell.run("copyFromLocal", mLocalAlluxioCluster.getAlluxioHome()
             + "/testWildCards/*/foo*", "/testDir");
     Assert.assertEquals(0, ret);
     Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar1")));

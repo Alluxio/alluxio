@@ -43,7 +43,7 @@ public class ServiceSocketBindIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(100, Constants.GB, false);
-  private LocalAlluxioCluster mLocalTachyonCluster = null;
+  private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private Configuration mWorkerConfiguration = null;
   private Configuration mMasterConfiguration = null;
 
@@ -58,16 +58,16 @@ public class ServiceSocketBindIntegrationTest {
       mLocalAlluxioClusterResource.getTestConf().set(service.getBindHostKey(), bindHost);
     }
     mLocalAlluxioClusterResource.start();
-    mLocalTachyonCluster = mLocalAlluxioClusterResource.get();
-    mMasterConfiguration = mLocalTachyonCluster.getMasterTachyonConf();
-    mWorkerConfiguration = mLocalTachyonCluster.getWorkerTachyonConf();
+    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
+    mMasterConfiguration = mLocalAlluxioCluster.getMasterConf();
+    mWorkerConfiguration = mLocalAlluxioCluster.getWorkerConf();
   }
 
   private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
     mBlockMasterClient =
-        new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
-            mLocalTachyonCluster.getMasterPort()), mMasterConfiguration);
+        new BlockMasterClient(new InetSocketAddress(mLocalAlluxioCluster.getMasterHostname(),
+            mLocalAlluxioCluster.getMasterPort()), mMasterConfiguration);
     mBlockMasterClient.connect();
 
     // connect Worker RPC service
@@ -83,7 +83,7 @@ public class ServiceSocketBindIntegrationTest {
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, mMasterConfiguration);
     mMasterWebService =
         (HttpURLConnection) new URL("http://" + masterWebAddr.getAddress().getHostAddress() + ":"
-            + masterWebAddr.getPort() + "/css/tachyoncustom.min.css").openConnection();
+            + masterWebAddr.getPort() + "/css/custom.min.css").openConnection();
     mMasterWebService.connect();
 
     // connect Worker Web service
@@ -91,7 +91,7 @@ public class ServiceSocketBindIntegrationTest {
         NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_WEB, mWorkerConfiguration);
     mWorkerWebService =
         (HttpURLConnection) new URL("http://" + workerWebAddr.getAddress().getHostAddress() + ":"
-            + workerWebAddr.getPort() + "/css/tachyoncustom.min.css").openConnection();
+            + workerWebAddr.getPort() + "/css/custom.min.css").openConnection();
     mWorkerWebService.connect();
   }
 
@@ -132,14 +132,14 @@ public class ServiceSocketBindIntegrationTest {
     connectServices();
 
     // test Master RPC socket bind (session layer)
-    String bindHost = mLocalTachyonCluster.getMaster().getRPCBindHost();
+    String bindHost = mLocalAlluxioCluster.getMaster().getRPCBindHost();
     Assert.assertThat("Master RPC bind address " + bindHost + "is not wildcard address", bindHost,
         CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Master RPC service connectivity (application layer)
     Assert.assertTrue(mBlockMasterClient.isConnected());
 
     // test Worker RPC socket bind (session layer)
-    bindHost = mLocalTachyonCluster.getWorker().getRPCBindHost();
+    bindHost = mLocalAlluxioCluster.getWorker().getRPCBindHost();
     Assert.assertThat("Worker RPC address " + bindHost + "is not wildcard address", bindHost,
         CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Worker RPC service connectivity (application layer)
@@ -148,7 +148,7 @@ public class ServiceSocketBindIntegrationTest {
     // TODO(andrew) Add this test back when we drop support for Java 6 and can use
     // InetSocketAddress.getHostString()
     // test Worker data socket bind (session layer)
-    // bindHost = mLocalTachyonCluster.getWorker().getDataBindHost();
+    // bindHost = mLocalAlluxioCluster.getWorker().getDataBindHost();
     // Assert.assertThat("Worker Data bind address " + bindHost + "is not wildcard address",
     // bindHost,
     // CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
@@ -157,14 +157,14 @@ public class ServiceSocketBindIntegrationTest {
     Assert.assertTrue(mWorkerDataService.isConnected());
 
     // test Master Web socket bind (session layer)
-    bindHost = mLocalTachyonCluster.getMaster().getWebBindHost();
+    bindHost = mLocalAlluxioCluster.getMaster().getWebBindHost();
     Assert.assertThat("Master Web bind address " + bindHost + "is not wildcard address", bindHost,
         CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Master Web service connectivity (application layer)
     Assert.assertEquals(200, mMasterWebService.getResponseCode());
 
     // test Worker Web socket bind (session layer)
-    bindHost = mLocalTachyonCluster.getWorker().getWebBindHost();
+    bindHost = mLocalAlluxioCluster.getWorker().getWebBindHost();
     Assert.assertThat("Worker Web bind address " + bindHost + "is not wildcard address", bindHost,
         CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Worker Web service connectivity (application layer)
@@ -202,7 +202,7 @@ public class ServiceSocketBindIntegrationTest {
 
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
     InetSocketAddress masterRPCAddr =
-        new InetSocketAddress("127.0.0.1", mLocalTachyonCluster.getMaster().getRPCLocalPort());
+        new InetSocketAddress("127.0.0.1", mLocalAlluxioCluster.getMaster().getRPCLocalPort());
     mBlockMasterClient = new BlockMasterClient(masterRPCAddr, mMasterConfiguration);
     try {
       mBlockMasterClient.connect();
@@ -221,7 +221,7 @@ public class ServiceSocketBindIntegrationTest {
 
     // connect Worker data service on loopback, while Worker is listening on local hostname.
     InetSocketAddress workerDataAddr =
-        new InetSocketAddress("127.0.0.1", mLocalTachyonCluster.getWorker().getDataLocalPort());
+        new InetSocketAddress("127.0.0.1", mLocalAlluxioCluster.getWorker().getDataLocalPort());
     try {
       mWorkerDataService = SocketChannel.open(workerDataAddr);
       Assert.assertTrue(mWorkerDataService.isConnected());
@@ -233,7 +233,7 @@ public class ServiceSocketBindIntegrationTest {
     // connect Master Web service on loopback, while Master is listening on local hostname.
     try {
       mMasterWebService = (HttpURLConnection) new URL(
-          "http://127.0.0.1:" + mLocalTachyonCluster.getMaster().getWebLocalPort() + "/home")
+          "http://127.0.0.1:" + mLocalAlluxioCluster.getMaster().getWebLocalPort() + "/home")
           .openConnection();
       Assert.assertEquals(200, mMasterWebService.getResponseCode());
       Assert.fail("Client should not have successfully connected to Master Web service.");
@@ -247,7 +247,7 @@ public class ServiceSocketBindIntegrationTest {
     // connect Worker Web service on loopback, while Worker is listening on local hostname.
     try {
       mWorkerWebService = (HttpURLConnection) new URL(
-          "http://127.0.0.1:" + mLocalTachyonCluster.getWorker().getWebLocalPort() + "/home")
+          "http://127.0.0.1:" + mLocalAlluxioCluster.getWorker().getWebLocalPort() + "/home")
               .openConnection();
       Assert.assertEquals(200, mWorkerWebService.getResponseCode());
       Assert.fail("Client should not have successfully connected to Worker Web service.");

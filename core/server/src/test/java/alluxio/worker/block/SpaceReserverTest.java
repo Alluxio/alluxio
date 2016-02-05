@@ -74,7 +74,7 @@ public class SpaceReserverTest {
   @Before
   public void before() throws Exception {
     String baseDir = mTempFolder.newFolder().getAbsolutePath();
-    TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS,
+    TieredBlockStoreTestUtils.setupConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);
 
     // Mock away data server creation which would otherwise happen in BlockWorker construction.

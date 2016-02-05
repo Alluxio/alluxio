@@ -18,7 +18,7 @@ package alluxio.worker.block.meta;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Represents the metadata of an uncommitted block in Tachyon managed storage.
+ * Represents the metadata of an uncommitted block in Alluxio managed storage.
  */
 @NotThreadSafe
 public class TempBlockMeta extends BlockMetaBase {
