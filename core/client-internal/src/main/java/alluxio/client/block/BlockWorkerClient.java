@@ -125,7 +125,7 @@ public final class BlockWorkerClient extends ClientBase {
    */
   public synchronized boolean asyncCheckpoint(final long fileId) throws IOException,
       AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
       @Override
       public Boolean call() throws AlluxioTException, TException {
         return mClient.asyncCheckpoint(fileId);
@@ -141,7 +141,7 @@ public final class BlockWorkerClient extends ClientBase {
    * @throws AlluxioException if a Tachyon error occurs
    */
   public synchronized void cacheBlock(final long blockId) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.cacheBlock(mSessionId, blockId);
@@ -158,7 +158,7 @@ public final class BlockWorkerClient extends ClientBase {
    * @throws AlluxioException if a Tachyon error occurs
    */
   public synchronized void cancelBlock(final long blockId) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.cancelBlock(mSessionId, blockId);
@@ -281,7 +281,7 @@ public final class BlockWorkerClient extends ClientBase {
   public synchronized LockBlockResult lockBlock(final long blockId) throws IOException {
     // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
     try {
-      return retryRPC(new RpcCallableThrowsTachyonTException<LockBlockResult>() {
+      return retryRPC(new RpcCallableThrowsAlluxioTException<LockBlockResult>() {
         @Override
         public LockBlockResult call() throws AlluxioTException, TException {
           return ThriftUtils.fromThrift(mClient.lockBlock(blockId, mSessionId));
@@ -324,7 +324,7 @@ public final class BlockWorkerClient extends ClientBase {
    */
   public synchronized boolean promoteBlock(final long blockId) throws IOException,
       AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
       @Override
       public Boolean call() throws AlluxioTException, TException {
         return mClient.promoteBlock(blockId);
@@ -343,7 +343,7 @@ public final class BlockWorkerClient extends ClientBase {
   public synchronized String requestBlockLocation(final long blockId, final long initialBytes)
       throws IOException {
     try {
-      return retryRPC(new RpcCallableThrowsTachyonTException<String>() {
+      return retryRPC(new RpcCallableThrowsAlluxioTException<String>() {
         @Override
         public String call() throws AlluxioTException, TException {
           return mClient.requestBlockLocation(mSessionId, blockId, initialBytes);
@@ -369,7 +369,7 @@ public final class BlockWorkerClient extends ClientBase {
   public synchronized boolean requestSpace(final long blockId, final long requestBytes)
       throws IOException {
     try {
-      return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      return retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
         @Override
         public Boolean call() throws AlluxioTException, TException {
           return mClient.requestSpace(mSessionId, blockId, requestBytes);

@@ -16,7 +16,7 @@
 package alluxio.exception;
 
 /**
- * The exception thrown when a block does not exist in Tachyon.
+ * The exception thrown when a block does not exist in Alluxio.
  */
 public class BlockDoesNotExistException extends AlluxioException {
   private static final long serialVersionUID = -1313208091357063634L;

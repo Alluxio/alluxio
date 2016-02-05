@@ -111,7 +111,7 @@ public final class PermissionStatus {
   /**
    * Creates the {@link PermissionStatus} for a file or a directory.
    *
-   * @param conf the runtime configuration of Tachyon
+   * @param conf the runtime configuration of Alluxio
    * @param remote true if the request is for creating permission from client side, the
    *               username binding into inode will be gotten from {@code AuthorizedClientUser
    *               .get().getName()}.

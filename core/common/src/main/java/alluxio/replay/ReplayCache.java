@@ -48,11 +48,11 @@ import alluxio.thrift.ThriftIOException;
  * {@code
  * private final Cache<String, Long> cache = ReplayCache.newInstance();
  * ...
- * public long myRpc(final boolean val1, final int val2, String key) throws TachyonTException {
+ * public long myRpc(final boolean val1, final int val2, String key) throws AlluxioTException {
  *   return mCache.run(key, new ReplayCallable<Long>() {
  *     &#64;Override
- *     public Long call() throws TachyonException {
- *       return rpcWhichCanThrowTachyonException(val1, val2);
+ *     public Long call() throws AlluxioException {
+ *       return rpcWhichCanThrowAlluxioException(val1, val2);
  *     }
  *   });
  * }
@@ -115,7 +115,7 @@ public final class ReplayCache<V> {
      * Calls the RPC handler.
      *
      * @return the results of the handler
-     * @throws AlluxioException if an unexpected exception in Tachyon is thrown
+     * @throws AlluxioException if an unexpected exception in Alluxio is thrown
      */
     V call() throws AlluxioException;
   }
@@ -131,8 +131,8 @@ public final class ReplayCache<V> {
      * Calls the RPC handler.
      *
      * @return the result of the handler
-     * @throws AlluxioException if an unexpected exception in Tachyon is thrown
-     * @throws IOException if a non-Tachyon exception occurs
+     * @throws AlluxioException if an unexpected exception in Alluxio is thrown
+     * @throws IOException if a non-Alluxio exception occurs
      */
     V call() throws AlluxioException, IOException;
   }

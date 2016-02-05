@@ -100,7 +100,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
    */
   public static void main(String[] args) throws IOException {
     if (args.length != 2) {
-      System.out.println("java -cp " + Version.TACHYON_JAR
+      System.out.println("java -cp " + Version.ALLUXIO_JAR
           + " alluxio.examples.BasicCheckpoint <FileFolder> <Files>");
       System.exit(-1);
     }

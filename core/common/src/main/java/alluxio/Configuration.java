@@ -42,11 +42,11 @@ import alluxio.util.network.NetworkAddressUtils;
 
 /**
  * <p>
- * All the runtime configuration properties of Tachyon. This class works like a dictionary and
- * serves each Tachyon configuration property as a key-value pair.
+ * All the runtime configuration properties of Alluxio. This class works like a dictionary and
+ * serves each Alluxio configuration property as a key-value pair.
  *
  * <p>
- * Tachyon configuration properties are loaded into this class in the following order with
+ * Alluxio configuration properties are loaded into this class in the following order with
  * decreasing priority:
  * <ol>
  * <li>Java system properties;</li>
@@ -57,9 +57,9 @@ import alluxio.util.network.NetworkAddressUtils;
  *
  * <p>
  * The default properties are defined in a property file {@code alluxio-default.properties}
- * distributed with Tachyon jar. Tachyon users can override values of these default properties by
+ * distributed with Alluxio jar. Alluxio users can override values of these default properties by
  * creating {@code alluxio-site.properties} and putting it under java {@code CLASSPATH} when running
- * Tachyon (e.g., ${TACHYON_HOME}/conf/)
+ * Alluxio (e.g., ${HOME}/conf/)
  *
  * <p>
  * Developers can create an instance of this class by {@link Configuration()}, which will load
@@ -118,7 +118,7 @@ public final class Configuration {
 
   /**
    * Constructor with a flag to indicate whether system properties should be included. When the flag
-   * is set to false, it is used for TachyonConfTest class.
+   * is set to false, it is used for {@link Configuration} test class.
    *
    * @param includeSystemProperties whether to include the system properties
    */
@@ -157,7 +157,7 @@ public final class Configuration {
       try {
         siteProps.load(siteInputStream);
       } catch (IOException e) {
-        LOG.warn("Unable to load site Tachyon configuration file.", e);
+        LOG.warn("Unable to load site Alluxio configuration file.", e);
       }
     }
 
@@ -379,7 +379,7 @@ public final class Configuration {
    * @return the list of values for the given key
    */
   public List<String> getList(String key, String delimiter) {
-    Preconditions.checkArgument(delimiter != null, "Illegal separator for Tachyon properties as "
+    Preconditions.checkArgument(delimiter != null, "Illegal separator for Alluxio properties as "
         + "list");
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);

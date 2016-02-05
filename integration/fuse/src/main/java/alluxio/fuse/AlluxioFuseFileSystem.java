@@ -91,7 +91,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     mNextOpenFileId = 0L;
     mOpenFiles = Maps.newHashMap();
 
-    final int maxCachedPaths = mConfiguration.getInt(Constants.FUSE_PATHCACHE_SIZE);
+    final int maxCachedPaths = mConfiguration.getInt(Constants.FUSE_CACHED_PATHS_MAX);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());

@@ -317,7 +317,7 @@ public final class FileSystemMaster extends MasterBase {
     if (isLeader) {
       mTtlCheckerService = getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK, new MasterInodeTtlCheckExecutor(),
-              MasterContext.getConf().getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
+              MasterContext.getConf().getInt(Constants.MASTER_TTL_CHECKER_INTERVAL_MS)));
       mLostFilesDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_FILES_DETECTION, new LostFilesDetectionHeartbeatExecutor(),
           MasterContext.getConf().getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));

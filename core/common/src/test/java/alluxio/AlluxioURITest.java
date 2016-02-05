@@ -22,7 +22,7 @@ import org.junit.Test;
 import alluxio.util.OSUtils;
 
 /**
- * Unit tests for alluxio.TachyonURITest
+ * Unit tests for {@link AlluxioURI}.
  */
 public class AlluxioURITest {
 
@@ -42,7 +42,7 @@ public class AlluxioURITest {
     Assert.assertEquals("alluxio://localhost:19998/", uri.getParent().getParent().toString());
     Assert.assertEquals("/xy z/a b c", uri.getPath());
     Assert.assertEquals(19998, uri.getPort());
-    Assert.assertEquals("tachyon", uri.getScheme());
+    Assert.assertEquals("alluxio", uri.getScheme());
     Assert.assertTrue(uri.hasAuthority());
     Assert.assertTrue(uri.hasScheme());
     Assert.assertTrue(uri.isAbsolute());
@@ -124,7 +124,7 @@ public class AlluxioURITest {
    */
   @Test
   public void constructFromComponentsTests() {
-    String scheme = "tachyon";
+    String scheme = "alluxio";
     String authority = "127.0.0.1:90909";
     String path = "/a/../b/c.txt";
     String absPath = "/b/c.txt";
@@ -143,7 +143,7 @@ public class AlluxioURITest {
   }
 
   /**
-   * Tests to resolve a child TachyonURI against a parent TachyonURI.
+   * Tests to resolve a child {@link AlluxioURI} against a parent {@link AlluxioURI}.
    */
   @Test
   public void constructFromParentAndChildTests() {
@@ -222,7 +222,7 @@ public class AlluxioURITest {
 
     AlluxioURI[] uriFromDifferentConstructor =
         new AlluxioURI[] {new AlluxioURI("alluxio://127.0.0.1:8080/a/b/c.txt"),
-            new AlluxioURI("tachyon", "127.0.0.1:8080", "/a/b/c.txt"),
+            new AlluxioURI("alluxio", "127.0.0.1:8080", "/a/b/c.txt"),
             new AlluxioURI(
                 new AlluxioURI("alluxio://127.0.0.1:8080/a"), new AlluxioURI("b/c.txt"))};
     for (int i = 0; i < uriFromDifferentConstructor.length - 1; i ++) {
@@ -350,7 +350,7 @@ public class AlluxioURITest {
     Assert.assertEquals("file", new AlluxioURI("file://localhost/").getScheme());
     Assert.assertEquals("alluxio-ft", new AlluxioURI("alluxio-ft://localhost/").getScheme());
     Assert.assertEquals("s3", new AlluxioURI("s3://localhost/").getScheme());
-    Assert.assertEquals("tachyon", new AlluxioURI("alluxio://localhost/").getScheme());
+    Assert.assertEquals("alluxio", new AlluxioURI("alluxio://localhost/").getScheme());
     Assert.assertEquals("hdfs", new AlluxioURI("hdfs://localhost/").getScheme());
     Assert.assertEquals("glusterfs", new AlluxioURI("glusterfs://localhost/").getScheme());
   }

@@ -22,7 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Preconditions;
 
 /**
- * A Job that can run at Tachyon.
+ * A Job that can run at Alluxio.
  */
 @SuppressWarnings("serial")
 @ThreadSafe

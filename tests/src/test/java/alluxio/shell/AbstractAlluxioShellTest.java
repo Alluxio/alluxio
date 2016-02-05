@@ -58,7 +58,7 @@ public abstract class AbstractAlluxioShellTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(SIZE_BYTES, Constants.MB,
-          Constants.MASTER_TTLCHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE),
+          Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE),
           Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
           Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
   protected LocalAlluxioCluster mLocalTachyonCluster = null;

@@ -95,14 +95,14 @@ public final class SameKeyValueStoresTest implements Callable<Boolean> {
 
   /**
    * Starts in a command like
-   * {@code java -cp TACHYON_JAR CLASS_NAME <key-value store URI 1> <key-value store URI 2>}.
+   * {@code java -cp ALLUXIO_JAR CLASS_NAME <key-value store URI 1> <key-value store URI 2>}.
    *
    * @param args two arguments, specifying the URIs of the stores to be compared
    * @throws Exception if unexpected errors happen
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 2) {
-      System.out.println("Usage: java -cp " + Version.TACHYON_JAR + " "
+      System.out.println("Usage: java -cp " + Version.ALLUXIO_JAR + " "
           + SameKeyValueStoresTest.class.getName() + " <key-value store URI 1>"
           + " <key-value store URI 2>");
       System.exit(-1);

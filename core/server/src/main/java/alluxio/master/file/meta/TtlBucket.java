@@ -27,16 +27,16 @@ import alluxio.master.MasterContext;
 
 /**
  * A bucket with all files whose ttl value lies in the bucket's time interval. The bucket's time
- * interval starts at a specific time and lasts for {@link Constants#MASTER_TTLCHECKER_INTERVAL_MS}.
+ * interval starts at a specific time and lasts for {@link Constants#MASTER_TTL_CHECKER_INTERVAL_MS}.
  */
 @NotThreadSafe
 public final class TtlBucket implements Comparable<TtlBucket> {
   /** The time interval of this bucket is the same as ttl checker's interval. */
   private static long sTtlIntervalMs = MasterContext.getConf().getInt(
-      Constants.MASTER_TTLCHECKER_INTERVAL_MS);
+      Constants.MASTER_TTL_CHECKER_INTERVAL_MS);
   /**
    * Each bucket has a time to live interval, this value is the start of the interval, interval
-   * value is the same as the configuration of {@link Constants#MASTER_TTLCHECKER_INTERVAL_MS}.
+   * value is the same as the configuration of {@link Constants#MASTER_TTL_CHECKER_INTERVAL_MS}.
    */
   private long mTtlIntervalStartTimeMs;
   /** A set of InodeFiles whose ttl value is in the range of this bucket's interval. */

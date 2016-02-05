@@ -102,7 +102,7 @@ public class ApplicationMasterTest {
   private static final Map<String, String> EXPECTED_WORKER_ENVIRONMENT =
       ImmutableMap.<String, String>builder()
           .put("CLASSPATH", ENV_CLASSPATH)
-          .put("TACHYON_HOME", ApplicationConstants.Environment.PWD.$())
+          .put("HOME", ApplicationConstants.Environment.PWD.$())
           .put("TACHYON_MASTER_ADDRESS", "masterAddress")
           .put("TACHYON_WORKER_MEMORY_SIZE", Integer.toString(RAMDISK_MEM_MB) + ".00MB")
           .build();
@@ -113,7 +113,7 @@ public class ApplicationMasterTest {
   private static final Map<String, String> EXPECTED_MASTER_ENVIRONMENT =
       ImmutableMap.<String, String>builder()
           .put("CLASSPATH", ENV_CLASSPATH)
-          .put("TACHYON_HOME", ApplicationConstants.Environment.PWD.$())
+          .put("HOME", ApplicationConstants.Environment.PWD.$())
           .build();
   private static final ContainerLaunchContext EXPECTED_MASTER_CONTEXT =
       ContainerLaunchContext.newInstance(EXPECTED_LOCAL_RESOURCES, EXPECTED_MASTER_ENVIRONMENT,

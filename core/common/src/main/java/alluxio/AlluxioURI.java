@@ -26,7 +26,8 @@ import org.apache.commons.lang.StringUtils;
 import alluxio.util.OSUtils;
 
 /**
- * It uses a hierarchical URI internally. URI requires that String is escaped, TachyonURI does not.
+ * It uses a hierarchical URI internally. URI requires that String is escaped, {@link AlluxioURI}
+ * does not.
  *
  * Does not support fragment or query in the URI.
  */
@@ -44,10 +45,10 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   private final URI mUri;
 
   /**
-   * Construct a TachyonURI from a String. Path strings are URIs, but with unescaped elements and
-   * some additional normalization.
+   * Construct a {@link AlluxioURI} from a String. Path strings are URIs, but with unescaped
+   * elements and some additional normalization.
    *
-   * @param pathStr path to construct the TachyonURI from
+   * @param pathStr path to construct the {@link AlluxioURI} from
    */
   public AlluxioURI(String pathStr) {
     if (pathStr == null) {
@@ -88,7 +89,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Construct a TachyonURI from components.
+   * Construct a {@link AlluxioURI} from components.
    *
    * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
    * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
@@ -102,7 +103,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Resolve a child TachyonURI against a parent TachyonURI.
+   * Resolve a child {@link AlluxioURI} against a parent {@link AlluxioURI}.
    *
    * @param parent the parent
    * @param child the child
@@ -158,7 +159,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Gets the authority of the TachyonURI.
+   * Gets the authority of the {@link AlluxioURI}.
    *
    * @return the authority, null if it does not have one
    */
@@ -167,7 +168,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Return the number of elements of the path component of the TachyonURI.
+   * Return the number of elements of the path component of the {@link AlluxioURI}.
    *
    * <pre>
    * /                                  = 0
@@ -205,8 +206,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Get the first n components of the TachyonURI path. There is no trailing separator as the path
-   * will be normalized by normalizePath().
+   * Get the first n components of the {@link AlluxioURI} path. There is no trailing separator as
+   * the path will be normalized by normalizePath().
    *
    * <pre>
    * /a/b/c, 0              = /
@@ -236,16 +237,16 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Whether or not the TachyonURI contains wildcard(s).
+   * Whether or not the {@link AlluxioURI} contains wildcard(s).
    *
-   * @return {@code boolean} that indicates whether the TachyonURI contains wildcard(s)
+   * @return {@code boolean} that indicates whether the {@link AlluxioURI} contains wildcard(s)
    */
   public boolean containsWildcard() {
     return mUri.getPath().contains(WILDCARD);
   }
 
   /**
-   * Gets the host of the TachyonURI.
+   * Gets the host of the {@link AlluxioURI}.
    *
    * @return the host, null if it does not have one
    */
@@ -254,9 +255,9 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Get the final component of the TachyonURI.
+   * Get the final component of the {@link AlluxioURI}.
    *
-   * @return the final component of the TachyonURI
+   * @return the final component of the {@link AlluxioURI}
    */
   public String getName() {
     String path = mUri.getPath();
@@ -265,9 +266,9 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Get the parent of this TachyonURI or null if at root.
+   * Get the parent of this {@link AlluxioURI} or null if at root.
    *
-   * @return the parent of this TachyonURI or null if at root
+   * @return the parent of this {@link AlluxioURI} or null if at root
    */
   public AlluxioURI getParent() {
     String path = mUri.getPath();
@@ -288,7 +289,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Gets the path component of the TachyonURI.
+   * Gets the path component of the {@link AlluxioURI}.
    *
    * @return the path
    */
@@ -297,7 +298,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Gets the port of the TachyonURI.
+   * Gets the port of the {@link AlluxioURI}.
    *
    * @return the port, -1 if it does not have one
    */
@@ -306,7 +307,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Get the scheme of the TachyonURI.
+   * Gets the scheme of the {@link AlluxioURI}.
    *
    * @return the scheme, null if there is no scheme
    */
@@ -315,7 +316,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Tells if the TachyonURI has authority or not.
+   * Tells if the {@link AlluxioURI} has authority or not.
    *
    * @return true if it has, false otherwise
    */
@@ -329,7 +330,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Tells if this TachyonURI has scheme or not.
+   * Tells if this {@link AlluxioURI} has scheme or not.
    *
    * @return true if it has, false otherwise
    */
@@ -338,7 +339,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Check if the path is a windows path. This should be platform independent.
+   * Checks if the path is a windows path. This should be platform independent.
    *
    * @param path the path to check
    * @param slashed if the path starts with a slash
@@ -354,26 +355,26 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Tells whether or not the TachyonURI is absolute.
+   * Tells whether or not the {@link AlluxioURI} is absolute.
    *
    * <p>
-   * A TachyonURI is absolute if, and only if, it has a scheme component.
+   * A {@link AlluxioURI} is absolute if, and only if, it has a scheme component.
    * </p>
    *
-   * @return <tt>true</tt> if, and only if, this TachyonURI is absolute
+   * @return <tt>true</tt> if, and only if, this {@link AlluxioURI} is absolute
    */
   public boolean isAbsolute() {
     return mUri.isAbsolute();
   }
 
   /**
-   * Tells whether or not the path component of the TachyonURI is absolute.
+   * Tells whether or not the path component of the {@link AlluxioURI} is absolute.
    *
    * <p>
    * A path is absolute if, and only if, it starts with root.
    * </p>
    *
-   * @return <tt>true</tt> if, and only if, the TachyonURI's path component is absolute
+   * @return <tt>true</tt> if, and only if, the {@link AlluxioURI}'s path component is absolute
    */
   public boolean isPathAbsolute() {
     int start = hasWindowsDrive(mUri.getPath(), true) ? 3 : 0;
@@ -381,7 +382,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Tells whether or not the TachyonURI is root.
+   * Tells whether or not the {@link AlluxioURI} is root.
    *
    * <p>
    * A URI is root if its path equals to "/"
@@ -395,28 +396,28 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Append additional path elements to the end of a TachyonURI.
+   * Append additional path elements to the end of a {@link AlluxioURI}.
    *
    * @param suffix the suffix to add
-   * @return the new TachyonURI
+   * @return the new {@link AlluxioURI}
    */
   public AlluxioURI join(String suffix) {
     return new AlluxioURI(getScheme(), getAuthority(), getPath() + AlluxioURI.SEPARATOR + suffix);
   }
 
   /**
-   * Append additional path elements to the end of a TachyonURI.
+   * Append additional path elements to the end of a {@link AlluxioURI}.
    *
    * @param suffix the suffix to add
-   * @return the new TachyonURI
+   * @return the new {@link AlluxioURI}
    */
   public AlluxioURI join(AlluxioURI suffix) {
     return join(suffix.toString());
   }
 
   /**
-   * Normalize the path component of the TachyonURI, by replacing all "//" and "\\" with "/", and
-   * trimming trailing slash from non-root path (ignoring windows drive).
+   * Normalize the path component of the {@link AlluxioURI}, by replacing all "//" and "\\" with
+   * "/", and trimming trailing slash from non-root path (ignoring windows drive).
    *
    * @param path the path to normalize
    * @return the normalized path
@@ -440,7 +441,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   /**
    * Illegal characters unescaped in the string, for glob processing, etc.
    *
-   * @return the String representation of the URI
+   * @return the String representation of the {@link AlluxioURI}
    */
   @Override
   public String toString() {

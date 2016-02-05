@@ -94,7 +94,7 @@ public class PlainSaslServerTest{
   public void passwordIsNotSetTest() throws Exception {
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("Plain authentication failed: No password provided");
-    mPlainSaslServer.evaluateResponse(getUserInfo("tachyon", ""));
+    mPlainSaslServer.evaluateResponse(getUserInfo("alluxio", ""));
   }
 
   /**
@@ -112,7 +112,7 @@ public class PlainSaslServerTest{
    */
   @Test
   public void userPasswordReceiveTest() throws Exception {
-    String testUser = "tachyon";
+    String testUser = "alluxio";
     String password = "anonymous";
     mPlainSaslServer.evaluateResponse(getUserInfo(testUser, password));
     Assert.assertEquals(testUser, mPlainSaslServer.getAuthorizationID());
@@ -150,7 +150,7 @@ public class PlainSaslServerTest{
    */
   @Test
   public void unauthorizedCallbackTest() throws Exception {
-    String testUser = "tachyon";
+    String testUser = "alluxio";
     String password = "anonymous";
     mPlainSaslServer = new PlainSaslServer(new MockCallbackHandlerUnauthorized());
 

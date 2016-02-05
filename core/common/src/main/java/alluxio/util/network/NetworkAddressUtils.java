@@ -43,7 +43,7 @@ import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
 /**
- * Common network address related utilities shared by all components in Tachyon.
+ * Common network address related utilities shared by all components in Alluxio.
  */
 @ThreadSafe
 public final class NetworkAddressUtils {
@@ -69,33 +69,33 @@ public final class NetworkAddressUtils {
      *
      * Master RPC service (Thrift)
      */
-    MASTER_RPC("Tachyon Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
+    MASTER_RPC("Alluxio Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
         Constants.MASTER_RPC_PORT, Constants.DEFAULT_MASTER_PORT),
 
     /**
      * Master web service (Jetty)
      */
-    MASTER_WEB("Tachyon Master Web service", Constants.MASTER_WEB_HOSTNAME,
+    MASTER_WEB("Alluxio Master Web service", Constants.MASTER_WEB_HOSTNAME,
         Constants.MASTER_WEB_BIND_HOST, Constants.MASTER_WEB_PORT,
         Constants.DEFAULT_MASTER_WEB_PORT),
 
     /**
      * Worker RPC service (Thrift)
      */
-    WORKER_RPC("Tachyon Worker RPC service", Constants.WORKER_HOSTNAME, Constants.WORKER_BIND_HOST,
+    WORKER_RPC("Alluxio Worker RPC service", Constants.WORKER_HOSTNAME, Constants.WORKER_BIND_HOST,
         Constants.WORKER_RPC_PORT, Constants.DEFAULT_WORKER_PORT),
 
     /**
      * Worker data service (Netty)
      */
-    WORKER_DATA("Tachyon Worker data service", Constants.WORKER_DATA_HOSTNAME,
+    WORKER_DATA("Alluxio Worker data service", Constants.WORKER_DATA_HOSTNAME,
         Constants.WORKER_DATA_BIND_HOST, Constants.WORKER_DATA_PORT,
         Constants.DEFAULT_WORKER_DATA_PORT),
 
     /**
      * Worker web service (Jetty)
      */
-    WORKER_WEB("Tachyon Worker Web service", Constants.WORKER_WEB_HOSTNAME,
+    WORKER_WEB("Alluxio Worker Web service", Constants.WORKER_WEB_HOSTNAME,
         Constants.WORKER_WEB_BIND_HOST, Constants.WORKER_WEB_PORT,
         Constants.DEFAULT_WORKER_WEB_PORT);
 
@@ -193,7 +193,7 @@ public final class NetworkAddressUtils {
    * service.
    *
    * @param service the service name used to connect
-   * @param conf the configuration of Tachyon
+   * @param conf the configuration of Alluxio
    * @return the service address that a client (typically outside the service machine) uses to
    *         communicate with service.
    */
@@ -203,8 +203,8 @@ public final class NetworkAddressUtils {
 
   /**
    * Provides an externally resolvable hostname for client to communicate with the service. If the
-   * hostname is not explicitly specified, Tachyon will try to use the bind host. If the bind host
-   * is wildcard, Tachyon will automatically determine an appropriate hostname from local machine.
+   * hostname is not explicitly specified, Alluxio will try to use the bind host. If the bind host
+   * is wildcard, Alluxio will automatically determine an appropriate hostname from local machine.
    * The various possibilities shown in the following table:
    * <table>
    * <caption>Hostname Scenarios</caption>
@@ -240,7 +240,7 @@ public final class NetworkAddressUtils {
    * </table>
    *
    * @param service Service type used to connect
-   * @param conf Tachyon configuration used to look up the host resolution timeout
+   * @param conf Alluxio configuration used to look up the host resolution timeout
    * @return the externally resolvable hostname that the client can use to communicate with the
    *         service.
    */
@@ -262,10 +262,10 @@ public final class NetworkAddressUtils {
 
   /**
    * Gets the port number on a given service type. If user defined port number is not explicitly
-   * specified, Tachyon will use the default service port.
+   * specified, Alluxio will use the default service port.
    *
    * @param service Service type used to connect
-   * @param conf Tachyon configuration
+   * @param conf Alluxio configuration
    * @return the service port number
    */
   public static int getPort(ServiceType service, Configuration conf) {
@@ -283,7 +283,7 @@ public final class NetworkAddressUtils {
    * </ol>
    *
    * @param service the service name used to connect
-   * @param conf the configuration of Tachyon
+   * @param conf the configuration of Alluxio
    * @return the InetSocketAddress the service will bind to
    */
   public static InetSocketAddress getBindAddress(ServiceType service, Configuration conf) {
@@ -302,7 +302,7 @@ public final class NetworkAddressUtils {
   /**
    * Gets a local host name for the host this JVM is running on.
    *
-   * @param conf Tachyon configuration used to look up the host resolution timeout
+   * @param conf Alluxio configuration used to look up the host resolution timeout
    * @return the local host name, which is not based on a loopback ip address
    */
   public static synchronized String getLocalHostName(Configuration conf) {
@@ -337,7 +337,7 @@ public final class NetworkAddressUtils {
   /**
    * Gets a local IP address for the host this JVM is running on.
    *
-   * @param conf Tachyon configuration
+   * @param conf Alluxio configuration
    * @return the local ip address, which is not a loopback address and is reachable
    */
   public static synchronized String getLocalIpAddress(Configuration conf) {
@@ -495,7 +495,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Gets FQDN(Full Qualified Domain Name) from Tachyon representation of network address.
+   * Gets FQDN(Full Qualified Domain Name) from Alluxio representation of network address.
    *
    * @param addr the input network address representation
    * @return the resolved FQDN host name
@@ -556,7 +556,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Extracts rpcPort InetSocketAddress from Tachyon representation of network address.
+   * Extracts rpcPort InetSocketAddress from Alluxio representation of network address.
    *
    * @param netAddress the input network address representation
    * @return InetSocketAddress
@@ -572,7 +572,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Extracts dataPort InetSocketAddress from Tachyon representation of network address.
+   * Extracts dataPort InetSocketAddress from Alluxio representation of network address.
    *
    * @param netAddress the input network address representation
    * @return InetSocketAddress

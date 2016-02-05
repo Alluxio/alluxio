@@ -32,7 +32,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.util.OSUtils;
 
 /**
- * Utilities related to both Tachyon paths like {@link AlluxioURI} and local file paths.
+ * Utilities related to both Alluxio paths like {@link AlluxioURI} and local file paths.
  */
 @ThreadSafe
 public final class PathUtils {
@@ -51,7 +51,7 @@ public final class PathUtils {
   }
 
   /**
-   * Joins each element in paths in order, separated by {@code TachyonURI.SEPARATOR}.
+   * Joins each element in paths in order, separated by {@link AlluxioURI#SEPARATOR}.
    * <p>
    * For example,
    *

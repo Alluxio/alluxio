@@ -93,7 +93,7 @@ public final class LocalAlluxioMaster {
     UnderFileSystemUtils.mkdirIfNotExists(tachyonHome, configuration);
 
     // Update Tachyon home in the passed TachyonConf instance.
-    configuration.set(Constants.TACHYON_HOME, tachyonHome);
+    configuration.set(Constants.HOME, tachyonHome);
 
     return new LocalAlluxioMaster();
   }

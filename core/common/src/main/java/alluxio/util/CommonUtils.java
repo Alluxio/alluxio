@@ -35,7 +35,7 @@ import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
 
 /**
- * Common utilities shared by all components in Tachyon.
+ * Common utilities shared by all components in Alluxio.
  */
 @ThreadSafe
 public final class CommonUtils {
@@ -185,8 +185,8 @@ public final class CommonUtils {
   /**
    * Using {@link GroupMappingService} to get the primary group name.
    *
-   * @param conf the runtime configuration of Tachyon
-   * @param userName Tachyon user name
+   * @param conf the runtime configuration of Alluxio
+   * @param userName Alluxio user name
    * @return primary group name
    * @throws IOException if getting group failed
    */

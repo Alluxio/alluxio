@@ -51,7 +51,7 @@ public final class ConfUtils {
         + "org.apache.hadoop.io.serializer.WritableSerialization");
     Properties confProperties = source.getInternalProperties();
     try {
-      DefaultStringifier.store(target, confProperties, Constants.TACHYON_CONF_SITE);
+      DefaultStringifier.store(target, confProperties, Constants.CONF_SITE);
     } catch (IOException ex) {
       LOG.error("Unable to store TachyonConf in Hadoop configuration", ex);
       throw new RuntimeException(ex);
@@ -69,10 +69,10 @@ public final class ConfUtils {
     // Load TachyonConf if any and merge to the one in TachyonFS
     // Push TachyonConf to the Job conf
     Properties tachyonConfProperties = null;
-    if (source.get(Constants.TACHYON_CONF_SITE) != null) {
+    if (source.get(Constants.CONF_SITE) != null) {
       LOG.info("Found TachyonConf site from Job configuration for Tachyon");
       try {
-        tachyonConfProperties = DefaultStringifier.load(source, Constants.TACHYON_CONF_SITE,
+        tachyonConfProperties = DefaultStringifier.load(source, Constants.CONF_SITE,
             Properties.class);
       } catch (IOException e) {
         LOG.error("Unable to load TachyonConf from Hadoop configuration", e);

@@ -30,7 +30,7 @@ public final class LineageUtils {
   /**
    * Checks if lineage is enabled.
    *
-   * @param conf the configuration for Tachyon
+   * @param conf the configuration for Alluxio
    * @return true if lineage is enabled, false otherwise
    */
   public static boolean isLineageEnabled(Configuration conf) {
