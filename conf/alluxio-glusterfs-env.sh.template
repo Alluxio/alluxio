@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# This file contains environment variables required to run Tachyon. Copy it as alluxio-env.sh and
-# edit that to configure Tachyon for your site. At a minimum,
+# This file contains environment variables required to run Alluxio. Copy it as alluxio-env.sh and
+# edit that to configure Alluxio for your site. At a minimum,
 # the following variables should be set:
 #
 # - JAVA_HOME, to point to your JAVA installation
@@ -12,7 +12,7 @@
 
 # The following gives an example:
 
-# Uncomment this section to add a local installation of Hadoop to Tachyon's CLASSPATH.
+# Uncomment this section to add a local installation of Hadoop to Alluxio's CLASSPATH.
 # The hadoop command must be in the path to automatically populate the Hadoop classpath.
 #
 # if type "hadoop" > /dev/null 2>&1; then
@@ -38,7 +38,7 @@ export JAVA="$JAVA_HOME/bin/java"
 export ALLUXIO_MASTER_ADDRESS=localhost
 
 export ALLUXIO_UNDERFS_ADDRESS=glusterfs:///
-export ALLUXIO_UNDERFS_GLUSTER_VOLUMES=tachyon_vol
+export ALLUXIO_UNDERFS_GLUSTER_VOLUMES=alluxio_vol
 export ALLUXIO_UNDERFS_GLUSTER_MOUNTS=/vol
 export ALLUXIO_UNDERFS_GLUSTER_MR_DIR=glusterfs:///mapred/system
 export ALLUXIO_WORKER_MEMORY_SIZE=1GB

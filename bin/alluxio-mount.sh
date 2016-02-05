@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Start all Tachyon workers.
+# Start all Alluxio workers.
 # Starts the master on this node.
 # Starts a worker on each node specified in conf/workers
 
