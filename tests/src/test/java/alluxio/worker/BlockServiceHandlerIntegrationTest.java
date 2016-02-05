@@ -84,8 +84,8 @@ public class BlockServiceHandlerIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
-    mWorkerConfiguration = mLocalAlluxioClusterResource.get().getWorkerTachyonConf();
+    mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterConf();
+    mWorkerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
     mBlockWorkerServiceHandler =
         mLocalAlluxioClusterResource.get().getWorker().getBlockWorkerServiceHandler();
 

@@ -38,7 +38,7 @@ public class FreeCommandTest extends AbstractAlluxioShellTest {
   public void freeTest() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("free", "/testFile");
-    Configuration configuration = mLocalTachyonCluster.getMasterTachyonConf();
+    Configuration configuration = mLocalTachyonCluster.getMasterConf();
     CommonUtils.sleepMs(configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     Assert.assertFalse(
         mFileSystem.getStatus(new AlluxioURI("/testFile")).getInMemoryPercentage() == 100);
@@ -48,7 +48,7 @@ public class FreeCommandTest extends AbstractAlluxioShellTest {
   public void freeWildCardTest() throws IOException, AlluxioException {
     AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
 
-    Configuration configuration = mLocalTachyonCluster.getMasterTachyonConf();
+    Configuration configuration = mLocalTachyonCluster.getMasterConf();
 
     int ret = mFsShell.run("free", "/testWild*/foo/*");
     CommonUtils.sleepMs(null,

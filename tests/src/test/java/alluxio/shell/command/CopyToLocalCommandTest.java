@@ -33,7 +33,7 @@ public class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   public void copyToLocalDirTest() throws IOException, AlluxioException {
     AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
     int ret =
-        mFsShell.run("copyToLocal", "/testWildCards/", mLocalTachyonCluster.getTachyonHome()
+        mFsShell.run("copyToLocal", "/testWildCards/", mLocalTachyonCluster.getAlluxioHome()
             + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foo/foobar1", 10);
@@ -56,10 +56,10 @@ public class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   public void copyToLocalWildcardExistingDirTest() throws IOException, AlluxioException {
     AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
 
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testDir").mkdir();
+    new File(mLocalTachyonCluster.getAlluxioHome() + "/testDir").mkdir();
 
     int ret =
-        mFsShell.run("copyToLocal", "/testWildCards/*/foo*", mLocalTachyonCluster.getTachyonHome()
+        mFsShell.run("copyToLocal", "/testWildCards/*/foo*", mLocalTachyonCluster.getAlluxioHome()
             + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foobar1", 10);
@@ -71,7 +71,7 @@ public class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   public void copyToLocalWildcardHierTest() throws IOException, AlluxioException {
     AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
     int ret =
-        mFsShell.run("copyToLocal", "/testWildCards/*", mLocalTachyonCluster.getTachyonHome()
+        mFsShell.run("copyToLocal", "/testWildCards/*", mLocalTachyonCluster.getAlluxioHome()
             + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foo/foobar1", 10);
@@ -83,11 +83,11 @@ public class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void copyToLocalWildcardNotDirTest() throws IOException, AlluxioException {
     AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testDir").mkdir();
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testFile").createNewFile();
+    new File(mLocalTachyonCluster.getAlluxioHome() + "/testDir").mkdir();
+    new File(mLocalTachyonCluster.getAlluxioHome() + "/testDir/testFile").createNewFile();
 
     int ret =
-        mFsShell.run("copyToLocal", "/testWildCards/*/foo*", mLocalTachyonCluster.getTachyonHome()
+        mFsShell.run("copyToLocal", "/testWildCards/*/foo*", mLocalTachyonCluster.getAlluxioHome()
             + "/testDir/testFile");
     Assert.assertEquals(-1, ret);
   }
@@ -96,7 +96,7 @@ public class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   public void copyToLocalWildcardTest() throws IOException, AlluxioException {
     AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
     int ret =
-        mFsShell.run("copyToLocal", "/testWildCards/*/foo*", mLocalTachyonCluster.getTachyonHome()
+        mFsShell.run("copyToLocal", "/testWildCards/*/foo*", mLocalTachyonCluster.getAlluxioHome()
             + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foobar1", 10);

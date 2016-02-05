@@ -45,7 +45,7 @@ import alluxio.worker.AlluxioWorker;
 import alluxio.worker.WorkerIdRegistry;
 
 /**
- * Local Tachyon cluster.
+ * Local Alluxio cluster.
  */
 @NotThreadSafe
 public abstract class AbstractLocalAlluxioCluster {
@@ -65,7 +65,7 @@ public abstract class AbstractLocalAlluxioCluster {
   protected AlluxioWorker mWorker;
   protected UnderFileSystemCluster mUfsCluster;
 
-  protected String mTachyonHome;
+  protected String mHome;
   protected String mHostname;
 
   protected Thread mWorkerThread;
@@ -92,7 +92,7 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Starts both master and a worker using the configurations in test conf respectively.
    *
-   * @param conf the configuration for Tachyon
+   * @param conf the configuration for Alluxio
    * @throws IOException if an I/O error occurs
    * @throws ConnectionFailedException if network connection failed
    */
@@ -222,9 +222,9 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when creating or deleting dirs failed
    */
   protected void setupTest(Configuration conf) throws IOException {
-    String tachyonHome = conf.get(Constants.TACHYON_HOME);
+    String alluxioHome = conf.get(Constants.TACHYON_HOME);
     // Deletes the alluxio home dir for this test from ufs to avoid permission problems
-    UnderFileSystemUtils.deleteDir(tachyonHome, conf);
+    UnderFileSystemUtils.deleteDir(alluxioHome, conf);
 
     // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.get().
     UnderFileSystemUtils.mkdirIfNotExists(conf.get(Constants.UNDERFS_ADDRESS), conf);
@@ -243,7 +243,7 @@ public abstract class AbstractLocalAlluxioCluster {
     // Starts the UFS for integration tests. If this is for HDFS profiles, it starts miniDFSCluster
     // (see also {@link alluxio.LocalMiniDFSCluster} and sets up the folder like
     // "hdfs://xxx:xxx/alluxio*".
-    mUfsCluster = UnderFileSystemCluster.get(mTachyonHome, conf);
+    mUfsCluster = UnderFileSystemCluster.get(mHome, conf);
 
     // Sets the journal folder
     String journalFolder =
@@ -267,7 +267,7 @@ public abstract class AbstractLocalAlluxioCluster {
     if (mUfsCluster.getClass().getSimpleName().equals("LocalMiniDFSCluster")
         || mUfsCluster.getClass().getSimpleName().equals("S3UnderStorageCluster")
         || mUfsCluster.getClass().getSimpleName().equals("OSSUnderStorageCluster")) {
-      String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mTachyonHome;
+      String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mHome;
       conf.set(Constants.UNDERFS_ADDRESS, ufsAddress);
     }
   }
@@ -319,16 +319,16 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Creates a default {@link Configuration} for testing.
    *
-   * @return a testing TachyonConf
+   * @return a test configuration
    * @throws IOException when the operation fails
    */
   public Configuration newTestConf() throws IOException {
     Configuration testConf = new Configuration();
-    setTachyonHome();
+    setAlluxioHome();
     setHostname();
 
     testConf.set(Constants.IN_TEST_MODE, "true");
-    testConf.set(Constants.TACHYON_HOME, mTachyonHome);
+    testConf.set(Constants.TACHYON_HOME, mHome);
     testConf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
     testConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
     testConf.set(Constants.MASTER_HOSTNAME, mHostname);
@@ -377,7 +377,7 @@ public abstract class AbstractLocalAlluxioCluster {
     testConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
     // Sets up the tiered store
-    String ramdiskPath = PathUtils.concatPath(mTachyonHome, "ramdisk");
+    String ramdiskPath = PathUtils.concatPath(mHome, "ramdisk");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
         ramdiskPath);
@@ -391,7 +391,7 @@ public abstract class AbstractLocalAlluxioCluster {
       String[] dirPaths = testConf.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<String>();
       for (String dirPath : dirPaths) {
-        String newPath = mTachyonHome + dirPath;
+        String newPath = mHome + dirPath;
         newPaths.add(newPath);
       }
       testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
@@ -427,7 +427,7 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Returns a {@link FileSystem} client.
    *
-   * @return a TachyonFS client
+   * @return a {@link FileSystem} client
    * @throws IOException when the operation fails
    */
   public abstract FileSystem getClient() throws IOException;
@@ -440,7 +440,7 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * @return the master's {@link Configuration}
    */
-  public Configuration getMasterTachyonConf() {
+  public Configuration getMasterConf() {
     return mMasterConf;
   }
 
@@ -461,9 +461,9 @@ public abstract class AbstractLocalAlluxioCluster {
    *
    * @throws IOException when the operation fails
    */
-  protected void setTachyonHome() throws IOException {
-    mTachyonHome =
-        File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
+  protected void setAlluxioHome() throws IOException {
+    mHome =
+        File.createTempFile("Alluxio", "U" + System.currentTimeMillis()).getAbsolutePath();
   }
 
 }

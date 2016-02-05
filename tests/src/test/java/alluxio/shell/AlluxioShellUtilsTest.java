@@ -116,17 +116,17 @@ public final class AlluxioShellUtilsTest {
      *                                        └── foobar3
      *                                └── foobar4
      */
-    FileUtils.deleteDirectory(new File(localTachyonCluster.getTachyonHome() + "/testWildCards"));
-    new File(localTachyonCluster.getTachyonHome() + "/testWildCards").mkdir();
-    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foo").mkdir();
-    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/bar").mkdir();
+    FileUtils.deleteDirectory(new File(localTachyonCluster.getAlluxioHome() + "/testWildCards"));
+    new File(localTachyonCluster.getAlluxioHome() + "/testWildCards").mkdir();
+    new File(localTachyonCluster.getAlluxioHome() + "/testWildCards/foo").mkdir();
+    new File(localTachyonCluster.getAlluxioHome() + "/testWildCards/bar").mkdir();
 
-    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar1").createNewFile();
-    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar2").createNewFile();
-    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/bar/foobar3").createNewFile();
-    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foobar4").createNewFile();
+    new File(localTachyonCluster.getAlluxioHome() + "/testWildCards/foo/foobar1").createNewFile();
+    new File(localTachyonCluster.getAlluxioHome() + "/testWildCards/foo/foobar2").createNewFile();
+    new File(localTachyonCluster.getAlluxioHome() + "/testWildCards/bar/foobar3").createNewFile();
+    new File(localTachyonCluster.getAlluxioHome() + "/testWildCards/foobar4").createNewFile();
 
-    return localTachyonCluster.getTachyonHome() + "/testWildCards";
+    return localTachyonCluster.getAlluxioHome() + "/testWildCards";
   }
 
   public List<String> getPaths(String path, FsType fsType) throws IOException, TException {

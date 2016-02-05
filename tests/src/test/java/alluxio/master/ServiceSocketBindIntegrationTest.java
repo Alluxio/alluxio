@@ -59,8 +59,8 @@ public class ServiceSocketBindIntegrationTest {
     }
     mLocalAlluxioClusterResource.start();
     mLocalTachyonCluster = mLocalAlluxioClusterResource.get();
-    mMasterConfiguration = mLocalTachyonCluster.getMasterTachyonConf();
-    mWorkerConfiguration = mLocalTachyonCluster.getWorkerTachyonConf();
+    mMasterConfiguration = mLocalTachyonCluster.getMasterConf();
+    mWorkerConfiguration = mLocalTachyonCluster.getWorkerConf();
   }
 
   private void connectServices() throws IOException, ConnectionFailedException {
