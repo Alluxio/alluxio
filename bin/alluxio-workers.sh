@@ -16,20 +16,20 @@ if [ $# -le 0 ]; then
 fi
 
 DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
-TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
-. $TACHYON_LIBEXEC_DIR/alluxio-config.sh
+ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+. $ALLUXIO_LIBEXEC_DIR/alluxio-config.sh
 
-HOSTLIST=$TACHYON_CONF_DIR/workers
+HOSTLIST=$ALLUXIO_CONF_DIR/workers
 
 for worker in `cat "$HOSTLIST" | sed  "s/#.*$//;/^$/d"`; do
   echo "Connecting to $worker as $USER..."
-  if [ -n "${TACHYON_SSH_FOREGROUND}" ]; then
+  if [ -n "${ALLUXIO_SSH_FOREGROUND}" ]; then
     ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -t $worker $LAUNCHER $"${@// /\\ }" 2>&1
   else
     ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -t $worker $LAUNCHER $"${@// /\\ }" 2>&1 &
   fi
-  if [ "$TACHYON_WORKER_SLEEP" != "" ]; then
-    sleep $TACHYON_WORKER_SLEEP
+  if [ "$ALLUXIO_WORKER_SLEEP" != "" ]; then
+    sleep $ALLUXIO_WORKER_SLEEP
   fi
 done
 
