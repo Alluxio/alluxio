@@ -111,7 +111,7 @@ public final class MasterClientAuthenticationIntegrationTest {
   private void authenticationOperationTest(String filename) throws Exception {
     FileSystemMasterClient masterClient =
         new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
-            mLocalAlluxioClusterResource.get().getMasterTachyonConf());
+            mLocalAlluxioClusterResource.get().getMasterConf());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());

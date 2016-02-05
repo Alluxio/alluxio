@@ -104,7 +104,7 @@ public class RemoteBlockInStreamIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mConfiguration = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    mConfiguration = mLocalAlluxioClusterResource.get().getMasterConf();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(mConfiguration);
     mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(mConfiguration);

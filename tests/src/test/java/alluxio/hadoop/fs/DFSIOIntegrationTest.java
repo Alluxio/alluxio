@@ -220,7 +220,7 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.getConf().set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
 
     // Store TachyonConf in Hadoop Configuration
-    Configuration configuration = sLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    Configuration configuration = sLocalAlluxioClusterResource.get().getMasterConf();
     ConfUtils.storeToHadoopConfiguration(configuration, sBench.getConf());
 
     org.apache.hadoop.fs.FileSystem fs =
