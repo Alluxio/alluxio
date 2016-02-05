@@ -30,18 +30,18 @@ import alluxio.worker.AlluxioWorker;
 import alluxio.worker.WorkerContext;
 
 /**
- * Local Tachyon cluster for integration tests.
+ * Local Alluxio cluster for integration tests.
  *
  * Example to use
  * <pre>
  * // Create a cluster instance
- * localTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES,
+ * localAlluxioCluster = new LocalAlluxioCluster(WORKER_CAPACITY_BYTES,
  *     QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
  * // If you have special conf parameter to set for integration tests:
- * TachyonConf testConf = localTachyonCluster.newTestConf();
+ * Configuration testConf = localAlluxioCluster.newTestConf();
  * testConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
  * // After setting up the test conf, start this local cluster:
- * localTachyonCluster.start(testConf);
+ * localAlluxioCluster.start(testConf);
  * </pre>
  */
 @NotThreadSafe
@@ -88,10 +88,10 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   /**
-   * @return the home path to Tachyon
+   * @return the home path to Alluxio
    */
-  public String getTachyonHome() {
-    return mTachyonHome;
+  public String getAlluxioHome() {
+    return mHome;
   }
 
   /**
@@ -102,9 +102,9 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   /**
-   * @return the configuration for Tachyon
+   * @return the configuration for Alluxio
    */
-  public Configuration getWorkerTachyonConf() {
+  public Configuration getWorkerConf() {
     return mWorkerConf;
   }
 
@@ -120,7 +120,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     mMasterConf = new Configuration(testConf.getInternalProperties());
     MasterContext.reset(mMasterConf);
 
-    mMaster = LocalAlluxioMaster.create(mTachyonHome);
+    mMaster = LocalAlluxioMaster.create(mHome);
     mMaster.start();
 
     // Update the test conf with actual RPC port.
@@ -151,7 +151,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   @Override
   public void stopTFS() throws Exception {
-    LOG.info("stop Tachyon filesystem");
+    LOG.info("stop Alluxio filesystem");
 
     // Stopping Worker before stopping master speeds up tests
     mWorker.stop();

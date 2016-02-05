@@ -32,7 +32,7 @@ public final class StreamOptionUtils {
   /**
    * Gets CacheThrough {@link CreateFileOptions}
    *
-   * @param conf the Tachyon config
+   * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsCacheThrough(Configuration conf) {
@@ -42,7 +42,7 @@ public final class StreamOptionUtils {
   /**
    * Gets MustCache {@link CreateFileOptions}
    *
-   * @param conf the Tachyon config
+   * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsMustCache(Configuration conf) {
@@ -52,7 +52,7 @@ public final class StreamOptionUtils {
   /**
    * Gets Through {@link CreateFileOptions}
    *
-   * @param conf the Tachyon config
+   * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsThrough(Configuration conf) {
@@ -62,7 +62,7 @@ public final class StreamOptionUtils {
   /**
    * Gets WriteLocal {@link CreateFileOptions}
    *
-   * @param conf the Tachyon config
+   * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsWriteLocal(Configuration conf) {
@@ -73,7 +73,7 @@ public final class StreamOptionUtils {
   /**
    * Gets ReadCache {@link OpenFileOptions}
    *
-   * @param conf the Tachyon config
+   * @param conf the Alluxio config
    * @return the {@link OpenFileOptions}
    */
   public static OpenFileOptions getOpenFileOptionsCache(Configuration conf) {
@@ -83,7 +83,7 @@ public final class StreamOptionUtils {
   /**
    * Gets ReadNoCache {@link OpenFileOptions}
    *
-   * @param conf the Tachyon config
+   * @param conf the Alluxio config
    * @return the {@link OpenFileOptions}
    */
   public static OpenFileOptions getOpenFileOptionsNoCache(Configuration conf) {
@@ -93,7 +93,7 @@ public final class StreamOptionUtils {
   /**
    * Gets AsyncWrite {@link CreateFileOptions}.
    *
-   * @param conf the Tachyon config
+   * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsAsync(Configuration conf) {

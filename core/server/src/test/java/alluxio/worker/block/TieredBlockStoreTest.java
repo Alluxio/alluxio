@@ -76,7 +76,7 @@ public final class TieredBlockStoreTest {
   @Before
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
-    TieredBlockStoreTestUtils.setupTachyonConfDefault(tempFolder.getAbsolutePath());
+    TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
     mBlockStore = new TieredBlockStore();
 
     // TODO(bin): Avoid using reflection to get private members.

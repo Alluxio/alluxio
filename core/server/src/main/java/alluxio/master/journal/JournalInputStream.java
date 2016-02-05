@@ -27,7 +27,7 @@ public interface JournalInputStream {
   /**
    * @return the next {@link JournalEntry} in the stream, null if the are no more entries in the
    *         stream
-   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws IOException if a non-Alluxio related exception occurs
    */
   JournalEntry getNextEntry() throws IOException;
 

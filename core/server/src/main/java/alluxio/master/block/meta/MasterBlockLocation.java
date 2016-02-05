@@ -18,11 +18,11 @@ package alluxio.master.block.meta;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The location of a Tachyon block.
+ * The location of a Alluxio block.
  */
 @ThreadSafe
 public final class MasterBlockLocation {
-  /** The id of the Tachyon worker. */
+  /** The id of the Alluxio worker. */
   private final long mWorkerId;
   /** The tier alias that the block is on in this worker. */
   private final String mTierAlias;

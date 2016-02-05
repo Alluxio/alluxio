@@ -71,7 +71,7 @@ public class RmCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void rmWildCardTest() throws IOException, AlluxioException {
-    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     mFsShell.run("rm", "/testWildCards/foo/foo*");
     Assert.assertFalse(fileExist(new AlluxioURI("/testWildCards/foo/foobar1")));

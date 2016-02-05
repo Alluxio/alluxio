@@ -39,7 +39,7 @@ public class FileInfoCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void fileinfoWildCardTest() throws IOException, AlluxioException {
-    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     mFsShell.run("fileInfo", "/testWildCards/*");
     String res1 = mOutput.toString();

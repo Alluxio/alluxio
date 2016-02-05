@@ -70,7 +70,7 @@ public abstract class UnderFileSystemCluster {
    * Creates an underfs test bed and register the shutdown hook.
    *
    * @param baseDir base directory
-   * @param configuration Tachyon configuration
+   * @param configuration Alluxio configuration
    * @throws IOException when the operation fails
    * @return an instance of the UnderFileSystemCluster class
    */
@@ -92,7 +92,7 @@ public abstract class UnderFileSystemCluster {
    * Gets the {@link UnderFileSystemCluster}.
    *
    * @param baseDir the base directory
-   * @param configuration the configuration for Tachyon
+   * @param configuration the configuration for Alluxio
    * @return the {@link UnderFileSystemCluster}
    */
   public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir,
@@ -134,7 +134,7 @@ public abstract class UnderFileSystemCluster {
 
   /**
    * @param baseDir the base directory
-   * @param configuration the configuration for Tachyon
+   * @param configuration the configuration for Alluxio
    */
   public UnderFileSystemCluster(String baseDir, Configuration configuration) {
     mBaseDir = baseDir;

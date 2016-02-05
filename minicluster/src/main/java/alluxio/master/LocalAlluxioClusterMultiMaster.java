@@ -35,7 +35,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.worker.WorkerContext;
 
 /**
- * A local Tachyon cluster with multiple masters.
+ * A local Alluxio cluster with multiple masters.
  */
 @NotThreadSafe
 public class LocalAlluxioClusterMultiMaster extends AbstractLocalAlluxioCluster {
@@ -188,7 +188,7 @@ public class LocalAlluxioClusterMultiMaster extends AbstractLocalAlluxioCluster 
     MasterContext.reset(mMasterConf);
 
     for (int k = 0; k < mNumOfMasters; k ++) {
-      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mTachyonHome);
+      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mHome);
       master.start();
       LOG.info("master NO.{} started, isServing: {}, address: {}", k, master.isServing(),
           master.getAddress());
@@ -197,7 +197,7 @@ public class LocalAlluxioClusterMultiMaster extends AbstractLocalAlluxioCluster 
       mMasterConf.set(Constants.MASTER_RPC_PORT, "0");
     }
 
-    // Create the UFS directory after LocalTachyonMaster construction, because LocalTachyonMaster
+    // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster
     // sets UNDERFS_ADDRESS.
     mkdir(mMasterConf.get(Constants.UNDERFS_ADDRESS));
 

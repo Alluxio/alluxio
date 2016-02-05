@@ -49,7 +49,7 @@ public final class LoginModuleConfiguration extends Configuration {
   private static final AppConfigurationEntry APP_LOGIN = new AppConfigurationEntry(
       AppLoginModule.class.getName(), LoginModuleControlFlag.SUFFICIENT, EMPTY_JAAS_OPTIONS);
 
-  /** Login module that allows a user name provided by a Alluxio specific login module. */
+  /** Login module that allows a user name provided by an Alluxio specific login module. */
   private static final AppConfigurationEntry ALLUXIO_LOGIN = new AppConfigurationEntry(
       AlluxioLoginModule.class.getName(), LoginModuleControlFlag.REQUIRED, EMPTY_JAAS_OPTIONS);
 
@@ -57,9 +57,9 @@ public final class LoginModuleConfiguration extends Configuration {
   // private static final AppConfigurationEntry KERBEROS_LOGIN = ...
 
   /**
-   * In {@link AuthType#SIMPLE} mode, JAAS first tries to retrieve the user name set by the
+   * In the {@link AuthType#SIMPLE} mode, JAAS first tries to retrieve the user name set by the
    * application with {@link AppLoginModule}. Upon failure, it uses the OS specific login module to
-   * fetch the OS user, and then uses the {@link AlluxioLoginModule} to convert it to a Alluxio user
+   * fetch the OS user, and then uses {@link AlluxioLoginModule} to convert it to an Alluxio user
    * represented by {@link User}. In {@link AuthType#CUSTOM} mode, we also use this configuration.
    */
   private static final AppConfigurationEntry[] SIMPLE =

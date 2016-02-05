@@ -80,7 +80,7 @@ public final class StorageDirTest {
     String[] testDirPaths = {mTestDirPath};
     long[] testDirCapacity = {1};
 
-    TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_ORDINAL, "MEM",
+    TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL, "MEM",
         testDirPaths, testDirCapacity, "");
 
     mTier = StorageTier.newStorageTier("MEM");

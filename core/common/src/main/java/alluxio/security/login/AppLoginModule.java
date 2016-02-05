@@ -103,12 +103,12 @@ public final class AppLoginModule implements LoginModule {
    * implementation first checks if there is already Alluxio user in the subject. If not, it adds
    * the previously logged in Alluxio user into the subject.
    *
-   * @return true if a Alluxio user if found or created
+   * @return true if an Alluxio user if found or created
    * @throws LoginException not Alluxio user is found or created
    */
   @Override
   public boolean commit() throws LoginException {
-    // if there is already a Alluxio user, it's done.
+    // if there is already an Alluxio user, it's done.
     if (!mSubject.getPrincipals(User.class).isEmpty()) {
       return true;
     }

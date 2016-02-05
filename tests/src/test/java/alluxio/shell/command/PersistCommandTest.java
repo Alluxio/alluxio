@@ -51,7 +51,7 @@ public class PersistCommandTest extends AbstractAlluxioShellTest {
   public void persistDirectoryTest() throws IOException, AlluxioException {
     // Set the default write type to MUST_CACHE, so that directories are not persisted by default
     ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/testWildCards")).isPersisted());
     Assert
         .assertFalse(mFileSystem.getStatus(new AlluxioURI("/testWildCards/foo")).isPersisted());

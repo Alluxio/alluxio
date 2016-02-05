@@ -57,14 +57,14 @@ import alluxio.web.MasterUIWebServer;
 import alluxio.web.UIWebServer;
 
 /**
- * Entry point for the Tachyon master program.
+ * Entry point for the Alluxio master program.
  */
 @NotThreadSafe
 public class AlluxioMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Starts the Tachyon master server via {@code java -cp <TACHYON-VERSION> alluxio.Master}.
+   * Starts the Alluxio master server via {@code java -cp <ALLUXIO-VERSION> alluxio.Master}.
    *
    * @param args there are no arguments used
    */
@@ -180,8 +180,8 @@ public class AlluxioMaster {
   @ThreadSafe
   public static final class Factory {
     /**
-     * @return {@link FaultTolerantAlluxioMaster} if tachyonConf is set to use zookeeper, otherwise,
-     *         return {@link AlluxioMaster}.
+     * @return {@link FaultTolerantAlluxioMaster} if Alluxio configuration is set to use zookeeper,
+     *         otherwise, return {@link AlluxioMaster}.
      */
     public static AlluxioMaster create() {
       if (MasterContext.getConf().getBoolean(Constants.ZOOKEEPER_ENABLED)) {
@@ -228,7 +228,7 @@ public class AlluxioMaster {
         journalDirectory += AlluxioURI.SEPARATOR;
       }
       Preconditions.checkState(isJournalFormatted(journalDirectory),
-          "Tachyon was not formatted! The journal folder is " + journalDirectory);
+          "Alluxio was not formatted! The journal folder is " + journalDirectory);
 
       // Create the journals.
       mBlockMasterJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(journalDirectory));
@@ -317,7 +317,7 @@ public class AlluxioMaster {
   }
 
   /**
-   * @return the millisecond when Tachyon Master starts serving, return -1 when not started
+   * @return the millisecond when Alluxio Master starts serving, return -1 when not started
    */
   public long getStarttimeMs() {
     return mStartTimeMs;
@@ -331,7 +331,7 @@ public class AlluxioMaster {
   }
 
   /**
-   * Starts the Tachyon master server.
+   * Starts the Alluxio master server.
    *
    * @throws Exception if starting the master fails
    */
@@ -341,19 +341,19 @@ public class AlluxioMaster {
   }
 
   /**
-   * Stops the Tachyon master server.
+   * Stops the Alluxio master server.
    *
    * @throws Exception if stopping the master fails
    */
   public void stop() throws Exception {
     if (mIsServing) {
-      LOG.info("Stopping RPC server on Tachyon Master @ {}", mMasterAddress);
+      LOG.info("Stopping RPC server on Alluxio Master @ {}", mMasterAddress);
       stopServing();
       stopMasters();
       mTServerSocket.close();
       mIsServing = false;
     } else {
-      LOG.info("Stopping Tachyon Master @ {}", mMasterAddress);
+      LOG.info("Stopping Alluxio Master @ {}", mMasterAddress);
     }
   }
 
@@ -401,10 +401,10 @@ public class AlluxioMaster {
   protected void startServing(String startMessage, String stopMessage) {
     mMasterMetricsSystem.start();
     startServingWebServer();
-    LOG.info("Tachyon Master version {} started @ {} {}", Version.VERSION, mMasterAddress,
+    LOG.info("Alluxio Master version {} started @ {} {}", Version.VERSION, mMasterAddress,
         startMessage);
     startServingRPCServer();
-    LOG.info("Tachyon Master version {} ended @ {} {}", Version.VERSION, mMasterAddress,
+    LOG.info("Alluxio Master version {} ended @ {} {}", Version.VERSION, mMasterAddress,
         stopMessage);
   }
 

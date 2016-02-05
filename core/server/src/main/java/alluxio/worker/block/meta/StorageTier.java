@@ -58,7 +58,7 @@ public final class StorageTier {
     String[] dirPaths = WorkerContext.getConf().get(tierDirPathConf).split(",");
 
     // Add the worker data folder path after each storage directory, the final path will be like
-    // /mnt/ramdisk/tachyonworker
+    // /mnt/ramdisk/alluxioworker
     for (int i = 0; i < dirPaths.length; i ++) {
       dirPaths[i] = PathUtils.concatPath(dirPaths[i].trim(), workerDataFolder);
     }

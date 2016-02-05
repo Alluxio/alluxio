@@ -190,7 +190,7 @@ public final class BlockWorker extends WorkerBase {
    * Runs the block worker. The thread must be called after all services (e.g., web, dataserver)
    * started.
    *
-   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws IOException if a non-Alluxio related exception occurs
    */
   @Override
   public void start() throws IOException {
@@ -302,7 +302,7 @@ public final class BlockWorker extends WorkerBase {
   }
 
   /**
-   * Commits a block to Tachyon managed space. The block must be temporary. The block is persisted
+   * Commits a block to Alluxio managed space. The block must be temporary. The block is persisted
    * after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible until
    * {@link BlockMasterClient#commitBlock(long, long, String, long, long)} succeeds.
    *
@@ -340,7 +340,7 @@ public final class BlockWorker extends WorkerBase {
   }
 
   /**
-   * Creates a block in Tachyon managed space. The block will be temporary until it is committed.
+   * Creates a block in Alluxio managed space. The block will be temporary until it is committed.
    * Throws an {@link IllegalArgumentException} if the location does not belong to tiered storage.
    *
    * @param sessionId the id of the client
@@ -533,7 +533,7 @@ public final class BlockWorker extends WorkerBase {
   }
 
   /**
-   * Frees a block from Tachyon managed space.
+   * Frees a block from Alluxio managed space.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be freed

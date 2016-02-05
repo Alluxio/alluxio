@@ -31,7 +31,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.util.io.PathUtils;
 
 /**
- * This class is used for keeping track of Tachyon mount points.
+ * This class is used for keeping track of Alluxio mount points.
  */
 @ThreadSafe
 public final class MountTable {
@@ -50,32 +50,32 @@ public final class MountTable {
   }
 
   /**
-   * Mounts the given UFS path at the given Tachyon path. The Tachyon path should not be nested
+   * Mounts the given UFS path at the given Alluxio path. The Alluxio path should not be nested
    * under an existing mount point.
    *
-   * @param alluxioUri a Tachyon path URI
+   * @param alluxioUri a Alluxio path URI
    * @param ufsUri a UFS path URI
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    */
   public synchronized void add(AlluxioURI alluxioUri, AlluxioURI ufsUri)
       throws FileAlreadyExistsException, InvalidPathException {
-    String tachyonPath = alluxioUri.getPath();
-    LOG.info("Mounting {} at {}", ufsUri, tachyonPath);
-    if (mMountTable.containsKey(tachyonPath)) {
+    String alluxioPath = alluxioUri.getPath();
+    LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
+    if (mMountTable.containsKey(alluxioPath)) {
       throw new FileAlreadyExistsException(
-          ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(tachyonPath));
+          ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
     }
-    // Check all non-root mount points, to check if they're a prefix of the tachyonPath we're trying
+    // Check all non-root mount points, to check if they're a prefix of the alluxioPath we're trying
     // to mount. Also make sure that the ufs path we're trying to mount is not a prefix or suffix of
     // any existing mount path.
     for (Map.Entry<String, AlluxioURI> entry : mMountTable.entrySet()) {
-      String mountedTachyonPath = entry.getKey();
+      String mountedAlluxioPath = entry.getKey();
       AlluxioURI mountedUfsUri = entry.getValue();
-      if (!mountedTachyonPath.equals(ROOT)
-          && PathUtils.hasPrefix(tachyonPath, mountedTachyonPath)) {
+      if (!mountedAlluxioPath.equals(ROOT)
+          && PathUtils.hasPrefix(alluxioPath, mountedAlluxioPath)) {
         throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage(
-            mountedTachyonPath, tachyonPath));
+            mountedAlluxioPath, alluxioPath));
       } else if ((ufsUri.getScheme() == null || ufsUri.getScheme()
           .equals(mountedUfsUri.getScheme()))
           && (ufsUri.getAuthority() == null || ufsUri.getAuthority().equals(
@@ -91,13 +91,13 @@ public final class MountTable {
         }
       }
     }
-    mMountTable.put(tachyonPath, ufsUri);
+    mMountTable.put(alluxioPath, ufsUri);
   }
 
   /**
-   * Unmounts the given Tachyon path. The path should match an existing mount point.
+   * Unmounts the given Alluxio path. The path should match an existing mount point.
    *
-   * @param uri a Tachyon path URI
+   * @param uri a Alluxio path URI
    * @return whether the operation succeeded or not
    */
   public synchronized boolean delete(AlluxioURI uri) {
@@ -118,18 +118,18 @@ public final class MountTable {
   /**
    * Returns the mount point the given path is nested under.
    *
-   * @param uri a Tachyon path URI
-   * @return mount point the given Tachyon path is nested under
+   * @param uri a Alluxio path URI
+   * @return mount point the given Alluxio path is nested under
    * @throws InvalidPathException if an invalid path is encountered
    */
   public synchronized String getMountPoint(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
     String mountPoint = null;
     for (Map.Entry<String, AlluxioURI> entry : mMountTable.entrySet()) {
-      String tachyonPath = entry.getKey();
-      if (PathUtils.hasPrefix(path, tachyonPath)
-          && (mountPoint == null || PathUtils.hasPrefix(tachyonPath, mountPoint))) {
-        mountPoint = tachyonPath;
+      String alluxioPath = entry.getKey();
+      if (PathUtils.hasPrefix(path, alluxioPath)
+          && (mountPoint == null || PathUtils.hasPrefix(alluxioPath, mountPoint))) {
+        mountPoint = alluxioPath;
       }
     }
     return mountPoint;
@@ -138,19 +138,19 @@ public final class MountTable {
   /**
    * Returns in indication of whether the given path is a mount point.
    *
-   * @param uri a Tachyon path URI
-   * @return mount point the given Tachyon path is nested under
+   * @param uri a Alluxio path URI
+   * @return mount point the given Alluxio path is nested under
    */
   public synchronized boolean isMountPoint(AlluxioURI uri) {
     return mMountTable.containsKey(uri.getPath());
   }
 
   /**
-   * Resolves the given Tachyon path. If the given Tachyon path is nested under a mount point, the
-   * resolution maps the Tachyon path to the corresponding UFS path. Otherwise, the resolution is a
+   * Resolves the given Alluxio path. If the given Alluxio path is nested under a mount point, the
+   * resolution maps the Alluxio path to the corresponding UFS path. Otherwise, the resolution is a
    * no-op.
    *
-   * @param uri a Tachyon path URI
+   * @param uri a Alluxio path URI
    * @return the resolved path
    * @throws InvalidPathException if an invalid path is encountered
    */

@@ -58,7 +58,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
           Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
 
   protected CreateFileOptions mWriteBoth;
-  protected CreateFileOptions mWriteTachyon;
+  protected CreateFileOptions mWriteAlluxio;
   protected CreateFileOptions mWriteLocal;
   protected CreateFileOptions mWriteAsync;
   protected CreateFileOptions mWriteUnderStore;
@@ -68,9 +68,9 @@ public abstract class AbstractFileOutStreamIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    mTestConf = mLocalAlluxioClusterResource.get().getWorkerTachyonConf();
+    mTestConf = mLocalAlluxioClusterResource.get().getWorkerConf();
     mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(mTestConf);
-    mWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(mTestConf);
+    mWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache(mTestConf);
     mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(mTestConf);
     mWriteLocal = StreamOptionUtils.getCreateFileOptionsWriteLocal(mTestConf);
     mWriteAsync = StreamOptionUtils.getCreateFileOptionsAsync(mTestConf);
@@ -119,7 +119,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
   protected List<CreateFileOptions> getOptionSet() {
     List<CreateFileOptions> ret = new ArrayList<CreateFileOptions>(3);
     ret.add(mWriteBoth);
-    ret.add(mWriteTachyon);
+    ret.add(mWriteAlluxio);
     ret.add(mWriteUnderStore);
     return ret;
   }

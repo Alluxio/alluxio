@@ -38,7 +38,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.ThriftUtils;
 
 /**
- * A wrapper for the thrift client to interact with the file system master, used by Tachyon worker.
+ * A wrapper for the thrift client to interact with the file system master, used by Alluxio worker.
  * <p/>
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
@@ -53,7 +53,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Creates a instance of {@link FileSystemMasterClient}.
    *
    * @param masterAddress the master address
-   * @param configuration the Tachyon configuration
+   * @param configuration the Alluxio configuration
    */
   public FileSystemMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
     super(masterAddress, configuration);
@@ -82,7 +82,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * @param fileId the id of the file for which to get the {@link FileInfo}
    * @return the file info for the given file id
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized FileInfo getFileInfo(final long fileId) throws AlluxioException, IOException {
