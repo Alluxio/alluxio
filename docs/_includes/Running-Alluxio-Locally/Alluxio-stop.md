@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon-stop.sh all
+$ ./bin/alluxio-stop.sh all
 ```

@@ -1,3 +1,3 @@
 ```bash
-$ /tachyon/bin/tachyon runTests
+$ /alluxio/bin/alluxio runTests
 ```

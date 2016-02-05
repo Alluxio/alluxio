@@ -1,7 +1,7 @@
 ```xml
 <dependency>
-  <groupId>org.tachyonproject</groupId>
-  <artifactId>tachyon-client</artifactId>
+  <groupId>org.alluxioproject</groupId>
+  <artifactId>alluxio-client</artifactId>
   <version>{{site.TACHYON_RELEASED_VERSION}}</version>
 </dependency>
 ```

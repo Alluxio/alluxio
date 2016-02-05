@@ -1,1 +1,1 @@
-    -Dtest.output.redirect=false -Dtachyon.root.logger=DEBUG,CONSOLE
+    -Dtest.output.redirect=false -Dalluxio.root.logger=DEBUG,CONSOLE

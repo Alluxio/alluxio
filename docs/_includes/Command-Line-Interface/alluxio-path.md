@@ -1,1 +1,1 @@
-    tachyon://<master node address>:<master node port>/<path>
+    alluxio://<master node address>:<master node port>/<path>

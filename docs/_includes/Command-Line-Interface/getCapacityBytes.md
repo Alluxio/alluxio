@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs getCapacityBytes
+$ ./bin/alluxio tfs getCapacityBytes
 ```

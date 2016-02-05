@@ -1,4 +1,4 @@
 ```bash
-$ cd tachyon
-$ ./bin/tachyon bootstrap-conf <tachyon_master_hostname>
+$ cd alluxio
+$ ./bin/alluxio bootstrap-conf <alluxio_master_hostname>
 ```

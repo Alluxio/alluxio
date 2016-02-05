@@ -1,3 +1,3 @@
 ```bash
-$ bin/tachyon-fuse.sh mount <mount_point>
+$ bin/alluxio-fuse.sh mount <mount_point>
 ```

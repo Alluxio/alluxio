@@ -1,3 +1,3 @@
-    -Dtachyon.underfs.s3.proxy.host=<PROXY_HOST>
-    -Dtachyon.underfs.s3.proxy.port=<PROXY_PORT>
-    -Dtachyon.underfs.s3.proxy.https.only=<USE_HTTPS?>
+    -Dalluxio.underfs.s3.proxy.host=<PROXY_HOST>
+    -Dalluxio.underfs.s3.proxy.port=<PROXY_PORT>
+    -Dalluxio.underfs.s3.proxy.https.only=<USE_HTTPS?>
