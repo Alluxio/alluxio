@@ -32,7 +32,7 @@ import com.codahale.metrics.MetricRegistry;
 import tachyon.master.TachyonMaster;
 
 /**
- * Servlet that provides data for viewing the metrics values
+ * Servlet that provides data for viewing the master metrics values
  */
 @ThreadSafe
 public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstractMetricsServlet {

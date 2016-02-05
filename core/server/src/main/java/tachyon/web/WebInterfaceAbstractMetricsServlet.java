@@ -43,13 +43,12 @@ public abstract class WebInterfaceAbstractMetricsServlet extends HttpServlet {
   }
 
   /**
-   * Populates key, value pairs for UI display.
+   * Populates operation metrics for displaying in the UI
    *
    * @param request The {@link HttpServletRequest} object
-   * @throws IOException if an I/O error occurs
    */
   protected void populateCountersValues(Map<String, Metric> operations,
-      Map<String, Counter> rpcInvocations, HttpServletRequest request) throws IOException {
+      Map<String, Counter> rpcInvocations, HttpServletRequest request){
 
     for (Map.Entry<String, Metric> entry : operations.entrySet()) {
       if (entry.getValue() instanceof Gauge) {
