@@ -1,3 +1,3 @@
 ```bash
-export TACHYON_UNDERFS_ADDRESS=swift://<swift-containter>
+export ALLUXIO_UNDERFS_ADDRESS=swift://<swift-containter>
 ```
