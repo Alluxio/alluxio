@@ -426,57 +426,103 @@ public class PermissionCheckTest {
   }
 
   @Test
-  public void getFileIdSuccessTest() throws Exception {
-    verifyGetFileId(TEST_USER_1, TEST_DIR_FILE_URI);
-    verifyGetFileId(TEST_USER_1, TEST_DIR_URI);
-    verifyGetFileId(TEST_USER_1, TEST_FILE_URI);
+  public void readSuccessTest() throws Exception {
+    verifyRead(TEST_USER_1, TEST_DIR_FILE_URI, true);
+    verifyRead(TEST_USER_1, TEST_DIR_URI, false);
+    verifyRead(TEST_USER_1, TEST_FILE_URI, true);
 
-    verifyGetFileId(TEST_USER_2, TEST_DIR_FILE_URI);
+    verifyRead(TEST_USER_2, TEST_DIR_FILE_URI, true);
   }
 
   @Test
-  public void readFileFailTest() throws Exception {
+  public void readFileIdFailTest() throws Exception {
+    String file = createUnreadableFileOrDir(true);
+
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file, "onlyReadByUser1")));
+    verifyGetFileId(TEST_USER_2, file);
+  }
+
+  @Test
+  public void readFileInfoFailTest() throws Exception {
+    String file = createUnreadableFileOrDir(true);
+
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file, "onlyReadByUser1")));
+    verifyGetFileInfoOrList(TEST_USER_2, file, true);
+  }
+
+  @Test
+  public void readDirIdFailTest() throws Exception {
+    String dir = createUnreadableFileOrDir(false);
+
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, dir, "onlyReadByUser1")));
+    verifyGetFileId(TEST_USER_2, dir);
+  }
+
+  @Test
+  public void readDirInfoFailTest() throws Exception {
+    String dir = createUnreadableFileOrDir(false);
+
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, dir, "onlyReadByUser1")));
+    verifyGetFileInfoOrList(TEST_USER_2, dir, false);
+  }
+
+  private String createUnreadableFileOrDir(boolean isFile) throws Exception {
     // set unmask
     TachyonConf conf = MasterContext.getConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
     MasterContext.reset(conf);
 
-    // read file "/onlyReadByUser1" [user1, group1, -rw-------]
-    String file = "/onlyReadByUser1";
-    verifyCreate(TEST_USER_1, file, false);
-    verifyGetFileId(TEST_USER_1, file);
-
-    mThrown.expect(AccessControlException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file,
-            "onlyReadByUser1")));
-    verifyGetFileId(TEST_USER_2, file);
+    String fileOrDir = PathUtils.concatPath(TEST_DIR_URI, "/onlyReadByUser1");
+    if (isFile) {
+      // create file "/testDir/onlyReadByUser1" [user1, group1, -rw-------]
+      verifyCreate(TEST_USER_1, fileOrDir, false);
+      verifyRead(TEST_USER_1, fileOrDir, true);
+    } else {
+      // create dir "/testDir/onlyReadByUser1" [user1, group1, drwx--x--x]
+      verifyMkdir(TEST_USER_1, fileOrDir, false);
+      verifyRead(TEST_USER_1, fileOrDir, false);
+    }
+    return fileOrDir;
   }
 
-  @Test
-  public void readDirFailTest() throws Exception {
-    // set unmask
-    TachyonConf conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
-    MasterContext.reset(conf);
+  private void verifyRead(TestUser user, String path, boolean isFile) throws Exception {
+    verifyGetFileId(user, path);
+    verifyGetFileInfoOrList(user, path, isFile);
+  }
 
-    // read dir "/testDir/testSubDir" [user1, group1, drwx--x--x]
-    String file = TEST_DIR_URI + "/testSubDir";
-    verifyMkdir(TEST_USER_1, file, false);
-    verifyGetFileId(TEST_USER_1, file);
+  private void verifyGetFileId(TestUser user, String path) throws Exception {
+    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
+    long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
+    Assert.assertNotEquals(-1, fileId);
+  }
 
-    mThrown.expect(AccessControlException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file,
-            "testSubDir")));
-    verifyGetFileId(TEST_USER_2, file);
+  private void verifyGetFileInfoOrList(TestUser user, String path,
+      boolean isFile) throws Exception {
+    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
+    if (isFile) {
+      Assert.assertEquals(path, mFileSystemMaster.getFileInfo(new TachyonURI(path)).getPath());
+      Assert.assertEquals(1, mFileSystemMaster.getFileInfoList(new TachyonURI(path)).size());
+    } else {
+      List<FileInfo> fileInfoList = mFileSystemMaster.getFileInfoList(new TachyonURI(path));
+      if (fileInfoList.size() > 0) {
+        Assert.assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
+      }
+    }
   }
 
   @Test
   public void setStateSuccessTest() throws Exception {
     // set unmask
     TachyonConf conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "000");
     MasterContext.reset(conf);
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
@@ -628,13 +674,6 @@ public class PermissionCheckTest {
   private void verifyFree(TestUser user, String path, boolean recursive) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
     mFileSystemMaster.free(new TachyonURI(path), recursive);
-  }
-
-  private void verifyGetFileId(TestUser user, String path) throws Exception {
-    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
-    long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
-
-    Assert.assertNotEquals(-1, fileId);
   }
 
   @Test
