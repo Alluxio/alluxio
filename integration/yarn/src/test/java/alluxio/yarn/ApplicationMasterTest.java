@@ -90,9 +90,9 @@ public class ApplicationMasterTest {
 
   static {
     EXPECTED_LOCAL_RESOURCES.put(
-        (String) Whitebox.getInternalState(ApplicationMaster.class, "TACHYON_TARBALL"),
+        (String) Whitebox.getInternalState(ApplicationMaster.class, "ALLUXIO_TARBALL"),
         Records.newRecord(LocalResource.class));
-    EXPECTED_LOCAL_RESOURCES.put(YarnUtils.TACHYON_SETUP_SCRIPT,
+    EXPECTED_LOCAL_RESOURCES.put(YarnUtils.ALLUXIO_SETUP_SCRIPT,
         Records.newRecord(LocalResource.class));
   }
 
@@ -102,9 +102,9 @@ public class ApplicationMasterTest {
   private static final Map<String, String> EXPECTED_WORKER_ENVIRONMENT =
       ImmutableMap.<String, String>builder()
           .put("CLASSPATH", ENV_CLASSPATH)
-          .put("TACHYON_HOME", ApplicationConstants.Environment.PWD.$())
-          .put("TACHYON_MASTER_ADDRESS", "masterAddress")
-          .put("TACHYON_WORKER_MEMORY_SIZE", Integer.toString(RAMDISK_MEM_MB) + ".00MB")
+          .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
+          .put("ALLUXIO_MASTER_ADDRESS", "masterAddress")
+          .put("ALLUXIO_WORKER_MEMORY_SIZE", Integer.toString(RAMDISK_MEM_MB) + ".00MB")
           .build();
   private static final ContainerLaunchContext EXPECTED_WORKER_CONTEXT =
       ContainerLaunchContext.newInstance(EXPECTED_LOCAL_RESOURCES, EXPECTED_WORKER_ENVIRONMENT,
@@ -113,7 +113,7 @@ public class ApplicationMasterTest {
   private static final Map<String, String> EXPECTED_MASTER_ENVIRONMENT =
       ImmutableMap.<String, String>builder()
           .put("CLASSPATH", ENV_CLASSPATH)
-          .put("TACHYON_HOME", ApplicationConstants.Environment.PWD.$())
+          .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
           .build();
   private static final ContainerLaunchContext EXPECTED_MASTER_CONTEXT =
       ContainerLaunchContext.newInstance(EXPECTED_LOCAL_RESOURCES, EXPECTED_MASTER_ENVIRONMENT,
@@ -161,9 +161,9 @@ public class ApplicationMasterTest {
     Mockito.when(
         YarnUtils.createLocalResourceOfFile(Mockito.<YarnConfiguration>any(), Mockito.anyString()))
         .thenReturn(Records.newRecord(LocalResource.class));
-    Mockito.when(YarnUtils.buildCommand(YarnContainerType.TACHYON_MASTER))
+    Mockito.when(YarnUtils.buildCommand(YarnContainerType.ALLUXIO_MASTER))
         .thenReturn(EXPECTED_MASTER_COMMAND);
-    Mockito.when(YarnUtils.buildCommand(YarnContainerType.TACHYON_WORKER))
+    Mockito.when(YarnUtils.buildCommand(YarnContainerType.ALLUXIO_WORKER))
         .thenReturn(EXPECTED_WORKER_COMMAND);
 
     mMaster.start();
@@ -376,10 +376,10 @@ public class ApplicationMasterTest {
   }
 
   /**
-   * Tests that the Tachyon master container is launched properly.
+   * Tests that the Alluxio master container is launched properly.
    */
   @Test
-  public void launchTachyonMasterContainersTest() throws Exception {
+  public void launchAlluxioMasterContainersTest() throws Exception {
     Container mockContainer = Mockito.mock(Container.class);
     Mockito.when(mockContainer.getNodeHttpAddress()).thenReturn("1.2.3.4:8042");
 
@@ -392,10 +392,10 @@ public class ApplicationMasterTest {
   }
 
   /**
-   * Tests that the Tachyon worker containers are launched properly.
+   * Tests that the Alluxio worker containers are launched properly.
    */
   @Test
-  public void launchTachyonWorkerContainersTest() throws Exception {
+  public void launchAlluxioWorkerContainersTest() throws Exception {
     Container mockContainer1 = Mockito.mock(Container.class);
     Container mockContainer2 = Mockito.mock(Container.class);
     // The containers must be from different hosts because we don't support multiple clients on the

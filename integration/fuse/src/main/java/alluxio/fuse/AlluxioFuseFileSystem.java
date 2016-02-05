@@ -69,13 +69,13 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   private final Configuration mConfiguration;
   private final FileSystem mFileSystem;
-  // base path within Tachyon namespace that is used for FUSE operations
-  // For example, if alluxio-fuse is mounted in /mnt/alluxio and mTachyonRootPath
+  // base path within Alluxio namespace that is used for FUSE operations
+  // For example, if alluxio-fuse is mounted in /mnt/alluxio and mAlluxioRootPath
   // is /users/foo, then an operation on /mnt/alluxio/bar will be translated on
   // an action on the URI alluxio://<master>:<port>/users/foo/bar
-  private final Path mTachyonRootPath;
-  private final String mTachyonMaster;
-  // Keeps a cache of the most recently translated paths from String to TachyonURI
+  private final Path mAlluxioRootPath;
+  private final String mAlluxioMaster;
+  // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
 
   // Table of open files with corresponding InputStreams and OutputStreams
@@ -86,8 +86,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     super();
     mConfiguration = conf;
     mFileSystem = fs;
-    mTachyonMaster = mConfiguration.get(Constants.MASTER_ADDRESS);
-    mTachyonRootPath = Paths.get(opts.getTachyonRoot());
+    mAlluxioMaster = mConfiguration.get(Constants.MASTER_ADDRESS);
+    mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mNextOpenFileId = 0L;
     mOpenFiles = Maps.newHashMap();
 
@@ -96,7 +96,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
 
-    Preconditions.checkArgument(mTachyonRootPath.isAbsolute(),
+    Preconditions.checkArgument(mAlluxioRootPath.isAbsolute(),
         "alluxio root path should be absolute");
   }
 
@@ -114,7 +114,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     // (see {@code man 2 open} for the structure of the flags bitfield)
     // File creation flags are the last two bits of flags
     final int flags = fi.flags.get();
-    LOG.trace("create({}, {}) [Tachyon: {}]", path, Integer.toHexString(flags), turi);
+    LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), turi);
     final int openFlag = flags & 3;
     if (openFlag != O_WRONLY.intValue()) {
       OpenFlags flag = OpenFlags.valueOf(openFlag);
@@ -132,7 +132,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         }
 
         final OpenFileEntry ofe = new OpenFileEntry(null, mFileSystem.createFile(turi));
-        LOG.debug("Tachyon OutStream created for {}", path);
+        LOG.debug("Alluxio OutStream created for {}", path);
         mOpenFiles.put(mNextOpenFileId, ofe);
         fi.fh.set(mNextOpenFileId);
 
@@ -148,7 +148,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       LOG.error("IOException on {}", path, e);
       return -ErrorCodes.EIO();
     } catch (AlluxioException e) {
-      LOG.error("TachyonException on {}", path, e);
+      LOG.error("AlluxioException on {}", path, e);
       return -ErrorCodes.EFAULT();
     } catch (Throwable e) {
       LOG.error("Unexpected exception on {}", path, e);
@@ -159,7 +159,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
-   * Flushes cached data on Tachyon.
+   * Flushes cached data on Alluxio.
    *
    * Called on explicit sync() operation or at close().
    * @param path The path on the FS of the file to close
@@ -199,7 +199,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int getattr(String path, FileStat stat) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
-    LOG.trace("getattr({}) [Tachyon: {}]", path, turi);
+    LOG.trace("getattr({}) [Alluxio: {}]", path, turi);
     try {
       if (!mFileSystem.exists(turi)) {
         return -ErrorCodes.ENOENT();
@@ -243,7 +243,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       LOG.error("IOException on {}", path, e);
       return -ErrorCodes.EIO();
     } catch (AlluxioException e) {
-      LOG.error("TachyonException on {}", path, e);
+      LOG.error("AlluxioException on {}", path, e);
       return -ErrorCodes.EFAULT();
     } catch (Throwable e) {
       LOG.error("Unexpected exception on {}", path, e);
@@ -270,7 +270,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int mkdir(String path, @mode_t long mode) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
-    LOG.trace("mkdir({}) [Tachyon: {}]", path, turi);
+    LOG.trace("mkdir({}) [Alluxio: {}]", path, turi);
     try {
       mFileSystem.createDirectory(turi);
     } catch (FileAlreadyExistsException e) {
@@ -298,7 +298,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    *
    * Note that the open mode <emph>must</emph> be
    * O_RDONLY, otherwise the open will fail. This is due to
-   * the Tachyon "write-once/read-many-times" file model.
+   * the Alluxio "write-once/read-many-times" file model.
    *
    * @param path the FS path of the file to open
    * @param fi FileInfo data structure kept by FUSE
@@ -310,7 +310,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     // (see {@code man 2 open} for the structure of the flags bitfield)
     // File creation flags are the last two bits of flags
     final int flags = fi.flags.get();
-    LOG.trace("open({}, 0x{}) [Tachyon: {}]", path, Integer.toHexString(flags), turi);
+    LOG.trace("open({}, 0x{}) [Alluxio: {}]", path, Integer.toHexString(flags), turi);
 
     if ((flags & 3) != O_RDONLY.intValue()) {
       LOG.error("Files can only be opened in O_RDONLY mode ({})", path);
@@ -347,7 +347,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       LOG.error("IOException on {}", path, e);
       return -ErrorCodes.EIO();
     } catch (AlluxioException e) {
-      LOG.error("TachyonException on {}", path, e);
+      LOG.error("AlluxioException on {}", path, e);
       return -ErrorCodes.EFAULT();
     } catch (Throwable e) {
       LOG.error("Unexpected exception on {}", path, e);
@@ -435,7 +435,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int readdir(String path, Pointer buff, FuseFillDir filter,
       @off_t long offset, FuseFileInfo fi) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
-    LOG.trace("readdir({}) [Tachyon: {}]", path, turi);
+    LOG.trace("readdir({}) [Alluxio: {}]", path, turi);
 
     try {
       if (!mFileSystem.exists(turi)) {
@@ -464,7 +464,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       LOG.error("IOException on {}", path, e);
       return -ErrorCodes.EIO();
     } catch (AlluxioException e) {
-      LOG.error("TachyonException on {}", path, e);
+      LOG.error("AlluxioException on {}", path, e);
       return -ErrorCodes.EFAULT();
     } catch (Throwable e) {
       LOG.error("Unexpected exception on {}", path, e);
@@ -515,7 +515,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int rename(String oldPath, String newPath) {
     final AlluxioURI oldUri = mPathResolverCache.getUnchecked(oldPath);
     final AlluxioURI newUri = mPathResolverCache.getUnchecked(newPath);
-    LOG.trace("rename({}, {}) [Tachyon: {}, {}]", oldPath, newPath, oldUri, newUri);
+    LOG.trace("rename({}, {}) [Alluxio: {}, {}]", oldPath, newPath, oldUri, newUri);
 
     try {
       if (!mFileSystem.exists(oldUri)) {
@@ -564,7 +564,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
-   * Writes a buffer to an open Tachyon file.
+   * Writes a buffer to an open Alluxio file.
    * @param buf The buffer with source data
    * @param size How much data to write from the buffer. The maximum accepted size
    *             for writes is {@link Integer#MAX_VALUE}. Note that current FUSE
@@ -638,7 +638,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       LOG.error("IOException on {}", path, e);
       return -ErrorCodes.EIO();
     } catch (AlluxioException e) {
-      LOG.error("TachyonException on {}", path, e);
+      LOG.error("AlluxioException on {}", path, e);
       return -ErrorCodes.EFAULT();
     } catch (Throwable e) {
       LOG.error("Unexpected exception on {}", path, e);
@@ -656,7 +656,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
-   * Resolves a FUSE path into a TachyonURI and possibly keeps it int cache
+   * Resolves a FUSE path into a {@link AlluxioURI} and possibly keeps it the cache.
    */
   private class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
     @Override
@@ -664,9 +664,9 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       // fusePath is guaranteed to always be an absolute path (i.e., starts
       // with a fwd slash) - relative to the FUSE mount point
       final String relPath = fusePath.substring(1);
-      final Path tpath = mTachyonRootPath.resolve(relPath);
+      final Path tpath = mAlluxioRootPath.resolve(relPath);
 
-      return new AlluxioURI(mTachyonMaster + tpath.toString());
+      return new AlluxioURI(mAlluxioMaster + tpath.toString());
     }
   }
 
