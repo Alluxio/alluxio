@@ -33,7 +33,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 
 /**
- * An example to show to how use Tachyon's API
+ * An example to show to how use Alluxio's API
  */
 public class BasicCheckpoint implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -52,18 +52,18 @@ public class BasicCheckpoint implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    FileSystem tachyonClient = FileSystem.Factory.get();
-    writeFile(tachyonClient);
-    return readFile(tachyonClient);
+    FileSystem fs = FileSystem.Factory.get();
+    writeFile(fs);
+    return readFile(fs);
   }
 
-  private boolean readFile(FileSystem tachyonClient) throws IOException, AlluxioException {
+  private boolean readFile(FileSystem fs) throws IOException, AlluxioException {
     boolean pass = true;
     for (int i = 0; i < mNumFiles; i ++) {
       AlluxioURI filePath = new AlluxioURI(mFileFolder + "/part-" + i);
       LOG.debug("Reading data from {}", filePath);
-      FileInStream is = tachyonClient.openFile(filePath);
-      URIStatus status = tachyonClient.getStatus(filePath);
+      FileInStream is = fs.openFile(filePath);
+      URIStatus status = fs.getStatus(filePath);
       ByteBuffer buf = ByteBuffer.allocate((int) status.getBlockSizeBytes());
       is.read(buf.array());
       buf.order(ByteOrder.nativeOrder());
@@ -75,7 +75,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
     return pass;
   }
 
-  private void writeFile(FileSystem tachyonClient) throws IOException, AlluxioException {
+  private void writeFile(FileSystem fs) throws IOException, AlluxioException {
     for (int i = 0; i < mNumFiles; i ++) {
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
@@ -85,7 +85,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
       buf.flip();
       AlluxioURI filePath = new AlluxioURI(mFileFolder + "/part-" + i);
       LOG.debug("Writing data to {}", filePath);
-      OutputStream os = tachyonClient.createFile(filePath);
+      OutputStream os = fs.createFile(filePath);
       os.write(buf.array());
       os.close();
     }
@@ -93,7 +93,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
 
   /**
    * Example program for using checkpoints.
-   * Usage: {@code java -cp <TACHYON-VERSION> alluxio.examples.BasicCheckpoint <FileFolder> <Files>}
+   * Usage: {@code java -cp <ALLUXIO-VERSION> alluxio.examples.BasicCheckpoint <FileFolder> <Files>}
    *
    * @param args the folder for the files and the files to use
    * @throws IOException if the example fails to run
