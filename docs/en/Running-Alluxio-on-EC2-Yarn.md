@@ -121,12 +121,12 @@ but it makes the build run significantly faster.
 To customize Alluxio master and worker with specific properties (e.g., tiered storage setup on each
 worker), one can refer to [Configuration settings](Configuration-Settings.html) for more
 information. To ensure your configuration can be read by both the ApplicationMaster and Alluxio
-master/workers, put `alluxio-site.properties` under `${TACHYON_HOME}/conf` on each EC2 machine.
+master/workers, put `alluxio-site.properties` under `${ALLUXIO_HOME}/conf` on each EC2 machine.
 
 # Start Alluxio
 
 Use script `integration/bin/alluxio-yarn.sh` to start Alluxio. This script requires three arguments:
-1. A path pointing to `${TACHYON_HOME}` on each machine so YARN NodeManager can access Alluxio
+1. A path pointing to `${ALLUXIO_HOME}` on each machine so YARN NodeManager can access Alluxio
 scripts and binaries to launch masters and workers. With our EC2 setup, this path is `/alluxio`.
 2. The total number of Alluxio workers to start.
 3. A HDFS path to distribute the binaries for Alluxio ApplicationMaster.
@@ -157,7 +157,7 @@ of this application records which machine is used to launch a Alluxio master con
 # Test Alluxio
 
 When you know the IP of Alluxio master container, you can modify the `conf/alluxio-env.sh` to set
- up environment variable `TACHYON_MASTER_ADDRESS` on each EC2 machine:
+ up environment variable `ALLUXIO_MASTER_ADDRESS` on each EC2 machine:
 
 {% include Running-Alluxio-on-EC2-Yarn/environment-variable.md %}
 
@@ -165,7 +165,7 @@ You can run tests against Alluxio to check its health:
 
 {% include Running-Alluxio-on-EC2-Yarn/runTests.md %}
 
-After the tests finish, visit Alluxio web UI at `http://TACHYON_MASTER_IP:19999` again. Click
+After the tests finish, visit Alluxio web UI at `http://ALLUXIO_MASTER_IP:19999` again. Click
 `Browse File System` in the navigation bar, and you should see the files written to Alluxio by the above
 tests.
 

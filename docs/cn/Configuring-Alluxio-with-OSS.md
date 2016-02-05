@@ -24,7 +24,7 @@ priority: 4
 
 {% include Configuring-Alluxio-with-OSS/underfs-address.md %}
 
-接着，需要指定Aliyun证书以便访问OSS，在`conf/alluxio-env.sh`中的`TACHYON_JAVA_OPTS`部分添加：
+接着，需要指定Aliyun证书以便访问OSS，在`conf/alluxio-env.sh`中的`ALLUXIO_JAVA_OPTS`部分添加：
 
 {% include Configuring-Alluxio-with-OSS/oss-access.md %}
 

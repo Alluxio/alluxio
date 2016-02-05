@@ -68,9 +68,9 @@ the syntax of each command.
 </tr>
 <tr>
   <td>bootstrap-conf</td>
-  <td>&lt;TACHYON_MASTER_HOSTNAME&gt;</td>
+  <td>&lt;ALLUXIO_MASTER_HOSTNAME&gt;</td>
   <td>Generate the bootstrap config file <code>alluxio-env.sh</code> with the specified
-  <code>TACHYON_MASTER_HOSTNAME</code>, if the config file doesn't exist.</td>
+  <code>ALLUXIO_MASTER_HOSTNAME</code>, if the config file doesn't exist.</td>
 </tr>
 <tr>
   <td>tfs</td>

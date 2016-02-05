@@ -10,7 +10,7 @@ priority: 1
 
 The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 7 or above).
 
-Download the binary distribution of Alluxio {{site.TACHYON_RELEASED_VERSION}}:
+Download the binary distribution of Alluxio {{site.ALLUXIO_RELEASED_VERSION}}:
 
 {% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
 
@@ -21,8 +21,8 @@ Before executing Alluxio run scripts, requisite environment variables must be sp
 
 To run in standalone mode, make sure that:
 
-* `TACHYON_UNDERFS_ADDRESS` in `conf/alluxio-env.sh` is set to a tmp directory in the local
-filesystem (e.g., `export TACHYON_UNDERFS_ADDRESS=/tmp`).
+* `ALLUXIO_UNDERFS_ADDRESS` in `conf/alluxio-env.sh` is set to a tmp directory in the local
+filesystem (e.g., `export ALLUXIO_UNDERFS_ADDRESS=/tmp`).
 
 * Remote login service is turned on so that `ssh localhost` can succeed.
 

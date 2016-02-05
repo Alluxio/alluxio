@@ -103,12 +103,12 @@ Hadoop Web UI的默认端口为**50070**。
 
 定制Alluxio master和worker的特定属性(例如，每个worker建立分层存储)，参考
 [配置设置](Configuration-Settings.html)获取更多信息。为了确保你的配置可以被ApplicationMaster和
-Alluxio master/worker读取,将`${TACHYON_HOME}/conf`下的`alluxio-site.properties`放在每一台EC2机器上。
+Alluxio master/worker读取,将`${ALLUXIO_HOME}/conf`下的`alluxio-site.properties`放在每一台EC2机器上。
 
 # 启动Alluxio
 
 使用`integration/bin/alluxio-yarn.sh`脚本启动Alluxio。该脚本需要3个参数：
-1. 每台机器上指向`${TACHYON_HOME}`的路径。以便YARN NodeManager可以访问Alluxio脚本和可执行文件启动master
+1. 每台机器上指向`${ALLUXIO_HOME}`的路径。以便YARN NodeManager可以访问Alluxio脚本和可执行文件启动master
 和worker。在我们创建的EC2上，该路径为`/alluxio`。
 2. 需要启动的Alluxio worker的总数。
 3. 分布存储Alluxio ApplicationMaster可执行文件的HDFS路径。
@@ -135,7 +135,7 @@ Alluxio作业的状态和应用ID。
 
 # 测试Alluxio
 
-知道Alluxio master容器的IP后，可以修改`conf/alluxio-env.sh`在每台EC2机器上建立`TACHYON_MASTER_ADDRESS`环境变量：
+知道Alluxio master容器的IP后，可以修改`conf/alluxio-env.sh`在每台EC2机器上建立`ALLUXIO_MASTER_ADDRESS`环境变量：
 
 {% include Running-Alluxio-on-EC2-Yarn/environment-variable.md %}
 

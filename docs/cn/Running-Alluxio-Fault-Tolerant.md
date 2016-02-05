@@ -70,7 +70,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 {% endfor %}
 </table>
 
-设置这些选项，可以在`TACHYON_JAVA_OPTS`包含：
+设置这些选项，可以在`ALLUXIO_JAVA_OPTS`包含：
 
     -Dalluxio.zookeeper.enabled=true
     -Dalluxio.zookeeper.address=[zookeeper_hostname]:2181
@@ -85,9 +85,9 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 除了以上配置，Alluxio master需要额外的配置，以下变量需在`conf/alluxio-env.sh`中正确设置：
 
-    export TACHYON_MASTER_ADDRESS=[externally visible address of this machine]
+    export ALLUXIO_MASTER_ADDRESS=[externally visible address of this machine]
 
-同样，指定正确的日志文件夹需在`TACHYON_JAVA_OPTS`中设置`alluxio.master.journal.folder`，举例而言，如果
+同样，指定正确的日志文件夹需在`ALLUXIO_JAVA_OPTS`中设置`alluxio.master.journal.folder`，举例而言，如果
 使用HDFS来存放日志，可以添加：
 
     -Dalluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/path/to/alluxio/journal
@@ -97,7 +97,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 ### Worker配置
 
-只要以上参数配置正确，worker就可以咨询ZooKeeper，找到当前应当连接的master。所以，worker无需设置`TACHYON_MASTER_ADDRESS`。
+只要以上参数配置正确，worker就可以咨询ZooKeeper，找到当前应当连接的master。所以，worker无需设置`ALLUXIO_MASTER_ADDRESS`。
 
 ### Client配置
 

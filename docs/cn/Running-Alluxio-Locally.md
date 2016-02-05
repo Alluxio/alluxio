@@ -10,7 +10,7 @@ priority: 1
 
 开始之前需要安装[Java](Java-Setup.html)(JDK 7或更高版本)。
 
-下载Alluxio二进制发行版{{site.TACHYON_RELEASED_VERSION}}:
+下载Alluxio二进制发行版{{site.ALLUXIO_RELEASED_VERSION}}:
 
 {% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
 
@@ -20,7 +20,7 @@ priority: 1
 
 在独立模式下运行，确保：
 
-* `conf/alluxio-env.sh`中的`TACHYON_UNDERFS_ADDRESS`设置成本地文件系统的临时目录：（例如，`export TACHYON_UNDERFS_ADDRESS=/tmp`）。
+* `conf/alluxio-env.sh`中的`ALLUXIO_UNDERFS_ADDRESS`设置成本地文件系统的临时目录：（例如，`export ALLUXIO_UNDERFS_ADDRESS=/tmp`）。
 
 * 远程登录服务打开，`ssh localhost`能成功。
 

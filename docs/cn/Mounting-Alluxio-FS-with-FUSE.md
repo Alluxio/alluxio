@@ -32,7 +32,7 @@ Alluxio-FUSE是一个新的处于实验阶段的特性，该特性允许在一�
 
 ## 挂载Alluxio-FUSE
 
-在完成配置以及启动Alluxio集群后，在需要挂载Alluxio的节点上启动Shell并进入`$TACHYON_HOME`目录，再运行
+在完成配置以及启动Alluxio集群后，在需要挂载Alluxio的节点上启动Shell并进入`$ALLUXIO_HOME`目录，再运行
 
 {% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-mount.md %}
 
@@ -40,7 +40,7 @@ Alluxio-FUSE是一个新的处于实验阶段的特性，该特性允许在一�
 
 ## 卸载Alluxio-FUSE
 
-要卸载Alluxio-FUSE时，在该节点上启动Shell并进入`$TACHYON_HOME`目录，再运行：
+要卸载Alluxio-FUSE时，在该节点上启动Shell并进入`$ALLUXIO_HOME`目录，再运行：
 
 {% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-umount.md %}
 
@@ -54,7 +54,7 @@ Alluxio-FUSE是一个新的处于实验阶段的特性，该特性允许在一�
 
 Alluxio-FUSE是基于标准的alluxio-client进行操作的。你也许想像使用其他应用的client一样，自定义该alluxio-client的行为。
 
-一种方法是编辑`$TACHYON_HOME/bin/alluxio-fuse.sh`配置文件，将特定的配置项添加到`TACHYON_JAVA_OPTS`变量中。
+一种方法是编辑`$ALLUXIO_HOME/bin/alluxio-fuse.sh`配置文件，将特定的配置项添加到`ALLUXIO_JAVA_OPTS`变量中。
 
 # 操作前提和状态
 

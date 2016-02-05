@@ -33,7 +33,7 @@ to include:
 
 {% include Configuring-Alluxio-with-S3/underfs-address.md %}
 
-Next, you need to specify the AWS credentials for S3 access. In the `TACHYON_JAVA_OPTS` section of
+Next, you need to specify the AWS credentials for S3 access. In the `ALLUXIO_JAVA_OPTS` section of
 the `conf/alluxio-env.sh` file, add:
 
 {% include Configuring-Alluxio-with-S3/aws.md %}
@@ -47,7 +47,7 @@ you can try [Running Alluxio Locally with S3](#running-alluxio-locally-with-s3).
 
 ## Accessing S3 through a proxy
 
-To communicate with S3 through a proxy, modify the `TACHYON_JAVA_OPTS` section of
+To communicate with S3 through a proxy, modify the `ALLUXIO_JAVA_OPTS` section of
 `conf/alluxio-env.sh` to include:
 
 {% include Configuring-Alluxio-with-S3/proxy.md %}

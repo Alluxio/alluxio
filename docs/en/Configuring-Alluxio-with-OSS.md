@@ -24,7 +24,7 @@ To configure Alluxio to use OSS as its under storage system, modifications to th
 
 {% include Configuring-Alluxio-with-OSS/underfs-address.md %}
     
-Next you need to specify the Aliyun credentials for OSS access. In the TACHYON_JAVA_OPTS section of the `conf/alluxio-env.sh` file, add:
+Next you need to specify the Aliyun credentials for OSS access. In the ALLUXIO_JAVA_OPTS section of the `conf/alluxio-env.sh` file, add:
 
 {% include Configuring-Alluxio-with-OSS/oss-access.md %}
     
