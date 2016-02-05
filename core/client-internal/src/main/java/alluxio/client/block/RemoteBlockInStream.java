@@ -28,7 +28,7 @@ import alluxio.exception.ExceptionMessage;
 
 /**
  * This class provides a streaming API to read a block in Alluxio. The data will be transferred
- * through a Alluxio worker's dataserver to the client.
+ * through an Alluxio worker's dataserver to the client.
  */
 @NotThreadSafe
 public final class RemoteBlockInStream extends BufferedBlockInStream {

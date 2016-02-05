@@ -102,7 +102,7 @@ public final class BlockMasterClient extends MasterClientBase {
    *
    * @param blockId the block id to get the BlockInfo for
    * @return the {@link BlockInfo}
-   * @throws AlluxioException if a Alluxio error occurs
+   * @throws AlluxioException if an Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized BlockInfo getBlockInfo(final long blockId)

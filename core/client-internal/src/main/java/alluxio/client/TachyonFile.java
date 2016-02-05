@@ -34,7 +34,7 @@ import alluxio.wire.WorkerNetAddress;
 
 /**
  * @deprecated {@see FileSystem} for the supported API.
- * Represents a Alluxio File, legacy API.
+ * Represents an Alluxio file, legacy API.
  */
 @Deprecated
 public final class TachyonFile {

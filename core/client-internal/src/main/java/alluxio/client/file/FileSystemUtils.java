@@ -61,7 +61,7 @@ public final class FileSystemUtils {
    *         before the file was complete.
    * @throws IOException in case there are problems contacting the Alluxio master for the file
    *         status
-   * @throws AlluxioException if a Alluxio Exception occurs
+   * @throws AlluxioException if an Alluxio Exception occurs
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
    * @see #waitCompleted(FileSystem, AlluxioURI, long, TimeUnit)
@@ -99,7 +99,7 @@ public final class FileSystemUtils {
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
    * @throws IOException in case there are problems contacting the Alluxio Master
-   * @throws AlluxioException if a Alluxio Exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
    */

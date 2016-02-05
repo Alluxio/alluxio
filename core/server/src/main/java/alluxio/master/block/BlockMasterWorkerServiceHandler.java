@@ -31,7 +31,7 @@ import alluxio.thrift.WorkerNetAddress;
 import alluxio.wire.ThriftUtils;
 
 /**
- * This class is a Thrift handler for block master RPCs invoked by a Alluxio worker.
+ * This class is a Thrift handler for block master RPCs invoked by an Alluxio worker.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
 public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService.Iface {

@@ -39,7 +39,7 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 /**
- * Metadata for a Alluxio worker.
+ * Metadata for an Alluxio worker.
  */
 @ThreadSafe
 public final class MasterWorkerInfo {

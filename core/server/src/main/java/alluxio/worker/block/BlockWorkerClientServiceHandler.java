@@ -35,7 +35,7 @@ import alluxio.thrift.BlockWorkerClientService;
 import alluxio.worker.WorkerContext;
 
 /**
- * This class is a Thrift handler for block worker RPCs invoked by a Alluxio client.
+ * This class is a Thrift handler for block worker RPCs invoked by an Alluxio client.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
 public final class BlockWorkerClientServiceHandler implements BlockWorkerClientService.Iface {
@@ -66,7 +66,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * components that may care about the access times of the blocks (for example, Evictor, UI).
    *
    * @param blockId the id of the block to access
-   * @throws AlluxioTException if a alluxio error occurs
+   * @throws AlluxioTException if an Alluxio error occurs
    */
   @Override
   public void accessBlock(long blockId) throws AlluxioTException {
@@ -90,7 +90,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    *
    * @param sessionId the id of the client requesting the commit
    * @param blockId the id of the block to commit
-   * @throws AlluxioTException if a alluxio error occurs
+   * @throws AlluxioTException if an Alluxio error occurs
    * @throws ThriftIOException if an I/O error occurs
    */
   @Override
@@ -110,7 +110,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    *
    * @param sessionId the id of the client requesting the abort
    * @param blockId the id of the block to be aborted
-   * @throws AlluxioTException if a alluxio error occurs
+   * @throws AlluxioTException if an Alluxio error occurs
    * @throws ThriftIOException if an I/O error occurs
    */
   @Override
@@ -131,7 +131,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @param blockId the id of the block to be locked
    * @param sessionId the id of the session
    * @return the path of the block file locked
-   * @throws AlluxioTException if a alluxio error occurs
+   * @throws AlluxioTException if an Alluxio error occurs
    */
   @Override
   public LockBlockResult lockBlock(long blockId, long sessionId) throws AlluxioTException {
@@ -150,7 +150,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    *
    * @param blockId the id of the block to move to the top layer
    * @return true if the block is successfully promoted, otherwise false
-   * @throws AlluxioTException if a alluxio error occurs
+   * @throws AlluxioTException if an Alluxio error occurs
    * @throws ThriftIOException if an I/O error occurs
    */
   // TODO(calvin): This may be better as void.
@@ -178,7 +178,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @param blockId the id of the new block to create
    * @param initialBytes the initial number of bytes to allocate for this block
    * @return the temporary file path of the block file
-   * @throws AlluxioTException if a alluxio error occurs
+   * @throws AlluxioTException if an Alluxio error occurs
    * @throws ThriftIOException if an I/O error occurs
    */
   @Override
@@ -222,7 +222,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @param sessionId the id of the client requesting the unlock
    * @return true if successfully unlock the block, return false if the block is not
    * found or failed to delete the block
-   * @throws AlluxioTException if a alluxio error occurs
+   * @throws AlluxioTException if an Alluxio error occurs
    */
   @Override
   public boolean unlockBlock(long blockId, long sessionId) throws AlluxioTException {

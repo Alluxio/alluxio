@@ -18,7 +18,7 @@ package alluxio.master.block.meta;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The location of a Alluxio block.
+ * The location of an Alluxio block.
  */
 @ThreadSafe
 public final class MasterBlockLocation {
