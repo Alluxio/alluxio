@@ -737,11 +737,11 @@ public class FileSystemMasterIntegrationTest {
   // public void writeImageTest() throws IOException {
   // // initialize the MasterInfo
   // Journal journal =
-  // new Journal(mLocalTachyonCluster.getAlluxioHome() + "journal/", "image.data", "log.data",
-  // mMasterTachyonConf);
+  // new Journal(mLocalAlluxioCluster.getAlluxioHome() + "journal/", "image.data", "log.data",
+  // mMasterAlluxioConf);
   // Journal
   // MasterInfo info =
-  // new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
+  // new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService, mMasterAlluxioConf);
 
   // // create the output streams
   // ByteArrayOutputStream os = new ByteArrayOutputStream();

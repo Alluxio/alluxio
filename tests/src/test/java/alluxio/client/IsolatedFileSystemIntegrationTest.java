@@ -34,11 +34,12 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
+import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 /**
- * Integration tests on TachyonClient (Do not reuse the LocalTachyonCluster).
+ * Integration tests on Alluxio client (do not reuse the {@link LocalAlluxioCluster}).
  */
 public class IsolatedFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;

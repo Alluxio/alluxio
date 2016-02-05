@@ -75,7 +75,7 @@ public class LsCommandTest extends AbstractAlluxioShellTest {
     String testUser = "test_user_lsWildcard";
     clearAndLogin(testUser);
 
-    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     String expect = "";
     expect += getLsResultStr(new AlluxioURI("/testWildCards/bar/foobar3"), 30, testUser, testUser);

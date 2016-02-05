@@ -61,7 +61,7 @@ public abstract class AbstractAlluxioShellTest {
           Constants.MASTER_TTLCHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE),
           Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
           Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-  protected LocalAlluxioCluster mLocalTachyonCluster = null;
+  protected LocalAlluxioCluster mLocalAlluxioCluster = null;
   protected FileSystem mFileSystem = null;
   protected AlluxioShell mFsShell = null;
   protected ByteArrayOutputStream mOutput = null;
@@ -80,8 +80,8 @@ public abstract class AbstractAlluxioShellTest {
   @Before
   public final void before() throws Exception {
     clearLoginUser();
-    mLocalTachyonCluster = mLocalAlluxioClusterResource.get();
-    mFileSystem = mLocalTachyonCluster.getClient();
+    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
+    mFileSystem = mLocalAlluxioCluster.getClient();
     mFsShell = new AlluxioShell(new Configuration());
     mOutput = new ByteArrayOutputStream();
     mNewOutput = new PrintStream(mOutput);
@@ -92,14 +92,14 @@ public abstract class AbstractAlluxioShellTest {
   protected void copyToLocalWithBytes(int bytes) throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
     mFsShell.run("copyToLocal", "/testFile",
-        mLocalTachyonCluster.getAlluxioHome() + "/testFile");
+        mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
     Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
-        mLocalTachyonCluster.getAlluxioHome() + "/testFile"}), mOutput.toString());
+        mLocalAlluxioCluster.getAlluxioHome() + "/testFile"}), mOutput.toString());
     fileReadTest("/testFile", 10);
   }
 
   protected void fileReadTest(String fileName, int size) throws IOException {
-    File testFile = new File(PathUtils.concatPath(mLocalTachyonCluster.getAlluxioHome(), fileName));
+    File testFile = new File(PathUtils.concatPath(mLocalAlluxioCluster.getAlluxioHome(), fileName));
     FileInputStream fis = new FileInputStream(testFile);
     byte[] read = new byte[size];
     fis.read(read);
@@ -109,7 +109,7 @@ public abstract class AbstractAlluxioShellTest {
 
   protected File generateFileContent(String path, byte[] toWrite) throws IOException,
       FileNotFoundException {
-    File testFile = new File(mLocalTachyonCluster.getAlluxioHome() + path);
+    File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + path);
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
     fos.write(toWrite);
@@ -211,7 +211,7 @@ public abstract class AbstractAlluxioShellTest {
    * @param uri The uri to persist
    * @param size The size of the file
    * @throws AlluxioException if an unexpected alluxio exception is thrown
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   protected void checkFilePersisted(AlluxioURI uri, int size) throws AlluxioException, IOException {
     Assert.assertTrue(mFileSystem.getStatus(uri).isPersisted());
