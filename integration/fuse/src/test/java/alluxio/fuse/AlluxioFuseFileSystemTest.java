@@ -53,7 +53,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
 
 /**
- * Isolation tests for TachyonFuseFs.
+ * Isolation tests for {@link AlluxioFuseFileSystem}.
  */
 // TODO(andreareale): this test suite should be completed
 public class AlluxioFuseFileSystemTest {

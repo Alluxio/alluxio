@@ -61,14 +61,14 @@ import alluxio.util.io.PathUtils;
 import alluxio.yarn.YarnUtils.YarnContainerType;
 
 /**
- * The client to submit the application to run Tachyon to YARN ResourceManager.
+ * The client to submit the application to run Alluxio to YARN ResourceManager.
  *
  * <p>
- * Launch Tachyon on YARN:
+ * Launch Alluxio on YARN:
  * </p>
  * {@code
  * $ yarn jar alluxio-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar alluxio.yarn.Client \
- *     -num_workers NumTachyonWorkers \
+ *     -num_workers NumAlluxioWorkers \
  *     -master_address MasterAddress \
  *     -resource_path ResourcePath
  * }
@@ -102,9 +102,9 @@ public final class Client {
   private int mAmVCores;
   /** ApplicationMaster jar file on HDFS. */
   private String mResourcePath;
-  /** Number of Tachyon workers. */
+  /** Number of Alluxio workers. */
   private int mNumWorkers;
-  /** Address to run Tachyon master. */
+  /** Address to run Alluxio master. */
   private String mMasterAddress;
   /** Maximum number of workers to allow on a single host */
   private int mMaxWorkersPerHost;
@@ -114,11 +114,11 @@ public final class Client {
   private Options mOptions;
 
   /**
-   * Constructs a new client for launching a Tachyon application master.
+   * Constructs a new client for launching a Alluxio application master.
    */
   public Client() {
     mOptions = new Options();
-    mOptions.addOption("appname", true, "Application Name. Default 'Tachyon'");
+    mOptions.addOption("appname", true, "Application Name. Default 'Alluxio'");
     mOptions.addOption("priority", true, "Application Priority. Default 0");
     mOptions.addOption("queue", true,
         "RM Queue in which this application is to be submitted. Default 'default'");
@@ -128,11 +128,11 @@ public final class Client {
         "Amount of virtual cores to request to run ApplicationMaster. Default 1");
     mOptions.addOption("resource_path", true,
         "(Required) HDFS path containing the Application Master");
-    mOptions.addOption("tachyon_home", true,
-        "(Required) Path of the home dir of Tachyon deployment on YARN slave machines");
-    mOptions.addOption("master_address", true, "(Required) Address to run Tachyon master");
+    mOptions.addOption("alluxio_home", true,
+        "(Required) Path of the home dir of Alluxio deployment on YARN slave machines");
+    mOptions.addOption("master_address", true, "(Required) Address to run Alluxio master");
     mOptions.addOption("help", false, "Print usage");
-    mOptions.addOption("num_workers", true, "Number of Tachyon workers to launch. Default 1");
+    mOptions.addOption("num_workers", true, "Number of Alluxio workers to launch. Default 1");
   }
 
   /**
@@ -203,7 +203,7 @@ public final class Client {
 
     mResourcePath = cliParser.getOptionValue("resource_path");
     mMasterAddress = cliParser.getOptionValue("master_address");
-    mAppName = cliParser.getOptionValue("appname", "Tachyon");
+    mAppName = cliParser.getOptionValue("appname", "Alluxio");
     mAmPriority = Integer.parseInt(cliParser.getOptionValue("priority", "0"));
     mAmQueue = cliParser.getOptionValue("queue", "default");
     mAmMemoryInMB = Integer.parseInt(cliParser.getOptionValue("am_memory", "256"));
@@ -322,7 +322,7 @@ public final class Client {
     Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(Environment.PWD.$(), "*"),
         ApplicationConstants.CLASS_PATH_SEPARATOR);
 
-    appMasterEnv.put("TACHYON_HOME", ApplicationConstants.Environment.PWD.$());
+    appMasterEnv.put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$());
   }
 
   /**
