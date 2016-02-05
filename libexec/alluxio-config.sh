@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Included in all the Tachyon scripts with source command should not be executable directly also
+# Included in all the Alluxio scripts with source command should not be executable directly also
 # should not be passed any arguments, since we need original $*
 
 # resolve links - $0 may be a softlink
@@ -38,7 +38,7 @@ fi
 
 . $ALLUXIO_CONF_DIR/alluxio-env.sh
 
-# A developer option to prepend Tachyon jars before ALLUXIO_CLASSPATH jars
+# A developer option to prepend Alluxio jars before ALLUXIO_CLASSPATH jars
 if [ -n "$ALLUXIO_PREPEND_ALLUXIO_CLASSES" ]; then
   export CLASSPATH="$ALLUXIO_CONF_DIR/:$ALLUXIO_JARS:$ALLUXIO_CLASSPATH"
 else
