@@ -66,7 +66,7 @@ public class RemoteBlockInStreamIntegrationTest {
   private String mNettyTransferType;
   private String mRemoteReaderClass;
   private Configuration mConfiguration;
-  private CreateFileOptions mWriteTachyon;
+  private CreateFileOptions mWriteAlluxio;
   private CreateFileOptions mWriteUnderStore;
   private OpenFileOptions mReadNoCache;
   private OpenFileOptions mReadCache;
@@ -106,7 +106,7 @@ public class RemoteBlockInStreamIntegrationTest {
   public final void before() throws Exception {
     mConfiguration = mLocalAlluxioClusterResource.get().getMasterConf();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(mConfiguration);
+    mWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache(mConfiguration);
     mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(mConfiguration);
     mReadCache = StreamOptionUtils.getOpenFileOptionsCache(mConfiguration);
     mReadNoCache = StreamOptionUtils.getOpenFileOptionsNoCache(mConfiguration);
@@ -257,7 +257,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
-      FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteTachyon, k);
+      FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
@@ -289,7 +289,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
-      FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteTachyon, k);
+      FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
@@ -317,7 +317,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
-      FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteTachyon, k);
+      FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
@@ -530,7 +530,7 @@ public class RemoteBlockInStreamIntegrationTest {
   public void seekAroundLocalBlock() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     // The number of bytes per remote block read should be set to 100 in the before function
-    FileSystemTestUtils.createByteFile(mFileSystem, uniqPath, 200, mWriteTachyon);
+    FileSystemTestUtils.createByteFile(mFileSystem, uniqPath, 200, mWriteAlluxio);
     FileInStream is = mFileSystem.openFile(new AlluxioURI(uniqPath), mReadNoCache);
     Assert.assertEquals(0, is.read());
     is.seek(199);
@@ -548,7 +548,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
-      FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteTachyon, k);
+      FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);

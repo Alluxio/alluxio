@@ -34,31 +34,31 @@ import alluxio.master.LocalAlluxioCluster;
 /**
  * A JUnit Rule resource for automatically managing a local alluxio cluster for testing. To use it,
  * create an instance of the class under a {@literal@}Rule annotation, with the required
- * configuration parameters, and any necessary explicit TachyonConf settings. The alluxio cluster
- * will be set up from scratch at the end of every method (or at the start of every suite if
+ * configuration parameters, and any necessary explicit {@link Configuration} settings. The Alluxio
+ * cluster will be set up from scratch at the end of every method (or at the start of every suite if
  * {@literal@}ClassRule is used), and destroyed at the end. Below is an example of declaring and
  * using it.
  *
  * <pre>
  *   public class SomethingTest {
  *    {@literal@}Rule
- *    public LocalTachyonClusterResource localTachyonClusterResource =
- *      new LocalTachyonClusterResource(
+ *    public LocalAlluxioClusterResource localAlluxioClusterResource =
+ *      new LocalAlluxioClusterResource(
  *        WORKER_CAPACITY, QUOTA_UNIT, BLOCK_SIZE, CONF_KEY_1, CONF_VALUE_1, ...);
  *
  *    {@literal@}Test
  *    public void testSomething() {
- *      localTachyonClusterResource.get().getClient().create("/abced");
+ *      localAlluxioClusterResource.get().getClient().create("/abced");
  *      ...
  *    }
  *
  *    {@literal@}Test
- *    {@literal@}Config(tachyonConfParams = {CONF_KEY_1, CONF_VALUE_1, CONF_KEY_2,
+ *    {@literal@}Config(alluxioConfParams = {CONF_KEY_1, CONF_VALUE_1, CONF_KEY_2,
  *                                           CONF_VALUE_2, ...}
  *                      startCluster = false)
  *    public void testSomethingElse() {
- *      localTachyonClusterResource.start();
- *      localTachyonClusterResource.get().getClient().create("/efghi");
+ *      localAlluxioClusterResource.start();
+ *      localAlluxioClusterResource.get().getClient().create("/efghi");
  *      ...
  *    }
  *   }
@@ -80,12 +80,12 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * must start the cluster explicitly.
    */
   private final boolean mStartCluster;
-  /** Configuration parameters for the TachyonConf object used in the cluster */
+  /** Configuration parameters for the {@link Configuration} object used in the cluster */
   private final String[] mConfParams;
 
-  /** The alluxio cluster being managed */
-  private LocalAlluxioCluster mLocalTachyonCluster = null;
-  /** The configuration object used by the cluster */
+  /** The Alluxio cluster being managed */
+  private LocalAlluxioCluster mLocalAlluxioCluster = null;
+  /** The {@link Configuration} object used by the cluster */
   private Configuration mTestConf = null;
 
   /**
@@ -131,7 +131,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @return the {@link LocalAlluxioCluster} being managed
    */
   public LocalAlluxioCluster get() {
-    return mLocalTachyonCluster;
+    return mLocalAlluxioCluster;
   }
 
   /**
@@ -148,14 +148,14 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @throws ConnectionFailedException if network connection failed
    */
   public void start() throws IOException, ConnectionFailedException {
-    mLocalTachyonCluster.start(mTestConf);
+    mLocalAlluxioCluster.start(mTestConf);
   }
 
   @Override
   public Statement apply(final Statement statement, Description description) {
-    mLocalTachyonCluster = new LocalAlluxioCluster(mWorkerCapacityBytes, mUserBlockSize);
+    mLocalAlluxioCluster = new LocalAlluxioCluster(mWorkerCapacityBytes, mUserBlockSize);
     try {
-      mTestConf = mLocalTachyonCluster.newTestConf();
+      mTestConf = mLocalAlluxioCluster.newTestConf();
       // Override the configuration parameters with mConfParams
       for (int i = 0; i < mConfParams.length; i += 2) {
         mTestConf.set(mConfParams[i], mConfParams[i + 1]);
@@ -165,15 +165,15 @@ public final class LocalAlluxioClusterResource implements TestRule {
       Annotation configAnnotation = description.getAnnotation(Config.class);
       if (configAnnotation != null) {
         Config config = (Config) configAnnotation;
-        // Override the configuration parameters with any tachyonConf params
-        for (int i = 0; i < config.tachyonConfParams().length; i += 2) {
-          mTestConf.set(config.tachyonConfParams()[i], config.tachyonConfParams()[i + 1]);
+        // Override the configuration parameters with any configuration params
+        for (int i = 0; i < config.confParams().length; i += 2) {
+          mTestConf.set(config.confParams()[i], config.confParams()[i + 1]);
         }
         // Override startCluster
         startCluster = config.startCluster();
       }
       if (startCluster) {
-        mLocalTachyonCluster.start(mTestConf);
+        mLocalAlluxioCluster.start(mTestConf);
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -186,7 +186,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
         try {
           statement.evaluate();
         } finally {
-          mLocalTachyonCluster.stop();
+          mLocalAlluxioCluster.stop();
         }
       }
     };
@@ -198,7 +198,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   @Retention(RetentionPolicy.RUNTIME)
   public @interface Config {
-    String[] tachyonConfParams() default {};
+    String[] confParams() default {};
     boolean startCluster() default true;
   }
 }

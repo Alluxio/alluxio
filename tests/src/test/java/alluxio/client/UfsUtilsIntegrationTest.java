@@ -54,7 +54,7 @@ public class UfsUtilsIntegrationTest {
 
   @Test
   public void loadUnderFsTest() throws Exception {
-    String[] exclusions = {"/tachyon", "/exclusions"};
+    String[] exclusions = {"/alluxio", "/exclusions"};
     String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
     for (String exclusion : exclusions) {
       String path = PathUtils.concatPath(mUfsRoot, exclusion);
