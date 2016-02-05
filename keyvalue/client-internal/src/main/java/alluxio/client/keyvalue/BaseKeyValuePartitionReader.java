@@ -93,7 +93,7 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
    * @param key the key to lookup
    * @return the value of this key
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Alluxio error occurs
+   * @throws AlluxioException if an Alluxio error occurs
    */
   private ByteBuffer getInternal(ByteBuffer key) throws IOException, AlluxioException {
     Preconditions.checkState(!mClosed, "Can not query a reader closed");
@@ -111,7 +111,7 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
      * Gets the first key-value pair and constructs a new key-value partition iterator.
      *
      * @throws IOException if a non-Alluxio error happens when getting the first key-value pair
-     * @throws AlluxioException if a Alluxio error happens when getting the first key-value pair
+     * @throws AlluxioException if an Alluxio error happens when getting the first key-value pair
      */
     public Iterator() throws IOException, AlluxioException {
       mNextKey = nextKey(null);

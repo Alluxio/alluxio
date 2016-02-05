@@ -37,7 +37,7 @@ import alluxio.thrift.PartitionInfo;
 import alluxio.util.io.BufferUtils;
 
 /**
- * Default implementation of {@link KeyValueStoreWriter} to create a Alluxio key-value store.
+ * Default implementation of {@link KeyValueStoreWriter} to create an Alluxio key-value store.
  */
 @NotThreadSafe
 class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
