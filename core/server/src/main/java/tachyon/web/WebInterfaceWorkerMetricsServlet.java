@@ -30,7 +30,7 @@ import com.codahale.metrics.MetricRegistry;
 import tachyon.worker.TachyonWorker;
 
 /**
- * Servlet that provides data for viewing the metrics values
+ * Servlet that provides data for viewing the worker metrics values
  */
 public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstractMetricsServlet {
 
