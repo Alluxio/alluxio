@@ -33,7 +33,7 @@ public final class HdfsUnderFileSystemUtilsTest {
     String key = "key";
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     Configuration configuration = new Configuration();
-    configuration.set(key, "tachyonKey");
+    configuration.set(key, "alluxioKey");
 
     System.setProperty(key, "systemKey");
     HdfsUnderFileSystemUtils.addKey(conf, configuration, key);
@@ -41,6 +41,6 @@ public final class HdfsUnderFileSystemUtilsTest {
 
     System.clearProperty(key);
     HdfsUnderFileSystemUtils.addKey(conf, configuration, key);
-    Assert.assertEquals("tachyonKey", conf.get(key));
+    Assert.assertEquals("alluxioKey", conf.get(key));
   }
 }

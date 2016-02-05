@@ -50,7 +50,7 @@ import alluxio.util.io.PathUtils;
 public final class OSSOutputStream extends OutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Bucket name of the Tachyon OSS bucket. */
+  /** Bucket name of the Alluxio OSS bucket. */
   private final String mBucketName;
   /** Key of the file when it is uploaded to OSS. */
   private final String mKey;

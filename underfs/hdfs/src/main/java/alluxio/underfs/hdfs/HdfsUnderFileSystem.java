@@ -63,7 +63,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    * Constructs a new HDFS {@link UnderFileSystem}.
    *
    * @param fsDefaultName the under FS prefix
-   * @param configuration the configuration for Tachyon
+   * @param configuration the configuration for Alluxio
    * @param conf the configuration for Hadoop
    */
   public HdfsUnderFileSystem(String fsDefaultName, Configuration configuration, Object conf) {
@@ -103,7 +103,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    * </p>
    *
    * @param path file system path
-   * @param conf Tachyon Configuration
+   * @param conf Alluxio Configuration
    * @param hadoopConf Hadoop configuration
    */
   protected void prepareConfiguration(String path, Configuration conf,
@@ -153,7 +153,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    * @param path the path
    * @param blockSizeByte the size of the block in bytes; should be a multiple of 512
    * @return a {@code FSDataOutputStream} object
-   * @throws IOException when a non-Tachyon related exception occurs
+   * @throws IOException when a non-Alluxio related exception occurs
    */
   @Override
   public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
@@ -283,7 +283,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
     // Ignoring the path given, will give information for entire cluster
-    // as Tachyon can load/store data out of entire HDFS cluster
+    // as Alluxio can load/store data out of entire HDFS cluster
     if (mFileSystem instanceof DistributedFileSystem) {
       switch (type) {
         case SPACE_TOTAL:

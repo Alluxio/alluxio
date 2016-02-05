@@ -64,10 +64,10 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   /**
-   * Adds OSS credentials from system properties to the Tachyon configuration if they are not
+   * Adds OSS credentials from system properties to the Alluxio configuration if they are not
    * already present.
    *
-   * @param configuration the Tachyon configuration to check and add credentials to
+   * @param configuration the Alluxio configuration to check and add credentials to
    * @return true if both access and secret key are present, false otherwise
    */
   private boolean addAndCheckOSSCredentials(Configuration configuration) {
