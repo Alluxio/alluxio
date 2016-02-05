@@ -53,7 +53,7 @@ public class FileInStreamIntegrationTest {
   private static FileSystem sFileSystem = null;
   private static Configuration sConfiguration;
   private static CreateFileOptions sWriteBoth;
-  private static CreateFileOptions sWriteTachyon;
+  private static CreateFileOptions sWriteAlluxio;
   private static CreateFileOptions sWriteUnderStore;
   private static String sTestPath;
 
@@ -68,7 +68,7 @@ public class FileInStreamIntegrationTest {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
     sConfiguration = sLocalAlluxioClusterResource.get().getMasterConf();
     sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(sConfiguration);
-    sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sConfiguration);
+    sWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache(sConfiguration);
     sWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(sConfiguration);
     sTestPath = PathUtils.uniqPath();
 
@@ -84,7 +84,7 @@ public class FileInStreamIntegrationTest {
   private static List<CreateFileOptions> getOptionSet() {
     List<CreateFileOptions> ret = new ArrayList<CreateFileOptions>(3);
     ret.add(sWriteBoth);
-    ret.add(sWriteTachyon);
+    ret.add(sWriteAlluxio);
     ret.add(sWriteUnderStore);
     return ret;
   }

@@ -201,8 +201,8 @@ public final class LineageMasterIntegrationTest {
   }
 
   /**
-   * Runs code given in the docs (http://tachyon-project.org/documentation/Lineage-API.html) to make
-   * sure it actually runs.
+   * Runs code given in the docs (http://alluxio.org/documentation/Lineage-API.html) to make sure it
+   * actually runs.
    *
    * If you need to update the doc-code here, make sure you also update it in the docs.
    */
