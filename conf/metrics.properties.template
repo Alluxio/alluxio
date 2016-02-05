@@ -1,6 +1,6 @@
 #  syntax: [instance].sink|source.[name].[options]=[value]
 
-#  This file configures Tachyon's internal metrics system. The metrics system is
+#  This file configures Alluxio's internal metrics system. The metrics system is
 #  divided into instances which correspond to internal components.
 #  Each instance can be configured to report its metrics to one or more sinks.
 #  Accepted values for [instance] are "master" and "worker". A wild card "*" can
@@ -9,9 +9,9 @@
 #
 #  Within an instance, a "source" specifies a particular set of grouped metrics.
 #  there are two kinds of sources:
-#    1. Tachyon internal sources, like MasterSource, WorkerSource, etc, which will
-#    collect a Tachyon component's internal state. Each instance is paired with a
-#    Tachyon source that is added automatically.
+#    1. Alluxio internal sources, like MasterSource, WorkerSource, etc, which will
+#    collect a Alluxio component's internal state. Each instance is paired with a
+#    Alluxio source that is added automatically.
 #    2. Common sources, like JvmSource, which will collect low level state.
 #    These can be added through configuration options and are then loaded
 #    using reflection.

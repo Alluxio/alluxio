@@ -31,8 +31,7 @@ import alluxio.Constants;
 import alluxio.Configuration;
 
 /**
- * Tests the {@link alluxio.security.authentication.PlainSaslServer.PlainServerCallbackHandler}
- * class.
+ * Tests the {@link PlainSaslServer.PlainServerCallbackHandler} class.
  */
 public class PlainServerCallbackHandlerTest {
   private Configuration mConf;
