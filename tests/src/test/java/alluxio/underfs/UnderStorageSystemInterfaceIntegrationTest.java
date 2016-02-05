@@ -49,7 +49,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests that an empty file can be created.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void createEmptyTest() throws IOException {
@@ -61,7 +61,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests that a file can be created and validates the data written to it.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void createOpenTest() throws IOException {
@@ -76,7 +76,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests a file can be deleted.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void deleteFileTest() throws IOException {
@@ -91,7 +91,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests a non empty directory will not be deleted if recursive is not specified.
    * Tests a non empty directory will be deleted if recursive is specified.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void deleteDirTest() throws IOException {
@@ -125,7 +125,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests exists correctly returns true if the file exists and false if it does not.
    * Tests exists correctly returns true if the dir exists and false if it does not.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void existsTest() throws IOException {
@@ -142,7 +142,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests {@link UnderFileSystem#getFileSize(String)} correctly returns the file size.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void getFileSizeTest() throws IOException {
@@ -157,7 +157,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests {@link UnderFileSystem#getModificationTimeMs(String)} returns a reasonably accurate time.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void getModTimeTest() throws IOException {
@@ -175,7 +175,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests if {@link UnderFileSystem#isFile(String)} correctly returns true for files and false
    * otherwise.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void isFileTest() throws IOException {
@@ -191,7 +191,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests if list correctly returns file names.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void listTest() throws IOException {
@@ -220,12 +220,12 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests if list recursive correctly returns all file names in all subdirectories
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void listRecursiveTest() throws IOException {
     String root = mUnderfsAddress;
-    // TODO(andrew): Should this directory be created in LocalTachyonCluster creation code?
+    // TODO(andrew): Should this directory be created in LocalAlluxioCluster creation code?
     mUfs.mkdirs(root, true);
     // Empty lsr should be empty
     Assert.assertEquals(0, mUfs.listRecursive(root).length);
@@ -271,7 +271,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests {@link UnderFileSystem#mkdirs(String, boolean)} correctly makes parent directories if
    * createParent is specified.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void mkdirsTest() throws IOException {
@@ -297,7 +297,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests {@link UnderFileSystem#rename(String, String)} works file to new location.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void renameFileTest() throws IOException {
@@ -312,7 +312,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests {@link UnderFileSystem#rename(String, String)} works file to a folder if supported.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void renameFileToFolderTest() throws IOException {
@@ -330,7 +330,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests {@link UnderFileSystem#rename(String, String)} works folder to new location.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void renameFolderTest() throws IOException {
@@ -351,7 +351,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests {@link UnderFileSystem#rename(String, String)} works folder to another folder if
    * supported.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void renameFolderToFolderTest() throws IOException {

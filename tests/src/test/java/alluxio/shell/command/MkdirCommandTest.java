@@ -31,8 +31,8 @@ import alluxio.shell.AbstractAlluxioShellTest;
 public class MkdirCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void mkdirTest() throws IOException, AlluxioException {
-    String qualifiedPath = "alluxio://" + mLocalTachyonCluster.getMasterHostname() + ":"
-        + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
+    String qualifiedPath = "alluxio://" + mLocalAlluxioCluster.getMasterHostname() + ":"
+        + mLocalAlluxioCluster.getMasterPort() + "/root/testFile1";
     mFsShell.run("mkdir", qualifiedPath);
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/root/testFile1"));
     Assert.assertNotNull(status);
