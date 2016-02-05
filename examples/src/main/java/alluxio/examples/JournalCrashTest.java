@@ -63,7 +63,7 @@ public class JournalCrashTest {
   }
 
   /**
-   * The client thread class. Each thread hold a Alluxio Client and keep requesting to Master.
+   * The client thread class. Each thread hold an Alluxio Client and keep requesting to Master.
    */
   static class ClientThread extends Thread {
     /** Which type of operation this thread should do. */

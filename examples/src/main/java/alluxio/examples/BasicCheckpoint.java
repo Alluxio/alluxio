@@ -52,18 +52,18 @@ public class BasicCheckpoint implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    FileSystem alluxioClient = FileSystem.Factory.get();
-    writeFile(alluxioClient);
-    return readFile(alluxioClient);
+    FileSystem fs = FileSystem.Factory.get();
+    writeFile(fs);
+    return readFile(fs);
   }
 
-  private boolean readFile(FileSystem alluxioClient) throws IOException, AlluxioException {
+  private boolean readFile(FileSystem fs) throws IOException, AlluxioException {
     boolean pass = true;
     for (int i = 0; i < mNumFiles; i ++) {
       AlluxioURI filePath = new AlluxioURI(mFileFolder + "/part-" + i);
       LOG.debug("Reading data from {}", filePath);
-      FileInStream is = alluxioClient.openFile(filePath);
-      URIStatus status = alluxioClient.getStatus(filePath);
+      FileInStream is = fs.openFile(filePath);
+      URIStatus status = fs.getStatus(filePath);
       ByteBuffer buf = ByteBuffer.allocate((int) status.getBlockSizeBytes());
       is.read(buf.array());
       buf.order(ByteOrder.nativeOrder());
@@ -75,7 +75,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
     return pass;
   }
 
-  private void writeFile(FileSystem alluxioClient) throws IOException, AlluxioException {
+  private void writeFile(FileSystem fs) throws IOException, AlluxioException {
     for (int i = 0; i < mNumFiles; i ++) {
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
@@ -85,7 +85,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
       buf.flip();
       AlluxioURI filePath = new AlluxioURI(mFileFolder + "/part-" + i);
       LOG.debug("Writing data to {}", filePath);
-      OutputStream os = alluxioClient.createFile(filePath);
+      OutputStream os = fs.createFile(filePath);
       os.write(buf.array());
       os.close();
     }
