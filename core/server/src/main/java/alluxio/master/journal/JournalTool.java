@@ -127,7 +127,7 @@ public final class JournalTool {
     new HelpFormatter().printHelp(
         "java -cp alluxio-" + Version.VERSION
             + "-jar-with-dependencies.jar alluxio.master.journal.JournalTool",
-        "Read a alluxio journal from stdin and write it human-readably to stdout", OPTIONS, "",
+        "Read an Alluxio journal from stdin and write it human-readably to stdout", OPTIONS, "",
         true);
   }
 }

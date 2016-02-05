@@ -37,9 +37,10 @@ import alluxio.util.io.BufferUtils;
  *
  * <p>
  * The type of {@link BufferedBlockOutStream} returned will depend on the user configuration and
- * cluster setup. A {@link LocalBlockOutStream} is returned if the client is co-located with a
- * Alluxio worker and the user has enabled this optimization. Otherwise, a
- * {@link RemoteBlockOutStream} will be returned which will write the data through a Alluxio worker.
+ * cluster setup. A {@link LocalBlockOutStream} is returned if the client is co-located with an
+ * Alluxio worker and the user has enabled this optimization. Otherwise,
+ * {@link RemoteBlockOutStream} will be returned which will write the data through an Alluxio
+ * worker.
  */
 @NotThreadSafe
 public abstract class BufferedBlockOutStream extends OutputStream implements Cancelable {

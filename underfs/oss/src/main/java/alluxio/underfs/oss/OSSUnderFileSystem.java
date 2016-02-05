@@ -408,7 +408,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Creates an OSS {@code ClientConfiguration} using a Alluxio configuration.
+   * Creates an OSS {@code ClientConfiguration} using an Alluxio configuration.
    *
    * @param configuration Alluxio configuration
    * @return the OSS {@link ClientConfiguration}

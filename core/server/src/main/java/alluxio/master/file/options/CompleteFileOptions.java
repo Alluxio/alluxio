@@ -37,7 +37,7 @@ public final class CompleteFileOptions {
     /**
      * Creates a new builder for {@link CompleteFileOptions}.
      *
-     * @param conf a Alluxio configuration
+     * @param conf an Alluxio configuration
      */
     public Builder(Configuration conf) {
       mUfsLength = 0;

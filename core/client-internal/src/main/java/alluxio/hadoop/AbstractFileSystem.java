@@ -568,7 +568,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * in {@link IOException}.
    *
    * @param path the path to look up
-   * @throws IOException if a Alluxio exception occurs
+   * @throws IOException if an Alluxio exception occurs
    */
   private void ensureExists(AlluxioURI path) throws IOException {
     try {

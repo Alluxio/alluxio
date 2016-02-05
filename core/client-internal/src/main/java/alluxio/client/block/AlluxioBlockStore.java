@@ -61,7 +61,7 @@ public final class AlluxioBlockStore {
   private final BlockStoreContext mContext;
 
   /**
-   * Creates a Alluxio block store.
+   * Creates an Alluxio block store.
    */
   private AlluxioBlockStore() {
     mContext = BlockStoreContext.INSTANCE;

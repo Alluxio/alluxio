@@ -85,7 +85,7 @@ public final class LineageMasterClient extends MasterClientBase {
    * @param job the job used for the creation
    * @return the value of the lineage creation result
    * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if a Alluxio exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   public synchronized long createLineage(final List<String> inputFiles,
       final List<String> outputFiles, final CommandLineJob job) throws IOException,
@@ -106,7 +106,7 @@ public final class LineageMasterClient extends MasterClientBase {
    * @param cascade true if the deletion is cascading, false otherwise
    * @return true if the deletion was successful, false otherwise
    * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if a Alluxio exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   public synchronized boolean deleteLineage(final long lineageId, final boolean cascade)
       throws IOException, AlluxioException {
@@ -127,7 +127,7 @@ public final class LineageMasterClient extends MasterClientBase {
    * @return the value of the lineage creation result
    * @throws IOException if a non-Alluxio exception occurs
    * @throws LineageDoesNotExistException if the file does not exist
-   * @throws AlluxioException if a Alluxio exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
       final long ttl) throws IOException, LineageDoesNotExistException, AlluxioException {
@@ -165,7 +165,7 @@ public final class LineageMasterClient extends MasterClientBase {
    *
    * @param path the path to the lost file
    * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if a Alluxio exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   public synchronized void reportLostFile(final String path) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
