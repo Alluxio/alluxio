@@ -31,8 +31,7 @@ import alluxio.Constants;
 import alluxio.Configuration;
 
 /**
- * Tests the {@link alluxio.security.authentication.PlainSaslServer.PlainServerCallbackHandler}
- * class.
+ * Tests the {@link PlainSaslServer.PlainServerCallbackHandler} class.
  */
 public class PlainServerCallbackHandlerTest {
   private Configuration mConf;
@@ -124,7 +123,7 @@ public class PlainServerCallbackHandlerTest {
   public static class NameMatchAuthenticationProvider implements AuthenticationProvider {
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {
-      if (!user.matches("^tachyon.*")) {
+      if (!user.matches("^alluxio.*")) {
         throw new AuthenticationException("Only allow the user starting with alluxio");
       }
       if (!password.matches("^password")) {
