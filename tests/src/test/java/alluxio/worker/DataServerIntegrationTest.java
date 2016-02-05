@@ -99,7 +99,7 @@ public class DataServerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mWorkerConfiguration = mLocalAlluxioClusterResource.get().getWorkerTachyonConf();
+    mWorkerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
 
     mBlockWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();

@@ -54,7 +54,7 @@ public final class FileInStreamConcurrencyIntegrationTest {
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sConfiguration = sLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    sConfiguration = sLocalAlluxioClusterResource.get().getMasterConf();
     sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sConfiguration);
   }
 

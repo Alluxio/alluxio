@@ -67,8 +67,8 @@ public final class FileSystemRenameIntegrationTest {
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
     sUfsRoot = PathUtils.concatPath(
-        sLocalAlluxioClusterResource.get().getMasterTachyonConf().get(Constants.UNDERFS_ADDRESS));
-    sUfs = UnderFileSystem.get(sUfsRoot, sLocalAlluxioClusterResource.get().getMasterTachyonConf());
+        sLocalAlluxioClusterResource.get().getMasterConf().get(Constants.UNDERFS_ADDRESS));
+    sUfs = UnderFileSystem.get(sUfsRoot, sLocalAlluxioClusterResource.get().getMasterConf());
   }
 
   @Test

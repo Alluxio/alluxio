@@ -47,7 +47,7 @@ public class UfsUtilsIntegrationTest {
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
 
-    Configuration masterConf = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    Configuration masterConf = mLocalAlluxioClusterResource.get().getMasterConf();
     mUfsRoot = masterConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(mUfsRoot + AlluxioURI.SEPARATOR, masterConf);
   }
@@ -69,12 +69,12 @@ public class UfsUtilsIntegrationTest {
         mUfs.mkdirs(path, true);
       }
       UnderFileSystemUtils.touch(mUfsRoot + inclusion + "/1",
-          mLocalAlluxioClusterResource.get().getMasterTachyonConf());
+          mLocalAlluxioClusterResource.get().getMasterConf());
     }
 
     UfsUtils.loadUfs(mFileSystem, new AlluxioURI(AlluxioURI.SEPARATOR), new AlluxioURI(
         mUfsRoot + AlluxioURI.SEPARATOR), new PrefixList("alluxio;exclusions", ";"),
-        mLocalAlluxioClusterResource.get().getMasterTachyonConf());
+        mLocalAlluxioClusterResource.get().getMasterConf());
 
     List<String> paths;
     for (String exclusion : exclusions) {

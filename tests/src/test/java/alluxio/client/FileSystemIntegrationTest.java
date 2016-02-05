@@ -58,7 +58,7 @@ public class FileSystemIntegrationTest {
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    Configuration conf = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    Configuration conf = mLocalAlluxioClusterResource.get().getMasterConf();
     mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(conf);
   }
 

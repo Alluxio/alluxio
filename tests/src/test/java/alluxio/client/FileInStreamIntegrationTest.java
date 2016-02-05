@@ -66,7 +66,7 @@ public class FileInStreamIntegrationTest {
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sConfiguration = sLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    sConfiguration = sLocalAlluxioClusterResource.get().getMasterConf();
     sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(sConfiguration);
     sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sConfiguration);
     sWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(sConfiguration);

@@ -116,7 +116,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
   private void authenticationOperationTest() throws Exception {
     BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
         mLocalAlluxioClusterResource.get().getWorkerAddress(),
-        mExecutorService, mLocalAlluxioClusterResource.get().getWorkerTachyonConf(),
+        mExecutorService, mLocalAlluxioClusterResource.get().getWorkerConf(),
         1 /* fake session id */, true, new ClientMetrics());
 
     Assert.assertFalse(blockWorkerClient.isConnected());

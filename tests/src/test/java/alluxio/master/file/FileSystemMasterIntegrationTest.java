@@ -286,7 +286,7 @@ public class FileSystemMasterIntegrationTest {
 
     mFsMaster =
         mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
-    mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterConf();
 
     TtlBucketPrivateAccess
         .setTtlIntervalMs(mMasterConfiguration.getLong(Constants.MASTER_TTLCHECKER_INTERVAL_MS));
@@ -737,7 +737,7 @@ public class FileSystemMasterIntegrationTest {
   // public void writeImageTest() throws IOException {
   // // initialize the MasterInfo
   // Journal journal =
-  // new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data",
+  // new Journal(mLocalTachyonCluster.getAlluxioHome() + "journal/", "image.data", "log.data",
   // mMasterTachyonConf);
   // Journal
   // MasterInfo info =

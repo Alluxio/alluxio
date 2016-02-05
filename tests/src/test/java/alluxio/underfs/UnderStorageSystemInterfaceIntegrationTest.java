@@ -41,7 +41,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    Configuration masterConf = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    Configuration masterConf = mLocalAlluxioClusterResource.get().getMasterConf();
     mUnderfsAddress = masterConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(mUnderfsAddress + AlluxioURI.SEPARATOR, masterConf);
   }
