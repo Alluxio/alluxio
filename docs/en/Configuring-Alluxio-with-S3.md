@@ -63,7 +63,7 @@ a separate JVM from the Alluxio Master and Workers. See
 # Configuring Your Application
 
 When building your application to use Alluxio, your application will have to include the
-`alluxio-client` module. If you are using [maven](https://maven.apache.org/), you can add the
+`alluxio-core-client` module. If you are using [maven](https://maven.apache.org/), you can add the
 dependency to your application with:
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
@@ -76,7 +76,7 @@ when Alluxio is configured to use S3 as its under storage system.
 However, there is also an option to use a different implementation to communicate with S3; the S3
 client provided by Hadoop. In order to disable the Alluxio S3 client (and enable the Hadoop S3
 client), additional modifications to your application must be made. When including the
-`alluxio-client` module in your application, the `alluxio-underfs-s3` should be excluded to disable
+`alluxio-core-client` module in your application, the `alluxio-underfs-s3` should be excluded to disable
 the native client, and to use the Hadoop S3 client:
 
 {% include Configuring-Alluxio-with-S3/hadoop-s3-dependency.md %}

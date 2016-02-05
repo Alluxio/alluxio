@@ -39,8 +39,8 @@ Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系�
 
 具体做法有以下几种：
 
-- 将`alluxio-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`文件放在Flink的`lib`目录下（对于本地模式和独立集群模式）。
-- 将`alluxio-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`文件放在Flink的`ship`目录下（对于Flink安装在YARN上）。
+- 将`alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`文件放在Flink的`lib`目录下（对于本地模式和独立集群模式）。
+- 将`alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`文件放在Flink的`ship`目录下（对于Flink安装在YARN上）。
 - 在`HADOOP_CLASSPATH`环境变量中指定jar文件的路径（确保该环境变量在所有集群节点上有效）。举个例子：
 
 {% include Running-Flink-on-Alluxio/hadoop-classpath.md %}

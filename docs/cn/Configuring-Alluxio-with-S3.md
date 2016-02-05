@@ -44,7 +44,7 @@ priority: 0
 
 # 配置应用
 
-当构建应用使用Alluxio时，你的应用必须包含`alluxio-client`模块，如果你使用[maven](https://maven.apache.org/)构建应用，在配置文件中添加以下以来：
+当构建应用使用Alluxio时，你的应用必须包含`alluxio-core-client`模块，如果你使用[maven](https://maven.apache.org/)构建应用，在配置文件中添加以下以来：
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
 
@@ -53,7 +53,7 @@ priority: 0
 
 Alluxio提供了一个本地客户端与S3交互，默认情况下，当S3被配置为底层文件系统时，该本地客户端会被使用。
 
-但可以选择另外一种与S3通信的方式，即由Hadoop提供的S3客户端。为禁用Alluxio S3客户端（并启用Hadoop S3客户端），还需进行额外配置。若你的应用中包含了`alluxio-client`模块，要将`alluxio-underfs-s3`排除在外从而禁用本地客户端，并启用Hadoop S3客户端：
+但可以选择另外一种与S3通信的方式，即由Hadoop提供的S3客户端。为禁用Alluxio S3客户端（并启用Hadoop S3客户端），还需进行额外配置。若你的应用中包含了`alluxio-core-client`模块，要将`alluxio-underfs-s3`排除在外从而禁用本地客户端，并启用Hadoop S3客户端：
 
 {% include Configuring-Alluxio-with-S3/hadoop-s3-dependency.md %}
 
