@@ -96,7 +96,7 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
   /**
    * @return the number of key-value pairs in the partition
    * @throws IOException if a non-Alluxio error occurs
-   * @throws AlluxioException if a Alluxio error occurs
+   * @throws AlluxioException if an Alluxio error occurs
    */
   int size() throws IOException, AlluxioException;
 }

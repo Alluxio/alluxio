@@ -21,7 +21,7 @@ import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 
 /**
- * A Alluxio client API compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
+ * An Alluxio client API compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
  * interface. Any program working with Hadoop HDFS can work with Alluxio transparently. Note that
  * the performance of using this API may not be as efficient as the performance of using the Alluxio
  * native API defined in {@link alluxio.client.file.FileSystem}, which this API is built on top of.

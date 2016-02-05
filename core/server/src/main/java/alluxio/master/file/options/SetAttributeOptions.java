@@ -50,7 +50,7 @@ public class SetAttributeOptions {
     /**
      * Creates a new builder for {@link SetAttributeOptions}.
      *
-     * @param conf a Alluxio configuration
+     * @param conf an Alluxio configuration
      */
     public Builder(Configuration conf) {
       mPinned = null;

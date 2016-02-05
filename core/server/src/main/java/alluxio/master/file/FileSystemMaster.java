@@ -1532,7 +1532,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Mounts a UFS path onto a Alluxio path.
+   * Mounts a UFS path onto an Alluxio path.
    *
    * @param alluxioPath the Alluxio path to mount to
    * @param ufsPath the UFS path to mount
@@ -1614,7 +1614,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Unmounts a UFS path previously mounted path onto a Alluxio path.
+   * Unmounts a UFS path previously mounted path onto an Alluxio path.
    *
    * @param alluxioPath the Alluxio path to unmount, must be a mount point
    * @return true if the UFS path was successfully unmounted, false otherwise

@@ -38,7 +38,7 @@ public final class CreateDirectoryOptions {
     /**
      * Creates a new builder for {@link CreateDirectoryOptions}.
      *
-     * @param conf a Alluxio configuration
+     * @param conf an Alluxio configuration
      */
     public Builder(Configuration conf) {
       mOperationTimeMs = System.currentTimeMillis();
