@@ -1,2 +1,2 @@
-- name: set 2nd level Tachyon tieredstore(SSD)
+- name: set 2nd level Alluxio tieredstore(SSD)
   script: tachyon_tiered.sh
