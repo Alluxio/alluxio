@@ -23,11 +23,11 @@ If running a Hadoop 1.x cluster, ensure that the `core-site.xml` file in your Ha
 ```xml
 <property>
   <name>fs.alluxio.impl</name>
-  <value>alluxio.hadoop.TFS</value>
+  <value>alluxio.hadoop.FileSystem</value>
 </property>
 <property>
   <name>fs.alluxio-ft.impl</name>
-  <value>alluxio.hadoop.TFSFT</value>
+  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
 </property>
 ```
 
@@ -46,11 +46,11 @@ properties to your `core-site.xml` file, and restart Yarn.
 ```xml
 <property>
   <name>fs.alluxio.impl</name>
-  <value>alluxio.hadoop.TFS</value>
+  <value>alluxio.hadoop.FileSystem</value>
 </property>
 <property>
   <name>fs.alluxio-ft.impl</name>
-  <value>alluxio.hadoop.TFSFT</value>
+  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
 </property>
 ```
 

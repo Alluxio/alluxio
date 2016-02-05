@@ -45,7 +45,7 @@ the directory usually ends with `etc/hadoop`.)
 #### Make the Alluxio Client jar available to Flink
 
 In the last step, we need to make the Alluxio `jar` file available to Flink, because it contains the
-configured `alluxio.hadoop.TFS` class.
+configured `alluxio.hadoop.FileSystem` class.
 
 There are different ways to achieve that:
 
