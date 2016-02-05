@@ -41,10 +41,10 @@ public class TouchCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void touchTestWithFullURI() throws IOException, AlluxioException {
-    String tachyonURI = "alluxio://" + mLocalTachyonCluster.getMasterHostname() + ":"
-        + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
+    String alluxioURI = "alluxio://" + mLocalAlluxioCluster.getMasterHostname() + ":"
+        + mLocalAlluxioCluster.getMasterPort() + "/destFileURI";
     // when
-    String[] argv = new String[] {"touch", tachyonURI};
+    String[] argv = new String[] {"touch", alluxioURI};
     mFsShell.run(argv);
     // then
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/destFileURI"));

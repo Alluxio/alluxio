@@ -32,7 +32,7 @@ public class GlusterFSCluster extends UnderFileSystemCluster {
 
   private void checkGlusterConfigured(Configuration conf) {
     if (conf == null) {
-      throw new NullPointerException("Null Tachyon Configuration provided");
+      throw new NullPointerException("Null Alluxio Configuration provided");
     }
     if (StringUtils.isEmpty(conf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS))) {
       throw new IllegalArgumentException("Gluster FS Mounts are undefined");
@@ -46,7 +46,7 @@ public class GlusterFSCluster extends UnderFileSystemCluster {
   public String getUnderFilesystemAddress() {
     checkGlusterConfigured(mConfiguration);
 
-    return "glusterfs:///tachyon_test";
+    return "glusterfs:///alluxio_test";
   }
 
   @Override

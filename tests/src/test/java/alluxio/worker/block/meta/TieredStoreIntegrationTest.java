@@ -75,7 +75,7 @@ public class TieredStoreIntegrationTest {
   /**
    * Tests that deletes go through despite failing initially due to concurrent read.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws AlluxioException if an unexpected alluxio exception is thrown
    */
   @Test
@@ -119,12 +119,12 @@ public class TieredStoreIntegrationTest {
   /**
    * Tests that pinning a file prevents it from being evicted.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws AlluxioException if an unexpected alluxio exception is thrown
    */
   @Test
   public void pinFileTest() throws IOException, AlluxioException {
-    // Create a file that fills the entire Tachyon store
+    // Create a file that fills the entire Alluxio store
     AlluxioURI file = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, file, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
@@ -144,12 +144,12 @@ public class TieredStoreIntegrationTest {
   /**
    * Tests that pinning a file and then unpinning.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws AlluxioException if an unexpected alluxio exception is thrown
    */
   @Test
   public void unpinFileTest() throws IOException, AlluxioException {
-    // Create a file that fills the entire Tachyon store
+    // Create a file that fills the entire Alluxio store
     AlluxioURI file1 = new AlluxioURI("/test1");
     FileSystemTestUtils
         .createByteFile(mFileSystem, file1, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
@@ -182,7 +182,7 @@ public class TieredStoreIntegrationTest {
   /**
    * Tests the promotion of a file.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws AlluxioException if an unexpected alluxio exception is thrown
    */
   @Test

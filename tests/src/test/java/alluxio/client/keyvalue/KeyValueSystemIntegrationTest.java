@@ -345,7 +345,7 @@ public final class KeyValueSystemIntegrationTest {
   private void testDeleteStore(AlluxioURI storeUri) throws Exception {
     sKeyValueSystem.deleteStore(storeUri);
 
-    // TachyonException is expected to be thrown.
+    // AlluxioException is expected to be thrown.
     try {
       sKeyValueSystem.openStore(storeUri);
     } catch (AlluxioException e) {
@@ -393,7 +393,7 @@ public final class KeyValueSystemIntegrationTest {
     Assert.assertEquals(mergedPairs, store2Pairs);
 
     // store1 no longer exists, because it has been merged into store2.
-    // TachyonException is expected to be thrown.
+    // AlluxioException is expected to be thrown.
     try {
       sKeyValueSystem.openStore(store1);
     } catch (AlluxioException e) {

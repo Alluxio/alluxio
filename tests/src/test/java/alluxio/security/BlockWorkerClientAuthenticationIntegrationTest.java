@@ -62,33 +62,33 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+      confParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void noAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest();
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
+      confParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
   public void simpleAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest();
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
+      confParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
           Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-          Constants.SECURITY_LOGIN_USERNAME, "tachyon"})
+          Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest();
   }
 
   @Test(timeout = 10000)
-  @LocalAlluxioClusterResource.Config(tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
+  @LocalAlluxioClusterResource.Config(confParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
       "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
       NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-      Constants.SECURITY_LOGIN_USERNAME, "tachyon"})
+      Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnectTest() throws Exception {
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Failed to connect to the worker");
@@ -109,7 +109,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
   }
 
   /**
-   * Test Tachyon Worker client connects or disconnects to the Worker.
+   * Test Alluxio Worker client connects or disconnects to the Worker.
    *
    * @throws Exception
    */
