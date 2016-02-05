@@ -85,7 +85,7 @@ public abstract class JournalFormatterTestBase {
   protected static final long TEST_TABLE_ID = 2L;
   protected static final long TEST_OP_TIME_MS = 1409349750338L;
   protected static final long TEST_SEQUENCE_NUMBER = 1945L;
-  protected static final AlluxioURI TEST_TACHYON_PATH = new AlluxioURI("/test/path");
+  protected static final AlluxioURI TEST_ALLUXIO_PATH = new AlluxioURI("/test/path");
   protected static final long TEST_TTL = 624L;
   protected static final AlluxioURI TEST_UFS_PATH = new AlluxioURI("hdfs://host:port/test/path");
   protected static final String TEST_JOB_COMMAND = "Command";
@@ -187,13 +187,13 @@ public abstract class JournalFormatterTestBase {
             .build())
         .add(JournalEntry.newBuilder()
             .setAddMountPoint(AddMountPointEntry.newBuilder()
-                .setTachyonPath(TEST_TACHYON_PATH.toString())
+                .setAlluxioPath(TEST_ALLUXIO_PATH.toString())
                 .setUfsPath(TEST_UFS_PATH.toString()))
             .build())
         .add(
             JournalEntry.newBuilder()
                 .setDeleteMountPoint(DeleteMountPointEntry.newBuilder()
-                    .setTachyonPath(TEST_TACHYON_PATH.toString()))
+                    .setAlluxioPath(TEST_ALLUXIO_PATH.toString()))
                 .build())
         .add(JournalEntry.newBuilder()
             .setReinitializeFile(ReinitializeFileEntry.newBuilder()

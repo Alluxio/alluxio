@@ -54,10 +54,10 @@ public class PinCommandTest extends AbstractAlluxioShellTest {
   }
 
   /**
-   * Tests pinned files are not evicted when Tachyon reaches memory limit. This use cases
-   * creates three files of size 5MB for each to be added to Tachyon. The first file is pinned
-   * and is not expected to be evicted.Tachyon capacity is 10MB, hence once the third file is
-   * added, Tachyon is forced to evict one file. Since the first file is pinned it will not be
+   * Tests pinned files are not evicted when Alluxio reaches memory limit. This use cases
+   * creates three files of size 5MB for each to be added to Alluxio. The first file is pinned
+   * and is not expected to be evicted.Alluxio capacity is 10MB, hence once the third file is
+   * added, Alluxio is forced to evict one file. Since the first file is pinned it will not be
    * evicted only the second file will be evicted
    */
   @Test

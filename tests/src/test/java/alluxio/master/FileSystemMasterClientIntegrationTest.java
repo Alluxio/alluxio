@@ -43,7 +43,7 @@ public final class FileSystemMasterClientIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterConf();
   }
 
   @Test

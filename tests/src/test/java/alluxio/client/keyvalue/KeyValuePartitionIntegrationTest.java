@@ -95,8 +95,8 @@ public final class KeyValuePartitionIntegrationTest {
    * close. Meanwhile the {@link KeyValuePartitionReader} can open this saved partition and find
    * keys store by the writer.
    *
-   * @throws IOException if unexpected non-Tachyon error happens
-   * @throws AlluxioException if unexpected Tachyon error happens
+   * @throws IOException if unexpected non-Alluxio error happens
+   * @throws AlluxioException if unexpected Alluxio error happens
    */
   @Test
   public void readerWriterTest() throws IOException, AlluxioException {
@@ -104,7 +104,7 @@ public final class KeyValuePartitionIntegrationTest {
     mKeyValuePartitionWriter.put(KEY1, VALUE1);
     mKeyValuePartitionWriter.put(KEY2, VALUE2);
     mKeyValuePartitionWriter.close();
-    // Expect the key-value partition exists as a Tachyon file
+    // Expect the key-value partition exists as a Alluxio file
     Assert.assertTrue(sFileSystem.exists(mPartitionUri));
     mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri);
     Assert.assertArrayEquals(VALUE1, mKeyValuePartitionReader.get(KEY1));

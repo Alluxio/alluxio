@@ -4,7 +4,7 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
-  <link href="css/tachyoncustom.min.css" rel="stylesheet">
+  <link href="css/custom.min.css" rel="stylesheet">
 </head>
 <title>Workers</title>
 <body>

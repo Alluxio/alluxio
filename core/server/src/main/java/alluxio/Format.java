@@ -28,7 +28,7 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 /**
- * Format Tachyon file system.
+ * Format Alluxio file system.
  */
 @ThreadSafe
 public final class Format {
@@ -55,10 +55,10 @@ public final class Format {
   }
 
   /**
-   * Formats the Tachyon file system via {@code java -cp %s alluxio.Format <MASTER/WORKER>}.
+   * Formats the Alluxio file system via {@code java -cp %s alluxio.Format <MASTER/WORKER>}.
    *
    * @param args either {@code MASTER} or {@code WORKER}
-   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws IOException if a non-Alluxio related exception occurs
    */
   public static void main(String[] args) throws IOException {
     if (args.length != 1) {

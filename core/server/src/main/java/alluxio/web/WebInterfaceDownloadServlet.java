@@ -112,8 +112,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
   private void downloadFile(AlluxioURI path, HttpServletRequest request,
       HttpServletResponse response) throws FileDoesNotExistException, IOException,
       InvalidPathException, AlluxioException {
-    FileSystem tachyonClient = FileSystem.Factory.get();
-    URIStatus status = tachyonClient.getStatus(path);
+    FileSystem alluxioClient = FileSystem.Factory.get();
+    URIStatus status = alluxioClient.getStatus(path);
     long len = status.getLength();
     String fileName = path.getName();
     response.setContentType("application/octet-stream");
@@ -129,7 +129,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     try {
       // TODO(jiri): Should we use MasterContext here instead?
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-      is = tachyonClient.openFile(path, options);
+      is = alluxioClient.openFile(path, options);
       out = response.getOutputStream();
       ByteStreams.copy(is, out);
     } finally {

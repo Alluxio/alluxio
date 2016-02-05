@@ -37,10 +37,10 @@ public abstract class StorageTierAssoc {
   private final ImmutableBiMap<String, Integer> mAliasToOrdinal;
 
   /**
-   * Constructs a new instance using the given TachyonConf object. The mapping cannot be modified
-   * after creation.
+   * Constructs a new instance using the given {@link Configuration} object. The mapping cannot be
+   * modified after creation.
    *
-   * @param conf the TachyonConf to build the mapping from
+   * @param conf the Alluxio configuration to build the mapping from
    * @param levelsProperty the property in the conf that specifies how many levels there are
    * @param aliasFormat the format for the conf that identifies the alias for each level
    */

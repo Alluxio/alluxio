@@ -45,7 +45,7 @@ public final class WorkerContext {
    * Returns the one and only static {@link Configuration} object which is shared among all classes
    * within the worker process.
    *
-   * @return the tachyonConf for the worker process
+   * @return the Alluxio configuration for the worker process
    */
   public static Configuration getConf() {
     return sConf;
@@ -79,7 +79,7 @@ public final class WorkerContext {
 
   /**
    * Resets the worker context, for test only.
-   * TODO(binfan): consider a better way to mock test TachyonConf
+   * TODO(binfan): consider a better way to mock test configuration
    */
   public static void reset() {
     reset(new Configuration());
@@ -87,9 +87,9 @@ public final class WorkerContext {
 
   /**
    * Resets the worker context, for test only.
-   * TODO(binfan): consider a better way to mock test TachyonConf
+   * TODO(binfan): consider a better way to mock test configuration
    *
-   * @param conf the configuration for Tachyon
+   * @param conf the configuration for Alluxio
    */
   public static void reset(Configuration conf) {
     sConf = conf;

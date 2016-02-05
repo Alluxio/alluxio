@@ -52,7 +52,7 @@ public class TempBlockMetaTest {
   public void before() throws Exception {
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
     // Sets up tier with one storage dir under mTestDirPath with 100 bytes capacity.
-    TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_ORDINAL,
+    TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL,
         TEST_TIER_ALIAS, new String[] {mTestDirPath}, TEST_TIER_CAPACITY_BYTES, "");
 
     StorageTier tier = StorageTier.newStorageTier(TEST_TIER_ALIAS);

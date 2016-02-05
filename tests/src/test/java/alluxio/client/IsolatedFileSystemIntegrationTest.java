@@ -34,11 +34,12 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
+import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 /**
- * Integration tests on TachyonClient (Do not reuse the LocalTachyonCluster).
+ * Integration tests on Alluxio client (do not reuse the {@link LocalAlluxioCluster}).
  */
 public class IsolatedFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;
@@ -55,7 +56,7 @@ public class IsolatedFileSystemIntegrationTest {
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
 
-    Configuration workerConfiguration = mLocalAlluxioClusterResource.get().getWorkerTachyonConf();
+    Configuration workerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
     mWorkerToMasterHeartbeatIntervalMs =
         workerConfiguration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
     mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(workerConfiguration);

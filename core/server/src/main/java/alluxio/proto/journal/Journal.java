@@ -324,7 +324,7 @@ public final class Journal {
    * Protobuf type {@code alluxio.proto.journal.JournalEntry}
    *
    * <pre>
-   * Wraps around all types of Tachyon journal messages.
+   * Wraps around all types of Alluxio journal messages.
    * next available id: 28
    * </pre>
    */
@@ -1682,7 +1682,7 @@ public final class Journal {
      * Protobuf type {@code alluxio.proto.journal.JournalEntry}
      *
      * <pre>
-     * Wraps around all types of Tachyon journal messages.
+     * Wraps around all types of Alluxio journal messages.
      * next available id: 28
      * </pre>
      */

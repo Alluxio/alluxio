@@ -49,7 +49,7 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
   /**
    * Creates a new instance of {@link WebInterfaceMemoryServlet}.
    *
-   * @param master Tachyon master
+   * @param master Alluxio master
    */
   public WebInterfaceMemoryServlet(AlluxioMaster master) {
     mMaster = Preconditions.checkNotNull(master);

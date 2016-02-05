@@ -143,7 +143,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   @Test
   public void outOfOrderWriteTest() throws IOException, AlluxioException {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    FileOutStream os = mFileSystem.createFile(filePath, mWriteTachyon);
+    FileOutStream os = mFileSystem.createFile(filePath, mWriteAlluxio);
 
     // Write something small, so it is written into the buffer, and not directly to the file.
     os.write((byte) 0);
@@ -155,6 +155,6 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     os.write(BufferUtils.getIncreasingByteArray(1, length));
     os.close();
 
-    checkWrite(filePath, mWriteTachyon.getUnderStorageType(), length + 1, length + 1);
+    checkWrite(filePath, mWriteAlluxio.getUnderStorageType(), length + 1, length + 1);
   }
 }
