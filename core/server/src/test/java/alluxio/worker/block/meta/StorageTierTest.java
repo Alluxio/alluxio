@@ -67,7 +67,7 @@ public class StorageTierTest {
     mTestDirPath2 = mFolder.newFolder().getAbsolutePath();
     String[] tierPath = {mTestDirPath1, mTestDirPath2};
 
-    TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_ORDINAL,
+    TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL,
         TEST_TIER_ALIAS, tierPath, TIER_CAPACITY_BYTES, "");
 
     mTier = StorageTier.newStorageTier("MEM");

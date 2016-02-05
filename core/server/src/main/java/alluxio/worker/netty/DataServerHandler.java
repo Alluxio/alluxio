@@ -71,7 +71,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
    * Creates a new instance of {@link DataServerHandler}.
    *
    * @param blockWorker the block worker handle
-   * @param configuration Tachyon configuration
+   * @param configuration Alluxio configuration
    */
   public DataServerHandler(final BlockWorker blockWorker, Configuration configuration) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);

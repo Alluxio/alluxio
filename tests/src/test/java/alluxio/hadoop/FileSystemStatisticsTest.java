@@ -49,8 +49,8 @@ public class FileSystemStatisticsTest {
     Configuration conf = new Configuration();
     conf.set("fs.alluxio.impl", FileSystem.class.getName());
 
-    alluxio.client.file.FileSystem tachyonFS = sLocalAlluxioClusterResource.get().getClient();
-    FileSystemTestUtils.createByteFile(tachyonFS, "/testFile-read", WriteType.CACHE_THROUGH,
+    alluxio.client.file.FileSystem alluxioFS = sLocalAlluxioClusterResource.get().getClient();
+    FileSystemTestUtils.createByteFile(alluxioFS, "/testFile-read", WriteType.CACHE_THROUGH,
         FILE_LEN);
 
     URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterUri());

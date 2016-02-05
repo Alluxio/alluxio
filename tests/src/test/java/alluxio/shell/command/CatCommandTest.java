@@ -58,7 +58,7 @@ public class CatCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void catWildcardTest() throws IOException, AlluxioException {
-    AlluxioShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     // the expect contents (remember that the order is based on path)
     byte[] exp1 = BufferUtils.getIncreasingByteArray(30); // testWildCards/bar/foobar3
     byte[] exp2 = BufferUtils.getIncreasingByteArray(10); // testWildCards/foo/foobar1

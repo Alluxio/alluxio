@@ -41,15 +41,15 @@ public final class PermissionChecker {
   /** The owner of root directory. */
   private static String sFileSystemOwner;
 
-  /** The super group of Tachyon file system. All users in this group have super permission. */
+  /** The super group of Alluxio file system. All users in this group have super permission. */
   private static String sFileSystemSuperGroup;
 
   /**
-   * Initializes the permission related property of the whole Tachyon file system.
+   * Initializes the permission related property of the whole Alluxio file system.
    *
    * @param permissionCheckEnabled whether permission checking is enabled
    * @param owner the user of root directory, who is seen as the super user
-   * @param superGroup the super group of the whole Tachyon file system
+   * @param superGroup the super group of the whole Alluxio file system
    */
   public static synchronized void initializeFileSystem(boolean permissionCheckEnabled,
       String owner, String superGroup) {
@@ -174,7 +174,7 @@ public final class PermissionChecker {
       return;
     }
 
-    // bypass checking permission for super user or super group of Tachyon file system.
+    // bypass checking permission for super user or super group of Alluxio file system.
     if (sFileSystemOwner.equals(user) || groups.contains(sFileSystemSuperGroup)) {
       return;
     }

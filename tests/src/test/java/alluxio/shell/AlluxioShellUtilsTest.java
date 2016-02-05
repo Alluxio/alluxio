@@ -72,11 +72,11 @@ public final class AlluxioShellUtilsTest {
     TFS, LOCAL
   }
 
-  public String resetTachyonFileHierarchy() throws IOException, AlluxioException {
-    return resetTachyonFileHierarchy(mFileSystem);
+  public String resetFileHierarchy() throws IOException, AlluxioException {
+    return resetFileHierarchy(mFileSystem);
   }
 
-  public static String resetTachyonFileHierarchy(FileSystem fs)
+  public static String resetFileHierarchy(FileSystem fs)
       throws IOException, AlluxioException {
     /**
      * Generate such local structure /testWildCards
@@ -105,7 +105,7 @@ public final class AlluxioShellUtilsTest {
     return resetLocalFileHierarchy(mLocalAlluxioClusterResource.get());
   }
 
-  public static String resetLocalFileHierarchy(LocalAlluxioCluster localTachyonCluster)
+  public static String resetLocalFileHierarchy(LocalAlluxioCluster localAlluxioCluster)
       throws IOException {
     /**
      * Generate such local structure /testWildCards
@@ -116,17 +116,17 @@ public final class AlluxioShellUtilsTest {
      *                                        └── foobar3
      *                                └── foobar4
      */
-    FileUtils.deleteDirectory(new File(localTachyonCluster.getTachyonHome() + "/testWildCards"));
-    new File(localTachyonCluster.getTachyonHome() + "/testWildCards").mkdir();
-    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foo").mkdir();
-    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/bar").mkdir();
+    FileUtils.deleteDirectory(new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards"));
+    new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards").mkdir();
+    new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards/foo").mkdir();
+    new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards/bar").mkdir();
 
-    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar1").createNewFile();
-    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar2").createNewFile();
-    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/bar/foobar3").createNewFile();
-    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foobar4").createNewFile();
+    new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards/foo/foobar1").createNewFile();
+    new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards/foo/foobar2").createNewFile();
+    new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards/bar/foobar3").createNewFile();
+    new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards/foobar4").createNewFile();
 
-    return localTachyonCluster.getTachyonHome() + "/testWildCards";
+    return localAlluxioCluster.getAlluxioHome() + "/testWildCards";
   }
 
   public List<String> getPaths(String path, FsType fsType) throws IOException, TException {
@@ -150,7 +150,7 @@ public final class AlluxioShellUtilsTest {
 
   public String resetFsHierarchy(FsType fsType) throws IOException, AlluxioException {
     if (fsType == FsType.TFS) {
-      return resetTachyonFileHierarchy();
+      return resetFileHierarchy();
     } else if (fsType == FsType.LOCAL) {
       return resetLocalFileHierarchy();
     } else {

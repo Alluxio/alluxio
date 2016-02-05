@@ -58,11 +58,11 @@ public final class JournalTool {
   /**
    * Reads a journal via
    * {@code java -cp \
-   * assembly/target/alluxio-assemblies-<VERSION-OF-TACHYON>-jar-with-dependencies.jar \
+   * assembly/target/alluxio-assemblies-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
    * alluxio.master.journal.JournalTool < journal/FileSystemMaster/log.out}.
    *
    * @param args arguments passed to the tool
-   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws IOException if a non-Alluxio related exception occurs
    */
   public static void main(String[] args) throws IOException {
     if (!parseInputArgs(args)) {

@@ -33,7 +33,7 @@ public interface CheckpointPlanner {
    */
   class Factory {
     /**
-     * @param conf TachyonConf to determine the planner type
+     * @param conf Alluxio configuration to determine the planner type
      * @param lineageStoreView a view of the lineage store
      * @param fileSystemMasterView a view of the file system master
      * @return the generated planner

@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Validate the Tachyon configuration.
+ * Validate the Alluxio configuration.
  *
  */
 @ThreadSafe
@@ -51,7 +51,7 @@ public final class ValidateConf {
       LOG.error(e.getMessage(), e);
     }
 
-    // Tachyon version is a valid conf entry but not defined in alluxio.Constants
+    // Alluxio version is a valid conf entry but not defined in alluxio.Constants
     validProperties.add("alluxio.version");
 
     // There are three properties that are auto-generated in WorkerStorage based on corresponding

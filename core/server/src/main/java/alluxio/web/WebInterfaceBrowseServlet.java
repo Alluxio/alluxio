@@ -64,7 +64,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   /**
    * Creates a new instance of {@link WebInterfaceBrowseServlet}.
    *
-   * @param master the Tachyon master
+   * @param master the Alluxio master
    */
   public WebInterfaceBrowseServlet(AlluxioMaster master) {
     mMaster = master;

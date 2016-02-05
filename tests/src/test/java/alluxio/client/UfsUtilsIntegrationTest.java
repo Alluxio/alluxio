@@ -47,14 +47,14 @@ public class UfsUtilsIntegrationTest {
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
 
-    Configuration masterConf = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    Configuration masterConf = mLocalAlluxioClusterResource.get().getMasterConf();
     mUfsRoot = masterConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(mUfsRoot + AlluxioURI.SEPARATOR, masterConf);
   }
 
   @Test
   public void loadUnderFsTest() throws Exception {
-    String[] exclusions = {"/tachyon", "/exclusions"};
+    String[] exclusions = {"/alluxio", "/exclusions"};
     String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
     for (String exclusion : exclusions) {
       String path = PathUtils.concatPath(mUfsRoot, exclusion);
@@ -69,12 +69,12 @@ public class UfsUtilsIntegrationTest {
         mUfs.mkdirs(path, true);
       }
       UnderFileSystemUtils.touch(mUfsRoot + inclusion + "/1",
-          mLocalAlluxioClusterResource.get().getMasterTachyonConf());
+          mLocalAlluxioClusterResource.get().getMasterConf());
     }
 
     UfsUtils.loadUfs(mFileSystem, new AlluxioURI(AlluxioURI.SEPARATOR), new AlluxioURI(
         mUfsRoot + AlluxioURI.SEPARATOR), new PrefixList("alluxio;exclusions", ";"),
-        mLocalAlluxioClusterResource.get().getMasterTachyonConf());
+        mLocalAlluxioClusterResource.get().getMasterConf());
 
     List<String> paths;
     for (String exclusion : exclusions) {

@@ -51,7 +51,7 @@ public final class LocalBlockInStreamIntegrationTest {
       new LocalAlluxioClusterResource();
   private static FileSystem sFileSystem = null;
   private static CreateFileOptions sWriteBoth;
-  private static CreateFileOptions sWriteTachyon;
+  private static CreateFileOptions sWriteAlluxio;
   private static OpenFileOptions sReadNoCache;
   private static OpenFileOptions sReadCache;
   private static Configuration sConfiguration;
@@ -63,9 +63,9 @@ public final class LocalBlockInStreamIntegrationTest {
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sConfiguration = sLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    sConfiguration = sLocalAlluxioClusterResource.get().getMasterConf();
     sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(sConfiguration);
-    sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sConfiguration);
+    sWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache(sConfiguration);
     sReadCache = StreamOptionUtils.getOpenFileOptionsCache(sConfiguration);
     sReadNoCache = StreamOptionUtils.getOpenFileOptionsNoCache(sConfiguration);
     sTestPath = PathUtils.uniqPath();
@@ -82,7 +82,7 @@ public final class LocalBlockInStreamIntegrationTest {
   private static List<CreateFileOptions> getOptionSet() {
     List<CreateFileOptions> ret = new ArrayList<CreateFileOptions>(2);
     ret.add(sWriteBoth);
-    ret.add(sWriteTachyon);
+    ret.add(sWriteAlluxio);
     return ret;
   }
 

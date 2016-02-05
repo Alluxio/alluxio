@@ -38,13 +38,13 @@ public final class MasterUIWebServer extends UIWebServer {
    *
    * @param service the service type
    * @param address the service address
-   * @param master the Tachyon master
-   * @param conf the Tachyon configuration
+   * @param master the Alluxio master
+   * @param conf the Alluxio configuration
    */
   public MasterUIWebServer(ServiceType service, InetSocketAddress address, AlluxioMaster master,
       Configuration conf) {
     super(service, address, conf);
-    Preconditions.checkNotNull(master, "TachyonMaster cannot be null");
+    Preconditions.checkNotNull(master, "AlluxioMaster cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(master)), "/home");
     mWebAppContext.addServlet(new ServletHolder(

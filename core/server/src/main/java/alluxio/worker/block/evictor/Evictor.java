@@ -28,7 +28,7 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 
 /**
- * Interface for the eviction policy in Tachyon.
+ * Interface for the eviction policy in Alluxio.
  */
 @PublicApi
 public interface Evictor {

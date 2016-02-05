@@ -34,21 +34,21 @@ import alluxio.master.LocalAlluxioCluster;
  */
 public class FileSystemContract extends AbstractFSContract {
 
-  public static final String CONTRACT_XML = "contract/tachyonfs.xml";
+  public static final String CONTRACT_XML = "contract/alluxiofs.xml";
   public static final String SYSPROP_TEST_BUILD_DATA = "test.build.data";
   public static final String DEFAULT_TEST_BUILD_DATA_DIR = "test/build/data";
-  private final LocalAlluxioCluster mLocalTachyonCluster;
+  private final LocalAlluxioCluster mLocalAlluxioCluster;
   private org.apache.hadoop.fs.FileSystem mFS;
 
   /**
    * Creates a new {@link FileSystemContract}.
    *
    * @param conf configuration for hdfs
-   * @param cluster the Tachyon cluster to test in this contract
+   * @param cluster the Alluxio cluster to test in this contract
    */
   public FileSystemContract(Configuration conf, LocalAlluxioCluster cluster) {
     super(conf);
-    mLocalTachyonCluster = cluster;
+    mLocalAlluxioCluster = cluster;
     //insert the base features
     addConfResource(getContractXml());
   }
@@ -67,7 +67,7 @@ public class FileSystemContract extends AbstractFSContract {
     Configuration conf = new Configuration();
     conf.set("fs.alluxio.impl", FileSystem.class.getName());
 
-    URI uri = URI.create(mLocalTachyonCluster.getMasterUri());
+    URI uri = URI.create(mLocalAlluxioCluster.getMasterUri());
 
     mFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
   }

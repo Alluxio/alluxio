@@ -34,7 +34,7 @@ import alluxio.Configuration;
 public class UnderFileSystemClusterTest {
 
   private static final String BASE_DIR = "/tmp";
-  private static final Configuration TACHYON_CONF = new Configuration();
+  private static final Configuration ALLUXIO_CONF = new Configuration();
   private UnderFileSystemCluster mUnderFileSystemCluster;
 
   @Before
@@ -51,7 +51,7 @@ public class UnderFileSystemClusterTest {
     PowerMockito.spy(UnderFileSystemCluster.class);
 
     Mockito.when(UnderFileSystemCluster.getUnderFilesystemCluster(BASE_DIR,
-        TACHYON_CONF)).thenReturn(mUnderFileSystemCluster);
+        ALLUXIO_CONF)).thenReturn(mUnderFileSystemCluster);
 
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSCluster",
         (UnderFileSystemCluster) null);
@@ -59,7 +59,7 @@ public class UnderFileSystemClusterTest {
     Mockito.when(mUnderFileSystemCluster.isStarted()).thenReturn(false);
 
     // execute test
-    UnderFileSystemCluster.get(BASE_DIR, TACHYON_CONF);
+    UnderFileSystemCluster.get(BASE_DIR, ALLUXIO_CONF);
 
     UnderFileSystemCluster underFSCluster = Whitebox.getInternalState(UnderFileSystemCluster
         .class, "sUnderFSCluster");

@@ -45,7 +45,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   private final URI mUri;
 
   /**
-   * Construct a {@link AlluxioURI} from a String. Path strings are URIs, but with unescaped
+   * Construct an {@link AlluxioURI} from a String. Path strings are URIs, but with unescaped
    * elements and some additional normalization.
    *
    * @param pathStr path to construct the {@link AlluxioURI} from
@@ -89,7 +89,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Construct a {@link AlluxioURI} from components.
+   * Construct an {@link AlluxioURI} from components.
    *
    * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
    * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
@@ -358,7 +358,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
    * Tells whether or not the {@link AlluxioURI} is absolute.
    *
    * <p>
-   * A {@link AlluxioURI} is absolute if, and only if, it has a scheme component.
+   * An {@link AlluxioURI} is absolute if, and only if, it has a scheme component.
    * </p>
    *
    * @return <tt>true</tt> if, and only if, this {@link AlluxioURI} is absolute
@@ -396,7 +396,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Append additional path elements to the end of a {@link AlluxioURI}.
+   * Append additional path elements to the end of an {@link AlluxioURI}.
    *
    * @param suffix the suffix to add
    * @return the new {@link AlluxioURI}
@@ -406,7 +406,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
   }
 
   /**
-   * Append additional path elements to the end of a {@link AlluxioURI}.
+   * Append additional path elements to the end of an {@link AlluxioURI}.
    *
    * @param suffix the suffix to add
    * @return the new {@link AlluxioURI}

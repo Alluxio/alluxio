@@ -41,7 +41,7 @@ public class ComplexCommandTest extends AbstractAlluxioShellTest {
     // marked as persisted.
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFileA", WriteType.MUST_CACHE, 10);
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/testDir")).isPersisted());
-    Configuration conf = mLocalTachyonCluster.getMasterTachyonConf();
+    Configuration conf = mLocalAlluxioCluster.getMasterConf();
     String ufsRoot = conf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(ufsRoot, "testDir"), conf);
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/testDir")).isPersisted());
@@ -53,7 +53,7 @@ public class ComplexCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void lsThenloadMetadataTest() throws IOException, AlluxioException {
-    Configuration conf = mLocalTachyonCluster.getMasterTachyonConf();
+    Configuration conf = mLocalAlluxioCluster.getMasterConf();
     String ufsRoot = conf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(ufsRoot, "dir1"), conf);
     // First run ls to create the data
