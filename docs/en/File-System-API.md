@@ -25,9 +25,7 @@ resources are specified through a `TachyonURI` which represents the path to the 
 
 To obtain a Tachyon filesystem client in Java code, use:
 
-```java
-FileSystem fs = FileSystem.Factory.get();
-```
+{% include File-System-API/get-fileSystem.md %}
 
 ### Creating a File
 
@@ -36,29 +34,14 @@ executed through the FileSystem object. Since Tachyon files are immutable once w
 idiomatic way to create files is to use `FileSystem#createFile(TachyonURI)`, which returns
 a stream object that can be used to write the file. For example:
 
-```java
-FileSystem fs = FileSystem.Factory.get();
-TachyonURI path = new TachyonURI("/myFile");
-// Create a file and get its output stream
-FileOutStream out = fs.createFile(path);
-// Write data
-out.write(...);
-// Close and complete file
-out.close();
-```
+{% include File-System-API/write-file.md %}
 
 ### Specifying Operation Options
 
 For all FileSystem operations, an additional `options` field may be specified, which allows
 users to specify non-default settings for the operation. For example:
 
-```java
-FileSystem fs = FileSystem.Factory.get();
-TachyonURI path = new TachyonURI("/myFile");
-// Generate options to set a custom blocksize of 128 MB
-CreateFileOptions options = CreateFileOptions.defaults().setBlockSize(128 * Constants.MB);
-FileOutStream out = fs.createFile(path, options);
-```
+{% include File-System-API/specify-options.md %}
 
 ### IO Options
 
@@ -76,21 +59,12 @@ over the under storage system.
 <table class="table table-striped">
 <tr><th>Read Type</th><th>Behavior</th>
 </tr>
+{% for readtype in site.data.table.ReadType %}
 <tr>
-  <td>CACHE_PROMOTE</td>
-  <td>Data is moved to the highest tier in the worker where the data was read. If the data was not
-  in the Tachyon storage of the local worker, a replica will be added to the local Tachyon worker
-  for each completely read data block. This is the default read type.</td>
+  <td>{{readtype.readtype}}</td>
+  <td>{{site.data.table.en.ReadType.[readtype.readtype]}}</td>
 </tr>
-<tr>
-  <td>CACHE</td>
-  <td>If the data was not in the Tachyon storage of the local worker, a replica will be added to the
-  local Tachyon worker for each completely read data block.</td>
-</tr>
-<tr>
-  <td>NO_CACHE</td>
-  <td>No replicas will be created.</td>
-</tr>
+{% endfor %}
 </table>
 
 Below is a table of the expected behaviors of `WriteType`
@@ -98,24 +72,12 @@ Below is a table of the expected behaviors of `WriteType`
 <table class="table table-striped">
 <tr><th>Write Type</th><th>Behavior</th>
 </tr>
+{% for writetype in site.data.table.WriteType %}
 <tr>
-  <td>CACHE_THROUGH</td>
-  <td>Data is written synchronously to a Tachyon worker and the under storage system.</td>
+  <td>{{writetype.writetype}}</td>
+  <td>{{site.data.table.en.WriteType.[writetype.writetype]}}</td>
 </tr>
-<tr>
-  <td>MUST_CACHE</td>
-  <td>Data is written synchronously to a Tachyon worker. No data will be written to the under
-  storage. This is the default write type.</td>
-</tr>
-<tr>
-  <td>THROUGH</td>
-  <td>Data is written synchronously to the under storage. No data will be written to Tachyon.</td>
-</tr>
-<tr>
-  <td>ASYNC_THROUGH</td>
-  <td>Data is written synchronously to a Tachyon worker and asynchronously to the under storage
-  system. Experimental.</td>
-</tr>
+{% endfor %}
 </table>
 
 ### Location policy
@@ -158,16 +120,7 @@ metadata, ie. ttl or pin state, or getting an input stream to read the file.
 
 For example, to read a file:
 
-```java
-FileSystem fs = FileSystem.Factory.get();
-TachyonURI path = new TachyonURI("/myFile");
-// Open the file for reading and obtains a lock preventing deletion
-FileInStream in = fs.openFile(path);
-// Read data
-in.read(...);
-// Close file relinquishing the lock
-in.close();
-```
+{% include File-System-API/read-file.md %}
 
 # Hadoop API
 
