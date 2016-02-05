@@ -35,7 +35,7 @@ Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系�
 
 #### 使Alluxio Client jar对Flink可用
 
-最后一步，我们需要使Alluxio `jar`文件对Flink可用，该文件包含了配置好的`alluxio.hadoop.TFS`类。
+最后一步，我们需要使Alluxio `jar`文件对Flink可用，该文件包含了配置好的`alluxio.hadoop.FileSystem`类。
 
 具体做法有以下几种：
 
