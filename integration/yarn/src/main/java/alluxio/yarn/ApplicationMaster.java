@@ -490,7 +490,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     // Setup the environment needed for the launch context.
     Map<String, String> env = new HashMap<String, String>();
     env.put("CLASSPATH", ENV_CLASSPATH);
-    env.put("HOME", ApplicationConstants.Environment.PWD.$());
+    env.put("TACHYON_HOME", ApplicationConstants.Environment.PWD.$());
     return env;
   }
 }

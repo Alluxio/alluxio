@@ -59,7 +59,7 @@ import alluxio.util.network.NetworkAddressUtils;
  * The default properties are defined in a property file {@code alluxio-default.properties}
  * distributed with Alluxio jar. Alluxio users can override values of these default properties by
  * creating {@code alluxio-site.properties} and putting it under java {@code CLASSPATH} when running
- * Alluxio (e.g., ${HOME}/conf/)
+ * Alluxio (e.g., ${ALLUXIO_HOME}/conf/)
  *
  * <p>
  * Developers can create an instance of this class by {@link Configuration()}, which will load
