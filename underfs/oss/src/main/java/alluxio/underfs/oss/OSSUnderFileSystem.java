@@ -65,7 +65,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /** The accessKey to connect OSS. */
   private final String mAccessKey;
 
-  /** Bucket name of user's configured Tachyon bucket. */
+  /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
   /** Prefix of the bucket, for example oss://bucket-name/ */
@@ -408,9 +408,9 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Creates an OSS {@code ClientConfiguration} using a Tachyon configuration.
+   * Creates an OSS {@code ClientConfiguration} using a Alluxio configuration.
    *
-   * @param configuration Tachyon configuration
+   * @param configuration Alluxio configuration
    * @return the OSS {@link ClientConfiguration}
    */
   private ClientConfiguration initializeOSSClientConfig(Configuration configuration) {
@@ -471,7 +471,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       path = stripPrefixIfPresent(path);
       path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
       path = path.equals(PATH_SEPARATOR) ? "" : path;
-      // Gets all the objects under the path, because we have no idea if there are non Tachyon
+      // Gets all the objects under the path, because we have no idea if there are non Alluxio
       // managed "directories"
       ListObjectsRequest listObjectsRequest = new ListObjectsRequest(mBucketName);
       listObjectsRequest.setPrefix(path);

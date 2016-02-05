@@ -51,7 +51,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new {@link LocalUnderFileSystem}.
    *
-   * @param conf the configuration for Tachyon
+   * @param conf the configuration for Alluxio
    */
   public LocalUnderFileSystem(Configuration conf) {
     super(conf);

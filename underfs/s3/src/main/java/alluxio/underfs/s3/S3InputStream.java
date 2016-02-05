@@ -33,7 +33,7 @@ import org.jets3t.service.model.S3Object;
 @NotThreadSafe
 public class S3InputStream extends InputStream {
 
-  /** Bucket name of the Tachyon S3 bucket. */
+  /** Bucket name of the Alluxio S3 bucket. */
   private final String mBucketName;
 
   /** Key of the file in S3 to read. */
