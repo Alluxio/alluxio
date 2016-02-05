@@ -63,12 +63,12 @@ public class JournalCrashTest {
   }
 
   /**
-   * The client thread class. Each thread hold a Tachyon Client and keep requesting to Master.
+   * The client thread class. Each thread hold an Alluxio Client and keep requesting to Master.
    */
   static class ClientThread extends Thread {
     /** Which type of operation this thread should do. */
     private final ClientOpType mOpType;
-    /** The working directory of this thread on Tachyon. */
+    /** The working directory of this thread on Alluxio. */
     private final String mWorkDir;
 
     /** Used for supervisor to stop this thread. */
@@ -77,7 +77,7 @@ public class JournalCrashTest {
     private int mSuccessNum = 0;
 
     /**
-     * @param workDir the working directory for this thread on Tachyon
+     * @param workDir the working directory for this thread on Alluxio
      * @param opType the type of operation this thread should do
      */
     public ClientThread(String workDir, ClientOpType opType) {
@@ -100,7 +100,7 @@ public class JournalCrashTest {
     }
 
     /**
-     * @return the working directory of this thread on Tachyon
+     * @return the working directory of this thread on Alluxio
      */
     public String getWorkDir() {
       return mWorkDir;
@@ -179,7 +179,7 @@ public class JournalCrashTest {
   /** The maximum time a master should ever be alive. */
   private static long sMaxAliveTimeMs;
   private static String sTestDir;
-  /** The Tachyon Client. This can be shared by all the threads. */
+  /** The Alluxio Client. This can be shared by all the threads. */
   private static FileSystem sFileSystem = null;
   /** The total time to run this test. */
   private static long sTotalTimeMs;
@@ -219,12 +219,12 @@ public class JournalCrashTest {
   }
 
   /**
-   * Kill Tachyon Master by 'kill -9' command.
+   * Kill Alluxio Master by 'kill -9' command.
    */
   private static void killMaster() {
     String[] killMasterCommand = new String[]{"/usr/bin/env", "bash", "-c",
         "for pid in `ps -Aww -o pid,command | grep -i \"[j]ava\" | grep "
-            + "\"alluxio.master.TachyonMaster\" | awk '{print $1}'`; do kill -9 \"$pid\"; done"};
+            + "\"alluxio.master.AlluxioMaster\" | awk '{print $1}'`; do kill -9 \"$pid\"; done"};
     try {
       Runtime.getRuntime().exec(killMasterCommand).waitFor();
       CommonUtils.sleepMs(LOG, 1000);
@@ -236,7 +236,7 @@ public class JournalCrashTest {
   /**
    * Usage:
    * {@code java -cp
-   * alluxio-<TACHYON-VERSION>-jar-with-dependencies.jar alluxio.examples.JournalCrashTest}
+   * alluxio-<ALLUXIO-VERSION>-jar-with-dependencies.jar alluxio.examples.JournalCrashTest}
    *
    * @param args no arguments
    */
@@ -246,10 +246,10 @@ public class JournalCrashTest {
       System.exit(EXIT_FAILED);
     }
 
-    System.out.println("Stop the current Tachyon cluster...");
+    System.out.println("Stop the current Alluxio cluster...");
     stopCluster();
 
-    // Set NO_STORE and NO_PERSIST so that this test can work without TachyonWorker.
+    // Set NO_STORE and NO_PERSIST so that this test can work without AlluxioWorker.
     sCreateFileOptions = CreateFileOptions.defaults().setWriteType(WriteType.NONE);
     // Set the max retry to avoid long pending for client disconnect.
     if (System.getProperty(Constants.MASTER_RETRY_COUNT) == null) {
@@ -331,7 +331,7 @@ public class JournalCrashTest {
         "Number of Client Threads to request create/delete operations");
     options.addOption("renames", true,
         "Number of Client Threads to request create/rename operations");
-    options.addOption("testDir", true, "Test Directory on Tachyon");
+    options.addOption("testDir", true, "Test Directory on Alluxio");
     CommandLineParser parser = new BasicParser();
     CommandLine cmd = null;
     boolean ret = true;
@@ -383,7 +383,7 @@ public class JournalCrashTest {
   }
 
   /**
-   * Start Tachyon Master by executing the launch script.
+   * Start Alluxio Master by executing the launch script.
    */
   private static void startMaster() {
     String startMasterCommand = new Configuration().get(Constants.TACHYON_HOME)
@@ -397,7 +397,7 @@ public class JournalCrashTest {
   }
 
   /**
-   * Stop the current Tachyon cluster. This is used for preparation and clean up.
+   * Stop the current Alluxio cluster. This is used for preparation and clean up.
    * To crash the Master, use {@link #killMaster()}.
    */
   private static void stopCluster() {
@@ -407,7 +407,7 @@ public class JournalCrashTest {
       Runtime.getRuntime().exec(stopClusterCommand).waitFor();
       CommonUtils.sleepMs(LOG, 1000);
     } catch (Exception e) {
-      LOG.error("Error when stop Tachyon cluster", e);
+      LOG.error("Error when stop Alluxio cluster", e);
     }
   }
 }

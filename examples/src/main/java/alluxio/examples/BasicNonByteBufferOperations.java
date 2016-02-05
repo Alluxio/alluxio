@@ -78,13 +78,13 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     ClientContext.getConf().set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     ClientContext.getConf().set(Constants.MASTER_RPC_PORT,
         Integer.toString(mMasterLocation.getPort()));
-    FileSystem tachyonClient = FileSystem.Factory.get();
-    write(tachyonClient);
-    return read(tachyonClient);
+    FileSystem alluxioClient = FileSystem.Factory.get();
+    write(alluxioClient);
+    return read(alluxioClient);
   }
 
-  private void write(FileSystem tachyonClient) throws IOException, AlluxioException {
-    FileOutStream fileOutStream = createFile(tachyonClient, mFilePath, mDeleteIfExists);
+  private void write(FileSystem alluxioClient) throws IOException, AlluxioException {
+    FileOutStream fileOutStream = createFile(alluxioClient, mFilePath, mDeleteIfExists);
     DataOutputStream os = new DataOutputStream(fileOutStream);
     try {
       os.writeInt(mLength);
@@ -111,10 +111,10 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     throw new FileAlreadyExistsException("File exists and deleteIfExists is false");
   }
 
-  private boolean read(FileSystem tachyonClient) throws IOException, AlluxioException {
+  private boolean read(FileSystem alluxioClient) throws IOException, AlluxioException {
     OpenFileOptions options = OpenFileOptions.defaults().setReadType(mReadType);
 
-    DataInputStream input = new DataInputStream(tachyonClient.openFile(mFilePath, options));
+    DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options));
     try {
       int length = input.readInt();
       for (int i = 0; i < length; i ++) {
@@ -129,7 +129,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   /**
-   * Usage: {@code java -cp <TACHYON-VERSION> BasicNonByteBufferOperations <master address>
+   * Usage: {@code java -cp <ALLUXIO-VERSION> BasicNonByteBufferOperations <master address>
    *   <file path> <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)>
    *   <WriteType (MUST_CACHE | CACHE_THROUGH | THROUGH)> <delete file> <number of files>}
    *
