@@ -33,14 +33,14 @@ import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
 
 /**
- * Persists a file or directory currently stored only in Tachyon to the UnderFileSystem
+ * Persists a file or directory currently stored only in Alluxio to the UnderFileSystem
  */
 @ThreadSafe
 public final class PersistCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public PersistCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
@@ -64,10 +64,10 @@ public final class PersistCommand extends AbstractShellCommand {
   }
 
   /**
-   * Persists a file or directory currently stored only in Tachyon to the UnderFileSystem.
+   * Persists a file or directory currently stored only in Alluxio to the UnderFileSystem.
    *
    * @param filePath the {@link AlluxioURI} path to persist to the UnderFileSystem
-   * @throws IOException when a Tachyon or I/O error occurs
+   * @throws IOException when a Alluxio or I/O error occurs
    */
   private void persist(AlluxioURI filePath) throws IOException {
     try {
@@ -99,11 +99,11 @@ public final class PersistCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "persist <tachyonPath>";
+    return "persist <alluxioPath>";
   }
 
   @Override
   public String getDescription() {
-    return "Persists a file or directory currently stored only in Tachyon to the UnderFileSystem.";
+    return "Persists a file or directory currently stored only in Alluxio to the UnderFileSystem.";
   }
 }

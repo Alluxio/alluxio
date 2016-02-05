@@ -34,8 +34,8 @@ public final class GetCapacityBytesCommand extends AbstractShellCommand {
   /**
    * Constructs a new instance to get the capacity of the {@link FileSystem}.
    *
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public GetCapacityBytesCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
@@ -64,6 +64,6 @@ public final class GetCapacityBytesCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Gets the capacity of the Tachyon file system.";
+    return "Gets the capacity of the Alluxio file system.";
   }
 }

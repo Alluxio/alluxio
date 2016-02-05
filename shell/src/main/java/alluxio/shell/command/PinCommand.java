@@ -33,8 +33,8 @@ import alluxio.Configuration;
 public final class PinCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public PinCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);

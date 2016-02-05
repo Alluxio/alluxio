@@ -1,7 +1,7 @@
 .TH TFS 1
 .SH NAME
 
-tfs \- command line interface for Tachyon provides users with basic file system operations
+tfs \- command line interface for Alluxio provides users with basic file system operations
 
 .SH SYNOPSIS
 
@@ -110,7 +110,7 @@ tfs \- command line interface for Tachyon provides users with basic file system 
 .SH DESCRIPTION
 
 .B tfs
-command line interface for Tachyon provides users with basic file system operations.
+command line interface for Alluxio provides users with basic file system operations.
 
 .SH OPTIONS
 
@@ -178,26 +178,26 @@ Print the information of the blocks of a specified file.
 .TP
 .BR free
 \fIpath\fR
-Free a file or all files under a directory from Tachyon. If the file/directory is also in under
+Free a file or all files under a directory from Alluxio. If the file/directory is also in under
 storage, it will still be available there.
 
 .TP
 .BR getCapacityBytes
-Get the capacity of the TachyonFS.
+Get the capacity of the Alluxio file system.
 
 .TP
 .BR getUsedBytes
-Get number of bytes used in the TachyonFS.
+Get number of bytes used in the Alluxio file system.
 
 .TP
 .BR load
 \fIpath\fR
-Load the data of a file or a directory from under storage into Tachyon.
+Load the data of a file or a directory from under storage into Alluxio.
 
 .TP
 .BR loadMetadata
 \fIpath\fR
-Load the metadata of a file or a directory from under storage into Tachyon.
+Load the metadata of a file or a directory from under storage into Alluxio.
 
 .TP
 .BR location
@@ -223,9 +223,9 @@ will fail if the given path already exists.
 .TP
 .BR mount
 \fIpath uri\fR
-Mount the underlying file system path "uri" into the Tachyon namespace as "path". The "path" is
+Mount the underlying file system path "uri" into the Alluxio namespace as "path". The "path" is
 assumed not to exist and is created by the operation. No data or metadata is loaded from under
-storage into Tachyon. After a path is mounted, operations on objects under the mounted path are
+storage into Alluxio. After a path is mounted, operations on objects under the mounted path are
 mirror to the mounted under storage.
 
 .TP
@@ -237,7 +237,7 @@ fail if "destination" already exists.
 .TP
 .BR persist
 \fIpath\fR
-Persist a file or directory currently stored only in Tachyon to the underlying file system.
+Persist a file or directory currently stored only in Alluxio to the underlying file system.
 
 .TP
 .BR pin
@@ -278,13 +278,13 @@ Create a 0-byte file at the specified location.
 .TP
 .BR unmount
 \fIpath\fR
-Unmount the underlying file system path mounted in the Tachyon namespace as "path". Tachyon objects
-under "path" are removed from Tachyon, but they still exist in the previously mounted under storage.
+Unmount the underlying file system path mounted in the Alluxio namespace as "path". Alluxio objects
+under "path" are removed from Alluxio, but they still exist in the previously mounted under storage.
 
 .TP
 .BR unpin
 \fIpath\fR
-Unpin the given file to allow Tachyon to evict this file again. If the given path is a directory, it
+Unpin the given file to allow Alluxio to evict this file again. If the given path is a directory, it
 recursively unpins all files contained and any new files created within this directory.
 
 .TP

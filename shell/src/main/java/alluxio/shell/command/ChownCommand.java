@@ -37,8 +37,8 @@ public final class ChownCommand extends AbstractShellCommand {
   /**
    * Creates a new instance of {@link ChownCommand}.
    *
-   * @param conf a Tachyon configuration
-   * @param fs a Tachyon file system handle
+   * @param conf a Alluxio configuration
+   * @param fs a Alluxio file system handle
    */
   public ChownCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
