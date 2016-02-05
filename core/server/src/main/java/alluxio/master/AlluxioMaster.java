@@ -70,7 +70,7 @@ public class AlluxioMaster {
    */
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp {} alluxio.Master", Version.TACHYON_JAR);
+      LOG.info("java -cp {} alluxio.Master", Version.ALLUXIO_JAR);
       System.exit(-1);
     }
 

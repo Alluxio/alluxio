@@ -33,7 +33,7 @@ public final class KeyValueStoreQuickStart {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
-      System.out.println("Usage: java -cp " + Version.TACHYON_JAR + " "
+      System.out.println("Usage: java -cp " + Version.ALLUXIO_JAR + " "
           + KeyValueStoreQuickStart.class.getName() + " <key-value store URI>");
       System.exit(-1);
     }

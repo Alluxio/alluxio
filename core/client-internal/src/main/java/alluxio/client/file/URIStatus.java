@@ -25,7 +25,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.wire.FileInfo;
 
 /**
- * Wrapper around {@link FileInfo}. Represents the metadata about a file or directory in Tachyon.
+ * Wrapper around {@link FileInfo}. Represents the metadata about a file or directory in Alluxio.
  * This is a snapshot of information about the file or directory and not all attributes are
  * guaranteed to be up to date. Attributes documented as immutable will always be accurate, and
  * attributes documented as mutable may be out of date.
@@ -65,7 +65,7 @@ public class URIStatus {
   }
 
   /**
-   * @return the unique identifier of the entity referenced by this uri used by Tachyon servers,
+   * @return the unique identifier of the entity referenced by this uri used by Alluxio servers,
    *         immutable
    */
   public long getFileId() {
@@ -80,7 +80,7 @@ public class URIStatus {
   }
 
   /**
-   * @return the percentage of blocks in Tachyon memory tier storage, mutable
+   * @return the percentage of blocks in Alluxio memory tier storage, mutable
    */
   public int getInMemoryPercentage() {
     return mInfo.getInMemoryPercentage();
@@ -157,7 +157,7 @@ public class URIStatus {
   }
 
   /**
-   * @return whether the entity referenced by this uri can be stored in Tachyon space, mutable
+   * @return whether the entity referenced by this uri can be stored in Alluxio space, mutable
    */
   public boolean isCacheable() {
     return mInfo.isCacheable();

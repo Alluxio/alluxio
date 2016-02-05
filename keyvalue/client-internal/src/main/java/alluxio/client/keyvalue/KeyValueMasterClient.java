@@ -81,7 +81,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
    */
   public synchronized void completePartition(final AlluxioURI path, final PartitionInfo info)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.completePartition(path.getPath(), info);
@@ -99,7 +99,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
    */
   public synchronized void completeStore(final AlluxioURI path)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.completeStore(path.getPath());
@@ -116,7 +116,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized void createStore(final AlluxioURI path) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.createStore(path.getPath());
@@ -135,7 +135,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
    */
   public synchronized List<PartitionInfo> getPartitionInfo(final AlluxioURI path)
       throws IOException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<List<PartitionInfo>>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<List<PartitionInfo>>() {
       @Override
       public List<PartitionInfo> call() throws AlluxioTException, TException {
         return mClient.getPartitionInfo(path.getPath());
@@ -151,7 +151,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
    * @throws AlluxioException if other Tachyon error occurs
    */
   public synchronized void deleteStore(final AlluxioURI path) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.deleteStore(path.getPath());
@@ -168,7 +168,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
    */
   void mergeStore(final AlluxioURI fromPath, final AlluxioURI toPath)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.mergeStore(fromPath.getPath(), toPath.getPath());

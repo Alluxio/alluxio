@@ -16,7 +16,7 @@
 package alluxio.client;
 
 /**
- * This interface should be implemented by all Tachyon streams which are bounded at a certain
+ * This interface should be implemented by all Alluxio streams which are bounded at a certain
  * byte size.
  */
 public interface BoundedStream {

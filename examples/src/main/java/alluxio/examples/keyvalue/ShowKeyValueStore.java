@@ -53,7 +53,7 @@ public final class ShowKeyValueStore {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 2) {
-      System.out.println("Usage: java -cp " + Version.TACHYON_JAR + " "
+      System.out.println("Usage: java -cp " + Version.ALLUXIO_JAR + " "
           + ShowKeyValueStore.class.getName() + " <key-value store URI>"
           + " <scope, be one of key/value/all>");
       System.exit(-1);

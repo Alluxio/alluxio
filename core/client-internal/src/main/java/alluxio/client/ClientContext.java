@@ -29,7 +29,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.ClientMetrics;
 
 /**
- * A shared context in each client JVM. It provides common functionality such as the Tachyon
+ * A shared context in each client JVM. It provides common functionality such as the Alluxio
  * configuration and master address.
  */
 @ThreadSafe
@@ -44,9 +44,9 @@ public final class ClientContext {
   }
 
   /**
-   * Resets to the default Tachyon configuration and initializes the client context singleton.
+   * Resets to the default Alluxio configuration and initializes the client context singleton.
    *
-   * This method is useful for undoing changes to TachyonConf made by unit tests.
+   * This method is useful for undoing changes to {@link Configuration} made by unit tests.
    */
   private static void reset() {
     sConf = new Configuration();
@@ -54,8 +54,8 @@ public final class ClientContext {
   }
 
   /**
-   * Initializes the client context singleton, bringing all non-TachyonConf state into sync with the
-   * current TachyonConf.
+   * Initializes the client context singleton, bringing all non-Alluxio configuration state in sync
+   * with the current Alluxio configuration.
    *
    * This method is useful for updating parts of {@link ClientContext} which depend on
    * {@link Configuration} when {@link Configuration} is changed, e.g. the master hostname or port.

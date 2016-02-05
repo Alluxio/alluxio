@@ -31,15 +31,15 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
 /**
- * Provides a stream API to write a block to Tachyon. An instance of this class can be obtained by
+ * Provides a stream API to write a block to Alluxio. An instance of this class can be obtained by
  * calling {@link AlluxioBlockStore#getOutStream}. Only one {@link BufferedBlockOutStream} should be
  * opened for a block.
  *
  * <p>
  * The type of {@link BufferedBlockOutStream} returned will depend on the user configuration and
  * cluster setup. A {@link LocalBlockOutStream} is returned if the client is co-located with a
- * Tachyon worker and the user has enabled this optimization. Otherwise, a
- * {@link RemoteBlockOutStream} will be returned which will write the data through a Tachyon worker.
+ * Alluxio worker and the user has enabled this optimization. Otherwise, a
+ * {@link RemoteBlockOutStream} will be returned which will write the data through a Alluxio worker.
  */
 @NotThreadSafe
 public abstract class BufferedBlockOutStream extends OutputStream implements Cancelable {

@@ -57,21 +57,21 @@ public final class InStreamOptions {
   }
 
   /**
-   * @return the location policy to use when storing data to Tachyon
+   * @return the location policy to use when storing data to Alluxio
    */
   public FileWriteLocationPolicy getLocationPolicy() {
     return mLocationPolicy;
   }
 
   /**
-   * @return the Tachyon storage type
+   * @return the Alluxio storage type
    */
-  public AlluxioStorageType getTachyonStorageType() {
-    return mReadType.getTachyonStorageType();
+  public AlluxioStorageType getAlluxioStorageType() {
+    return mReadType.getAlluxioStorageType();
   }
 
   /**
-   * @param policy the location policy to use when storing data to Tachyon
+   * @param policy the location policy to use when storing data to Alluxio
    * @return the updated options object
    */
   public InStreamOptions setLocationPolicy(FileWriteLocationPolicy policy) {

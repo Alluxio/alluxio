@@ -60,21 +60,21 @@ public final class OpenFileOptions {
   }
 
   /**
-   * @return the location policy to use when storing data to Tachyon
+   * @return the location policy to use when storing data to Alluxio
    */
   public FileWriteLocationPolicy getLocationPolicy() {
     return mLocationPolicy;
   }
 
   /**
-   * @return the Tachyon storage type
+   * @return the Alluxio storage type
    */
-  public AlluxioStorageType getTachyonStorageType() {
-    return mReadType.getTachyonStorageType();
+  public AlluxioStorageType getAlluxioStorageType() {
+    return mReadType.getAlluxioStorageType();
   }
 
   /**
-   * @param policy the location policy to use when storing data to Tachyon
+   * @param policy the location policy to use when storing data to Alluxio
    * @return the updated options object
    */
   public OpenFileOptions setLocationPolicy(FileWriteLocationPolicy policy) {
@@ -83,8 +83,8 @@ public final class OpenFileOptions {
   }
 
   /**
-   * @param readType the {@link alluxio.client.ReadType} for this operation. Setting this will
-   *        override the TachyonStorageType.
+   * @param readType the {@link ReadType} for this operation. Setting this will
+   *        override the {@link AlluxioStorageType}.
    * @return the updated options object
    */
   public OpenFileOptions setReadType(ReadType readType) {

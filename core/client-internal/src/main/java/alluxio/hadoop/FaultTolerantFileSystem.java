@@ -20,10 +20,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 import alluxio.Constants;
 
 /**
- * A Tachyon client API compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
- * interface. Any program working with Hadoop HDFS can work with Tachyon transparently. Note that
+ * A Alluxio client API compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
+ * interface. Any program working with Hadoop HDFS can work with Alluxio transparently. Note that
  * the performance of using this fault tolerant API may not be as efficient as the performance of
- * using the Tachyon native API defined in {@link alluxio.client.file.FileSystem}, which the API is
+ * using the Alluxio native API defined in {@link alluxio.client.file.FileSystem}, which the API is
  * built on top of.
  *
  * <p>

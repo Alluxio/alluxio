@@ -67,8 +67,8 @@ public interface FileSystem {
    * Convenience method for {@link #createDirectory(AlluxioURI, CreateDirectoryOptions)} with
    * default options.
    *
-   * @param path the path of the directory to create in Tachyon space
-   * @throws IOException if a non-Tachyon exception occurs
+   * @param path the path of the directory to create in Alluxio space
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileAlreadyExistsException if there is already a file or directory at the given path
    * @throws InvalidPathException if the path is invalid
    * @throws AlluxioException if an unexpected exception is thrown
@@ -79,12 +79,12 @@ public interface FileSystem {
   /**
    * Creates a directory.
    *
-   * @param path the path of the directory to create in Tachyon space
+   * @param path the path of the directory to create in Alluxio space
    * @param options options to associate with this operation
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileAlreadyExistsException if there is already a file or directory at the given path
    * @throws InvalidPathException if the path is invalid
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
@@ -92,12 +92,12 @@ public interface FileSystem {
   /**
    * Convenience method for {@link #createFile(AlluxioURI, CreateFileOptions)} with default options.
    *
-   * @param path the path of the file to create in Tachyon space
+   * @param path the path of the file to create in Alluxio space
    * @return a {@link FileOutStream} which will write data to the newly created file
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   FileOutStream createFile(AlluxioURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
@@ -105,13 +105,13 @@ public interface FileSystem {
   /**
    * Creates a file.
    *
-   * @param path the path of the file to create in Tachyon space
+   * @param path the path of the file to create in Alluxio space
    * @param options options to associate with this operation
    * @return a {@link FileOutStream} which will write data to the newly created file
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   FileOutStream createFile(AlluxioURI path, CreateFileOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
@@ -119,11 +119,11 @@ public interface FileSystem {
   /**
    * Convenience method for {@link #delete(AlluxioURI, DeleteOptions)} with default options.
    *
-   * @param path the path to delete in Tachyon space
-   * @throws IOException if a non-Tachyon exception occurs
+   * @param path the path to delete in Alluxio space
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws DirectoryNotEmptyException if recursive is false and the path is a nonempty directory
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void delete(AlluxioURI path)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException;
@@ -131,12 +131,12 @@ public interface FileSystem {
   /**
    * Deletes a file or a directory.
    *
-   * @param path the path to delete in Tachyon space
+   * @param path the path to delete in Alluxio space
    * @param options options to associate with this operation
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws DirectoryNotEmptyException if recursive is false and the path is a nonempty directory
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void delete(AlluxioURI path, DeleteOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException;
@@ -146,21 +146,21 @@ public interface FileSystem {
    *
    * @param path the path in question
    * @return true if the path exists, false otherwise
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws InvalidPathException if the path is invalid
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   boolean exists(AlluxioURI path) throws InvalidPathException, IOException, AlluxioException;
 
   /**
-   * Checks whether a path exists in Tachyon space
+   * Checks whether a path exists in Alluxio space
    *
    * @param path the path in question
    * @param options options to associate with this operation
    * @return true if the path exists, false otherwise
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws InvalidPathException if the path is invalid
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   boolean exists(AlluxioURI path, ExistsOptions options)
       throws InvalidPathException, IOException, AlluxioException;
@@ -168,22 +168,22 @@ public interface FileSystem {
   /**
    * Convenience method for {@link #free(AlluxioURI, FreeOptions)} with default options.
    *
-   * @param path the path to free in Tachyon space
-   * @throws IOException if a non-Tachyon exception occurs
+   * @param path the path to free in Alluxio space
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void free(AlluxioURI path) throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Evicts any data under the given path from Tachyon space, but does not delete the data from the
-   * UFS. The metadata will still be present in Tachyon space after this operation.
+   * Evicts any data under the given path from Alluxio space, but does not delete the data from the
+   * UFS. The metadata will still be present in Alluxio space after this operation.
    *
-   * @param path the path to free in Tachyon space
+   * @param path the path to free in Alluxio space
    * @param options options to associate with this operation
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void free(AlluxioURI path, FreeOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -193,22 +193,22 @@ public interface FileSystem {
    *
    * @param path the path to obtain information about
    * @return the {@link URIStatus} of the file
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the path does not exist
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   URIStatus getStatus(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Gets the {@link URIStatus} object that represents the metadata of a Tachyon path.
+   * Gets the {@link URIStatus} object that represents the metadata of a Alluxio path.
    *
    * @param path the path to obtain information about
    * @param options options to associate with this operation
    * @return the {@link URIStatus} of the file
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the path does not exist
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -219,9 +219,9 @@ public interface FileSystem {
    * @param path the path to list information about
    * @return a list of {@link URIStatus}s containing information about the files and directories
    *         which are children of the given path
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   List<URIStatus> listStatus(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -234,9 +234,9 @@ public interface FileSystem {
    * @param options options to associate with this operation
    * @return a list of {@link URIStatus}s containing information about the files and directories
    *         which are children of the given path
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -246,21 +246,21 @@ public interface FileSystem {
    * options.
    *
    * @param path the path for which to load metadata from UFS
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void loadMetadata(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Loads metadata about a path in the UFS to Tachyon. No data will be transferred.
+   * Loads metadata about a path in the UFS to Alluxio. No data will be transferred.
    *
    * @param path the path for which to load metadata from UFS
    * @param options options to associate with this operation
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -269,26 +269,26 @@ public interface FileSystem {
    * Convenience method for {@link #mount(AlluxioURI, AlluxioURI, MountOptions)} with default
    * options.
    *
-   * @param tachyonPath a Tachyon path to mount the data to
+   * @param alluxioPath a Alluxio path to mount the data to
    * @param ufsPath a UFS path to mount the data from
-   * @throws IOException if a non-Tachyon exception occurs
-   * @throws AlluxioException if a Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if a Alluxio exception occurs
    */
-  void mount(AlluxioURI tachyonPath, AlluxioURI ufsPath) throws IOException, AlluxioException;
+  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath) throws IOException, AlluxioException;
 
   /**
-   * Mounts a UFS subtree to the given Tachyon path. The Tachyon path is expected not to exist as
+   * Mounts a UFS subtree to the given Alluxio path. The Alluxio path is expected not to exist as
    * the method creates it. If the path already exists, a {@link AlluxioException} will be thrown.
    * This method does not transfer any data or metadata from the UFS. It simply establishes the
-   * connection between the given Tachyon path and UFS path.
+   * connection between the given Alluxio path and UFS path.
    *
-   * @param tachyonPath a Tachyon path to mount the data to
+   * @param alluxioPath a Alluxio path to mount the data to
    * @param ufsPath a UFS path to mount the data from
    * @param options options to associate with this operation
-   * @throws IOException if a non-Tachyon exception occurs
-   * @throws AlluxioException if a Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if a Alluxio exception occurs
    */
-  void mount(AlluxioURI tachyonPath, AlluxioURI ufsPath, MountOptions options)
+  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws IOException, AlluxioException;
 
   /**
@@ -296,9 +296,9 @@ public interface FileSystem {
    *
    * @param path the file to read from
    * @return a {@link FileInStream} for the given path
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   FileInStream openFile(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -309,9 +309,9 @@ public interface FileSystem {
    * @param path the file to read from
    * @param options options to associate with this operation
    * @return a {@link FileInStream} for the given path
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   FileInStream openFile(AlluxioURI path, OpenFileOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -322,23 +322,23 @@ public interface FileSystem {
    *
    * @param src the path of the source, this must already exist
    * @param dst the path of the destination, this path should not exist
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void rename(AlluxioURI src, AlluxioURI dst)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Renames an existing Tachyon path to another Tachyon path in Tachyon. This operation will be
+   * Renames an existing Alluxio path to another Alluxio path in Alluxio. This operation will be
    * propagated in the underlying storage if the path is persisted.
    *
    * @param src the path of the source, this must already exist
    * @param dst the path of the destination, this path should not exist
    * @param options options to associate with this operation
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -348,9 +348,9 @@ public interface FileSystem {
    * options.
    *
    * @param path the path to set attributes for
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void setAttribute(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -360,9 +360,9 @@ public interface FileSystem {
    *
    * @param path the path to set attributes for
    * @param options options to associate with this operation
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void setAttribute(AlluxioURI path, SetAttributeOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -370,21 +370,21 @@ public interface FileSystem {
   /**
    * Convenience method for {@link #unmount(AlluxioURI, UnmountOptions)} with default options.
    *
-   * @param path a Tachyon path, this must be a mount point
-   * @throws IOException if a non-Tachyon exception occurs
-   * @throws AlluxioException if a Tachyon exception occurs
+   * @param path a Alluxio path, this must be a mount point
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if a Alluxio exception occurs
    */
   void unmount(AlluxioURI path) throws IOException, AlluxioException;
 
   /**
-   * Unmounts a UFS subtree identified by the given Tachyon path. The Tachyon path match a
+   * Unmounts a UFS subtree identified by the given Alluxio path. The Alluxio path match a
    * previously mounted path. The contents of the subtree rooted at this path are removed from
-   * Tachyon but the corresponding UFS subtree is left untouched.
+   * Alluxio but the corresponding UFS subtree is left untouched.
    *
-   * @param path a Tachyon path, this must be a mount point
+   * @param path a Alluxio path, this must be a mount point
    * @param options options to associate with this operation
-   * @throws IOException if a non-Tachyon exception occurs
-   * @throws AlluxioException if a Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if a Alluxio exception occurs
    */
   void unmount(AlluxioURI path, UnmountOptions options) throws IOException, AlluxioException;
 }
