@@ -59,7 +59,7 @@ public final class MasterContext {
 
   /**
    * Resets the master context, for test only.
-   * TODO(binfan): consider a better way to mock test TachyonConf
+   * TODO(binfan): consider a better way to mock test configuration
    */
   public static void reset() {
     reset(new Configuration());
@@ -67,9 +67,9 @@ public final class MasterContext {
 
   /**
    * Resets the master context, for test only.
-   * TODO(binfan): consider a better way to mock test TachyonConf
+   * TODO(binfan): consider a better way to mock test configuration
    *
-   * @param conf the configuration for Tachyon
+   * @param conf the configuration for Alluxio
    */
   public static void reset(Configuration conf) {
     sConfiguration = conf;

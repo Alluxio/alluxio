@@ -35,7 +35,7 @@ import alluxio.security.authorization.PermissionStatus;
 import alluxio.wire.FileInfo;
 
 /**
- * Tachyon file system's file representation in the file system master.
+ * Alluxio file system's file representation in the file system master.
  */
 @ThreadSafe
 public final class InodeFile extends Inode {

@@ -52,7 +52,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * Creates a new instance of {@link BlockMasterClient} for the worker.
    *
    * @param masterAddress the master address
-   * @param configuration the Tachyon configuration
+   * @param configuration the Alluxio configuration
    */
   public BlockMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
     super(masterAddress, configuration);

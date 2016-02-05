@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class MasterStorageTierAssoc extends StorageTierAssoc {
 
   /**
-   * @param conf the configuration for Tachyon
+   * @param conf the configuration for Alluxio
    */
   public MasterStorageTierAssoc(Configuration conf) {
     super(conf, Constants.MASTER_TIERED_STORE_GLOBAL_LEVELS,

@@ -23,7 +23,7 @@ import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStoreLocation;
 
 /**
- * A base class of the metadata of blocks in Tachyon managed storage.
+ * A base class of the metadata of blocks in Alluxio managed storage.
  */
 @ThreadSafe
 public abstract class BlockMetaBase {

@@ -41,7 +41,7 @@ public final class WorkerUIWebServer extends UIWebServer {
    * @param blockWorker block worker to manage blocks
    * @param workerAddress the worker address
    * @param startTimeMs start time milliseconds
-   * @param conf Tachyon configuration
+   * @param conf Alluxio configuration
    */
   public WorkerUIWebServer(ServiceType serviceType, InetSocketAddress webAddress,
       BlockWorker blockWorker, InetSocketAddress workerAddress, long startTimeMs,

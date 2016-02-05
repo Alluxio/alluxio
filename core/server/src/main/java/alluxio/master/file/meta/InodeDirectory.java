@@ -30,7 +30,7 @@ import alluxio.security.authorization.PermissionStatus;
 import alluxio.wire.FileInfo;
 
 /**
- * Tachyon file system's directory representation in the file system master.
+ * Alluxio file system's directory representation in the file system master.
  */
 @ThreadSafe
 public final class InodeDirectory extends Inode {
