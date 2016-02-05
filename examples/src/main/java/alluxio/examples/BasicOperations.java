@@ -39,7 +39,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
 /**
- * Example to show the basic operations of Tachyon.
+ * Example to show the basic operations of Alluxio.
  */
 public class BasicOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -109,7 +109,7 @@ public class BasicOperations implements Callable<Boolean> {
 
   /**
    * Usage:
-   * {@code java -cp <TACHYON-VERSION> BasicOperations
+   * {@code java -cp <ALLUXIO-VERSION> BasicOperations
    * <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)>
    * <WriteType (MUST_CACHE | CACHE_THROUGH | THROUGH | ASYNC_THROUGH)>}
    *

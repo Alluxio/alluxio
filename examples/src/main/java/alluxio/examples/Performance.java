@@ -42,7 +42,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
 /**
- * Example to show the performance of Tachyon.
+ * Example to show the performance of Alluxio.
  */
 public class Performance {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -63,13 +63,13 @@ public class Performance {
   private static String sResultPrefix = null;
   private static long[] sResults = new long[RESULT_ARRAY_SIZE];
   private static int sBaseFileNumber = 0;
-  private static boolean sTachyonStreamingRead = false;
+  private static boolean sAlluxioStreamingRead = false;
 
   /**
    * Creates the files for this example.
    *
    * @throws AlluxioException if creating a file fails
-   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws IOException if a non-Alluxio related exception occurs
    */
   public static void createFiles() throws AlluxioException, IOException {
     final long startTimeMs = CommonUtils.getCurrentMs();
@@ -144,7 +144,7 @@ public class Performance {
     /**
      * Copies a partition in memory.
      *
-     * @throws IOException if a non-Tachyon related exception occurs
+     * @throws IOException if a non-Alluxio related exception occurs
      */
     public void memoryCopyPartition() throws IOException {
       if (sDebugMode) {
@@ -219,7 +219,7 @@ public class Performance {
   }
 
   /**
-   * A worker in Tachyon for write operations.
+   * A worker in Alluxio for write operations.
    */
   public static class AlluxioWriterWorker extends Worker {
     private FileSystem mFileSystem;
@@ -229,7 +229,7 @@ public class Performance {
      * @param left the id of the worker on the left
      * @param right the id of the worker on the right
      * @param buf the buffer to write
-     * @throws IOException if a non-Tachyon related exception occurs
+     * @throws IOException if a non-Alluxio related exception occurs
      */
     public AlluxioWriterWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
@@ -239,7 +239,7 @@ public class Performance {
     /**
      * Writes a partition.
      *
-     * @throws IOException if a non-Tachyon related exception occurs
+     * @throws IOException if a non-Alluxio related exception occurs
      * @throws AlluxioException if the write stream cannot be retrieved
      */
     public void writePartition()
@@ -259,7 +259,7 @@ public class Performance {
           os.write(mBuf.array());
         }
         os.close();
-        logPerIteration(startTimeMs, pId, "th WriteTachyonFile @ Worker ", pId);
+        logPerIteration(startTimeMs, pId, "th WriteAlluxioFile @ Worker ", pId);
       }
     }
 
@@ -275,7 +275,7 @@ public class Performance {
   }
 
   /**
-   * A worker in Tachyon for read operations.
+   * A worker in Alluxio for read operations.
    */
   public static class AlluxioReadWorker extends Worker {
     private FileSystem mFileSystem;
@@ -285,7 +285,7 @@ public class Performance {
      * @param left the id of the worker on the left
      * @param right the id of the worker on the right
      * @param buf the buffer to read
-     * @throws IOException if a non-Tachyon related exception occurs
+     * @throws IOException if a non-Alluxio related exception occurs
      */
     public AlluxioReadWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
@@ -295,7 +295,7 @@ public class Performance {
     /**
      * Reads a partition.
      *
-     * @throws IOException if a non-Tachyon related exception occurs
+     * @throws IOException if a non-Alluxio related exception occurs
      * @throws AlluxioException if the file cannot be opened or the stream cannot be retrieved
      */
     public void readPartition()
@@ -324,7 +324,7 @@ public class Performance {
       }
 
       long sum = 0;
-      if (sTachyonStreamingRead) {
+      if (sAlluxioStreamingRead) {
         for (int pId = mLeft; pId < mRight; pId ++) {
           final long startTimeMs = System.currentTimeMillis();
           InputStream is =
@@ -337,7 +337,7 @@ public class Performance {
             Preconditions.checkState(r != -1, "R == -1");
           }
           is.close();
-          logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
+          logPerIteration(startTimeMs, pId, "th ReadAlluxioFile @ Worker ", pId);
         }
       } else {
         for (int pId = mLeft; pId < mRight; pId ++) {
@@ -355,7 +355,7 @@ public class Performance {
             LOG.info(FormatUtils.byteBufferToString(mBuf));
           }
           mBuf.clear();
-          logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
+          logPerIteration(startTimeMs, pId, "th ReadAlluxioFile @ Worker ", pId);
           is.close();
         }
       }
@@ -388,7 +388,7 @@ public class Performance {
      * @param buf the buffer
      * @param write indicates if data is written to HDFS
      * @param msg the message to write
-     * @throws IOException if a non-Tachyon related exception occurs
+     * @throws IOException if a non-Alluxio related exception occurs
      */
     public HdfsWorker(int id, int left, int right, ByteBuffer buf, boolean write, String msg)
         throws IOException {
@@ -416,7 +416,7 @@ public class Performance {
     /**
      * Creates IO utilization.
      *
-     * @throws IOException if a non-Tachyon related exception occurs
+     * @throws IOException if a non-Alluxio related exception occurs
      */
     public void io() throws IOException {
       if (sDebugMode) {
@@ -508,7 +508,7 @@ public class Performance {
         + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
-  private static void TachyonTest(boolean write) throws IOException {
+  private static void AlluxioTest(boolean write) throws IOException {
     ByteBuffer[] bufs = new ByteBuffer[sThreads];
 
     for (int thread = 0; thread < sThreads; thread ++) {
@@ -588,7 +588,7 @@ public class Performance {
 
   /**
    * Usage:
-   * {@code java -cp <TACHYON-VERSION> alluxio.examples.Performance <MasterIp> <FileNamePrefix>
+   * {@code java -cp <ALLUXIO-VERSION> alluxio.examples.Performance <MasterIp> <FileNamePrefix>
    * <WriteBlockSizeInBytes> <BlocksPerFile> <DebugMode:true/false> <Threads> <FilesPerThread>
    * <TestCaseNumber> <BaseFileNumber>}
    *
@@ -626,7 +626,7 @@ public class Performance {
     sResultPrefix = String.format(
         "Threads %d FilesPerThread %d TotalFiles %d "
             + "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d "
-            + "Tachyon_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ",
+            + "Alluxio_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ",
         sThreads, sFiles / sThreads, sFiles, sBlockSizeBytes / 1024, sBlocksPerFile,
         sFileBytes / Constants.MB, fileBufferBytes / 1024, sBaseFileNumber);
 
@@ -636,17 +636,17 @@ public class Performance {
     configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(sMasterAddress.getPort()));
 
     if (testCase == 1) {
-      sResultPrefix = "TachyonFilesWriteTest " + sResultPrefix;
+      sResultPrefix = "AlluxioFilesWriteTest " + sResultPrefix;
       LOG.info(sResultPrefix);
       sFileSystem = FileSystem.Factory.get();
       createFiles();
-      TachyonTest(true);
+      AlluxioTest(true);
     } else if (testCase == 2 || testCase == 9) {
-      sResultPrefix = "TachyonFilesReadTest " + sResultPrefix;
+      sResultPrefix = "AlluxioFilesReadTest " + sResultPrefix;
       LOG.info(sResultPrefix);
       sFileSystem = FileSystem.Factory.get();
-      sTachyonStreamingRead = (9 == testCase);
-      TachyonTest(false);
+      sAlluxioStreamingRead = (9 == testCase);
+      AlluxioTest(false);
     } else if (testCase == 3) {
       sResultPrefix = "RamFile Write " + sResultPrefix;
       LOG.info(sResultPrefix);
