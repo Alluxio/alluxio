@@ -48,7 +48,7 @@ import alluxio.util.io.PathUtils;
 public class S3OutputStream extends OutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Bucket name of the Tachyon S3 bucket. */
+  /** Bucket name of the Alluxio S3 bucket. */
   private final String mBucketName;
 
   /** Key of the file when it is uploaded to S3. */
@@ -75,7 +75,7 @@ public class S3OutputStream extends OutputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the JetS3t client
-   * @throws IOException when a non-Tachyon related error occurs
+   * @throws IOException when a non-Alluxio related error occurs
    */
   public S3OutputStream(String bucketName, String key, S3Service client) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(), "Bucket name must "

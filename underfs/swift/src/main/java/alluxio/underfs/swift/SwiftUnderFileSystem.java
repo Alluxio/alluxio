@@ -62,7 +62,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /** Swift account. */
   private final Account mAccount;
 
-  /** Container name of user's configured Tachyon container. */
+  /** Container name of user's configured Alluxio container. */
   private final String mContainerName;
 
   /** Prefix of the container, for example swift://my-container-name/ */
@@ -75,7 +75,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * Constructs a new Swift {@link UnderFileSystem}.
    *
    * @param containerName the name of the container
-   * @param configuration the configuration for Tachyon
+   * @param configuration the configuration for Alluxio
    */
   public SwiftUnderFileSystem(String containerName,
       Configuration configuration) {
@@ -150,7 +150,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @param path the file or folder name
    * @param recursive whether we delete folder and its children
    * @return true if succeed, false otherwise
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
@@ -262,7 +262,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @param createParent if true, the method creates any necessary but nonexistent parent
    *        directories; otherwise, the method does not create nonexistent parent directories
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
@@ -301,7 +301,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @param src the source file or folder name
    * @param dst the destination file or folder name
    * @return true if succeed, false otherwise
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   @Override
   public boolean rename(String src, String dst) throws IOException {

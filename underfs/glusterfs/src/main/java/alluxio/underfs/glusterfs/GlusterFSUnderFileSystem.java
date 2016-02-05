@@ -41,7 +41,7 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
    * Constructs a new Gluster FS {@link UnderFileSystem}.
    *
    * @param fsDefaultName the under FS prefix
-   * @param configuration the configuration for Tachyon
+   * @param configuration the configuration for Alluxio
    * @param conf the configuration for Hadoop or GlusterFS
    */
   public GlusterFSUnderFileSystem(String fsDefaultName, Configuration configuration, Object conf) {

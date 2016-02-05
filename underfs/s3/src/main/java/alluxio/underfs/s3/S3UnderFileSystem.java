@@ -64,7 +64,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   /** Jets3t S3 client. */
   private final S3Service mClient;
 
-  /** Bucket name of user's configured Tachyon bucket. */
+  /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
   /** Prefix of the bucket, for example s3n://my-bucket-name/ */
@@ -82,7 +82,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * Constructs a new instance of {@link S3UnderFileSystem}.
    *
    * @param bucketName the name of the bucket
-   * @param conf the configuration for Tachyon
+   * @param conf the configuration for Alluxio
    * @throws ServiceException when a connection to S3 could not be created
    */
   public S3UnderFileSystem(String bucketName, Configuration conf) throws ServiceException {
@@ -493,7 +493,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       path = stripPrefixIfPresent(path);
       path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
       path = path.equals(PATH_SEPARATOR) ? "" : path;
-      // Gets all the objects under the path, because we have no idea if there are non Tachyon
+      // Gets all the objects under the path, because we have no idea if there are non Alluxio
       // managed "directories"
       S3Object[] objs = mClient.listObjects(mBucketName, path, "");
       if (recursive) {

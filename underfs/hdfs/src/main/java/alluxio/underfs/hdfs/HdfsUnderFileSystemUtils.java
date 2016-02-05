@@ -30,7 +30,7 @@ public class HdfsUnderFileSystemUtils {
    * Replaces default key with user provided key.
    *
    * @param hadoopConf configuration to replace the key in
-   * @param conf Tachyon configuration with the key
+   * @param conf Alluxio configuration with the key
    * @param key the key to replace
    */
   public static void addKey(org.apache.hadoop.conf.Configuration hadoopConf, Configuration conf,

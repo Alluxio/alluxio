@@ -66,10 +66,10 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   /**
-   * Adds AWS credentials from system properties to the Tachyon configuration if they are not
+   * Adds AWS credentials from system properties to the Alluxio configuration if they are not
    * already present.
    *
-   * @param configuration the Tachyon configuration to check and add credentials to
+   * @param configuration the Alluxio configuration to check and add credentials to
    * @return true if both access and secret key are present, false otherwise
    */
   private boolean addAndCheckAWSCredentials(Configuration configuration) {

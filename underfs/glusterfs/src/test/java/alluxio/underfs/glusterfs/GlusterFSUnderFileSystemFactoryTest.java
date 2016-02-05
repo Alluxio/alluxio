@@ -63,7 +63,7 @@ public class GlusterFSUnderFileSystemFactoryTest {
     Assume.assumeTrue(!StringUtils.isEmpty(mVolume));
 
     mGfs = UnderFileSystem.get("glusterfs:///", mConfiguration);
-    Assert.assertNotNull(mGfs.create("tachyon_test"));
+    Assert.assertNotNull(mGfs.create("alluxio_test"));
   }
 
   /**
