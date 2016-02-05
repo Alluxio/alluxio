@@ -35,8 +35,8 @@ import alluxio.exception.AlluxioException;
 public final class DuCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public DuCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
@@ -56,24 +56,24 @@ public final class DuCommand extends WithWildCardPathCommand {
   /**
    * Calculates the size of a path (file or folder) specified by a {@link AlluxioURI}.
    *
-   * @param tachyonFS A {@link FileSystem}
+   * @param fs A {@link FileSystem}
    * @param path A {@link AlluxioURI} denoting the path
    * @return total size of the specified path in byte
-   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws IOException if a non-Alluxio related exception occurs
    */
-  private long getFileOrFolderSize(FileSystem tachyonFS, AlluxioURI path)
+  private long getFileOrFolderSize(FileSystem fs, AlluxioURI path)
       throws IOException {
     long sizeInBytes = 0;
     List<URIStatus> statuses;
     try {
-      statuses = tachyonFS.listStatus(path);
+      statuses = fs.listStatus(path);
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
     for (URIStatus status : statuses) {
       if (status.isFolder()) {
         AlluxioURI subFolder = new AlluxioURI(status.getPath());
-        sizeInBytes += getFileOrFolderSize(tachyonFS, subFolder);
+        sizeInBytes += getFileOrFolderSize(fs, subFolder);
       } else {
         sizeInBytes += status.getLength();
       }

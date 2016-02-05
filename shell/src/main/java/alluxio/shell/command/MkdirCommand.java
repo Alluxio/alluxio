@@ -37,8 +37,8 @@ public final class MkdirCommand extends AbstractShellCommand {
   /**
    * Constructs a new instance to create a new directory.
    *
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public MkdirCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);

@@ -27,13 +27,13 @@ import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
 
 /**
- * Unmounts a Tachyon path.
+ * Unmounts an Alluxio path.
  */
 @ThreadSafe
 public final class UnmountCommand extends AbstractShellCommand {
   /**
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public UnmountCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
@@ -64,11 +64,11 @@ public final class UnmountCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "unmount <tachyonPath>";
+    return "unmount <alluxioPath>";
   }
 
   @Override
   public String getDescription() {
-    return "Unmounts a Tachyon path.";
+    return "Unmounts an Alluxio path.";
   }
 }

@@ -41,14 +41,14 @@ import alluxio.exception.AlluxioException;
 import alluxio.shell.AlluxioShellUtils;
 
 /**
- * Copies a file or a directory from the Tachyon filesystem to the local filesystem.
+ * Copies a file or a directory from the Alluxio filesystem to the local filesystem.
  */
 @ThreadSafe
 public final class CopyToLocalCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public CopyToLocalCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
@@ -69,7 +69,7 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     File dstFile = new File(args[1]);
-    List<AlluxioURI> srcPaths = AlluxioShellUtils.getTachyonURIs(mFileSystem, srcPath);
+    List<AlluxioURI> srcPaths = AlluxioShellUtils.getAlluxioURIs(mFileSystem, srcPath);
     if (srcPaths.size() == 0) {
       throw new IOException(srcPath.getPath() + " does not exist.");
     }
@@ -82,10 +82,10 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
   }
 
   /**
-   * Copies a list of files or directories specified by srcPaths from the Tachyon filesystem to
+   * Copies a list of files or directories specified by srcPaths from the Alluxio filesystem to
    * dstPath in the local filesystem. This method is used when the input path contains wildcards.
    *
-   * @param srcPaths The list of files in the Tachyon filesystem
+   * @param srcPaths The list of files in the Alluxio filesystem
    * @param dstFile The destination directory in the local filesystem
    * @throws IOException
    */
@@ -116,7 +116,7 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
   }
 
   /**
-   * Copies a file or a directory from the Tachyon filesystem to the local filesystem.
+   * Copies a file or a directory from the Alluxio filesystem to the local filesystem.
    *
    * @param srcPath The source {@link AlluxioURI} (could be a file or a directory)
    * @param dstFile The destination file in the local filesystem
@@ -210,6 +210,6 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Copies a file or a directory from the Tachyon filesystem to the local filesystem.";
+    return "Copies a file or a directory from the Alluxio filesystem to the local filesystem.";
   }
 }
