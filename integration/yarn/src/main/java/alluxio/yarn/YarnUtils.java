@@ -47,7 +47,7 @@ import com.google.common.collect.Lists;
  */
 @ThreadSafe
 public final class YarnUtils {
-  public static final String TACHYON_SETUP_SCRIPT = "alluxio-yarn-setup.sh";
+  public static final String ALLUXIO_SETUP_SCRIPT = "alluxio-yarn-setup.sh";
 
   private static final NodeState[] USABLE_NODE_STATES;
 
@@ -105,8 +105,8 @@ public final class YarnUtils {
    */
   public enum YarnContainerType {
     APPLICATION_MASTER("application-master"),
-    TACHYON_MASTER("alluxio-master"),
-    TACHYON_WORKER("alluxio-worker");
+    ALLUXIO_MASTER("alluxio-master"),
+    ALLUXIO_WORKER("alluxio-worker");
 
     private final String mName;
 
@@ -133,7 +133,7 @@ public final class YarnUtils {
   }
 
   /**
-   * Creates a command string for running the Tachyon yarn setup script for the given type of yarn
+   * Creates a command string for running the Alluxio yarn setup script for the given type of yarn
    * container.
    *
    * @param containerType the type of container to build the command for
@@ -142,7 +142,7 @@ public final class YarnUtils {
    */
   public static String buildCommand(YarnContainerType containerType, Map<String, String> args) {
     CommandBuilder commandBuilder =
-        new CommandBuilder("./" + TACHYON_SETUP_SCRIPT).addArg(containerType.getName());
+        new CommandBuilder("./" + ALLUXIO_SETUP_SCRIPT).addArg(containerType.getName());
     for (Entry<String, String> argsEntry : args.entrySet()) {
       commandBuilder.addArg(argsEntry.getKey(), argsEntry.getValue());
     }

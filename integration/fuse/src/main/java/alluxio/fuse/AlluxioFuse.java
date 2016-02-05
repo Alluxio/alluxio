@@ -37,7 +37,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.Configuration;
 
 /**
- * Main entry point to Tachyon-FUSE.
+ * Main entry point to Alluxio-FUSE.
  */
 @ThreadSafe
 public final class AlluxioFuse {
@@ -79,7 +79,7 @@ public final class AlluxioFuse {
   /**
    * Parses CLI options
    * @param args CLI args
-   * @return Tachyon-FUSE configuration options
+   * @return Alluxio-FUSE configuration options
    */
   private static AlluxioFuseOptions parseOptions(String[] args) {
     final Options opts = new Options();
@@ -90,7 +90,7 @@ public final class AlluxioFuse {
         .desc("Desired local mount point for alluxio-fuse.")
         .build();
 
-    final Option tachyonRoot = Option.builder("r")
+    final Option alluxioRoot = Option.builder("r")
         .hasArg()
         .required(false)
         .longOpt("alluxio-root")
@@ -111,7 +111,7 @@ public final class AlluxioFuse {
         .build();
 
     opts.addOption(mntPoint);
-    opts.addOption(tachyonRoot);
+    opts.addOption(alluxioRoot);
     opts.addOption(help);
     opts.addOption(fuseOption);
 
@@ -126,7 +126,7 @@ public final class AlluxioFuse {
       }
 
       String mntPointValue = cli.getOptionValue("m");
-      String tachyonRootValue = cli.getOptionValue("r");
+      String alluxioRootValue = cli.getOptionValue("r");
 
       List<String> fuseOpts = Lists.newArrayList();
       boolean noUserMaxWrite = true;
@@ -152,14 +152,14 @@ public final class AlluxioFuse {
         LOG.info("Mounting on default {}", mntPointValue);
       }
 
-      if (tachyonRootValue == null) {
-        tachyonRootValue = sConfiguration.get(Constants.FUSE_FS_ROOT);
-        LOG.info("Using default alluxio root {}", tachyonRootValue);
+      if (alluxioRootValue == null) {
+        alluxioRootValue = sConfiguration.get(Constants.FUSE_FS_ROOT);
+        LOG.info("Using default alluxio root {}", alluxioRootValue);
       }
 
       final boolean fuseDebug = sConfiguration.getBoolean(Constants.FUSE_DEBUG_ENABLE);
 
-      return new AlluxioFuseOptions(mntPointValue, tachyonRootValue, fuseDebug, fuseOpts);
+      return new AlluxioFuseOptions(mntPointValue, alluxioRootValue, fuseDebug, fuseOpts);
     } catch (ParseException e) {
       System.err.println("Error while parsing CLI: " + e.getMessage());
       final HelpFormatter fmt = new HelpFormatter();

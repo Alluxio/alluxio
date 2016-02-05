@@ -28,7 +28,7 @@ import alluxio.worker.AlluxioWorker;
 
 /**
  * {@link AlluxioWorkerExecutor} is an implementation of a Mesos executor responsible for
- * starting the Tachyon worker.
+ * starting the Alluxio worker.
  */
 @ThreadSafe
 public class AlluxioWorkerExecutor implements Executor {
@@ -104,7 +104,7 @@ public class AlluxioWorkerExecutor implements Executor {
   }
 
   /**
-   * Starts the Tachyon worker executor.
+   * Starts the Alluxio worker executor.
    *
    * @param args command-line arguments
    * @throws Exception if the executor encounters an unrecoverable error

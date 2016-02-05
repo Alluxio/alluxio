@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import alluxio.Constants;
 
 /**
- * Utility methods for Tachyon-FUSE.
+ * Utility methods for Alluxio-FUSE.
  */
 @ThreadSafe
 public final class AlluxioFuseUtils {
@@ -36,7 +36,7 @@ public final class AlluxioFuseUtils {
   private AlluxioFuseUtils() {}
 
   /**
-   * Retrieves the uid and primary gid of the user running Tachyon-FUSE.
+   * Retrieves the uid and primary gid of the user running Alluxio-FUSE.
    * @return a long[2] array {uid, gid}
    */
   public static long[] getUidAndGid() {
