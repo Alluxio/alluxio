@@ -54,4 +54,4 @@ To run a more comprehensive sanity check:
 
 You can stop Alluxio any time by running:
 
-{% include Running-Alluxio-Locally/tachyon-stop.md %}
+{% include Running-Alluxio-Locally/Alluxio-stop.md %}

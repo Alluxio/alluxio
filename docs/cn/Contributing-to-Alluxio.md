@@ -1,6 +1,6 @@
 ---
 layout: global
-title: 参与Tachyon开发
+title: 参与Alluxio开发
 nickname: 开发者向导
 group: Resources
 ---
@@ -10,21 +10,21 @@ group: Resources
 
 感谢您对tachyon的兴趣！我们对您贡献的任何的新特性或者修复都表示深深感激。
 
-### Tachyon初始任务
+### Alluxio初始任务
 
-新的开发者可以先进行以下列出的任务，从而能够更加熟悉Tachyon：
+新的开发者可以先进行以下列出的任务，从而能够更加熟悉Alluxio：
 
-1.  [在本地运行Tachyon](Running-Tachyon-Locally.html)
+1.  [在本地运行Alluxio](Running-Alluxio-Locally.html)
 
-2.  [在集群运行Tachyon](Running-Tachyon-on-a-Cluster.html)
+2.  [在集群运行Alluxio](Running-Alluxio-on-a-Cluster.html)
 
 3.  阅读[配置项设置](Configuration-Settings.html)以及[命令行接口](Command-Line-Interface.html)
 
 4.  阅读一段[代码示例](https://github.com/amplab/tachyon/blob/master/examples/src/main/java/tachyon/examples/BasicOperations.java)
 
-5.  [构建Tachyon主分支](Building-Tachyon-Master-Branch.html)
+5.  [构建Alluxio主分支](Building-Alluxio-Master-Branch.html)
 
-6.  Fork Tachyon Github仓库，并添加一两个单元测试或者javadoc文件，再提交一个pull request。也欢迎你处理我们的[JIRA](https://tachyon.atlassian.net/browse/TACHYON)中的issues。这里是专门为新的开发者准备的一些[任务](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)，每个新开发者最多只能做其中的两个任务，在这之后，尝试去做一些Beginner/Intermediate任务，或者在[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)里询问。可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行基本Github操作。
+6.  Fork Alluxio Github仓库，并添加一两个单元测试或者javadoc文件，再提交一个pull request。也欢迎你处理我们的[JIRA](https://tachyon.atlassian.net/browse/TACHYON)中的issues。这里是专门为新的开发者准备的一些[任务](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)，每个新开发者最多只能做其中的两个任务，在这之后，尝试去做一些Beginner/Intermediate任务，或者在[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)里询问。可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行基本Github操作。
 
 ### 提交代码
 
@@ -52,10 +52,10 @@ group: Resources
 [SMALLFIX] Fix formatting in Foo.java
 ~~~~~
 
--   对于改善Tachyon项目网站的文档（例如修改`docs`目录下的markdown文件）的pull request，你可以在该pull request的标题中添加"[DOCFIX]"前缀，例如，修改由`docs/Contributing-to-Tachyon.md`生成的网页文件，其标题可以是：
+-   对于改善Alluxio项目网站的文档（例如修改`docs`目录下的markdown文件）的pull request，你可以在该pull request的标题中添加"[DOCFIX]"前缀，例如，修改由`docs/Contributing-to-Alluxio.md`生成的网页文件，其标题可以是：
 
 ~~~~~
-[DOCFIX] Improve documentation of how to contribute to Tachyon
+[DOCFIX] Improve documentation of how to contribute to Alluxio
 ~~~~~
 
 #### 测试
@@ -66,7 +66,7 @@ group: Resources
 
 -   对于GlusterFS环境的单元测试，可以在``tachyon/underfs/glusterfs``目录下运行`mvn -PglusterfsTest -Dhadoop.version=2.3.0 -Dtachyon.underfs.glusterfs.mounts=/vol -Dtachyon.underfs.glusterfs.volumes=testvol test`（将GlusterFS作为底层文件系统，`/vol`为一个有效GlusterFS挂载点）。
 
--   要进行单个单元测试，运行`mvn -Dtest=TachyonFSTest#createFileTest -DfailIfNoTests=false test`。
+-   要进行单个单元测试，运行`mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test`。
 
 -   要以交互的方式快速运行某些API测试，你可能需要使用Scala shell，这在[blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding)有讨论。
 
@@ -92,32 +92,32 @@ group: Resources
        IDEA中使用[Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546)
        - 要自动格式化**import**，在Preferences->Code Style->Java->Imports->Import中设置Layout为[该顺序](resources/order.importorder)
        - 要自动将方法按字母顺序重新排序，可以使用[Rearranger插件](http://plugins.jetbrains.com/plugin/173)，打开Preferences，查找rearrager，去除不必要的内容，然后右击，选择"Rearrange"，代码将格式化成你需要的风格。
--   Tachyon使用SLF4J记录日志，典型用法为：
+-   Alluxio使用SLF4J记录日志，典型用法为：
 
-{% include Contributing-to-Tachyon/slf4j.md %}
+{% include Contributing-to-Alluxio/slf4j.md %}
 
 -  为确保编码风格符合标准，你在提交pull request之前应该先运行[checkstyle](http://checkstyle.sourceforge.net)，保证没有警告：
 
-{% include Contributing-to-Tachyon/checkstyle.md %}
+{% include Contributing-to-Alluxio/checkstyle.md %}
 
 #### FindBugs
 
 在提交pull request之前，对最新的代码运行
 [FindBugs](http://findbugs.sourceforge.net/)确保不出现警告：
 
-{% include Contributing-to-Tachyon/findbugs.md %}
+{% include Contributing-to-Alluxio/findbugs.md %}
 
 ### IDE
 
 你可以通过运行以下命令生成Eclipse配置文件：
 
-{% include Contributing-to-Tachyon/eclipse-configuration.md %}
+{% include Contributing-to-Alluxio/eclipse-configuration.md %}
 
 然后将该文件夹导入到Eclipse中。
 
 也可以运行以下命令将M2_REPO添加到classpath变量中：
 
-{% include Contributing-to-Tachyon/M2_REPO.md %}
+{% include Contributing-to-Alluxio/M2_REPO.md %}
 
 如果你使用的是IntelliJ IDEA，你可能需要修改Maven配置中的'developer'以防止导入错误，可以通过以下方式进行：
 
@@ -126,20 +126,20 @@ group: Resources
 ### 幻灯片介绍
 
 -   AMPCamp 6 (November, 2015)
-[SlideShare](http://www.slideshare.net/TachyonNexus/tachyon-presentation-at-ampcamp-6-november-2015)
+[SlideShare](http://www.slideshare.net/AlluxioNexus/tachyon-presentation-at-ampcamp-6-november-2015)
 -   Strata and Hadoop World 2015 (September, 2015)
-[SlideShare](http://www.slideshare.net/TachyonNexus/tachyon-an-open-source-memorycentric-distributed-storage-system)
+[SlideShare](http://www.slideshare.net/AlluxioNexus/tachyon-an-open-source-memorycentric-distributed-storage-system)
 -   Strata and Hadoop World 2014 (October, 2014)
-[pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pdf)
-[pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pptx)
+[pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Alluxio_2014-10-16-Strata.pdf)
+[pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Alluxio_2014-10-16-Strata.pptx)
 -   Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
 -   Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
 
 ### 延伸阅读
 
--   [Tachyon: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_tachyon.pdf)
+-   [Alluxio: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_tachyon.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *SOCC 2014*.
 -   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_tachyon.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *UC Berkeley EECS 2014*.
--   [Tachyon: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_tachyon.pdf)
+-   [Alluxio: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_tachyon.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Eric Baldeschwieler, Scott Shenker, Ion Stoica, *LADIS 2013*.

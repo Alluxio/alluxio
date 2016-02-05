@@ -32,7 +32,7 @@ by updating the correct version of tachyon-client in Spark dependency. To do tha
 `spark/core/pom.xml` and change the dependency version of `tachyon-client` to
 `your_tachyon_version`:
 
-{% include Running-Spark-on-Alluxio/your_tachyon_version.md %}
+{% include Running-Spark-on-Alluxio/your_Alluxio_version.md %}
 
 ## Prerequisites
 
