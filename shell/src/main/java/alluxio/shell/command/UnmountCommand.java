@@ -27,7 +27,7 @@ import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
 
 /**
- * Unmounts a Alluxio path.
+ * Unmounts an Alluxio path.
  */
 @ThreadSafe
 public final class UnmountCommand extends AbstractShellCommand {
@@ -69,6 +69,6 @@ public final class UnmountCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Unmounts a Alluxio path.";
+    return "Unmounts an Alluxio path.";
   }
 }
