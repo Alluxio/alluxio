@@ -60,7 +60,7 @@ import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
 /**
- * The key-value master stores key-value store information in Tachyon, including the partitions of
+ * The key-value master stores key-value store information in Alluxio, including the partitions of
  * each key-value store.
  */
 @ThreadSafe
@@ -281,10 +281,10 @@ public final class KeyValueMaster extends MasterBase {
    * Deletes a completed key-value store.
    *
    * @param uri {@link AlluxioURI} to the store
-   * @throws IOException if non-Tachyon error occurs
+   * @throws IOException if non-Alluxio error occurs
    * @throws InvalidPathException if the uri exists but is not a key-value store
    * @throws FileDoesNotExistException if the uri does not exist
-   * @throws AlluxioException if other Tachyon error occurs
+   * @throws AlluxioException if other Alluxio error occurs
    */
   public synchronized void deleteStore(AlluxioURI uri)
       throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException {
@@ -325,10 +325,10 @@ public final class KeyValueMaster extends MasterBase {
    *
    * @param fromUri the {@link AlluxioURI} to the store to be merged
    * @param toUri the {@link AlluxioURI} to the store to be merged to
-   * @throws IOException if non-Tachyon error occurs
+   * @throws IOException if non-Alluxio error occurs
    * @throws InvalidPathException if the uri exists but is not a key-value store
    * @throws FileDoesNotExistException if the uri does not exist
-   * @throws AlluxioException if other Tachyon error occurs
+   * @throws AlluxioException if other Alluxio error occurs
    */
   public synchronized void mergeStore(AlluxioURI fromUri, AlluxioURI toUri)
       throws IOException, FileDoesNotExistException, InvalidPathException, AlluxioException {
