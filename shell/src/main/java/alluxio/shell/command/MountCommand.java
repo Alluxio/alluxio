@@ -27,7 +27,7 @@ import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
 
 /**
- * Mounts a UFS path onto a Alluxio path.
+ * Mounts a UFS path onto an Alluxio path.
  */
 @ThreadSafe
 public final class MountCommand extends AbstractShellCommand {
@@ -70,6 +70,6 @@ public final class MountCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Mounts a UFS path onto a Alluxio path.";
+    return "Mounts a UFS path onto an Alluxio path.";
   }
 }

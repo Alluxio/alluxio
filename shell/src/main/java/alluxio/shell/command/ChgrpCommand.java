@@ -37,8 +37,8 @@ public final class ChgrpCommand extends AbstractShellCommand {
   /**
    * Creates a new instance of {@link ChgrpCommand}.
    *
-   * @param conf a Alluxio configuration
-   * @param fs a Alluxio file system handle
+   * @param conf an Alluxio configuration
+   * @param fs an Alluxio file system handle
    */
   public ChgrpCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
