@@ -8,7 +8,7 @@ priority: 5
 
 Alluxio can be started and managed by Apache YARN. This guide demonstrates how to launch Alluxio
 with YARN on EC2 machines using the
-[Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant) that come with
+[Vagrant scripts](https://github.com/amplab/alluxio/tree/master/deploy/vagrant) that come with
 Alluxio.
 
 # Prerequisites
@@ -62,7 +62,7 @@ name and `Key_Path` to the path to the pem key.
 
 By default, the Vagrant script creates a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
-named *tachyon-vagrant-test* at
+named *alluxio-vagrant-test* at
 [Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
 The security group will be set up automatically in the region with all inbound/outbound network
 traffic opened. You can change the security group, region and availability zone in `ec2.yml`.
@@ -102,7 +102,7 @@ For example, you can ssh into `AlluxioMaster` with:
 
 {% include Running-Alluxio-on-EC2-Yarn/ssh-master.md %}
 
-All software is installed under root directory, e.g. Alluxio is installed in `/tachyon`, Hadoop is
+All software is installed under root directory, e.g. Alluxio is installed in `/alluxio`, Hadoop is
 installed in `/hadoop`.
 
 # Configure Alluxio integration with YARN
@@ -121,18 +121,18 @@ but it makes the build run significantly faster.
 To customize Alluxio master and worker with specific properties (e.g., tiered storage setup on each
 worker), one can refer to [Configuration settings](Configuration-Settings.html) for more
 information. To ensure your configuration can be read by both the ApplicationMaster and Alluxio
-master/workers, put `tachyon-site.properties` under `${TACHYON_HOME}/conf` on each EC2 machine.
+master/workers, put `alluxio-site.properties` under `${TACHYON_HOME}/conf` on each EC2 machine.
 
 # Start Alluxio
 
-Use script `integration/bin/tachyon-yarn.sh` to start Alluxio. This script requires three arguments:
+Use script `integration/bin/alluxio-yarn.sh` to start Alluxio. This script requires three arguments:
 1. A path pointing to `${TACHYON_HOME}` on each machine so YARN NodeManager can access Alluxio
-scripts and binaries to launch masters and workers. With our EC2 setup, this path is `/tachyon`.
+scripts and binaries to launch masters and workers. With our EC2 setup, this path is `/alluxio`.
 2. The total number of Alluxio workers to start.
 3. A HDFS path to distribute the binaries for Alluxio ApplicationMaster.
 
 For example, here we launch a Alluxio cluster with 3 worker nodes, where an HDFS temp directory is
-`hdfs://AlluxioMaster:9000/tmp/` and each YARN container can access Alluxio in `/tachyon`
+`hdfs://AlluxioMaster:9000/tmp/` and each YARN container can access Alluxio in `/alluxio`
 
 {% include Running-Alluxio-on-EC2-Yarn/three-arguments.md %}
 
@@ -156,7 +156,7 @@ of this application records which machine is used to launch a Alluxio master con
 
 # Test Alluxio
 
-When you know the IP of Alluxio master container, you can modify the `conf/tachyon-env.sh` to set
+When you know the IP of Alluxio master container, you can modify the `conf/alluxio-env.sh` to set
  up environment variable `TACHYON_MASTER_ADDRESS` on each EC2 machine:
 
 {% include Running-Alluxio-on-EC2-Yarn/environment-variable.md %}
@@ -173,7 +173,7 @@ tests.
 # Stop Alluxio
 
 Alluxio can be stopped by using the following YARN command where the application ID of Alluxio can
-be retrieved from either YARN web UI or the output of `tachyon-yarn.sh` as mentioned above. For
+be retrieved from either YARN web UI or the output of `alluxio-yarn.sh` as mentioned above. For
 instance, if the application Id is `application_1445469376652_0002`, you can stop Alluxio by killing
 the application using:
 

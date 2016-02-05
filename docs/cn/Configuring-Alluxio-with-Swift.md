@@ -14,17 +14,17 @@ priority: 1
 
 然后，由template文件创建配置文件：
 
-{% include Configuring-Alluxio-with-Swift/copy-tachyon-env.md %}
+{% include Common-Commands/copy-alluxio-env.md %}
 
 # 配置Alluxio
 
-若要在Alluxio中使用Swift作为底层文件系统，一定要修改`conf/tachyon-env.sh`配置文件。首先要指定Swift的地址，在`conf/tachyon-env.sh`中添加：
+若要在Alluxio中使用Swift作为底层文件系统，一定要修改`conf/alluxio-env.sh`配置文件。首先要指定Swift的地址，在`conf/alluxio-env.sh`中添加：
 
 {% include Configuring-Alluxio-with-Swift/underfs-address.md %}
 
 其中`<swift-container>`是一个已有的Swift容器。
 
-以下的配置项也应包含在`conf/tachyon-env.sh`文件中：
+以下的配置项也应包含在`conf/alluxio-env.sh`文件中：
 
 {% include Configuring-Alluxio-with-Swift/several-configurations.md %}
   	
@@ -42,13 +42,13 @@ priority: 1
 
 配置完成后，你可以在本地启动Alluxio，观察是否正确运行：
 
-{% include Configuring-Alluxio-with-Swift/start-tachyon.md %}
+{% include Common-Commands/start-alluxio.md %}
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
 
 接着，你可以运行一个简单的示例程序：
 
-{% include Configuring-Alluxio-with-Swift/runTests.md %}
+{% include Common-Commands/runTests.md %}
 
 运行成功后，访问你的Swift容器，其中应包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像下面这样：
 
@@ -56,7 +56,7 @@ priority: 1
 
 运行以下命令停止Alluxio：
 
-{% include Configuring-Alluxio-with-Swift/stop-tachyon.md %}
+{% include Common-Commands/stop-alluxio.md %}
 
 # 对IBM SoftLayer进行功能测试
 

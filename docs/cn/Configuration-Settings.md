@@ -17,9 +17,9 @@ Alluxio有两种类型的配置参数：
 
 Alluxio启动时会加载默认（也可以指定）配置属性文件从而设置配置属性。
 
-1. Alluxio的配置属性默认值在`tachyon-default.properties`文件中，该文件在Alluxio源代码或者二进制包里都能找到，不建议初学者修改该文件。
+1. Alluxio的配置属性默认值在`alluxio-default.properties`文件中，该文件在Alluxio源代码或者二进制包里都能找到，不建议初学者修改该文件。
 
-2. 每个部署点以及应用客户端都能够通过`tachyon-site.properties`文件将默认属性值覆盖掉，注意该文件必须在Alluxio Java VM的**classpath**中，最简单的方法是将该属性文件放在`$TACHYON_HOME/conf`目录中。
+2. 每个部署点以及应用客户端都能够通过`alluxio-site.properties`文件将默认属性值覆盖掉，注意该文件必须在Alluxio Java VM的**classpath**中，最简单的方法是将该属性文件放在`$TACHYON_HOME/conf`目录中。
 
 所有Alluxio配置属性都属于以下五类之一：
 [一般配置项](#common-configuration)（由Master和Worker共享），
@@ -104,15 +104,15 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
 
 ## 配置多宿主网络 {#configure-multihomed-networks}
 
-Alluxio提供了一种使用多宿主网络的方式。如果你有多个NIC，并且想让Alluxio master监听所有的NIC，那么你可以将`tachyon.master.bind.host`设置为`0.0.0.0`，这样Alluxio client就可以通过任何一个NIC访问到master。其他以`bind.host`结尾的配置项也是类似的。
+Alluxio提供了一种使用多宿主网络的方式。如果你有多个NIC，并且想让Alluxio master监听所有的NIC，那么你可以将`alluxio.master.bind.host`设置为`0.0.0.0`，这样Alluxio client就可以通过任何一个NIC访问到master。其他以`bind.host`结尾的配置项也是类似的。
 
 # 系统环境属性 {#system-environment-properties}
 
-要运行Alluxio，还需要配置一些系统环境变量，默认情况下，这些变量在`conf/tachyon-env.sh`文件中被定义，如果该文件不存在，你可以从源代码文件夹中的template文件复制得到：
+要运行Alluxio，还需要配置一些系统环境变量，默认情况下，这些变量在`conf/alluxio-env.sh`文件中被定义，如果该文件不存在，你可以从源代码文件夹中的template文件复制得到：
 
-{% include Configuration-Settings/copy-tachyon-env.md %}
+{% include Common-Commands/copy-alluxio-env.md %}
 
-有许多频繁用到的Alluxio配置项可以通过环境变量设置，可以通过Shell设置或者在`conf/tachyon-env.sh`文件中修改其默认值。
+有许多频繁用到的Alluxio配置项可以通过环境变量设置，可以通过Shell设置或者在`conf/alluxio-env.sh`文件中修改其默认值。
 
 * `$TACHYON_MASTER_ADDRESS`: Alluxio master地址，默认为localhost。
 * `$TACHYON_UNDERFS_ADDRESS`: 底层文件系统地址，默认为`${TACHYON_HOME}/underFSStorage`，即本地文件系统。

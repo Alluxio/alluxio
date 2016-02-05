@@ -17,13 +17,13 @@ First, the Alluxio binaries must be on your machine. You can either
 
 Then, if you haven't already done so, create your configuration file from the template:
 
-{% include Configuring-Alluxio-with-GlusterFS/copy-tachyon-env.md %}
+{% include Common-Commands/copy-alluxio-env.md %}
 
 # Configuring Alluxio
 
 Assuming the GlusterFS bricks are co-located with Alluxio nodes, the GlusterFS volume is mounted at
-`/tachyon_vol`, the following environment variable assignment needs to be added to 
-`conf/tachyon-env.sh`:
+`/alluxio_vol`, the following environment variable assignment needs to be added to 
+`conf/alluxio-env.sh`:
 
 {% include Configuring-Alluxio-with-GlusterFS/underfs-address.md %}
 
@@ -31,14 +31,14 @@ Assuming the GlusterFS bricks are co-located with Alluxio nodes, the GlusterFS v
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
-{% include Configuring-Alluxio-with-GlusterFS/start-tachyon.md %}
+{% include Common-Commands/start-alluxio.md %}
 
 This should start a Alluxio master and a Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Next, you can run a simple example program:
 
-{% include Configuring-Alluxio-with-GlusterFS/runTests.md %}
+{% include Common-Commands/runTests.md %}
 
 After this succeeds, you can visit your GlusterFS volume to verify the files and directories created
 by Alluxio exist. For this test, you should see files named like:
@@ -47,4 +47,4 @@ by Alluxio exist. For this test, you should see files named like:
 
 To stop Alluxio, you can run:
 
-{% include Configuring-Alluxio-with-GlusterFS/stop-tachyon.md %}
+{% include Common-Commands/stop-alluxio.md %}

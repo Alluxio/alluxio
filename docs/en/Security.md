@@ -40,7 +40,7 @@ Authorization Service) is used to determine who is currently executing the proce
 When authentication is enabled, a login user for the component (master, worker, or client)
 can be obtained by following steps:
 
-1. Login by configurable user. If property 'tachyon.security.login.username' is set by
+1. Login by configurable user. If property 'alluxio.security.login.username' is set by
 application, its value will be the login user.
 2. If its value is empty, login by OS account.
 
@@ -106,7 +106,7 @@ and the x permission is required to access a child of the directory.
 For example, the output of the shell command `lsr` when authorization is enabled is:
 
 ```
-$ ./bin/tachyon tfs lsr /
+$ ./bin/alluxio tfs lsr /
 drwxr-xr-x  jack  staff   0.00B   02-02-2016 04:01:46:603   /default_tests_files
 -rw-r--r--  jack  staff   80.00B  02-02-2016 04:01:46:603  In Memory  /default_tests_files/BasicFile
 ```
@@ -114,18 +114,18 @@ drwxr-xr-x  jack  staff   0.00B   02-02-2016 04:01:46:603   /default_tests_files
 ## User group mapping
 
 When user is determined, the list of groups is determined by a group mapping service, configured by
-'tachyon.security.group.mapping.class'. The default implementation is 'tachyon.security.group
+'alluxio.security.group.mapping.class'. The default implementation is 'alluxio.security.group
 .provider.ShellBasedUnixGroupsMapping', which executes the 'groups' shell
 command to fetch the group memberships of a given user.
 
-Property 'tachyon.security.authorization.permission.supergroup' defines a super group. Any users
+Property 'alluxio.security.authorization.permission.supergroup' defines a super group. Any users
 belong to this group are also super users.
 
 ## Initialized directory and file permissions
 
 The initial creation permission is 777, and the difference between directory and file is 111.
 For default umask value 022, the created directory has permission 755 and file has permission 644.
-The umask can be set by property 'tachyon.security.authorization.permission.umask'.
+The umask can be set by property 'alluxio.security.authorization.permission.umask'.
 
 ## Update directory and file permission model
 

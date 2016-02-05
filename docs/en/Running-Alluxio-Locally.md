@@ -15,13 +15,13 @@ Download the binary distribution of Alluxio {{site.TACHYON_RELEASED_VERSION}}:
 {% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
 
 Before executing Alluxio run scripts, requisite environment variables must be specified in
-`conf/tachyon-env.sh`, which can be copied from the included template file:
+`conf/alluxio-env.sh`, which can be copied from the included template file:
 
 {% include Running-Alluxio-Locally/copy-template.md %}
 
 To run in standalone mode, make sure that:
 
-* `TACHYON_UNDERFS_ADDRESS` in `conf/tachyon-env.sh` is set to a tmp directory in the local
+* `TACHYON_UNDERFS_ADDRESS` in `conf/alluxio-env.sh` is set to a tmp directory in the local
 filesystem (e.g., `export TACHYON_UNDERFS_ADDRESS=/tmp`).
 
 * Remote login service is turned on so that `ssh localhost` can succeed.

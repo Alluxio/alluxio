@@ -7,7 +7,7 @@ priority: 2
 ---
 
 Alluxio can be deployed on [VirtualBox](https://www.virtualbox.org/) on your local machine
-using the [Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant)
+using the [Vagrant scripts](https://github.com/amplab/alluxio/tree/master/deploy/vagrant)
 that come with Alluxio. The scripts let you create, configure, and destroy clusters that come
 automatically configured with HDFS.
 
@@ -25,7 +25,7 @@ Download [Vagrant](https://www.vagrantup.com/downloads.html)
 
 Download Alluxio to your local machine, and unzip it:
 
-{% include Running-Alluxio-on-Virtual-Box/download-tachyon.md %}
+{% include Common-Commands/download-alluxio.md %}
 
 **Install python library dependencies**
 
@@ -76,7 +76,7 @@ For example, you can ssh into `AlluxioMaster` with:
 
 {% include Running-Alluxio-on-Virtual-Box/ssh-AlluxioMaster.md %}
 
-All software is installed under the root directory, e.g. Alluxio is installed in `/tachyon`,
+All software is installed under the root directory, e.g. Alluxio is installed in `/alluxio`,
 and Hadoop is installed in `/hadoop`.
 
 On the `AlluxioMaster` node, you can run tests against Alluxio to check its health:

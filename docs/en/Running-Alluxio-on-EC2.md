@@ -7,7 +7,7 @@ priority: 3
 ---
 
 Alluxio can be deployed on Amazon EC2 using the
-[Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant) that come with
+[Vagrant scripts](https://github.com/amplab/alluxio/tree/master/deploy/vagrant) that come with
 Alluxio. The scripts let you create, configure, and destroy clusters that come automatically
 configured with [Amazon S3](https://s3.amazonaws.com/).
 
@@ -25,7 +25,7 @@ Install AWS Vagrant plugin:
 
 Download Alluxio to your local machine, and unzip it:
 
-{% include Running-Alluxio-on-EC2/download-tachyon.md %}
+{% include Common-Commands/download-alluxio.md %}
 
 **Install python library dependencies**
 
@@ -67,7 +67,7 @@ name and `Key_Path` to the path to the pem key.
 
 By default, the Vagrant script creates a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
-named *tachyon-vagrant-test* at
+named *alluxio-vagrant-test* at
 [Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
 The security group will be set up automatically in the region with all inbound/outbound network
 traffic opened. You can change the *security group*, *region* and *availability zone* in `ec2.yml`. Sometimes the default zone can be unavailable.
@@ -128,7 +128,7 @@ For example, you can ssh into `AlluxioMaster` with:
 
 {% include Running-Alluxio-on-EC2/ssh-AlluxioMaster.md %}
 
-All software is installed under the root directory, e.g. Alluxio is installed in `/tachyon`.
+All software is installed under the root directory, e.g. Alluxio is installed in `/alluxio`.
 
 On the `AlluxioMaster` node, you can run tests against Alluxio to check its health:
 

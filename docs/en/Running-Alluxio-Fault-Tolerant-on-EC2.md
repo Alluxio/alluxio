@@ -7,7 +7,7 @@ priority: 4
 ---
 
 Alluxio with Fault Tolerance can be deployed on Amazon EC2 using the
-[Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant) that come with
+[Vagrant scripts](https://github.com/amplab/alluxio/tree/master/deploy/vagrant) that come with
 Alluxio. The scripts let you create, configure, and destroy clusters that come automatically
 configured with Apache HDFS.
 
@@ -25,7 +25,7 @@ Install AWS Vagrant plugin:
 
 Download Alluxio to your local machine, and unzip it:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/download-tachyon.md %}
+{% include Common-Commands/download-alluxio.md %}
 
 **Install python library dependencies**
 
@@ -64,13 +64,13 @@ Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml` by:
 In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
 name and `Key_Path` to the path to the pem key.
 
-In the configuration file `deploy/vagrant/conf/tachyon.yml`, set the value of `Masters` to the
+In the configuration file `deploy/vagrant/conf/alluxio.yml`, set the value of `Masters` to the
 number of AlluxioMasters you want. In fault tolerant mode, value of `Masters` should be larger than
 1.
 
 By default, the Vagrant script creates a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
-named *tachyon-vagrant-test* at
+named *alluxio-vagrant-test* at
 [Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
 The security group will be set up automatically in the region with all inbound/outbound network
 traffic opened. You can change the *security group*, *region* and *availability zone* in `ec2.yml`.
@@ -81,7 +81,7 @@ the script under `deploy/vagrant`:
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/launch-cluster.md %}
 
 Note that the `<number of machines>` above should be larger than or equal to `Masters` set in
-`deploy/vagrant/conf/tachyon.yml`.
+`deploy/vagrant/conf/alluxio.yml`.
 
 Each node of the cluster has a Alluxio worker and each master node has a Alluxio master. The leader
 is in one of the master nodes.
@@ -127,7 +127,7 @@ For example, you can ssh into `AlluxioMaster` with:
 
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/ssh-AlluxioMaster.md %}
 
-All software is installed under the root directory, e.g. Alluxio is installed in `/tachyon`,
+All software is installed under the root directory, e.g. Alluxio is installed in `/alluxio`,
 Hadoop is installed in `/hadoop`, and Zookeeper is installed in `/zookeeper`.
 
 On the leader master node, you can run tests against Alluxio to check its health:

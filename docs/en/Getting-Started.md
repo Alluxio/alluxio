@@ -29,13 +29,13 @@ Currently, [Amazon S3](Configuring-Alluxio-with-S3.html),
 
 Alluxio provides a [file system interface](File-System-API.html) to applications to let them
 interact with data stored in Alluxio. If you want to directly write an application on top of
-Alluxio, simply add the `tachyon-client` dependency to your program. For example, if the
+Alluxio, simply add the `alluxio-client` dependency to your program. For example, if the
 application is built using Maven:
 
 ```xml
 <dependency>
-  <groupId>org.tachyon-project</groupId>
-  <artifactId>tachyon-client</artifactId>
+  <groupId>org.alluxio-project</groupId>
+  <artifactId>alluxio-client</artifactId>
   ...
 </dependency>
 ```
@@ -44,7 +44,7 @@ A special set of applications leveraging Alluxio are computation frameworks. Tra
 frameworks to use Alluxio is almost effortless, especially if the framework is already integrated
 with the Hadoop FileSystem interface. Since Alluxio also provides an implementation of the
 interface, the only modification required is to change the data path scheme from
-`hdfs://master-hostname:port` to `tachyon://master-hostname:port`. See the tutorials for
+`hdfs://master-hostname:port` to `alluxio://master-hostname:port`. See the tutorials for
 [Apache Spark](Running-Spark-on-Alluxio.html),
 [Apache Hadoop MapReduce](Running-Hadoop-MapReduce-on-Alluxio.html), or
 [Apache Flink](Running-Flink-on-Alluxio.html) for examples.
@@ -52,7 +52,7 @@ interface, the only modification required is to change the data path scheme from
 ### Configuring the System
 
 Alluxio has various knobs to tune the system to perform best for separate use cases. For an
-application, Alluxio reads custom configurations from the specified `tachyon-site.properties` file
+application, Alluxio reads custom configurations from the specified `alluxio-site.properties` file
 or from Java options passed through the command line. See
 [configuration settings](Configuration-Settings.html) for more information about the specific
 adjustable values.

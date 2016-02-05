@@ -22,15 +22,15 @@ priority: 3
 
 {% include Configuring-Alluxio-with-HDFS/mvn-Dhadoop-package.md %}
 
-如果一切正常，在`assembly/target`目录中应当能看到`tachyon-assemblies-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`文件，使用该jar文件即可运行Alluxio Master和Worker。
+如果一切正常，在`assembly/target`目录中应当能看到`alluxio-assemblies-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`文件，使用该jar文件即可运行Alluxio Master和Worker。
 
 # 配置Alluxio
 
 要运行二进制包，一定要先创建配置文件，从template文件创建一个配置文件：
 
-{% include Configuring-Alluxio-with-HDFS/copy-tachyon-env.md %}
+{% include Common-Commands/copy-alluxio-env.md %}
 
-接着修改`tachyon-env.sh`文件，将底层存储系统的地址设置为HDFS namenode的地址（例如，若你的HDFS namenode是在本地默认端口运行，则该地址为`hdfs://localhost:9000`）。
+接着修改`alluxio-env.sh`文件，将底层存储系统的地址设置为HDFS namenode的地址（例如，若你的HDFS namenode是在本地默认端口运行，则该地址为`hdfs://localhost:9000`）。
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
@@ -38,16 +38,16 @@ priority: 3
 
 配置完成后，你可以在本地启动Alluxio，观察是否正确运行：
 
-{% include Configuring-Alluxio-with-HDFS/start-tachyon.md %}
+{% include Common-Commands/start-alluxio.md %}
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
 
 接着，你可以运行一个简单的示例程序：
 
-{% include Configuring-Alluxio-with-HDFS/runTests.md %}
+{% include Common-Commands/runTests.md %}
 
-运行成功后，访问HDFS Web UI [http://localhost:50070](http://localhost:50070)，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像这样：`/tachyon/data/default_tests_files/BasicFile_STORE_SYNC_PERSIST`。
+运行成功后，访问HDFS Web UI [http://localhost:50070](http://localhost:50070)，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像这样：`/alluxio/data/default_tests_files/BasicFile_STORE_SYNC_PERSIST`。
 
 运行以下命令停止Alluxio：
 
-{% include Configuring-Alluxio-with-HDFS/stop-tachyon.md %}
+{% include Common-Commands/stop-alluxio.md %}

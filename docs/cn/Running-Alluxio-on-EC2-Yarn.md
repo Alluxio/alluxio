@@ -7,7 +7,7 @@ priority: 5
 ---
 
 Alluxio可以由Apache YARN启动并管理。该向导介绍如何使用Alluxio自带的
-[Vagrant脚本](https://github.com/amplab/tachyon/tree/master/deploy/vagrant)在EC2的机器上用YARN启
+[Vagrant脚本](https://github.com/amplab/alluxio/tree/master/deploy/vagrant)在EC2的机器上用YARN启
 动Alluxio。
 
 # 前期准备
@@ -53,7 +53,7 @@ Alluxio可以由Apache YARN启动并管理。该向导介绍如何使用Alluxio�
 
 在`deploy/vagrant/conf/ec2.yml`配置文件中，将`Keypair`设置为你的keypair名，`Key_Path`设置成pem key路径。
 
-Vagrant脚本默认会在[区域(**us-east-1**)和可用区域(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)中创建一个名为*tachyon-vagrant-test*的[安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
+Vagrant脚本默认会在[区域(**us-east-1**)和可用区域(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)中创建一个名为*alluxio-vagrant-test*的[安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
 该安全组会在区域中自动建立，而且所有入站及出站的网络流量都将打开。你可以在`ec2.yml`配置文件中设置*security group*、*region*以及*availability zone*的值。
 
 现在可以启动Alluxio集群，该集群在in us-east-1a中以Hadoop2.4.1为底层文件系统，运行`deploy/vagrant`下的脚本：
@@ -88,7 +88,7 @@ Hadoop Web UI的默认端口为**50070**。
 
 {% include Running-Alluxio-on-EC2-Yarn/ssh-master.md %}
 
-所有的软件都安装在根目录下，例如Alluxio安装在`/tachyon`，Hadoop安装在`/hadoop`。
+所有的软件都安装在根目录下，例如Alluxio安装在`/alluxio`，Hadoop安装在`/hadoop`。
 
 # 配置集成YARN的Alluxio
 
@@ -103,18 +103,18 @@ Hadoop Web UI的默认端口为**50070**。
 
 定制Alluxio master和worker的特定属性(例如，每个worker建立分层存储)，参考
 [配置设置](Configuration-Settings.html)获取更多信息。为了确保你的配置可以被ApplicationMaster和
-Alluxio master/worker读取,将`${TACHYON_HOME}/conf`下的`tachyon-site.properties`放在每一台EC2机器上。
+Alluxio master/worker读取,将`${TACHYON_HOME}/conf`下的`alluxio-site.properties`放在每一台EC2机器上。
 
 # 启动Alluxio
 
-使用`integration/bin/tachyon-yarn.sh`脚本启动Alluxio。该脚本需要3个参数：
+使用`integration/bin/alluxio-yarn.sh`脚本启动Alluxio。该脚本需要3个参数：
 1. 每台机器上指向`${TACHYON_HOME}`的路径。以便YARN NodeManager可以访问Alluxio脚本和可执行文件启动master
-和worker。在我们创建的EC2上，该路径为`/tachyon`。
+和worker。在我们创建的EC2上，该路径为`/alluxio`。
 2. 需要启动的Alluxio worker的总数。
 3. 分布存储Alluxio ApplicationMaster可执行文件的HDFS路径。
 
 举例而言，启动3个worker节点的Alluxio集群，HDFS临时目录是`hdfs://AlluxioMaster:9000/tmp/`并且每个YARN容
-器可以在`/tachyon`目录下访问Alluxio:
+器可以在`/alluxio`目录下访问Alluxio:
 
 {% include Running-Alluxio-on-EC2-Yarn/three-arguments.md %}
 
@@ -135,7 +135,7 @@ Alluxio作业的状态和应用ID。
 
 # 测试Alluxio
 
-知道Alluxio master容器的IP后，可以修改`conf/tachyon-env.sh`在每台EC2机器上建立`TACHYON_MASTER_ADDRESS`环境变量：
+知道Alluxio master容器的IP后，可以修改`conf/alluxio-env.sh`在每台EC2机器上建立`TACHYON_MASTER_ADDRESS`环境变量：
 
 {% include Running-Alluxio-on-EC2-Yarn/environment-variable.md %}
 
@@ -148,7 +148,7 @@ Alluxio作业的状态和应用ID。
 
 # 停止Alluxio
 
-使用如下YARN命令可以停止Alluxio，其中应用ID可以从YARN web UI或`tachyon-yarn.sh`的输出中获取（上面已经提及）。举例而言，如果应用ID是`application_1445469376652_0002`，可以使用如下语句杀死应用：
+使用如下YARN命令可以停止Alluxio，其中应用ID可以从YARN web UI或`alluxio-yarn.sh`的输出中获取（上面已经提及）。举例而言，如果应用ID是`application_1445469376652_0002`，可以使用如下语句杀死应用：
 
 {% include Running-Alluxio-on-EC2-Yarn/kill-application.md %}
 

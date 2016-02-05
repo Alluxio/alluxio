@@ -28,17 +28,17 @@ what it can and cannot do for you.
 
 # Building
 
-tachyon-fuse is only built with Alluxio when the `buildFuse` maven profile is active. This
+alluxio-fuse is only built with Alluxio when the `buildFuse` maven profile is active. This
 profile will be automatically activated by maven when it is detected that you are building
 Alluxio with a JDK version 8 or newer.
 
-For compatibility with Java 6 and 7, binary tachyon distributions may ship without tachyon-fuse
-support, so you will need to build your own Alluxio if you want to use tachyon-fuse on your
+For compatibility with Java 6 and 7, binary alluxio distributions may ship without alluxio-fuse
+support, so you will need to build your own Alluxio if you want to use alluxio-fuse on your
 deployment.
 
 The best way to do so is to either clone the Alluxio [GitHub
-repository](https://github.com/amplab/tachyon) and choose your favourite branch from git, or to
-grab a [source distribution](https://github.com/amplab/tachyon/releases) directly. Please, refer to
+repository](https://github.com/amplab/alluxio) and choose your favourite branch from git, or to
+grab a [source distribution](https://github.com/amplab/alluxio/releases) directly. Please, refer to
 [this page](Building-Alluxio-Master-Branch.html))
 for building instructions.
 
@@ -46,14 +46,14 @@ for building instructions.
 
 ## Mount Alluxio-FUSE
 
-After having properly configured and started the tachyon cluster, and from the node where you
+After having properly configured and started the alluxio cluster, and from the node where you
 wish to mount Alluxio, point a shell to your `$TACHYON_HOME` and run:
 
-{% include Mounting-Alluxio-FS-with-FUSE/tachyon-fuse-mount.md %}
+{% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-mount.md %}
 
-This will spawn a background user-space java process (tachyon-fuse) that will mount the file
+This will spawn a background user-space java process (alluxio-fuse) that will mount the file
 system on the specified `<mount_point>`. Note that `<mount_point>` must be an existing and empty
-path in your local file system hierarchy and that the user that runs the `tachyon-fuse.sh`
+path in your local file system hierarchy and that the user that runs the `alluxio-fuse.sh`
 script must own the mount point and have read and write permissions on it. Also note that,
 currently, you are limited to have only one Alluxio-FUSE mount per node.
 
@@ -62,22 +62,22 @@ currently, you are limited to have only one Alluxio-FUSE mount per node.
 To umount a previoulsy mounted Alluxio-FUSE file sytem, on the node where the file system is
 mounted, point a shell to your `$TACHYON_HOME` and run:
 
-{% include Mounting-Alluxio-FS-with-FUSE/tachyon-fuse-umount.md %}
+{% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-umount.md %}
 
-This will stop the background tachyon-fuse java process and unmount the file system.
+This will stop the background alluxio-fuse java process and unmount the file system.
 
 ## Check if Alluxio-FUSE is running
 
-{% include Mounting-Alluxio-FS-with-FUSE/tachyon-fuse-stat.md %}
+{% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-stat.md %}
 
 ## Optional configuration steps
 
-Alluxio-FUSE is based on the standard java tachyon-client to perform its operations. You might
-want to customize the behaviour of the tachyon client used by Alluxio-FUSE the same way you
+Alluxio-FUSE is based on the standard java alluxio-client to perform its operations. You might
+want to customize the behaviour of the alluxio client used by Alluxio-FUSE the same way you
 would for any other client application.
 
-One possibility, for example, is to edit `$TACHYON_HOME/bin/tachyon-fuse.sh` and add your
-specific tachyon client options in the `TACHYON_JAVA_OPTS` variable.
+One possibility, for example, is to edit `$TACHYON_HOME/bin/alluxio-fuse.sh` and add your
+specific alluxio client options in the `TACHYON_JAVA_OPTS` variable.
 
 # Operational assumptions and status
 
@@ -130,7 +130,7 @@ opened  with the `O_WRONLY` flag.
 # Performance considerations
 
 Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected
-to be considerably worse than what you would see by using the `tachyon-client` directly. In other
+to be considerably worse than what you would see by using the `alluxio-client` directly. In other
 words, if you are concerned about performance rather then functionality, then Alluxio-FUSE is
 not what you are looking for.
 

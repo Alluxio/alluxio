@@ -22,12 +22,12 @@ If running a Hadoop 1.x cluster, ensure that the `core-site.xml` file in your Ha
 
 ```xml
 <property>
-  <name>fs.tachyon.impl</name>
-  <value>tachyon.hadoop.TFS</value>
+  <name>fs.alluxio.impl</name>
+  <value>alluxio.hadoop.TFS</value>
 </property>
 <property>
-  <name>fs.tachyon-ft.impl</name>
-  <value>tachyon.hadoop.TFSFT</value>
+  <name>fs.alluxio-ft.impl</name>
+  <value>alluxio.hadoop.TFSFT</value>
 </property>
 ```
 
@@ -39,18 +39,18 @@ the `hdfs-site.xml` file as well.
 
 If you are using a 2.x Hadoop cluster, you should not need the properties above in your
 `core-site.xml` file. However, in some cases you may encounter the error:
-`java.io.IOException: No FileSystem for scheme: tachyon`. For instance, this may happen when Yarn 
+`java.io.IOException: No FileSystem for scheme: alluxio`. For instance, this may happen when Yarn 
 (as opposed to Hadoop) tries to access Alluxio files. If this error is encountered, add these 
 properties to your `core-site.xml` file, and restart Yarn.
 
 ```xml
 <property>
-  <name>fs.tachyon.impl</name>
-  <value>tachyon.hadoop.TFS</value>
+  <name>fs.alluxio.impl</name>
+  <value>alluxio.hadoop.TFS</value>
 </property>
 <property>
-  <name>fs.tachyon-ft.impl</name>
-  <value>tachyon.hadoop.TFSFT</value>
+  <name>fs.alluxio-ft.impl</name>
+  <value>alluxio.hadoop.TFSFT</value>
 </property>
 ```
 
@@ -72,7 +72,7 @@ information about support for other distributions.
 
 After the compilation succeeds, the new Alluxio client jar can be found at:
 
-    core/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
+    core/client/target/alluxio-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
 
 This is the jar that you should use for the rest of this guide.
 
@@ -82,7 +82,7 @@ In order for the Alluxio client jar to be available to the JobClient, you can mo
 `HADOOP_CLASSPATH` by changing `hadoop-env.sh` to:
 
 ```bash
-$ export HADOOP_CLASSPATH=/<PATH_TO_TACHYON>/core/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
+$ export HADOOP_CLASSPATH=/<PATH_TO_TACHYON>/core/client/target/alluxio-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
 ```
 
 This allows the code that creates and submits the Job to use URIs with Alluxio scheme.
@@ -103,17 +103,17 @@ Below are instructions for the 2 main alternatives:
 1.**Using the -libjars command line option.**
 You can run a job by using the `-libjars` command line option when using `hadoop jar ...`, 
 specifying
-`/<PATH_TO_TACHYON>/core/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`
+`/<PATH_TO_TACHYON>/core/client/target/alluxio-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`
 as the argument. This will place the jar in the Hadoop DistributedCache, making it available to all
 the nodes. For example, the following command adds the Alluxio client jar to the `-libjars` option:
 
 ```bash
-$ hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/core/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar <INPUT FILES> <OUTPUT DIRECTORY>`
+$ hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/core/client/target/alluxio-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar <INPUT FILES> <OUTPUT DIRECTORY>`
 ```
 
 2.**Distributing the jars to all nodes manually.**
 For installing Alluxio on each node, you must place the client jar
-`tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`
+`alluxio-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`
 (located in the `/<PATH_TO_TACHYON>/core/client/target/` directory), in the `$HADOOP_HOME/lib`
 (may be `$HADOOP_HOME/share/hadoop/common/lib` for different versions of Hadoop) directory of every
 MapReduce node, and then restart all of the TaskTrackers. One caveat of this approach is that the
@@ -137,7 +137,7 @@ $ ./bin/start-all.sh
 ```
 
 Configure Alluxio to use the local HDFS cluster as its under storage system. You can do this by
-modifying `conf/tachyon-env.sh` to include:
+modifying `conf/alluxio-env.sh` to include:
 
 ```bash
 export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:9000
@@ -146,14 +146,14 @@ export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:9000
 Start Alluxio locally:
 
 ```bash
-$ ./bin/tachyon-stop.sh all
-$ ./bin/tachyon-start.sh local
+$ ./bin/alluxio-stop.sh all
+$ ./bin/alluxio-start.sh local
 ```
 
 You can add a sample file to Alluxio to run wordcount on. From your Alluxio directory:
 
 ```bash
-$ ./bin/tachyon tfs copyFromLocal LICENSE /wordcount/input.txt
+$ ./bin/alluxio tfs copyFromLocal LICENSE /wordcount/input.txt
 ```
 
 This command will copy the `LICENSE` file into the Alluxio namespace with the path
@@ -162,15 +162,15 @@ This command will copy the `LICENSE` file into the Alluxio namespace with the pa
 Now we can run a MapReduce job for wordcount.
 
 ```bash
-$ bin/hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/core/client/target/tachyon-core-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar -Dtachyon.user.file.understoragetype.default=SYNC_PERSIST tachyon://localhost:19998/wordcount/input.txt tachyon://localhost:19998/wordcount/output
+$ bin/hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/core/client/target/alluxio-core-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar -Dalluxio.user.file.understoragetype.default=SYNC_PERSIST alluxio://localhost:19998/wordcount/input.txt alluxio://localhost:19998/wordcount/output
 ```
 
 After this job completes, the result of the wordcount will be in the `/wordcount/output` directory
 in Alluxio. You can see the resulting files by running:
 
 ```bash
-$ ./bin/tachyon tfs ls /wordcount/output
-$ ./bin/tachyon tfs cat /wordcount/output/part-r-00000
+$ ./bin/alluxio tfs ls /wordcount/output
+$ ./bin/alluxio tfs cat /wordcount/output/part-r-00000
 ```
 
 You can also see the file in the under storage system HDFS name node web UI. The local HDFS cluster

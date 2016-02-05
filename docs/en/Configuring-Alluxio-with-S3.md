@@ -17,7 +17,7 @@ First, the Alluxio binaries must be on your machine. You can either
 
 Then, if you haven't already done so, create your configuration file from the template:
 
-{% include Configuring-Alluxio-with-S3/copy-tachyon-env.md %}
+{% include Common-Commands/copy-alluxio-env.md %}
 
 Also, in preparation for using S3 with Alluxio, create a bucket (or use an existing bucket). You
 should also note the directory you want to use in that bucket, either by creating a new directory in
@@ -27,14 +27,14 @@ the bucket, or using an existing one. For the purposes of this guide, the S3 buc
 # Configuring Alluxio
 
 To configure Alluxio to use S3 as its under storage system, modifications to the
-`conf/tachyon-env.sh` file must be made. The first modification is to specify an **existing** S3
-bucket and directory as the under storage system. You specify it by modifying `conf/tachyon-env.sh`
+`conf/alluxio-env.sh` file must be made. The first modification is to specify an **existing** S3
+bucket and directory as the under storage system. You specify it by modifying `conf/alluxio-env.sh`
 to include:
 
 {% include Configuring-Alluxio-with-S3/underfs-address.md %}
 
 Next, you need to specify the AWS credentials for S3 access. In the `TACHYON_JAVA_OPTS` section of
-the `conf/tachyon-env.sh` file, add:
+the `conf/alluxio-env.sh` file, add:
 
 {% include Configuring-Alluxio-with-S3/aws.md %}
 
@@ -43,12 +43,12 @@ Here, `<AWS_ACCESS_KEY_ID>` and `<AWS_SECRET_ACCESS_KEY>` should be replaced wit
 contain your credentials.
 
 After these changes, Alluxio should be configured to work with S3 as its under storage system, and
-you can try [Running Alluxio Locally with S3](#running-tachyon-locally-with-s3).
+you can try [Running Alluxio Locally with S3](#running-alluxio-locally-with-s3).
 
 ## Accessing S3 through a proxy
 
 To communicate with S3 through a proxy, modify the `TACHYON_JAVA_OPTS` section of
-`conf/tachyon-env.sh` to include:
+`conf/alluxio-env.sh` to include:
 
 {% include Configuring-Alluxio-with-S3/proxy.md %}
 
@@ -63,7 +63,7 @@ a separate JVM from the Alluxio Master and Workers. See
 # Configuring Your Application
 
 When building your application to use Alluxio, your application will have to include the
-`tachyon-client` module. If you are using [maven](https://maven.apache.org/), you can add the
+`alluxio-client` module. If you are using [maven](https://maven.apache.org/), you can add the
 dependency to your application with:
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
@@ -76,7 +76,7 @@ when Alluxio is configured to use S3 as its under storage system.
 However, there is also an option to use a different implementation to communicate with S3; the S3
 client provided by Hadoop. In order to disable the Alluxio S3 client (and enable the Hadoop S3
 client), additional modifications to your application must be made. When including the
-`tachyon-client` module in your application, the `tachyon-underfs-s3` should be excluded to disable
+`alluxio-client` module in your application, the `alluxio-underfs-s3` should be excluded to disable
 the native client, and to use the Hadoop S3 client:
 
 {% include Configuring-Alluxio-with-S3/hadoop-s3-dependency.md %}
@@ -104,14 +104,14 @@ when starting your client JVM process. For example:
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
-{% include Configuring-Alluxio-with-S3/start-tachyon.md %}
+{% include Common-Commands/start-alluxio.md %}
 
 This should start a Alluxio master and a Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Next, you can run a simple example program:
 
-{% include Configuring-Alluxio-with-S3/runTests.md %}
+{% include Common-Commands/runTests.md %}
 
 After this succeeds, you can visit your S3 directory `S3_BUCKET/S3_DIRECTORY` to verify the files
 and directories created by Alluxio exist. For this test, you should see files named like:
@@ -120,4 +120,4 @@ and directories created by Alluxio exist. For this test, you should see files na
 
 To stop Alluxio, you can run:
 
-{% include Configuring-Alluxio-with-S3/stop-tachyon.md %}
+{% include Common-Commands/stop-alluxio.md %}

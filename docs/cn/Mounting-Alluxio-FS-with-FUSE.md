@@ -22,11 +22,11 @@ Alluxio-FUSE是一个新的处于实验阶段的特性，该特性允许在一�
 
 # 构建
 
-在编译Alluxio源码过程中，只有当maven的`buildFuse`设置开启时，tachyon-fuse才会被构建。当使用JDK 1.8及以上编译Alluxio源码时该设置会自动开启。
+在编译Alluxio源码过程中，只有当maven的`buildFuse`设置开启时，alluxio-fuse才会被构建。当使用JDK 1.8及以上编译Alluxio源码时该设置会自动开启。
 
-为了保持与JAVA 6和7的兼容性，预编译的tachyon二进制文件并不支持tachyon-fuse，因此若需要在部署中使用tachyon-fuse，你需要自己构建Alluxio。
+为了保持与JAVA 6和7的兼容性，预编译的alluxio二进制文件并不支持alluxio-fuse，因此若需要在部署中使用alluxio-fuse，你需要自己构建Alluxio。
 
-最好的方式是从Alluxio [GitHub repository](https://github.com/amplab/tachyon)处获取你需要的分支的源码，或者直接从[source distribution](https://github.com/amplab/tachyon/releases)处获取，请参考[该页面](Building-Alluxio-Master-Branch.html)进行构建。
+最好的方式是从Alluxio [GitHub repository](https://github.com/amplab/alluxio)处获取你需要的分支的源码，或者直接从[source distribution](https://github.com/amplab/alluxio/releases)处获取，请参考[该页面](Building-Alluxio-Master-Branch.html)进行构建。
 
 # 用法
 
@@ -34,7 +34,7 @@ Alluxio-FUSE是一个新的处于实验阶段的特性，该特性允许在一�
 
 在完成配置以及启动Alluxio集群后，在需要挂载Alluxio的节点上启动Shell并进入`$TACHYON_HOME`目录，再运行
 
-{% include Mounting-Alluxio-FS-with-FUSE/tachyon-fuse-mount.md %}
+{% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-mount.md %}
 
 该命令会启动一个后台java进程，用于将Alluxio挂载到`<mount_point>`指定的路径。注意`<mount_point>`必须是本地文件系统中的一个空文件夹，并且该用户拥有该挂载点及对其的读写权限。另外，目前每个节点上只能挂载一个Alluxio-FUSE。
 
@@ -42,23 +42,23 @@ Alluxio-FUSE是一个新的处于实验阶段的特性，该特性允许在一�
 
 要卸载Alluxio-FUSE时，在该节点上启动Shell并进入`$TACHYON_HOME`目录，再运行：
 
-{% include Mounting-Alluxio-FS-with-FUSE/tachyon-fuse-umount.md %}
+{% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-umount.md %}
 
-该命令将终止tachyon-fuse java后台进程，并卸载该文件系统。
+该命令将终止alluxio-fuse java后台进程，并卸载该文件系统。
 
 ## 检查Alluxio-FUSE是否在运行
 
-{% include Mounting-Alluxio-FS-with-FUSE/tachyon-fuse-stat.md %}
+{% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-stat.md %}
 
 ## 可选配置
 
-Alluxio-FUSE是基于标准的tachyon-client进行操作的。你也许想像使用其他应用的client一样，自定义该tachyon-client的行为。
+Alluxio-FUSE是基于标准的alluxio-client进行操作的。你也许想像使用其他应用的client一样，自定义该alluxio-client的行为。
 
-一种方法是编辑`$TACHYON_HOME/bin/tachyon-fuse.sh`配置文件，将特定的配置项添加到`TACHYON_JAVA_OPTS`变量中。
+一种方法是编辑`$TACHYON_HOME/bin/alluxio-fuse.sh`配置文件，将特定的配置项添加到`TACHYON_JAVA_OPTS`变量中。
 
 # 操作前提和状态
 
-目前，tachyon-fuse支持大多数基本文件系统的操作。然而，由于Alluxio某些内在的特性，一定要清楚：
+目前，alluxio-fuse支持大多数基本文件系统的操作。然而，由于Alluxio某些内在的特性，一定要清楚：
 
 * 文件只能顺序地写入一次，并且无法修改;
 * 由于以上的限制，文件只有只读访问方法。
@@ -98,7 +98,7 @@ Seek操作只支持用于读的文件，即在指定`O_RDONLY` flags方式下被
 
 # 性能考虑
 
-由于FUSE和JNR的配合使用，与直接使用tachyon-client相比，使用挂载文件系统的性能会相对较差。也就是说，如果你在乎的更多是性能而不是这个功能，那么不应当使用Alluxio-FUSE。
+由于FUSE和JNR的配合使用，与直接使用alluxio-client相比，使用挂载文件系统的性能会相对较差。也就是说，如果你在乎的更多是性能而不是这个功能，那么不应当使用Alluxio-FUSE。
 
 大多数性能问题的原因在于，每次进行`read`或`write`操作时，内存中都存在若干个副本，并且FUSE将写操作的最大粒度设置为128KB。其性能可以利用kernel 3.15引入的FUSE回写(write-backs)缓存策略从而得到大幅提高（但该特性目前尚不被libfuse 2.x用户空间库支持）。
 

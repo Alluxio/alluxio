@@ -43,7 +43,7 @@ data sources.
 ![unified]({{site.data.img.screenshot_unified}})
 
 By default, Alluxio namespace is mounted onto the directory specified by the
-`tachyon.underfs.address` property of Alluxio configuration; this directory identifies the
+`alluxio.underfs.address` property of Alluxio configuration; this directory identifies the
 "primary storage" for Alluxio. In addition, users can use the mounting API to add new and remove
 existing data sources:
 
@@ -51,7 +51,7 @@ existing data sources:
 
 For example, the primary storage could be HDFS and contains user directories; the `Data` directory
 might be stored in an S3 bucket, which is mounted to the Alluxio namespace through the
-`mount(tachyon://host:port/Data, s3://bucket/directory)` invocation.
+`mount(alluxio://host:port/Data, s3://bucket/directory)` invocation.
 
 ## Example
 

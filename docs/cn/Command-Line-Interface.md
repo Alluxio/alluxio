@@ -7,11 +7,11 @@ priority: 0
 
 Alluxio命令行接口为用户提供了基本的文件系统操作，可以使用以下语法调用命令行功能：
 
-{% include Command-Line-Interface/tachyon-tfs.md %}
+{% include Command-Line-Interface/alluxio-tfs.md %}
 
 tfs命令中的所有路径都应该以以下开头：
 
-{% include Command-Line-Interface/tachyon-path.md %}
+{% include Command-Line-Interface/alluxio-path.md %}
 
 或者如果没有提供路径前缀，默认的主机名和端口（见env文件）将会被使用。
 
@@ -120,7 +120,7 @@ tfs命令中的所有路径都应该以以下开头：
 
 `copyFromLocal`命令将本地文件系统中的文件拷贝到Alluxio中，如果你运行该命令的机器上有Alluxio worker，那么数据便会存放在这个worker上，否则，数据将会随机存放在一个运行Alluxio worker的远程节点上。如果该命令指定的目标是一个文件夹，那么这个文件夹及其所有内容都会被递归复制到Alluxio中。
 
-例如，使用`copyFromLocal`命令可以快速将数据复制到tachyon系统中以便后续处理：
+例如，使用`copyFromLocal`命令可以快速将数据复制到alluxio系统中以便后续处理：
 
 {% include Command-Line-Interface/copyFromLocal.md %}
 

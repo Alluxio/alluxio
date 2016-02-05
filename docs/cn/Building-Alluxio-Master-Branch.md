@@ -20,17 +20,17 @@ group: Resources
 
 {% include Building-Alluxio-Master-Branch/OutOfMemoryError.md %}
 
-若需要构建一个特定的Alluxio版本，例如{{site.TACHYON_RELEASED_VERSION}}，先执行`cd tachyon`，接着执行`git checkout v{{site.TACHYON_RELEASED_VERSION}}`。
+若需要构建一个特定的Alluxio版本，例如{{site.TACHYON_RELEASED_VERSION}}，先执行`cd alluxio`，接着执行`git checkout v{{site.TACHYON_RELEASED_VERSION}}`。
 
 Maven构建环境将自动获取依赖，编译源码，运行单元测试，并进行打包。如果你是第一次构建该项目，下载依赖包可能需要一段时间，但以后的构建过程将会快很多。
 
 一旦构建完成，执行以下命令启动Alluxio：
 
-{% include Building-Alluxio-Master-Branch/tachyon-start.md %}
+{% include Building-Alluxio-Master-Branch/alluxio-start.md %}
 
-若要确认Alluxio是否在运行，可以访问[http://localhost:19999](http://localhost:19999)，或者查看`tachyon/logs`目录下的日志文件，也可以执行下面的简单程序:
+若要确认Alluxio是否在运行，可以访问[http://localhost:19999](http://localhost:19999)，或者查看`alluxio/logs`目录下的日志文件，也可以执行下面的简单程序:
 
-{% include Building-Alluxio-Master-Branch/tachyon-runTests.md %}
+{% include Building-Alluxio-Master-Branch/alluxio-runTests.md %}
 
 若正确运行，应能看到类似以下输出结果：
 
@@ -38,7 +38,7 @@ Maven构建环境将自动获取依赖，编译源码，运行单元测试，并
 
 执行以下命令停止Alluxio：
 
-{% include Building-Alluxio-Master-Branch/tachyon-stop.md %}
+{% include Building-Alluxio-Master-Branch/alluxio-stop.md %}
 
 # 单元测试
 

@@ -34,7 +34,7 @@ maven. For example, if you want Alluxio to work with Hadoop HDFS `2.6.0`:
 {% include Configuring-Alluxio-with-HDFS/mvn-Dhadoop-package.md %}
 
 If everything succeeds, you should see
-`tachyon-assemblies-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` created in the
+`alluxio-assemblies-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` created in the
 `assembly/target` directory and this is the jar file you can use to run both Alluxio Master and Worker.
 
 # Configuring Alluxio
@@ -42,9 +42,9 @@ If everything succeeds, you should see
 To run Alluxio binary, we must setup configuration files. Create your configuration file from the
 template:
 
-{% include Configuring-Alluxio-with-HDFS/copy-tachyon-env.md %}
+{% include Common-Commands/copy-alluxio-env.md %}
 
-Then edit `tachyon-env.sh` file to set the under storage address to the HDFS namenode address
+Then edit `alluxio-env.sh` file to set the under storage address to the HDFS namenode address
 (e.g., `hdfs://localhost:9000` if you are running the HDFS namenode locally with default port).
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
@@ -53,19 +53,19 @@ Then edit `tachyon-env.sh` file to set the under storage address to the HDFS nam
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
-{% include Configuring-Alluxio-with-HDFS/start-tachyon.md %}
+{% include Common-Commands/start-alluxio.md %}
 
 This should start one Alluxio master and one Alluxio worker locally. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Next, you can run a simple example program:
 
-{% include Configuring-Alluxio-with-HDFS/runTests.md %}
+{% include Common-Commands/runTests.md %}
 
 After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
 to verify the files and directories created by Alluxio exist. For this test, you should see
-files named like: `/tachyon/data/default_tests_files/BasicFile_STORE_SYNC_PERSIST`
+files named like: `/alluxio/data/default_tests_files/BasicFile_STORE_SYNC_PERSIST`
 
 You can stop Alluxio any time by running:
 
-{% include Configuring-Alluxio-with-HDFS/stop-tachyon.md %}
+{% include Common-Commands/stop-alluxio.md %}

@@ -14,27 +14,27 @@ priority: 0
 
 然后，由template文件创建配置文件：
 
-{% include Configuring-Alluxio-with-S3/copy-tachyon-env.md %}
+{% include Common-Commands/copy-alluxio-env.md %}
 
 另外，为了在S3上使用Alluxio，需要创建一个bucket（或者使用一个已有的bucket）。还要注意在该bucket里使用的目录，可以在该bucket中新建一个目录，或者使用一个存在的目录。在该向导中，S3 bucket的名称为`S3_BUCKET`，在该bucket里的目录名称为`S3_DIRECTORY`。
 
 # 配置Alluxio
 
-若要在Alluxio中使用S3作为底层文件系统，一定要修改`conf/tachyon-env.sh`配置文件。首先要指定一个**已有的**S3 bucket和其中的目录作为底层文件系统，可以在`conf/tachyon-env.sh`中添加如下语句指定它：
+若要在Alluxio中使用S3作为底层文件系统，一定要修改`conf/alluxio-env.sh`配置文件。首先要指定一个**已有的**S3 bucket和其中的目录作为底层文件系统，可以在`conf/alluxio-env.sh`中添加如下语句指定它：
 
 {% include Configuring-Alluxio-with-S3/underfs-address.md %}
 
-接着，需要指定AWS证书以便访问S3，在`conf/tachyon-env.sh`中的`TACHYON_JAVA_OPTS`部分添加：
+接着，需要指定AWS证书以便访问S3，在`conf/alluxio-env.sh`中的`TACHYON_JAVA_OPTS`部分添加：
 
 {% include Configuring-Alluxio-with-S3/aws.md %}
 
 其中，`<AWS_ACCESS_KEY_ID>`和`<AWS_SECRET_ACCESS_KEY>`是你实际的[AWS keys](https://aws.amazon.com/developers/access-keys)，或者其他包含证书的环境变量。
 
-更改完成后，Alluxio应该能够将S3作为底层文件系统运行，你可以尝试[使用S3在本地运行Alluxio](#running-tachyon-locally-with-s3)
+更改完成后，Alluxio应该能够将S3作为底层文件系统运行，你可以尝试[使用S3在本地运行Alluxio](#running-alluxio-locally-with-s3)
 
 ## 通过代理访问S3
 
-若要通过代理与S3交互，在`conf/tachyon-env.sh`中的`TACHYON_JAVA_OPTS`部分添加：
+若要通过代理与S3交互，在`conf/alluxio-env.sh`中的`TACHYON_JAVA_OPTS`部分添加：
 
 {% include Configuring-Alluxio-with-S3/proxy.md %}
 
@@ -44,7 +44,7 @@ priority: 0
 
 # 配置应用
 
-当构建应用使用Alluxio时，你的应用必须包含`tachyon-client`模块，如果你使用[maven](https://maven.apache.org/)构建应用，在配置文件中添加以下以来：
+当构建应用使用Alluxio时，你的应用必须包含`alluxio-client`模块，如果你使用[maven](https://maven.apache.org/)构建应用，在配置文件中添加以下以来：
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
 
@@ -53,7 +53,7 @@ priority: 0
 
 Alluxio提供了一个本地客户端与S3交互，默认情况下，当S3被配置为底层文件系统时，该本地客户端会被使用。
 
-但可以选择另外一种与S3通信的方式，即由Hadoop提供的S3客户端。为禁用Alluxio S3客户端（并启用Hadoop S3客户端），还需进行额外配置。若你的应用中包含了`tachyon-client`模块，要将`tachyon-underfs-s3`排除在外从而禁用本地客户端，并启用Hadoop S3客户端：
+但可以选择另外一种与S3通信的方式，即由Hadoop提供的S3客户端。为禁用Alluxio S3客户端（并启用Hadoop S3客户端），还需进行额外配置。若你的应用中包含了`alluxio-client`模块，要将`alluxio-underfs-s3`排除在外从而禁用本地客户端，并启用Hadoop S3客户端：
 
 {% include Configuring-Alluxio-with-S3/hadoop-s3-dependency.md %}
 
@@ -73,13 +73,13 @@ Alluxio提供了一个本地客户端与S3交互，默认情况下，当S3被配
 
 配置完成后，你可以在本地启动Alluxio，观察是否正确运行：
 
-{% include Configuring-Alluxio-with-S3/start-tachyon.md %}
+{% include Common-Commands/start-alluxio.md %}
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
 
 接着，你可以运行一个简单的示例程序：
 
-{% include Configuring-Alluxio-with-S3/runTests.md %}
+{% include Common-Commands/runTests.md %}
 
 运行成功后，访问你的S3目录`S3_BUCKET/S3_DIRECTORY`，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像下面这样：
 
@@ -87,4 +87,4 @@ Alluxio提供了一个本地客户端与S3交互，默认情况下，当S3被配
 
 运行以下命令停止Alluxio：
 
-{% include Configuring-Alluxio-with-S3/stop-tachyon.md %}
+{% include Common-Commands/stop-alluxio.md %}

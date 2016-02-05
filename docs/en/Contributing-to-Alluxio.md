@@ -21,17 +21,17 @@ There are a few things that new contributors can do to familiarize themselves wi
 3.  Read [Configuration-Settings](Configuration-Settings.html) and [Command-Line Interface](Command-Line-Interface.html)
 
 4.  Read a
-    [Code Example](https://github.com/amplab/tachyon/blob/master/examples/src/main/java/tachyon/examples/BasicOperations.java)
+    [Code Example](https://github.com/amplab/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
 
 5.  [Build Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
 
 6.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request. You are also welcome to address
-issues in our [JIRA](https://tachyon.atlassian.net/browse/TACHYON).
+issues in our [JIRA](https://alluxio.atlassian.net/browse/TACHYON).
 Here is a list of
-[tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)
+[tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)
 for New Contributors. Please limit 2 tasks per New Contributor.
 Afterwards, try some Beginner/Intermediate tasks, or ask in the
-[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users).
+[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users).
 For a tutorial, see the GitHub guides on
 [forking a repo](https://help.github.com/articles/fork-a-repo) and
 [sending a pull request](https://help.github.com/articles/using-pull-requests).
@@ -41,10 +41,10 @@ For a tutorial, see the GitHub guides on
 -   We encourage you to break your work into small, single-purpose patches if possible. It is much
     harder to merge in a large change with a lot of disjoint features.
 
--   We track issues and features in our [JIRA](https://tachyon.atlassian.net/). If you have not
+-   We track issues and features in our [JIRA](https://alluxio.atlassian.net/). If you have not
     registered an account, please do so!
 
--   Open a ticket in [JIRA](https://tachyon.atlassian.net/) detailing the proposed change and what
+-   Open a ticket in [JIRA](https://alluxio.atlassian.net/) detailing the proposed change and what
     purpose it serves.
 
 -   Submit the patch as a GitHub pull request. For a tutorial, see the GitHub guides on
@@ -87,11 +87,11 @@ HDFS 1.0.4 as the under filesystem in the HDFS module). ``mvn -Dhadoop.version=2
 use HDFS 2.4.0 as the under filesystem for the HDFS module tests.
 
 -   To run tests against specific under filesystems, execute the maven command from the desired
-submodule directory. For example, to run tests for HDFS you would run ``mvn test`` from ``tachyon/underfs/hdfs``.
+submodule directory. For example, to run tests for HDFS you would run ``mvn test`` from ``alluxio/underfs/hdfs``.
 
--   For a GlusterFS environment, GlusterFS unit tests can be run from ``tachyon/underfs/glusterfs`` with:
-`mvn -PglusterfsTest -Dhadoop.version=2.3.0 -Dtachyon.underfs.glusterfs.mounts=/vol
--Dtachyon.underfs.glusterfs.volumes=testvol test` (use GlusterFS as under filesystem,
+-   For a GlusterFS environment, GlusterFS unit tests can be run from ``alluxio/underfs/glusterfs`` with:
+`mvn -PglusterfsTest -Dhadoop.version=2.3.0 -Dalluxio.underfs.glusterfs.mounts=/vol
+-Dalluxio.underfs.glusterfs.volumes=testvol test` (use GlusterFS as under filesystem,
 where `/vol` is a valid GlusterFS mount point)
 
 -   Run a single unit test: `mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test`
@@ -125,7 +125,7 @@ leverage the Scala shell, as discussed in this
     -  Do not add `public` or `abstract` modifier to methods defined in an Java interface because
        method declaration in the body of an interface is implicitly public and abstract.
        (http://docs.oracle.com/javase/specs/jls/se7/html/jls-9.html#jls-9.4)
--   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml)
+-   You can download our [Eclipse formatter](resources/alluxio-code-formatter-eclipse.xml)
     -  If you use IntelliJ IDEA:
        - You can either use our formatter with the help from
          [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
@@ -175,9 +175,9 @@ to avoid import errors. You can do this by going to
 ### Presentations
 
 -   AMPCamp 6 (November, 2015)
-[SlideShare](http://www.slideshare.net/AlluxioNexus/tachyon-presentation-at-ampcamp-6-november-2015)
+[SlideShare](http://www.slideshare.net/AlluxioNexus/alluxio-presentation-at-ampcamp-6-november-2015)
 -   Strata and Hadoop World 2015 (September, 2015)
-[SlideShare](http://www.slideshare.net/AlluxioNexus/tachyon-an-open-source-memorycentric-distributed-storage-system)
+[SlideShare](http://www.slideshare.net/AlluxioNexus/alluxio-an-open-source-memorycentric-distributed-storage-system)
 -   Strata and Hadoop World 2014 (October, 2014)
 [pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Alluxio_2014-10-16-Strata.pdf)
 [pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Alluxio_2014-10-16-Strata.pptx)
@@ -186,9 +186,9 @@ to avoid import errors. You can do this by going to
 
 ### Readings
 
--   [Alluxio: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_tachyon.pdf)
+-   [Alluxio: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_alluxio.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *SOCC 2014*.
--   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_tachyon.pdf)
+-   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_alluxio.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *UC Berkeley EECS 2014*.
--   [Alluxio: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_tachyon.pdf)
+-   [Alluxio: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_alluxio.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Eric Baldeschwieler, Scott Shenker, Ion Stoica, *LADIS 2013*.

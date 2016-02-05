@@ -14,11 +14,11 @@ priority: 2
 
 然后，由template文件创建配置文件：
 
-{% include Configuring-Alluxio-with-GlusterFS/copy-tachyon-env.md %}
+{% include Common-Commands/copy-alluxio-env.md %}
 
 # 配置Alluxio
 
-假定GlusterFS bricks与Alluxio部署在同样的节点上，且GlusterFS volume挂载在`/tachyon_vol`，那以下的环境变量要添加到`conf/tachyon-env.sh`配置文件中：
+假定GlusterFS bricks与Alluxio部署在同样的节点上，且GlusterFS volume挂载在`/alluxio_vol`，那以下的环境变量要添加到`conf/alluxio-env.sh`配置文件中：
 
 {% include Configuring-Alluxio-with-GlusterFS/underfs-address.md %}
 
@@ -26,13 +26,13 @@ priority: 2
 
 配置完成后，你可以在本地启动Alluxio，观察是否正确运行：
 
-{% include Configuring-Alluxio-with-GlusterFS/start-tachyon.md %}
+{% include Common-Commands/start-alluxio.md %}
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
 
 接着，你可以运行一个简单的示例程序：
 
-{% include Configuring-Alluxio-with-GlusterFS/runTests.md %}
+{% include Common-Commands/runTests.md %}
 
 运行成功后，访问你的GlusterFS volume，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像下面这样：
 
@@ -40,4 +40,4 @@ priority: 2
 
 运行以下命令停止Alluxio：
 
-{% include Configuring-Alluxio-with-GlusterFS/stop-tachyon.md %}
+{% include Common-Commands/stop-alluxio.md %}
