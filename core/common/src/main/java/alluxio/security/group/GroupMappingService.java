@@ -27,10 +27,10 @@ import alluxio.Configuration;
 import alluxio.util.CommonUtils;
 
 /**
- * Interface for Tachyon user-to-groups mapping. {@link GroupMappingService} allows for server to
+ * Interface for Alluxio user-to-groups mapping. {@link GroupMappingService} allows for server to
  * get the various group memberships of a given user via the {@link #getGroups(String)} call, thus
  * ensuring a consistent user-to-groups mapping and protects against mapping inconsistencies between
- * servers and clients in a Tachyon cluster.
+ * servers and clients in an Alluxio cluster.
  */
 @PublicApi
 public interface GroupMappingService {
@@ -53,7 +53,7 @@ public interface GroupMappingService {
     /**
      * Gets the groups being used to map user-to-groups.
      *
-     * @param conf Tachyon configuration
+     * @param conf Alluxio configuration
      * @return the groups being used to map user-to-groups
      */
     public static GroupMappingService getUserToGroupsMappingService(Configuration conf) {

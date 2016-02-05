@@ -222,7 +222,8 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when creating or deleting dirs failed
    */
   protected void setupTest(Configuration conf) throws IOException {
-    String alluxioHome = conf.get(Constants.TACHYON_HOME);
+    String alluxioHome = conf.get(Constants.HOME);
+
     // Deletes the alluxio home dir for this test from ufs to avoid permission problems
     UnderFileSystemUtils.deleteDir(alluxioHome, conf);
 
@@ -328,13 +329,13 @@ public abstract class AbstractLocalAlluxioCluster {
     setHostname();
 
     testConf.set(Constants.IN_TEST_MODE, "true");
-    testConf.set(Constants.TACHYON_HOME, mHome);
+    testConf.set(Constants.HOME, mHome);
     testConf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
     testConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
     testConf.set(Constants.MASTER_HOSTNAME, mHostname);
     testConf.set(Constants.MASTER_RPC_PORT, Integer.toString(0));
     testConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
-    testConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
+    testConf.set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.toString(1000));
     testConf.set(Constants.MASTER_WORKER_THREADS_MIN, "1");
     testConf.set(Constants.MASTER_WORKER_THREADS_MAX, "100");
 

@@ -45,7 +45,7 @@ public final class LeaderInquireClient {
    *
    * @param zookeeperAddress the address for Zookeeper
    * @param leaderPath the path of the leader
-   * @param conf the configuration for Tachyon
+   * @param conf the configuration for Alluxio
    *
    * @return the client
    */

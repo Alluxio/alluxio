@@ -23,6 +23,7 @@ import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
 import javax.security.auth.login.Configuration;
 
+import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
 
 /**
@@ -48,22 +49,21 @@ public final class LoginModuleConfiguration extends Configuration {
   private static final AppConfigurationEntry APP_LOGIN = new AppConfigurationEntry(
       AppLoginModule.class.getName(), LoginModuleControlFlag.SUFFICIENT, EMPTY_JAAS_OPTIONS);
 
-  /** Login module that allows a user name provided by a Tachyon specific login module. */
-  private static final AppConfigurationEntry TACHYON_LOGIN = new AppConfigurationEntry(
+  /** Login module that allows a user name provided by an Alluxio specific login module. */
+  private static final AppConfigurationEntry ALLUXIO_LOGIN = new AppConfigurationEntry(
       AlluxioLoginModule.class.getName(), LoginModuleControlFlag.REQUIRED, EMPTY_JAAS_OPTIONS);
 
   // TODO(dong): add Kerberos_LOGIN module
   // private static final AppConfigurationEntry KERBEROS_LOGIN = ...
 
   /**
-   * In {@link AuthType#SIMPLE} mode, JAAS first tries to retrieve the user name set by the
-   * application with {@link alluxio.security.login.AppLoginModule}. Upon failure, it uses the OS
-   * specific login module to fetch the OS user, and then uses the {@link alluxio.security.login
-   * .TachyonLoginModule} to convert it to a Tachyon user represented by
-   * {@link alluxio.security.User}. In {@link AuthType#CUSTOM} mode, we also use this configuration.
+   * In the {@link AuthType#SIMPLE} mode, JAAS first tries to retrieve the user name set by the
+   * application with {@link AppLoginModule}. Upon failure, it uses the OS specific login module to
+   * fetch the OS user, and then uses {@link AlluxioLoginModule} to convert it to an Alluxio user
+   * represented by {@link User}. In {@link AuthType#CUSTOM} mode, we also use this configuration.
    */
   private static final AppConfigurationEntry[] SIMPLE =
-      new AppConfigurationEntry[] {APP_LOGIN, OS_SPECIFIC_LOGIN, TACHYON_LOGIN};
+      new AppConfigurationEntry[] {APP_LOGIN, OS_SPECIFIC_LOGIN, ALLUXIO_LOGIN};
 
   // TODO(dong): add Kerberos mode
   // private static final AppConfigurationEntry[] KERBEROS = ...

@@ -18,7 +18,7 @@ package alluxio.exception;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The exception thrown when the path in Tachyon is invalid.
+ * The exception thrown when the path in Alluxio is invalid.
  */
 @ThreadSafe
 public class InvalidPathException extends AlluxioException {

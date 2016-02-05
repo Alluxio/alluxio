@@ -20,7 +20,7 @@ import java.security.Principal;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class represents a user in Tachyon. It implements {@link java.security.Principal} in the
+ * This class represents a user in Alluxio. It implements {@link java.security.Principal} in the
  * context of Java security frameworks.
  */
 @ThreadSafe

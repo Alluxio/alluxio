@@ -75,7 +75,7 @@ public abstract class ClientBase implements Closeable {
    * Creates a new client base.
    *
    * @param address the address
-   * @param configuration the Tachyon configuration
+   * @param configuration the Alluxio configuration
    * @param mode the mode of the client for display
    */
   public ClientBase(InetSocketAddress address, Configuration configuration, String mode) {
@@ -163,7 +163,7 @@ public abstract class ClientBase implements Closeable {
         new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);
     while (!mClosed) {
       mAddress = getAddress();
-      LOG.info("Tachyon client (version {}) is trying to connect with {} {} @ {}", Version.VERSION,
+      LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}", Version.VERSION,
               getServiceName(), mMode, mAddress);
 
       TProtocol binaryProtocol =
@@ -190,7 +190,7 @@ public abstract class ClientBase implements Closeable {
   }
 
   /**
-   * Closes the connection with the Tachyon remote and does the necessary cleanup. It should be used
+   * Closes the connection with the Alluxio remote and does the necessary cleanup. It should be used
    * if the client has not connected with the remote for a while, for example.
    */
   public synchronized void disconnect() {

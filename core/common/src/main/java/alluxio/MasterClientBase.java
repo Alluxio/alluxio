@@ -44,7 +44,7 @@ public abstract class MasterClientBase extends ClientBase {
    * Creates a new master client base.
    *
    * @param masterAddress the master address
-   * @param configuration the Tachyon configuration
+   * @param configuration the Alluxio configuration
    */
   public MasterClientBase(InetSocketAddress masterAddress, Configuration configuration) {
     super(masterAddress, configuration, "master");

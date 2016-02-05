@@ -71,7 +71,7 @@ public class AlluxioFuseFileSystemTest {
   public void setUp() throws Exception {
     Configuration conf = new Configuration();
     conf.set(Constants.MASTER_ADDRESS, TEST_MASTER_ADDRESS);
-    conf.set(Constants.FUSE_PATHCACHE_SIZE, "0");
+    conf.set(Constants.FUSE_CACHED_PATHS_MAX, "0");
 
     final List<String> empty = Collections.emptyList();
     AlluxioFuseOptions opts = new AlluxioFuseOptions(

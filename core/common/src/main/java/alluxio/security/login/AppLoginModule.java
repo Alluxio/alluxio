@@ -33,9 +33,9 @@ import alluxio.security.User;
 
 /**
  * An app login module that creates a user based on the user name provided through application
- * configuration. Specifically, through Tachyon property alluxio.security.login.username. This
- * module is useful if multiple Tachyon clients running under same OS user name want to get
- * different identifies (for resource and data management), or if Tachyon clients running under
+ * configuration. Specifically, through Alluxio property alluxio.security.login.username. This
+ * module is useful if multiple Alluxio clients running under same OS user name want to get
+ * different identifies (for resource and data management), or if Alluxio clients running under
  * different OS user names want to get same identify.
  */
 @NotThreadSafe
@@ -100,15 +100,15 @@ public final class AppLoginModule implements LoginModule {
    *
    * <p>
    * This method is called if the LoginContext's overall authentication succeeded. The
-   * implementation first checks if there is already Tachyon user in the subject. If not, it adds
-   * the previously logged in Tachyon user into the subject.
+   * implementation first checks if there is already Alluxio user in the subject. If not, it adds
+   * the previously logged in Alluxio user into the subject.
    *
-   * @return true if a Tachyon user if found or created
-   * @throws LoginException not Tachyon user is found or created
+   * @return true if an Alluxio user if found or created
+   * @throws LoginException not Alluxio user is found or created
    */
   @Override
   public boolean commit() throws LoginException {
-    // if there is already a Tachyon user, it's done.
+    // if there is already an Alluxio user, it's done.
     if (!mSubject.getPrincipals(User.class).isEmpty()) {
       return true;
     }
@@ -117,7 +117,7 @@ public final class AppLoginModule implements LoginModule {
       mSubject.getPrincipals().add(mUser);
       return true;
     }
-    // throw exception if no Tachyon user is found or created.
+    // throw exception if no Alluxio user is found or created.
     throw new LoginException("Cannot find a user");
   }
 
@@ -151,7 +151,7 @@ public final class AppLoginModule implements LoginModule {
     private String mUserName;
 
     /**
-     * @param conf the configuration for Tachyon
+     * @param conf the configuration for Alluxio
      */
     public AppCallbackHandler(Configuration conf) {
       if (conf.containsKey(Constants.SECURITY_LOGIN_USERNAME)) {

@@ -196,7 +196,7 @@ public final class FileSystemPermission {
   /**
    * Gets the file/directory creation umask.
    *
-   * @param conf the runtime configuration of Tachyon
+   * @param conf the runtime configuration of Alluxio
    * @return the umask {@link FileSystemPermission}
    */
   public static FileSystemPermission getUMask(Configuration conf) {

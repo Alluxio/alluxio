@@ -22,7 +22,7 @@ import org.junit.Test;
 import alluxio.util.OSUtils;
 
 /**
- * Unit tests for alluxio.TachyonURITest
+ * Unit tests for {@link AlluxioURI}.
  */
 public class AlluxioURITest {
 
@@ -124,7 +124,7 @@ public class AlluxioURITest {
    */
   @Test
   public void constructFromComponentsTests() {
-    String scheme = "tachyon";
+    String scheme = "alluxio";
     String authority = "127.0.0.1:90909";
     String path = "/a/../b/c.txt";
     String absPath = "/b/c.txt";
@@ -143,7 +143,7 @@ public class AlluxioURITest {
   }
 
   /**
-   * Tests to resolve a child TachyonURI against a parent TachyonURI.
+   * Tests to resolve a child {@link AlluxioURI} against a parent {@link AlluxioURI}.
    */
   @Test
   public void constructFromParentAndChildTests() {

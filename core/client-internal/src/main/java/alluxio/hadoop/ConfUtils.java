@@ -51,7 +51,7 @@ public final class ConfUtils {
         + "org.apache.hadoop.io.serializer.WritableSerialization");
     Properties confProperties = source.getInternalProperties();
     try {
-      DefaultStringifier.store(target, confProperties, Constants.ALLUXIO_CONF_SITE);
+      DefaultStringifier.store(target, confProperties, Constants.CONF_SITE);
     } catch (IOException ex) {
       LOG.error("Unable to store Alluxio configuration in Hadoop configuration", ex);
       throw new RuntimeException(ex);
@@ -69,11 +69,11 @@ public final class ConfUtils {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system
     // Push Alluxio configuration to the Job configuration
     Properties alluxioConfProperties = null;
-    if (source.get(Constants.ALLUXIO_CONF_SITE) != null) {
+    if (source.get(Constants.CONF_SITE) != null) {
       LOG.info("Found Alluxio configuration site from Job configuration for Alluxio");
       try {
-        alluxioConfProperties = DefaultStringifier.load(source, Constants.ALLUXIO_CONF_SITE,
-            Properties.class);
+        alluxioConfProperties =
+            DefaultStringifier.load(source, Constants.CONF_SITE, Properties.class);
       } catch (IOException e) {
         LOG.error("Unable to load Alluxio configuration from Hadoop configuration", e);
         throw new RuntimeException(e);

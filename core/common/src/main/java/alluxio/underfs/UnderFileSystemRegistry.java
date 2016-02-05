@@ -59,7 +59,7 @@ import alluxio.Configuration;
  * factories as they are discovered if you wish to check that your implementation gets discovered.
  * </p>
  * <p>
- * Note that if you are bundling Tachyon plus your code in a shaded JAR using Maven, make sure to
+ * Note that if you are bundling Alluxio plus your code in a shaded JAR using Maven, make sure to
  * use the {@code ServicesResourceTransformer} as otherwise your services file will override the
  * core provided services file and leave the standard factories and under file system
  * implementations unavailable.
@@ -101,7 +101,7 @@ public final class UnderFileSystemRegistry {
    * or if no under file system could successfully be created.
    *
    * @param path Path
-   * @param configuration Tachyon Configuration
+   * @param configuration Alluxio Configuration
    * @param ufsConf Optional configuration object for the UFS, may be null
    * @return Client for the under file system
    */
@@ -139,7 +139,7 @@ public final class UnderFileSystemRegistry {
    * Finds the first Under File System factory that supports the given path
    *
    * @param path Path
-   * @param configuration Tachyon configuration
+   * @param configuration Alluxio configuration
    * @return Factory if available, null otherwise
    */
   public static UnderFileSystemFactory find(String path, Configuration configuration) {
@@ -161,7 +161,7 @@ public final class UnderFileSystemRegistry {
    * Finds all the Under File System factories that support the given path
    *
    * @param path Path
-   * @param configuration Tachyon Configuration
+   * @param configuration Alluxio Configuration
    * @return List of factories that support the given path which may be an empty list
    */
   public static List<UnderFileSystemFactory> findAll(String path, Configuration configuration) {

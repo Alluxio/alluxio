@@ -28,7 +28,7 @@ import javax.security.auth.spi.LoginModule;
 import alluxio.security.User;
 
 /**
- * A login module that search the Kerberos or OS user from Subject, and then convert to a Tachyon
+ * A login module that search the Kerberos or OS user from Subject, and then convert to an Alluxio
  * user. It does not really authenticate the user in its login method.
  */
 @NotThreadSafe
@@ -75,13 +75,13 @@ public final class AlluxioLoginModule implements LoginModule {
    * This method is called if the LoginContext's overall authentication succeeded. (login
    * succeeded)
    * The implementation searches the Kerberos or OS user in the Subject. If existed,
-   * convert it to a Tachyon user and add into the Subject.
+   * convert it to an Alluxio user and add into the Subject.
    * @return true in all cases
    * @throws LoginException if the user extending a specific Principal is not found
    */
   @Override
   public boolean commit() throws LoginException {
-    // if there is already a Tachyon user, it's done.
+    // if there is already an Alluxio user, it's done.
     if (!mSubject.getPrincipals(User.class).isEmpty()) {
       return true;
     }
@@ -96,7 +96,7 @@ public final class AlluxioLoginModule implements LoginModule {
       user = getPrincipalUser(LoginModuleConfigurationUtils.OS_PRINCIPAL_CLASS_NAME);
     }
 
-    // if a user is found, convert it to a Tachyon user and save it.
+    // if a user is found, convert it to an Alluxio user and save it.
     if (user != null) {
       mUser = new User(user.getName());
       mSubject.getPrincipals().add(mUser);

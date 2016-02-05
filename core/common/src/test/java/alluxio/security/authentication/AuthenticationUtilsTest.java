@@ -75,7 +75,7 @@ public class AuthenticationUtilsTest {
   }
 
   /**
-   * In NOSASL mode, the TTransport used should be the same as Tachyon original code.
+   * In NOSASL mode, the TTransport used should be the same as Alluxio original code.
    *
    * @throws Exception thrown when the server cannot be started
    */
@@ -222,7 +222,7 @@ public class AuthenticationUtilsTest {
 
     // when connecting, authentication happens. User's name:pwd pair matches and auth pass.
     TTransport client =
-        PlainSaslUtils.getPlainClientTransport("tachyon", "correct-password", mClientTSocket);
+        PlainSaslUtils.getPlainClientTransport("alluxio", "correct-password", mClientTSocket);
     client.open();
     Assert.assertTrue(client.isOpen());
 
@@ -249,7 +249,7 @@ public class AuthenticationUtilsTest {
 
     // User with wrong password can not pass auth, and throw exception.
     TTransport wrongClient =
-        PlainSaslUtils.getPlainClientTransport("tachyon", "wrong-password", mClientTSocket);
+        PlainSaslUtils.getPlainClientTransport("alluxio", "wrong-password", mClientTSocket);
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: "
         + "User authentication fails");
@@ -287,7 +287,7 @@ public class AuthenticationUtilsTest {
     // check case that password is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    PlainSaslUtils.getPlainClientTransport("tachyon", null, mClientTSocket);
+    PlainSaslUtils.getPlainClientTransport("alluxio", null, mClientTSocket);
   }
 
   /**
@@ -337,7 +337,7 @@ public class AuthenticationUtilsTest {
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No password "
         + "provided");
-    TTransport client = PlainSaslUtils.getPlainClientTransport("tachyon", "", mClientTSocket);
+    TTransport client = PlainSaslUtils.getPlainClientTransport("alluxio", "", mClientTSocket);
     try {
       client.open();
     } finally {
@@ -399,7 +399,7 @@ public class AuthenticationUtilsTest {
   public static class ExactlyMatchAuthenticationProvider implements AuthenticationProvider {
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {
-      if (!user.equals("tachyon") || !password.equals("correct-password")) {
+      if (!user.equals("alluxio") || !password.equals("correct-password")) {
         throw new AuthenticationException("User authentication fails");
       }
     }

@@ -18,7 +18,7 @@ package alluxio.exception;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The exception thrown when Tachyon failed to create a checkpoint.
+ * The exception thrown when Alluxio failed to create a checkpoint.
  */
 @ThreadSafe
 public class FailedToCheckpointException extends AlluxioException {

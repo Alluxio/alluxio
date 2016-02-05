@@ -22,7 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Preconditions;
 
 /**
- * Exception messages used across Tachyon.
+ * Exception messages used across Alluxio.
  *
  * Note: To minimize merge conflicts, please sort alphabetically in this section.
  */
@@ -37,11 +37,11 @@ public enum ExceptionMessage {
 
   // general block
   BLOCK_NOT_LOCALLY_AVAILABLE("Block {0} is not available on local machine"),
-  BLOCK_UNAVAILABLE("Block {0} is not available in Tachyon"),
+  BLOCK_UNAVAILABLE("Block {0} is not available in Alluxio"),
   CANNOT_REQUEST_SPACE("Unable to request space from worker"),
   NO_LOCAL_WORKER("Local {0} requested but there is no local worker"),
-  NO_WORKER_AVAILABLE_ON_HOST("No Tachyon worker available for host {0}"),
-  NO_WORKER_AVAILABLE("No available Tachyon worker found"),
+  NO_WORKER_AVAILABLE_ON_HOST("No Alluxio worker available for host {0}"),
+  NO_WORKER_AVAILABLE("No available Alluxio worker found"),
 
   // block lock manager
   LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0} is for block {1}, not {2}"),
@@ -131,14 +131,14 @@ public enum ExceptionMessage {
   // client
   INCOMPATIBLE_VERSION("{0} client version {1} is not compatible with server version {2}"),
 
-  // Tachyon Conf
-  DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Tachyon properties file does not exist"),
+  // configuration
+  DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Alluxio properties file does not exist"),
   INVALID_CONFIGURATION_KEY("Invalid configuration key {0}"),
   INVALID_CONFIGURATION_VALUE("Invalid value {0} for configuration key {1}"),
   KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
   KEY_NOT_DOUBLE("Configuration cannot evaluate key {0} as double"),
   KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
-  UNABLE_TO_LOAD_PROPERTIES_FILE("Unable to load default Tachyon properties file"),
+  UNABLE_TO_LOAD_PROPERTIES_FILE("Unable to load default Alluxio properties file"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
