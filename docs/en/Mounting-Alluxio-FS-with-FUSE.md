@@ -47,7 +47,7 @@ for building instructions.
 ## Mount Alluxio-FUSE
 
 After having properly configured and started the alluxio cluster, and from the node where you
-wish to mount Alluxio, point a shell to your `$TACHYON_HOME` and run:
+wish to mount Alluxio, point a shell to your `$ALLUXIO_HOME` and run:
 
 {% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-mount.md %}
 
@@ -60,7 +60,7 @@ currently, you are limited to have only one Alluxio-FUSE mount per node.
 ## Unmount Alluxio-FUSE
 
 To umount a previoulsy mounted Alluxio-FUSE file sytem, on the node where the file system is
-mounted, point a shell to your `$TACHYON_HOME` and run:
+mounted, point a shell to your `$ALLUXIO_HOME` and run:
 
 {% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-umount.md %}
 
@@ -76,8 +76,8 @@ Alluxio-FUSE is based on the standard java alluxio-client to perform its operati
 want to customize the behaviour of the alluxio client used by Alluxio-FUSE the same way you
 would for any other client application.
 
-One possibility, for example, is to edit `$TACHYON_HOME/bin/alluxio-fuse.sh` and add your
-specific alluxio client options in the `TACHYON_JAVA_OPTS` variable.
+One possibility, for example, is to edit `$ALLUXIO_HOME/bin/alluxio-fuse.sh` and add your
+specific alluxio client options in the `ALLUXIO_JAVA_OPTS` variable.
 
 # Operational assumptions and status
 

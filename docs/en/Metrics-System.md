@@ -36,7 +36,7 @@ it.
 
 # Configuration
 The metrics system is configured via a configuration file that Alluxio expects to be present at
-`$TACHYON_HOME/conf/metrics.properties`. A custom file location can be specified via the
+`$ALLUXIO_HOME/conf/metrics.properties`. A custom file location can be specified via the
 `alluxio.metrics.conf.file` configuration property. Alluxio provides a metrics.properties.template
 under the conf directory which includes all configurable properties. By default, MetricsServlet
 is enabled and you can send HTTP request "/metrics/json" to get a snapshot of all the registered

@@ -19,7 +19,7 @@ Alluxio启动时会加载默认（也可以指定）配置属性文件从而设�
 
 1. Alluxio的配置属性默认值在`alluxio-default.properties`文件中，该文件在Alluxio源代码或者二进制包里都能找到，不建议初学者修改该文件。
 
-2. 每个部署点以及应用客户端都能够通过`alluxio-site.properties`文件将默认属性值覆盖掉，注意该文件必须在Alluxio Java VM的**classpath**中，最简单的方法是将该属性文件放在`$TACHYON_HOME/conf`目录中。
+2. 每个部署点以及应用客户端都能够通过`alluxio-site.properties`文件将默认属性值覆盖掉，注意该文件必须在Alluxio Java VM的**classpath**中，最简单的方法是将该属性文件放在`$ALLUXIO_HOME/conf`目录中。
 
 所有Alluxio配置属性都属于以下五类之一：
 [一般配置项](#common-configuration)（由Master和Worker共享），
@@ -114,11 +114,11 @@ Alluxio提供了一种使用多宿主网络的方式。如果你有多个NIC，�
 
 有许多频繁用到的Alluxio配置项可以通过环境变量设置，可以通过Shell设置或者在`conf/alluxio-env.sh`文件中修改其默认值。
 
-* `$TACHYON_MASTER_ADDRESS`: Alluxio master地址，默认为localhost。
-* `$TACHYON_UNDERFS_ADDRESS`: 底层文件系统地址，默认为`${TACHYON_HOME}/underFSStorage`，即本地文件系统。
-* `$TACHYON_JAVA_OPTS`: 针对Master和Workers的Java VM选项。
-* `$TACHYON_MASTER_JAVA_OPTS`: 针对Master配置的额外Java VM选项。
-* `$TACHYON_WORKER_JAVA_OPTS`: 针对Worker配置的额外Java VM选项，注意，默认情况下，`TACHYON_JAVA_OPTS`被包含在`TACHYON_MASTER_JAVA_OPTS`和`TACHYON_WORKER_JAVA_OPTS`中。
+* `$ALLUXIO_MASTER_ADDRESS`: Alluxio master地址，默认为localhost。
+* `$ALLUXIO_UNDERFS_ADDRESS`: 底层文件系统地址，默认为`${ALLUXIO_HOME}/underFSStorage`，即本地文件系统。
+* `$ALLUXIO_JAVA_OPTS`: 针对Master和Workers的Java VM选项。
+* `$ALLUXIO_MASTER_JAVA_OPTS`: 针对Master配置的额外Java VM选项。
+* `$ALLUXIO_WORKER_JAVA_OPTS`: 针对Worker配置的额外Java VM选项，注意，默认情况下，`ALLUXIO_JAVA_OPTS`被包含在`ALLUXIO_MASTER_JAVA_OPTS`和`ALLUXIO_WORKER_JAVA_OPTS`中。
 
 例如，如果你需要将Alluxio与本地的HDFS相连接，并在7001端口启用Java远程调试，可以使用以下命令：
 

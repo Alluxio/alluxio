@@ -27,7 +27,7 @@ distributed with Alluxio binaries. We do not recommend beginner users to edit th
 2. Each site deployment and application client can also override the default property values via
 `alluxio-site.properties` file. Note that, this file **must be in the classpath** of the Java VM in
 which Alluxio is running. The easiest way is to put the site properties file in directory
-`$TACHYON_HOME/conf`.
+`$ALLUXIO_HOME/conf`.
 
 All Alluxio configuration properties fall into one of the six categories:
 [Common](#common-configuration) (shared by Master and Worker),
@@ -197,14 +197,14 @@ There are a few frequently used Alluxio configuration properties that can be set
 variables. One can either set these variables through shell or modify their default values specified
 in `conf/alluxio-env.sh`.
 
-* `$TACHYON_MASTER_ADDRESS`: Alluxio master address, default to localhost.
-* `$TACHYON_UNDERFS_ADDRESS`: under storage system address, default to
-`${TACHYON_HOME}/underFSStorage` which is a local file system.
-* `$TACHYON_JAVA_OPTS`: Java VM options for both Master and Worker.
-* `$TACHYON_MASTER_JAVA_OPTS`: additional Java VM options for Master configuration.
-* `$TACHYON_WORKER_JAVA_OPTS`: additional Java VM options for Worker configuration. Note that, by
-default `TACHYON_JAVA_OPTS` is included in both `TACHYON_MASTER_JAVA_OPTS` and
-`TACHYON_WORKER_JAVA_OPTS`.
+* `$ALLUXIO_MASTER_ADDRESS`: Alluxio master address, default to localhost.
+* `$ALLUXIO_UNDERFS_ADDRESS`: under storage system address, default to
+`${ALLUXIO_HOME}/underFSStorage` which is a local file system.
+* `$ALLUXIO_JAVA_OPTS`: Java VM options for both Master and Worker.
+* `$ALLUXIO_MASTER_JAVA_OPTS`: additional Java VM options for Master configuration.
+* `$ALLUXIO_WORKER_JAVA_OPTS`: additional Java VM options for Worker configuration. Note that, by
+default `ALLUXIO_JAVA_OPTS` is included in both `ALLUXIO_MASTER_JAVA_OPTS` and
+`ALLUXIO_WORKER_JAVA_OPTS`.
 
 For example, if you would like to connect Alluxio to HDFS running at localhost and enable Java
 remote debugging at port 7001, you can do so using:

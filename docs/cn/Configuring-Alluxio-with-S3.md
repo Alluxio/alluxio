@@ -24,7 +24,7 @@ priority: 0
 
 {% include Configuring-Alluxio-with-S3/underfs-address.md %}
 
-接着，需要指定AWS证书以便访问S3，在`conf/alluxio-env.sh`中的`TACHYON_JAVA_OPTS`部分添加：
+接着，需要指定AWS证书以便访问S3，在`conf/alluxio-env.sh`中的`ALLUXIO_JAVA_OPTS`部分添加：
 
 {% include Configuring-Alluxio-with-S3/aws.md %}
 
@@ -34,7 +34,7 @@ priority: 0
 
 ## 通过代理访问S3
 
-若要通过代理与S3交互，在`conf/alluxio-env.sh`中的`TACHYON_JAVA_OPTS`部分添加：
+若要通过代理与S3交互，在`conf/alluxio-env.sh`中的`ALLUXIO_JAVA_OPTS`部分添加：
 
 {% include Configuring-Alluxio-with-S3/proxy.md %}
 

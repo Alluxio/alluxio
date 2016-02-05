@@ -21,8 +21,8 @@ If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please execute:
 
 {% include Building-Alluxio-Master-Branch/OutOfMemoryError.md %}
 
-If you want to build a particular version of Alluxio, for example {{site.TACHYON_RELEASED_VERSION}},
-please do `git checkout v{{site.TACHYON_RELEASED_VERSION}}` after `cd alluxio`.
+If you want to build a particular version of Alluxio, for example {{site.ALLUXIO_RELEASED_VERSION}},
+please do `git checkout v{{site.ALLUXIO_RELEASED_VERSION}}` after `cd alluxio`.
 
 The Maven build system fetches its dependencies, compiles source code, runs unit tests, and packages
 the system. If this is the first time you are building the project, it can take a while to download

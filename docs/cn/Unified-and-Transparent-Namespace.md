@@ -43,7 +43,7 @@ Alluxio提供了一个挂载API，通过该API能够在Alluxio中访问多个数
 
 ## 示例
 
-在该示例中，我们将演示以上提到的特性。该示例假定Alluxio的源代码在`${TACHYON_HOME}`目录中，并且Alluxio正在
+在该示例中，我们将演示以上提到的特性。该示例假定Alluxio的源代码在`${ALLUXIO_HOME}`目录中，并且Alluxio正在
 本地运行。
 
 先在本地文件系统中创建一个临时目录：

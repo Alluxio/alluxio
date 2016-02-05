@@ -12,7 +12,7 @@ priority: 2
 
 {% include Running-Alluxio-on-a-Cluster/download-extract-Alluxio-tar.md %}
 
-在`alluxio/conf`目录下，将`alluxio-env.sh.template`拷贝到`alluxio-env.sh`。确保`JAVA_HOME`指向有效的Java 6/7安装路径。将`TACHYON_MASTER_ADDRESS`更新为运行Alluxio Master的机器的主机名。添加所有worker节点的IP地址到`alluxio/conf/workers`文件。最后，同步worker节点的所有信息。可使用
+在`alluxio/conf`目录下，将`alluxio-env.sh.template`拷贝到`alluxio-env.sh`。确保`JAVA_HOME`指向有效的Java 6/7安装路径。将`ALLUXIO_MASTER_ADDRESS`更新为运行Alluxio Master的机器的主机名。添加所有worker节点的IP地址到`alluxio/conf/workers`文件。最后，同步worker节点的所有信息。可使用
 
 {% include Running-Alluxio-on-a-Cluster/sync-info.md %}
 

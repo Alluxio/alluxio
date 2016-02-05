@@ -49,15 +49,15 @@ configured `alluxio.hadoop.TFS` class.
 
 There are different ways to achieve that:
 
-- Put the `alluxio-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
+- Put the `alluxio-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
 `lib` directory of Flink (for local and standalone cluster setups)
-- Put the `alluxio-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
+- Put the `alluxio-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
 `ship` directory for Flink on YARN.
 - Specify the location of the jar file in the `HADOOP_CLASSPATH` environment variable (make sure its
 available on all cluster nodes as well). For example like this:
 
 ```bash
-export HADOOP_CLASSPATH=/pathToAlluxio/client/target/alluxio-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
+export HADOOP_CLASSPATH=/pathToAlluxio/client/target/alluxio-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
 ```
 
 # Using Alluxio with Flink

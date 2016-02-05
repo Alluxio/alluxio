@@ -20,7 +20,7 @@ group: Resources
 
 {% include Building-Alluxio-Master-Branch/OutOfMemoryError.md %}
 
-若需要构建一个特定的Alluxio版本，例如{{site.TACHYON_RELEASED_VERSION}}，先执行`cd alluxio`，接着执行`git checkout v{{site.TACHYON_RELEASED_VERSION}}`。
+若需要构建一个特定的Alluxio版本，例如{{site.ALLUXIO_RELEASED_VERSION}}，先执行`cd alluxio`，接着执行`git checkout v{{site.ALLUXIO_RELEASED_VERSION}}`。
 
 Maven构建环境将自动获取依赖，编译源码，运行单元测试，并进行打包。如果你是第一次构建该项目，下载依赖包可能需要一段时间，但以后的构建过程将会快很多。
 

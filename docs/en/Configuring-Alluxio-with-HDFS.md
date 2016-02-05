@@ -19,10 +19,10 @@ machines. You can either
 
 Note that, by default, Alluxio binaries are built to work with Hadoop HDFS version `2.2.0`. To use
 another Hadoop version, one needs to recompile Alluxio binaries from source code with the correct
-Hadoop version set by either of following approaches. Assume `${TACHYON_HOME}` is the root directory
+Hadoop version set by either of following approaches. Assume `${ALLUXIO_HOME}` is the root directory
 of Alluxio source code.
 
-* Modify the `hadoop.version` tag defined in `${TACHYON_HOME}/pom.xml`. E.g., to work with Hadoop
+* Modify the `hadoop.version` tag defined in `${ALLUXIO_HOME}/pom.xml`. E.g., to work with Hadoop
 `2.6.0`, modify this pom file to set "`<hadoop.version>2.6.0</hadoop.version>`" instead of
 "`<hadoop.version>2.2.0</hadoop.version>`". Then recompile the source using maven.
 
@@ -34,7 +34,7 @@ maven. For example, if you want Alluxio to work with Hadoop HDFS `2.6.0`:
 {% include Configuring-Alluxio-with-HDFS/mvn-Dhadoop-package.md %}
 
 If everything succeeds, you should see
-`alluxio-assemblies-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` created in the
+`alluxio-assemblies-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` created in the
 `assembly/target` directory and this is the jar file you can use to run both Alluxio Master and Worker.
 
 # Configuring Alluxio

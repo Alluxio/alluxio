@@ -56,7 +56,7 @@ might be stored in an S3 bucket, which is mounted to the Alluxio namespace throu
 ## Example
 
 In this example, we will showcase the above features. The example assumes that Alluxio source code
-exists in the `${TACHYON_HOME}` directory and that there is an instance of Alluxio running locally.
+exists in the `${ALLUXIO_HOME}` directory and that there is an instance of Alluxio running locally.
 
 First, let's create a temporary directory in the local file system that will use for the example:
 
