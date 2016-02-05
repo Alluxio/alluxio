@@ -6,7 +6,7 @@ group: User Guide
 priority: 4
 ---
 
-使用Alluxio自带的[Vagrant脚本](https://github.com/amplab/tachyon/tree/master/deploy/vagrant)可以将带
+使用Alluxio自带的[Vagrant脚本](https://github.com/amplab/alluxio/tree/master/deploy/vagrant)可以将带
 容错机制的Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及销毁集群，该集群自动配置了HDFS相关项。
 
 # 前期准备
@@ -23,7 +23,7 @@ priority: 4
 
 下载Alluxio到本地，并解压：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/download-tachyon.md %}
+{% include Common-Commands/download-alluxio.md %}
 
 **安装python库依赖**
 
@@ -59,17 +59,17 @@ priority: 4
 
 在`deploy/vagrant/conf/ec2.yml`配置文件中，将`Keypair`设置为你的keypair名，`Key_Path`设置成pem key路径。
 
-在`deploy/vagrant/conf/tachyon.yml`配置文件中，将`Masters`设置为你想要的AlluxioMasters的数量，在容错
+在`deploy/vagrant/conf/alluxio.yml`配置文件中，将`Masters`设置为你想要的AlluxioMasters的数量，在容错
 模式下，`Masters`的值应该大于1。
 
-Vagrant脚本默认会在[该区域(**us-east-1**)和可用区域(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)中创建一个名为*tachyon-vagrant-test*的[安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
+Vagrant脚本默认会在[该区域(**us-east-1**)和可用区域(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)中创建一个名为*alluxio-vagrant-test*的[安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
 该安全组会在区域中自动建立，并且所有inbound及outbound网络流量都将打开。你可以在`ec2.yml`配置文件中设置*security group*、*region*以及*availability zone*的值。
 
 现在你可以以Hadoop2.4.1为底层文件系统，在us-east-1a下启动Alluxio集群了，在`deploy/vagrant`目录下运行：
 
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/launch-cluster.md %}
 
-注意`<number of machines>`的值应该大于等于`deploy/vagrant/conf/tachyon.yml`配置文件中设置的`Masters`的值。
+注意`<number of machines>`的值应该大于等于`deploy/vagrant/conf/alluxio.yml`配置文件中设置的`Masters`的值。
 
 集群中每个节点都运行一个Alluxio worker，每个master节点都运行一个Alluxio master，而leader为这些master节
 点中的其中之一。
@@ -112,7 +112,7 @@ worker进程。
 
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/ssh-AlluxioMaster.md %}
 
-所有的软件都安装在根目录下，例如Alluxio安装在`/tachyon`，Hadoop安装在`/hadoop`，Zookeeper安装在`/zookeeper`。
+所有的软件都安装在根目录下，例如Alluxio安装在`/alluxio`，Hadoop安装在`/hadoop`，Zookeeper安装在`/zookeeper`。
 
 在leader节点上，可以对Alluxio运行测试检测其健康状态：
 

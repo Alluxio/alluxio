@@ -25,7 +25,7 @@ $ brew install thrift
 Then to regenerate the Java code, run
 
 ```bash
-$ bin/tachyon thriftGen
+$ bin/alluxio thriftGen
 ```
 
 ### Change a Protocol Buffer Message
@@ -45,12 +45,12 @@ $ brew install protobuf
 Then to regenerate the Java code, run
 
 ```bash
-$ bin/tachyon protoGen
+$ bin/alluxio protoGen
 ```
 
-### Full list of the commands in bin/tachyon
+### Full list of the commands in bin/alluxio
 
-Most commands in `bin/tachyon` are for developers. The following table explains the description and
+Most commands in `bin/alluxio` are for developers. The following table explains the description and
 the syntax of each command.
 
 <table class="table table-striped">
@@ -69,7 +69,7 @@ the syntax of each command.
 <tr>
   <td>bootstrap-conf</td>
   <td>&lt;TACHYON_MASTER_HOSTNAME&gt;</td>
-  <td>Generate the bootstrap config file <code>tachyon-env.sh</code> with the specified
+  <td>Generate the bootstrap config file <code>alluxio-env.sh</code> with the specified
   <code>TACHYON_MASTER_HOSTNAME</code>, if the config file doesn't exist.</td>
 </tr>
 <tr>
@@ -102,14 +102,14 @@ the syntax of each command.
   <td>journalCrashTest</td>
   <td>[-creates &lt;arg&gt;] [-deletes &lt;arg&gt;] [-renames &lt;arg&gt;] [-maxAlive &lt;arg&gt;]
   [-testDir &lt;arg&gt;] [-totalTime &lt;arg&gt;] [-help]</td>
-  <td>Test the Master Journal System in a crash scenario. Try <code>tachyon journalCrashTest -help</code>
+  <td>Test the Master Journal System in a crash scenario. Try <code>alluxio journalCrashTest -help</code>
   to see the meanings of each argument in detail, or you can run it without args by default.</td>
 </tr>
 <tr>
   <td>readJournal</td>
   <td>[-help] [-noTimeout]</td>
   <td>Read a Alluxio journal file from stdin and write a human-readable version of it to stdout. You
-  can run this on the journal file as <code>tachyon readJournal < journal/FileSystemMaster/log.out</code>.</td>
+  can run this on the journal file as <code>alluxio readJournal < journal/FileSystemMaster/log.out</code>.</td>
 </tr>
 <tr>
   <td>killAll</td>

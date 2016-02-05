@@ -28,9 +28,9 @@ out-of-the-box.
 
 If the version of Spark is not supported by your Alluxio installation by default (e.g., you are
 trying out the latest Alluxio release with some older Spark installation), one can recompile Spark
-by updating the correct version of tachyon-client in Spark dependency. To do that, edit
-`spark/core/pom.xml` and change the dependency version of `tachyon-client` to
-`your_tachyon_version`:
+by updating the correct version of alluxio-client in Spark dependency. To do that, edit
+`spark/core/pom.xml` and change the dependency version of `alluxio-client` to
+`your_alluxio_version`:
 
 {% include Running-Spark-on-Alluxio/your_Alluxio_version.md %}
 
@@ -51,7 +51,7 @@ with the following content:
 {% include Running-Spark-on-Alluxio/Hadoop-1.x-configuration.md %}
 
 
-* If you are running tachyon in fault tolerant mode with zookeeper and the Hadoop cluster is a 1.x,
+* If you are running alluxio in fault tolerant mode with zookeeper and the Hadoop cluster is a 1.x,
 add the following additionally entry to the previously created `spark/conf/core-site.xml`:
 
 {% include Running-Spark-on-Alluxio/fault-tolerant-mode-with-zookeeper-xml.md %}
@@ -89,7 +89,7 @@ To persist Spark RDDs, your Spark programs need to have two parameters set:
 `spark.externalBlockStore.url` and `spark.externalBlockStore.baseDir`.
 
 * `spark.externalBlockStore.url` is the URL of the Alluxio Filesystem in the AlluxioStore. By
-default, its value is `tachyon://localhost:19998`.
+default, its value is `alluxio://localhost:19998`.
 * `spark.externalBlockStore.baseDir` is the base directory in the Alluxio Filesystem to store the
 RDDs. It can be a comma-separated list of multiple directories in Alluxio. By default, its value is
 `java.io.tmpdir`.

@@ -45,24 +45,24 @@ the directory usually ends with `etc/hadoop`.)
 #### Make the Alluxio Client jar available to Flink
 
 In the last step, we need to make the Alluxio `jar` file available to Flink, because it contains the
-configured `tachyon.hadoop.TFS` class.
+configured `alluxio.hadoop.TFS` class.
 
 There are different ways to achieve that:
 
-- Put the `tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
+- Put the `alluxio-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
 `lib` directory of Flink (for local and standalone cluster setups)
-- Put the `tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
+- Put the `alluxio-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
 `ship` directory for Flink on YARN.
 - Specify the location of the jar file in the `HADOOP_CLASSPATH` environment variable (make sure its
 available on all cluster nodes as well). For example like this:
 
 ```bash
-export HADOOP_CLASSPATH=/pathToAlluxio/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
+export HADOOP_CLASSPATH=/pathToAlluxio/client/target/alluxio-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
 ```
 
 # Using Alluxio with Flink
 
-To use Alluxio with Flink, just specify paths with the `tachyon://` scheme.
+To use Alluxio with Flink, just specify paths with the `alluxio://` scheme.
 
 If Alluxio is installed locally, a valid path would look like this
-`tachyon://localhost:19998/user/hduser/gutenberg`.
+`alluxio://localhost:19998/user/hduser/gutenberg`.

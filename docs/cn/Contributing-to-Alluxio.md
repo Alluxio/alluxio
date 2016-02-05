@@ -8,7 +8,7 @@ group: Resources
 * Table of Contents
 {:toc}
 
-感谢您对tachyon的兴趣！我们对您贡献的任何的新特性或者修复都表示深深感激。
+感谢您对alluxio的兴趣！我们对您贡献的任何的新特性或者修复都表示深深感激。
 
 ### Alluxio初始任务
 
@@ -20,19 +20,19 @@ group: Resources
 
 3.  阅读[配置项设置](Configuration-Settings.html)以及[命令行接口](Command-Line-Interface.html)
 
-4.  阅读一段[代码示例](https://github.com/amplab/tachyon/blob/master/examples/src/main/java/tachyon/examples/BasicOperations.java)
+4.  阅读一段[代码示例](https://github.com/amplab/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
 
 5.  [构建Alluxio主分支](Building-Alluxio-Master-Branch.html)
 
-6.  Fork Alluxio Github仓库，并添加一两个单元测试或者javadoc文件，再提交一个pull request。也欢迎你处理我们的[JIRA](https://tachyon.atlassian.net/browse/TACHYON)中的issues。这里是专门为新的开发者准备的一些[任务](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)，每个新开发者最多只能做其中的两个任务，在这之后，尝试去做一些Beginner/Intermediate任务，或者在[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)里询问。可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行基本Github操作。
+6.  Fork Alluxio Github仓库，并添加一两个单元测试或者javadoc文件，再提交一个pull request。也欢迎你处理我们的[JIRA](https://alluxio.atlassian.net/browse/TACHYON)中的issues。这里是专门为新的开发者准备的一些[任务](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)，每个新开发者最多只能做其中的两个任务，在这之后，尝试去做一些Beginner/Intermediate任务，或者在[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)里询问。可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行基本Github操作。
 
 ### 提交代码
 
 -   我们鼓励你每次尽可能提交小的、单一目的的pull request，因为要合并一个含有许多不相干的特性的大的更改十分困难。
 
--   我们会追踪[JIRA](https://tachyon.atlassian.net/)里的issues和features，如果你还没有帐号，请先进行注册。
+-   我们会追踪[JIRA](https://alluxio.atlassian.net/)里的issues和features，如果你还没有帐号，请先进行注册。
 
--   打开[JIRA](https://tachyon.atlassian.net/)里的一个ticket，里面详细介绍了需要的修改和该修改的目的。
+-   打开[JIRA](https://alluxio.atlassian.net/)里的一个ticket，里面详细介绍了需要的修改和该修改的目的。
 
 -   将你的修改作为一个GitHub pull request进行提交，可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行这些操作。
 
@@ -62,9 +62,9 @@ group: Resources
 
 -   使用``mvn test``命令运行所有单元测试（会将本地文件系统作为底层文件系统，在HDFS模块中将HDFS 1.0.4作为底层文件系统），``mvn -Dhadoop.version=2.4.0 test``命令将HDFS 2.4.0作为HDFS模块中的底层文件系统
 
--   要在特定的底层文件系统上运行测试，在对应的子模块目录下运行Maven命令，例如，要运行针对HDFS的测试，在``tachyon/underfs/hdfs``目录下运行``mvn test``。
+-   要在特定的底层文件系统上运行测试，在对应的子模块目录下运行Maven命令，例如，要运行针对HDFS的测试，在``alluxio/underfs/hdfs``目录下运行``mvn test``。
 
--   对于GlusterFS环境的单元测试，可以在``tachyon/underfs/glusterfs``目录下运行`mvn -PglusterfsTest -Dhadoop.version=2.3.0 -Dtachyon.underfs.glusterfs.mounts=/vol -Dtachyon.underfs.glusterfs.volumes=testvol test`（将GlusterFS作为底层文件系统，`/vol`为一个有效GlusterFS挂载点）。
+-   对于GlusterFS环境的单元测试，可以在``alluxio/underfs/glusterfs``目录下运行`mvn -PglusterfsTest -Dhadoop.version=2.3.0 -Dalluxio.underfs.glusterfs.mounts=/vol -Dalluxio.underfs.glusterfs.volumes=testvol test`（将GlusterFS作为底层文件系统，`/vol`为一个有效GlusterFS挂载点）。
 
 -   要进行单个单元测试，运行`mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test`。
 
@@ -86,7 +86,7 @@ group: Resources
     -  类成员变量要使用`m`前缀，例如`public static String sUnderFSAddress;`
     -  静态成员变量要使用`s`前缀，例如`public static String sUnderFSAddress;`
     -  在Java接口中不要对方法使用`public`或`abstract`修饰符，这是因为在接口中声明的方法隐式被认为是public和abstract (http://docs.oracle.com/javase/specs/jls/se7/html/jls-9.html#jls-9.4)
--   你可以下载我们提供的[Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml)
+-   你可以下载我们提供的[Eclipse formatter](resources/alluxio-code-formatter-eclipse.xml)
     -  如果你使用IntelliJ IDEA:
        - 你可以使用我们提供的formatter，参考[Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)，或者在IntelliJ
        IDEA中使用[Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546)
@@ -126,9 +126,9 @@ group: Resources
 ### 幻灯片介绍
 
 -   AMPCamp 6 (November, 2015)
-[SlideShare](http://www.slideshare.net/AlluxioNexus/tachyon-presentation-at-ampcamp-6-november-2015)
+[SlideShare](http://www.slideshare.net/AlluxioNexus/alluxio-presentation-at-ampcamp-6-november-2015)
 -   Strata and Hadoop World 2015 (September, 2015)
-[SlideShare](http://www.slideshare.net/AlluxioNexus/tachyon-an-open-source-memorycentric-distributed-storage-system)
+[SlideShare](http://www.slideshare.net/AlluxioNexus/alluxio-an-open-source-memorycentric-distributed-storage-system)
 -   Strata and Hadoop World 2014 (October, 2014)
 [pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Alluxio_2014-10-16-Strata.pdf)
 [pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Alluxio_2014-10-16-Strata.pptx)
@@ -137,9 +137,9 @@ group: Resources
 
 ### 延伸阅读
 
--   [Alluxio: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_tachyon.pdf)
+-   [Alluxio: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_alluxio.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *SOCC 2014*.
--   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_tachyon.pdf)
+-   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_alluxio.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *UC Berkeley EECS 2014*.
--   [Alluxio: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_tachyon.pdf)
+-   [Alluxio: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_alluxio.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Eric Baldeschwieler, Scott Shenker, Ion Stoica, *LADIS 2013*.

@@ -17,19 +17,19 @@ First, the Alluxio binaries must be on your machine. You can either
 
 Then, if you haven't already done so, create your configuration file from the template:
 
-{% include Configuring-Alluxio-with-Swift/copy-tachyon-env.md %}
+{% include Common-Commands/copy-alluxio-env.md %}
 
 # Configuring Alluxio
 
 To configure Alluxio to use Swift as its under storage system, modifications to the
-`conf/tachyon-env.sh` file must be made. The first modification is to specify the Swift under
-storage system address. You specify it by modifying `conf/tachyon-env.sh` to include:
+`conf/alluxio-env.sh` file must be made. The first modification is to specify the Swift under
+storage system address. You specify it by modifying `conf/alluxio-env.sh` to include:
 
 {% include Configuring-Alluxio-with-Swift/underfs-address.md %}
 
 Where `<swift-container>` is an existing Swift container.
 
-The following configuration should be provided in the `conf/tachyon-env.sh`
+The following configuration should be provided in the `conf/alluxio-env.sh`
 
 {% include Configuring-Alluxio-with-Swift/several-configurations.md %}
   	
@@ -49,14 +49,14 @@ SoftLayer requires `<swift-auth-model>` to be configured as `swiftauth`
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
-{% include Configuring-Alluxio-with-Swift/start-tachyon.md %}
+{% include Common-Commands/start-alluxio.md %}
 
 This should start a Alluxio master and a Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Next, you can run a simple example program:
 
-{% include Configuring-Alluxio-with-Swift/runTests.md %}
+{% include Common-Commands/runTests.md %}
 
 After this succeeds, you can visit your Swift container to verify the files and directories created
 by Alluxio exist. For this test, you should see files named like:
@@ -65,7 +65,7 @@ by Alluxio exist. For this test, you should see files named like:
 
 To stop Alluxio, you can run:
 
-{% include Configuring-Alluxio-with-Swift/stop-tachyon.md %}
+{% include Common-Commands/stop-alluxio.md %}
 
 # Running functional test with IBM SoftLayer
 

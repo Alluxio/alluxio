@@ -5,7 +5,7 @@ nickname: 在Virtual Box上运行Alluxio
 group: User Guide
 priority: 2
 ---
-通过Alluxio自带的[Vagrant脚本](https://github.com/amplab/tachyon/tree/master/deploy/vagrant)，你可以
+通过Alluxio自带的[Vagrant脚本](https://github.com/amplab/alluxio/tree/master/deploy/vagrant)，你可以
 将Alluxio部署在本地机器上的[VirtualBox](https://www.virtualbox.org/)中。该脚本允许你创建，配置以及销毁
 集群，该集群自动配置了HDFS相关项。
 
@@ -23,7 +23,7 @@ priority: 2
 
 下载Alluxio到本地，并解压：
 
-{% include Running-Alluxio-on-Virtual-Box/download-tachyon.md %}
+{% include Common-Commands/download-alluxio.md %}
 
 **安装python库依赖**
 
@@ -71,7 +71,7 @@ Hadoop Web UI的默认端口为**50070**。
 
 {% include Running-Alluxio-on-Virtual-Box/ssh-AlluxioMaster.md %}
 
-所有的软件都安装在根目录下，例如Alluxio安装在`/tachyon`，Hadoop安装在`/hadoop`。
+所有的软件都安装在根目录下，例如Alluxio安装在`/alluxio`，Hadoop安装在`/hadoop`。
 
 在`AlluxioMaster`节点上，可以对Alluxio运行测试检测其健康状态：
 

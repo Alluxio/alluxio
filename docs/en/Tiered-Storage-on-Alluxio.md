@@ -149,56 +149,56 @@ Tiered storage can be enabled in Alluxio using
 [configuration parameters](Configuration-Settings.html). By default, Alluxio only enables a single,
 memory tier. To specify additional tiers for Alluxio, use the following configuration parameters:
 
-    tachyon.worker.tieredstore.levels
-    tachyon.worker.tieredstore.level{x}.alias
-    tachyon.worker.tieredstore.level{x}.dirs.quota
-    tachyon.worker.tieredstore.level{x}.dirs.path
-    tachyon.worker.tieredstore.level{x}.reserved.ratio
+    alluxio.worker.tieredstore.levels
+    alluxio.worker.tieredstore.level{x}.alias
+    alluxio.worker.tieredstore.level{x}.dirs.quota
+    alluxio.worker.tieredstore.level{x}.dirs.path
+    alluxio.worker.tieredstore.level{x}.reserved.ratio
 
 For example, if you wanted to configure Alluxio to have two tiers -- memory and hard disk drive --
 you could use a configuration similar to:
 
-    tachyon.worker.tieredstore.levels=2
-    tachyon.worker.tieredstore.level0.alias=MEM
-    tachyon.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
-    tachyon.worker.tieredstore.level0.dirs.quota=100GB
-    tachyon.worker.tieredstore.level0.reserved.ratio=0.2
-    tachyon.worker.tieredstore.level1.alias=HDD
-    tachyon.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3
-    tachyon.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
-    tachyon.worker.tieredstore.level1.reserved.ratio=0.1
+    alluxio.worker.tieredstore.levels=2
+    alluxio.worker.tieredstore.level0.alias=MEM
+    alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
+    alluxio.worker.tieredstore.level0.dirs.quota=100GB
+    alluxio.worker.tieredstore.level0.reserved.ratio=0.2
+    alluxio.worker.tieredstore.level1.alias=HDD
+    alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3
+    alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
+    alluxio.worker.tieredstore.level1.reserved.ratio=0.1
 
 Here is the explanation of the example configuration:
 
-* `tachyon.worker.tieredstore.levels=2` configures 2 tiers in Alluxio
-* `tachyon.worker.tieredstore.level0.alias=MEM` configures the first (top) tier to be a memory tier
-* `tachyon.worker.tieredstore.level0.dirs.path=/mnt/ramdisk` defines `/mnt/ramdisk` to be the file
+* `alluxio.worker.tieredstore.levels=2` configures 2 tiers in Alluxio
+* `alluxio.worker.tieredstore.level0.alias=MEM` configures the first (top) tier to be a memory tier
+* `alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk` defines `/mnt/ramdisk` to be the file
 path to the first tier
-* `tachyon.worker.tieredstore.level0.dirs.quota=100GB` sets the quota for the ramdisk to be `100GB`
-* `tachyon.worker.tieredstore.level0.reserved.ratio=0.2` sets the ratio of space to be reserved on
+* `alluxio.worker.tieredstore.level0.dirs.quota=100GB` sets the quota for the ramdisk to be `100GB`
+* `alluxio.worker.tieredstore.level0.reserved.ratio=0.2` sets the ratio of space to be reserved on
 top layer to be 0.2
-* `tachyon.worker.tieredstore.level1.alias=HDD` configures the second tier to be a hard disk drive tier
-* `tachyon.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3` configures 3 separate
+* `alluxio.worker.tieredstore.level1.alias=HDD` configures the second tier to be a hard disk drive tier
+* `alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3` configures 3 separate
 file paths for the second tier
-* `tachyon.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB` defines the quota for each of the 3
+* `alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB` defines the quota for each of the 3
 file paths of the second tier
-* `tachyon.worker.tieredstore.level1.reserved.ratio=0.1` sets the ratio of space to be reserved on
+* `alluxio.worker.tieredstore.level1.reserved.ratio=0.1` sets the ratio of space to be reserved on
 the second layer to be 0.1
 
 There are a few restrictions to defining the tiers. First of all, there can be at most 3 tiers.
 Also, at most 1 tier can refer to a specific alias. For example, at most 1 tier can have the
 alias HDD. If you want Alluxio to use multiple hard drives for the HDD tier, you can configure that
-by using multiple paths for `tachyon.worker.tieredstore.level{x}.dirs.path`.
+by using multiple paths for `alluxio.worker.tieredstore.level{x}.dirs.path`.
 
 Additionally, the specific evictor and allocator strategies can be configured. Those configuration
 parameters are:
 
-    tachyon.worker.allocator.class=tachyon.worker.block.allocator.MaxFreeAllocator
-    tachyon.worker.evictor.class=tachyon.worker.block.evictor.LRUEvictor
+    alluxio.worker.allocator.class=alluxio.worker.block.allocator.MaxFreeAllocator
+    alluxio.worker.evictor.class=alluxio.worker.block.evictor.LRUEvictor
 
 Space reserver can be configured to be enabled or disabled through:
 
-    tachyon.worker.tieredstore.reserver.enabled=false
+    alluxio.worker.tieredstore.reserver.enabled=false
 
 # Configuration Parameters For Tiered Storage
 
@@ -207,16 +207,16 @@ These are the configuration parameters for tiered storage.
 <table class="table table-striped">
 <tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
 <tr>
-  <td>tachyon.worker.tieredstore.levels</td>
+  <td>alluxio.worker.tieredstore.levels</td>
   <td>1</td>
   <td>
   The maximum number of storage tiers in Alluxio. Currently, Alluxio supports 1, 2, or 3 tiers.
   </td>
 </tr>
 <tr>
-  <td>tachyon.worker.tieredstore.level{x}.alias</td>
+  <td>alluxio.worker.tieredstore.level{x}.alias</td>
   <td>MEM
-  <div>(for tachyon.worker.tieredstore.</div>
+  <div>(for alluxio.worker.tieredstore.</div>
   <div>level0.alias)</div></td>
   <td>
   The alias of each storage tier, where x represents storage tier number (top tier is 0). Currently,
@@ -224,9 +224,9 @@ These are the configuration parameters for tiered storage.
   </td>
 </tr>
 <tr>
-  <td>tachyon.worker.tieredstore.level{x}.dirs.path</td>
+  <td>alluxio.worker.tieredstore.level{x}.dirs.path</td>
   <td>/mnt/ramdisk
-  <div>(for tachyon.worker.tieredstore.</div>
+  <div>(for alluxio.worker.tieredstore.</div>
   <div>level0.dirs.path)</div></td>
   <td>
   The paths of storage directories in storage tier x, delimited by comma. x represents the storage
@@ -235,9 +235,9 @@ These are the configuration parameters for tiered storage.
   </td>
 </tr>
 <tr>
-  <td>tachyon.worker.tieredstore.level{x}.dirs.quota</td>
+  <td>alluxio.worker.tieredstore.level{x}.dirs.quota</td>
   <td>128MB
-  <div>(for tachyon.worker.tieredstore.</div>
+  <div>(for alluxio.worker.tieredstore.</div>
   <div>level0.dirs.quota)</div></td>
   <td>
   The quotas for all storage directories in storage tier x, delimited by comma. x represents the
@@ -247,7 +247,7 @@ These are the configuration parameters for tiered storage.
   </td>
 </tr>
 <tr>
-  <td>tachyon.worker.tieredstore.level{x}.reserved.ratio</td>
+  <td>alluxio.worker.tieredstore.level{x}.reserved.ratio</td>
   <td>0.1</td>
   <td>
   Value is between 0 and 1, it sets the portion of space reserved on storage tier x. If the space is
@@ -255,29 +255,29 @@ These are the configuration parameters for tiered storage.
   </td>
 </tr>
 <tr>
-  <td>tachyon.worker.tieredstore.reserver.enabled</td>
+  <td>alluxio.worker.tieredstore.reserver.enabled</td>
   <td>false</td>
   <td>
   Flag for enabling the space reserver service.
   </td>
 </tr>
 <tr>
-  <td>tachyon.worker.tieredstore.reserver.interval.ms</td>
+  <td>alluxio.worker.tieredstore.reserver.interval.ms</td>
   <td>1000</td>
   <td>
   Interval for the space reserver to check if enough space is reserved in all tiers.
   </td>
 </tr>
 <tr>
-  <td>tachyon.worker.allocator.class</td>
-  <td><div>tachyon.worker.block.allocator.</div><div>MaxFreeAllocator</div></td>
+  <td>alluxio.worker.allocator.class</td>
+  <td><div>alluxio.worker.block.allocator.</div><div>MaxFreeAllocator</div></td>
   <td>
   The class name of the allocation strategy to use for new blocks in Alluxio.
   </td>
 </tr>
 <tr>
-  <td>tachyon.worker.evictor.class</td>
-  <td><div>tachyon.worker.block.evictor.</div>
+  <td>alluxio.worker.evictor.class</td>
+  <td><div>alluxio.worker.block.evictor.</div>
   <div>LRUEvictor</div></td>
   <td>
   The class name of the block eviction strategy to use when a storage layer runs out of space.

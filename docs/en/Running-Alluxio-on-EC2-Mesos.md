@@ -7,7 +7,7 @@ priority: 4
 ---
 
 Alluxio can be deployed on Amazon EC2 using Apache Mesos, which is in turn deployed on EC2 using the
-[Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant) that come with
+[Vagrant scripts](https://github.com/amplab/alluxio/tree/master/deploy/vagrant) that come with
 Alluxio. The scripts let you create, configure, and destroy clusters that come automatically
 configured with HDFS.
 
@@ -25,7 +25,7 @@ Install AWS Vagrant plugin:
 
 Download Alluxio to your local machine, and unzip it:
 
-{% include Running-Alluxio-on-EC2-Mesos/download-tachyon.md %}
+{% include Common-Commands/download-alluxio.md %}
 
 **Install python library dependencies**
 
@@ -61,7 +61,7 @@ name and `Key_Path` to the path to the pem key.
 
 By default, the Vagrant script creates a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
-named *tachyon-vagrant-test* at
+named *alluxio-vagrant-test* at
 [Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
 The security group will be set up automatically in the region with all inbound/outbound network
 traffic opened. You can change the security group, region and availability zone in `ec2.yml`.
@@ -111,7 +111,7 @@ For example, you can ssh into `AlluxioMaster` with:
 
 {% include Running-Alluxio-on-EC2-Mesos/ssh-AlluxioMaster.md %}
 
-All software is installed under root directory, e.g. Alluxio is installed in `/tachyon`, Hadoop is
+All software is installed under root directory, e.g. Alluxio is installed in `/alluxio`, Hadoop is
 installed in `/hadoop`, Mesos is installed in `/mesos`.
 
 You can run tests against Alluxio to check its health:

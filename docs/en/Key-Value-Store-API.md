@@ -18,7 +18,7 @@ Like files in Alluxio filesystem, the semantics of key-value stores is also writ
 immutable after it is complete. 
 * Users can open key-value stores after they are complete.
 
-Each single key-value store is denoted by a AlluxioURI like `tachyon://path/my-kvstore`. 
+Each single key-value store is denoted by a AlluxioURI like `alluxio://path/my-kvstore`. 
 Depending on the total size and block size specified by the user, a single key-value 
 store may consist of one or multiple partitions, but the internal is managed by Alluxio and thus
 transparent to users.
@@ -39,7 +39,7 @@ To create a new key-value store, use `KeyValueSystem#createStore(AlluxioURI)`, w
 a writer to add key-value pairs. For example:
 
 ```java
-KeyValueStoreWriter writer = kvs.createStore(new AlluxioURI("tachyon://path/my-kvstore"));
+KeyValueStoreWriter writer = kvs.createStore(new AlluxioURI("alluxio://path/my-kvstore"));
 // Insert key-value pair ("100", "foo")
 writer.put("100", "foo");
 // Insert key-value pair ("200", "bar")
@@ -62,7 +62,7 @@ To query a complete key-value store, use `KeyValueSystem#openStore(AlluxioURI)`,
 a reader to retrieve value by the key. For example:
 
 ```java
-KeyValueStoreReader reader = kvs.openStore(new AlluxioURI("tachyon://path/kvstore/"));
+KeyValueStoreReader reader = kvs.openStore(new AlluxioURI("alluxio://path/kvstore/"));
 // Return "foo"
 reader.get("100"); 
 // Return null as no value associated with "300"
@@ -74,7 +74,7 @@ reader.close();
 ## Iterating key-value pairs over a store
 
 ```java
-KeyValueStoreReader reader = kvs.openStore(new AlluxioURI("tachyon://path/kvstore/"));
+KeyValueStoreReader reader = kvs.openStore(new AlluxioURI("alluxio://path/kvstore/"));
 KeyValueIterator iterator = reader.iterator();
 while (iterator.hasNext()) {
   KeyValuePair pair = iterator.next();
@@ -94,7 +94,7 @@ a key-value store. It takes a key-value URI, and emits key-value pairs stored in
  
 ```java
 conf.setInputFormat(KeyValueInputFormat.class);
-FileInputFormat.setInputPaths(conf, new Path("tachyon://input-store"));
+FileInputFormat.setInputPaths(conf, new Path("alluxio://input-store"));
 ```
 
 
@@ -108,13 +108,13 @@ conf.setOutputKeyClass(BytesWritable.class);
 conf.setOutputValueClass(BytesWritable.class);
 conf.setOutputFormat(KeyValueOutputFormat.class);
 conf.setOutputCommitter(KeyValueOutputCommitter.class);
-FileOutputFormat.setOutputPath(conf, new Path("tachyon://output-store"));
+FileOutputFormat.setOutputPath(conf, new Path("alluxio://output-store"));
 ```
 
 # Configuration Parameters For Key-Value Stores
 
 Key-Value support in Alluxio is disabled by default, and it can be enabled in Alluxio by setting 
-`tachyon.keyvalue.enabled` to true (see
+`alluxio.keyvalue.enabled` to true (see
 [configuration parameters](Configuration-Settings.html))
 
 These are the configuration parameters for tiered storage.
@@ -122,14 +122,14 @@ These are the configuration parameters for tiered storage.
 <table class="table table-striped">
 <tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
 <tr>
-  <td>tachyon.keyvalue.enabled</td>
+  <td>alluxio.keyvalue.enabled</td>
   <td>false</td>
   <td>
   Whether the keyvalue interface is enabled.
   </td>
 </tr>
 <tr>
-  <td>tachyon.keyvalue.partition.size.bytes.max</td>
+  <td>alluxio.keyvalue.partition.size.bytes.max</td>
   <td>512MB
   <td>
   Maximum size of each partition.

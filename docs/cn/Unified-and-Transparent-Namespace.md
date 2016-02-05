@@ -33,13 +33,13 @@ Alluxio提供了一个挂载API，通过该API能够在Alluxio中访问多个数
 
 ![unified]({{site.data.img.screenshot_unified}})
 
-默认情况下，Alluxio文件系统是挂载到Alluxio配置中`tachyon.underfs.address`指定的目录，该目录代表Alluxio
+默认情况下，Alluxio文件系统是挂载到Alluxio配置中`alluxio.underfs.address`指定的目录，该目录代表Alluxio
 的"primary storage"。另外，用户可以通过挂载API添加和删除数据源。
 
 {% include Unified-and-Transparent-Namespace/mounting-API.md %}
 
 例如，主存储（"primary storage"）可以是HDFS，其中可以包含用户的文件夹；`Data`文件夹可能存储在S3文件系统
-下，这可以通过`mount(tachyon://host:port/Data, s3://bucket/directory)`命令实现。
+下，这可以通过`mount(alluxio://host:port/Data, s3://bucket/directory)`命令实现。
 
 ## 示例
 
@@ -54,7 +54,7 @@ Alluxio提供了一个挂载API，通过该API能够在Alluxio中访问多个数
 
 {% include Unified-and-Transparent-Namespace/mount-demo.md %}
 
-验证对于不是通过tachyon创建的对象，当第一次访问它们时，其元数据被加载进入了Alluxio中：
+验证对于不是通过alluxio创建的对象，当第一次访问它们时，其元数据被加载进入了Alluxio中：
 
 {% include Unified-and-Transparent-Namespace/ls-demo-hello.md %}
 

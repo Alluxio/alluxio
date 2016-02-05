@@ -47,7 +47,7 @@ Alluxio使用共享文件系统存放日志。所有master必须能够从共享�
 举个例子，如果使用HDFS共享日志，记下NameNode的地址和端口，下面配置Alluxio时会用到。
 
 ## 配置Alluxio
-Zookeeper和共享文件系统都正常运行时，需要在每个主机上配置好`tachyon-env.sh`。
+Zookeeper和共享文件系统都正常运行时，需要在每个主机上配置好`alluxio-env.sh`。
 
 ### 外部可见地址
 
@@ -56,7 +56,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 ### 配置容错的Alluxio
 
-实现Alluxio上的容错，需要为Alluxio master、worker和client添加额外的配置。在`conf/tachyon-env.sh`中，以
+实现Alluxio上的容错，需要为Alluxio master、worker和client添加额外的配置。在`conf/alluxio-env.sh`中，以
 下java选项需要设置：
 
 <table class="table">
@@ -72,25 +72,25 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 设置这些选项，可以在`TACHYON_JAVA_OPTS`包含：
 
-    -Dtachyon.zookeeper.enabled=true
-    -Dtachyon.zookeeper.address=[zookeeper_hostname]:2181
+    -Dalluxio.zookeeper.enabled=true
+    -Dalluxio.zookeeper.address=[zookeeper_hostname]:2181
 
 如果集群有多个ZooKeeper节点，指定多个地址时用逗号分割：
 
-    -Dtachyon.zookeeper.address=[zookeeper_hostname1]:2181,[zookeeper_hostname2]:2181,[zookeeper_hostname3]:2181
+    -Dalluxio.zookeeper.address=[zookeeper_hostname1]:2181,[zookeeper_hostname2]:2181,[zookeeper_hostname3]:2181
 
-你也可以选择在`tachyon-site.properties`文件中配置以上的选项。更多配置参数选项请参考[配置设置](Configuration-Settings.html)。
+你也可以选择在`alluxio-site.properties`文件中配置以上的选项。更多配置参数选项请参考[配置设置](Configuration-Settings.html)。
 
 ### Master配置
 
-除了以上配置，Alluxio master需要额外的配置，以下变量需在`conf/tachyon-env.sh`中正确设置：
+除了以上配置，Alluxio master需要额外的配置，以下变量需在`conf/alluxio-env.sh`中正确设置：
 
     export TACHYON_MASTER_ADDRESS=[externally visible address of this machine]
 
-同样，指定正确的日志文件夹需在`TACHYON_JAVA_OPTS`中设置`tachyon.master.journal.folder`，举例而言，如果
+同样，指定正确的日志文件夹需在`TACHYON_JAVA_OPTS`中设置`alluxio.master.journal.folder`，举例而言，如果
 使用HDFS来存放日志，可以添加：
 
-    -Dtachyon.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/path/to/tachyon/journal
+    -Dalluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/path/to/alluxio/journal
 
 所有Alluxio master以这种方式配置后，都可以启动用于Alluxio的容错。其中一个成为leader，其余重播日志直到当
 前master失效。
@@ -103,7 +103,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 无需为容错模式配置更多的参数，只要以下两项：
 
-    -Dtachyon.zookeeper.enabled=true
-    -Dtachyon.zookeeper.address=[zookeeper_hostname]:2181
+    -Dalluxio.zookeeper.enabled=true
+    -Dalluxio.zookeeper.address=[zookeeper_hostname]:2181
 
 在client应用中正确设置，应用可以咨询ZooKeeper获取当前 leader master。

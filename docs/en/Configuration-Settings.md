@@ -21,11 +21,11 @@ On startup, Alluxio loads the default (and optionally a site specific) configura
 to set the configuration properties.
 
 1. The default values of configuration properties of Alluxio are defined in
-`tachyon-default.properties`. This file can be found in Alluxio source tree and is typically
+`alluxio-default.properties`. This file can be found in Alluxio source tree and is typically
 distributed with Alluxio binaries. We do not recommend beginner users to edit this file directly.
 
 2. Each site deployment and application client can also override the default property values via
-`tachyon-site.properties` file. Note that, this file **must be in the classpath** of the Java VM in
+`alluxio-site.properties` file. Note that, this file **must be in the classpath** of the Java VM in
 which Alluxio is running. The easiest way is to put the site properties file in directory
 `$TACHYON_HOME/conf`.
 
@@ -125,54 +125,54 @@ See [Security](Security.html) for more information about security features.
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
-  <td>tachyon.security.authentication.type</td>
+  <td>alluxio.security.authentication.type</td>
   <td>NOSASL</td>
   <td>The authentication mode. Currently three modes are supported: NOSASL, SIMPLE,
   CUSTOM. The default value NOSASL indicates that authentication is not enabled.</td>
 </tr>
 <tr>
-  <td>tachyon.security.authentication.socket.timeout.ms</td>
+  <td>alluxio.security.authentication.socket.timeout.ms</td>
   <td>60000</td>
   <td>The maximum amount of time (in milliseconds) for a user to create a Thrift socket which
   will connect to the master.</td>
 </tr>
 <tr>
-  <td>tachyon.security.authentication.custom.provider.class</td>
+  <td>alluxio.security.authentication.custom.provider.class</td>
   <td></td>
   <td>The class to provide customized authentication implementation, when
-  tachyon.security.authentication.type is set to CUSTOM. It must implement the
-  interface 'tachyon.security.authentication.AuthenticationProvider'.</td>
+  alluxio.security.authentication.type is set to CUSTOM. It must implement the
+  interface 'alluxio.security.authentication.AuthenticationProvider'.</td>
 </tr>
 <tr>
-  <td>tachyon.security.login.username</td>
+  <td>alluxio.security.login.username</td>
   <td></td>
-  <td>When tachyon.security.authentication.type is set to SIMPLE or CUSTOM, user application uses
+  <td>When alluxio.security.authentication.type is set to SIMPLE or CUSTOM, user application uses
   this property to indicate the user requesting Alluxio service. If it is not set explicitly,
   the OS login user will be used.</td>
 </tr>
 <tr>
-  <td>tachyon.security.authorization.permission.enabled</td>
+  <td>alluxio.security.authorization.permission.enabled</td>
   <td>false</td>
   <td>Whether to enable access control based on file permission.</td>
 </tr>
 <tr>
-  <td>tachyon.security.authorization.permission.umask</td>
+  <td>alluxio.security.authorization.permission.umask</td>
   <td>022</td>
   <td>The umask of creating file and directory. The initial creation permission is 777, and
   the difference between directory and file is 111. So for default umask value 022,
   the created directory has permission 755 and file has permission 644.</td>
 </tr>
 <tr>
-  <td>tachyon.security.authorization.permission.supergroup</td>
+  <td>alluxio.security.authorization.permission.supergroup</td>
   <td>supergroup</td>
   <td>The super group of Alluxio file system. All users in this group have super permission.</td>
 </tr>
 <tr>
-  <td>tachyon.security.group.mapping.class</td>
-  <td>tachyon.security.group.provider.&#8203;ShellBasedUnixGroupsMapping</td>
+  <td>alluxio.security.group.mapping.class</td>
+  <td>alluxio.security.group.provider.&#8203;ShellBasedUnixGroupsMapping</td>
   <td>The class to provide user-to-groups mapping service. Master could get the various group
   memberships of a given user.  It must implement the interface
-  'tachyon.security.group.GroupMappingService'. The default implementation execute the 'groups'
+  'alluxio.security.group.GroupMappingService'. The default implementation execute the 'groups'
   shell command to fetch the group memberships of a given user.</td>
 </tr>
 </table>
@@ -181,21 +181,21 @@ See [Security](Security.html) for more information about security features.
 
 Alluxio configuration provides a way to take advantage of multi-homed networks. If you have more
 than one NICs and you want your Alluxio master to listen on all NICs, you can specify
-`tachyon.master.bind.host` to be `0.0.0.0`. As a result, Alluxio clients can reach the master node
+`alluxio.master.bind.host` to be `0.0.0.0`. As a result, Alluxio clients can reach the master node
 from connecting to any of its NIC. This is also the same case for other properties suffixed with
 `bind.host`.
 
 # System environment properties
 
 To run Alluxio, it also requires some system environment variables being set which by default are
-configured in file `conf/tachyon-env.sh`. If this file does not exist yet, you can create one from a
+configured in file `conf/alluxio-env.sh`. If this file does not exist yet, you can create one from a
 template we provided in the source code using:
 
-{% include Configuration-Settings/copy-tachyon-env.md %}
+{% include Common-Commands/copy-alluxio-env.md %}
 
 There are a few frequently used Alluxio configuration properties that can be set via environment
 variables. One can either set these variables through shell or modify their default values specified
-in `conf/tachyon-env.sh`.
+in `conf/alluxio-env.sh`.
 
 * `$TACHYON_MASTER_ADDRESS`: Alluxio master address, default to localhost.
 * `$TACHYON_UNDERFS_ADDRESS`: under storage system address, default to

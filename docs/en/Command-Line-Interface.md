@@ -8,11 +8,11 @@ priority: 0
 Alluxio's command line interface provides users with basic file system operations. You can invoke
 the command line utility using:
 
-{% include Command-Line-Interface/tachyon-tfs.md %}
+{% include Command-Line-Interface/alluxio-tfs.md %}
 
 All "path" variables in tfs commands should start with
 
-{% include Command-Line-Interface/tachyon-path.md %}
+{% include Command-Line-Interface/alluxio-path.md %}
 
 Or, if no header is provided, the default hostname and port (set in the env file) will be used.
 

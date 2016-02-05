@@ -14,13 +14,13 @@ priority: 1
 
 {% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
 
-执行Alluxio运行脚本前，在`conf/tachyon-env.sh`中指定必要的环境变量，可以从自带的模板文件中拷贝：
+执行Alluxio运行脚本前，在`conf/alluxio-env.sh`中指定必要的环境变量，可以从自带的模板文件中拷贝：
 
 {% include Running-Alluxio-Locally/copy-template.md %}
 
 在独立模式下运行，确保：
 
-* `conf/tachyon-env.sh`中的`TACHYON_UNDERFS_ADDRESS`设置成本地文件系统的临时目录：（例如，`export TACHYON_UNDERFS_ADDRESS=/tmp`）。
+* `conf/alluxio-env.sh`中的`TACHYON_UNDERFS_ADDRESS`设置成本地文件系统的临时目录：（例如，`export TACHYON_UNDERFS_ADDRESS=/tmp`）。
 
 * 远程登录服务打开，`ssh localhost`能成功。
 

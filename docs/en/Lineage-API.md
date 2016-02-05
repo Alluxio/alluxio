@@ -21,7 +21,7 @@ handle divergent outputs.
 # Enable Lineage
 
 By default, lineage is not enabled. It can be enabled by setting the
-`tachyon.user.lineage.enabled` property to `true` in the configuration file.
+`alluxio.user.lineage.enabled` property to `true` in the configuration file.
 
 # Lineage API
 
@@ -106,15 +106,15 @@ These are the configuration parameters related to Alluxio's lineage feature.
 <table class="table table-striped">
 <tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
 <tr>
-  <td>tachyon.master.lineage.checkpoint.interval.ms</td>
+  <td>alluxio.master.lineage.checkpoint.interval.ms</td>
   <td>300000</td>
   <td>
   The interval (in milliseconds) between Alluxio's checkpoint scheduling.
   </td>
 </tr>
 <tr>
-  <td>tachyon.master.lineage.checkpoint.class</td>
-  <td>tachyon.master.lineage.checkpoint
+  <td>alluxio.master.lineage.checkpoint.class</td>
+  <td>alluxio.master.lineage.checkpoint
     .CheckpointLatestPlanner</td>
   <td>
   The class name of the checkpoint strategy for lineage output files. The default strategy is to
@@ -122,21 +122,21 @@ These are the configuration parameters related to Alluxio's lineage feature.
   </td>
 </tr>
 <tr>
-  <td>tachyon.master.lineage.recompute.interval.ms</td>
+  <td>alluxio.master.lineage.recompute.interval.ms</td>
   <td>300000</td>
   <td>
   The interval (in milliseconds) between Alluxio's recompute execution. The executor scans all the lost files tracked by lineage, and re-executes the corresponding jobs every 5 minutes.
   </td>
 </tr>
 <tr>
-  <td>tachyon.master.lineage.recompute.log.path</td>
-  <td>${tachyon.home}/logs/recompute.log</td>
+  <td>alluxio.master.lineage.recompute.log.path</td>
+  <td>${alluxio.home}/logs/recompute.log</td>
   <td>
   The path to the log that the recompute executor redirects the job's stdout into.
   </td>
 </tr>
 <tr>
-  <td>tachyon.user.lineage.enabled</td>
+  <td>alluxio.user.lineage.enabled</td>
   <td>false</td>
   <td>
   Flag to enable lineage feature.

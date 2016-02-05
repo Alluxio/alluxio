@@ -35,19 +35,19 @@ Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系�
 
 #### 使Alluxio Client jar对Flink可用
 
-最后一步，我们需要使Alluxio `jar`文件对Flink可用，该文件包含了配置好的`tachyon.hadoop.TFS`类。
+最后一步，我们需要使Alluxio `jar`文件对Flink可用，该文件包含了配置好的`alluxio.hadoop.TFS`类。
 
 具体做法有以下几种：
 
-- 将`tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`文件放在Flink的`lib`目录下（对于本地模式和独立集群模式）。
-- 将`tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`文件放在Flink的`ship`目录下（对于Flink安装在YARN上）。
+- 将`alluxio-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`文件放在Flink的`lib`目录下（对于本地模式和独立集群模式）。
+- 将`alluxio-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`文件放在Flink的`ship`目录下（对于Flink安装在YARN上）。
 - 在`HADOOP_CLASSPATH`环境变量中指定jar文件的路径（确保该环境变量在所有集群节点上有效）。举个例子：
 
 {% include Running-Flink-on-Alluxio/hadoop-classpath.md %}
 
 # 在Flink中使用Alluxio
 
-Flink中使用Alluxio，指定路径时使用`tachyon://`前缀。
+Flink中使用Alluxio，指定路径时使用`alluxio://`前缀。
 
 如果Alluxio是本地安装，有效路径类似于：
-`tachyon://localhost:19998/user/hduser/gutenberg`。
+`alluxio://localhost:19998/user/hduser/gutenberg`。

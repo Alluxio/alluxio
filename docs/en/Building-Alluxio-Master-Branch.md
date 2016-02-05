@@ -22,7 +22,7 @@ If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please execute:
 {% include Building-Alluxio-Master-Branch/OutOfMemoryError.md %}
 
 If you want to build a particular version of Alluxio, for example {{site.TACHYON_RELEASED_VERSION}},
-please do `git checkout v{{site.TACHYON_RELEASED_VERSION}}` after `cd tachyon`.
+please do `git checkout v{{site.TACHYON_RELEASED_VERSION}}` after `cd alluxio`.
 
 The Maven build system fetches its dependencies, compiles source code, runs unit tests, and packages
 the system. If this is the first time you are building the project, it can take a while to download
@@ -30,12 +30,12 @@ all the dependencies. Subsequent builds, however, will be much faster.
 
 Once Alluxio is built, you can start it with:
 
-{% include Building-Alluxio-Master-Branch/tachyon-start.md %}
+{% include Building-Alluxio-Master-Branch/alluxio-start.md %}
 
 To verify that Alluxio is running, you can visit [http://localhost:19999](http://localhost:19999) or
-check the log in the `tachyon/logs` directory. You can also run a simple program:
+check the log in the `alluxio/logs` directory. You can also run a simple program:
 
-{% include Building-Alluxio-Master-Branch/tachyon-runTests.md %}
+{% include Building-Alluxio-Master-Branch/alluxio-runTests.md %}
 
 You should be able to see results similar to the following:
 
@@ -43,7 +43,7 @@ You should be able to see results similar to the following:
 
 You can also stop the system by using:
 
-{% include Building-Alluxio-Master-Branch/tachyon-stop.md %}
+{% include Building-Alluxio-Master-Branch/alluxio-stop.md %}
 
 # Unit Tests
 

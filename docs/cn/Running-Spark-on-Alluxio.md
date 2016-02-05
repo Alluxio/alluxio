@@ -23,7 +23,7 @@ priority: 0
 {% endfor %}
 </table>
 
-如果Spark的版本默认不支持你的Alluxio安装版本（比如，你在某些旧的Spark版本上安装最新版本的Alluxio），你可以通过更新tachyon-client中Spark依赖的版本来重新编译Spark。具体做法是：编辑`spark/core/pom.xml`，将`tachyon-client`的依赖版本改成`your_tachyon_version`:
+如果Spark的版本默认不支持你的Alluxio安装版本（比如，你在某些旧的Spark版本上安装最新版本的Alluxio），你可以通过更新alluxio-client中Spark依赖的版本来重新编译Spark。具体做法是：编辑`spark/core/pom.xml`，将`alluxio-client`的依赖版本改成`your_alluxio_version`:
 
 {% include Running-Spark-on-Alluxio/your_Alluxio_version.md %}
 
@@ -73,7 +73,7 @@ priority: 0
 为了持久化Spark RDD，你的Spark程序需设置两个参数:
 `spark.externalBlockStore.url`和`spark.externalBlockStore.baseDir`.
 
-* `spark.externalBlockStore.url` 是Alluxio文件系统的URL。默认是`tachyon://localhost:19998`。
+* `spark.externalBlockStore.url` 是Alluxio文件系统的URL。默认是`alluxio://localhost:19998`。
 * `spark.externalBlockStore.baseDir`是Alluxio文件系统存储RDD的基础目录。可以是以逗号分隔的多个Alluxio目录的列表。默认是`java.io.tmpdir`。
 
 为了持久化RDD到Alluxio，需要传递`StorageLevel.OFF_HEAP`参数。下面的例子是通过Spark shell传递的：

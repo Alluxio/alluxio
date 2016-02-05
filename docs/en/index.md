@@ -17,26 +17,26 @@ Apache Yarn.
 
 Alluxio is Hadoop compatible. This means that existing Spark and MapReduce programs can run on top
 of Alluxio without any code changes. The project is open source
-([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
+([Apache License 2.0](https://github.com/amplab/alluxio/blob/master/LICENSE)) and is deployed at
 multiple companies. It is one of the fastest growing open source projects. With less than three
 years open source history, Alluxio has attracted more than
-[160 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
+[160 contributors](https://github.com/amplab/alluxio/graphs/contributors) from over 50 institutions,
 including [Alibaba](http://www.alibaba.com), [Baidu](https://www.baidu.com),
 [CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com), [Intel](http://www.intel.com/),
-[Red Hat](https://www.redhat.com/), [Alluxio Nexus](http://www.tachyonnexus.com/),
+[Red Hat](https://www.redhat.com/), [Alluxio Nexus](http://www.alluxionexus.com/),
 [UC Berkeley](https://amplab.cs.berkeley.edu/), and [Yahoo](https://www.yahoo.com/).
 The project is the storage layer of the Berkeley Data Analytics Stack
 ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
 
-[Github](https://github.com/amplab/tachyon/) |
-[Releases](http://tachyon-project.org/releases/) |
-[Downloads](http://tachyon-project.org/downloads/) |
+[Github](https://github.com/amplab/alluxio/) |
+[Releases](http://alluxio-project.org/releases/) |
+[Downloads](http://alluxio-project.org/downloads/) |
 [User Document](Getting-Started.html) |
 [Developer Document](Contributing-to-Alluxio.html) |
 [Meetup Group](https://www.meetup.com/Alluxio/) |
-[JIRA](https://tachyon.atlassian.net/browse/TACHYON) |
-[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users) |
+[JIRA](https://alluxio.atlassian.net/browse/TACHYON) |
+[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
 [Powered By](Powered-By-Alluxio.html)
 
 # Current Features
@@ -71,7 +71,7 @@ Alluxio launches job recomputation to restore the lost files.
 * **[Web UI](Web-Interface.html) & [Command Line](Command-Line-Interface.html)** Users can browse
 the file system easily through the web UI. Under debug mode, administrators can view detailed
 information of each file, including locations, checkpoint path, etc. Users can also use
-``./bin/tachyon tfs`` to interact with Alluxio, e.g. copy data in and out of the file system.
+``./bin/alluxio tfs`` to interact with Alluxio, e.g. copy data in and out of the file system.
 
 # Getting Started
 
@@ -81,7 +81,7 @@ page which will go through how to deploy Alluxio and run some basic examples in 
 # Downloads
 
 You can get the released versions of Alluxio from the
-[Project Downloads Page](http://tachyon-project.org/downloads). Each release comes with prebuilt
+[Project Downloads Page](http://alluxio-project.org/downloads). Each release comes with prebuilt
 binaries compatibile with various Hadoop versions. If you would like to build the project from the
 source code, check out the
 [Building From Master Branch Documentation](Building-Alluxio-Master-Branch.html).

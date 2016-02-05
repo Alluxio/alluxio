@@ -6,7 +6,7 @@ group: User Guide
 priority: 4
 ---
 
-使用Alluxio自带的[Vagrant脚本](https://github.com/amplab/tachyon/tree/master/deploy/vagrant)可以通过
+使用Alluxio自带的[Vagrant脚本](https://github.com/amplab/alluxio/tree/master/deploy/vagrant)可以通过
 Mesos将Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及销毁集群，该集群自动配置了HDFS相关项。
 
 # 前期准备
@@ -23,7 +23,7 @@ Mesos将Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及�
 
 下载Alluxio到本地，并解压：
 
-{% include Running-Alluxio-on-EC2-Mesos/download-tachyon.md %}
+{% include Common-Commands/download-alluxio.md %}
 
 **安装python库依赖**
 
@@ -55,7 +55,7 @@ Mesos将Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及�
 
 Vagrant脚本默认会在
 [该区域(**us-east-1**)和可用区域(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
-中创建一个名为*tachyon-vagrant-test*的
+中创建一个名为*alluxio-vagrant-test*的
 [安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
 该安全组会在区域中自动建立，并且所有inbound及outbound网络流量都将打开。你可以在`ec2.yml`配置文件中设
 置*security group*、*region*以及*availability zone*的值。
@@ -84,7 +84,7 @@ Hadoop Web UI的默认端口为**50070**。
 
 在浏览器中输入`http://{MASTER_IP}:{PORT}`地址访问Web UI。
 
-注意：Alluxio Mesos框架不确保在集群中的tachyonMaster节点启动Alluxio master服务，通过Mesos Web UI找出运
+注意：Alluxio Mesos框架不确保在集群中的alluxioMaster节点启动Alluxio master服务，通过Mesos Web UI找出运
 行该服务的节点。
 
 也能通过[AWS web console](https://console.aws.amazon.com/console/home?region=us-east-1)监视其状态。
@@ -101,7 +101,7 @@ Hadoop Web UI的默认端口为**50070**。
 
 {% include Running-Alluxio-on-EC2-Mesos/ssh-AlluxioMaster.md %}
 
-所有的软件都安装在根目录下，例如Alluxio安装在`/tachyon`，Hadoop安装在`/hadoop`，Mesos安装在`/mesos`。
+所有的软件都安装在根目录下，例如Alluxio安装在`/alluxio`，Hadoop安装在`/hadoop`，Mesos安装在`/mesos`。
 
 可以对Alluxio运行测试检测其健康状态：
 

@@ -12,24 +12,24 @@ Alluxio后，其数据处理性能提升了30倍。除性能外，Alluxio为新�
 用户可以以独立集群方式(如Amazon EC2)运行Alluxio，也可以从Apache Mesos或Apache Yarn上启动Alluxio。
 
 Alluxio与Hadoop兼容。这意味着已有的Spark和MapReduce程序可以不修改代码直接在Alluxio上运行。Alluxio是开源
-项目([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE))，已在多家公司部署。
+项目([Apache License 2.0](https://github.com/amplab/alluxio/blob/master/LICENSE))，已在多家公司部署。
 Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以来， 已有超过50个组织机构的
-[200多贡献者](https://github.com/amplab/tachyon/graphs/contributors)参与到Alluxio的开发中。包括
+[200多贡献者](https://github.com/amplab/alluxio/graphs/contributors)参与到Alluxio的开发中。包括
 [阿里巴巴](http://www.alibaba.com), [百度](https://www.baidu.com), [CMU](https://www.cmu.edu/)，
 [IBM](https://www.ibm.com)， [Intel](http://www.intel.com/),[ Red Hat](https://www.redhat.com/)，
-[Alluxio Nexus](http://www.tachyonnexus.com/), [UC Berkeley](https://amplab.cs.berkeley.edu/)和
+[Alluxio Nexus](http://www.alluxionexus.com/), [UC Berkeley](https://amplab.cs.berkeley.edu/)和
 [Yahoo](https://www.yahoo.com/)。Alluxio处于伯克利数据分析栈(
 [BDAS](https://amplab.cs.berkeley.edu/bdas/))的存储层，也是
 [Fedora发行版](https://fedoraproject.org/wiki/SIGs/bigdata/packaging)的一部分
 
-[Github ](https://github.com/amplab/tachyon/) |
-[ 版 本  ](http://tachyon-project.org/releases/) |
-[ 下 载  ](http://tachyon-project.org/downloads/) |
+[Github ](https://github.com/amplab/alluxio/) |
+[ 版 本  ](http://alluxio-project.org/releases/) |
+[ 下 载  ](http://alluxio-project.org/downloads/) |
 [ 用户文档  ](Getting-Started.html) |
 [ 开发者文档  ](Contributing-to-Alluxio.html) |
 [ Meetup 小组  ](https://www.meetup.com/Alluxio/) |
-[ JIRA  ](https://tachyon.atlassian.net/browse/TACHYON) |
-[ 用户邮件列表  ](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users) |
+[ JIRA  ](https://alluxio.atlassian.net/browse/TACHYON) |
+[ 用户邮件列表  ](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
 [ Powered By  ](Powered-By-Alluxio.html)
 
 <style>
@@ -59,15 +59,15 @@ InputStream和OutputStream的接口和对内存映射I/O的高效支持。我们
 
 * **[网页UI](Web-Interface.html) & [命令行](Command-Line-Interface.html)** 用户可以通过网页UI浏览文件
 系统。在调试模式下，管理员可以查看每一个文件的详细信息，包括存放位置，检查点路径等等。用户也可以通
-过``./bin/tachyon tfs``与Alluxio交互，例如：将数据从文件系统拷入拷出。
+过``./bin/alluxio tfs``与Alluxio交互，例如：将数据从文件系统拷入拷出。
 
 # 快速入门
 
-为了快速地启动tachyon并运行，阅读一下[快速入门](Getting-Started.html)页面，该页面描述了如何部署Alluxio并
+为了快速地启动alluxio并运行，阅读一下[快速入门](Getting-Started.html)页面，该页面描述了如何部署Alluxio并
 在本地环境下运行几个基本的样例。
 
 # 下载
 
-你可以从[Alluxio下载页面](http://tachyon-project.org/downloads)获取已发布版本。每个版本都是由已编译二进
+你可以从[Alluxio下载页面](http://alluxio-project.org/downloads)获取已发布版本。每个版本都是由已编译二进
 制文件组成，与各种Hadoop版本兼容。如果你想从源码编译生成Alluxio，请前往
 [从Master分支构建Alluxio](Building-Alluxio-Master-Branch.html).
