@@ -4,7 +4,7 @@
  * Main entry point for the worker is {@link alluxio.worker.AlluxioWorker#main(String[])} which gets
  * started by the alluxio start scripts. The {@link alluxio.worker.AlluxioWorker} class spins up the
  * different RPC services (thrift, data) which are mostly wrappers around
- * {@link alluxio.worker.block.BlockDataManager}.
+ * {@link alluxio.worker.block.BlockWorker}.
  *
  * <h1>Services</h1>
  *
@@ -18,17 +18,15 @@
  * Move's user generated blocks to the alluxio data directory. This operation expects that the
  * caller is a local (to the node) caller, and that the input are under the user directories.
  *
- * Implementation can be found at
- * {@link alluxio.worker.block.BlockDataManager#commitBlock(long, long)}
+ * Implementation can be found at {@link alluxio.worker.block.BlockWorker#commitBlock(long, long)}
  *
  * <h3>Lock / Unlock</h3>
  *
- * Tachyon supports caching blocks to local disk (client side). When this happens, a lock is given
+ * Alluxio supports caching blocks to local disk (client side). When this happens, a lock is given
  * to the client to protect it from the remote block changing.
  *
- * Implementation can be found at
- * {@link alluxio.worker.block.BlockDataManager#lockBlock(long, long)} and
- * {@link alluxio.worker.block.BlockDataManager#unlockBlock(long, long)}.
+ * Implementation can be found at {@link alluxio.worker.block.BlockWorker#lockBlock(long, long)} and
+ * {@link alluxio.worker.block.BlockWorker#unlockBlock(long, long)}.
  *
  * <h2>Data</h2>
  *

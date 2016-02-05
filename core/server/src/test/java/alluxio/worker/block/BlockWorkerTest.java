@@ -96,7 +96,7 @@ public class BlockWorkerTest {
     ((AtomicLong) Whitebox.getInternalState(WorkerIdRegistry.class, "sWorkerId")).set(mWorkerId);
 
     Configuration conf = WorkerContext.getConf();
-    conf.set("tachyon.worker.tieredstore.level0.dirs.path",
+    conf.set("alluxio.worker.tieredstore.level0.dirs.path",
         mFolder.newFolder().getAbsolutePath());
     mBlockWorker = new BlockWorker();
 

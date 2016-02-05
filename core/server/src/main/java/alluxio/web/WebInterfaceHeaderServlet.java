@@ -40,7 +40,7 @@ public final class WebInterfaceHeaderServlet extends HttpServlet {
   /**
    * Creates a new instance of {@link WebInterfaceHeaderServlet}.
    *
-   * @param conf Tachyon configuration
+   * @param conf Alluxio configuration
    */
   public WebInterfaceHeaderServlet(Configuration conf) {
     mConfiguration = conf;

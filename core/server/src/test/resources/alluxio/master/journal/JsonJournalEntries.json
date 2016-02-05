@@ -123,14 +123,14 @@
     "mType":"ADD_MOUNTPOINT",
     "mParameters":{
       "ufsPath":"hdfs://host:port/test/path",
-      "tachyonPath":"/test/path"
+      "alluxioPath":"/test/path"
     }
   },
   "DELETE_MOUNTPOINT":{
     "mSequenceNumber":1945,
     "mType":"DELETE_MOUNTPOINT",
     "mParameters":{
-      "tachyonPath":"/test/path"
+      "alluxioPath":"/test/path"
     }
   },
   "REINITIALIZE_FILE":{

@@ -343,7 +343,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the file id for a given path. If the given path does not exist in Tachyon, the method
+   * Returns the file id for a given path. If the given path does not exist in Alluxio, the method
    * attempts to load it from UFS.
    *
    * @param path the path to get the file id for
@@ -505,7 +505,7 @@ public final class FileSystemMaster extends MasterBase {
         throw new BlockInfoException("Cannot complete a file without all the blocks committed");
       }
 
-      // Iterate over all file blocks committed to Tachyon, computing the length and verify that all
+      // Iterate over all file blocks committed to Alluxio, computing the length and verify that all
       // the blocks (except the last one) is the same size as the file block size.
       long inMemoryLength = 0;
       long fileBlockSize = fileInode.getBlockSizeBytes();
@@ -812,7 +812,7 @@ public final class FileSystemMaster extends MasterBase {
   boolean deleteFileInternal(long fileId, boolean recursive, boolean replayed, long opTimeMs)
       throws FileDoesNotExistException, IOException, DirectoryNotEmptyException {
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
-    // journaled will result in an inconsistency between Tachyon and UFS.
+    // journaled will result in an inconsistency between Alluxio and UFS.
     Inode inode = mInodeTree.getInodeById(fileId);
     if (inode == null) {
       return true;
@@ -839,8 +839,8 @@ public final class FileSystemMaster extends MasterBase {
     for (int i = delInodes.size() - 1; i >= 0; i --) {
       Inode delInode = delInodes.get(i);
 
-      // TODO(jiri): What should the Tachyon behavior be when a UFS delete operation fails?
-      // Currently, it will result in an inconsistency between Tachyon and UFS.
+      // TODO(jiri): What should the Alluxio behavior be when a UFS delete operation fails?
+      // Currently, it will result in an inconsistency between Alluxio and UFS.
       if (!replayed && delInode.isPersisted()) {
         // Delete the file in the under file system.
         try {
@@ -1070,7 +1070,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException when the path is invalid, please see documentation on
    *         {@link InodeTree#createPath(AlluxioURI, CreatePathOptions)} for more details
    * @throws FileAlreadyExistsException when there is already a file at path
-   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws IOException if a non-Alluxio related exception occurs
    * @throws AccessControlException if permission checking fails
    */
   public InodeTree.CreatePathResult mkdir(AlluxioURI path, CreateDirectoryOptions options)
@@ -1256,7 +1256,7 @@ public final class FileSystemMaster extends MasterBase {
     }
 
     // TODO(jiri): A crash between now and the time the rename operation is journaled will result in
-    // an inconsistency between Tachyon and UFS.
+    // an inconsistency between Alluxio and UFS.
     Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
     AlluxioURI dstParentURI = dstPath.getParent();
     Inode dstParentInode = mInodeTree.getInodeByPath(dstParentURI);
@@ -1440,12 +1440,12 @@ public final class FileSystemMaster extends MasterBase {
         LOG.info("Failed to get file info {}", fileId, e);
       }
       mBlockMaster.reportLostBlocks(blockIds);
-      LOG.info("Reported file loss of blocks {}. Tachyon will recompute it: {}", blockIds, fileId);
+      LOG.info("Reported file loss of blocks {}. Alluxio will recompute it: {}", blockIds, fileId);
     }
   }
 
   /**
-   * Loads metadata for the object identified by the given path from UFS into Tachyon.
+   * Loads metadata for the object identified by the given path from UFS into Alluxio.
    *
    * @param path the path for which metadata should be loaded
    * @param recursive whether parent directories should be created if they do not already exist
@@ -1500,7 +1500,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Loads metadata for the directory identified by the given path from UFS into Tachyon. This does
+   * Loads metadata for the directory identified by the given path from UFS into Alluxio. This does
    * not actually require looking at the UFS path.
    *
    * @param path the path for which metadata should be loaded
@@ -1532,34 +1532,34 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Mounts a UFS path onto a Tachyon path.
+   * Mounts a UFS path onto a Alluxio path.
    *
-   * @param tachyonPath the Tachyon path to mount to
+   * @param alluxioPath the Alluxio path to mount to
    * @param ufsPath the UFS path to mount
    * @throws FileAlreadyExistsException if the path to be mounted already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
    * @throws AccessControlException if the permission check fails
    */
-  public void mount(AlluxioURI tachyonPath, AlluxioURI ufsPath)
+  public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incMountOps(1);
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.WRITE, tachyonPath, true);
-      mountInternal(tachyonPath, ufsPath);
+      checkPermission(FileSystemAction.WRITE, alluxioPath, true);
+      mountInternal(alluxioPath, ufsPath);
       boolean loadMetadataSuceeded = false;
       try {
-        // This will create the directory at tachyonPath
-        loadMetadataDirectory(tachyonPath, false);
+        // This will create the directory at alluxioPath
+        loadMetadataDirectory(alluxioPath, false);
         loadMetadataSuceeded = true;
       } finally {
         if (!loadMetadataSuceeded) {
-          unmountInternal(tachyonPath);
+          unmountInternal(alluxioPath);
         }
         // Exception will be propagated from loadMetadataDirectory
       }
       AddMountPointEntry addMountPoint =
-          AddMountPointEntry.newBuilder().setTachyonPath(tachyonPath.toString())
+          AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath.toString())
               .setUfsPath(ufsPath.toString()).build();
       writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
       flushJournal();
@@ -1577,7 +1577,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   void mountFromEntry(AddMountPointEntry entry)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
-    AlluxioURI alluxioURI = new AlluxioURI(entry.getTachyonPath());
+    AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
     AlluxioURI ufsURI = new AlluxioURI(entry.getUfsPath());
     mountInternal(alluxioURI, ufsURI);
   }
@@ -1585,13 +1585,13 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
-   * @param tachyonPath the Tachyon mount point
+   * @param alluxioPath the Alluxio mount point
    * @param ufsPath the UFS endpoint to mount
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O exception occurs
    */
-  void mountInternal(AlluxioURI tachyonPath, AlluxioURI ufsPath)
+  void mountInternal(AlluxioURI alluxioPath, AlluxioURI ufsPath)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     // Check that the ufsPath exists and is a directory
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
@@ -1601,35 +1601,35 @@ public final class FileSystemMaster extends MasterBase {
     if (ufs.isFile(ufsPath.getPath())) {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_DIRECTORY.getMessage(ufsPath.getPath()));
     }
-    // Check that the tachyonPath we're creating doesn't shadow a path in the default UFS
+    // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
     String defaultUfsPath = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
     UnderFileSystem defaultUfs = UnderFileSystem.get(defaultUfsPath, MasterContext.getConf());
-    if (defaultUfs.exists(PathUtils.concatPath(defaultUfsPath, tachyonPath.getPath()))) {
+    if (defaultUfs.exists(PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath()))) {
       throw new IOException(
-          ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(tachyonPath));
+          ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(alluxioPath));
     }
     // This should check that we are not mounting a prefix of an existing mount, and that no
     // existing mount is a prefix of this mount.
-    mMountTable.add(tachyonPath, ufsPath);
+    mMountTable.add(alluxioPath, ufsPath);
   }
 
   /**
-   * Unmounts a UFS path previously mounted path onto a Tachyon path.
+   * Unmounts a UFS path previously mounted path onto a Alluxio path.
    *
-   * @param tachyonPath the Tachyon path to unmount, must be a mount point
+   * @param alluxioPath the Alluxio path to unmount, must be a mount point
    * @return true if the UFS path was successfully unmounted, false otherwise
    * @throws FileDoesNotExistException if the path to be mounted does not exist
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
    * @throws AccessControlException if the permission check fails
    */
-  public boolean unmount(AlluxioURI tachyonPath)
+  public boolean unmount(AlluxioURI alluxioPath)
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incUnmountOps(1);
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.WRITE, tachyonPath, true);
-      if (unmountInternal(tachyonPath)) {
-        Inode inode = mInodeTree.getInodeByPath(tachyonPath);
+      checkPermission(FileSystemAction.WRITE, alluxioPath, true);
+      if (unmountInternal(alluxioPath)) {
+        Inode inode = mInodeTree.getInodeByPath(alluxioPath);
         // Use the internal delete API, setting {@code replayed} to false to prevent the delete
         // operations from being persisted in the UFS.
         long fileId = inode.getId();
@@ -1642,7 +1642,7 @@ public final class FileSystemMaster extends MasterBase {
             .build();
         writeJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
         DeleteMountPointEntry deleteMountPoint = DeleteMountPointEntry.newBuilder()
-            .setTachyonPath(tachyonPath.toString())
+            .setAlluxioPath(alluxioPath.toString())
             .build();
         writeJournalEntry(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build());
         flushJournal();
@@ -1660,7 +1660,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if an invalid path is encountered
    */
   void unmountFromEntry(DeleteMountPointEntry entry) throws InvalidPathException {
-    AlluxioURI alluxioURI = new AlluxioURI(entry.getTachyonPath());
+    AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
     if (!unmountInternal(alluxioURI)) {
       LOG.error("Failed to unmount {}", alluxioURI);
     }
@@ -1669,12 +1669,12 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
-   * @param tachyonPath the Tachyon mount point to unmount
+   * @param alluxioPath the Alluxio mount point to unmount
    * @return true if successful, false otherwise
    * @throws InvalidPathException if an invalied path is encountered
    */
-  boolean unmountInternal(AlluxioURI tachyonPath) throws InvalidPathException {
-    return mMountTable.delete(tachyonPath);
+  boolean unmountInternal(AlluxioURI alluxioPath) throws InvalidPathException {
+    return mMountTable.delete(alluxioPath);
   }
 
   /**

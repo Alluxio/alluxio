@@ -27,7 +27,7 @@ public class WorkerStorageTierAssoc extends StorageTierAssoc {
   /**
    * Creates a new instance of {@link WorkerStorageTierAssoc} using a {@link Configuration}.
    *
-   * @param conf Tachyon configuration
+   * @param conf Alluxio configuration
    */
   public WorkerStorageTierAssoc(Configuration conf) {
     super(conf, Constants.WORKER_TIERED_STORE_LEVELS,

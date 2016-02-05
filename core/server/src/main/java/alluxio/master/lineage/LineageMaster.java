@@ -74,7 +74,7 @@ import alluxio.wire.LineageInfo;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
- * The lineage master stores the lineage metadata in Tachyon, and it contains the components that
+ * The lineage master stores the lineage metadata in Alluxio, and it contains the components that
  * manage all lineage-related activities.
  */
 @NotThreadSafe
@@ -194,7 +194,7 @@ public final class LineageMaster extends MasterBase {
   public synchronized long createLineage(List<AlluxioURI> inputFiles, List<AlluxioURI> outputFiles,
       Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
       IOException, AccessControlException {
-    List<Long> inputTachyonFiles = Lists.newArrayList();
+    List<Long> inputAlluxioFiles = Lists.newArrayList();
     for (AlluxioURI inputFile : inputFiles) {
       long fileId;
       fileId = mFileSystemMaster.getFileId(inputFile);
@@ -202,10 +202,10 @@ public final class LineageMaster extends MasterBase {
         throw new InvalidPathException(
             ExceptionMessage.LINEAGE_INPUT_FILE_NOT_EXIST.getMessage(inputFile));
       }
-      inputTachyonFiles.add(fileId);
+      inputAlluxioFiles.add(fileId);
     }
     // create output files
-    List<Long> outputTachyonFiles = Lists.newArrayList();
+    List<Long> outputAlluxioFiles = Lists.newArrayList();
     for (AlluxioURI outputFile : outputFiles) {
       long fileId;
       // TODO(yupeng): delete the placeholder files if the creation fails.
@@ -214,12 +214,12 @@ public final class LineageMaster extends MasterBase {
           new CreateFileOptions.Builder(MasterContext.getConf()).setRecursive(true)
               .setBlockSizeBytes(Constants.KB).build();
       fileId = mFileSystemMaster.create(outputFile, options);
-      outputTachyonFiles.add(fileId);
+      outputAlluxioFiles.add(fileId);
     }
 
-    LOG.info("Create lineage of input:{}, output:{}, job:{}", inputTachyonFiles, outputTachyonFiles,
+    LOG.info("Create lineage of input:{}, output:{}, job:{}", inputAlluxioFiles, outputAlluxioFiles,
         job);
-    long lineageId = mLineageStore.createLineage(inputTachyonFiles, outputTachyonFiles, job);
+    long lineageId = mLineageStore.createLineage(inputAlluxioFiles, outputAlluxioFiles, job);
 
     writeJournalEntry(mLineageIdGenerator.toJournalEntry());
     writeJournalEntry(mLineageStore.getLineage(lineageId).toJournalEntry());

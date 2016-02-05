@@ -33,7 +33,7 @@ public final class SessionInfoTest {
   private int mSessionTimeoutMs;
 
   /**
-   * Sets up the configuration for Tachyon before a test runs.
+   * Sets up the configuration for Alluxio before a test runs.
    */
   @Before
   public final void before() {
