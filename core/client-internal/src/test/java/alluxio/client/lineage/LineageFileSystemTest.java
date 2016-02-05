@@ -44,7 +44,7 @@ public final class LineageFileSystemTest {
 
   private LineageContext mLineageContext;
   private LineageMasterClient mLineageMasterClient;
-  private LineageFileSystem mTachyonLineageFileSystem;
+  private LineageFileSystem mAlluxioLineageFileSystem;
   private FileSystemContext mFileSystemContext;
   private FileSystemMasterClient mFileSystemMasterClient;
 
@@ -57,13 +57,13 @@ public final class LineageFileSystemTest {
     mLineageContext = PowerMockito.mock(LineageContext.class);
     Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
     Whitebox.setInternalState(LineageContext.class, "INSTANCE", mLineageContext);
-    mTachyonLineageFileSystem = LineageFileSystem.get();
-    Whitebox.setInternalState(mTachyonLineageFileSystem, "mLineageContext", mLineageContext);
+    mAlluxioLineageFileSystem = LineageFileSystem.get();
+    Whitebox.setInternalState(mAlluxioLineageFileSystem, "mLineageContext", mLineageContext);
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mFileSystemContext);
-    Whitebox.setInternalState(mTachyonLineageFileSystem, "mContext", mFileSystemContext);
+    Whitebox.setInternalState(mAlluxioLineageFileSystem, "mContext", mFileSystemContext);
   }
 
   /**
@@ -78,7 +78,7 @@ public final class LineageFileSystemTest {
         .thenReturn(1L);
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0);
-    FileOutStream outStream = mTachyonLineageFileSystem.createFile(path, options);
+    FileOutStream outStream = mAlluxioLineageFileSystem.createFile(path, options);
     Assert.assertTrue(outStream instanceof LineageFileOutStream);
     // verify client is released
     Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
@@ -96,7 +96,7 @@ public final class LineageFileSystemTest {
         .thenReturn(-1L);
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0);
-    FileOutStream outStream = mTachyonLineageFileSystem.createFile(path, options);
+    FileOutStream outStream = mAlluxioLineageFileSystem.createFile(path, options);
     Assert.assertTrue(outStream instanceof DummyFileOutputStream);
     // verify client is released
     Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
@@ -115,7 +115,7 @@ public final class LineageFileSystemTest {
 
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0);
-    FileOutStream outStream = mTachyonLineageFileSystem.createFile(path, options);
+    FileOutStream outStream = mAlluxioLineageFileSystem.createFile(path, options);
     Assert.assertTrue(outStream instanceof FileOutStream);
     Assert.assertFalse(outStream instanceof LineageFileOutStream);
     Assert.assertFalse(outStream instanceof DummyFileOutputStream);
@@ -131,7 +131,7 @@ public final class LineageFileSystemTest {
   @Test
   public void reportLostFileTest() throws Exception {
     AlluxioURI path = new AlluxioURI("test");
-    mTachyonLineageFileSystem.reportLostFile(path);
+    mAlluxioLineageFileSystem.reportLostFile(path);
     Mockito.verify(mLineageMasterClient).reportLostFile("test");
     // verify client is released
     Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);

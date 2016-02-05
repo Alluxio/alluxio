@@ -60,7 +60,7 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 /**
- * Base class for Apache Hadoop based Tachyon {@link org.apache.hadoop.fs.FileSystem}. This class
+ * Base class for Apache Hadoop based Alluxio {@link org.apache.hadoop.fs.FileSystem}. This class
  * really just delegates to {@link alluxio.client.file.FileSystem} for most operations.
  *
  * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant is
@@ -68,8 +68,8 @@ import alluxio.wire.WorkerNetAddress;
  */
 @NotThreadSafe
 abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
-  public static final String FIRST_COM_PATH = "tachyon_dep/";
-  public static final String RECOMPUTE_PATH = "tachyon_recompute/";
+  public static final String FIRST_COM_PATH = "alluxio_dep/";
+  public static final String RECOMPUTE_PATH = "alluxio_recompute/";
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // Always tell Hadoop that we have 3x replication.
@@ -81,7 +81,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
   private Statistics mStatistics = null;
   private FileSystem mFileSystem = null;
-  private String mTachyonHeader = null;
+  private String mAlluxioHeader = null;
 
   @Override
   public FSDataOutputStream append(Path cPath, int bufferSize, Progressable progress)
@@ -294,14 +294,14 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * {@inheritDoc}
    *
-   * If the file does not exist in Tachyon, query it from HDFS.
+   * If the file does not exist in Alluxio, query it from HDFS.
    */
   @Override
   public FileStatus getFileStatus(Path path) throws IOException {
     AlluxioURI tPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     Path hdfsPath = HadoopUtils.getHDFSPath(tPath, mUnderFSAddress);
 
-    LOG.info("getFileStatus({}): HDFS Path: {} Tachyon Path: {}{}", path, hdfsPath, mTachyonHeader,
+    LOG.info("getFileStatus({}): HDFS Path: {} Alluxio Path: {}{}", path, hdfsPath, mAlluxioHeader,
         tPath);
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
@@ -318,7 +318,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     FileStatus ret = new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
         BLOCK_REPLICATION_CONSTANT, fileStatus.getBlockSizeBytes(), fileStatus.getCreationTimeMs(),
             fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getPermission()),
-            fileStatus.getUserName(), fileStatus.getGroupName(), new Path(mTachyonHeader + tPath));
+            fileStatus.getUserName(), fileStatus.getGroupName(), new Path(mAlluxioHeader + tPath));
     return ret;
   }
 
@@ -337,8 +337,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       throws IOException {
     AlluxioURI tPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     Path hdfsPath = HadoopUtils.getHDFSPath(tPath, mUnderFSAddress);
-    LOG.info("setOwner({},{},{}) HDFS Path: {} Tachyon Path: {}{}", path, username, groupname,
-        hdfsPath, mTachyonHeader, tPath);
+    LOG.info("setOwner({},{},{}) HDFS Path: {} Alluxio Path: {}{}", path, username, groupname,
+        hdfsPath, mAlluxioHeader, tPath);
     try {
       SetAttributeOptions options = SetAttributeOptions.defaults();
       boolean ownerOrGroupChanged = false;
@@ -368,8 +368,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public void setPermission(Path path, FsPermission permission) throws IOException {
     AlluxioURI tPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     Path hdfsPath = HadoopUtils.getHDFSPath(tPath, mUnderFSAddress);
-    LOG.info("setPermission({},{}) HDFS Path: {} Tachyon Path: {}{}", path, permission.toString(),
-        hdfsPath, mTachyonHeader, tPath);
+    LOG.info("setPermission({},{}) HDFS Path: {} Alluxio Path: {}{}", path, permission.toString(),
+        hdfsPath, mAlluxioHeader, tPath);
     try {
       SetAttributeOptions options =
           SetAttributeOptions.defaults().setPermission(permission.toShort()).setRecursive(false);
@@ -405,24 +405,24 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * {@inheritDoc}
    *
-   * Sets up a lazy connection to Tachyon through mFileSystem.
+   * Sets up a lazy connection to Alluxio through mFileSystem.
    */
   @Override
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
     Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
     super.initialize(uri, conf);
-    LOG.info("initialize({}, {}). Connecting to Tachyon: {}", uri, conf, uri.toString());
+    LOG.info("initialize({}, {}). Connecting to Alluxio: {}", uri, conf, uri.toString());
     HadoopUtils.addS3Credentials(conf);
     setConf(conf);
-    mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
+    mAlluxioHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
 
     // Set the statistics member. Use mStatistics instead of the parent class's variable.
     mStatistics = statistics;
 
-    // Load TachyonConf if any and merge to the one in TachyonFS
+    // Load Alluxio configuration if any and merge to the one in Alluxio file system
     Configuration siteConf = ConfUtils.loadFromHadoopConfiguration(conf);
-    // These modifications to ClientContext are global, affecting every Tachyon client in this JVM.
+    // These modifications to ClientContext are global, affecting every Alluxio client in this JVM.
     // We assume here that this client is the only client.
     if (siteConf != null) {
       ClientContext.getConf().merge(siteConf);
@@ -432,9 +432,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
 
     mFileSystem = FileSystem.Factory.get();
-    mUri = URI.create(mTachyonHeader);
+    mUri = URI.create(mAlluxioHeader);
     mUnderFSAddress = getUfsAddress();
-    LOG.info("{} {} {}", mTachyonHeader, mUri, mUnderFSAddress);
+    LOG.info("{} {} {}", mAlluxioHeader, mUri, mUnderFSAddress);
   }
 
   /**
@@ -469,7 +469,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       // TODO(hy): Replicate 3 with the number of disk replications.
       ret[k] = new FileStatus(status.getLength(), status.isFolder(), 3, status.getBlockSizeBytes(),
           status.getCreationTimeMs(), status.getCreationTimeMs(), null, null, null,
-          new Path(mTachyonHeader + status.getPath()));
+          new Path(mAlluxioHeader + status.getPath()));
     }
     return ret;
   }
@@ -568,7 +568,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * in {@link IOException}.
    *
    * @param path the path to look up
-   * @throws IOException if a Tachyon exception occurs
+   * @throws IOException if a Alluxio exception occurs
    */
   private void ensureExists(AlluxioURI path) throws IOException {
     try {

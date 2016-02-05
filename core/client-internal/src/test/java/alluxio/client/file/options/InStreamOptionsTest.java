@@ -36,7 +36,7 @@ public class InStreamOptionsTest {
   @Test
   public void defaultsTest() {
     InStreamOptions options = InStreamOptions.defaults();
-    Assert.assertEquals(AlluxioStorageType.PROMOTE, options.getTachyonStorageType());
+    Assert.assertEquals(AlluxioStorageType.PROMOTE, options.getAlluxioStorageType());
   }
 
   /**
@@ -51,7 +51,7 @@ public class InStreamOptionsTest {
     options.setReadType(readType);
     options.setLocationPolicy(policy);
 
-    Assert.assertEquals(options.getTachyonStorageType(), readType.getTachyonStorageType());
+    Assert.assertEquals(options.getAlluxioStorageType(), readType.getAlluxioStorageType());
     Assert.assertEquals(policy, options.getLocationPolicy());
   }
 
@@ -64,8 +64,8 @@ public class InStreamOptionsTest {
         ReadType.NO_CACHE.toString());
     try {
       InStreamOptions options = InStreamOptions.defaults();
-      Assert.assertEquals(ReadType.NO_CACHE.getTachyonStorageType(),
-          options.getTachyonStorageType());
+      Assert.assertEquals(ReadType.NO_CACHE.getAlluxioStorageType(),
+          options.getAlluxioStorageType());
     } finally {
       ClientTestUtils.resetClientContext();
     }

@@ -38,7 +38,7 @@ public interface RemoteBlockReader extends Closeable {
     /**
      * Factory for {@link RemoteBlockReader}.
      *
-     * @param conf Tachyon configuration
+     * @param conf Alluxio configuration
      * @return a new instance of {@link RemoteBlockReader}
      */
     public static RemoteBlockReader create(Configuration conf) {

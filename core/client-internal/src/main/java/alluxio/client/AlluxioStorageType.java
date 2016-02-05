@@ -18,21 +18,21 @@ package alluxio.client;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Specifies the type of data interaction with Tachyon. This option is for developers and advanced
+ * Specifies the type of data interaction with Alluxio. This option is for developers and advanced
  * users. See {@link WriteType} and {@link ReadType}.
  * <ul>
- * <li>For a write operation, this determines whether the data will be written into Tachyon storage.
- * Metadata will always be updated in Tachyon space.</li>
- * <li>For a read operation, this determines whether fully read blocks will be stored in Tachyon
+ * <li>For a write operation, this determines whether the data will be written into Alluxio storage.
+ * Metadata will always be updated in Alluxio space.</li>
+ * <li>For a read operation, this determines whether fully read blocks will be stored in Alluxio
  * storage.</li>
  * </ul>
  */
 @ThreadSafe
 public enum AlluxioStorageType {
-  /** Put the data reading or writing in Tachyon storage. */
+  /** Put the data reading or writing in Alluxio storage. */
   STORE(1),
 
-  /** Do not put data to Tachyon. */
+  /** Do not put data to Alluxio. */
   NO_STORE(2),
 
   /**
@@ -47,7 +47,7 @@ public enum AlluxioStorageType {
   }
 
   /**
-   * @return whether the data should be put in Tachyon storage
+   * @return whether the data should be put in Alluxio storage
    */
   public boolean isStore() {
     return mValue == STORE.mValue || mValue == PROMOTE.mValue;

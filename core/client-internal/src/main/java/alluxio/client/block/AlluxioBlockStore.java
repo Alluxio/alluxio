@@ -38,7 +38,7 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 /**
- * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
+ * Alluxio Block Store client. This is an internal client for all block level operations in Alluxio.
  * An instance of this class can be obtained via {@link AlluxioBlockStore#get()}. The methods in
  * this class are completely opaque to user input.
  */
@@ -49,7 +49,7 @@ public final class AlluxioBlockStore {
   private static AlluxioBlockStore sClient = null;
 
   /**
-   * @return a new instance of Tachyon block store
+   * @return a new instance of Alluxio block store
    */
   public static synchronized AlluxioBlockStore get() {
     if (sClient == null) {
@@ -61,7 +61,7 @@ public final class AlluxioBlockStore {
   private final BlockStoreContext mContext;
 
   /**
-   * Creates a Tachyon block store.
+   * Creates a Alluxio block store.
    */
   private AlluxioBlockStore() {
     mContext = BlockStoreContext.INSTANCE;
@@ -105,7 +105,7 @@ public final class AlluxioBlockStore {
   }
 
   /**
-   * Gets a stream to read the data of a block. The stream is backed by Tachyon storage.
+   * Gets a stream to read the data of a block. The stream is backed by Alluxio storage.
    *
    * @param blockId the block to read from
    * @return a {@link BlockInStream} which can be used to read the data in a streaming fashion
@@ -123,7 +123,7 @@ public final class AlluxioBlockStore {
     }
 
     if (blockInfo.getLocations().isEmpty()) {
-      throw new IOException("Block " + blockId + " is not available in Tachyon");
+      throw new IOException("Block " + blockId + " is not available in Alluxio");
     }
     // TODO(calvin): Get location via a policy.
     // Although blockInfo.locations are sorted by tier, we prefer reading from the local worker.
@@ -153,11 +153,11 @@ public final class AlluxioBlockStore {
   }
 
   /**
-   * Gets a stream to write data to a block. The stream can only be backed by Tachyon storage.
+   * Gets a stream to write data to a block. The stream can only be backed by Alluxio storage.
    *
    * @param blockId the block to write
    * @param blockSize the standard block size to write, or -1 if the block already exists (and this
-   *        stream is just storing the block in Tachyon again)
+   *        stream is just storing the block in Alluxio again)
    * @param address the address of the worker to write the block to, fails if the worker cannot
    *        serve the request
    * @return a {@link BufferedBlockOutStream} which can be used to write data to the block in a
@@ -193,7 +193,7 @@ public final class AlluxioBlockStore {
   }
 
   /**
-   * Gets the total capacity of Tachyon's BlockStore.
+   * Gets the total capacity of Alluxio's BlockStore.
    *
    * @return the capacity in bytes
    * @throws IOException when the connection to the client fails
@@ -210,9 +210,9 @@ public final class AlluxioBlockStore {
   }
 
   /**
-   * Gets the used bytes of Tachyon's BlockStore.
+   * Gets the used bytes of Alluxio's BlockStore.
    *
-   * @return the used bytes of Tachyon's BlockStore
+   * @return the used bytes of Alluxio's BlockStore
    * @throws IOException when the connection to the client fails
    */
   public long getUsedBytes() throws IOException {
@@ -227,7 +227,7 @@ public final class AlluxioBlockStore {
   }
 
   /**
-   * Attempts to promote a block in Tachyon space. If the block is not present, this method will
+   * Attempts to promote a block in Alluxio space. If the block is not present, this method will
    * return without an error. If the block is present in multiple workers, only one worker will
    * receive the promotion request.
    *

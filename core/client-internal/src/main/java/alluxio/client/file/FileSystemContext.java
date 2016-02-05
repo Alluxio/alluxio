@@ -65,9 +65,9 @@ public enum FileSystemContext {
   }
 
   /**
-   * @return the Tachyon block store
+   * @return the Alluxio block store
    */
-  public AlluxioBlockStore getTachyonBlockStore() {
+  public AlluxioBlockStore getAluxioBlockStore() {
     return mAlluxioBlockStore;
   }
 

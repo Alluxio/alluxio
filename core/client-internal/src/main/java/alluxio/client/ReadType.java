@@ -29,18 +29,18 @@ import alluxio.annotation.PublicApi;
 @ThreadSafe
 public enum ReadType {
   /**
-   * Read the file and skip Tachyon storage. This read type will not cause any data migration or
-   * eviction in Tachyon storage.
+   * Read the file and skip Alluxio storage. This read type will not cause any data migration or
+   * eviction in Alluxio storage.
    */
   NO_CACHE(1),
   /**
    * Read the file and cache it in the highest tier of a local worker. This read type will not move
-   * data between tiers of Tachyon Storage. Users should use {@link #CACHE_PROMOTE} for more
+   * data between tiers of Alluxio Storage. Users should use {@link #CACHE_PROMOTE} for more
    * optimized performance with tiered storage.
    */
   CACHE(2),
   /**
-   * Read the file and cache it in a local worker. Additionally, if the file was in Tachyon
+   * Read the file and cache it in a local worker. Additionally, if the file was in Alluxio
    * storage, it will be promoted to the top storage layer.
    */
   CACHE_PROMOTE(3);
@@ -54,7 +54,7 @@ public enum ReadType {
   /**
    * @return the {@link AlluxioStorageType} associated with this read type
    */
-  public AlluxioStorageType getTachyonStorageType() {
+  public AlluxioStorageType getAlluxioStorageType() {
     if (isPromote()) { // CACHE_PROMOTE
       return AlluxioStorageType.PROMOTE;
     }

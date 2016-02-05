@@ -49,7 +49,7 @@ import alluxio.wire.WorkerNetAddress;
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
  * blocks in the file and abstracts the switching between streams. The backing streams can write to
- * Tachyon space in the local machine or remote machines. If the {@link UnderStorageType} is
+ * Alluxio space in the local machine or remote machines. If the {@link UnderStorageType} is
  * {@link UnderStorageType#SYNC_PERSIST}, another stream will write the data to the under storage
  * system.
  */
@@ -86,7 +86,7 @@ public class FileOutStream extends OutStreamBase {
     mUri = Preconditions.checkNotNull(path);
     mNonce = ClientUtils.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
-    mAlluxioStorageType = options.getTachyonStorageType();
+    mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
@@ -189,7 +189,7 @@ public class FileOutStream extends OutStreamBase {
 
   @Override
   public void flush() throws IOException {
-    // TODO(yupeng): Handle flush for Tachyon storage stream as well.
+    // TODO(yupeng): Handle flush for Alluxio storage stream as well.
     if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.flush();
     }
@@ -267,9 +267,9 @@ public class FileOutStream extends OutStreamBase {
     if (mAlluxioStorageType.isStore()) {
       try {
         WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
-            mContext.getTachyonBlockStore().getWorkerInfoList(), mBlockSize);
+            mContext.getAluxioBlockStore().getWorkerInfoList(), mBlockSize);
         mCurrentBlockOutStream =
-            mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, address);
+            mContext.getAluxioBlockStore().getOutStream(getNextBlockId(), mBlockSize, address);
         mShouldCacheCurrentBlock = true;
       } catch (AlluxioException e) {
         throw new IOException(e);
@@ -293,7 +293,7 @@ public class FileOutStream extends OutStreamBase {
       throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.getMessage()), e);
     }
 
-    LOG.warn("Failed to write into TachyonStore, canceling write attempt.", e);
+    LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
     if (mCurrentBlockOutStream != null) {
       mShouldCacheCurrentBlock = false;
       mCurrentBlockOutStream.cancel();

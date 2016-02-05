@@ -50,7 +50,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * Creates a new block master client.
    *
    * @param masterAddress the master address
-   * @param configuration the Tachyon configuration
+   * @param configuration the Alluxio configuration
    */
   public BlockMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
     super(masterAddress, configuration);
@@ -102,7 +102,7 @@ public final class BlockMasterClient extends MasterClientBase {
    *
    * @param blockId the block id to get the BlockInfo for
    * @return the {@link BlockInfo}
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized BlockInfo getBlockInfo(final long blockId)
@@ -116,7 +116,7 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Gets the total Tachyon capacity in bytes, on all the tiers of all the workers.
+   * Gets the total Alluxio capacity in bytes, on all the tiers of all the workers.
    *
    * @return total capacity in bytes
    * @throws ConnectionFailedException if network connection failed

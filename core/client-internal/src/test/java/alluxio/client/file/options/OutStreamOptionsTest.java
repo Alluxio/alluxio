@@ -39,7 +39,7 @@ public class OutStreamOptionsTest {
    */
   @Test
   public void defaultsTest() {
-    AlluxioStorageType tachyonType = AlluxioStorageType.STORE;
+    AlluxioStorageType alluxioType = AlluxioStorageType.STORE;
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     ClientContext.getConf().set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT,
@@ -48,7 +48,7 @@ public class OutStreamOptionsTest {
     OutStreamOptions options = OutStreamOptions.defaults();
 
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
-    Assert.assertEquals(tachyonType, options.getTachyonStorageType());
+    Assert.assertEquals(alluxioType, options.getAlluxioStorageType());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
@@ -75,7 +75,7 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(policy, options.getLocationPolicy());
     Assert.assertEquals(ttl, options.getTtl());
-    Assert.assertEquals(writeType.getTachyonStorageType(), options.getTachyonStorageType());
+    Assert.assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
     Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
   }
 }
