@@ -50,7 +50,7 @@ public class SetAttributeOptions {
     /**
      * Creates a new builder for {@link SetAttributeOptions}.
      *
-     * @param conf a Tachyon configuration
+     * @param conf a Alluxio configuration
      */
     public Builder(Configuration conf) {
       mPinned = null;

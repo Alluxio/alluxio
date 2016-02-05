@@ -25,7 +25,7 @@ import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The metadata for a Tachyon block, managed by the block master.
+ * The metadata for a Alluxio block, managed by the block master.
  */
 @NotThreadSafe
 public final class MasterBlockInfo {

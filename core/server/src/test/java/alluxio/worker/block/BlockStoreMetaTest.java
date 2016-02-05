@@ -58,8 +58,8 @@ public class BlockStoreMetaTest {
    */
   @Before
   public void before() throws Exception {
-    String tachyonHome = mTestFolder.newFolder().getAbsolutePath();
-    mMetadataManager = TieredBlockStoreTestUtils.defaultMetadataManager(tachyonHome);
+    String alluxioHome = mTestFolder.newFolder().getAbsolutePath();
+    mMetadataManager = TieredBlockStoreTestUtils.defaultMetadataManager(alluxioHome);
 
     // Add and commit COMMITTED_BLOCKS_NUM temp blocks repeatedly
     StorageDir dir = mMetadataManager.getTier("MEM").getDir(0);

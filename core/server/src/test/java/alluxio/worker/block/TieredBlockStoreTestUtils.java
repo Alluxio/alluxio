@@ -50,13 +50,13 @@ public class TieredBlockStoreTestUtils {
   public static final String[] TIER_ALIAS = {"MEM", "SSD"};
   public static final String[][] TIER_PATH = {{"/mem/0", "/mem/1"}, {"/ssd/0", "/ssd/1", "/ssd/2"}};
   public static final long[][] TIER_CAPACITY_BYTES = {{2000, 3000}, {10000, 20000, 30000}};
-  public static final String WORKER_DATA_FOLDER = "/tachyonworker/";
+  public static final String WORKER_DATA_FOLDER = "/alluxioworker/";
 
   public static Configuration sConfiguration = WorkerContext.getConf();
 
   /**
    * Sets up a {@link Configuration} for a {@link TieredBlockStore} with several tiers configured by
-   * the parameters. For simplicity, you can use {@link #setupTachyonConfDefault(String)} which
+   * the parameters. For simplicity, you can use {@link #setupDefaultConf(String)} which
    * calls this method with default values.
    *
    * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
@@ -72,9 +72,8 @@ public class TieredBlockStoreTestUtils {
    * @param workerDataFolder when specified it sets up the alluxio.worker.data.folder property
    * @throws Exception when error happens during creating temporary folder
    */
-  public static void setupTachyonConfWithMultiTier(String baseDir, int[] tierOrdinal,
-      String[] tierAlias, String[][] tierPath, long[][] tierCapacity, String workerDataFolder)
-          throws Exception {
+  public static void setupConfWithMultiTier(String baseDir, int[] tierOrdinal, String[] tierAlias,
+      String[][] tierPath, long[][] tierCapacity, String workerDataFolder) throws Exception {
     // make sure dimensions are legal
     Preconditions.checkNotNull(tierOrdinal);
     Preconditions.checkNotNull(tierAlias);
@@ -99,13 +98,13 @@ public class TieredBlockStoreTestUtils {
 
     // sets up each tier in turn
     for (int i = 0; i < nTier; i ++) {
-      setupTachyonConfTier(tierOrdinal[i], tierAlias[i], tierPath[i], tierCapacity[i]);
+      setupConfTier(tierOrdinal[i], tierAlias[i], tierPath[i], tierCapacity[i]);
     }
   }
 
   /**
    * Sets up a {@link Configuration} for a {@link TieredBlockStore} with only *one tier* configured
-   * by the parameters. For simplicity, you can use {@link #setupTachyonConfDefault(String)} which
+   * by the parameters. For simplicity, you can use {@link #setupDefaultConf(String)} which
    * sets up the tierBlockStore with default values.
    *
    * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
@@ -120,9 +119,8 @@ public class TieredBlockStoreTestUtils {
    * @param workerDataFolder when specified it sets up the alluxio.worker.data.folder property
    * @throws Exception when error happens during creating temporary folder
    */
-  public static void setupTachyonConfWithSingleTier(String baseDir, int tierOrdinal,
-      String tierAlias, String[] tierPath, long[] tierCapacity, String workerDataFolder)
-          throws Exception {
+  public static void setupConfWithSingleTier(String baseDir, int tierOrdinal, String tierAlias,
+      String[] tierPath, long[] tierCapacity, String workerDataFolder)          throws Exception {
     if (baseDir != null) {
       tierPath = createDirHierarchy(baseDir, tierPath);
     }
@@ -131,7 +129,7 @@ public class TieredBlockStoreTestUtils {
       conf.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
     }
     conf.set(Constants.WORKER_TIERED_STORE_LEVELS, String.valueOf(1));
-    setupTachyonConfTier(tierOrdinal, tierAlias, tierPath, tierCapacity);
+    setupConfTier(tierOrdinal, tierAlias, tierPath, tierCapacity);
   }
 
   /**
@@ -144,7 +142,7 @@ public class TieredBlockStoreTestUtils {
    * @param tierPath absolute path of the tier
    * @param tierCapacity capacity of the tier
    */
-  private static void setupTachyonConfTier(int ordinal, String tierAlias, String[] tierPath,
+  private static void setupConfTier(int ordinal, String tierAlias, String[] tierPath,
       long[] tierCapacity) {
     Preconditions.checkNotNull(tierPath);
     Preconditions.checkNotNull(tierCapacity);
@@ -206,7 +204,7 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Creates a BlockMetadataManager with {@link #setupTachyonConfDefault(String)}.
+   * Creates a BlockMetadataManager with {@link #setupDefaultConf(String)}.
    *
    * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
    *
@@ -216,12 +214,12 @@ public class TieredBlockStoreTestUtils {
    * @throws Exception when error happens during creating temporary folder
    */
   public static BlockMetadataManager defaultMetadataManager(String baseDir) throws Exception {
-    setupTachyonConfDefault(baseDir);
+    setupDefaultConf(baseDir);
     return BlockMetadataManager.createBlockMetadataManager();
   }
 
   /**
-   * Creates a {@link BlockMetadataManagerView} with {@link #setupTachyonConfDefault(String)}.
+   * Creates a {@link BlockMetadataManagerView} with {@link #setupDefaultConf(String)}.
    *
    * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
    *
@@ -248,8 +246,8 @@ public class TieredBlockStoreTestUtils {
    *        directory needs to exist before calling this method
    * @throws Exception when error happens during creating temporary folder
    */
-  public static void setupTachyonConfDefault(String baseDir) throws Exception {
-    setupTachyonConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS, TIER_PATH, TIER_CAPACITY_BYTES,
+  public static void setupDefaultConf(String baseDir) throws Exception {
+    setupConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS, TIER_PATH, TIER_CAPACITY_BYTES,
         WORKER_DATA_FOLDER);
   }
 

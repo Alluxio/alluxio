@@ -35,7 +35,7 @@ import alluxio.thrift.BlockWorkerClientService;
 import alluxio.worker.WorkerContext;
 
 /**
- * This class is a Thrift handler for block worker RPCs invoked by a Tachyon client.
+ * This class is a Thrift handler for block worker RPCs invoked by a Alluxio client.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
 public final class BlockWorkerClientServiceHandler implements BlockWorkerClientService.Iface {
@@ -84,7 +84,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   }
 
   /**
-   * Used to cache a block into Tachyon space, worker will move the temporary block file from
+   * Used to cache a block into Alluxio space, worker will move the temporary block file from
    * session folder to data folder, and update the space usage information related. then update the
    * block information to master.
    *

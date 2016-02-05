@@ -54,7 +54,7 @@ public final class NettyDataServer implements DataServer {
    *
    * @param address the server address
    * @param blockWorker the block worker to use for data operations
-   * @param configuration Tachyon configuration
+   * @param configuration Alluxio configuration
    */
   public NettyDataServer(final InetSocketAddress address, final BlockWorker blockWorker,
       final Configuration configuration) {

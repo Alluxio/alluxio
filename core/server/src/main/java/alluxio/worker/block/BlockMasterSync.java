@@ -58,7 +58,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
 
-  /** The block worker responsible for interacting with Tachyon and UFS storage. */
+  /** The block worker responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
 
   /** The net address of the worker. */
@@ -82,7 +82,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    *
    * @param blockWorker the {@link BlockWorker} this syncer is updating to
    * @param workerAddress the net address of the worker
-   * @param masterClient the Tachyon master client
+   * @param masterClient the Alluxio master client
    */
   BlockMasterSync(BlockWorker blockWorker, WorkerNetAddress workerAddress,
       BlockMasterClient masterClient) {
@@ -104,7 +104,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   }
 
   /**
-   * Registers with the Tachyon master. This should be called before the continuous heartbeat thread
+   * Registers with the Alluxio master. This should be called before the continuous heartbeat thread
    * begins. The workerId will be set after this method is successful.
    *
    * @throws IOException when workerId cannot be found
@@ -179,7 +179,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       // Currently unused
       case Delete:
         break;
-      // Master requests blocks to be removed from Tachyon managed space.
+      // Master requests blocks to be removed from Alluxio managed space.
       case Free:
         for (long block : cmd.getData()) {
           mBlockRemovalService.execute(new BlockRemover(mBlockWorker,

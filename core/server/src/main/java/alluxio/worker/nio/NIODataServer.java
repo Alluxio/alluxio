@@ -78,7 +78,7 @@ public final class NIODataServer implements Runnable, DataServer {
    *
    * @param address the address of the data server
    * @param blockWorker the lock system for lock blocks
-   * @param configuration Tachyon configuration
+   * @param configuration Alluxio configuration
    */
   public NIODataServer(final InetSocketAddress address, final BlockWorker blockWorker,
       Configuration configuration) {
