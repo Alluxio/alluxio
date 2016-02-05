@@ -1,8 +1,8 @@
 ```bash
-2015-11-20 08:32:22,271 INFO   (ClientBase.java:connect) - Tachyon client (version 0.8.2) is trying to connect with FileSystemMaster master @ localhost/127.0.0.1:19998
+2015-11-20 08:32:22,271 INFO   (ClientBase.java:connect) - Alluxio client (version 0.8.2) is trying to connect with FileSystemMaster master @ localhost/127.0.0.1:19998
 2015-11-20 08:32:22,294 INFO   (ClientBase.java:connect) - Client registered with FileSystemMaster master @ localhost/127.0.0.1:19998
 2015-11-20 08:32:22,387 INFO   (BasicOperations.java:createFile) - createFile with fileId 33554431 took 127 ms.
-2015-11-20 08:32:22,552 INFO   (ClientBase.java:connect) - Tachyon client (version 0.8.2) is trying to connect with BlockMaster master @ localhost/127.0.0.1:19998
+2015-11-20 08:32:22,552 INFO   (ClientBase.java:connect) - Alluxio client (version 0.8.2) is trying to connect with BlockMaster master @ localhost/127.0.0.1:19998
 2015-11-20 08:32:22,553 INFO   (ClientBase.java:connect) - Client registered with BlockMaster master @ localhost/127.0.0.1:19998
 2015-11-20 08:32:22,604 INFO   (WorkerClient.java:connect) - Connecting local worker @ /192.168.2.15:29998
 2015-11-20 08:32:22,698 INFO   (BasicOperations.java:writeFile) - writeFile to file /default_tests_files/BasicFile_CACHE_THROUGH took 311 ms.
