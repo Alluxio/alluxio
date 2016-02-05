@@ -23,15 +23,15 @@ import alluxio.exception.AlluxioException;
 /**
  * Interface to be implemented in classes that support iterating over key-value pairs.
  *
- * TODO(cc): Try to get rid of KeyValueIterable and KeyValueIterator when TachyonException becomes
+ * TODO(cc): Try to get rid of KeyValueIterable and KeyValueIterator when AlluxioException becomes
  * a subclass of IOException.
  */
 @PublicApi
 public interface KeyValueIterable {
   /**
    * @return a {@link KeyValueIterator} for iterating over key-value pairs in the store
-   * @throws IOException if a non-Tachyon error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   KeyValueIterator iterator() throws IOException, AlluxioException;
 }

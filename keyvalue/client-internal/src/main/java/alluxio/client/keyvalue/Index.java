@@ -42,7 +42,7 @@ public interface Index {
    * @param key bytes of key
    * @param reader reader to access key-value payload
    * @return ByteBuffer of value, or null if not found
-   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws IOException if a non-Alluxio related exception occurs
    */
   ByteBuffer get(ByteBuffer key, PayloadReader reader) throws IOException;
 
