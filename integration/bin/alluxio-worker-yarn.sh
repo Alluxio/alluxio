@@ -6,12 +6,12 @@ ALLUXIO_WORKER_JAVA_OPTS="${ALLUXIO_WORKER_JAVA_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 
 # ${ALLUXIO_WORKER_MEMORY_SIZE} needs to be set to mount ramdisk
 echo "Mounting ramdisk of ${ALLUXIO_WORKER_MEMORY_SIZE} MB on Worker"
-${ALLUXIO_HOME}/bin/tachyon-mount.sh SudoMount
+${ALLUXIO_HOME}/bin/alluxio-mount.sh SudoMount
 
 # Yarn will set LOG_DIRS to point to the Yarn application log directory
 YARN_LOG_DIR="$LOG_DIRS"
 
-echo "Formatting Tachyon Worker"
+echo "Formatting Alluxio Worker"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${ALLUXIO_WORKER_JAVA_OPTS} \
@@ -20,7 +20,7 @@ echo "Formatting Tachyon Worker"
   -Dalluxio.logs.dir="${YARN_LOG_DIR}" \
   alluxio.Format WORKER > "${YARN_LOG_DIR}"/worker.out 2>&1
 
-echo "Starting Tachyon Worker"
+echo "Starting Alluxio Worker"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${ALLUXIO_WORKER_JAVA_OPTS} \

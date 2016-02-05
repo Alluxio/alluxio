@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# This file contains environment variables required to run Tachyon. Copy it as alluxio-env.sh and
-# edit that to configure Tachyon for your site. At a minimum,
+# This file contains environment variables required to run Alluxio. Copy it as alluxio-env.sh and
+# edit that to configure Alluxio for your site. At a minimum,
 # the following variables should be set:
 #
 # - JAVA_HOME, to point to your JAVA installation
@@ -14,7 +14,7 @@
 # Support for Multihomed Networks.
 # You can specify a hostname to bind each of services. If a wildcard
 # is applied, you should select one of network interfaces and use its hostname to connect the service.
-# If no hostname is defined, Tachyon will automatically select an externally visible localhost name.
+# If no hostname is defined, Alluxio will automatically select an externally visible localhost name.
 # The various possibilities shown in the following table:
 #
 # +--------------------+------------------------+---------------------+
@@ -44,7 +44,7 @@
 
 # The following gives an example:
 
-# Uncomment this section to add a local installation of Hadoop to Tachyon's CLASSPATH.
+# Uncomment this section to add a local installation of Hadoop to Alluxio's CLASSPATH.
 # The hadoop command must be in the path to automatically populate the Hadoop classpath.
 #
 # if type "hadoop" > /dev/null 2>&1; then
@@ -78,13 +78,13 @@ fi
 
 export JAVA="${JAVA_HOME}/bin/java"
 export ALLUXIO_MASTER_ADDRESS=${ALLUXIO_MASTER_ADDRESS:-localhost}
-export ALLUXIO_UNDERFS_ADDRESS=${ALLUXIO_UNDERFS_ADDRESS:-swift://tachyontestcont}
+export ALLUXIO_UNDERFS_ADDRESS=${ALLUXIO_UNDERFS_ADDRESS:-swift://alluxiotestcont}
 export ALLUXIO_WORKER_MEMORY_SIZE=${ALLUXIO_WORKER_MEMORY_SIZE:-1GB}
 
 export ALLUXIO_SSH_FOREGROUND=${ALLUXIO_SSH_FOREGROUND:-"yes"}
 export ALLUXIO_WORKER_SLEEP=${ALLUXIO_WORKER_SLEEP:-"0.02"}
 
-# Prepend Tachyon classes before classes specified by ALLUXIO_CLASSPATH
+# Prepend Alluxio classes before classes specified by ALLUXIO_CLASSPATH
 # in the Java classpath.  May be necessary if there are jar conflicts
 #export ALLUXIO_PREPEND_ALLUXIO_CLASSES=${ALLUXIO_PREPEND_ALLUXIO_CLASSES:-"yes"}
 
