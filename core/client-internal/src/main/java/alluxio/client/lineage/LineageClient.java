@@ -31,14 +31,14 @@ import alluxio.job.Job;
 import alluxio.wire.LineageInfo;
 
 /**
- * User facing interface for the Tachyon Lineage client APIs.
+ * User facing interface for the Alluxio Lineage client APIs.
  */
 @PublicApi
 interface LineageClient {
   /**
-   * Creates a lineage. It requires all the input files either exist in Tachyon storage, or have
+   * Creates a lineage. It requires all the input files either exist in Alluxio storage, or have
    * been added as output files in other lineages. It also requires the output files do not exist in
-   * Tachyon, and it will create an empty file for each of the output files.
+   * Alluxio, and it will create an empty file for each of the output files.
    *
    * @param inputFiles the files that the job depends on
    * @param outputFiles the files that the job outputs
@@ -46,7 +46,7 @@ interface LineageClient {
    * @param options the method options
    * @return the lineage id
    * @throws IOException if the master cannot create the lineage
-   * @throws FileDoesNotExistException an input file does not exist in Tachyon storage, nor is added
+   * @throws FileDoesNotExistException an input file does not exist in Alluxio storage, nor is added
    *         as an output file of an existing lineage
    * @throws AlluxioException if an unexpected alluxio error occurs
    */

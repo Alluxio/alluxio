@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import alluxio.annotation.PublicApi;
 
 /**
- * An abstraction of the output stream API in Tachyon to write data to a file or a block. In
+ * An abstraction of the output stream API in Alluxio to write data to a file or a block. In
  * addition to extending abstract class {@link OutputStream} as the basics, it also keeps counting
  * the number of bytes written to the output stream, and extends {@link Cancelable} to abort the
  * writes.
@@ -33,7 +33,7 @@ import alluxio.annotation.PublicApi;
 public abstract class OutStreamBase extends OutputStream implements Cancelable {
   // TODO(binfan): make mBytesWritten long so we could make offset > 2GB. This
   // requires checking the codebase for this assumption (using int to denote an offset).
-  // See TACHYON-1536.
+  // See ALLUXIO-1536.
   /** The number of bytes written */
   protected int mBytesWritten = 0;
 

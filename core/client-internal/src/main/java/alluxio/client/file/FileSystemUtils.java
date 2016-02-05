@@ -59,9 +59,9 @@ public final class FileSystemUtils {
    * @param uri the URI of the file on which the thread should wait
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
-   * @throws IOException in case there are problems contacting the Tachyon master for the file
+   * @throws IOException in case there are problems contacting the Alluxio master for the file
    *         status
-   * @throws AlluxioException if a Tachyon Exception occurs
+   * @throws AlluxioException if a Alluxio Exception occurs
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
    * @see #waitCompleted(FileSystem, AlluxioURI, long, TimeUnit)
@@ -98,8 +98,8 @@ public final class FileSystemUtils {
    * @param tunit the @{link TimeUnit} instance describing the {@code timeout} parameter
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
-   * @throws IOException in case there are problems contacting the Tachyonmaster for the file status
-   * @throws AlluxioException if a Tachyon Exception occurs
+   * @throws IOException in case there are problems contacting the Alluxio Master for the file status
+   * @throws AlluxioException if a Alluxio Exception occurs
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
    */
@@ -143,14 +143,14 @@ public final class FileSystemUtils {
   /**
    * Persist the given file to the under file system.
    *
-   * @param fs {@link FileSystem} to carry out Tachyon operations
+   * @param fs {@link FileSystem} to carry out Alluxio operations
    * @param uri the uri of the file to persist
    * @param status the status info of the file
-   * @param conf TachyonConf object
+   * @param conf Alluxio configuration
    * @return the size of the file persisted
    * @throws IOException if an I/O error occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws AlluxioException if an unexpected Tachyon error occurs
+   * @throws AlluxioException if an unexpected Alluxio error occurs
    */
   public static long persistFile(FileSystem fs, AlluxioURI uri, URIStatus status,
       Configuration conf) throws IOException, FileDoesNotExistException, AlluxioException {

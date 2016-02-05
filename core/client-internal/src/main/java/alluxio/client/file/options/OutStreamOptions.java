@@ -77,10 +77,10 @@ public final class OutStreamOptions {
   }
 
   /**
-   * @return the Tachyon storage type
+   * @return the Alluxio storage type
    */
-  public AlluxioStorageType getTachyonStorageType() {
-    return mWriteType.getTachyonStorageType();
+  public AlluxioStorageType getAlluxioStorageType() {
+    return mWriteType.getAlluxioStorageType();
   }
 
   /**
@@ -134,8 +134,8 @@ public final class OutStreamOptions {
   /**
    * Sets the {@link WriteType}.
    *
-   * @param writeType the {@link alluxio.client.WriteType} to use for this operation. This will
-   *                  override both the TachyonStorageType and UnderStorageType.
+   * @param writeType the {@link WriteType} to use for this operation. This will override both the
+   *        {@link AlluxioStorageType} and {@link UnderStorageType}.
    * @return the updated options object
    */
   public OutStreamOptions setWriteType(WriteType writeType) {

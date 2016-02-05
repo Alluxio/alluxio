@@ -61,7 +61,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   private FSDataInputStream mHdfsInputStream = null;
 
-  private FileInStream mTachyonFileInputStream = null;
+  private FileInStream mAlluxioFileInputStream = null;
 
   private boolean mClosed = false;
 
@@ -72,7 +72,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   /**
    * Constructs a new stream for reading a file from HDFS.
    *
-   * @param uri the Tachyon file URI
+   * @param uri the Alluxio file URI
    * @param hdfsPath the HDFS path
    * @param conf Hadoop configuration
    * @param bufferSize the buffer size
@@ -95,7 +95,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     mStatistics = stats;
     try {
       mFileInfo = fs.getStatus(uri);
-      mTachyonFileInputStream =
+      mAlluxioFileInputStream =
           fs.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.CACHE));
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(
@@ -118,8 +118,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   @Override
   public void close() throws IOException {
-    if (mTachyonFileInputStream != null) {
-      mTachyonFileInputStream.close();
+    if (mAlluxioFileInputStream != null) {
+      mAlluxioFileInputStream.close();
     }
     if (mHdfsInputStream != null) {
       mHdfsInputStream.close();
@@ -166,10 +166,10 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     if (mClosed) {
       throw new IOException("Cannot read from a closed stream.");
     }
-    if (mTachyonFileInputStream != null) {
+    if (mAlluxioFileInputStream != null) {
       int ret = 0;
       try {
-        ret = mTachyonFileInputStream.read();
+        ret = mAlluxioFileInputStream.read();
         if (mStatistics != null && ret != -1) {
           mStatistics.incrementBytesRead(1);
         }
@@ -177,8 +177,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
         return ret;
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
-        mTachyonFileInputStream.close();
-        mTachyonFileInputStream = null;
+        mAlluxioFileInputStream.close();
+        mAlluxioFileInputStream = null;
       }
     }
     getHdfsInputStream();
@@ -195,10 +195,10 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     if (mClosed) {
       throw new IOException("Cannot read from a closed stream.");
     }
-    if (mTachyonFileInputStream != null) {
+    if (mAlluxioFileInputStream != null) {
       int ret = 0;
       try {
-        ret = mTachyonFileInputStream.read(b, off, len);
+        ret = mAlluxioFileInputStream.read(b, off, len);
         if (mStatistics != null && ret != -1) {
           mStatistics.incrementBytesRead(ret);
         }
@@ -206,8 +206,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
         return ret;
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
-        mTachyonFileInputStream.close();
-        mTachyonFileInputStream = null;
+        mAlluxioFileInputStream.close();
+        mAlluxioFileInputStream = null;
       }
     }
 
@@ -234,16 +234,16 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       return ret;
     }
 
-    if (mTachyonFileInputStream != null) {
+    if (mAlluxioFileInputStream != null) {
       try {
-        mTachyonFileInputStream.seek(position);
-        ret = mTachyonFileInputStream.read(buffer, offset, length);
+        mAlluxioFileInputStream.seek(position);
+        ret = mAlluxioFileInputStream.read(buffer, offset, length);
         if (mStatistics != null && ret != -1) {
           mStatistics.incrementBytesRead(ret);
         }
         return ret;
       } finally {
-        mTachyonFileInputStream.seek(oldPos);
+        mAlluxioFileInputStream.seek(oldPos);
       }
     }
 
@@ -337,8 +337,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException(ExceptionMessage.SEEK_PAST_EOF.getMessage(pos, mFileInfo.getLength()));
     }
 
-    if (mTachyonFileInputStream != null) {
-      mTachyonFileInputStream.seek(pos);
+    if (mAlluxioFileInputStream != null) {
+      mAlluxioFileInputStream.seek(pos);
     } else {
       getHdfsInputStream(pos);
       // TODO(calvin): Optimize for the case when the data is still valid in the buffer

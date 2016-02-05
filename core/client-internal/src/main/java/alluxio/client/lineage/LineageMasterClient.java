@@ -51,7 +51,7 @@ public final class LineageMasterClient extends MasterClientBase {
    * Creates a new lineage master client.
    *
    * @param masterAddress the master address
-   * @param configuration the Tachyon configuration
+   * @param configuration the Alluxio configuration
    */
   public LineageMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
     super(masterAddress, configuration);
@@ -84,8 +84,8 @@ public final class LineageMasterClient extends MasterClientBase {
    * @param outputFiles the list of output file names
    * @param job the job used for the creation
    * @return the value of the lineage creation result
-   * @throws IOException if a non-Tachyon exception occurs
-   * @throws AlluxioException if a Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if a Alluxio exception occurs
    */
   public synchronized long createLineage(final List<String> inputFiles,
       final List<String> outputFiles, final CommandLineJob job) throws IOException,
@@ -105,8 +105,8 @@ public final class LineageMasterClient extends MasterClientBase {
    * @param lineageId the id of the lineage
    * @param cascade true if the deletion is cascading, false otherwise
    * @return true if the deletion was successful, false otherwise
-   * @throws IOException if a non-Tachyon exception occurs
-   * @throws AlluxioException if a Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if a Alluxio exception occurs
    */
   public synchronized boolean deleteLineage(final long lineageId, final boolean cascade)
       throws IOException, AlluxioException {
@@ -125,9 +125,9 @@ public final class LineageMasterClient extends MasterClientBase {
    * @param blockSizeBytes the size of the block in bytes
    * @param ttl the time to live for the file
    * @return the value of the lineage creation result
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws LineageDoesNotExistException if the file does not exist
-   * @throws AlluxioException if a Tachyon exception occurs
+   * @throws AlluxioException if a Alluxio exception occurs
    */
   public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
       final long ttl) throws IOException, LineageDoesNotExistException, AlluxioException {
@@ -144,7 +144,7 @@ public final class LineageMasterClient extends MasterClientBase {
    *
    * @return a list of lineage information
    * @throws ConnectionFailedException if the connection fails
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   public synchronized List<LineageInfo> getLineageInfoList()
       throws ConnectionFailedException, IOException {
@@ -164,8 +164,8 @@ public final class LineageMasterClient extends MasterClientBase {
    * Reports a file as lost.
    *
    * @param path the path to the lost file
-   * @throws IOException if a non-Tachyon exception occurs
-   * @throws AlluxioException if a Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if a Alluxio exception occurs
    */
   public synchronized void reportLostFile(final String path) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
