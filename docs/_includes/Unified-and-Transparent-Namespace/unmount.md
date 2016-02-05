@@ -1,8 +1,8 @@
 ```bash
-${TACHYON_HOME}/bin/tachyon tfs unmount /demo
+${ALLUXIO_HOME}/bin/alluxio tfs unmount /demo
 > Unmounted /demo
-$ ${TACHYON_HOME}/bin/tachyon tfs lsr /
+$ ${ALLUXIO_HOME}/bin/alluxio tfs lsr /
 ... # should not contain /demo
-$ ls /tmp/tachyon-demo
+$ ls /tmp/alluxio-demo
 > hello
 ```

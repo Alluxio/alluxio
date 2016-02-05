@@ -1,4 +1,4 @@
 ```java
-bool mount(String tachyonPath, String ufsPath);
-bool unmount(String tachyonPath);
+bool mount(String alluxioPath, String ufsPath);
+bool unmount(String alluxioPath);
 ```

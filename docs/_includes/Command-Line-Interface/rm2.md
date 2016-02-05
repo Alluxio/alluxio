@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs rm /tmp/unused-file
+$ ./bin/alluxio tfs rm /tmp/unused-file
 ```
