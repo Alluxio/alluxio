@@ -26,11 +26,11 @@ Maven构建环境将自动获取依赖，编译源码，运行单元测试，并
 
 一旦构建完成，执行以下命令启动Alluxio：
 
-{% include Building-Alluxio-Master-Branch/alluxio-start.md %}
+{% include Common-Commands/start-alluxio.md %}
 
 若要确认Alluxio是否在运行，可以访问[http://localhost:19999](http://localhost:19999)，或者查看`alluxio/logs`目录下的日志文件，也可以执行下面的简单程序:
 
-{% include Building-Alluxio-Master-Branch/alluxio-runTests.md %}
+{% include Common-Commands/runTests.md %}
 
 若正确运行，应能看到类似以下输出结果：
 
@@ -38,7 +38,7 @@ Maven构建环境将自动获取依赖，编译源码，运行单元测试，并
 
 执行以下命令停止Alluxio：
 
-{% include Building-Alluxio-Master-Branch/alluxio-stop.md %}
+{% include Common-Commands/stop-alluxio.md %}
 
 # 单元测试
 

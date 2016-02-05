@@ -30,12 +30,12 @@ all the dependencies. Subsequent builds, however, will be much faster.
 
 Once Alluxio is built, you can start it with:
 
-{% include Building-Alluxio-Master-Branch/alluxio-start.md %}
+{% include Common-Commands/start-alluxio.md %}
 
 To verify that Alluxio is running, you can visit [http://localhost:19999](http://localhost:19999) or
 check the log in the `alluxio/logs` directory. You can also run a simple program:
 
-{% include Building-Alluxio-Master-Branch/alluxio-runTests.md %}
+{% include Common-Commands/runTests.md %}
 
 You should be able to see results similar to the following:
 
@@ -43,7 +43,7 @@ You should be able to see results similar to the following:
 
 You can also stop the system by using:
 
-{% include Building-Alluxio-Master-Branch/alluxio-stop.md %}
+{% include Common-Commands/stop-alluxio.md %}
 
 # Unit Tests
 
