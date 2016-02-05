@@ -34,7 +34,7 @@ import alluxio.worker.block.allocator.MaxFreeAllocator;
 
 /**
  * Test {@link Evictor.Factory} by passing in different evictor strategy class names through the
- * Tachyon configuration and verifying the correct Evictor instance is created.
+ * Alluxio configuration and verifying the correct Evictor instance is created.
  */
 public class EvictorFactoryTest {
   private static BlockMetadataManager sBlockMetadataManager;

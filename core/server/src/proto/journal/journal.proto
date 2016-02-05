@@ -8,7 +8,7 @@ import "file.proto";
 import "key_value.proto";
 import "lineage.proto";
 
-// Wraps around all types of Tachyon journal messages.
+// Wraps around all types of Alluxio journal messages.
 // next available id: 28
 message JournalEntry {
   optional int64 sequence_number = 1;

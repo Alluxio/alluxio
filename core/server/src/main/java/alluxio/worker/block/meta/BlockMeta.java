@@ -20,7 +20,7 @@ import java.io.File;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Represents the metadata of a block in Tachyon managed storage.
+ * Represents the metadata of a block in Alluxio managed storage.
  */
 @ThreadSafe
 public final class BlockMeta extends BlockMetaBase {

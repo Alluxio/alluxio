@@ -58,7 +58,7 @@ public abstract class UIWebServer {
    *
    * @param service name of the web service
    * @param address address of the server
-   * @param conf Tachyon configuration
+   * @param conf Alluxio configuration
    */
   public UIWebServer(ServiceType service, InetSocketAddress address, Configuration conf) {
     Preconditions.checkNotNull(service, "Service type cannot be null");

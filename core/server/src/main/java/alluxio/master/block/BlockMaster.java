@@ -77,7 +77,7 @@ import alluxio.wire.WorkerNetAddress;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
- * This master manages the metadata for all the blocks and block workers in Tachyon.
+ * This master manages the metadata for all the blocks and block workers in Alluxio.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
 public final class BlockMaster extends MasterBase implements ContainerIdGenerable {
@@ -93,7 +93,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   private final Map<Long, MasterBlockInfo> mBlocks = new HashMap<Long, MasterBlockInfo>();
 
   /**
-   * Keeps track of block which are no longer in Tachyon storage. Access must be synchronized on
+   * Keeps track of block which are no longer in Alluxio storage. Access must be synchronized on
    * mBlocks.
    */
   @GuardedBy("mBlocks")
@@ -247,7 +247,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * @return a list of {@link WorkerInfo} objects representing the workers in Tachyon
+   * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
    */
   public List<WorkerInfo> getWorkerInfoList() {
     synchronized (mWorkers) {
@@ -260,7 +260,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * @return the total capacity (in bytes) on all tiers, on all workers of Tachyon
+   * @return the total capacity (in bytes) on all tiers, on all workers of Alluxio
    */
   public long getCapacityBytes() {
     long ret = 0;
@@ -280,7 +280,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * @return the total used bytes on all tiers, on all workers of Tachyon
+   * @return the total used bytes on all tiers, on all workers of Alluxio
    */
   public long getUsedBytes() {
     long ret = 0;
@@ -310,7 +310,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   /**
    * Removes blocks from workers.
    *
-   * @param blockIds a list of block ids to remove from Tachyon space
+   * @param blockIds a list of block ids to remove from Alluxio space
    */
   public void removeBlocks(List<Long> blockIds) {
     synchronized (mBlocks) {
@@ -656,7 +656,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * @return the lost blocks in Tachyon Storage
+   * @return the lost blocks in Alluxio Storage
    */
   public Set<Long> getLostBlocks() {
     synchronized (mBlocks) {

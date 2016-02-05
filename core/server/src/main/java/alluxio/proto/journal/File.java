@@ -13,18 +13,18 @@ public final class File {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional string tachyon_path = 1;</code>
+     * <code>optional string alluxio_path = 1;</code>
      */
-    boolean hasTachyonPath();
+    boolean hasAlluxioPath();
     /**
-     * <code>optional string tachyon_path = 1;</code>
+     * <code>optional string alluxio_path = 1;</code>
      */
-    java.lang.String getTachyonPath();
+    java.lang.String getAlluxioPath();
     /**
-     * <code>optional string tachyon_path = 1;</code>
+     * <code>optional string alluxio_path = 1;</code>
      */
     com.google.protobuf.ByteString
-        getTachyonPathBytes();
+        getAlluxioPathBytes();
 
     /**
      * <code>optional string ufs_path = 2;</code>
@@ -99,7 +99,7 @@ public final class File {
             case 10: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
-              tachyonPath_ = bs;
+              alluxioPath_ = bs;
               break;
             }
             case 18: {
@@ -148,19 +148,19 @@ public final class File {
     }
 
     private int bitField0_;
-    public static final int TACHYON_PATH_FIELD_NUMBER = 1;
-    private java.lang.Object tachyonPath_;
+    public static final int ALLUXIO_PATH_FIELD_NUMBER = 1;
+    private java.lang.Object alluxioPath_;
     /**
-     * <code>optional string tachyon_path = 1;</code>
+     * <code>optional string alluxio_path = 1;</code>
      */
-    public boolean hasTachyonPath() {
+    public boolean hasAlluxioPath() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string tachyon_path = 1;</code>
+     * <code>optional string alluxio_path = 1;</code>
      */
-    public java.lang.String getTachyonPath() {
-      java.lang.Object ref = tachyonPath_;
+    public java.lang.String getAlluxioPath() {
+      java.lang.Object ref = alluxioPath_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
@@ -168,22 +168,22 @@ public final class File {
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          tachyonPath_ = s;
+          alluxioPath_ = s;
         }
         return s;
       }
     }
     /**
-     * <code>optional string tachyon_path = 1;</code>
+     * <code>optional string alluxio_path = 1;</code>
      */
     public com.google.protobuf.ByteString
-        getTachyonPathBytes() {
-      java.lang.Object ref = tachyonPath_;
+        getAlluxioPathBytes() {
+      java.lang.Object ref = alluxioPath_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        tachyonPath_ = b;
+        alluxioPath_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -233,7 +233,7 @@ public final class File {
     }
 
     private void initFields() {
-      tachyonPath_ = "";
+      alluxioPath_ = "";
       ufsPath_ = "";
     }
     private byte memoizedIsInitialized = -1;
@@ -250,7 +250,7 @@ public final class File {
                         throws java.io.IOException {
       getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, getTachyonPathBytes());
+        output.writeBytes(1, getAlluxioPathBytes());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeBytes(2, getUfsPathBytes());
@@ -266,7 +266,7 @@ public final class File {
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, getTachyonPathBytes());
+          .computeBytesSize(1, getAlluxioPathBytes());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
@@ -393,7 +393,7 @@ public final class File {
 
       public Builder clear() {
         super.clear();
-        tachyonPath_ = "";
+        alluxioPath_ = "";
         bitField0_ = (bitField0_ & ~0x00000001);
         ufsPath_ = "";
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -428,7 +428,7 @@ public final class File {
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
           to_bitField0_ |= 0x00000001;
         }
-        result.tachyonPath_ = tachyonPath_;
+        result.alluxioPath_ = alluxioPath_;
         if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
           to_bitField0_ |= 0x00000002;
         }
@@ -449,9 +449,9 @@ public final class File {
 
       public Builder mergeFrom(alluxio.proto.journal.File.AddMountPointEntry other) {
         if (other == alluxio.proto.journal.File.AddMountPointEntry.getDefaultInstance()) return this;
-        if (other.hasTachyonPath()) {
+        if (other.hasAlluxioPath()) {
           bitField0_ |= 0x00000001;
-          tachyonPath_ = other.tachyonPath_;
+          alluxioPath_ = other.alluxioPath_;
           onChanged();
         }
         if (other.hasUfsPath()) {
@@ -486,24 +486,24 @@ public final class File {
       }
       private int bitField0_;
 
-      private java.lang.Object tachyonPath_ = "";
+      private java.lang.Object alluxioPath_ = "";
       /**
-       * <code>optional string tachyon_path = 1;</code>
+       * <code>optional string alluxio_path = 1;</code>
        */
-      public boolean hasTachyonPath() {
+      public boolean hasAlluxioPath() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional string tachyon_path = 1;</code>
+       * <code>optional string alluxio_path = 1;</code>
        */
-      public java.lang.String getTachyonPath() {
-        java.lang.Object ref = tachyonPath_;
+      public java.lang.String getAlluxioPath() {
+        java.lang.Object ref = alluxioPath_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
           if (bs.isValidUtf8()) {
-            tachyonPath_ = s;
+            alluxioPath_ = s;
           }
           return s;
         } else {
@@ -511,53 +511,53 @@ public final class File {
         }
       }
       /**
-       * <code>optional string tachyon_path = 1;</code>
+       * <code>optional string alluxio_path = 1;</code>
        */
       public com.google.protobuf.ByteString
-          getTachyonPathBytes() {
-        java.lang.Object ref = tachyonPath_;
+          getAlluxioPathBytes() {
+        java.lang.Object ref = alluxioPath_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          tachyonPath_ = b;
+          alluxioPath_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>optional string tachyon_path = 1;</code>
+       * <code>optional string alluxio_path = 1;</code>
        */
-      public Builder setTachyonPath(
+      public Builder setAlluxioPath(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-        tachyonPath_ = value;
+        alluxioPath_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string tachyon_path = 1;</code>
+       * <code>optional string alluxio_path = 1;</code>
        */
-      public Builder clearTachyonPath() {
+      public Builder clearAlluxioPath() {
         bitField0_ = (bitField0_ & ~0x00000001);
-        tachyonPath_ = getDefaultInstance().getTachyonPath();
+        alluxioPath_ = getDefaultInstance().getAlluxioPath();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string tachyon_path = 1;</code>
+       * <code>optional string alluxio_path = 1;</code>
        */
-      public Builder setTachyonPathBytes(
+      public Builder setAlluxioPathBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-        tachyonPath_ = value;
+        alluxioPath_ = value;
         onChanged();
         return this;
       }
@@ -2336,18 +2336,18 @@ public final class File {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional string tachyon_path = 1;</code>
+     * <code>optional string alluxio_path = 1;</code>
      */
-    boolean hasTachyonPath();
+    boolean hasAlluxioPath();
     /**
-     * <code>optional string tachyon_path = 1;</code>
+     * <code>optional string alluxio_path = 1;</code>
      */
-    java.lang.String getTachyonPath();
+    java.lang.String getAlluxioPath();
     /**
-     * <code>optional string tachyon_path = 1;</code>
+     * <code>optional string alluxio_path = 1;</code>
      */
     com.google.protobuf.ByteString
-        getTachyonPathBytes();
+        getAlluxioPathBytes();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.DeleteMountPointEntry}
@@ -2408,7 +2408,7 @@ public final class File {
             case 10: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
-              tachyonPath_ = bs;
+              alluxioPath_ = bs;
               break;
             }
           }
@@ -2451,19 +2451,19 @@ public final class File {
     }
 
     private int bitField0_;
-    public static final int TACHYON_PATH_FIELD_NUMBER = 1;
-    private java.lang.Object tachyonPath_;
+    public static final int ALLUXIO_PATH_FIELD_NUMBER = 1;
+    private java.lang.Object alluxioPath_;
     /**
-     * <code>optional string tachyon_path = 1;</code>
+     * <code>optional string alluxio_path = 1;</code>
      */
-    public boolean hasTachyonPath() {
+    public boolean hasAlluxioPath() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string tachyon_path = 1;</code>
+     * <code>optional string alluxio_path = 1;</code>
      */
-    public java.lang.String getTachyonPath() {
-      java.lang.Object ref = tachyonPath_;
+    public java.lang.String getAlluxioPath() {
+      java.lang.Object ref = alluxioPath_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
@@ -2471,22 +2471,22 @@ public final class File {
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          tachyonPath_ = s;
+          alluxioPath_ = s;
         }
         return s;
       }
     }
     /**
-     * <code>optional string tachyon_path = 1;</code>
+     * <code>optional string alluxio_path = 1;</code>
      */
     public com.google.protobuf.ByteString
-        getTachyonPathBytes() {
-      java.lang.Object ref = tachyonPath_;
+        getAlluxioPathBytes() {
+      java.lang.Object ref = alluxioPath_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        tachyonPath_ = b;
+        alluxioPath_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -2494,7 +2494,7 @@ public final class File {
     }
 
     private void initFields() {
-      tachyonPath_ = "";
+      alluxioPath_ = "";
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -2510,7 +2510,7 @@ public final class File {
                         throws java.io.IOException {
       getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, getTachyonPathBytes());
+        output.writeBytes(1, getAlluxioPathBytes());
       }
       getUnknownFields().writeTo(output);
     }
@@ -2523,7 +2523,7 @@ public final class File {
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, getTachyonPathBytes());
+          .computeBytesSize(1, getAlluxioPathBytes());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -2646,7 +2646,7 @@ public final class File {
 
       public Builder clear() {
         super.clear();
-        tachyonPath_ = "";
+        alluxioPath_ = "";
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
@@ -2679,7 +2679,7 @@ public final class File {
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
           to_bitField0_ |= 0x00000001;
         }
-        result.tachyonPath_ = tachyonPath_;
+        result.alluxioPath_ = alluxioPath_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -2696,9 +2696,9 @@ public final class File {
 
       public Builder mergeFrom(alluxio.proto.journal.File.DeleteMountPointEntry other) {
         if (other == alluxio.proto.journal.File.DeleteMountPointEntry.getDefaultInstance()) return this;
-        if (other.hasTachyonPath()) {
+        if (other.hasAlluxioPath()) {
           bitField0_ |= 0x00000001;
-          tachyonPath_ = other.tachyonPath_;
+          alluxioPath_ = other.alluxioPath_;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -2728,24 +2728,24 @@ public final class File {
       }
       private int bitField0_;
 
-      private java.lang.Object tachyonPath_ = "";
+      private java.lang.Object alluxioPath_ = "";
       /**
-       * <code>optional string tachyon_path = 1;</code>
+       * <code>optional string alluxio_path = 1;</code>
        */
-      public boolean hasTachyonPath() {
+      public boolean hasAlluxioPath() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional string tachyon_path = 1;</code>
+       * <code>optional string alluxio_path = 1;</code>
        */
-      public java.lang.String getTachyonPath() {
-        java.lang.Object ref = tachyonPath_;
+      public java.lang.String getAlluxioPath() {
+        java.lang.Object ref = alluxioPath_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
           if (bs.isValidUtf8()) {
-            tachyonPath_ = s;
+            alluxioPath_ = s;
           }
           return s;
         } else {
@@ -2753,53 +2753,53 @@ public final class File {
         }
       }
       /**
-       * <code>optional string tachyon_path = 1;</code>
+       * <code>optional string alluxio_path = 1;</code>
        */
       public com.google.protobuf.ByteString
-          getTachyonPathBytes() {
-        java.lang.Object ref = tachyonPath_;
+          getAlluxioPathBytes() {
+        java.lang.Object ref = alluxioPath_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          tachyonPath_ = b;
+          alluxioPath_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>optional string tachyon_path = 1;</code>
+       * <code>optional string alluxio_path = 1;</code>
        */
-      public Builder setTachyonPath(
+      public Builder setAlluxioPath(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-        tachyonPath_ = value;
+        alluxioPath_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string tachyon_path = 1;</code>
+       * <code>optional string alluxio_path = 1;</code>
        */
-      public Builder clearTachyonPath() {
+      public Builder clearAlluxioPath() {
         bitField0_ = (bitField0_ & ~0x00000001);
-        tachyonPath_ = getDefaultInstance().getTachyonPath();
+        alluxioPath_ = getDefaultInstance().getAlluxioPath();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string tachyon_path = 1;</code>
+       * <code>optional string alluxio_path = 1;</code>
        */
-      public Builder setTachyonPathBytes(
+      public Builder setAlluxioPathBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-        tachyonPath_ = value;
+        alluxioPath_ = value;
         onChanged();
         return this;
       }
@@ -10607,14 +10607,14 @@ public final class File {
   static {
     java.lang.String[] descriptorData = {
       "\n\nfile.proto\022\025alluxio.proto.journal\"<\n\022A" +
-      "ddMountPointEntry\022\024\n\014tachyon_path\030\001 \001(\t\022" +
+      "ddMountPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\022" +
       "\020\n\010ufs_path\030\002 \001(\t\"+\n\030AsyncPersistRequest" +
       "Entry\022\017\n\007file_id\030\001 \001(\003\"V\n\021CompleteFileEn" +
       "try\022\021\n\tblock_ids\030\001 \003(\003\022\n\n\002id\030\002 \001(\003\022\016\n\006le" +
       "ngth\030\003 \001(\003\022\022\n\nop_time_ms\030\004 \001(\003\"D\n\017Delete" +
       "FileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\trecursive\030\002 \001(\010" +
       "\022\022\n\nop_time_ms\030\003 \001(\003\"-\n\025DeleteMountPoint" +
-      "Entry\022\024\n\014tachyon_path\030\001 \001(\t\"\345\001\n\023InodeDir" +
+      "Entry\022\024\n\014alluxio_path\030\001 \001(\t\"\345\001\n\023InodeDir" +
       "ectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001",
       "(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_state\030\004 " +
       "\001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_time_ms\030" +
@@ -10661,7 +10661,7 @@ public final class File {
     internal_static_alluxio_proto_journal_AddMountPointEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_AddMountPointEntry_descriptor,
-        new java.lang.String[] { "TachyonPath", "UfsPath", });
+        new java.lang.String[] { "AlluxioPath", "UfsPath", });
     internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_fieldAccessorTable = new
@@ -10685,7 +10685,7 @@ public final class File {
     internal_static_alluxio_proto_journal_DeleteMountPointEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_DeleteMountPointEntry_descriptor,
-        new java.lang.String[] { "TachyonPath", });
+        new java.lang.String[] { "AlluxioPath", });
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor =
       getDescriptor().getMessageTypes().get(5);
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable = new

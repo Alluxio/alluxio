@@ -35,7 +35,7 @@ import alluxio.worker.file.FileSystemMasterClient;
 public final class PinListSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Block worker handle responsible for interacting with Tachyon and UFS storage */
+  /** Block worker handle responsible for interacting with Alluxio and UFS storage */
   private final BlockWorker mBlockWorker;
 
   /** Client for all master communication */
@@ -45,7 +45,7 @@ public final class PinListSync implements HeartbeatExecutor {
    * Creates a new instance of {@link PinListSync}.
    *
    * @param blockWorker the block worker handle
-   * @param masterClient the Tachyon master client
+   * @param masterClient the Alluxio master client
    */
   public PinListSync(BlockWorker blockWorker, FileSystemMasterClient masterClient) {
     mBlockWorker = blockWorker;

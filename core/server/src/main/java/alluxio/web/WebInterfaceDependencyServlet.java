@@ -41,7 +41,7 @@ public final class WebInterfaceDependencyServlet extends HttpServlet {
   /**
    * Creates a new instance of {@link WebInterfaceDependencyServlet}.
    *
-   * @param master Tachyon master
+   * @param master Alluxio master
    */
   public WebInterfaceDependencyServlet(AlluxioMaster master) {
     mMaster = Preconditions.checkNotNull(master);

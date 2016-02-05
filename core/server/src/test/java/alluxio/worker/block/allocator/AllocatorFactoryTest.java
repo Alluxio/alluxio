@@ -62,8 +62,7 @@ public class AllocatorFactoryTest {
 
   /**
    * Tests the creation of the {@link GreedyAllocator} via the
-   * {@link alluxio.worker.block.allocator.Allocator.Factory#create(Configuration,
-   *        BlockMetadataManagerView)} method.
+   * {@link Allocator.Factory#create(Configuration, BlockMetadataManagerView)} method.
    */
   @Test
   public void createGreedyAllocatorTest() {
@@ -74,8 +73,7 @@ public class AllocatorFactoryTest {
 
   /**
    * Tests the creation of the {@link MaxFreeAllocator} via the
-   * {@link alluxio.worker.block.allocator.Allocator.Factory#create(Configuration,
-   *        BlockMetadataManagerView)} method.
+   * {@link Allocator.Factory#create(Configuration, BlockMetadataManagerView)} method.
    */
   @Test
   public void createMaxFreeAllocatorTest() {
@@ -86,8 +84,7 @@ public class AllocatorFactoryTest {
 
   /**
    * Tests the creation of the {@link RoundRobinAllocator} via the
-   * {@link alluxio.worker.block.allocator.Allocator.Factory#create(Configuration,
-   *        BlockMetadataManagerView)} method.
+   * {@link Allocator.Factory#create(Configuration, BlockMetadataManagerView)} method.
    */
   @Test
   public void createRoundRobinAllocatorTest() {
@@ -98,15 +95,12 @@ public class AllocatorFactoryTest {
 
   /**
    * Tests the creation of the default allocator via the
-   * {@link alluxio.worker.block.allocator.Allocator.Factory#create(Configuration,
-   *        BlockMetadataManagerView)} method.
+   * {@link Allocator.Factory#create(Configuration, BlockMetadataManagerView)} method.
    */
   @Test
   public void createDefaultAllocatorTest() {
-    /*
-     * create a new instance of TachyonConf with original
-     * properties to test the default behavior of create
-     */
+    // Create a new instance of Alluxio configuration with original properties to test the default
+    // behavior of create.
     Configuration conf = new Configuration();
     Allocator allocator = Allocator.Factory.create(conf, mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);

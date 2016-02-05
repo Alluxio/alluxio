@@ -51,7 +51,7 @@ public final class CreatePathOptions {
     /**
      * Creates a new builder for {@link CreatePathOptions}.
      *
-     * @param conf a Tachyon configuration
+     * @param conf a Alluxio configuration
      */
     public Builder(Configuration conf) {
       mAllowExists = false;
