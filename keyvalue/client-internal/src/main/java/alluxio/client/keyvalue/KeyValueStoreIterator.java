@@ -40,7 +40,7 @@ public final class KeyValueStoreIterator implements KeyValueIterator {
 
   /**
    * @param partitions the partitions to use
-   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws IOException if a non-Alluxio related exception occurs
    * @throws AlluxioException if a {@link KeyValuePartitionReader} cannot be created or iterated
    *         over
    */

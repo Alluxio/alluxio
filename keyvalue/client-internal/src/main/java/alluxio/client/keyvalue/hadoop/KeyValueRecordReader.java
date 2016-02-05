@@ -50,8 +50,8 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
    * Creates a {@link KeyValueRecordReader} for generating key-value pairs of a partition.
    *
    * @param split the split for a block
-   * @throws IOException if non-Tachyon error occurs
-   * @throws AlluxioException if Tachyon error occurs
+   * @throws IOException if non-Alluxio error occurs
+   * @throws AlluxioException if Alluxio error occurs
    */
   public KeyValueRecordReader(KeyValueInputSplit split) throws IOException, AlluxioException {
     mReader = KeyValuePartitionReader.Factory.create(split.getPartitionId());

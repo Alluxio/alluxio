@@ -24,7 +24,7 @@ import alluxio.client.Cancelable;
 import alluxio.exception.AlluxioException;
 
 /**
- * Interface for writers which create new key-value stores in Tachyon.
+ * Interface for writers which create new key-value stores in Alluxio.
  */
 @PublicApi
 public interface KeyValueStoreWriter extends Closeable, Cancelable {
@@ -33,8 +33,8 @@ public interface KeyValueStoreWriter extends Closeable, Cancelable {
    *
    * @param key key to put, cannot be null
    * @param value value to put, cannot be null
-   * @throws IOException if non-Tachyon error occurs
-   * @throws AlluxioException if Tachyon error occurs
+   * @throws IOException if non-Alluxio error occurs
+   * @throws AlluxioException if Alluxio error occurs
    */
   void put(byte[] key, byte[] value) throws IOException, AlluxioException;
 
@@ -43,8 +43,8 @@ public interface KeyValueStoreWriter extends Closeable, Cancelable {
    *
    * @param key key to put, cannot be null
    * @param value value to put, cannot be null
-   * @throws IOException if non-Tachyon error occurs
-   * @throws AlluxioException if Tachyon error occurs
+   * @throws IOException if non-Alluxio error occurs
+   * @throws AlluxioException if Alluxio error occurs
    */
   void put(ByteBuffer key, ByteBuffer value) throws IOException, AlluxioException;
 

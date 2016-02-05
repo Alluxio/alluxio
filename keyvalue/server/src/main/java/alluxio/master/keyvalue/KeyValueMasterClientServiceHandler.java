@@ -29,7 +29,7 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
 /**
- * This class is a Thrift handler for key-value master RPCs invoked by a Alluxio client.
+ * This class is a Thrift handler for key-value master RPCs invoked by an Alluxio client.
  */
 @ThreadSafe
 public final class KeyValueMasterClientServiceHandler implements KeyValueMasterClientService.Iface {

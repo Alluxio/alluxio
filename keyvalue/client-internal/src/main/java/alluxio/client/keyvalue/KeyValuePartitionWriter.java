@@ -27,7 +27,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 
 /**
- * Interface for a writer which creates a Tachyon key-value partition.
+ * Interface for a writer which creates an Alluxio key-value partition.
  */
 public interface KeyValuePartitionWriter extends Closeable, Cancelable {
 
@@ -37,12 +37,12 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
   class Factory {
     /**
      * Factory method to create a {@link KeyValuePartitionWriter} instance that writes key-value
-     * data to a new partition file in Tachyon.
+     * data to a new partition file in Alluxio.
      *
      * @param uri URI of the key-value partition file to write to
      * @return an instance of a {@link KeyValuePartitionWriter}
-     * @throws IOException if a non-Tachyon exception occurs
-     * @throws AlluxioException if an unexpected Tachyon exception is thrown
+     * @throws IOException if a non-Alluxio exception occurs
+     * @throws AlluxioException if an unexpected Alluxio exception is thrown
      */
     public static KeyValuePartitionWriter create(AlluxioURI uri)
         throws AlluxioException, IOException {
@@ -58,7 +58,7 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
    *
    * @param key key to put, cannot be null
    * @param value value to put, cannot be null
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   // TODO(binfan): throw already exists exception if the key is already inserted.
   void put(byte[] key, byte[] value) throws IOException;

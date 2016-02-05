@@ -36,7 +36,7 @@ import alluxio.thrift.PartitionInfo;
 import alluxio.util.io.BufferUtils;
 
 /**
- * Default implementation of {@link KeyValueStoreReader} to access a Tachyon key-value store.
+ * Default implementation of {@link KeyValueStoreReader} to access an Alluxio key-value store.
  */
 @NotThreadSafe
 class BaseKeyValueStoreReader implements KeyValueStoreReader {
@@ -53,8 +53,8 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
    * Constructs a {@link BaseKeyValueStoreReader} instance.
    *
    * @param uri URI of the key-value store
-   * @throws IOException if non-Tachyon error occurs
-   * @throws AlluxioException if Tachyon error occurs
+   * @throws IOException if non-Alluxio error occurs
+   * @throws AlluxioException if Alluxio error occurs
    */
   BaseKeyValueStoreReader(AlluxioURI uri) throws IOException, AlluxioException {
     // TODO(binfan): use a thread pool to manage the client.
