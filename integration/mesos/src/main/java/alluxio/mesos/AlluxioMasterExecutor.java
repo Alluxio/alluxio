@@ -28,7 +28,7 @@ import alluxio.underfs.UnderFileSystemRegistry;
 
 /**
  * {@link AlluxioMasterExecutor} is an implementation of a Mesos executor responsible for
- * starting the Tachyon master.
+ * starting the Alluxio master.
  */
 @ThreadSafe
 public class AlluxioMasterExecutor implements Executor {
@@ -104,7 +104,7 @@ public class AlluxioMasterExecutor implements Executor {
   }
 
   /**
-   * Starts the Tachyon master executor.
+   * Starts the Alluxio master executor.
    *
    * @param args command-line arguments
    * @throws Exception if the executor encounters an unrecoverable error

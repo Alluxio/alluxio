@@ -20,19 +20,18 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Convenience class to pass around Tachyon-FUSE options.
+ * Convenience class to pass around Alluxio-FUSE options.
  */
 @ThreadSafe
 final class AlluxioFuseOptions {
   private final String mMountPoint;
-  private final String mTachyonRoot;
+  private final String mAlluxioRoot;
   private final boolean mDebug;
   private final List<String> mFuseOpts;
 
-  AlluxioFuseOptions(String mountPoint, String tachyonRoot,
-                     boolean debug, List<String> fuseOpts) {
+  AlluxioFuseOptions(String mountPoint, String alluxioRoot, boolean debug, List<String> fuseOpts) {
     mMountPoint = mountPoint;
-    mTachyonRoot = tachyonRoot;
+    mAlluxioRoot = alluxioRoot;
     mDebug = debug;
     mFuseOpts = fuseOpts;
   }
@@ -48,8 +47,8 @@ final class AlluxioFuseOptions {
    * @return The path within alluxio that will be used as the mounted FS root
    * (e.g. /users/andrea)
    */
-  public String getTachyonRoot() {
-    return mTachyonRoot;
+  public String getAlluxioRoot() {
+    return mAlluxioRoot;
   }
 
   /**

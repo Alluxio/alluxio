@@ -40,10 +40,10 @@ import alluxio.util.io.PathUtils;
 
 /**
  * {@link AlluxioFramework} is an implementation of a Mesos framework that is responsible for
- * starting Tachyon processes. The current implementation starts a single Tachyon master and n
- * Tachyon workers (one per Mesos slave).
+ * starting Alluxio processes. The current implementation starts a single Alluxio master and n
+ * Alluxio workers (one per Mesos slave).
  *
- * The current resource allocation policy uses a configurable Tachyon master allocation, while the
+ * The current resource allocation policy uses a configurable Alluxio master allocation, while the
  * workers use the maximum available allocation.
  */
 @NotThreadSafe
@@ -127,9 +127,9 @@ public class AlluxioFramework {
         double targetCpu;
         double targetMem;
         if (!mMasterLaunched && offerCpu >= masterCpu && offerMem >= masterMem
-            && mMasterCount < sConf.getInt(Constants.INTEGRATION_MESOS_TACHYON_MASTER_NODE_COUNT)) {
+            && mMasterCount < sConf.getInt(Constants.INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT)) {
           executorBuilder
-              .setName("Tachyon Master Executor")
+              .setName("Alluxio Master Executor")
               .setSource("master")
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("master"))
               .setCommand(
@@ -139,7 +139,7 @@ public class AlluxioFramework {
                           "export JAVA_HOME="
                               + sConf.get(Constants.INTEGRATION_MESOS_JRE_PATH)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
-                              + PathUtils.concatPath("tachyon", "integration", "bin",
+                              + PathUtils.concatPath("alluxio", "integration", "bin",
                                   "alluxio-master-mesos.sh"))
                       .addAllUris(getExecutorDependencyURIList())
                       .setEnvironment(
@@ -147,14 +147,14 @@ public class AlluxioFramework {
                               .newBuilder()
                               .addVariables(
                                   Protos.Environment.Variable.newBuilder()
-                                      .setName("TACHYON_UNDERFS_ADDRESS")
+                                      .setName("ALLUXIO_UNDERFS_ADDRESS")
                                       .setValue(sConf.get(Constants.UNDERFS_ADDRESS))
                                       .build())
                               .build()));
           targetCpu = masterCpu;
           targetMem = masterMem;
           mMasterHostname = offer.getHostname();
-          mTaskName = sConf.get(Constants.INTEGRATION_MESOS_TACHYON_MASTER_NAME);
+          mTaskName = sConf.get(Constants.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME);
           mMasterCount ++;
           mMasterTaskId = mLaunchedTasks;
 
@@ -162,7 +162,7 @@ public class AlluxioFramework {
             && offerCpu >= workerCpu && offerMem >= workerMem) {
           final String memSize = FormatUtils.getSizeFromBytes((long) workerMem * Constants.MB);
           executorBuilder
-              .setName("Tachyon Worker Executor")
+              .setName("Alluxio Worker Executor")
               .setSource("worker")
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("worker"))
               .setCommand(
@@ -172,7 +172,7 @@ public class AlluxioFramework {
                           "export JAVA_HOME="
                               + sConf.get(Constants.INTEGRATION_MESOS_JRE_PATH)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
-                              + PathUtils.concatPath("tachyon", "integration", "bin",
+                              + PathUtils.concatPath("alluxio", "integration", "bin",
                                   "alluxio-worker-mesos.sh"))
                       .addAllUris(getExecutorDependencyURIList())
                       .setEnvironment(
@@ -180,22 +180,22 @@ public class AlluxioFramework {
                               .newBuilder()
                               .addVariables(
                                   Protos.Environment.Variable.newBuilder()
-                                      .setName("TACHYON_MASTER_ADDRESS").setValue(mMasterHostname)
+                                      .setName("ALLUXIO_MASTER_ADDRESS").setValue(mMasterHostname)
                                       .build())
                               .addVariables(
                                   Protos.Environment.Variable.newBuilder()
-                                      .setName("TACHYON_WORKER_MEMORY_SIZE").setValue(memSize)
+                                      .setName("ALLUXIO_WORKER_MEMORY_SIZE").setValue(memSize)
                                       .build())
                               .addVariables(
                                   Protos.Environment.Variable.newBuilder()
-                                      .setName("TACHYON_UNDERFS_ADDRESS")
+                                      .setName("ALLUXIO_UNDERFS_ADDRESS")
                                       .setValue(sConf.get(Constants.UNDERFS_ADDRESS))
                                       .build())
                               .build()));
           targetCpu = workerCpu;
           targetMem = workerMem;
           mWorkers.add(offer.getHostname());
-          mTaskName = sConf.get(Constants.INTEGRATION_MESOS_TACHYON_WORKER_NAME);
+          mTaskName = sConf.get(Constants.INTEGRATION_MESOS_ALLUXIO_WORKER_NAME);
         } else {
           // The resource offer cannot be used to start either master or a worker.
           driver.declineOffer(offer.getId());
@@ -252,9 +252,9 @@ public class AlluxioFramework {
       String taskId = status.getTaskId().getValue();
       Protos.TaskState state = status.getState();
       System.out.printf("Task %s is in state %s%n", taskId, state);
-      // TODO(jiri): Handle the case when a Tachyon master and/or worker task fails.
-      // In particular, we should enable support for the fault tolerant mode of Tachyon to account
-      // for Tachyon master process failures and keep track of the running number of Tachyon
+      // TODO(jiri): Handle the case when an Alluxio master and/or worker task fails.
+      // In particular, we should enable support for the fault tolerant mode of Alluxio to account
+      // for Alluxio master process failures and keep track of the running number of Alluxio
       // masters.
 
       switch (status.getState()) {
@@ -279,8 +279,8 @@ public class AlluxioFramework {
   private static void usage() {
     String name = AlluxioFramework.class.getName();
     System.err.println("This is an implementation of a Mesos framework that is responsible for "
-        + "starting\nTachyon processes. The current implementation starts a single Tachyon master "
-        + "and\n n Tachyon workers (one per Mesos slave).");
+        + "starting\nAlluxio processes. The current implementation starts a single Alluxio master "
+        + "and\n n Alluxio workers (one per Mesos slave).");
     System.err.println("Usage: " + name + " <hostname>");
   }
 
@@ -315,10 +315,10 @@ public class AlluxioFramework {
   }
 
   /**
-   * Starts the Tachyon framework.
+   * Starts the Alluxio framework.
    *
    * @param args command-line arguments
-   * @throws Exception if the Tachyon framework encounters an unrecoverable error
+   * @throws Exception if the Alluxio framework encounters an unrecoverable error
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
@@ -332,7 +332,7 @@ public class AlluxioFramework {
     // Start Mesos master. Setting the user to an empty string will prompt Mesos to set it to the
     // current user.
     Protos.FrameworkInfo.Builder frameworkInfo = Protos.FrameworkInfo.newBuilder()
-        .setName("tachyon").setCheckpoint(true);
+        .setName("alluxio").setCheckpoint(true);
 
     if (conf.get(Constants.INTEGRATION_MESOS_ROLE) != null) {
       frameworkInfo.setRole(conf.get(Constants.INTEGRATION_MESOS_ROLE));
