@@ -5,7 +5,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 source "${SCRIPT_DIR}/common.sh"
-TACHYON_FRAMEWORK_JAVA_OPTS="${TACHYON_FRAMEWORK_JAVA_OPTS:-${TACHYON_JAVA_OPTS}}"
+ALLUXIO_FRAMEWORK_JAVA_OPTS="${ALLUXIO_FRAMEWORK_JAVA_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 MESOS_LIBRARY_PATH="${MESOS_LIBRARY_PATH:-/usr/local/lib}"
 
 Usage="Usage: alluxio-mesos.sh [-hw] MESOS_MASTER_ADDRESS
@@ -39,14 +39,14 @@ if [[ ! "${MESOS_MASTER_ADDRESS}" ]]; then
   exit 1
 fi
 
-mkdir -p "${TACHYON_LOGS_DIR}"
+mkdir -p "${ALLUXIO_LOGS_DIR}"
 
 "${JAVA}" -cp "${CLASSPATH}" \
-  ${TACHYON_FRAMEWORK_JAVA_OPTS} \
+  ${ALLUXIO_FRAMEWORK_JAVA_OPTS} \
   -Djava.library.path="${MESOS_LIBRARY_PATH}" \
-  -Dalluxio.home="${TACHYON_HOME}" \
-  -Dalluxio.logs.dir="${TACHYON_LOGS_DIR}" \
-  alluxio.mesos.AlluxioFramework "${MESOS_MASTER_ADDRESS}" > "${TACHYON_LOGS_DIR}"/framework.out 2>&1 &
+  -Dalluxio.home="${ALLUXIO_HOME}" \
+  -Dalluxio.logs.dir="${ALLUXIO_LOGS_DIR}" \
+  alluxio.mesos.AlluxioFramework "${MESOS_MASTER_ADDRESS}" > "${ALLUXIO_LOGS_DIR}"/framework.out 2>&1 &
 
 if [[ "${wait}" ]]; then
   wait

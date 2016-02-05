@@ -11,11 +11,11 @@ fi
 
 get_env () {
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
-  TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
-  . $TACHYON_LIBEXEC_DIR/alluxio-config.sh
+  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+  . $ALLUXIO_LIBEXEC_DIR/alluxio-config.sh
 
-  TACHYON_MASTER_PORT=${TACHYON_MASTER_PORT:-19998}
-  TACHYON_FUSE_JAR=${BIN}/../integration/fuse/target/tachyon-integration-fuse-${VERSION}-jar-with-dependencies.jar
+  ALLUXIO_MASTER_PORT=${ALLUXIO_MASTER_PORT:-19998}
+  ALLUXIO_FUSE_JAR=${BIN}/../integration/fuse/target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
   FUSE_MAX_WRITE=131072
 }
 
@@ -30,8 +30,8 @@ check_java_version () {
 }
 
 check_tfuse_jar () {
-  if ! [[ -f ${TACHYON_FUSE_JAR} ]]; then
-    echo "Cannot find ${TACHYON_FUSE_JAR}. Was alluxio compiled with java8 or more recent?"
+  if ! [[ -f ${ALLUXIO_FUSE_JAR} ]]; then
+    echo "Cannot find ${ALLUXIO_FUSE_JAR}. Was alluxio compiled with java8 or more recent?"
     return 1
   else
     return 0
@@ -45,13 +45,13 @@ set_java_opt () {
     -Xmx1G
   "
 
-  TACHYON_FUSE_OPTS+="
+  ALLUXIO_FUSE_OPTS+="
     -Dalluxio.logger.type=alluxio.fuse
-    -Dalluxio.master.port=${TACHYON_MASTER_PORT}
-    -Dalluxio.master.hostname=${TACHYON_MASTER_ADDRESS}
-    -Dalluxio.logs.dir=$TACHYON_LOGS_DIR
+    -Dalluxio.master.port=${ALLUXIO_MASTER_PORT}
+    -Dalluxio.master.hostname=${ALLUXIO_MASTER_ADDRESS}
+    -Dalluxio.logs.dir=$ALLUXIO_LOGS_DIR
     -Dalluxio.logger.type="FUSE_LOGGER"
-    -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties
+    -Dlog4j.configuration=file:$ALLUXIO_CONF_DIR/log4j.properties
   "
 }
 
@@ -62,16 +62,16 @@ mount_fuse() {
   fi
   echo "Starting alluxio-fuse on local host."
   local mount_point=$1
-  (nohup $JAVA -cp ${TACHYON_FUSE_JAR} ${JAVA_OPTS} ${TACHYON_FUSE_OPTS}\
+  (nohup $JAVA -cp ${ALLUXIO_FUSE_JAR} ${JAVA_OPTS} ${ALLUXIO_FUSE_OPTS}\
     alluxio.fuse.AlluxioFuse \
     -m ${mount_point} \
-    -o big_writes > $TACHYON_LOGS_DIR/fuse.out 2>&1) &
+    -o big_writes > $ALLUXIO_LOGS_DIR/fuse.out 2>&1) &
   # sleep: workaround to let the bg java process exit on errors, if any
   sleep 2s
   if kill -0 $! > /dev/null 2>&1 ; then
     return 0
   else
-    echo "alluxio-fuse not started. See ${TACHYON_LOGS_DIR}/fuse.out for details" >&2
+    echo "alluxio-fuse not started. See ${ALLUXIO_LOGS_DIR}/fuse.out for details" >&2
     return 1
   fi
 }

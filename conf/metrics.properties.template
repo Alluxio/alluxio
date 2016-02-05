@@ -36,9 +36,9 @@
 #    For example, master.sink.console.period takes precedence over
 #    *.sink.console.period.
 #    4. A metrics specific configuration
-#    "alluxio.metrics.conf.file=${TACHYON_HOME}/conf/metrics.properties" should be
+#    "alluxio.metrics.conf.file=${ALLUXIO_HOME}/conf/metrics.properties" should be
 #    added to Java properties using -Dalluxio.metrics.conf.file=xxx if you want to
-#    customize metrics system. You can also put the file in ${TACHYON_HOME}/conf
+#    customize metrics system. You can also put the file in ${ALLUXIO_HOME}/conf
 #    and it will be loaded automatically.
 #    5. MetricsServlet is added by default as a sink, you can send http request
 #    "/metrics/json" to get a snapshot of all the registered metrics in json format.
