@@ -20,27 +20,27 @@ this="$config_bin/$script"
 
 # This will set the default installation for a tarball installation while os distributors can create
 # their own alluxio-layout.sh file to set system installation locations.
-if [ -z "$TACHYON_SYSTEM_INSTALLATION" ]; then
+if [ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]; then
   VERSION=1.0.0-SNAPSHOT
-  export TACHYON_PREFIX=`dirname $(dirname "$this")`
-  export TACHYON_HOME=${TACHYON_PREFIX}
-  export TACHYON_CONF_DIR="$TACHYON_HOME/conf"
-  export TACHYON_LOGS_DIR="$TACHYON_HOME/logs"
-  export TACHYON_JARS="$TACHYON_HOME/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar"
+  export ALLUXIO_PREFIX=`dirname $(dirname "$this")`
+  export ALLUXIO_HOME=${ALLUXIO_PREFIX}
+  export ALLUXIO_CONF_DIR="$ALLUXIO_HOME/conf"
+  export ALLUXIO_LOGS_DIR="$ALLUXIO_HOME/logs"
+  export ALLUXIO_JARS="$ALLUXIO_HOME/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar"
 fi
 
 # Make sure alluxio-env.sh exists
-if [ ! -e $TACHYON_CONF_DIR/alluxio-env.sh ]; then
-  echo "Cannot find alluxio-env.sh in $TACHYON_CONF_DIR."
-  echo "Please create one manually or using '$TACHYON_HOME/bin/alluxio bootstrap-conf'."
+if [ ! -e $ALLUXIO_CONF_DIR/alluxio-env.sh ]; then
+  echo "Cannot find alluxio-env.sh in $ALLUXIO_CONF_DIR."
+  echo "Please create one manually or using '$ALLUXIO_HOME/bin/alluxio bootstrap-conf'."
   exit 1
 fi
 
-. $TACHYON_CONF_DIR/alluxio-env.sh
+. $ALLUXIO_CONF_DIR/alluxio-env.sh
 
-# A developer option to prepend Tachyon jars before TACHYON_CLASSPATH jars
-if [ -n "$TACHYON_PREPEND_TACHYON_CLASSES" ]; then
-  export CLASSPATH="$TACHYON_CONF_DIR/:$TACHYON_JARS:$TACHYON_CLASSPATH"
+# A developer option to prepend Tachyon jars before ALLUXIO_CLASSPATH jars
+if [ -n "$ALLUXIO_PREPEND_ALLUXIO_CLASSES" ]; then
+  export CLASSPATH="$ALLUXIO_CONF_DIR/:$ALLUXIO_JARS:$ALLUXIO_CLASSPATH"
 else
-  export CLASSPATH="$TACHYON_CONF_DIR/:$TACHYON_CLASSPATH:$TACHYON_JARS"
+  export CLASSPATH="$ALLUXIO_CONF_DIR/:$ALLUXIO_CLASSPATH:$ALLUXIO_JARS"
 fi

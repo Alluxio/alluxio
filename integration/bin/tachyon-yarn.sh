@@ -24,26 +24,26 @@ else
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
-TACHYON_HOME="$(cd "${SCRIPT_DIR}/../.."; pwd)"
+ALLUXIO_HOME="$(cd "${SCRIPT_DIR}/../.."; pwd)"
 
 source "${SCRIPT_DIR}/common.sh"
 
 NUM_WORKERS=$1
 HDFS_PATH=$2
-TACHYON_TARFILE="alluxio.tar.gz"
-rm -rf $TACHYON_TARFILE
-tar -C $TACHYON_HOME -zcf $TACHYON_TARFILE \
+ALLUXIO_TARFILE="alluxio.tar.gz"
+rm -rf $ALLUXIO_TARFILE
+tar -C $ALLUXIO_HOME -zcf $ALLUXIO_TARFILE \
   assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar libexec \
   core/server/src/main/webapp \
   bin conf integration/bin/common.sh integration/bin/tachyon-master-yarn.sh \
   integration/bin/tachyon-worker-yarn.sh \
   integration/bin/tachyon-application-master.sh \
 
-JAR_LOCAL=${TACHYON_HOME}/assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar
+JAR_LOCAL=${ALLUXIO_HOME}/assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar
 
 echo "Uploading files to HDFS to distribute alluxio runtime"
 
-${HADOOP_HOME}/bin/hadoop fs -put -f ${TACHYON_TARFILE} ${HDFS_PATH}/$TACHYON_TARFILE
+${HADOOP_HOME}/bin/hadoop fs -put -f ${ALLUXIO_TARFILE} ${HDFS_PATH}/$ALLUXIO_TARFILE
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${JAR_LOCAL} ${HDFS_PATH}/tachyon.jar
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${SCRIPT_DIR}/tachyon-yarn-setup.sh ${HDFS_PATH}/tachyon-yarn-setup.sh
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${SCRIPT_DIR}/tachyon-application-master.sh ${HDFS_PATH}/tachyon-application-master.sh
@@ -52,9 +52,9 @@ echo "Starting YARN client to launch Tachyon on YARN"
 
 # Add Tachyon java options to the yarn options so that alluxio.yarn.Client can be configured via
 # alluxio java options
-export YARN_OPTS="${YARN_OPTS:-${TACHYON_JAVA_OPTS}}"
+export YARN_OPTS="${YARN_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 
 ${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} alluxio.yarn.Client \
     -num_workers $NUM_WORKERS \
-    -master_address ${TACHYON_MASTER_ADDRESS:-localhost} \
+    -master_address ${ALLUXIO_MASTER_ADDRESS:-localhost} \
     -resource_path ${HDFS_PATH}
