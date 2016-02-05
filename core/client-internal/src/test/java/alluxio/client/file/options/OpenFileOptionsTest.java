@@ -34,7 +34,7 @@ public class OpenFileOptionsTest {
   @Test
   public void defaultsTest() {
     OpenFileOptions options = OpenFileOptions.defaults();
-    Assert.assertEquals(mDefaultReadType.getTachyonStorageType(), options.getTachyonStorageType());
+    Assert.assertEquals(mDefaultReadType.getAlluxioStorageType(), options.getAlluxioStorageType());
   }
 
   /**
@@ -49,7 +49,7 @@ public class OpenFileOptionsTest {
     options.setReadType(readType);
     options.setLocationPolicy(policy);
 
-    Assert.assertEquals(readType.getTachyonStorageType(), options.getTachyonStorageType());
+    Assert.assertEquals(readType.getAlluxioStorageType(), options.getAlluxioStorageType());
     Assert.assertEquals(policy, options.getLocationPolicy());
   }
 
@@ -60,8 +60,8 @@ public class OpenFileOptionsTest {
   public void toInStreamOptionsTest() {
     OpenFileOptions options = OpenFileOptions.defaults();
     InStreamOptions inStreamOptions = options.toInStreamOptions();
-    Assert.assertEquals(options.getTachyonStorageType(),
-        inStreamOptions.getTachyonStorageType());
+    Assert.assertEquals(options.getAlluxioStorageType(),
+        inStreamOptions.getAlluxioStorageType());
     Assert.assertEquals(options.getLocationPolicy(), inStreamOptions.getLocationPolicy());
   }
 }

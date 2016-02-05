@@ -18,12 +18,12 @@ package alluxio.client;
 import java.io.IOException;
 
 /**
- * This interface should be implemented by all Tachyon output streams which support aborting the
+ * This interface should be implemented by all Alluxio output streams which support aborting the
  * temporary data that has been written.
  */
 public interface Cancelable {
   /**
-   * Cancels the write to Tachyon storage. This will delete all the temporary data and metadata
+   * Cancels the write to Alluxio storage. This will delete all the temporary data and metadata
    * that has been written to the worker(s). This method should be called when a write is aborted.
    *
    * @throws IOException if there is a failure when the worker invalidates the cache attempt

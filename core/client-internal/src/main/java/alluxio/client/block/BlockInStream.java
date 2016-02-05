@@ -23,12 +23,12 @@ import alluxio.client.BoundedStream;
 import alluxio.client.Seekable;
 
 /**
- * This class represents a stream to a block in the Tachyon system. The data source of the block
- * could be a local Tachyon worker, a remote Tachyon worker, or the under storage system. All
+ * This class represents a stream to a block in the Alluxio system. The data source of the block
+ * could be a local Alluxio worker, a remote Alluxio worker, or the under storage system. All
  * block streams provide data access to a sequential region of data of the block size of the block.
  */
 @NotThreadSafe
-// TODO(calvin): Resolve the confusion between Tachyon BufferedBlockInStream and BlockInStream.
+// TODO(calvin): Resolve the confusion between Alluxio BufferedBlockInStream and BlockInStream.
 public abstract class BlockInStream extends InputStream implements BoundedStream, Seekable {
 
 }

@@ -30,7 +30,7 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 
 /**
- * Utility class for testing the Tachyon file system.
+ * Utility class for testing the Alluxio file system.
  */
 @ThreadSafe
 public final class FileSystemTestUtils {
@@ -145,13 +145,13 @@ public final class FileSystemTestUtils {
 
   /**
    * Converts a {@link CreateFileOptions} object to an {@link OpenFileOptions} object with a
-   * matching Tachyon storage type.
+   * matching Alluxio storage type.
    *
    * @param op a {@link CreateFileOptions} object
-   * @return an {@link OpenFileOptions} object with a matching Tachyon storage type
+   * @return an {@link OpenFileOptions} object with a matching Alluxio storage type
    */
   public static OpenFileOptions toOpenFileOptions(CreateFileOptions op) {
-    if (op.getTachyonStorageType().isStore()) {
+    if (op.getAlluxioStorageType().isStore()) {
       return OpenFileOptions.defaults().setReadType(ReadType.CACHE);
     }
     return OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);

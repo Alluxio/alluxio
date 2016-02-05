@@ -25,8 +25,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.wire.WorkerNetAddress;
 
 /**
- * Provides a streaming API to write to a Tachyon block. This output stream will send the write
- * through a Tachyon worker which will then write the block to a file in Tachyon storage.
+ * Provides a streaming API to write to a Alluxio block. This output stream will send the write
+ * through a Alluxio worker which will then write the block to a file in Alluxio storage.
  */
 @NotThreadSafe
 public final class RemoteBlockOutStream extends BufferedBlockOutStream {

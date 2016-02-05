@@ -20,7 +20,7 @@ import java.util.Random;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Utilities class for Tachyon Client. All methods and variables are static.
+ * Utilities class for Alluxio Client. All methods and variables are static.
  */
 @ThreadSafe
 public final class ClientUtils {

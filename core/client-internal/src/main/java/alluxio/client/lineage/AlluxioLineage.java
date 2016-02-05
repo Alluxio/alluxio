@@ -44,7 +44,7 @@ public final class AlluxioLineage extends AbstractLineageClient {
   private static AlluxioLineage sAlluxioLineage;
 
   /**
-   * @return the current lineage for Tachyon
+   * @return the current lineage for Alluxio
    */
   public static synchronized AlluxioLineage get() {
     if (sAlluxioLineage == null) {
@@ -68,7 +68,7 @@ public final class AlluxioLineage extends AbstractLineageClient {
    * @param outputFiles the files that the job outputs
    * @param job the job that takes the listed input file and computes the output file
    * @return the lineage id
-   * @throws FileDoesNotExistException an input file does not exist in Tachyon storage, nor is added
+   * @throws FileDoesNotExistException an input file does not exist in Alluxio storage, nor is added
    *         as an output file of an existing lineage
    * @throws AlluxioException if an unexpected alluxio error occurs
    * @throws IOException if the master cannot create the lineage

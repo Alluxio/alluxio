@@ -29,7 +29,7 @@ import alluxio.exception.LineageDoesNotExistException;
 import alluxio.exception.AlluxioException;
 
 /**
- * Tachyon lineage file system client. This class provides lineage support in the file system
+ * Alluxio lineage file system client. This class provides lineage support in the file system
  * operations.
  */
 @PublicApi
@@ -38,7 +38,7 @@ public class LineageFileSystem extends BaseFileSystem {
   private LineageContext mLineageContext;
 
   /**
-   * @return the current lineage file system for Tachyon
+   * @return the current lineage file system for Alluxio
    */
   public static synchronized LineageFileSystem get() {
     return new LineageFileSystem();
@@ -58,7 +58,7 @@ public class LineageFileSystem extends BaseFileSystem {
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws LineageDoesNotExistException if the lineage does not exist
    * @throws IOException if the recreation fails
-   * @throws AlluxioException if an unexpected TachyonException occurs
+   * @throws AlluxioException if an unexpected AlluxioException occurs
    */
   private long reinitializeFile(AlluxioURI path, CreateFileOptions options)
       throws LineageDoesNotExistException, IOException, AlluxioException {
@@ -75,11 +75,11 @@ public class LineageFileSystem extends BaseFileSystem {
    * Gets the output stream for lineage job. If the file already exists on master, returns a dummy
    * output stream.
    *
-   * @param path the Tachyon path of the file
+   * @param path the Alluxio path of the file
    * @param options the set of options specific to this operation
    * @return an output stream to write the file
-   * @throws IOException if a non-Tachyon exception occurs
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   @Override
   public FileOutStream createFile(AlluxioURI path, CreateFileOptions options)
@@ -101,9 +101,9 @@ public class LineageFileSystem extends BaseFileSystem {
    * Reports a file as lost.
    *
    * @param path the path to the lost file
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws AlluxioException if a Tachyon exception occurs
+   * @throws AlluxioException if a Alluxio exception occurs
    */
   public void reportLostFile(AlluxioURI path)
       throws IOException, FileDoesNotExistException, AlluxioException {

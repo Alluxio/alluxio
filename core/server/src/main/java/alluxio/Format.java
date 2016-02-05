@@ -34,7 +34,7 @@ import alluxio.util.io.PathUtils;
 public final class Format {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String USAGE = String.format("java -cp %s alluxio.Format <MASTER/WORKER>",
-      Version.TACHYON_JAR);
+      Version.ALLUXIO_JAR);
 
   private static boolean formatFolder(String name, String folder, Configuration configuration)
       throws IOException {
