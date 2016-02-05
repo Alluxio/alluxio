@@ -132,7 +132,7 @@ public final class AlluxioShellUtilsTest {
   public List<String> getPaths(String path, FsType fsType) throws IOException, TException {
     List<String> ret = null;
     if (fsType == FsType.TFS) {
-      List<AlluxioURI> tPaths = AlluxioShellUtils.getTachyonURIs(mFileSystem, new AlluxioURI(path));
+      List<AlluxioURI> tPaths = AlluxioShellUtils.getAlluxioURIs(mFileSystem, new AlluxioURI(path));
       ret = new ArrayList<String>(tPaths.size());
       for (AlluxioURI tPath : tPaths) {
         ret.add(tPath.getPath());

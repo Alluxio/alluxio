@@ -50,8 +50,8 @@ import alluxio.util.io.PathUtils;
 public final class CopyFromLocalCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public CopyFromLocalCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
@@ -86,12 +86,12 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
 
   /**
    * Copies a list of files or directories specified by srcFiles from the local filesystem to
-   * dstPath in the Tachyon filesystem space. This method is used when the input path contains
+   * dstPath in the Alluxio filesystem space. This method is used when the input path contains
    * wildcards.
    *
    * @param srcFiles The list of files in the local filesystem
    * @param dstPath The {@link AlluxioURI} of the destination
-   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws IOException if a non-Alluxio related exception occurs
    */
   private void copyFromLocalWildcard(List<File> srcFiles, AlluxioURI dstPath) throws IOException {
     try {
@@ -129,11 +129,11 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
 
   /**
    * Copies a file or directory specified by srcPath from the local filesystem to dstPath in the
-   * Tachyon filesystem space. Will fail if the path given already exists in the filesystem.
+   * Alluxio filesystem space. Will fail if the path given already exists in the filesystem.
    *
    * @param srcFile The source file in the local filesystem
    * @param dstPath The {@link AlluxioURI} of the destination
-   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws IOException if a non-Alluxio related exception occurs
    */
   private void copyFromLocal(File srcFile, AlluxioURI dstPath)
       throws IOException {
@@ -209,6 +209,6 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Copies a file or a directory from local filesystem to Tachyon filesystem.";
+    return "Copies a file or a directory from local filesystem to Alluxio filesystem.";
   }
 }

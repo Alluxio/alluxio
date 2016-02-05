@@ -64,11 +64,11 @@ public abstract class WithWildCardPathCommand extends AbstractShellCommand {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
 
-    List<AlluxioURI> paths = AlluxioShellUtils.getTachyonURIs(mFileSystem, inputPath);
+    List<AlluxioURI> paths = AlluxioShellUtils.getAlluxioURIs(mFileSystem, inputPath);
     if (paths.size() == 0) { // A unified sanity check on the paths
       throw new IOException(inputPath + " does not exist.");
     }
-    Collections.sort(paths, createTachyonURIComparator());
+    Collections.sort(paths, createAlluxioURIComparator());
 
     List<String> errorMessages = new ArrayList<String>();
     for (AlluxioURI path : paths) {
@@ -84,7 +84,7 @@ public abstract class WithWildCardPathCommand extends AbstractShellCommand {
     }
   }
 
-  private static Comparator<AlluxioURI> createTachyonURIComparator() {
+  private static Comparator<AlluxioURI> createAlluxioURIComparator() {
     return new Comparator<AlluxioURI>() {
       @Override
       public int compare(AlluxioURI tUri1, AlluxioURI tUri2) {

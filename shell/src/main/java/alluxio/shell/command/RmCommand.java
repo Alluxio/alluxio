@@ -35,8 +35,8 @@ import alluxio.exception.AlluxioException;
 public final class RmCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public RmCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);

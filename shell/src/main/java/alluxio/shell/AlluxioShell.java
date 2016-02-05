@@ -78,7 +78,7 @@ public class AlluxioShell implements Closeable {
   private final FileSystem mFileSystem;
 
   /**
-   * @param configuration the configuration for Tachyon
+   * @param configuration the configuration for Alluxio
    */
   public AlluxioShell(Configuration configuration) {
     mConfiguration = configuration;
