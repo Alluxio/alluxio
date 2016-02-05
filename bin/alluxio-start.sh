@@ -95,7 +95,7 @@ start_master() {
   fi
 
   if [ "${1}" == "-f" ] ; then
-    $LAUNCHER ${BIN}/tachyon format
+    $LAUNCHER ${BIN}/alluxio format
   fi
 
   echo "Starting master @ $MASTER_ADDRESS. Logging to $ALLUXIO_LOGS_DIR"
@@ -137,7 +137,7 @@ run_safe() {
       echo "Restarting the system master..."
       start_master
     fi
-    echo "Tachyon is running... "
+    echo "Alluxio is running... "
     sleep 2
   done
 }

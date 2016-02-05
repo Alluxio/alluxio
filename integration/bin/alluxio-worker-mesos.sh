@@ -6,7 +6,7 @@ ALLUXIO_WORKER_JAVA_OPTS="${ALLUXIO_WORKER_JAVA_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 MESOS_LIBRARY_PATH="${MESOS_LIBRARY_PATH:-/usr/local/lib}"
 
 echo Mount ramdisk on worker
-${ALLUXIO_HOME}/bin/tachyon-mount.sh SudoMount
+${ALLUXIO_HOME}/bin/alluxio-mount.sh SudoMount
 
 mkdir -p "${ALLUXIO_LOGS_DIR}"
 

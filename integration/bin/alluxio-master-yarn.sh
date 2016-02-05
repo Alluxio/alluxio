@@ -24,4 +24,4 @@ echo "Starting Tachyon Master"
   -Dalluxio.home="${ALLUXIO_HOME}" \
   -Dalluxio.logger.type="MASTER_LOGGER" \
   -Dalluxio.logs.dir="${YARN_LOG_DIR}" \
-  alluxio.master.TachyonMaster >> "${YARN_LOG_DIR}"/master.out 2>&1
+  alluxio.master.AlluxioMaster >> "${YARN_LOG_DIR}"/master.out 2>&1
