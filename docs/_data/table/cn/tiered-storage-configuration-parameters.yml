@@ -1,9 +1,9 @@
 tachyon.worker.tieredstore.levels:
-  Tachyon中存储层的最大数量。当前Tachyon支持1，2，3层。
+  Tachyon Worker多层存储中的最大存储级数。当前Tachyon支持1，2，3层。
 tachyon.worker.tieredstore.level{x}.alias:
   每个存储层的别名，x代表存储层序号(顶层为0)。当前有3个别名，MEM，SSD和HDD。
 tachyon.worker.tieredstore.level{x}.dirs.path:
-  x存储层的存储目录路径，以逗号分割。x代表存储层序号(顶层为0)。建议SSD和HDD层每个硬盘设备有一个存储目录
+  x存储层的底层存储目录路径，以逗号分割。x代表存储层序号(顶层为0)。建议SSD和HDD层每个硬盘设备有一个存储目录
 tachyon.worker.tieredstore.level{x}.dirs.quota:
   x存储层所有存储目录的配额，以逗号分割。x代表存储层序号(从0开始)。对于特定的存储层，如果配额的列表长度比目录列表短，剩余目录的配额使用最后一个定义的配额。配额定义可使用这些后缀：KB，MB，GB，TB，PB。
 tachyon.worker.tieredstore.level{x}.reserved.ratio:
@@ -15,4 +15,4 @@ tachyon.worker.tieredstore.reserver.interval.ms:
 tachyon.worker.allocator.class:
   Tachyon中新数据块分配策略的类名。
 tachyon.worker.evictor.class:
-  当存储层空间用尽时块移出策略的类名。
+  当存储层空间用尽时块回收策略的类名。
