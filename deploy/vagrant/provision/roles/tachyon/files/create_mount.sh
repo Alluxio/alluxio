@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-cd /tachyon
-./bin/tachyon-mount.sh SudoMount
+cd /alluxio
+./bin/alluxio-mount.sh SudoMount
