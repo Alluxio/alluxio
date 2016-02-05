@@ -114,7 +114,7 @@ public final class Client {
   private Options mOptions;
 
   /**
-   * Constructs a new client for launching a Alluxio application master.
+   * Constructs a new client for launching an Alluxio application master.
    */
   public Client() {
     mOptions = new Options();
