@@ -649,14 +649,14 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
-   * Exposed for testing
+   * Exposed for testing.
    */
   LoadingCache<String, AlluxioURI> getPathResolverCache() {
     return mPathResolverCache;
   }
 
   /**
-   * Resolves a FUSE path into a {@link AlluxioURI} and possibly keeps it the cache.
+   * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
    */
   private class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
     @Override
