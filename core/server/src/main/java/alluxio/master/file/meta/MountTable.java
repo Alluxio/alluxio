@@ -53,7 +53,7 @@ public final class MountTable {
    * Mounts the given UFS path at the given Alluxio path. The Alluxio path should not be nested
    * under an existing mount point.
    *
-   * @param alluxioUri a Alluxio path URI
+   * @param alluxioUri an Alluxio path URI
    * @param ufsUri a UFS path URI
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
@@ -97,7 +97,7 @@ public final class MountTable {
   /**
    * Unmounts the given Alluxio path. The path should match an existing mount point.
    *
-   * @param uri a Alluxio path URI
+   * @param uri an Alluxio path URI
    * @return whether the operation succeeded or not
    */
   public synchronized boolean delete(AlluxioURI uri) {
@@ -118,7 +118,7 @@ public final class MountTable {
   /**
    * Returns the mount point the given path is nested under.
    *
-   * @param uri a Alluxio path URI
+   * @param uri an Alluxio path URI
    * @return mount point the given Alluxio path is nested under
    * @throws InvalidPathException if an invalid path is encountered
    */
@@ -138,7 +138,7 @@ public final class MountTable {
   /**
    * Returns in indication of whether the given path is a mount point.
    *
-   * @param uri a Alluxio path URI
+   * @param uri an Alluxio path URI
    * @return mount point the given Alluxio path is nested under
    */
   public synchronized boolean isMountPoint(AlluxioURI uri) {
@@ -150,7 +150,7 @@ public final class MountTable {
    * resolution maps the Alluxio path to the corresponding UFS path. Otherwise, the resolution is a
    * no-op.
    *
-   * @param uri a Alluxio path URI
+   * @param uri an Alluxio path URI
    * @return the resolved path
    * @throws InvalidPathException if an invalid path is encountered
    */

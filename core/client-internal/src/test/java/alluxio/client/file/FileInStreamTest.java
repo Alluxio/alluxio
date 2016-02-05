@@ -325,7 +325,7 @@ public class FileInStreamTest {
   }
 
   /**
-   * Tests the capability to fall back to a ufs stream when getting a alluxio stream fails.
+   * Tests the capability to fall back to a ufs stream when getting an alluxio stream fails.
    *
    * @throws IOException when an operation on the stream fails
    */

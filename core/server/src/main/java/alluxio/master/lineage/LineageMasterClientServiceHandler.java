@@ -37,7 +37,7 @@ import alluxio.thrift.ThriftIOException;
 import alluxio.wire.ThriftUtils;
 
 /**
- * This class is a Thrift handler for lineage master RPCs invoked by a Alluxio client.
+ * This class is a Thrift handler for lineage master RPCs invoked by an Alluxio client.
  */
 @ThreadSafe
 public final class LineageMasterClientServiceHandler implements LineageMasterClientService.Iface {

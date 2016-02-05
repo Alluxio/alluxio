@@ -34,7 +34,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 
 /**
- * Provides a streaming API to write to a Alluxio block. This output stream will directly write the
+ * Provides a streaming API to write to an Alluxio block. This output stream will directly write the
  * input to a file in local Alluxio storage.
  */
 @NotThreadSafe

@@ -103,7 +103,7 @@ public class LineageFileSystem extends BaseFileSystem {
    * @param path the path to the lost file
    * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws AlluxioException if a Alluxio exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   public void reportLostFile(AlluxioURI path)
       throws IOException, FileDoesNotExistException, AlluxioException {

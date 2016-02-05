@@ -21,7 +21,7 @@ import java.util.Map;
 import org.apache.thrift.TProcessor;
 
 /**
- * Interface of a Alluxio worker.
+ * Interface of an Alluxio worker.
  */
 public interface Worker {
   /**

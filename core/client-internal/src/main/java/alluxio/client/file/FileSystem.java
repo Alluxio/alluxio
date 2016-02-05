@@ -201,7 +201,7 @@ public interface FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Gets the {@link URIStatus} object that represents the metadata of a Alluxio path.
+   * Gets the {@link URIStatus} object that represents the metadata of an Alluxio path.
    *
    * @param path the path to obtain information about
    * @param options options to associate with this operation
@@ -269,10 +269,10 @@ public interface FileSystem {
    * Convenience method for {@link #mount(AlluxioURI, AlluxioURI, MountOptions)} with default
    * options.
    *
-   * @param alluxioPath a Alluxio path to mount the data to
+   * @param alluxioPath an Alluxio path to mount the data to
    * @param ufsPath a UFS path to mount the data from
    * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if a Alluxio exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath) throws IOException, AlluxioException;
 
@@ -282,11 +282,11 @@ public interface FileSystem {
    * This method does not transfer any data or metadata from the UFS. It simply establishes the
    * connection between the given Alluxio path and UFS path.
    *
-   * @param alluxioPath a Alluxio path to mount the data to
+   * @param alluxioPath an Alluxio path to mount the data to
    * @param ufsPath a UFS path to mount the data from
    * @param options options to associate with this operation
    * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if a Alluxio exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws IOException, AlluxioException;
@@ -370,9 +370,9 @@ public interface FileSystem {
   /**
    * Convenience method for {@link #unmount(AlluxioURI, UnmountOptions)} with default options.
    *
-   * @param path a Alluxio path, this must be a mount point
+   * @param path an Alluxio path, this must be a mount point
    * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if a Alluxio exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void unmount(AlluxioURI path) throws IOException, AlluxioException;
 
@@ -381,10 +381,10 @@ public interface FileSystem {
    * previously mounted path. The contents of the subtree rooted at this path are removed from
    * Alluxio but the corresponding UFS subtree is left untouched.
    *
-   * @param path a Alluxio path, this must be a mount point
+   * @param path an Alluxio path, this must be a mount point
    * @param options options to associate with this operation
    * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if a Alluxio exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void unmount(AlluxioURI path, UnmountOptions options) throws IOException, AlluxioException;
 }

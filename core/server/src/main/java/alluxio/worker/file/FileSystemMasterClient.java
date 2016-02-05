@@ -82,7 +82,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * @param fileId the id of the file for which to get the {@link FileInfo}
    * @return the file info for the given file id
-   * @throws AlluxioException if a Alluxio error occurs
+   * @throws AlluxioException if an Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized FileInfo getFileInfo(final long fileId) throws AlluxioException, IOException {

@@ -24,7 +24,7 @@ import alluxio.Configuration;
 
 /**
  * @deprecated {@see FileSystem} for the supported API.
- * Represents a Alluxio File System, legacy API.
+ * Represents an Alluxio file system, legacy API.
  */
 @Deprecated
 public final class TachyonFS {

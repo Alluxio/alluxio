@@ -36,7 +36,7 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.wire.ThriftUtils;
 
 /**
- * This class is a Thrift handler for file system master RPCs invoked by a Alluxio worker.
+ * This class is a Thrift handler for file system master RPCs invoked by an Alluxio worker.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
 public final class FileSystemMasterWorkerServiceHandler

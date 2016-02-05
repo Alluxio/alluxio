@@ -40,7 +40,7 @@ public final class CreateFileOptions {
     /**
      * Creates a new builder for {@link CreateFileOptions}.
      *
-     * @param conf a Alluxio configuration
+     * @param conf an Alluxio configuration
      */
     public Builder(Configuration conf) {
       mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);

@@ -104,7 +104,7 @@ public final class KeyValuePartitionIntegrationTest {
     mKeyValuePartitionWriter.put(KEY1, VALUE1);
     mKeyValuePartitionWriter.put(KEY2, VALUE2);
     mKeyValuePartitionWriter.close();
-    // Expect the key-value partition exists as a Alluxio file
+    // Expect the key-value partition exists as an Alluxio file
     Assert.assertTrue(sFileSystem.exists(mPartitionUri));
     mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri);
     Assert.assertArrayEquals(VALUE1, mKeyValuePartitionReader.get(KEY1));

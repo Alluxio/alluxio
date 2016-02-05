@@ -121,7 +121,7 @@ public final class BlockWorkerClient extends ClientBase {
    * @param fileId The id of the file
    * @return true if success, false otherwise
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Alluxio error occurs
+   * @throws AlluxioException if an Alluxio error occurs
    */
   public synchronized boolean asyncCheckpoint(final long fileId) throws IOException,
       AlluxioException {
@@ -138,7 +138,7 @@ public final class BlockWorkerClient extends ClientBase {
    *
    * @param blockId The id of the block
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Alluxio error occurs
+   * @throws AlluxioException if an Alluxio error occurs
    */
   public synchronized void cacheBlock(final long blockId) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
@@ -155,7 +155,7 @@ public final class BlockWorkerClient extends ClientBase {
    *
    * @param blockId The Id of the block to be cancelled
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Alluxio error occurs
+   * @throws AlluxioException if an Alluxio error occurs
    */
   public synchronized void cancelBlock(final long blockId) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
@@ -320,7 +320,7 @@ public final class BlockWorkerClient extends ClientBase {
    * @param blockId The id of the block that will be promoted
    * @return true if succeed, false otherwise
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Alluxio error occurs
+   * @throws AlluxioException if an Alluxio error occurs
    */
   public synchronized boolean promoteBlock(final long blockId) throws IOException,
       AlluxioException {
