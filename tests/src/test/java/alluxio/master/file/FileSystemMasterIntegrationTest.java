@@ -289,7 +289,7 @@ public class FileSystemMasterIntegrationTest {
     mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterConf();
 
     TtlBucketPrivateAccess
-        .setTtlIntervalMs(mMasterConfiguration.getLong(Constants.MASTER_TTLCHECKER_INTERVAL_MS));
+        .setTtlIntervalMs(mMasterConfiguration.getLong(Constants.MASTER_TTL_CHECKER_INTERVAL_MS));
   }
 
   @Test

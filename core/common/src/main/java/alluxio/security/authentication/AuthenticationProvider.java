@@ -31,7 +31,7 @@ public interface AuthenticationProvider {
   class Factory {
     /**
      * @param authType authentication type to use
-     * @param conf Tachyon configuration
+     * @param conf Alluxio configuration
      * @return the generated {@link AuthenticationProvider}
      * @throws AuthenticationException when unsupported authentication type is used
      */

@@ -31,7 +31,7 @@ public final class UnderFileSystemTest {
   private Configuration mConf;
 
   /**
-   * Sets up the configuration for Tachyon before running a test.
+   * Sets up the configuration for Alluxio before running a test.
    */
   @Before
   public void before() {

@@ -18,7 +18,7 @@ package alluxio.exception;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The exception thrown when a file is already completed in Tachyon.
+ * The exception thrown when a file is already completed in Alluxio.
  */
 @ThreadSafe
 public class FileAlreadyCompletedException extends AlluxioException {

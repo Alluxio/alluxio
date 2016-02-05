@@ -42,7 +42,7 @@ public class LoginModuleTest {
 
   /**
    * This test verifies whether the simple login works in JAAS framework.
-   * Simple mode login get the OS user and convert to Tachyon user.
+   * Simple mode login get the OS user and convert to Alluxio user.
    */
   @Test
   public void simpleLoginTest() throws Exception {
@@ -52,12 +52,12 @@ public class LoginModuleTest {
         .getSystemClassLoader().loadClass(clazzName);
     Subject subject = new Subject();
 
-    // login, add OS user into subject, and add corresponding Tachyon user into subject
+    // login, add OS user into subject, and add corresponding Alluxio user into subject
     LoginContext loginContext = new LoginContext("simple", subject, null,
         new LoginModuleConfiguration());
     loginContext.login();
 
-    // verify whether OS user and Tachyon user is added.
+    // verify whether OS user and Alluxio user is added.
     Assert.assertFalse(subject.getPrincipals(clazz).isEmpty());
     Assert.assertFalse(subject.getPrincipals(User.class).isEmpty());
 
@@ -81,12 +81,12 @@ public class LoginModuleTest {
         .getSystemClassLoader().loadClass(clazzName);
     Subject subject = new Subject();
 
-    // login, add OS user into subject, and add corresponding Tachyon user into subject
+    // login, add OS user into subject, and add corresponding Alluxio user into subject
     LoginContext loginContext = new LoginContext("simple", subject, null,
         new LoginModuleConfiguration());
     loginContext.login();
 
-    // verify whether OS user and Tachyon user is added.
+    // verify whether OS user and Alluxio user is added.
     Assert.assertFalse(subject.getPrincipals(clazz).isEmpty());
     Assert.assertFalse(subject.getPrincipals(User.class).isEmpty());
 

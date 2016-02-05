@@ -93,7 +93,7 @@ public final class LocalAlluxioMaster {
     UnderFileSystemUtils.mkdirIfNotExists(alluxioHome, configuration);
 
     // Update Alluxio home in the passed Alluxio configuration instance.
-    configuration.set(Constants.TACHYON_HOME, alluxioHome);
+    configuration.set(Constants.HOME, alluxioHome);
 
     return new LocalAlluxioMaster();
   }

@@ -18,7 +18,7 @@ package alluxio.exception;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The exception thrown when a file does not exist in Tachyon.
+ * The exception thrown when a file does not exist in Alluxio.
  */
 @ThreadSafe
 public class FileDoesNotExistException extends AlluxioException {

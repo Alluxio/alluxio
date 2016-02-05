@@ -26,7 +26,7 @@ import alluxio.Constants;
 import alluxio.master.block.BlockId;
 
 /**
- * Utility methods for working with an id in Tachyon.
+ * Utility methods for working with an id in Alluxio.
  */
 @ThreadSafe
 public final class IdUtils {

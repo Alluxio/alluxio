@@ -221,7 +221,7 @@ public final class PlainSaslServer implements SaslServer {
   }
 
   /**
-   * An instance of this class represents a client user connecting to Tachyon service.
+   * An instance of this class represents a client user connecting to Alluxio service.
    *
    * It is maintained in a {@link ThreadLocal} variable based on the Thrift RPC mechanism.
    * {@link org.apache.thrift.server.TThreadPoolServer} allocates a thread to serve a connection
@@ -248,7 +248,7 @@ public final class PlainSaslServer implements SaslServer {
     /**
      * Gets the {@link User} from the {@link ThreadLocal} variable.
      *
-     * @param conf the runtime configuration of Tachyon Master
+     * @param conf the runtime configuration of Alluxio Master
      * @return the client user
      * @throws IOException if authentication is not enabled
      */

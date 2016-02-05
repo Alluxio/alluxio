@@ -18,7 +18,7 @@ package alluxio.exception;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The exception thrown when a lineage deletion fails in Tachyon.
+ * The exception thrown when a lineage deletion fails in Alluxio.
  */
 @ThreadSafe
 public class LineageDeletionException extends AlluxioException {

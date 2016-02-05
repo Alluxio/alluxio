@@ -128,10 +128,10 @@ public final class ReplayCacheTest {
    * @throws Exception when the replay logic fails
    */
   @Test
-  public void testTachyonExceptionRethrow1() throws Exception {
+  public void testAlluxioExceptionRethrow1() throws Exception {
     try {
       mCache.run("key", new ThrowingCallable(new FileAlreadyExistsException(TEST_ERROR_MESSAGE)));
-      Assert.fail("Should have thrown TachyonTException");
+      Assert.fail("Should have thrown AlluxioTException");
     } catch (AlluxioTException e) {
       Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
       Assert.assertEquals(AlluxioExceptionType.FILE_ALREADY_EXISTS.name(), e.getType());
@@ -145,11 +145,11 @@ public final class ReplayCacheTest {
    * @throws Exception when the replay logic fails
    */
   @Test
-  public void testTachyonExceptionRethrow2() throws Exception {
+  public void testAlluxioExceptionRethrow2() throws Exception {
     try {
       mCache.run("key", new ThrowingCallableThrowsIOException(
           new FileAlreadyExistsException(TEST_ERROR_MESSAGE)));
-      Assert.fail("Should have thrown TachyonTException");
+      Assert.fail("Should have thrown AlluxioTException");
     } catch (AlluxioTException e) {
       Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
       Assert.assertEquals(AlluxioExceptionType.FILE_ALREADY_EXISTS.name(), e.getType());
@@ -242,7 +242,7 @@ public final class ReplayCacheTest {
 
     @Override
     public Long call() throws AlluxioException {
-      // If it's a TachyonException, don't wrap it in RuntimeException
+      // If it's a AlluxioException, don't wrap it in RuntimeException
       Throwables.propagateIfInstanceOf(mException, AlluxioException.class);
       throw Throwables.propagate(mException);
     }
@@ -261,7 +261,7 @@ public final class ReplayCacheTest {
 
     @Override
     public Long call() throws AlluxioException, IOException {
-      // If it's a TachyonException or IOException, don't wrap it in RuntimeException
+      // If it's a AlluxioException or IOException, don't wrap it in RuntimeException
       Throwables.propagateIfInstanceOf(mException, AlluxioException.class);
       Throwables.propagateIfInstanceOf(mException, IOException.class);
       throw Throwables.propagate(mException);

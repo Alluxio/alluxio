@@ -18,29 +18,29 @@ package alluxio.security.authentication;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Different authentication types for Tachyon.
+ * Different authentication types for Alluxio.
  */
 @ThreadSafe
 public enum AuthType {
   /**
-   * Authentication is disabled. No user info in Tachyon.
+   * Authentication is disabled. No user info in Alluxio.
    */
   NOSASL,
 
   /**
-   * User is aware in Tachyon. Login user is OS user. The verification of client user is disabled.
+   * User is aware in Alluxio. Login user is OS user. The verification of client user is disabled.
    */
   SIMPLE,
 
   /**
-   * User is aware in Tachyon. Login user is OS user. The user is verified by Custom
+   * User is aware in Alluxio. Login user is OS user. The user is verified by Custom
    * authentication provider (Use with property alluxio.security.authentication.custom.provider
    * .class).
    */
   CUSTOM,
 
   /**
-   * User is aware in Tachyon. The user is verified by Kerberos authentication. NOTE: this
+   * User is aware in Alluxio. The user is verified by Kerberos authentication. NOTE: this
    * authentication is not supported.
    */
   KERBEROS;

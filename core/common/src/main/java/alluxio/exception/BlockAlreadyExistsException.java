@@ -18,7 +18,7 @@ package alluxio.exception;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The exception thrown when a block already exists in Tachyon.
+ * The exception thrown when a block already exists in Alluxio.
  */
 @ThreadSafe
 public class BlockAlreadyExistsException extends AlluxioException {
