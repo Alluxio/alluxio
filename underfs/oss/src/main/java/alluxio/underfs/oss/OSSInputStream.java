@@ -31,7 +31,7 @@ import com.aliyun.oss.model.OSSObject;
 @NotThreadSafe
 public class OSSInputStream extends InputStream {
 
-  /** Bucket name of the Tachyon OSS bucket. */
+  /** Bucket name of the Alluxio OSS bucket. */
   private final String mBucketName;
 
   /** Key of the file in OSS to read. */
