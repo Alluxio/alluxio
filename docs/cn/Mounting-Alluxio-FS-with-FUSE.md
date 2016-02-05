@@ -52,7 +52,7 @@ Alluxio-FUSE是一个新的处于实验阶段的特性，该特性允许在一�
 
 ## 可选配置
 
-Alluxio-FUSE是基于标准的alluxio-client进行操作的。你也许想像使用其他应用的client一样，自定义该alluxio-client的行为。
+Alluxio-FUSE是基于标准的alluxio-core-client进行操作的。你也许想像使用其他应用的client一样，自定义该alluxio-core-client的行为。
 
 一种方法是编辑`$ALLUXIO_HOME/bin/alluxio-fuse.sh`配置文件，将特定的配置项添加到`ALLUXIO_JAVA_OPTS`变量中。
 
@@ -98,7 +98,7 @@ Seek操作只支持用于读的文件，即在指定`O_RDONLY` flags方式下被
 
 # 性能考虑
 
-由于FUSE和JNR的配合使用，与直接使用alluxio-client相比，使用挂载文件系统的性能会相对较差。也就是说，如果你在乎的更多是性能而不是这个功能，那么不应当使用Alluxio-FUSE。
+由于FUSE和JNR的配合使用，与直接使用alluxio-core-client相比，使用挂载文件系统的性能会相对较差。也就是说，如果你在乎的更多是性能而不是这个功能，那么不应当使用Alluxio-FUSE。
 
 大多数性能问题的原因在于，每次进行`read`或`write`操作时，内存中都存在若干个副本，并且FUSE将写操作的最大粒度设置为128KB。其性能可以利用kernel 3.15引入的FUSE回写(write-backs)缓存策略从而得到大幅提高（但该特性目前尚不被libfuse 2.x用户空间库支持）。
 

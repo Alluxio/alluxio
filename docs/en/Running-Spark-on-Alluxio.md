@@ -28,8 +28,8 @@ out-of-the-box.
 
 If the version of Spark is not supported by your Alluxio installation by default (e.g., you are
 trying out the latest Alluxio release with some older Spark installation), one can recompile Spark
-by updating the correct version of alluxio-client in Spark dependency. To do that, edit
-`spark/core/pom.xml` and change the dependency version of `alluxio-client` to
+by updating the correct version of alluxio-core-client in Spark dependency. To do that, edit
+`spark/core/pom.xml` and change the dependency version of `alluxio-core-client` to
 `your_alluxio_version`:
 
 {% include Running-Spark-on-Alluxio/your_Alluxio_version.md %}

@@ -23,7 +23,7 @@ priority: 0
 {% endfor %}
 </table>
 
-如果Spark的版本默认不支持你的Alluxio安装版本（比如，你在某些旧的Spark版本上安装最新版本的Alluxio），你可以通过更新alluxio-client中Spark依赖的版本来重新编译Spark。具体做法是：编辑`spark/core/pom.xml`，将`alluxio-client`的依赖版本改成`your_alluxio_version`:
+如果Spark的版本默认不支持你的Alluxio安装版本（比如，你在某些旧的Spark版本上安装最新版本的Alluxio），你可以通过更新alluxio-core-client中Spark依赖的版本来重新编译Spark。具体做法是：编辑`spark/core/pom.xml`，将`alluxio-core-client`的依赖版本改成`your_alluxio_version`:
 
 {% include Running-Spark-on-Alluxio/your_Alluxio_version.md %}
 

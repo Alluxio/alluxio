@@ -1,7 +1,7 @@
 ```xml
 <dependency>
   <groupId>org.alluxio.alluxio</groupId>
-  <artifactId>alluxio-client</artifactId>
+  <artifactId>alluxio-core-client</artifactId>
   <version>{{site.ALLUXIO_RELEASED_VERSION}}</version>
   <exclusions>
     <exclusion>
