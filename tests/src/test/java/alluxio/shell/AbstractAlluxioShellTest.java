@@ -92,14 +92,14 @@ public abstract class AbstractAlluxioShellTest {
   protected void copyToLocalWithBytes(int bytes) throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
     mFsShell.run("copyToLocal", "/testFile",
-        mLocalTachyonCluster.getTachyonHome() + "/testFile");
+        mLocalTachyonCluster.getAlluxioHome() + "/testFile");
     Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
-        mLocalTachyonCluster.getTachyonHome() + "/testFile"}), mOutput.toString());
+        mLocalTachyonCluster.getAlluxioHome() + "/testFile"}), mOutput.toString());
     fileReadTest("/testFile", 10);
   }
 
   protected void fileReadTest(String fileName, int size) throws IOException {
-    File testFile = new File(PathUtils.concatPath(mLocalTachyonCluster.getTachyonHome(), fileName));
+    File testFile = new File(PathUtils.concatPath(mLocalTachyonCluster.getAlluxioHome(), fileName));
     FileInputStream fis = new FileInputStream(testFile);
     byte[] read = new byte[size];
     fis.read(read);
@@ -109,7 +109,7 @@ public abstract class AbstractAlluxioShellTest {
 
   protected File generateFileContent(String path, byte[] toWrite) throws IOException,
       FileNotFoundException {
-    File testFile = new File(mLocalTachyonCluster.getTachyonHome() + path);
+    File testFile = new File(mLocalTachyonCluster.getAlluxioHome() + path);
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
     fos.write(toWrite);

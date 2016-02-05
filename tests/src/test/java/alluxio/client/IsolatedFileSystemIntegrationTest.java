@@ -55,7 +55,7 @@ public class IsolatedFileSystemIntegrationTest {
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
 
-    Configuration workerConfiguration = mLocalAlluxioClusterResource.get().getWorkerTachyonConf();
+    Configuration workerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
     mWorkerToMasterHeartbeatIntervalMs =
         workerConfiguration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
     mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(workerConfiguration);

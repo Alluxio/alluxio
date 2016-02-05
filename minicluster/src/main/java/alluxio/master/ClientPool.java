@@ -43,8 +43,8 @@ public final class ClientPool implements Closeable {
    * Returns a {@link FileSystem} client. This client does not need to be
    * closed directly, but can be closed by calling {@link #close()} on this object.
    *
-   * @param configuration Tachyon configuration
-   * @return a TachyonFS client
+   * @param configuration Alluxio configuration
+   * @return a {@link FileSystem} client
    * @throws IOException when the operation fails
    */
   public FileSystem getClient(Configuration configuration) throws IOException {

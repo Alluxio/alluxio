@@ -68,7 +68,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    mTestConf = mLocalAlluxioClusterResource.get().getWorkerTachyonConf();
+    mTestConf = mLocalAlluxioClusterResource.get().getWorkerConf();
     mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(mTestConf);
     mWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(mTestConf);
     mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(mTestConf);

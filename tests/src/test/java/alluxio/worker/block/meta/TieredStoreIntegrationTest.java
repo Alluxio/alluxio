@@ -65,7 +65,7 @@ public class TieredStoreIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWorkerConf = mLocalAlluxioClusterResource.get().getWorkerTachyonConf();
+    mWorkerConf = mLocalAlluxioClusterResource.get().getWorkerConf();
     mWorkerToMasterHeartbeatIntervalMs =
         mWorkerConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
     mSetPinned = SetAttributeOptions.defaults().setPinned(true);

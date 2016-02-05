@@ -90,7 +90,7 @@ public final class LineageMasterIntegrationTest {
   @Before
   public void before() throws Exception {
     mJob = new CommandLineJob("test", new JobConf("output"));
-    mTestConf = mLocalAlluxioClusterResource.get().getMasterTachyonConf();
+    mTestConf = mLocalAlluxioClusterResource.get().getMasterConf();
   }
 
   @Test

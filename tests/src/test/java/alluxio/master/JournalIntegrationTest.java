@@ -125,8 +125,8 @@ public class JournalIntegrationTest {
   @Test
   public void loadMetadataTest() throws Exception {
     String ufsRoot = PathUtils
-        .concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(Constants.UNDERFS_ADDRESS));
-    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalTachyonCluster.getMasterTachyonConf());
+        .concatPath(mLocalTachyonCluster.getMasterConf().get(Constants.UNDERFS_ADDRESS));
+    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalTachyonCluster.getMasterConf());
     ufs.create(ufsRoot + "/xyz");
     mFileSystem.loadMetadata(new AlluxioURI("/xyz"));
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/xyz"));
@@ -153,7 +153,7 @@ public class JournalIntegrationTest {
   public final void before() throws Exception {
     mLocalTachyonCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalTachyonCluster.getClient();
-    mMasterConfiguration = mLocalTachyonCluster.getMasterTachyonConf();
+    mMasterConfiguration = mLocalTachyonCluster.getMasterConf();
   }
 
   /**
