@@ -96,17 +96,17 @@ public class ConfigurationTest {
    */
   @Test
   public void commonDefaultTest() {
-    String home = sDefaultConfiguration.get(Constants.HOME);
-    Assert.assertNotNull(home);
-    Assert.assertEquals("/mnt/alluxio_default_home", home);
+    String alluxioHome = sDefaultConfiguration.get(Constants.HOME);
+    Assert.assertNotNull(alluxioHome);
+    Assert.assertEquals("/mnt/alluxio_default_home", alluxioHome);
 
     String ufsAddress = sDefaultConfiguration.get(Constants.UNDERFS_ADDRESS);
     Assert.assertNotNull(ufsAddress);
-    Assert.assertEquals(home + "/underFSStorage", ufsAddress);
+    Assert.assertEquals(alluxioHome + "/underFSStorage", ufsAddress);
 
     String value = sDefaultConfiguration.get(Constants.WEB_RESOURCES);
     Assert.assertNotNull(value);
-    Assert.assertEquals(home + "/core/server/src/main/webapp", value);
+    Assert.assertEquals(alluxioHome + "/core/server/src/main/webapp", value);
 
     value = sDefaultConfiguration.get(Constants.UNDERFS_HDFS_IMPL);
     Assert.assertNotNull(value);

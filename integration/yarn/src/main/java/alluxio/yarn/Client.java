@@ -322,7 +322,7 @@ public final class Client {
     Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(Environment.PWD.$(), "*"),
         ApplicationConstants.CLASS_PATH_SEPARATOR);
 
-    appMasterEnv.put("HOME", ApplicationConstants.Environment.PWD.$());
+    appMasterEnv.put("TACHYON_HOME", ApplicationConstants.Environment.PWD.$());
   }
 
   /**

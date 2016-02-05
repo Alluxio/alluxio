@@ -27,7 +27,8 @@ import alluxio.master.MasterContext;
 
 /**
  * A bucket with all files whose ttl value lies in the bucket's time interval. The bucket's time
- * interval starts at a specific time and lasts for {@link Constants#MASTER_TTL_CHECKER_INTERVAL_MS}.
+ * interval starts at a certain time and lasts for {@link Constants#MASTER_TTL_CHECKER_INTERVAL_MS}.
+ *
  */
 @NotThreadSafe
 public final class TtlBucket implements Comparable<TtlBucket> {
