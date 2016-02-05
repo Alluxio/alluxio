@@ -32,7 +32,7 @@ import alluxio.security.login.LoginModuleConfiguration;
 
 /**
  * A Singleton of LoginUser, which is an instance of {@link alluxio.security.User}. It represents
- * the user of Tachyon client, when connecting to Tachyon service.
+ * the user of Alluxio client, when connecting to Alluxio service.
  *
  * The implementation of getting a login user supports Windows, Unix, and Kerberos login modules.
  *
@@ -41,17 +41,17 @@ import alluxio.security.login.LoginModuleConfiguration;
 @ThreadSafe
 public final class LoginUser {
 
-  /** User instance of the login user in Tachyon client process */
+  /** User instance of the login user in Alluxio client process */
   private static User sLoginUser;
 
   private LoginUser() {} // prevent instantiation
 
   /**
    * Gets current singleton login user. This method is called to identify the singleton user who
-   * runs Tachyon client. When Tachyon client gets a user by this method and connects to Tachyon
+   * runs Alluxio client. When Alluxio client gets a user by this method and connects to Alluxio
    * service, this user represents the client and is maintained in service.
    *
-   * @param conf Tachyon configuration
+   * @param conf Alluxio configuration
    * @return the login user
    * @throws java.io.IOException if login fails
    */
@@ -69,7 +69,7 @@ public final class LoginUser {
   /**
    * Logs in based on the LoginModules.
    *
-   * @param conf Tachyon configuration
+   * @param conf Alluxio configuration
    * @return the login user
    * @throws IOException if login fails
    */
@@ -94,10 +94,10 @@ public final class LoginUser {
 
       Set<User> userSet = subject.getPrincipals(User.class);
       if (userSet.isEmpty()) {
-        throw new LoginException("No Tachyon User is found.");
+        throw new LoginException("No Alluxio User is found.");
       }
       if (userSet.size() > 1) {
-        throw new LoginException("More than one Tachyon User is found");
+        throw new LoginException("More than one Alluxio User is found");
       }
       return userSet.iterator().next();
     } catch (LoginException e) {
@@ -106,7 +106,7 @@ public final class LoginUser {
   }
 
   /**
-   * Checks whether Tachyon is running in secure mode, such as {@link AuthType#SIMPLE},
+   * Checks whether Alluxio is running in secure mode, such as {@link AuthType#SIMPLE},
    * {@link AuthType#KERBEROS}, {@link AuthType#CUSTOM}.
    *
    * @param authType the authentication type in configuration

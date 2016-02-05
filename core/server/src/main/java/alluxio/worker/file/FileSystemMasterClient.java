@@ -86,7 +86,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized FileInfo getFileInfo(final long fileId) throws AlluxioException, IOException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<FileInfo>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<FileInfo>() {
       @Override
       public FileInfo call() throws TException {
         return ThriftUtils.fromThrift(mClient.getFileInfo(fileId));

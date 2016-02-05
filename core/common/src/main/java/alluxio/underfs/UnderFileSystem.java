@@ -34,7 +34,7 @@ import alluxio.Configuration;
 import alluxio.util.io.PathUtils;
 
 /**
- * Tachyon stores data into an under layer file system. Any file system implementing this interface
+ * Alluxio stores data into an under layer file system. Any file system implementing this interface
  * can be a valid under layer file system
  */
 @ThreadSafe
@@ -135,7 +135,7 @@ public abstract class UnderFileSystem {
    * {@link String#startsWith(String)} to see if the configured schemas are found.
    *
    * @param path the path in under filesystem
-   * @param configuration the configuration for Tachyon
+   * @param configuration the configuration for Alluxio
    * @return true if the given path is on a Hadoop under file system, false otherwise
    */
   public static boolean isHadoopUnderFS(final String path, Configuration configuration) {
@@ -166,7 +166,7 @@ public abstract class UnderFileSystem {
    * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
    *
    * @param path the input path string
-   * @param configuration the configuration for Tachyon
+   * @param configuration the configuration for Alluxio
    * @return null if path does not start with alluxio://, alluxio-ft://, hdfs://, s3://, s3n://,
    *         file://, /. Or a pair of strings denoting the under FS address and the relative path
    *         relative to that address. For local FS (with prefixes file:// or /), the under FS
@@ -207,9 +207,9 @@ public abstract class UnderFileSystem {
    * Depending on the implementation this may be a no-op
    * </p>
    *
-   * @param conf Tachyon configuration
+   * @param conf Alluxio configuration
    * @param hostname The host that wants to connect to the under file system
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract void connectFromMaster(Configuration conf, String hostname) throws IOException;
 
@@ -220,16 +220,16 @@ public abstract class UnderFileSystem {
    * Depending on the implementation this may be a no-op
    * </p>
    *
-   * @param conf Tachyon configuration
+   * @param conf Alluxio configuration
    * @param hostname The host that wants to connect to the under file system
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract void connectFromWorker(Configuration conf, String hostname) throws IOException;
 
   /**
    * Closes this under file system.
    *
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract void close() throws IOException;
 
@@ -238,7 +238,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The file name
    * @return A {@code OutputStream} object
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract OutputStream create(String path) throws IOException;
 
@@ -248,7 +248,7 @@ public abstract class UnderFileSystem {
    * @param path The file name
    * @param blockSizeByte The block size in bytes
    * @return A {@code OutputStream} object
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract OutputStream create(String path, int blockSizeByte) throws IOException;
 
@@ -260,7 +260,7 @@ public abstract class UnderFileSystem {
    * @param replication The number of replications for each block
    * @param blockSizeByte The block size in bytes
    * @return A {@code OutputStream} object
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract OutputStream create(String path, short replication, int blockSizeByte)
       throws IOException;
@@ -271,7 +271,7 @@ public abstract class UnderFileSystem {
    * @param path The file or folder name
    * @param recursive Whether we delete folder and its children
    * @return true if succeed, false otherwise
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract boolean delete(String path, boolean recursive) throws IOException;
 
@@ -280,7 +280,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The file name
    * @return true if succeed, false otherwise
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract boolean exists(String path) throws IOException;
 
@@ -289,7 +289,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The file name
    * @return the block size in bytes
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract long getBlockSizeByte(String path) throws IOException;
 
@@ -305,7 +305,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The file name
    * @return The list of locations
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract List<String> getFileLocations(String path) throws IOException;
 
@@ -315,7 +315,7 @@ public abstract class UnderFileSystem {
    * @param path The file name
    * @param offset Offset in bytes
    * @return The list of locations
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract List<String> getFileLocations(String path, long offset) throws IOException;
 
@@ -324,7 +324,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The file name
    * @return the file size in bytes
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract long getFileSize(String path) throws IOException;
 
@@ -333,7 +333,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The file or folder name
    * @return modification time in milliseconds
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract long getModificationTimeMs(String path) throws IOException;
 
@@ -344,7 +344,7 @@ public abstract class UnderFileSystem {
    * @param path The path to query
    * @param type The type of queries
    * @return The space in bytes
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract long getSpace(String path, SpaceType type) throws IOException;
 
@@ -353,7 +353,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The path name
    * @return true if this is a file, false otherwise
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract boolean isFile(String path) throws IOException;
 
@@ -375,7 +375,7 @@ public abstract class UnderFileSystem {
    * @return An array of strings naming the files and directories in the directory denoted by this
    *         abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract String[] list(String path) throws IOException;
 
@@ -397,7 +397,7 @@ public abstract class UnderFileSystem {
    * @return An array of strings naming the files and directories in the directory denoted by this
    *         abstract pathname and its subdirectories. The array will be empty if the directory is
    *         empty. Returns {@code null} if this abstract pathname does not denote a directory.
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public String[] listRecursive(String path) throws IOException {
     // Clean the path by creating a URI and turning it back to a string
@@ -437,7 +437,7 @@ public abstract class UnderFileSystem {
    *        directories. Otherwise, the method does not create nonexistent parent directories.
    * @return {@code true} if and only if the directory was created; {@code false}
    *         otherwise
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract boolean mkdirs(String path, boolean createParent) throws IOException;
 
@@ -446,7 +446,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The file name
    * @return The {@code InputStream} object
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract InputStream open(String path) throws IOException;
 
@@ -456,7 +456,7 @@ public abstract class UnderFileSystem {
    * @param src The source file or folder name
    * @param dst The destination file or folder name
    * @return true if succeed, false otherwise
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract boolean rename(String src, String dst) throws IOException;
 
@@ -473,7 +473,7 @@ public abstract class UnderFileSystem {
    *
    * @param path path of the file
    * @param posixPerm standard posix permission like "777", "775", etc
-   * @throws IOException if a non-Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
    */
   public abstract void setPermission(String path, String posixPerm) throws IOException;
 }

@@ -89,7 +89,7 @@ public final class KeyValueWorkerClient extends ClientBase {
    */
   public synchronized ByteBuffer get(final long blockId, final ByteBuffer key)
       throws IOException, AlluxioException {
-    return retryRPC(new ClientBase.RpcCallableThrowsTachyonTException<ByteBuffer>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<ByteBuffer>() {
       @Override
       public ByteBuffer call() throws AlluxioTException, TException {
         return mClient.get(blockId, key);
@@ -112,7 +112,7 @@ public final class KeyValueWorkerClient extends ClientBase {
    */
   public synchronized List<ByteBuffer> getNextKeys(final long blockId, final ByteBuffer key,
       final int numKeys) throws IOException, AlluxioException {
-    return retryRPC(new ClientBase.RpcCallableThrowsTachyonTException<List<ByteBuffer>>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<List<ByteBuffer>>() {
       @Override
       public List<ByteBuffer> call() throws AlluxioTException, TException {
         return mClient.getNextKeys(blockId, key, numKeys);
@@ -127,7 +127,7 @@ public final class KeyValueWorkerClient extends ClientBase {
    * @throws AlluxioException if an exception in Tachyon occurs
    */
   public synchronized int getSize(final long blockId) throws IOException, AlluxioException {
-    return retryRPC(new ClientBase.RpcCallableThrowsTachyonTException<Integer>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Integer>() {
       @Override
       public Integer call() throws AlluxioTException, TException {
         return mClient.getSize(blockId);

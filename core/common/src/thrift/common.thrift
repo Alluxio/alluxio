@@ -1,7 +1,7 @@
 namespace java alluxio.thrift
 
 /**
-* Contains the information of a block in Tachyon. It maintains the worker nodes where the replicas
+* Contains the information of a block in Alluxio. It maintains the worker nodes where the replicas
 * of the blocks are stored.
 */
 struct BlockInfo {

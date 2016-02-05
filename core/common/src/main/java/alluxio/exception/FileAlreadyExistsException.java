@@ -18,7 +18,7 @@ package alluxio.exception;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The exception thrown when a file already exists in Tachyon.
+ * The exception thrown when a file already exists in Alluxio.
  */
 @ThreadSafe
 public class FileAlreadyExistsException extends AlluxioException {

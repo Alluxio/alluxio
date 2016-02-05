@@ -18,7 +18,7 @@ package alluxio.exception;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Holds the different types of exceptions thrown by Tachyon.
+ * Holds the different types of exceptions thrown by Alluxio.
  */
 @ThreadSafe
 public enum AlluxioExceptionType {

@@ -124,7 +124,7 @@ public class PlainServerCallbackHandlerTest {
   public static class NameMatchAuthenticationProvider implements AuthenticationProvider {
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {
-      if (!user.matches("^tachyon.*")) {
+      if (!user.matches("^alluxio.*")) {
         throw new AuthenticationException("Only allow the user starting with alluxio");
       }
       if (!password.matches("^password")) {

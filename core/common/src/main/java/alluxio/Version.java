@@ -28,11 +28,11 @@ public final class Version {
 
   static {
     Configuration configuration = new Configuration();
-    VERSION = configuration.get(Constants.TACHYON_VERSION);
+    VERSION = configuration.get(Constants.VERSION);
   }
 
-  /** The relative path to the Tachyon target jar. */
-  public static final String TACHYON_JAR = "target/alluxio-" + VERSION
+  /** The relative path to the Alluxio target jar. */
+  public static final String ALLUXIO_JAR = "target/alluxio-" + VERSION
       + "-jar-with-dependencies.jar";
 
   /**
@@ -41,6 +41,6 @@ public final class Version {
    * @param args the arguments
    */
   public static void main(String[] args) {
-    System.out.println("Tachyon version: " + VERSION);
+    System.out.println("Alluxio version: " + VERSION);
   }
 }

@@ -61,7 +61,7 @@ public final class Constants {
 
   public static final int BYTES_IN_INTEGER = 4;
 
-  public static final String SCHEME = "tachyon";
+  public static final String SCHEME = "alluxio";
   public static final String HEADER = SCHEME + "://";
 
   public static final String SCHEME_FT = "alluxio-ft";
@@ -116,18 +116,18 @@ public final class Constants {
   public static final int JOURNAL_VERSION = 3;
 
   // Configurations properties constants.
-  // Please check and update Configuration-Settings.md file when you change or add Tachyon
+  // Please check and update Configuration-Settings.md file when you change or add Alluxio
   // configuration properties.
 
   // This constant is being used only in Hadoop MR job submissions where client need to pass site
   // specific configuration properties. It will be used as key in the MR Configuration.
-  public static final String TACHYON_CONF_SITE = "alluxio.conf.site";
+  public static final String CONF_SITE = "alluxio.conf.site";
 
-  public static final String TACHYON_HOME = "alluxio.home";
-  public static final String TACHYON_DEBUG = "alluxio.debug";
-  public static final String TACHYON_LOGGER_TYPE = "alluxio.logger.type";
-  public static final String TACHYON_ACCESS_LOGGER_TYPE = "alluxio.accesslogger.type";
-  public static final String TACHYON_VERSION = "alluxio.version";
+  public static final String HOME = "alluxio.home";
+  public static final String DEBUG = "alluxio.debug";
+  public static final String LOGGER_TYPE = "alluxio.logger.type";
+  public static final String ACCESS_LOGGER_TYPE = "alluxio.access.logger.type";
+  public static final String VERSION = "alluxio.version";
   public static final String WEB_RESOURCES = "alluxio.web.resources";
   public static final String WEB_THREAD_COUNT = "alluxio.web.threads";
   public static final String LOGS_DIR = "alluxio.logs.dir";
@@ -180,11 +180,11 @@ public final class Constants {
       "alluxio.integration.mesos.role";
   public static final String INTEGRATION_MESOS_SECRET =
       "alluxio.integration.mesos.secret";
-  public static final String INTEGRATION_MESOS_TACHYON_MASTER_NAME =
+  public static final String INTEGRATION_MESOS_ALLUXIO_MASTER_NAME =
       "alluxio.integration.mesos.master.name";
-  public static final String INTEGRATION_MESOS_TACHYON_WORKER_NAME =
+  public static final String INTEGRATION_MESOS_ALLUXIO_WORKER_NAME =
       "alluxio.integration.mesos.worker.name";
-  public static final String INTEGRATION_MESOS_TACHYON_MASTER_NODE_COUNT =
+  public static final String INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT =
       "alluxio.integration.mesos.master.node.count";
   public static final String INTEGRATION_MESOS_USER =
       "alluxio.integration.mesos.user";
@@ -212,8 +212,8 @@ public final class Constants {
   public static final String MASTER_WEB_BIND_HOST = "alluxio.master.web.bind.host";
   public static final String MASTER_WEB_PORT = "alluxio.master.web.port";
   public static final String MASTER_HEARTBEAT_INTERVAL_MS = "alluxio.master.heartbeat.interval.ms";
-  public static final String MASTER_TTLCHECKER_INTERVAL_MS =
-      "alluxio.master.ttlchecker.interval.ms";
+  public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
+      "alluxio.master.ttl.checker.interval.ms";
   public static final String MASTER_WORKER_THREADS_MAX = "alluxio.master.worker.threads.max";
   public static final String MASTER_WORKER_THREADS_MIN = "alluxio.master.worker.threads.min";
   public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout.ms";
@@ -364,8 +364,8 @@ public final class Constants {
   public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
   /** Have the fuse process log every FS request */
   public static final String FUSE_DEBUG_ENABLE = "alluxio.fuse.debug.enabled";
-  /** Maxium number of Tachyon Paths to cache for fuse conversion */
-  public static final String FUSE_PATHCACHE_SIZE = "alluxio.fuse.cachedpaths.max";
+  /** Maximum number of Alluxio paths to cache for fuse conversion */
+  public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
   public static final String FUSE_DEFAULT_MOUNTPOINT = "alluxio.fuse.mount.default";
   public static final String FUSE_FS_ROOT = "alluxio.fuse.fs.root";
   /** FUSE file system name */
@@ -387,12 +387,6 @@ public final class Constants {
   public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
-
-  public static final String LOGGER_TYPE = System.getProperty(TACHYON_LOGGER_TYPE, "");
-  public static final String ACCESS_LOGGER_TYPE =
-      System.getProperty(TACHYON_ACCESS_LOGGER_TYPE, "");
-  public static final boolean DEBUG =
-      Boolean.parseBoolean(System.getProperty(TACHYON_DEBUG, "false"));
 
   public static final long CLIENT_METRICS_VERSION = 1L;
   public static final int CLIENT_METRICS_SIZE = 11;

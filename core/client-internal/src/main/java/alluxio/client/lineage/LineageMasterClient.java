@@ -90,7 +90,7 @@ public final class LineageMasterClient extends MasterClientBase {
   public synchronized long createLineage(final List<String> inputFiles,
       final List<String> outputFiles, final CommandLineJob job) throws IOException,
       AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
         return mClient.createLineage(inputFiles, outputFiles,
@@ -110,7 +110,7 @@ public final class LineageMasterClient extends MasterClientBase {
    */
   public synchronized boolean deleteLineage(final long lineageId, final boolean cascade)
       throws IOException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
       @Override
       public Boolean call() throws AlluxioTException, TException {
         return mClient.deleteLineage(lineageId, cascade);
@@ -131,7 +131,7 @@ public final class LineageMasterClient extends MasterClientBase {
    */
   public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
       final long ttl) throws IOException, LineageDoesNotExistException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
         return mClient.reinitializeFile(path, blockSizeBytes, ttl);
@@ -168,7 +168,7 @@ public final class LineageMasterClient extends MasterClientBase {
    * @throws AlluxioException if a Tachyon exception occurs
    */
   public synchronized void reportLostFile(final String path) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.reportLostFile(path);

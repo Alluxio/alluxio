@@ -93,7 +93,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized void createDirectory(final AlluxioURI path,
       final CreateDirectoryOptions options) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.createDirectory(path.getPath(), options.toThrift());
@@ -112,7 +112,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized void createFile(final AlluxioURI path, final CreateFileOptions options)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.createFile(path.getPath(), options.toThrift());
@@ -131,7 +131,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized void completeFile(final AlluxioURI path, final CompleteFileOptions options)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.completeFile(path.getPath(), options.toThrift());
@@ -150,7 +150,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized void delete(final AlluxioURI path, final DeleteOptions options)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.remove(path.getPath(), options.isRecursive());
@@ -169,7 +169,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized void free(final AlluxioURI path, final FreeOptions options)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.free(path.getPath(), options.isRecursive());
@@ -186,7 +186,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized List<FileBlockInfo> getFileBlockInfoList(final AlluxioURI path)
       throws IOException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<List<FileBlockInfo>>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<List<FileBlockInfo>>() {
       @Override
       public List<FileBlockInfo> call() throws AlluxioTException, TException {
         List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
@@ -207,7 +207,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized URIStatus getStatus(final AlluxioURI path) throws IOException,
       AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<URIStatus>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<URIStatus>() {
       @Override
       public URIStatus call() throws AlluxioTException, TException {
         return new URIStatus(ThriftUtils.fromThrift(mClient.getStatus(path.getPath())));
@@ -226,7 +226,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   // TODO(calvin): Split this into its own client
   public synchronized URIStatus getStatusInternal(final long fileId) throws IOException,
       AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<URIStatus>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<URIStatus>() {
       @Override
       public URIStatus call() throws AlluxioTException, TException {
         return new URIStatus(ThriftUtils.fromThrift(mClient.getStatusInternal(fileId)));
@@ -242,7 +242,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized long getNewBlockIdForFile(final AlluxioURI path)
       throws IOException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
         return mClient.getNewBlockIdForFile(path.getPath());
@@ -272,7 +272,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized List<URIStatus> listStatus(final AlluxioURI path)
       throws IOException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<List<URIStatus>>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws AlluxioTException, TException {
         List<URIStatus> result = new ArrayList<URIStatus>();
@@ -294,7 +294,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized void loadMetadata(final AlluxioURI path,
       final LoadMetadataOptions options) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
         return mClient.loadMetadata(path.toString(), options.isRecursive());
@@ -312,7 +312,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized void mount(final AlluxioURI tachyonPath, final AlluxioURI ufsPath)
       throws AlluxioException, IOException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.mount(tachyonPath.toString(), ufsPath.toString());
@@ -331,7 +331,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized void rename(final AlluxioURI src, final AlluxioURI dst)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.rename(src.getPath(), dst.getPath());
@@ -350,7 +350,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized void setAttribute(final AlluxioURI path, final SetAttributeOptions options)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.setAttribute(path.getPath(), options.toThrift());
@@ -368,7 +368,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized void scheduleAsyncPersist(final AlluxioURI path)
       throws AlluxioException, IOException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.scheduleAsyncPersist(path.getPath());
@@ -386,7 +386,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized void unmount(final AlluxioURI tachyonPath)
       throws AlluxioException, IOException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.unmount(tachyonPath.toString());

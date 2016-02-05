@@ -18,7 +18,7 @@ package alluxio.exception;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Precondition messages used across Tachyon.
+ * Precondition messages used across Alluxio.
  *
  * Note: To minimize merge conflicts, please sort alphabetically in this section.
  */

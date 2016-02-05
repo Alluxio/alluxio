@@ -28,7 +28,7 @@ public interface UnderFileSystemFactory {
    * provided is insufficient to create a client.
    *
    * @param path File path
-   * @param configuration Tachyon configuration
+   * @param configuration Alluxio configuration
    * @param ufsConf Optional configuration object for the UFS, may be null
    * @return the client
    */
@@ -39,7 +39,7 @@ public interface UnderFileSystemFactory {
    * {@link #create(String, Configuration, Object)} can succeed for this path.
    *
    * @param path File path
-   * @param configuration Tachyon configuration
+   * @param configuration Alluxio configuration
    * @return True if the path is supported, false otherwise
    */
   boolean supportsPath(String path, Configuration configuration);

@@ -107,7 +107,7 @@ public final class BlockMasterClient extends MasterClientBase {
    */
   public synchronized BlockInfo getBlockInfo(final long blockId)
       throws AlluxioException, IOException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<BlockInfo>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<BlockInfo>() {
       @Override
       public BlockInfo call() throws AlluxioTException, TException {
         return ThriftUtils.fromThrift(mClient.getBlockInfo(blockId));

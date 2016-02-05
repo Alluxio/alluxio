@@ -238,7 +238,7 @@ public final class UfsUtils {
    * Prints an example usage of the command line.
    */
   public static void printUsage() {
-    String cmd = "java -cp " + Version.TACHYON_JAR + " alluxio.client.UfsUtils ";
+    String cmd = "java -cp " + Version.ALLUXIO_JAR + " alluxio.client.UfsUtils ";
 
     System.out.println("Usage: " + cmd + "<TachyonPath> <UfsPath> "
         + "[<Optional ExcludePathPrefix, separated by ;>]");

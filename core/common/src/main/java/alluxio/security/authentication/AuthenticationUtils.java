@@ -32,8 +32,8 @@ import alluxio.security.LoginUser;
 import alluxio.util.network.NetworkAddressUtils;
 
 /**
- * This class provides factory methods for authentication in Tachyon. Based on different
- * authentication types specified in Tachyon configuration, it provides corresponding Thrift class
+ * This class provides factory methods for authentication in Alluxio. Based on different
+ * authentication types specified in Alluxio configuration, it provides corresponding Thrift class
  * for authenticated connection between Client and Server.
  */
 @ThreadSafe
@@ -43,7 +43,7 @@ public final class AuthenticationUtils {
    * used as one argument to build a Thrift {@link org.apache.thrift.server.TServer}. If the auth
    * type is not supported or recognized, an {@link UnsupportedOperationException} is thrown.
    *
-   * @param conf Tachyon Configuration
+   * @param conf Alluxio Configuration
    * @return a corresponding TTransportFactory
    * @throws SaslException if building a TransportFactory fails
    */
@@ -73,7 +73,7 @@ public final class AuthenticationUtils {
    * currently. If the auth type is not supported or recognized, an
    * {@link UnsupportedOperationException} is thrown.
    *
-   * @param conf Tachyon Configuration
+   * @param conf Alluxio Configuration
    * @param serverAddress the server address which clients will connect to
    * @return a TTransport for client
    * @throws IOException if building a TransportFactory fails or user login fails

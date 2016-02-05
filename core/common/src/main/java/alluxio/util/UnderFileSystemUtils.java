@@ -34,7 +34,7 @@ public final class UnderFileSystemUtils {
    * Deletes the directory at the given path.
    *
    * @param path path to the directory
-   * @param configuration Tachyon configuration
+   * @param configuration Alluxio configuration
    * @throws IOException if the directory cannot be deleted
    */
   public static void deleteDir(final String path, Configuration configuration) throws IOException {
@@ -49,7 +49,7 @@ public final class UnderFileSystemUtils {
    * Attempts to create the directory if it does not already exist.
    *
    * @param path path to the directory
-   * @param configuration Tachyon configuration
+   * @param configuration Alluxio configuration
    * @throws IOException if the directory cannot be created
    */
   public static void mkdirIfNotExists(final String path, Configuration configuration)
@@ -67,7 +67,7 @@ public final class UnderFileSystemUtils {
    * Creates an empty file.
    *
    * @param path path to the file
-   * @param configuration Tachyon Configuration
+   * @param configuration Alluxio Configuration
    * @throws IOException if the file cannot be created
    */
   public static void touch(final String path, Configuration configuration) throws IOException {

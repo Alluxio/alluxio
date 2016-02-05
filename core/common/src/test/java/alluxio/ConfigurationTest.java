@@ -27,12 +27,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.util.network.NetworkAddressUtils;
 
 /**
- * Unit test for TachyonConf class
+ * Unit test for the {@link Configuration} class.
  */
 public class ConfigurationTest {
 
@@ -88,7 +86,7 @@ public class ConfigurationTest {
    */
   @Before
   public void beforeTests() {
-    // init TachyonConf
+    // initialize Alluxio configuration
     mCustomPropsConfiguration = new Configuration(sTestProperties);
     mSystemPropsConfiguration = new Configuration();
   }
@@ -98,17 +96,17 @@ public class ConfigurationTest {
    */
   @Test
   public void commonDefaultTest() {
-    String tachyonHome = sDefaultConfiguration.get(Constants.TACHYON_HOME);
-    Assert.assertNotNull(tachyonHome);
-    Assert.assertEquals("/mnt/tachyon_default_home", tachyonHome);
+    String home = sDefaultConfiguration.get(Constants.HOME);
+    Assert.assertNotNull(home);
+    Assert.assertEquals("/mnt/alluxio_default_home", home);
 
     String ufsAddress = sDefaultConfiguration.get(Constants.UNDERFS_ADDRESS);
     Assert.assertNotNull(ufsAddress);
-    Assert.assertEquals(tachyonHome + "/underFSStorage", ufsAddress);
+    Assert.assertEquals(home + "/underFSStorage", ufsAddress);
 
     String value = sDefaultConfiguration.get(Constants.WEB_RESOURCES);
     Assert.assertNotNull(value);
-    Assert.assertEquals(tachyonHome + "/core/server/src/main/webapp", value);
+    Assert.assertEquals(home + "/core/server/src/main/webapp", value);
 
     value = sDefaultConfiguration.get(Constants.UNDERFS_HDFS_IMPL);
     Assert.assertNotNull(value);
@@ -144,13 +142,13 @@ public class ConfigurationTest {
    */
   @Test
   public void masterDefaultTest() {
-    String tachyonHome = sDefaultConfiguration.get(Constants.TACHYON_HOME);
-    Assert.assertNotNull(tachyonHome);
-    Assert.assertEquals("/mnt/tachyon_default_home", tachyonHome);
+    String alluxioHome = sDefaultConfiguration.get(Constants.HOME);
+    Assert.assertNotNull(alluxioHome);
+    Assert.assertEquals("/mnt/alluxio_default_home", alluxioHome);
 
     String value = sDefaultConfiguration.get(Constants.MASTER_JOURNAL_FOLDER);
     Assert.assertNotNull(value);
-    Assert.assertEquals(tachyonHome + "/journal/", value);
+    Assert.assertEquals(alluxioHome + "/journal/", value);
 
     value = sDefaultConfiguration.get(Constants.MASTER_HOSTNAME);
     Assert.assertNotNull(value);
@@ -197,7 +195,7 @@ public class ConfigurationTest {
   public void workerDefaultTest() {
     String value = sDefaultConfiguration.get(Constants.WORKER_DATA_FOLDER);
     Assert.assertNotNull(value);
-    Assert.assertEquals("/tachyonworker/", value);
+    Assert.assertEquals("/alluxioworker/", value);
 
     value = sDefaultConfiguration.get(Constants.WORKER_BIND_HOST);
     Assert.assertNotNull(value);
