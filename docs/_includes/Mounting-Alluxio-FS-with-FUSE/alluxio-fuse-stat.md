@@ -1,3 +1,3 @@
 ```bash
-$ bin/tachyon-fuse.sh stat
+$ bin/alluxio-fuse.sh stat
 ```

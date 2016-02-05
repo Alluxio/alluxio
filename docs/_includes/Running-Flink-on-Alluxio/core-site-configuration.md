@@ -1,6 +1,6 @@
 ```xml
 <property>
-  <name>fs.tachyon.impl</name>
-  <value>tachyon.hadoop.TFS</value>
+  <name>fs.alluxio.impl</name>
+  <value>alluxio.hadoop.TFS</value>
 </property>
 ```

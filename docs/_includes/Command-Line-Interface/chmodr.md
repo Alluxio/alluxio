@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs chmodr 755 /input/directory1
+$ ./bin/alluxio tfs chmodr 755 /input/directory1
 ```

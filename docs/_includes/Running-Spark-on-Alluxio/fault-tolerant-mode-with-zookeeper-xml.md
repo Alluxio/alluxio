@@ -1,6 +1,6 @@
 ```xml
 <property>
-  <name>fs.tachyon-ft.impl</name>
-  <value>tachyon.hadoop.TFSFT</value>
+  <name>fs.alluxio-ft.impl</name>
+  <value>alluxio.hadoop.TFSFT</value>
 </property>
 ```

@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs chgrpr tachyon-group-new /input/directory1
+$ ./bin/alluxio tfs chgrpr alluxio-group-new /input/directory1
 ```

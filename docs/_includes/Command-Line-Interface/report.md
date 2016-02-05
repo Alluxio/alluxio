@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs report /tmp/lineage-file
+$ ./bin/alluxio tfs report /tmp/lineage-file
 ```

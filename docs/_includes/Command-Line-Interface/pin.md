@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs pin /data/today
+$ ./bin/alluxio tfs pin /data/today
 ```

@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs persist /tmp/experimental-logs-2.txt
+$ ./bin/alluxio tfs persist /tmp/experimental-logs-2.txt
 ```

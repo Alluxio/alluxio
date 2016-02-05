@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs unmount /s3/data
+$ ./bin/alluxio tfs unmount /s3/data
 ```

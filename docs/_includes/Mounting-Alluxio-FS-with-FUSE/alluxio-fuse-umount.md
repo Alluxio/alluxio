@@ -1,3 +1,3 @@
 ```bash
-$ bin/tachyon-fuse.sh umount
+$ bin/alluxio-fuse.sh umount
 ```

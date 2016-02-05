@@ -1,3 +1,3 @@
 ```bash
-export TACHYON_UNDERFS_ADDRESS=/tachyon_vol
+export TACHYON_UNDERFS_ADDRESS=/alluxio_vol
 ```

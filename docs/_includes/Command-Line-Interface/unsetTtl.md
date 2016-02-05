@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs unsetTtl /data/yesterday/data-not-yet-analyzed
+$ ./bin/alluxio tfs unsetTtl /data/yesterday/data-not-yet-analyzed
 ```

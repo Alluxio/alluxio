@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs chown tachyon-user /input/file1
+$ ./bin/alluxio tfs chown alluxio-user /input/file1
 ```

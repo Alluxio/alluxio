@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs rmr /tmp/tests
+$ ./bin/alluxio tfs rmr /tmp/tests
 ```

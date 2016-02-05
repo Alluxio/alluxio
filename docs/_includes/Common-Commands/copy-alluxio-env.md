@@ -1,3 +1,3 @@
 ```bash
-$ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
+$ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 ```

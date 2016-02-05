@@ -1,5 +1,5 @@
 ```bash
-$ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
-$ ./bin/tachyon format
-$ ./bin/tachyon-start.sh local
+$ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```

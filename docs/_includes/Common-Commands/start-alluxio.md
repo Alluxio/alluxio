@@ -1,4 +1,4 @@
 ```bash
-$ ./bin/tachyon format
-$ ./bin/tachyon-start.sh local
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```

@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs cat /\\*
+$ ./bin/alluxio tfs cat /\\*
 ```

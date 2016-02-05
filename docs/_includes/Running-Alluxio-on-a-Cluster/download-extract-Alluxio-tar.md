@@ -1,4 +1,4 @@
 ```bash
-$ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
-$ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+$ wget http://alluxio-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/alluxio-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+$ tar xvfz alluxio-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
 ```

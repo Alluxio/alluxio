@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs load /data/today
+$ ./bin/alluxio tfs load /data/today
 ```

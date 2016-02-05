@@ -1,5 +1,5 @@
 ```bash
 $ cd /tmp
-$ mkdir tachyon-demo
-$ touch tachyon-demo/hello
+$ mkdir alluxio-demo
+$ touch alluxio-demo/hello
 ```

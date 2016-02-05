@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs setTtl /data/good-for-one-day 86400000
+$ ./bin/alluxio tfs setTtl /data/good-for-one-day 86400000
 ```
