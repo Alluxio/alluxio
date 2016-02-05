@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs touch /data/yesterday/_DONE_
+$ ./bin/alluxio tfs touch /data/yesterday/_DONE_
 ```

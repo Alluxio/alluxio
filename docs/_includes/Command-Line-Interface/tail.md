@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs tail /output/part-00000
+$ ./bin/alluxio tfs tail /output/part-00000
 ```
