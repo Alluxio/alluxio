@@ -34,10 +34,10 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.security.authentication.AuthenticationProvider;
 
 /**
- * Though its name indicates that it provides the tests for Tachyon authentication. This class is
+ * Though its name indicates that it provides the tests for Alluxio authentication. This class is
  * likely to test four authentication modes: NOSASL, SIMPLE, CUSTOM, KERBEROS.
  */
-// TODO(bin): add tests for {@link LocalTachyonClusterMultiMaster} in fault tolerant mode
+// TODO(bin): add tests for {@link LocalAlluxioClusterMultiMaster} in fault tolerant mode
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
 public final class MasterClientAuthenticationIntegrationTest {
   @Rule
@@ -59,32 +59,32 @@ public final class MasterClientAuthenticationIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+      confParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void noAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest("/file-nosasl");
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
+      confParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
   public void simpleAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest("/file-simple");
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
+  @LocalAlluxioClusterResource.Config(confParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
       "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
       NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-      Constants.SECURITY_LOGIN_USERNAME, "tachyon"})
+      Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest("/file-custom");
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
+  @LocalAlluxioClusterResource.Config(confParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
       "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
       NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-      Constants.SECURITY_LOGIN_USERNAME, "tachyon"})
+      Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnectTest() throws Exception {
     mThrown.expect(ConnectionFailedException.class);
 
@@ -102,7 +102,7 @@ public final class MasterClientAuthenticationIntegrationTest {
   }
 
   /**
-   * Test Tachyon client connects or disconnects to the Master. When the client connects
+   * Test Alluxio client connects or disconnects to the Master. When the client connects
    * successfully to the Master, it can successfully create file or not.
    *
    * @param filename
@@ -134,7 +134,7 @@ public final class MasterClientAuthenticationIntegrationTest {
 
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {
-      if (!user.equals("tachyon")) {
+      if (!user.equals("alluxio")) {
         throw new AuthenticationException("Only allow the user alluxio to connect");
       }
     }

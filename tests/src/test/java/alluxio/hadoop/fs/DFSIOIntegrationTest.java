@@ -110,7 +110,7 @@ public class DFSIOIntegrationTest implements Tool {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource();
-  private static URI sLocalTachyonClusterUri = null;
+  private static URI sLocalAlluxioClusterUri = null;
 
   static {
     org.apache.hadoop.conf.Configuration.addDefaultResource("hdfs-default.xml");
@@ -214,17 +214,17 @@ public class DFSIOIntegrationTest implements Tool {
     sBench = new DFSIOIntegrationTest();
     sBench.getConf().setBoolean("dfs.support.append", true);
 
-    sLocalTachyonClusterUri = URI.create(sLocalAlluxioClusterResource.get().getMasterUri());
-    sBench.getConf().set("fs.defaultFS", sLocalTachyonClusterUri.toString());
-    sBench.getConf().set("fs.default.name", sLocalTachyonClusterUri.toString());
+    sLocalAlluxioClusterUri = URI.create(sLocalAlluxioClusterResource.get().getMasterUri());
+    sBench.getConf().set("fs.defaultFS", sLocalAlluxioClusterUri.toString());
+    sBench.getConf().set("fs.default.name", sLocalAlluxioClusterUri.toString());
     sBench.getConf().set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
 
-    // Store TachyonConf in Hadoop Configuration
+    // Store Alluxio configuration in Hadoop configuration
     Configuration configuration = sLocalAlluxioClusterResource.get().getMasterConf();
     ConfUtils.storeToHadoopConfiguration(configuration, sBench.getConf());
 
     org.apache.hadoop.fs.FileSystem fs =
-        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+        org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     sBench.createControlFile(fs, DEFAULT_NR_BYTES, DEFAULT_NR_FILES);
 
     /** Check write here, as it is required for other tests */
@@ -235,13 +235,13 @@ public class DFSIOIntegrationTest implements Tool {
   public static void afterClass() throws Exception {
     // Clear DFSIOIntegrationTest
     org.apache.hadoop.fs.FileSystem fs =
-        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+        org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     sBench.cleanup(fs);
   }
 
   public static void testWrite() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
-        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+        org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
     sBench.writeTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
@@ -251,7 +251,7 @@ public class DFSIOIntegrationTest implements Tool {
   @Test(timeout = 25000)
   public void testRead() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
-        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+        org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
     sBench.readTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
@@ -261,7 +261,7 @@ public class DFSIOIntegrationTest implements Tool {
   @Test(timeout = 25000)
   public void testReadRandom() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
-        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+        org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
     sBench.getConf().setLong("test.io.skip.size", 0);
     sBench.randomReadTest(fs);
@@ -272,7 +272,7 @@ public class DFSIOIntegrationTest implements Tool {
   @Test(timeout = 25000)
   public void testReadBackward() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
-        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+        org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
     sBench.getConf().setLong("test.io.skip.size", -DEFAULT_BUFFER_SIZE);
     sBench.randomReadTest(fs);
@@ -283,7 +283,7 @@ public class DFSIOIntegrationTest implements Tool {
   @Test(timeout = 25000)
   public void testReadSkip() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
-        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+        org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
     sBench.getConf().setLong("test.io.skip.size", 1);
     sBench.randomReadTest(fs);
@@ -294,7 +294,7 @@ public class DFSIOIntegrationTest implements Tool {
   @Test(timeout = 25000)
   public void testReadLargeSkip() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
-        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+        org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
     sBench.getConf().setLong("test.io.skip.size", 5000);
     sBench.randomReadTest(fs);
@@ -306,7 +306,7 @@ public class DFSIOIntegrationTest implements Tool {
   // @Test (timeout = 25000)
   public void testAppend() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
-        org.apache.hadoop.fs.FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+        org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
     sBench.appendTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
