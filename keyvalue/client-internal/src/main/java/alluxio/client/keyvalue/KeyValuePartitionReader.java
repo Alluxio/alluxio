@@ -27,7 +27,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 
 /**
- * Interface for a reader which accesses a Tachyon key-value partition.
+ * Interface for a reader which accesses an Alluxio key-value partition.
  */
 public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
 
@@ -39,10 +39,10 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
      * Factory method to create a {@link KeyValuePartitionReader} given the {@link AlluxioURI} of a
      * key-value partition.
      *
-     * @param uri Tachyon URI of the key-value partition to use as input
+     * @param uri Alluxio URI of the key-value partition to use as input
      * @return an instance of a {@link KeyValuePartitionReader}
-     * @throws IOException if a non-Tachyon exception occurs
-     * @throws AlluxioException if an unexpected Tachyon exception is thrown
+     * @throws IOException if a non-Alluxio exception occurs
+     * @throws AlluxioException if an unexpected Alluxio exception is thrown
      */
     public static KeyValuePartitionReader create(AlluxioURI uri)
         throws AlluxioException, IOException {
@@ -61,8 +61,8 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
      *
      * @param blockId blockId the key-value partition to use as input
      * @return an instance of a {@link KeyValuePartitionReader}
-     * @throws IOException if a non-Tachyon exception occurs
-     * @throws AlluxioException if an unexpected Tachyon exception is thrown
+     * @throws IOException if a non-Alluxio exception occurs
+     * @throws AlluxioException if an unexpected Alluxio exception is thrown
      */
     public static KeyValuePartitionReader create(long blockId)
         throws AlluxioException, IOException {
@@ -76,8 +76,8 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
    *
    * @param key key to get, cannot be null
    * @return bytes of the value if found, null otherwise
-   * @throws IOException if a non-Tachyon exception occurs
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   byte[] get(byte[] key) throws IOException, AlluxioException;
 
@@ -88,15 +88,15 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
    *
    * @param key key to get, cannot be null
    * @return bytes of the value if found, null otherwise
-   * @throws IOException if a non-Tachyon exception occurs
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   ByteBuffer get(ByteBuffer key) throws IOException, AlluxioException;
 
   /**
    * @return the number of key-value pairs in the partition
-   * @throws IOException if a non-Tachyon error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws IOException if a non-Alluxio error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   int size() throws IOException, AlluxioException;
 }

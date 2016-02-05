@@ -37,7 +37,7 @@ import alluxio.thrift.PartitionInfo;
 import alluxio.util.io.BufferUtils;
 
 /**
- * Default implementation of {@link KeyValueStoreWriter} to create a Tachyon key-value store.
+ * Default implementation of {@link KeyValueStoreWriter} to create an Alluxio key-value store.
  */
 @NotThreadSafe
 class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
@@ -63,8 +63,8 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
    * store at the given {@link AlluxioURI}.
    *
    * @param uri URI of the store
-   * @throws IOException if a non-Tachyon exception occurs
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   BaseKeyValueStoreWriter(AlluxioURI uri) throws IOException, AlluxioException {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
@@ -166,8 +166,8 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   /**
    * Completes the current partition.
    *
-   * @throws IOException if non-Tachyon error occurs
-   * @throws AlluxioException if Tachyon error occurs
+   * @throws IOException if non-Alluxio error occurs
+   * @throws AlluxioException if Alluxio error occurs
    */
   private void completePartition() throws IOException, AlluxioException {
     if (mWriter == null) {

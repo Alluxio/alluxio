@@ -30,7 +30,7 @@ import alluxio.client.OutStreamBase;
 import alluxio.util.io.ByteIOUtils;
 
 /**
- * Writer that implements {@link KeyValuePartitionWriter} using the Tachyon file stream interface to
+ * Writer that implements {@link KeyValuePartitionWriter} using the Alluxio file stream interface to
  * generate a single-block key-value file.
  * <p>
  * A partition file consists of:

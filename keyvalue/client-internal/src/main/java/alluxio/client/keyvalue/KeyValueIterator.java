@@ -34,8 +34,8 @@ public interface KeyValueIterator {
    * Throws a {@link java.util.NoSuchElementException} if there are no more pairs.
    *
    * @return the next key-value pair in the iteration
-   * @throws IOException if a non-Tachyon exception occurs
-   * @throws AlluxioException if an unexpected Tachyon exception is thrown
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   KeyValuePair next() throws IOException, AlluxioException;
 }
