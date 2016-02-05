@@ -27,7 +27,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 
 /**
- * Interface for a writer which creates a Alluxio key-value partition.
+ * Interface for a writer which creates an Alluxio key-value partition.
  */
 public interface KeyValuePartitionWriter extends Closeable, Cancelable {
 

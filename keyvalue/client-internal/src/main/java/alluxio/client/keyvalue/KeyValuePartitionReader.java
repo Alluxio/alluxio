@@ -27,7 +27,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 
 /**
- * Interface for a reader which accesses a Alluxio key-value partition.
+ * Interface for a reader which accesses an Alluxio key-value partition.
  */
 public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
 

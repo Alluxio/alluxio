@@ -85,7 +85,7 @@ public final class KeyValueWorkerClient extends ClientBase {
    * @param key the key to get the value for
    * @return ByteBuffer of value, or null if not found
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Alluxio error occurs
+   * @throws AlluxioException if an Alluxio error occurs
    */
   public synchronized ByteBuffer get(final long blockId, final ByteBuffer key)
       throws IOException, AlluxioException {
@@ -108,7 +108,7 @@ public final class KeyValueWorkerClient extends ClientBase {
    * @param numKeys maximum number of next keys to fetch
    * @return the next batch of keys
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Alluxio error occurs
+   * @throws AlluxioException if an Alluxio error occurs
    */
   public synchronized List<ByteBuffer> getNextKeys(final long blockId, final ByteBuffer key,
       final int numKeys) throws IOException, AlluxioException {

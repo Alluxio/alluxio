@@ -76,7 +76,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
    *
    * @param path URI of the key-value store
    * @param info information of this completed parition
-   * @throws AlluxioException if a Alluxio error occurs
+   * @throws AlluxioException if an Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized void completePartition(final AlluxioURI path, final PartitionInfo info)
@@ -94,7 +94,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
    * Marks a key-value store complete.
    *
    * @param path URI of the key-value store
-   * @throws AlluxioException if a Alluxio error occurs
+   * @throws AlluxioException if an Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized void completeStore(final AlluxioURI path)
@@ -112,7 +112,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
    * Creates a new key-value store.
    *
    * @param path URI of the key-value store
-   * @throws AlluxioException if a Alluxio error occurs
+   * @throws AlluxioException if an Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized void createStore(final AlluxioURI path) throws IOException, AlluxioException {
@@ -130,7 +130,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
    *
    * @param path URI of the key-value store
    * @return a list of partition information
-   * @throws AlluxioException if a Alluxio error occurs
+   * @throws AlluxioException if an Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized List<PartitionInfo> getPartitionInfo(final AlluxioURI path)
