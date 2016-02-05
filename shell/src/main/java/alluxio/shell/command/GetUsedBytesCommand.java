@@ -34,8 +34,8 @@ public final class GetUsedBytesCommand extends AbstractShellCommand {
   /**
    * Constructs a new instance to get the number of bytes used in the {@link FileSystem}.
    *
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public GetUsedBytesCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
@@ -64,6 +64,6 @@ public final class GetUsedBytesCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Gets number of bytes used in the Tachyon file system.";
+    return "Gets number of bytes used in the Alluxio file system.";
   }
 }

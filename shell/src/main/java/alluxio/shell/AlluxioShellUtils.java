@@ -93,14 +93,14 @@ public class AlluxioShellUtils {
    * returned list only contains the corresponding URI; Else if the path contains wildcards, the
    * returned list contains all the matched URIs It supports any number of wildcards in inputURI
    *
-   * @param tachyonClient the client used to fetch information of Tachyon files
+   * @param alluxioClient the client used to fetch information of Alluxio files
    * @param inputURI the input URI (could contain wildcards)
    * @return a list of {@link AlluxioURI}s that matches the inputURI
    * @throws IOException if any filesystem errors are encountered when expanding paths with
    *                     wildcards
    */
-  public static List<AlluxioURI> getTachyonURIs(FileSystem tachyonClient,
-                                                AlluxioURI inputURI) throws IOException {
+  public static List<AlluxioURI> getAlluxioURIs(FileSystem alluxioClient, AlluxioURI inputURI)
+      throws IOException {
     if (!inputURI.getPath().contains(AlluxioURI.WILDCARD)) {
       return Lists.newArrayList(inputURI);
     } else {
@@ -108,17 +108,17 @@ public class AlluxioShellUtils {
       AlluxioURI parentURI =
           new AlluxioURI(inputURI.getScheme(), inputURI.getAuthority(),
               inputPath.substring(0, inputPath.indexOf(AlluxioURI.WILDCARD) + 1)).getParent();
-      return getTachyonURIs(tachyonClient, inputURI, parentURI);
+      return getAlluxioURIs(alluxioClient, inputURI, parentURI);
     }
   }
 
   /**
-   * The utility function used to implement getTachyonURIs
+   * The utility function used to implement getAlluxioURIs
    * Basically, it recursively iterates through the directory from the parent directory of inputURI
    * (e.g., for input "/a/b/*", it will start from "/a/b") until it finds all the matches;
    * It does not go into a directory if the prefix mismatches
    * (e.g., for input "/a/b/*", it won't go inside directory "/a/c")
-   * @param tachyonClient the client used to fetch metadata of Tachyon files
+   * @param alluxioClient the client used to fetch metadata of Alluxio files
    * @param inputURI the input URI (could contain wildcards)
    * @param parentDir the {@link AlluxioURI} of the directory in which we are searching matched
    *                  files
@@ -126,12 +126,12 @@ public class AlluxioShellUtils {
    * @throws IOException if any filesystem errors are encountered when expanding paths with
    *                     wildcards
    */
-  private static List<AlluxioURI> getTachyonURIs(FileSystem tachyonClient, AlluxioURI inputURI,
-                                                 AlluxioURI parentDir) throws IOException {
+  private static List<AlluxioURI> getAlluxioURIs(FileSystem alluxioClient, AlluxioURI inputURI,
+      AlluxioURI parentDir) throws IOException {
     List<AlluxioURI> res = new LinkedList<AlluxioURI>();
     List<URIStatus> statuses = null;
     try {
-      statuses = tachyonClient.listStatus(parentDir);
+      statuses = alluxioClient.listStatus(parentDir);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -146,7 +146,7 @@ public class AlluxioShellUtils {
               new AlluxioURI(inputURI.getScheme(), inputURI.getAuthority(), status.getPath());
           String prefix = inputURI.getLeadingPath(dirURI.getDepth());
           if (prefix != null && match(dirURI, new AlluxioURI(prefix))) {
-            res.addAll(getTachyonURIs(tachyonClient, inputURI, dirURI));
+            res.addAll(getAlluxioURIs(alluxioClient, inputURI, dirURI));
           }
         }
       }
@@ -179,7 +179,7 @@ public class AlluxioShellUtils {
 
   /**
    * The utility function used to implement getFiles.
-   * It follows the same algorithm as {@link #getTachyonURIs}.
+   * It follows the same algorithm as {@link #getAlluxioURIs}.
    *
    * @param inputPath the input file path (could contain wildcards)
    * @param parent the directory in which we are searching matched files

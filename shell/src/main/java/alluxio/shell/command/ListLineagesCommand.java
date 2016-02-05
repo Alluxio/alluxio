@@ -36,8 +36,8 @@ public final class ListLineagesCommand extends AbstractShellCommand {
   /**
    * Constructs a new instance to list all the lineages.
    *
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public ListLineagesCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);

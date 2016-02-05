@@ -28,16 +28,16 @@ import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
 
 /**
- * Loads metadata for the given Tachyon path from UFS.
+ * Loads metadata for the given Alluxio path from UFS.
  */
 @ThreadSafe
 public final class LoadMetadataCommand extends AbstractShellCommand {
 
   /**
-   * Constructs a new instance to load metadata for the given Tachyon path from UFS.
+   * Constructs a new instance to load metadata for the given Alluxio path from UFS.
    *
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public LoadMetadataCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
@@ -73,6 +73,6 @@ public final class LoadMetadataCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Loads metadata for the given Tachyon path from the under file system.";
+    return "Loads metadata for the given Alluxio path from the under file system.";
   }
 }

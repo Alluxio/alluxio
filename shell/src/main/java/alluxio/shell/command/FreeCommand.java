@@ -28,17 +28,17 @@ import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
 
 /**
- * Frees the given file or folder from Tachyon in-memory (recursively freeing all children if a
+ * Frees the given file or folder from Alluxio in-memory (recursively freeing all children if a
  * folder).
  */
 @ThreadSafe
 public final class FreeCommand extends WithWildCardPathCommand {
 
   /**
-   * Constructs a new instance to free the given file or folder from Tachyon.
+   * Constructs a new instance to free the given file or folder from Alluxio.
    *
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public FreeCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
@@ -67,6 +67,6 @@ public final class FreeCommand extends WithWildCardPathCommand {
 
   @Override
   public String getDescription() {
-    return "Removes the file or directory(recursively) from Tachyon memory space.";
+    return "Removes the file or directory(recursively) from Alluxio memory space.";
   }
 }

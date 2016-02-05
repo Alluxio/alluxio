@@ -27,14 +27,14 @@ import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
 
 /**
- * Mounts a UFS path onto a Tachyon path.
+ * Mounts a UFS path onto a Alluxio path.
  */
 @ThreadSafe
 public final class MountCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public MountCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
@@ -53,11 +53,11 @@ public final class MountCommand extends AbstractShellCommand {
   @Override
   public void run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
-    AlluxioURI tachyonPath = new AlluxioURI(args[0]);
+    AlluxioURI alluxioPath = new AlluxioURI(args[0]);
     AlluxioURI ufsPath = new AlluxioURI(args[1]);
     try {
-      mFileSystem.mount(tachyonPath, ufsPath);
-      System.out.println("Mounted " + ufsPath + " at " + tachyonPath);
+      mFileSystem.mount(alluxioPath, ufsPath);
+      System.out.println("Mounted " + ufsPath + " at " + alluxioPath);
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
@@ -65,11 +65,11 @@ public final class MountCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "mount <tachyonPath> <ufsURI>";
+    return "mount <alluxioPath> <ufsURI>";
   }
 
   @Override
   public String getDescription() {
-    return "Mounts a UFS path onto a Tachyon path.";
+    return "Mounts a UFS path onto a Alluxio path.";
   }
 }

@@ -36,8 +36,8 @@ public final class ChmodCommand extends AbstractShellCommand {
   /**
    * Creates a new instance of {@link ChmodCommand}.
    *
-   * @param conf a Tachyon configuration
-   * @param fs a Tachyon file system handle
+   * @param conf a Alluxio configuration
+   * @param fs a Alluxio file system handle
    */
   public ChmodCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);

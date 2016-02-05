@@ -35,16 +35,16 @@ import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
 
 /**
- * Loads a file or directory in Tachyon space, makes it resident in memory.
+ * Loads a file or directory in Alluxio space, makes it resident in memory.
  */
 @ThreadSafe
 public final class LoadCommand extends WithWildCardPathCommand {
 
   /**
-   * Constructs a new instance to load a file or directory in Tachyon space.
+   * Constructs a new instance to load a file or directory in Alluxio space.
    *
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public LoadCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
@@ -61,10 +61,10 @@ public final class LoadCommand extends WithWildCardPathCommand {
   }
 
   /**
-   * Loads a file or directory in Tachyon space, makes it resident in memory.
+   * Loads a file or directory in Alluxio space, makes it resident in memory.
    *
-   * @param filePath The {@link AlluxioURI} path to load into Tachyon memory
-   * @throws IOException if a non-Tachyon related exception occurs
+   * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
+   * @throws IOException if a non-Alluxio related exception occurs
    */
   private void load(AlluxioURI filePath) throws IOException {
     try {
@@ -77,7 +77,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
         }
       } else {
         if (status.getInMemoryPercentage() == 100) {
-          // The file has already been fully loaded into Tachyon memory.
+          // The file has already been fully loaded into Alluxio memory.
           return;
         }
         Closer closer = Closer.create();
@@ -106,6 +106,6 @@ public final class LoadCommand extends WithWildCardPathCommand {
 
   @Override
   public String getDescription() {
-    return "Loads a file or directory in Tachyon space, makes it resident in memory.";
+    return "Loads a file or directory in Alluxio space, makes it resident in memory.";
   }
 }

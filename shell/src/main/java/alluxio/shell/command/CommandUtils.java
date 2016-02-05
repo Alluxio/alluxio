@@ -41,7 +41,7 @@ public final class CommandUtils {
   /**
    * Sets a new TTL value or unsets an existing TTL value for file at path.
    *
-   * @param fs the file system for Tachyon
+   * @param fs the file system for Alluxio
    * @param path the file path
    * @param ttlMs the TTL (time to live) value to use; it identifies duration (in milliseconds) the
    *        created file should be kept around before it is automatically deleted, irrespective of
@@ -74,7 +74,7 @@ public final class CommandUtils {
    * @param fs The {@link FileSystem} client
    * @param path The {@link AlluxioURI} path as the input of the command
    * @param pinned the state to be set
-   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws IOException if a non-Alluxio related exception occurs
    */
   public static void setPinned(FileSystem fs, AlluxioURI path, boolean pinned)
       throws IOException {

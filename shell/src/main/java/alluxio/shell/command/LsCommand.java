@@ -43,8 +43,8 @@ public final class LsCommand extends WithWildCardPathCommand {
    * Constructs a new instance to display information for all directories and files directly under
    * the path specified in args.
    *
-   * @param conf the configuration for Tachyon
-   * @param fs the filesystem of Tachyon
+   * @param conf the configuration for Alluxio
+   * @param fs the filesystem of Alluxio
    */
   public LsCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
@@ -70,7 +70,7 @@ public final class LsCommand extends WithWildCardPathCommand {
    *
    * @param path The {@link AlluxioURI} path as the input of the command
    * @param recursive Whether list the path recursively
-   * @throws IOException if a non-Tachyon related exception occurs
+   * @throws IOException if a non-Alluxio related exception occurs
    */
   private void ls(AlluxioURI path, boolean recursive) throws IOException {
     List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path);
