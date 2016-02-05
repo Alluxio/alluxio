@@ -1,7 +1,7 @@
 - include: ../../lib/tasks/maven.yml
 
 - name: set current alluxio version in spark/core/pom.xml
-  script: set_tachyon_version.sh
+  script: set_Alluxio_version.sh
 
 - name: remove dependency exclusion of alluxio-underfs-s3
   script: remove_s3_exclusion.sh

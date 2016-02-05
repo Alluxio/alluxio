@@ -1,5 +1,5 @@
-# For efficiency, only TachyonMaster will compile from source
-# other nodes rsync necessary runtime from TachyonMaster
+# For efficiency, only AlluxioMaster will compile from source
+# other nodes rsync necessary runtime from AlluxioMaster
 ---
 
 - name: install rsync
@@ -9,7 +9,7 @@
 - name: mkdir /mesos
   script: mkdir.sh
 
-- name: rsync mesos from TachyonMaster
+- name: rsync mesos from AlluxioMaster
   script: rsync.sh
 
 # vim :set filetype=ansible.yaml:
