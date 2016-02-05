@@ -32,7 +32,7 @@ public final class Version {
   }
 
   /** The relative path to the Tachyon target jar. */
-  public static final String TACHYON_JAR = "target/alluxio-" + VERSION
+  public static final String ALLUXIO_JAR = "target/alluxio-" + VERSION
       + "-jar-with-dependencies.jar";
 
   /**

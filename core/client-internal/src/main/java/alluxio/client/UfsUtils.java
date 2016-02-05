@@ -46,16 +46,18 @@ public final class UfsUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Builds a new path relative to a given root by retrieving the given path relative to
-   * the ufsRootPath.
+   * Builds a new path relative to a given root by retrieving the given path relative to the
+   * ufsRootPath.
    *
-   * @param tfsRootPath the destination point in mTachyonFS to load the under FS path onto
-   * @param ufsRootPath the source path in the under FS to be loaded
-   * @param path the path in the under FS be loaded, path.startsWith(ufsRootPath) must be true
+   * @param tfsRootPath the destination point in Alluxio file system to load the under file system
+   *        path onto
+   * @param ufsRootPath the source path in the under file system to be loaded
+   * @param path the path in the under file system be loaded, path.startsWith(ufsRootPath) must be
+   *        true
    * @return the new path relative to tfsRootPath
    */
-  private static AlluxioURI buildTFSPath(
-      AlluxioURI tfsRootPath, AlluxioURI ufsRootPath, AlluxioURI path) {
+  private static AlluxioURI buildTFSPath(AlluxioURI tfsRootPath, AlluxioURI ufsRootPath,
+      AlluxioURI path) {
     String filePath = path.getPath().substring(ufsRootPath.getPath().length());
     if (filePath.isEmpty()) {
       // retrieve the basename in ufsRootPath
@@ -69,13 +71,15 @@ public final class UfsUtils {
    * Loads files under path "ufsAddrRootPath" (excluding excludePathPrefix relative to the path) to
    * the given tfs under a given destination path.
    *
-   * @param tfsAddrRootPath the mTachyonFS address and path to load the src files, like
+   * @param tfsAddrRootPath the Alluxio file system address and path to load the src files, like
    *        "alluxio://host:port/dest".
-   * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/src"
-   * @param excludePaths paths to exclude from ufsRootPath, which will not be loaded in mTachyonFS
+   * @param ufsAddrRootPath the address and root path of the under file system, like
+   *        "hdfs://host:port/src"
+   * @param excludePaths paths to exclude from ufsRootPath, which will not be loaded in Alluxio file
+   *        system
    * @param configuration the instance of {@link Configuration} to be used
    * @throws IOException when an event that prevents the operation from completing is encountered
-   * @throws AlluxioException if an unexpected alluxio error occurs
+   * @throws AlluxioException if an unexpected Alluxio error occurs
    */
   private static void loadUfs(AlluxioURI tfsAddrRootPath, AlluxioURI ufsAddrRootPath,
       String excludePaths, Configuration configuration) throws IOException, AlluxioException {
@@ -91,24 +95,26 @@ public final class UfsUtils {
    * under the given tfsRootPath directory.
    *
    * @param fs the {@link FileSystem} handler created out of address like "alluxio://host:port"
-   * @param tachyonPath the destination point in mTachyonFS to load the under FS path onto
-   * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/dir"
+   * @param alluxioPath the destination point in Alluxio file system to load the under file system
+   *        path onto
+   * @param ufsAddrRootPath the address and root path of the under file system, like
+   *        "hdfs://host:port/dir"
    * @param excludePathPrefix paths to exclude from ufsRootPath, which will not be registered in
-   *        mTachyonFS.
+   *        Alluxio file system
    * @param conf instance of {@link Configuration}
    * @throws IOException when an event that prevents the operation from completing is encountered
    * @throws AlluxioException if an unexpected alluxio error occurs
-   * @deprecated As of version 0.8.
-   *             Use {@link #loadUfs(AlluxioURI, AlluxioURI, String, Configuration)} instead.
+   * @deprecated As of version 0.8. Use
+   *             {@link #loadUfs(AlluxioURI, AlluxioURI, String, Configuration)} instead.
    */
   @Deprecated
-  public static void loadUfs(FileSystem fs, AlluxioURI tachyonPath, AlluxioURI ufsAddrRootPath,
+  public static void loadUfs(FileSystem fs, AlluxioURI alluxioPath, AlluxioURI ufsAddrRootPath,
       PrefixList excludePathPrefix, Configuration conf) throws IOException, AlluxioException {
-    LOG.info("Loading to {} {} {}", tachyonPath, ufsAddrRootPath, excludePathPrefix);
+    LOG.info("Loading to {} {} {}", alluxioPath, ufsAddrRootPath, excludePathPrefix);
     try {
-      // resolve and replace hostname embedded in the given ufsAddress/tachyonAddress
+      // resolve and replace hostname embedded in the given ufsAddress/alluxioAddress
       ufsAddrRootPath = NetworkAddressUtils.replaceHostName(ufsAddrRootPath);
-      tachyonPath = NetworkAddressUtils.replaceHostName(tachyonPath);
+      alluxioPath = NetworkAddressUtils.replaceHostName(alluxioPath);
     } catch (UnknownHostException e) {
       LOG.error("Failed to resolve hostname", e);
       throw new IOException(e);
@@ -141,7 +147,7 @@ public final class UfsUtils {
         }
       }
     } else {
-      directoryName = tachyonPath;
+      directoryName = alluxioPath;
     }
 
     if (!directoryName.equals(AlluxioURI.EMPTY_URI)) {
@@ -163,7 +169,7 @@ public final class UfsUtils {
         AlluxioURI tfsPath = buildTFSPath(directoryName, ufsAddrRootPath, ufsPath);
         LOG.debug("Loading ufs. fs path = {}.", tfsPath);
         if (fs.exists(tfsPath)) {
-          LOG.debug("File {} already exists in Tachyon.", tfsPath);
+          LOG.debug("File {} already exists in Alluxio.", tfsPath);
           continue;
         } else {
           fs.loadMetadata(tfsPath);
@@ -192,14 +198,14 @@ public final class UfsUtils {
         }
         // ufsPath is a directory, so only concat the tfsRoot with the relative path
         AlluxioURI tfsPath = new AlluxioURI(PathUtils.concatPath(
-            tachyonPath, ufsPath.getPath().substring(ufsAddrRootPath.getPath().length())));
+            alluxioPath, ufsPath.getPath().substring(ufsAddrRootPath.getPath().length())));
         LOG.debug("Loading ufs. ufs path is a directory. tfsPath = {}.", tfsPath);
         if (!fs.exists(tfsPath)) {
           LOG.debug("Loading ufs. ufs path is a directory. make dir = {}.", tfsPath);
           fs.loadMetadata(tfsPath);
           // TODO(hy): Add the following.
           // if (fs.mkdir(tfsPath)) {
-          // LOG.info("Created mTachyonFS folder {} with checkpoint location {}", tfsPath, ufsPath);
+          // LOG.info("Created Alluxio folder {} with checkpoint location {}", tfsPath, ufsPath);
           // } else {
           // LOG.info("Failed to create alluxio folder: {}", tfsPath);
           // }
@@ -212,7 +218,7 @@ public final class UfsUtils {
    * Starts the command line utility to load files under path "ufsAddress/ufsRootPath"
    * (excluding excludePathPrefix) to the given tfs under the given tfsRootPath directory.
    *
-   * @param args the parameters as <TachyonPath> <UfsPath> [<Optional ExcludePathPrefix, seperated
+   * @param args the parameters as <AlluxioPath> <UfsPath> [<Optional ExcludePathPrefix, seperated
    *             by ;>]
    */
   public static void main(String[] args) {
@@ -238,9 +244,9 @@ public final class UfsUtils {
    * Prints an example usage of the command line.
    */
   public static void printUsage() {
-    String cmd = "java -cp " + Version.TACHYON_JAR + " alluxio.client.UfsUtils ";
+    String cmd = "java -cp " + Version.ALLUXIO_JAR + " alluxio.client.UfsUtils ";
 
-    System.out.println("Usage: " + cmd + "<TachyonPath> <UfsPath> "
+    System.out.println("Usage: " + cmd + "<AlluxioPath> <UfsPath> "
         + "[<Optional ExcludePathPrefix, separated by ;>]");
     System.out.println("Example: " + cmd + "alluxio://127.0.0.1:19998/a hdfs://localhost:9000/b c");
     System.out.println("Example: " + cmd + "alluxio://127.0.0.1:19998/a file:///b c");

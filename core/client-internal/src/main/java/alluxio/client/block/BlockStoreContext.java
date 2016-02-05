@@ -130,7 +130,7 @@ public enum BlockStoreContext {
    * but not guaranteed. The caller should use {@link BlockWorkerClient#isLocal()} to verify if the
    * client is local before assuming so.
    *
-   * @return a {@link BlockWorkerClient} to a worker in the Tachyon system
+   * @return a {@link BlockWorkerClient} to a worker in the Alluxio system
    */
   public BlockWorkerClient acquireWorkerClient() {
     BlockWorkerClient client = acquireLocalWorkerClient();
@@ -147,7 +147,7 @@ public enum BlockStoreContext {
    * @param hostname the hostname of the worker to get a client to, empty String indicates all
    *        workers are eligible
    * @return a {@link BlockWorkerClient} connected to the worker with the given hostname
-   * @throws IOException if no Tachyon worker is available for the given hostname
+   * @throws IOException if no Alluxio worker is available for the given hostname
    */
   public BlockWorkerClient acquireWorkerClient(String hostname) throws IOException {
     BlockWorkerClient client;
@@ -167,7 +167,7 @@ public enum BlockStoreContext {
    *
    * @param address the address of the worker to get a client to
    * @return a {@link BlockWorkerClient} connected to the worker with the given hostname
-   * @throws IOException if no Tachyon worker is available for the given hostname
+   * @throws IOException if no Alluxio worker is available for the given hostname
    */
   public BlockWorkerClient acquireWorkerClient(WorkerNetAddress address)
       throws IOException {
@@ -190,7 +190,7 @@ public enum BlockStoreContext {
   /**
    * Obtains a worker client on the local worker in the system.
    *
-   * @return a {@link BlockWorkerClient} to a worker in the Tachyon system or null if failed
+   * @return a {@link BlockWorkerClient} to a worker in the Alluxio system or null if failed
    */
   public BlockWorkerClient acquireLocalWorkerClient() {
     initializeLocalBlockWorkerClientPool();
@@ -262,7 +262,7 @@ public enum BlockStoreContext {
    */
   // TODO(calvin): Handle the case when the local worker starts up after the client or shuts down
   // before the client does. Also, when this is fixed, fix the TODO(cc) in
-  // TachyonBlockStore#getInStream too.
+  // AlluxioBlockStore#getInStream too.
   public boolean hasLocalWorker() {
     initializeLocalBlockWorkerClientPool();
     return mLocalBlockWorkerClientPool != null;

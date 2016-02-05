@@ -30,12 +30,12 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
 /**
- * Provides a stream API to read a block from Tachyon. An instance extending this class can be
+ * Provides a stream API to read a block from Alluxio. An instance extending this class can be
  * obtained by calling {@link AlluxioBlockStore#getInStream}. The buffer size of the stream can be
  * set through configuration. Multiple {@link BufferedBlockInStream}s can be opened for a block.
  *
  * This class provides the same methods as a Java {@link InputStream} with additional methods from
- * Tachyon Stream interfaces.
+ * Alluxio Stream interfaces.
  */
 @NotThreadSafe
 public abstract class BufferedBlockInStream extends BlockInStream {

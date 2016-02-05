@@ -37,7 +37,7 @@ public interface RemoteBlockWriter extends Closeable {
     /**
      * Factory for {@link RemoteBlockWriter}.
      *
-     * @param conf Tachyon configuration
+     * @param conf Alluxio configuration
      * @return a new instance of {@link RemoteBlockWriter}
      */
     public static RemoteBlockWriter create(Configuration conf) {

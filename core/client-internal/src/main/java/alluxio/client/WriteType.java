@@ -20,13 +20,13 @@ import javax.annotation.concurrent.ThreadSafe;
 import alluxio.annotation.PublicApi;
 
 /**
- * Write types for creating a file in Tachyon.
+ * Write types for creating a file in Alluxio.
  */
 @PublicApi
 @ThreadSafe
 public enum WriteType {
   /**
-   * Write the file, guaranteeing the data is written to Tachyon storage or failing the operation.
+   * Write the file, guaranteeing the data is written to Alluxio storage or failing the operation.
    * The data will be written to the highest tier in a worker's storage. Data will not be
    * persisted to the under storage.
    */
@@ -42,11 +42,11 @@ public enum WriteType {
   TRY_CACHE(2),
   /**
    * Write the file synchronously to the under fs, and also try to write to the highest tier in a
-   * worker's Tachyon storage.
+   * worker's Alluxio storage.
    */
   CACHE_THROUGH(3),
   /**
-   * Write the file synchronously to the under fs, skipping Tachyon storage.
+   * Write the file synchronously to the under fs, skipping Alluxio storage.
    */
   THROUGH(4),
   /**
@@ -54,7 +54,7 @@ public enum WriteType {
    */
   ASYNC_THROUGH(5),
   /**
-   * Do not store the data in Tachyon or Under Storage. This write type should only be used for
+   * Do not store the data in Alluxio or Under Storage. This write type should only be used for
    * testing.
    */
   NONE(6);
@@ -68,7 +68,7 @@ public enum WriteType {
   /**
    * @return the {@link AlluxioStorageType} which is associated with this mode
    */
-  public AlluxioStorageType getTachyonStorageType() {
+  public AlluxioStorageType getAlluxioStorageType() {
     if (isCache()) {
       return AlluxioStorageType.STORE;
     }

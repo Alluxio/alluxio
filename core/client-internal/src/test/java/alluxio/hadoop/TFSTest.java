@@ -117,7 +117,7 @@ public class TFSTest {
   }
 
   /**
-   * Ensures that Hadoop loads the Tachyon file system when configured.
+   * Ensures that Hadoop loads the Alluxio file system when configured.
    *
    * @throws IOException when the file system cannot be retrieved
    */

@@ -51,9 +51,9 @@ public final class ConfUtils {
         + "org.apache.hadoop.io.serializer.WritableSerialization");
     Properties confProperties = source.getInternalProperties();
     try {
-      DefaultStringifier.store(target, confProperties, Constants.TACHYON_CONF_SITE);
+      DefaultStringifier.store(target, confProperties, Constants.ALLUXIO_CONF_SITE);
     } catch (IOException ex) {
-      LOG.error("Unable to store TachyonConf in Hadoop configuration", ex);
+      LOG.error("Unable to store Alluxio configuration in Hadoop configuration", ex);
       throw new RuntimeException(ex);
     }
   }
@@ -66,33 +66,33 @@ public final class ConfUtils {
    */
   public static Configuration loadFromHadoopConfiguration(
       org.apache.hadoop.conf.Configuration source) {
-    // Load TachyonConf if any and merge to the one in TachyonFS
-    // Push TachyonConf to the Job conf
-    Properties tachyonConfProperties = null;
-    if (source.get(Constants.TACHYON_CONF_SITE) != null) {
-      LOG.info("Found TachyonConf site from Job configuration for Tachyon");
+    // Load Alluxio configuration if any and merge to the one in Alluxio file system
+    // Push Alluxio configuration to the Job configuration
+    Properties alluxioConfProperties = null;
+    if (source.get(Constants.ALLUXIO_CONF_SITE) != null) {
+      LOG.info("Found Alluxio configuration site from Job configuration for Alluxio");
       try {
-        tachyonConfProperties = DefaultStringifier.load(source, Constants.TACHYON_CONF_SITE,
+        alluxioConfProperties = DefaultStringifier.load(source, Constants.ALLUXIO_CONF_SITE,
             Properties.class);
       } catch (IOException e) {
-        LOG.error("Unable to load TachyonConf from Hadoop configuration", e);
+        LOG.error("Unable to load Alluxio configuration from Hadoop configuration", e);
         throw new RuntimeException(e);
       }
     }
-    if (tachyonConfProperties == null) {
-      tachyonConfProperties = new Properties();
+    if (alluxioConfProperties == null) {
+      alluxioConfProperties = new Properties();
     }
-    // Load any Tachyon configuration parameters existing in the Hadoop configuration.
+    // Load any Alluxio configuration parameters existing in the Hadoop configuration.
     for (Map.Entry<String, String> entry : source) {
       String propertyName = entry.getKey();
-      // TODO(gene): use a better way to enumerate every Tachyon configuration parameter
+      // TODO(gene): use a better way to enumerate every Alluxio configuration parameter
       if (propertyName.startsWith("alluxio.")
           || propertyName.equals(Constants.S3_ACCESS_KEY)
           || propertyName.equals(Constants.S3_SECRET_KEY)) {
-        tachyonConfProperties.put(propertyName, entry.getValue());
+        alluxioConfProperties.put(propertyName, entry.getValue());
       }
     }
-    LOG.info("Loading Tachyon properties from Hadoop configuration: {}", tachyonConfProperties);
-    return new Configuration(tachyonConfProperties);
+    LOG.info("Loading Alluxio properties from Hadoop configuration: {}", alluxioConfProperties);
+    return new Configuration(alluxioConfProperties);
   }
 }

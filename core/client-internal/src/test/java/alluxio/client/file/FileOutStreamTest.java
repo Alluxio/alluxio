@@ -78,7 +78,7 @@ public class FileOutStreamTest {
   private UnderFileSystem mUnderFileSystem;
   private BlockWorkerClient mBlockWorkerClient;
 
-  private Map<Long, TestBufferedBlockOutStream> mTachyonOutStreamMap;
+  private Map<Long, TestBufferedBlockOutStream> mAlluxioOutStreamMap;
   private ByteArrayOutputStream mUnderStorageOutputStream;
   private AtomicBoolean mUnderStorageFlushed;
 
@@ -100,7 +100,7 @@ public class FileOutStreamTest {
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
 
-    Mockito.when(mFileSystemContext.getTachyonBlockStore()).thenReturn(mBlockStore);
+    Mockito.when(mFileSystemContext.getAluxioBlockStore()).thenReturn(mBlockStore);
     Mockito.when(mBlockStoreContext.acquireWorkerClient()).thenReturn(mBlockWorkerClient);
     Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
     Mockito.when(mFileSystemMasterClient.getStatus(Mockito.any(AlluxioURI.class))).thenReturn(
@@ -136,7 +136,7 @@ public class FileOutStreamTest {
         new BlockWorkerInfo(new WorkerNetAddress().setHost("localhost").setRpcPort(1)
             .setDataPort(2).setWebPort(3), Constants.GB, 0);
     Mockito.when(mBlockStore.getWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
-    mTachyonOutStreamMap = outStreamMap;
+    mAlluxioOutStreamMap = outStreamMap;
 
     // Create an under storage stream so that we can check whether it has been flushed
     final AtomicBoolean underStorageFlushed = new AtomicBoolean(false);
@@ -172,7 +172,7 @@ public class FileOutStreamTest {
   @Test
   public void singleByteWriteTest() throws Exception {
     mTestStream.write(5);
-    Assert.assertArrayEquals(new byte[] {5}, mTachyonOutStreamMap.get(0L).getWrittenData());
+    Assert.assertArrayEquals(new byte[] {5}, mAlluxioOutStreamMap.get(0L).getWrittenData());
   }
 
   /**
@@ -228,8 +228,8 @@ public class FileOutStreamTest {
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
     for (long streamIndex = 0; streamIndex < 2; streamIndex ++) {
-      Assert.assertFalse(mTachyonOutStreamMap.get(streamIndex).isCanceled());
-      Assert.assertTrue(mTachyonOutStreamMap.get(streamIndex).isClosed());
+      Assert.assertFalse(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
+      Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
     }
     Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_NAME),
         Mockito.any(CompleteFileOptions.class));
@@ -247,8 +247,8 @@ public class FileOutStreamTest {
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.cancel();
     for (long streamIndex = 0; streamIndex < 2; streamIndex ++) {
-      Assert.assertTrue(mTachyonOutStreamMap.get(streamIndex).isClosed());
-      Assert.assertTrue(mTachyonOutStreamMap.get(streamIndex).isCanceled());
+      Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
+      Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
     }
     // Don't persist or complete the file if the stream was canceled
     Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_NAME,
@@ -468,16 +468,16 @@ public class FileOutStreamTest {
     long filledStreams = len / BLOCK_LENGTH;
     for (long streamIndex = 0; streamIndex < filledStreams; streamIndex ++) {
       Assert.assertTrue("stream " + streamIndex + " was never written",
-          mTachyonOutStreamMap.containsKey(streamIndex));
+          mAlluxioOutStreamMap.containsKey(streamIndex));
       Assert.assertArrayEquals(BufferUtils
           .getIncreasingByteArray((int) (streamIndex * BLOCK_LENGTH + start), (int) BLOCK_LENGTH),
-          mTachyonOutStreamMap.get(streamIndex).getWrittenData());
+          mAlluxioOutStreamMap.get(streamIndex).getWrittenData());
     }
     long lastStreamBytes = len - filledStreams * BLOCK_LENGTH;
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) (filledStreams * BLOCK_LENGTH + start),
             (int) lastStreamBytes),
-        mTachyonOutStreamMap.get(filledStreams).getWrittenData());
+        mAlluxioOutStreamMap.get(filledStreams).getWrittenData());
 
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(start, len),
         mUnderStorageOutputStream.toByteArray());

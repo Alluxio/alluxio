@@ -57,7 +57,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Creates a new file system master client.
    *
    * @param masterAddress the master address
-   * @param configuration the Tachyon configuration
+   * @param configuration the Alluxio configuration
    */
   public FileSystemMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
     super(masterAddress, configuration);
@@ -89,11 +89,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the directory path
    * @param options method options
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized void createDirectory(final AlluxioURI path,
       final CreateDirectoryOptions options) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.createDirectory(path.getPath(), options.toThrift());
@@ -108,11 +108,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the file path
    * @param options method options
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized void createFile(final AlluxioURI path, final CreateFileOptions options)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.createFile(path.getPath(), options.toThrift());
@@ -127,11 +127,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the file path
    * @param options the method options
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized void completeFile(final AlluxioURI path, final CompleteFileOptions options)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.completeFile(path.getPath(), options.toThrift());
@@ -146,11 +146,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the path to delete
    * @param options method options
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized void delete(final AlluxioURI path, final DeleteOptions options)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.remove(path.getPath(), options.isRecursive());
@@ -165,11 +165,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the path to free
    * @param options method options
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized void free(final AlluxioURI path, final FreeOptions options)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.free(path.getPath(), options.isRecursive());
@@ -182,11 +182,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the URI of the file
    * @return the list of file block information for the given file id
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized List<FileBlockInfo> getFileBlockInfoList(final AlluxioURI path)
       throws IOException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<List<FileBlockInfo>>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<List<FileBlockInfo>>() {
       @Override
       public List<FileBlockInfo> call() throws AlluxioTException, TException {
         List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
@@ -203,11 +203,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the file path
    * @return the file info for the given file id
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized URIStatus getStatus(final AlluxioURI path) throws IOException,
       AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<URIStatus>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<URIStatus>() {
       @Override
       public URIStatus call() throws AlluxioTException, TException {
         return new URIStatus(ThriftUtils.fromThrift(mClient.getStatus(path.getPath())));
@@ -221,12 +221,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param fileId the file id
    * @return the file info for the given file id
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   // TODO(calvin): Split this into its own client
   public synchronized URIStatus getStatusInternal(final long fileId) throws IOException,
       AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<URIStatus>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<URIStatus>() {
       @Override
       public URIStatus call() throws AlluxioTException, TException {
         return new URIStatus(ThriftUtils.fromThrift(mClient.getStatusInternal(fileId)));
@@ -238,11 +238,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the file path
    * @return the next blockId for the file
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized long getNewBlockIdForFile(final AlluxioURI path)
       throws IOException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
         return mClient.getNewBlockIdForFile(path.getPath());
@@ -268,11 +268,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the path to list
    * @return the list of file information for the given path
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized List<URIStatus> listStatus(final AlluxioURI path)
       throws IOException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<List<URIStatus>>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws AlluxioTException, TException {
         List<URIStatus> result = new ArrayList<URIStatus>();
@@ -289,12 +289,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param path the path of the file to load metadata for
    * @param options method options
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized void loadMetadata(final AlluxioURI path,
       final LoadMetadataOptions options) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
         return mClient.loadMetadata(path.toString(), options.isRecursive());
@@ -303,19 +303,19 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Mounts the given UFS path under the given Tachyon path.
+   * Mounts the given UFS path under the given Alluxio path.
    *
-   * @param tachyonPath the Tachyon path
+   * @param alluxioPath the Alluxio path
    * @param ufsPath the UFS path
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    * @throws IOException an I/O error occurs
    */
-  public synchronized void mount(final AlluxioURI tachyonPath, final AlluxioURI ufsPath)
+  public synchronized void mount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath)
       throws AlluxioException, IOException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
-        mClient.mount(tachyonPath.toString(), ufsPath.toString());
+        mClient.mount(alluxioPath.toString(), ufsPath.toString());
         return null;
       }
     });
@@ -327,11 +327,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param src the path to rename
    * @param dst new file path
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized void rename(final AlluxioURI src, final AlluxioURI dst)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.rename(src.getPath(), dst.getPath());
@@ -346,11 +346,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the file or directory path
    * @param options the file or directory attribute options to be set
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized void setAttribute(final AlluxioURI path, final SetAttributeOptions options)
       throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.setAttribute(path.getPath(), options.toThrift());
@@ -363,12 +363,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Schedules the async persistence of the given file.
    *
    * @param path the file path
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized void scheduleAsyncPersist(final AlluxioURI path)
       throws AlluxioException, IOException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.scheduleAsyncPersist(path.getPath());
@@ -378,18 +378,18 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Unmounts the given Tachyon path.
+   * Unmounts the given Alluxio path.
    *
-   * @param tachyonPath the Tachyon path
-   * @throws AlluxioException if a Tachyon error occurs
+   * @param alluxioPath the Alluxio path
+   * @throws AlluxioException if a Alluxio error occurs
    * @throws IOException an I/O error occurs
    */
-  public synchronized void unmount(final AlluxioURI tachyonPath)
+  public synchronized void unmount(final AlluxioURI alluxioPath)
       throws AlluxioException, IOException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
-        mClient.unmount(tachyonPath.toString());
+        mClient.unmount(alluxioPath.toString());
         return null;
       }
     });

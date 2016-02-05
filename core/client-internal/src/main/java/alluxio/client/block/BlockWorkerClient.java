@@ -81,7 +81,7 @@ public final class BlockWorkerClient extends ClientBase {
    *
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
-   * @param conf Tachyon configuration
+   * @param conf Alluxio configuration
    * @param sessionId the id of the session
    * @param isLocal true if it is a local client, false otherwise
    * @param clientMetrics metrics of the client
@@ -121,11 +121,11 @@ public final class BlockWorkerClient extends ClientBase {
    * @param fileId The id of the file
    * @return true if success, false otherwise
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized boolean asyncCheckpoint(final long fileId) throws IOException,
       AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
       @Override
       public Boolean call() throws AlluxioTException, TException {
         return mClient.asyncCheckpoint(fileId);
@@ -138,10 +138,10 @@ public final class BlockWorkerClient extends ClientBase {
    *
    * @param blockId The id of the block
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized void cacheBlock(final long blockId) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.cacheBlock(mSessionId, blockId);
@@ -155,10 +155,10 @@ public final class BlockWorkerClient extends ClientBase {
    *
    * @param blockId The Id of the block to be cancelled
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized void cancelBlock(final long blockId) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.cancelBlock(mSessionId, blockId);
@@ -200,7 +200,7 @@ public final class BlockWorkerClient extends ClientBase {
   /**
    * Opens the connection to the worker. And start the heartbeat thread.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   private synchronized void connectOperation() throws IOException {
     if (!mConnected) {
@@ -276,12 +276,12 @@ public final class BlockWorkerClient extends ClientBase {
    *
    * @param blockId The id of the block
    * @return the path of the block file locked
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   public synchronized LockBlockResult lockBlock(final long blockId) throws IOException {
     // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
     try {
-      return retryRPC(new RpcCallableThrowsTachyonTException<LockBlockResult>() {
+      return retryRPC(new RpcCallableThrowsAlluxioTException<LockBlockResult>() {
         @Override
         public LockBlockResult call() throws AlluxioTException, TException {
           return ThriftUtils.fromThrift(mClient.lockBlock(blockId, mSessionId));
@@ -299,7 +299,7 @@ public final class BlockWorkerClient extends ClientBase {
   /**
    * Connects to the worker.
    *
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   // TODO(jiezhou): Consider merging the connect logic in this method into the super class.
   @Override
@@ -320,11 +320,11 @@ public final class BlockWorkerClient extends ClientBase {
    * @param blockId The id of the block that will be promoted
    * @return true if succeed, false otherwise
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if a Tachyon error occurs
+   * @throws AlluxioException if a Alluxio error occurs
    */
   public synchronized boolean promoteBlock(final long blockId) throws IOException,
       AlluxioException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
       @Override
       public Boolean call() throws AlluxioTException, TException {
         return mClient.promoteBlock(blockId);
@@ -338,12 +338,12 @@ public final class BlockWorkerClient extends ClientBase {
    * @param blockId The id of the block
    * @param initialBytes The initial size bytes allocated for the block
    * @return the temporary path of the block
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   public synchronized String requestBlockLocation(final long blockId, final long initialBytes)
       throws IOException {
     try {
-      return retryRPC(new RpcCallableThrowsTachyonTException<String>() {
+      return retryRPC(new RpcCallableThrowsAlluxioTException<String>() {
         @Override
         public String call() throws AlluxioTException, TException {
           return mClient.requestBlockLocation(mSessionId, blockId, initialBytes);
@@ -364,12 +364,12 @@ public final class BlockWorkerClient extends ClientBase {
    * @param blockId The id of the block
    * @param requestBytes The requested space size, in bytes
    * @return true if success, false otherwise
-   * @throws IOException if a non-Tachyon exception occurs
+   * @throws IOException if a non-Alluxio exception occurs
    */
   public synchronized boolean requestSpace(final long blockId, final long requestBytes)
       throws IOException {
     try {
-      return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      return retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
         @Override
         public Boolean call() throws AlluxioTException, TException {
           return mClient.requestSpace(mSessionId, blockId, requestBytes);
