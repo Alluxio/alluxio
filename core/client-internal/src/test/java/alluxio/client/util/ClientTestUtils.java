@@ -31,7 +31,7 @@ import alluxio.client.lineage.LineageContext;
 public final class ClientTestUtils {
 
   /**
-   * Sets small buffer sizes so that Tachyon does not run out of heap space.
+   * Sets small buffer sizes so that Alluxio does not run out of heap space.
    */
   public static void setSmallBufferSizes() {
     ClientContext.getConf().set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");

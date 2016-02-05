@@ -48,7 +48,7 @@ import alluxio.wire.WorkerNetAddress;
  * into a given offset of the stream to read.
  * <p>
  * This class wraps the {@link BlockInStream} for each of the blocks in the file and abstracts the
- * switching between streams. The backing streams can read from Tachyon space in the local machine,
+ * switching between streams. The backing streams can read from Alluxio space in the local machine,
  * remote machines, or the under storage system.
  */
 @PublicApi
@@ -57,11 +57,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /** Logger for this class */
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** How the data should be written into Tachyon space, if at all */
+  /** How the data should be written into Alluxio space, if at all */
   private final AlluxioStorageType mAlluxioStorageType;
   /** Standard block size in bytes of the file, guaranteed for all but the last block */
   private final long mBlockSize;
-  /** The location policy for CACHE type of read into Tachyon */
+  /** The location policy for CACHE type of read into Alluxio */
   private final FileWriteLocationPolicy mLocationPolicy;
   /** Total length of the file in bytes */
   private final long mFileLength;
@@ -71,7 +71,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   private final URIStatus mStatus;
   /** Constant error message for block ID not cached */
   private static final String BLOCK_ID_NOT_CACHED =
-      "The block with ID {} could not be cached into Tachyon storage.";
+      "The block with ID {} could not be cached into Alluxio storage.";
 
   /** If the stream is closed, this can only go from false to true */
   private boolean mClosed;
@@ -81,7 +81,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   private long mPos;
   /** Current {@link BlockInStream} backing this stream */
   private BlockInStream mCurrentBlockInStream;
-  /** Current {@link BufferedBlockOutStream} writing the data into Tachyon, this may be null */
+  /** Current {@link BufferedBlockOutStream} writing the data into Alluxio, this may be null */
   private BufferedBlockOutStream mCurrentCacheStream;
 
   /**
@@ -95,7 +95,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mBlockSize = status.getBlockSizeBytes();
     mFileLength = status.getLength();
     mContext = FileSystemContext.INSTANCE;
-    mAlluxioStorageType = options.getTachyonStorageType();
+    mAlluxioStorageType = options.getAlluxioStorageType();
     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
     mClosed = false;
     mLocationPolicy = options.getLocationPolicy();
@@ -237,9 +237,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         try {
           long blockSize = getCurrentBlockSize();
           WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
-              mContext.getTachyonBlockStore().getWorkerInfoList(), blockSize);
+              mContext.getAluxioBlockStore().getWorkerInfoList(), blockSize);
           mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, blockSize, address);
+              mContext.getAluxioBlockStore().getOutStream(currentBlockId, blockSize, address);
         } catch (IOException e) {
           LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e);
           mShouldCacheCurrentBlock = false;
@@ -310,9 +310,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         try {
           long blockSize = getCurrentBlockSize();
           WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
-              mContext.getTachyonBlockStore().getWorkerInfoList(), blockSize);
+              mContext.getAluxioBlockStore().getWorkerInfoList(), blockSize);
           mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, blockSize, address);
+              mContext.getAluxioBlockStore().getOutStream(currentBlockId, blockSize, address);
         } catch (IOException e) {
           LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
           mShouldCacheCurrentBlock = false;
@@ -341,20 +341,20 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     try {
       if (mAlluxioStorageType.isPromote()) {
         try {
-          mContext.getTachyonBlockStore().promote(blockId);
+          mContext.getAluxioBlockStore().promote(blockId);
         } catch (IOException e) {
           // Failed to promote
           LOG.warn("Promotion of block with ID {} failed.", blockId, e);
         }
       }
-      mCurrentBlockInStream = mContext.getTachyonBlockStore().getInStream(blockId);
+      mCurrentBlockInStream = mContext.getAluxioBlockStore().getInStream(blockId);
       mShouldCacheCurrentBlock =
           !(mCurrentBlockInStream instanceof LocalBlockInStream) && mAlluxioStorageType.isStore();
     } catch (IOException e) {
       LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}",
           blockId, e);
       if (!mStatus.isPersisted()) {
-        LOG.error("Could not obtain data for block with ID {} from Tachyon."
+        LOG.error("Could not obtain data for block with ID {} from Alluxio."
             + " The block will not be persisted in the under file storage.", blockId);
         throw e;
       }

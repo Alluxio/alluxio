@@ -43,7 +43,7 @@ import alluxio.job.Job;
 import alluxio.wire.LineageInfo;
 
 /**
- * Tachyon Lineage client. This class provides implementation of interacting with Tachyon Lineage
+ * Alluxio Lineage client. This class provides implementation of interacting with Alluxio Lineage
  * master.
  */
 @PublicApi

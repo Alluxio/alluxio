@@ -18,7 +18,7 @@ package alluxio.client;
 import java.io.IOException;
 
 /**
- * This interface should be implemented by all Tachyon streams which support moving the read
+ * This interface should be implemented by all Alluxio streams which support moving the read
  * position to a specific byte offset.
  */
 // TODO(calvin): Evaluate if this should be ByteSeekable.

@@ -25,7 +25,7 @@ import alluxio.annotation.PublicApi;
 @PublicApi
 @NotThreadSafe
 public final class GetStatusOptions {
-  /** Whether or not to check the ufs if the path does not exist in Tachyon */
+  /** Whether or not to check the ufs if the path does not exist in Alluxio */
   private boolean mCheckUfs;
 
   /**
@@ -42,7 +42,7 @@ public final class GetStatusOptions {
 
   /**
    * @return whether we should sync the under file system for the file if it is not found in
-   *         Tachyon space
+   *         Alluxio space
    */
   public boolean isCheckUfs() {
     return mCheckUfs;

@@ -24,7 +24,7 @@ import alluxio.Configuration;
 
 /**
  * @deprecated {@see FileSystem} for the supported API.
- * Represents a Tachyon File System, legacy API.
+ * Represents a Alluxio File System, legacy API.
  */
 @Deprecated
 public final class TachyonFS {
@@ -33,7 +33,7 @@ public final class TachyonFS {
   /**
    * @param path path corresponding to the file system
    * @param conf configuration to use
-   * @return an instance of TachyonFS
+   * @return an instance of {@link TachyonFS}
    */
   public static TachyonFS get(AlluxioURI path, Configuration conf) {
     return new TachyonFS();
@@ -51,7 +51,7 @@ public final class TachyonFS {
   }
 
   /**
-   * Creates a file in Tachyon. Creates are done through {@link TachyonFile#getOutStream} so this
+   * Creates a file in Alluxio. Creates are done through {@link TachyonFile#getOutStream} so this
    * method is a no-op to comply with past APIs.
    * @param path the path to create
    * @return the file id, in this case always -1
@@ -62,7 +62,7 @@ public final class TachyonFS {
   }
 
   /**
-   * Deletes a file in Tachyon.
+   * Deletes a file in Alluxio.
    * @param path the path to delete
    * @return true if the file was deleted
    * @throws IOException if the file was unable to be deleted
@@ -77,7 +77,7 @@ public final class TachyonFS {
   }
 
   /**
-   * Deletes a file in Tachyon.
+   * Deletes a file in Alluxio.
    * @param path the path to delete
    * @param recursive if true will delete all children of the path as well
    * @return true if the file was deleted
@@ -95,7 +95,7 @@ public final class TachyonFS {
   /**
    * @param path the path to check for existence
    * @return true if the path exists, false otherwise
-   * @throws IOException if an error occurs when interacting with a non Tachyon component
+   * @throws IOException if an error occurs when interacting with a non Alluxio component
    */
   public boolean exist(AlluxioURI path) throws IOException {
     try {

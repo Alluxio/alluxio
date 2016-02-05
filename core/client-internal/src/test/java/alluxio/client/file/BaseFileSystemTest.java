@@ -61,7 +61,7 @@ public final class BaseFileSystemTest {
   private FileSystemContext mFileContext;
   private FileSystemMasterClient mFileSystemMasterClient;
 
-  private class DummyTachyonFileSystem extends BaseFileSystem {
+  private class DummyAlluxioFileSystem extends BaseFileSystem {
   }
 
   /**
@@ -69,7 +69,7 @@ public final class BaseFileSystemTest {
    */
   @Before
   public void before() {
-    mFileSystem = new DummyTachyonFileSystem();
+    mFileSystem = new DummyAlluxioFileSystem();
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     Whitebox.setInternalState(mFileSystem, "mContext", mFileContext);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
@@ -324,12 +324,12 @@ public final class BaseFileSystemTest {
    */
   @Test
   public void mountTest() throws Exception {
-    AlluxioURI tachyonPath = new AlluxioURI("/t");
+    AlluxioURI alluxioPath = new AlluxioURI("/t");
     AlluxioURI ufsPath = new AlluxioURI("/u");
     MountOptions mountOptions = MountOptions.defaults();
-    Mockito.doNothing().when(mFileSystemMasterClient).mount(tachyonPath, ufsPath);
-    mFileSystem.mount(tachyonPath, ufsPath, mountOptions);
-    Mockito.verify(mFileSystemMasterClient).mount(tachyonPath, ufsPath);
+    Mockito.doNothing().when(mFileSystemMasterClient).mount(alluxioPath, ufsPath);
+    mFileSystem.mount(alluxioPath, ufsPath, mountOptions);
+    Mockito.verify(mFileSystemMasterClient).mount(alluxioPath, ufsPath);
   }
 
   /**
@@ -339,12 +339,12 @@ public final class BaseFileSystemTest {
    */
   @Test
   public void mountExceptionTest() throws Exception {
-    AlluxioURI tachyonPath = new AlluxioURI("/t");
+    AlluxioURI alluxioPath = new AlluxioURI("/t");
     AlluxioURI ufsPath = new AlluxioURI("/u");
     MountOptions mountOptions = MountOptions.defaults();
-    Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient).mount(tachyonPath, ufsPath);
+    Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient).mount(alluxioPath, ufsPath);
     try {
-      mFileSystem.mount(tachyonPath, ufsPath, mountOptions);
+      mFileSystem.mount(alluxioPath, ufsPath, mountOptions);
       Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       Assert.assertSame(EXCEPTION, e);

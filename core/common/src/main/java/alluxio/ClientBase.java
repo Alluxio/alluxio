@@ -261,11 +261,11 @@ public abstract class ClientBase implements Closeable {
 
   /**
    * Same with {@link RpcCallable} except that this RPC call throws {@link AlluxioTException} and
-   * is to be executed in {@link #retryRPC(RpcCallableThrowsTachyonTException)}.
+   * is to be executed in {@link #retryRPC(RpcCallableThrowsAlluxioTException)}.
    *
    * @param <V> the return value of {@link #call()}
    */
-  protected interface RpcCallableThrowsTachyonTException<V> {
+  protected interface RpcCallableThrowsAlluxioTException<V> {
     /**
      * The task where RPC happens.
      *
@@ -318,7 +318,7 @@ public abstract class ClientBase implements Closeable {
    * @throws IOException when retries exceeds {@link #RPC_MAX_NUM_RETRY} or {@link #close()} has
    *         been called before calling this method or during the retry
    */
-  protected synchronized <V> V retryRPC(RpcCallableThrowsTachyonTException<V> rpc)
+  protected synchronized <V> V retryRPC(RpcCallableThrowsAlluxioTException<V> rpc)
       throws AlluxioException, IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {

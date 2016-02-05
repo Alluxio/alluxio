@@ -31,7 +31,7 @@ import alluxio.wire.LockBlockResult;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
 /**
- * This class provides a streaming API to read a block in Tachyon. The data will be directly read
+ * This class provides a streaming API to read a block in Alluxio. The data will be directly read
  * from the local machine's storage.
  */
 @NotThreadSafe

@@ -34,7 +34,7 @@ import alluxio.wire.WorkerNetAddress;
 
 /**
  * @deprecated {@see FileSystem} for the supported API.
- * Represents a Tachyon File, legacy API.
+ * Represents a Alluxio File, legacy API.
  */
 @Deprecated
 public final class TachyonFile {
@@ -56,7 +56,7 @@ public final class TachyonFile {
     FileSystemMasterClient master = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
       List<FileBlockInfo> blockInfos = master.getFileBlockInfoList(mPath);
-      // Add Tachyon locations first
+      // Add Alluxio locations first
       for (FileBlockInfo info : blockInfos) {
         List<BlockLocation> blockLocations = info.getBlockInfo().getLocations();
         for (BlockLocation loc : blockLocations) {

@@ -31,16 +31,16 @@ import alluxio.Constants;
 import alluxio.AlluxioURI;
 
 /**
- * Utilty class for using Tachyon with Hadoop.
+ * Utilty class for using Alluxio with Hadoop.
  */
 @ThreadSafe
 public final class HadoopUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Returns an HDFS path for the given Tachyon path and under filesystem address.
+   * Returns an HDFS path for the given Alluxio path and under filesystem address.
    *
-   * @param path Tachyon path
+   * @param path Alluxio path
    * @param ufsAddress under filesystem address
    * @return an HDFS path
    */
@@ -64,12 +64,12 @@ public final class HadoopUtils {
   }
 
   /**
-   * Given a {@code String} path, returns an equivalent Tachyon path.
+   * Given a {@code String} path, returns an equivalent Alluxio path.
    *
    * @param path the path to parse
-   * @return a valid Tachyon path
+   * @return a valid Alluxio path
    */
-  public static String getTachyonFileName(String path) {
+  public static String getAlluxioFileName(String path) {
     if (path.isEmpty()) {
       return AlluxioURI.SEPARATOR;
     }

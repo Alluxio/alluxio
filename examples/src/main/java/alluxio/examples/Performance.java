@@ -597,7 +597,7 @@ public class Performance {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 9) {
-      System.out.println("java -cp " + Version.TACHYON_JAR
+      System.out.println("java -cp " + Version.ALLUXIO_JAR
           + " alluxio.examples.Performance "
           + "<MasterIp> <FileNamePrefix> <WriteBlockSizeInBytes> <BlocksPerFile> "
           + "<DebugMode:true/false> <Threads> <FilesPerThread> <TestCaseNumber> "
