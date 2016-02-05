@@ -18,15 +18,15 @@ Usage="Usage: alluxio-mount.sh [Mount|SudoMount] [MACHINE]
 
 function init_env() {
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
-  TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
-  . $TACHYON_LIBEXEC_DIR/alluxio-config.sh
+  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+  . $ALLUXIO_LIBEXEC_DIR/alluxio-config.sh
 
-  if [ -z $TACHYON_WORKER_MEMORY_SIZE ] ; then
-    echo "TACHYON_WORKER_MEMORY_SIZE was not set. Using the default one: 128MB"
-    TACHYON_WORKER_MEMORY_SIZE="128MB"
+  if [ -z $ALLUXIO_WORKER_MEMORY_SIZE ] ; then
+    echo "ALLUXIO_WORKER_MEMORY_SIZE was not set. Using the default one: 128MB"
+    ALLUXIO_WORKER_MEMORY_SIZE="128MB"
   fi
 
-  MEM_SIZE=$(echo "$TACHYON_WORKER_MEMORY_SIZE" | tr -s '[:upper:]' '[:lower:]')
+  MEM_SIZE=$(echo "$ALLUXIO_WORKER_MEMORY_SIZE" | tr -s '[:upper:]' '[:lower:]')
 }
 
 #enable the regexp case match
@@ -64,7 +64,7 @@ function mem_size_to_bytes() {
       BYTE_SIZE=$SIZE
       ;;
     *)
-      echo "Please specify TACHYON_WORKER_MEMORY_SIZE in a correct form."
+      echo "Please specify ALLUXIO_WORKER_MEMORY_SIZE in a correct form."
       exit 1
   esac
 }
@@ -130,19 +130,19 @@ function mac_hfs_provision_sectors() {
 function mount_ramfs_linux() {
   init_env $1
 
-  if [ -z $TACHYON_RAM_FOLDER ] ; then
-    TACHYON_RAM_FOLDER=/mnt/ramdisk
-    echo "TACHYON_RAM_FOLDER was not set. Using the default one: $TACHYON_RAM_FOLDER"
+  if [ -z $ALLUXIO_RAM_FOLDER ] ; then
+    ALLUXIO_RAM_FOLDER=/mnt/ramdisk
+    echo "ALLUXIO_RAM_FOLDER was not set. Using the default one: $ALLUXIO_RAM_FOLDER"
   fi
 
   mem_size_to_bytes
   TOTAL_MEM=$(($(cat /proc/meminfo | awk 'NR==1{print $2}') * 1024))
   if [ $TOTAL_MEM -lt $BYTE_SIZE ] ; then
-    echo "ERROR: Memory($TOTAL_MEM) is less than requested ramdisk size($BYTE_SIZE). Please reduce TACHYON_WORKER_MEMORY_SIZE"
+    echo "ERROR: Memory($TOTAL_MEM) is less than requested ramdisk size($BYTE_SIZE). Please reduce ALLUXIO_WORKER_MEMORY_SIZE"
     exit 1
   fi
 
-  F=$TACHYON_RAM_FOLDER
+  F=$ALLUXIO_RAM_FOLDER
   echo "Formatting RamFS: $F ($MEM_SIZE)"
   if mount | grep $F > /dev/null; then
     umount -f $F
@@ -160,19 +160,19 @@ function mount_ramfs_linux() {
 function mount_ramfs_mac() {
   init_env $0
 
-  if [ -z $TACHYON_RAM_FOLDER ] ; then
-    TACHYON_RAM_FOLDER=/Volumes/ramdisk
-    echo "TACHYON_RAM_FOLDER was not set. Using the default one: $TACHYON_RAM_FOLDER"
+  if [ -z $ALLUXIO_RAM_FOLDER ] ; then
+    ALLUXIO_RAM_FOLDER=/Volumes/ramdisk
+    echo "ALLUXIO_RAM_FOLDER was not set. Using the default one: $ALLUXIO_RAM_FOLDER"
   fi
 
-  if [[ $TACHYON_RAM_FOLDER != "/Volumes/"* ]]; then
-    echo "Invalid TACHYON_RAM_FOLDER: $TACHYON_RAM_FOLDER"
-    echo "TACHYON_RAM_FOLDER must set to /Volumes/[name] on Mac OS X."
+  if [[ $ALLUXIO_RAM_FOLDER != "/Volumes/"* ]]; then
+    echo "Invalid ALLUXIO_RAM_FOLDER: $ALLUXIO_RAM_FOLDER"
+    echo "ALLUXIO_RAM_FOLDER must set to /Volumes/[name] on Mac OS X."
     exit 1
   fi
 
   # Remove the "/Volumes/" part so we can get the name of the volume.
-  F=${TACHYON_RAM_FOLDER/#\/Volumes\//}
+  F=${ALLUXIO_RAM_FOLDER/#\/Volumes\//}
 
   # Convert the memory size to number of sectors. Each sector is 512 Byte.
   mem_size_to_bytes

@@ -34,16 +34,16 @@ MOPT is one of:
 -h  display this help."
 
 ensure_dirs() {
-  if [ ! -d "$TACHYON_LOGS_DIR" ]; then
-    echo "TACHYON_LOGS_DIR: $TACHYON_LOGS_DIR"
-    mkdir -p $TACHYON_LOGS_DIR
+  if [ ! -d "$ALLUXIO_LOGS_DIR" ]; then
+    echo "ALLUXIO_LOGS_DIR: $ALLUXIO_LOGS_DIR"
+    mkdir -p $ALLUXIO_LOGS_DIR
   fi
 }
 
 get_env() {
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
-  TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
-  . $TACHYON_LIBEXEC_DIR/alluxio-config.sh
+  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+  . $ALLUXIO_LIBEXEC_DIR/alluxio-config.sh
 }
 
 check_mount_mode() {
@@ -85,21 +85,21 @@ stop() {
 
 
 start_master() {
-  MASTER_ADDRESS=$TACHYON_MASTER_ADDRESS
-  if [ -z $TACHYON_MASTER_ADDRESS ] ; then
+  MASTER_ADDRESS=$ALLUXIO_MASTER_ADDRESS
+  if [ -z $ALLUXIO_MASTER_ADDRESS ] ; then
     MASTER_ADDRESS=localhost
   fi
 
-  if [[ -z $TACHYON_MASTER_JAVA_OPTS ]] ; then
-    TACHYON_MASTER_JAVA_OPTS=$TACHYON_JAVA_OPTS
+  if [[ -z $ALLUXIO_MASTER_JAVA_OPTS ]] ; then
+    ALLUXIO_MASTER_JAVA_OPTS=$ALLUXIO_JAVA_OPTS
   fi
 
   if [ "${1}" == "-f" ] ; then
     $LAUNCHER ${BIN}/tachyon format
   fi
 
-  echo "Starting master @ $MASTER_ADDRESS. Logging to $TACHYON_LOGS_DIR"
-  (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$TACHYON_HOME -Dalluxio.logs.dir=$TACHYON_LOGS_DIR -Dalluxio.logger.type="MASTER_LOGGER" -Dalluxio.accesslogger.type="MASTER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_MASTER_JAVA_OPTS alluxio.master.AlluxioMaster > $TACHYON_LOGS_DIR/master.out 2>&1) &
+  echo "Starting master @ $MASTER_ADDRESS. Logging to $ALLUXIO_LOGS_DIR"
+  (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$ALLUXIO_HOME -Dalluxio.logs.dir=$ALLUXIO_LOGS_DIR -Dalluxio.logger.type="MASTER_LOGGER" -Dalluxio.accesslogger.type="MASTER_ACCESS_LOGGER" -Dlog4j.configuration=file:$ALLUXIO_CONF_DIR/log4j.properties $ALLUXIO_MASTER_JAVA_OPTS alluxio.master.AlluxioMaster > $ALLUXIO_LOGS_DIR/master.out 2>&1) &
 }
 
 start_worker() {
@@ -109,23 +109,23 @@ start_worker() {
     exit 1
   fi
 
-  if [[ -z $TACHYON_WORKER_JAVA_OPTS ]] ; then
-    TACHYON_WORKER_JAVA_OPTS=$TACHYON_JAVA_OPTS
+  if [[ -z $ALLUXIO_WORKER_JAVA_OPTS ]] ; then
+    ALLUXIO_WORKER_JAVA_OPTS=$ALLUXIO_JAVA_OPTS
   fi
 
-  echo "Starting worker @ `hostname -f`. Logging to $TACHYON_LOGS_DIR"
-  (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$TACHYON_HOME -Dalluxio.logs.dir=$TACHYON_LOGS_DIR -Dalluxio.logger.type="WORKER_LOGGER" -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_WORKER_JAVA_OPTS alluxio.worker.AlluxioWorker > $TACHYON_LOGS_DIR/worker.out 2>&1 ) &
+  echo "Starting worker @ `hostname -f`. Logging to $ALLUXIO_LOGS_DIR"
+  (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$ALLUXIO_HOME -Dalluxio.logs.dir=$ALLUXIO_LOGS_DIR -Dalluxio.logger.type="WORKER_LOGGER" -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" -Dlog4j.configuration=file:$ALLUXIO_CONF_DIR/log4j.properties $ALLUXIO_WORKER_JAVA_OPTS alluxio.worker.AlluxioWorker > $ALLUXIO_LOGS_DIR/worker.out 2>&1 ) &
 }
 
 restart_worker() {
-  if [[ -z $TACHYON_WORKER_JAVA_OPTS ]] ; then
-    TACHYON_WORKER_JAVA_OPTS=$TACHYON_JAVA_OPTS
+  if [[ -z $ALLUXIO_WORKER_JAVA_OPTS ]] ; then
+    ALLUXIO_WORKER_JAVA_OPTS=$ALLUXIO_JAVA_OPTS
   fi
 
   RUN=`ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | cut -d" " -f7`
   if [[ $RUN -eq 0 ]] ; then
-    echo "Restarting worker @ `hostname -f`. Logging to $TACHYON_LOGS_DIR"
-    (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$TACHYON_HOME -Dalluxio.logs.dir=$TACHYON_LOGS_DIR -Dalluxio.logger.type="WORKER_LOGGER" -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_WORKER_JAVA_OPTS alluxio.worker.AlluxioWorker > $TACHYON_LOGS_DIR/worker.out 2>&1) &
+    echo "Restarting worker @ `hostname -f`. Logging to $ALLUXIO_LOGS_DIR"
+    (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$ALLUXIO_HOME -Dalluxio.logs.dir=$ALLUXIO_LOGS_DIR -Dalluxio.logger.type="WORKER_LOGGER" -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" -Dlog4j.configuration=file:$ALLUXIO_CONF_DIR/log4j.properties $ALLUXIO_WORKER_JAVA_OPTS alluxio.worker.AluxioWorker > $ALLUXIO_LOGS_DIR/worker.out 2>&1) &
   fi
 }
 
@@ -222,7 +222,7 @@ case "${WHAT}" in
     ;;
   workers)
     check_mount_mode $2
-    $LAUNCHER ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker $2 $TACHYON_MASTER_ADDRESS
+    $LAUNCHER ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker $2 $ALLUXIO_MASTER_ADDRESS
     ;;
   restart_worker)
     restart_worker
