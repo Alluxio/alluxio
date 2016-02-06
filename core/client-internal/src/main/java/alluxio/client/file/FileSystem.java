@@ -18,8 +18,8 @@ package alluxio.client.file;
 import java.io.IOException;
 import java.util.List;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -36,11 +36,11 @@ import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.client.lineage.LineageFileSystem;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.AlluxioException;
 
 /**
  * Basic file system interface supporting metadata operations and data operations. Developers
@@ -153,7 +153,7 @@ public interface FileSystem {
   boolean exists(AlluxioURI path) throws InvalidPathException, IOException, AlluxioException;
 
   /**
-   * Checks whether a path exists in Alluxio space
+   * Checks whether a path exists in Alluxio space.
    *
    * @param path the path in question
    * @param options options to associate with this operation

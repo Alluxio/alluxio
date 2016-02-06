@@ -27,18 +27,18 @@ import com.google.common.base.Preconditions;
 
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
+import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
 import alluxio.client.Seekable;
-import alluxio.client.AlluxioStorageType;
 import alluxio.client.block.BlockInStream;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.AlluxioException;
 import alluxio.master.block.BlockId;
 import alluxio.wire.WorkerNetAddress;
 
@@ -54,34 +54,33 @@ import alluxio.wire.WorkerNetAddress;
 @PublicApi
 @NotThreadSafe
 public class FileInStream extends InputStream implements BoundedStream, Seekable {
-  /** Logger for this class */
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** How the data should be written into Alluxio space, if at all */
+  /** How the data should be written into Alluxio space, if at all. */
   private final AlluxioStorageType mAlluxioStorageType;
-  /** Standard block size in bytes of the file, guaranteed for all but the last block */
+  /** Standard block size in bytes of the file, guaranteed for all but the last block. */
   private final long mBlockSize;
-  /** The location policy for CACHE type of read into Alluxio */
+  /** The location policy for CACHE type of read into Alluxio. */
   private final FileWriteLocationPolicy mLocationPolicy;
-  /** Total length of the file in bytes */
+  /** Total length of the file in bytes. */
   private final long mFileLength;
-  /** File System context containing the {@link FileSystemMasterClient} pool */
+  /** File System context containing the {@link FileSystemMasterClient} pool. */
   private final FileSystemContext mContext;
-  /** File information */
+  /** File information. */
   private final URIStatus mStatus;
-  /** Constant error message for block ID not cached */
+  /** Constant error message for block ID not cached. */
   private static final String BLOCK_ID_NOT_CACHED =
       "The block with ID {} could not be cached into Alluxio storage.";
 
-  /** If the stream is closed, this can only go from false to true */
+  /** If the stream is closed, this can only go from false to true. */
   private boolean mClosed;
-  /** Whether or not the current block should be cached */
+  /** Whether or not the current block should be cached. */
   private boolean mShouldCacheCurrentBlock;
-  /** Current position of the stream */
+  /** Current position of the stream. */
   private long mPos;
-  /** Current {@link BlockInStream} backing this stream */
+  /** Current {@link BlockInStream} backing this stream. */
   private BlockInStream mCurrentBlockInStream;
-  /** Current {@link BufferedBlockOutStream} writing the data into Alluxio, this may be null */
+  /** Current {@link BufferedBlockOutStream} writing the data into Alluxio, this may be null. */
   private BufferedBlockOutStream mCurrentCacheStream;
 
   /**
