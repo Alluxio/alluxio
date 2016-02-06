@@ -4,12 +4,12 @@
 - name: download alluxio release
   script: down_release.sh
   environment:
-    TACHYON_DIST: "{{ tachyon_dist }}"
+    ALLUXIO_DIST: "{{ alluxio_dist }}"
 
 - name: untar alluxio release
   script: untar_release.sh
   environment:
-    TACHYON_DIST: "{{ tachyon_dist }}"
+    ALLUXIO_DIST: "{{ alluxio_dist }}"
   ignore_errors: yes # alluxio dist is tared by bsdtar, when untar using gnutar, return code will be 1
 
 # vim :set filetype=ansible.yaml:

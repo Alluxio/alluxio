@@ -1,4 +1,4 @@
-# Compile Tachyon, compiling is related to ufs, so will reference scripts in roles/ufs_xxx
+# Compile Alluxio, compiling is related to ufs, so will reference scripts in roles/ufs_xxx
 ---
 
 - include: ../../lib/tasks/maven.yml
