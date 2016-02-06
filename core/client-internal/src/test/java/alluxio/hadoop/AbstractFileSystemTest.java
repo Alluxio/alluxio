@@ -115,7 +115,7 @@ public class AbstractFileSystemTest {
    * @throws IOException when the file system cannot be retrieved
    */
   @Test
-  public void hadoopShouldLoadTfsFtWhenConfigured() throws IOException {
+  public void hadoopShouldLoadFaultTolerantFileSystemWhenConfiguredTest() throws IOException {
     final Configuration conf = new Configuration();
     if (isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
@@ -143,7 +143,7 @@ public class AbstractFileSystemTest {
    * @throws IOException when the file system cannot be retrieved
    */
   @Test
-  public void hadoopShouldLoadFileSystemWhenConfigured() throws IOException {
+  public void hadoopShouldLoadFileSystemWhenConfiguredTest() throws IOException {
     final Configuration conf = new Configuration();
     if (isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
