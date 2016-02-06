@@ -32,7 +32,7 @@ alluxio-fuse is only built with Alluxio when the `buildFuse` maven profile is ac
 profile will be automatically activated by maven when it is detected that you are building
 Alluxio with a JDK version 8 or newer.
 
-For compatibility with Java 6 and 7, binary alluxio distributions may ship without alluxio-fuse
+For compatibility with Java 7, binary alluxio distributions may ship without alluxio-fuse
 support, so you will need to build your own Alluxio if you want to use alluxio-fuse on your
 deployment.
 
