@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ ! -d /tachyon ]; then
-  sudo mkdir /tachyon
-  sudo chown -R `whoami` /tachyon
+if [ ! -d /alluxio ]; then
+  sudo mkdir /alluxio
+  sudo chown -R `whoami` /alluxio
 fi

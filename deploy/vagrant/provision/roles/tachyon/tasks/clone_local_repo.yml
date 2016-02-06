@@ -1,4 +1,4 @@
-# Rsync local Tachyon repo(suppose it's under the relative path: playbook.yml/../../../)
+# Rsync local Alluxio repo(suppose it's under the relative path: playbook.yml/../../../)
 ---
 
 - name: mkdir /alluxio
