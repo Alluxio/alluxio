@@ -20,7 +20,7 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * {@link StorageTierAssoc} for workers
+ * {@link StorageTierAssoc} for workers.
  */
 @ThreadSafe
 public class WorkerStorageTierAssoc extends StorageTierAssoc {

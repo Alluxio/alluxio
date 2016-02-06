@@ -131,7 +131,7 @@ public final class UIFileInfo {
   }
 
   /**
-   * Creates a new instance of {@link UIFileInfo}
+   * Creates a new instance of {@link UIFileInfo}.
    *
    * @param info underlying {@link FileInfo}
    */

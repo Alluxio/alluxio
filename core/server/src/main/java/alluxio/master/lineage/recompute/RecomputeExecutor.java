@@ -47,7 +47,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
   private static final int DEFAULT_RECOMPUTE_LAUNCHER_POOL_SIZE = 10;
   private final RecomputePlanner mPlanner;
   private final FileSystemMaster mFileSystemMaster;
-  /** The thread pool to launch recompute jobs */
+  /** The thread pool to launch recompute jobs. */
   private final ExecutorService mRecomputeLauncherService =
       Executors.newFixedThreadPool(DEFAULT_RECOMPUTE_LAUNCHER_POOL_SIZE,
           ThreadFactoryUtils.build("recompute-launcher-%d", true));

@@ -34,8 +34,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
@@ -45,6 +45,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.MasterContext;
 import alluxio.master.block.ContainerIdGenerable;
+import alluxio.master.file.PermissionChecker;
 import alluxio.master.file.meta.options.CreatePathOptions;
 import alluxio.master.journal.JournalCheckpointStreamable;
 import alluxio.master.journal.JournalOutputStream;
@@ -52,7 +53,6 @@ import alluxio.master.journal.JournalProtoUtils;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.master.file.PermissionChecker;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.FormatUtils;
@@ -85,7 +85,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   };
   @SuppressWarnings("unchecked")
   private final IndexedSet<Inode> mInodes = new IndexedSet<Inode>(mIdIndex);
-  /** A set of inode ids representing pinned inode files */
+  /** A set of inode ids representing pinned inode files. */
   private final Set<Long> mPinnedInodeFileIds = new HashSet<Long>();
 
   /**
@@ -629,12 +629,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
   private static final class TraversalResult {
     private final boolean mFound;
     /**
-     * when the path is not found in a traversal, the index of the first path component that
-     * couldn't be found
+     * When the path is not found in a traversal, the index of the first path component that
+     * couldn't be found.
      */
     private final int mNonexistentIndex;
     /**
-     * the found inode when the traversal succeeds; otherwise the last path component navigated
+     * The found inode when the traversal succeeds; otherwise the last path component navigated.
      */
     private final Inode mInode;
 

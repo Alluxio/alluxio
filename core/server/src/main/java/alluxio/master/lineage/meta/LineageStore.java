@@ -44,7 +44,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
   private final DirectedAcyclicGraph<Lineage> mLineageDAG;
 
   // Indices for lineages
-  /** Index of the output files of lineage to lineage */
+  /** Index of the output files of lineage to lineage. */
   private Map<Long, Lineage> mOutputFileIndex;
   private Map<Long, Lineage> mIdIndex;
 
@@ -137,7 +137,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
   }
 
   /**
-   * Gets all the children of a given lineage
+   * Gets all the children of a given lineage.
    *
    * @param lineage the lineage
    * @return the lineage's children
@@ -167,7 +167,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
   }
 
   /**
-   * Gets all the parents of a given lineage
+   * Gets all the parents of a given lineage.
    *
    * @param lineage the lineage
    * @return the lineage's parents

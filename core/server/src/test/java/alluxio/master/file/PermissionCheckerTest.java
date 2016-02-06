@@ -18,7 +18,6 @@ package alluxio.master.file;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -28,9 +27,11 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.powermock.reflect.Whitebox;
 
-import alluxio.Constants;
+import com.google.common.collect.Lists;
+
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
@@ -53,7 +54,7 @@ import alluxio.wire.FileInfo;
 public class PermissionCheckerTest {
   private static final String TEST_SUPER_GROUP = "test-supergroup";
 
-  /**
+  /*
    * The user and group mappings for testing are:
    *    admin -> admin
    *    user1 -> group1
@@ -68,7 +69,7 @@ public class PermissionCheckerTest {
   private static final TestUser TEST_USER_SUPERGROUP =
       new TestUser("user4", "group2,test-supergroup");
 
-  /**
+  /*
    * The file structure for testing is:
    *    /               admin     admin       755
    *    /testDir        user1     group1      755

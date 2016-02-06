@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.MasterContext;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -311,9 +311,9 @@ public final class JournalWriter {
    */
   @ThreadSafe
   private class EntryOutputStream implements JournalOutputStream {
-    /** The direct output stream created by {@link UnderFileSystem} */
+    /** The direct output stream created by {@link UnderFileSystem}. */
     private OutputStream mRawOutputStream;
-    /** The output stream that wraps around {@link #mRawOutputStream} */
+    /** The output stream that wraps around {@link #mRawOutputStream}. */
     private DataOutputStream mDataOutputStream;
     private boolean mIsClosed = false;
 

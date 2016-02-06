@@ -42,7 +42,7 @@ public class Sessions {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Map from SessionId to {@link alluxio.SessionInfo} object **/
+  /** Map from SessionId to {@link alluxio.SessionInfo} object. */
   private final Map<Long, SessionInfo> mSessions;
 
   /**
