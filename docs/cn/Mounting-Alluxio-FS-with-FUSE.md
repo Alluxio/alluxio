@@ -24,7 +24,7 @@ Alluxio-FUSE是一个新的处于实验阶段的特性，该特性允许在一�
 
 在编译Alluxio源码过程中，只有当maven的`buildFuse`设置开启时，alluxio-fuse才会被构建。当使用JDK 1.8及以上编译Alluxio源码时该设置会自动开启。
 
-为了保持与JAVA 6和7的兼容性，预编译的alluxio二进制文件并不支持alluxio-fuse，因此若需要在部署中使用alluxio-fuse，你需要自己构建Alluxio。
+为了保持与JAVA 7的兼容性，预编译的alluxio二进制文件并不支持alluxio-fuse，因此若需要在部署中使用alluxio-fuse，你需要自己构建Alluxio。
 
 最好的方式是从Alluxio [GitHub repository](https://github.com/amplab/alluxio)处获取你需要的分支的源码，或者直接从[source distribution](https://github.com/amplab/alluxio/releases)处获取，请参考[该页面](Building-Alluxio-Master-Branch.html)进行构建。
 

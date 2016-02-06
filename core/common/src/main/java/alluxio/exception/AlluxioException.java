@@ -15,8 +15,6 @@
 
 package alluxio.exception;
 
-import java.lang.reflect.InvocationTargetException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 import alluxio.thrift.AlluxioTException;
@@ -74,24 +72,14 @@ public abstract class AlluxioException extends Exception {
   public static AlluxioException from(AlluxioTException e) {
     AlluxioExceptionType exceptionType = AlluxioExceptionType.valueOf(e.getType());
     Class<? extends AlluxioException> throwClass = exceptionType.getExceptionClass();
-    Exception reflectError;
     try {
       AlluxioException throwInstance =
           throwClass.getConstructor(String.class).newInstance(e.getMessage());
       return throwInstance;
-      // This will be easier when we move to Java 7, when instead of catching Exception we can catch
-      // ReflectiveOperationException, the Java 7 superclass for these Exceptions
-    } catch (InstantiationException e1) {
-      reflectError = e1;
-    } catch (IllegalAccessException e1) {
-      reflectError = e1;
-    } catch (InvocationTargetException e1) {
-      reflectError = e1;
-    } catch (NoSuchMethodException e1) {
-      reflectError = e1;
+    } catch (ReflectiveOperationException reflectException) {
+      String errorMessage = "Could not instantiate " + throwClass.getName() + " with a String-only "
+          + "constructor: " + reflectException.getMessage();
+      throw new IllegalStateException(errorMessage, reflectException);
     }
-    String errorMessage = "Could not instantiate " + throwClass.getName() + " with a String-only "
-        + "constructor: " + reflectError.getMessage();
-    throw new IllegalStateException(errorMessage);
   }
 }
