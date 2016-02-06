@@ -38,10 +38,13 @@ import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
+import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.lineage.LineageContext;
 import alluxio.client.util.ClientTestUtils;
 
 /**
@@ -60,6 +63,7 @@ import alluxio.client.util.ClientTestUtils;
  */
 public class AbstractFileSystemTest {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private FileSystemContext mMockFileSystemContext;
 
   /**
    * Sets up the configuration before a test runs.
@@ -179,7 +183,14 @@ public class AbstractFileSystemTest {
 
     URI newUri = URI.create(Constants.HEADER + "otherhost:410/");
     fs.initialize(newUri, conf);
-    Assert.assertEquals(new InetSocketAddress("otherhost", 410), ClientContext.getMasterAddress());
+    InetSocketAddress newAddress = new InetSocketAddress("otherhost", 410);
+    Assert.assertEquals(newAddress, ClientContext.getMasterAddress());
+    Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(BlockStoreContext.INSTANCE,
+        "mBlockMasterClientPool", "mMasterAddress"));
+    // Once from calling FileSystem.get, once from calling initialize.
+    Mockito.verify(mMockFileSystemContext, Mockito.times(2)).reset();
+    Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(LineageContext.INSTANCE,
+        "mLineageMasterClientPool", "mMasterAddress"));
   }
 
   private boolean isHadoop1x() {
@@ -192,11 +203,11 @@ public class AbstractFileSystemTest {
 
   private void mockMasterClient() {
     PowerMockito.mockStatic(FileSystemContext.class);
-    FileSystemContext mockContext = PowerMockito.mock(FileSystemContext.class);
+    mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     FileSystemMasterClient mockMaster =
         PowerMockito.mock(FileSystemMasterClient.class);
-    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mockContext);
-    Mockito.when(mockContext.acquireMasterClient()).thenReturn(mockMaster);
+    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mMockFileSystemContext);
+    Mockito.when(mMockFileSystemContext.acquireMasterClient()).thenReturn(mockMaster);
   }
 
   private void mockUserGroupInformation() throws IOException {
