@@ -36,9 +36,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.Version;
-import alluxio.Configuration;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticationUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -365,7 +365,7 @@ public final class AlluxioWorker {
   }
 
   /**
-   * Helper method to create a {@link org.apache.thrift.transport.TServerSocket} for the RPC server
+   * Helper method to create a {@link org.apache.thrift.transport.TServerSocket} for the RPC server.
    *
    * @return a thrift server socket
    */

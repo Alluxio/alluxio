@@ -29,8 +29,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Objects;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.master.block.BlockMaster;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
@@ -137,7 +137,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     }
 
     /**
-     * Compare {@link NodeInfo} by lexicographical order of their associated host
+     * Compare {@link NodeInfo} by lexicographical order of their associated host.
      *
      * @param o the comparison term
      * @return a positive value if {@code this.getHost} is lexicographically "bigger" than
@@ -175,7 +175,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
   private final transient Configuration mConfiguration;
 
   /**
-   * Creates a new instance of {@link WebInterfaceWorkersServlet}
+   * Creates a new instance of {@link WebInterfaceWorkersServlet}.
    *
    * @param blockMaster block master
    */

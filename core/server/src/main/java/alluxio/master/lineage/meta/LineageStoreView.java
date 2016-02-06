@@ -31,7 +31,7 @@ import alluxio.exception.LineageDoesNotExistException;
  */
 @ThreadSafe
 public final class LineageStoreView {
-  /** The LineageStore this view is derived from */
+  /** The LineageStore this view is derived from. */
   private final LineageStore mLineageStore;
 
   /**

@@ -30,9 +30,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.io.ByteStreams;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 
 /**
  * Servlet for downloading a local file.
@@ -51,7 +51,7 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
   }
 
   /**
-   * Prepares for downloading a file
+   * Prepares for downloading a file.
    *
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
