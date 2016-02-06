@@ -15,7 +15,6 @@
 
 package tachyon.web;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServlet;
@@ -48,7 +47,7 @@ public abstract class WebInterfaceAbstractMetricsServlet extends HttpServlet {
    * @param request The {@link HttpServletRequest} object
    */
   protected void populateCountersValues(Map<String, Metric> operations,
-      Map<String, Counter> rpcInvocations, HttpServletRequest request){
+      Map<String, Counter> rpcInvocations, HttpServletRequest request) {
 
     for (Map.Entry<String, Metric> entry : operations.entrySet()) {
       if (entry.getValue() instanceof Gauge) {
