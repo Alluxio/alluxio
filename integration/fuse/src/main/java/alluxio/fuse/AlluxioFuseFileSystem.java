@@ -26,21 +26,24 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Maps;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Maps;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.AlluxioException;
+
+import static jnr.constants.platform.OpenFlags.O_RDONLY;
+import static jnr.constants.platform.OpenFlags.O_WRONLY;
 
 import jnr.constants.platform.OpenFlags;
 import jnr.ffi.Pointer;
@@ -52,9 +55,6 @@ import ru.serce.jnrfuse.FuseFillDir;
 import ru.serce.jnrfuse.FuseStubFS;
 import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
-
-import static jnr.constants.platform.OpenFlags.O_RDONLY;
-import static jnr.constants.platform.OpenFlags.O_WRONLY;
 
 /**
  * Main FUSE implementation class.
@@ -296,7 +296,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   /**
    * Opens an existing file for reading.
    *
-   * Note that the open mode <emph>must</emph> be
+   * Note that the open mode <i>must</i> be
    * O_RDONLY, otherwise the open will fail. This is due to
    * the Alluxio "write-once/read-many-times" file model.
    *
@@ -506,7 +506,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
-   * Renames a path
+   * Renames a path.
+   *
    * @param oldPath the source path in the FS
    * @param newPath the destination path in the FS
    * @return 0 on success, a negative value on error
