@@ -1,6 +1,6 @@
 propertyName,defaultValue
 alluxio.debug,false
-alluxio.home,/mnt/tachyon_default_home
+alluxio.home,/mnt/alluxio_default_home
 alluxio.logs.dir,${alluxio.home}/logs
 alluxio.keyvalue.enabled,false
 alluxio.keyvalue.partition.size.bytes.max,512MB
