@@ -6,7 +6,7 @@ group: Frameworks
 priority: 1
 ---
 
-该文档介绍如何让Tachyon与Apache Hadoop MapReduce一起运行，从而让你轻松地运行文件存储在Tachyon上的MapReduce项目。
+该文档介绍如何让Tachyon与Apache Hadoop MapReduce一起运行，从而让你轻松地运行文件存储在Tachyon上的MapReduce程序。
 
 # 初始化设置
 
@@ -22,13 +22,13 @@ priority: 1
 
 ## 使用Hadoop 2.x
 
-如果你正在使用2.x版本的Hadoop集群，你应该不需要像上面那样在`core-site.xml`文件中添加属性。可是，有些情况下可能会遇到`java.io.IOException: No FileSystem for scheme: tachyon`的错误。例如，当Yarn(与Hadoop相对)尝试去访问Tachyon文件时，可能发生该错误。如果遇到该错误，在`core-site.xml`文件中添加这些属性，然后重启Yarn。
+如果你正在使用2.x版本的Hadoop集群，你应该不需要像上面那样在`core-site.xml`文件中添加属性。可是，有些情况下可能会遇到`java.io.IOException: No FileSystem for scheme: tachyon`的错误。例如，当YARN(与Hadoop相对)尝试去访问Tachyon文件时，可能发生该错误。如果遇到该错误，在`core-site.xml`文件中添加这些属性，然后重启YARN。
 
 {% include Running-Hadoop-MapReduce-on-Tachyon/config-core-site.md %}
 
 # 编译Tachyon客户端
 
-为了使Tachyon和你的Hadoop版本相适应，你必须重新编译Tachyon Client的Jar包，指明你的Hadoop版本。你可以在Tachyon目录下运行如下命令：
+为了使Tachyon和你的Hadoop版本相对应，你必须重新编译Tachyon Client的Jar包，指明你的Hadoop版本。你可以在Tachyon目录下运行如下命令：
 
 {% include Running-Hadoop-MapReduce-on-Tachyon/compile-Tachyon-Hadoop.md %}
 
@@ -39,7 +39,7 @@ priority: 1
 
     core/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
 
-该Jar包会应用于下面的内容。
+本页面文档后续的内容都是基于这个Jar而展开。
 
 # 配置Hadoop
 
@@ -51,7 +51,7 @@ priority: 1
 
 # 分发Tachyon客户端Jar包
 
-为了让MapRedude作业可以在Tachyon上读写文件，Tachyon客户端Jar包必须被分发到集群的所有节点上。从而使TaskTracker和JobClient有必要的可执行文件同Tachyon进行交互。
+为了让MapRedude作业可以在Tachyon上读写文件，Tachyon客户端Jar包必须被分发到集群的所有节点上。这使得TaskTracker和JobClient包含所有与Tachyon进行交互访问所需要的可执行文件。
 
 [如何从Cloudera上加入第三方库](http://blog.cloudera.com/blog/2011/01/how-to-include-third-party-libraries-in-your-map-reduce-job/)这篇文档介绍了分发Jar包的多种方式。文档中建议通过使用命令行的`-libjars`选项，使用分布式缓存来分发Tachyon客户端Jar包。另一种分发客户端Jar包的方式就是手动将其分发到Hadoop节点上。下面就是这两种主流方法的介绍：
 
@@ -63,7 +63,7 @@ priority: 1
 2.**手动将Jar包分发到所有节点**
 为了在每个节点上安装Tachyon，你必须将客户端Jar包`tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`（位于`/<PATH_TO_TACHYON>/core/client/target/`目录）放到每个MapReduce节点的`$HADOOP_HOME/lib`（由于版本不同也可能是`$HADOOP_HOME/share/hadoop/common/lib`）目录下，然后重新启动所有的TaskTracker。该方法要注意的是所有Jar包必须再次安装，因为每个Jar包都更新到了最新版本。另一方面，当该Jar包已经在每个节点上的时候，就没有必要使用`-libjars`命令行选项了。
 
-# 本地运行使用Tachyon的Hadoop wordcount
+# 在本地模式的Tachyon上运行Hadoop wordcount
 
 首先，编译相应Hadoop版本的Tachyon：
 
@@ -77,7 +77,7 @@ priority: 1
 
 {% include Running-Hadoop-MapReduce-on-Tachyon/config-Tachyon.md %}
 
-本地启动Tachyon：
+以本地模式启动Tachyon：
 
 {% include Running-Hadoop-MapReduce-on-Tachyon/start-Tachyon.md %}
 
