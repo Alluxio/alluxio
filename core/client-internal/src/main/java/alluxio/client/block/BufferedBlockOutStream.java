@@ -23,10 +23,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Preconditions;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.Cancelable;
 import alluxio.client.ClientContext;
-import alluxio.Configuration;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
@@ -44,20 +44,20 @@ import alluxio.util.io.BufferUtils;
  */
 @NotThreadSafe
 public abstract class BufferedBlockOutStream extends OutputStream implements Cancelable {
-  /** The block id of the block being written */
+  /** The block id of the block being written. */
   protected final long mBlockId;
-  /** Size of the block */
+  /** Size of the block. */
   protected final long mBlockSize;
-  /** Block store context */
+  /** Block store context. */
   protected final BlockStoreContext mContext;
   /** Java heap buffer to store writes before flushing them to the backing store. */
   protected final ByteBuffer mBuffer;
 
-  /** If the stream is closed, this can only go from false to true */
+  /** If the stream is closed, this can only go from false to true. */
   protected boolean mClosed;
   /** Number of bytes flushed to the under storage system. Implementing classes must update this. */
   protected long mFlushedBytes;
-  /** Number of bytes written, including unflushed bytes */
+  /** Number of bytes written, including unflushed bytes. */
   protected long mWrittenBytes;
 
   /**
