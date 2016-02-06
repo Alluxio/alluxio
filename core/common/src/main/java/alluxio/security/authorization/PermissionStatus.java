@@ -19,8 +19,8 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
@@ -38,7 +38,7 @@ public final class PermissionStatus {
   private final FileSystemPermission mPermission;
 
   /**
-   * Constructs an instance of {@link PermissionStatus}
+   * Constructs an instance of {@link PermissionStatus}.
    *
    * @param userName   the user name
    * @param groupName  the group name which the user belongs to

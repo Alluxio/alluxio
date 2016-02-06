@@ -24,8 +24,8 @@ import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.login.AppLoginModule;
 import alluxio.security.login.LoginModuleConfiguration;
@@ -41,7 +41,7 @@ import alluxio.security.login.LoginModuleConfiguration;
 @ThreadSafe
 public final class LoginUser {
 
-  /** User instance of the login user in Alluxio client process */
+  /** User instance of the login user in Alluxio client process. */
   private static User sLoginUser;
 
   private LoginUser() {} // prevent instantiation

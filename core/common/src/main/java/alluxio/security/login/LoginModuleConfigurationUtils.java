@@ -24,9 +24,9 @@ import alluxio.util.OSUtils;
  */
 @ThreadSafe
 public final class LoginModuleConfigurationUtils {
-  /** Login module according to different OS type */
+  /** Login module according to different OS type. */
   public static final String OS_LOGIN_MODULE_NAME;
-  /** Class name of Principal according to different OS type */
+  /** Class name of Principal according to different OS type. */
   public static final String OS_PRINCIPAL_CLASS_NAME;
 
   static {

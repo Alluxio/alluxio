@@ -27,8 +27,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 
 /**
  * Tests the {@link PlainSaslServer.PlainServerCallbackHandler} class.
@@ -118,7 +118,7 @@ public class PlainServerCallbackHandlerTest {
 
   /**
    * An {@link AuthenticationProvider} that only allows users starting with alluxio, password
-   * should be "password"
+   * should be "password".
    */
   public static class NameMatchAuthenticationProvider implements AuthenticationProvider {
     @Override
