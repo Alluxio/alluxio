@@ -36,7 +36,8 @@ public class URIStatus {
   private final FileInfo mInfo;
 
   /**
-   * Constructs an instance of this class from a {@link FileInfo}
+   * Constructs an instance of this class from a {@link FileInfo}.
+   *
    * @param info an object containing the information about a particular uri
    */
   public URIStatus(FileInfo info) {
@@ -101,7 +102,7 @@ public class URIStatus {
   }
 
   /**
-   * For example for the uri: alluxio://host:1000/foo/bar/baz, baz is the name
+   * For example for the uri: alluxio://host:1000/foo/bar/baz, baz is the name.
    *
    * @return the last path component of the entity referenced by this uri, mutable
    */
@@ -110,7 +111,7 @@ public class URIStatus {
   }
 
   /**
-   * For example, for the uri: alluxio://host:1000/foo/bar/baz, the path is /foo/bar/baz
+   * For example, for the uri: alluxio://host:1000/foo/bar/baz, the path is /foo/bar/baz.
    *
    * @return the entire path component of the entity referenced by this uri, mutable
    */

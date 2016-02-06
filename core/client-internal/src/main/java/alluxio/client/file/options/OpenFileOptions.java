@@ -21,9 +21,9 @@ import com.google.common.base.Throwables;
 
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
+import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
-import alluxio.client.AlluxioStorageType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.util.CommonUtils;
 
@@ -44,7 +44,7 @@ public final class OpenFileOptions {
   }
 
   /**
-   * Creates a new instance with defaults based on the configuration
+   * Creates a new instance with defaults based on the configuration.
    */
   private OpenFileOptions() {
     mReadType =
