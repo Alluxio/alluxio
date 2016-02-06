@@ -30,13 +30,13 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.Version;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -587,6 +587,8 @@ public class Performance {
   }
 
   /**
+   * Runs the performance test.
+   *
    * Usage:
    * {@code java -cp <ALLUXIO-VERSION> alluxio.examples.Performance <MasterIp> <FileNamePrefix>
    * <WriteBlockSizeInBytes> <BlocksPerFile> <DebugMode:true/false> <Threads> <FilesPerThread>

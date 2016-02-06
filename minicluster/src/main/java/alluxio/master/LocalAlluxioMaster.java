@@ -23,10 +23,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Supplier;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
-import alluxio.Configuration;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -184,7 +184,7 @@ public final class LocalAlluxioMaster {
   }
 
   /**
-   * Gets the actual port that the RPC service is listening on (used by unit test only)
+   * Gets the actual port that the RPC service is listening on (used by unit test only).
    *
    * @return the RPC local port
    */
@@ -202,7 +202,7 @@ public final class LocalAlluxioMaster {
   }
 
   /**
-   * Gets the actual port that the web service is listening on (used by unit test only)
+   * Gets the actual port that the web service is listening on (used by unit test only).
    *
    * @return the Web local port
    */

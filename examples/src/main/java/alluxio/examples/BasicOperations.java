@@ -23,8 +23,8 @@ import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.Version;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
@@ -108,6 +108,8 @@ public class BasicOperations implements Callable<Boolean> {
   }
 
   /**
+   * Runs the example.
+   *
    * Usage:
    * {@code java -cp <ALLUXIO-VERSION> BasicOperations
    * <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)>
