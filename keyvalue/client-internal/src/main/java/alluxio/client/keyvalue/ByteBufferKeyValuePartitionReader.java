@@ -44,7 +44,7 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
   private PayloadReader mPayloadReader;
   private ByteBuffer mBuf;
   private int mBufferLength;
-  /** whether this writer is closed */
+  /** Whether this writer is closed. */
   private boolean mClosed;
 
   /**

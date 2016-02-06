@@ -46,19 +46,19 @@ import alluxio.util.io.ByteIOUtils;
 final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** handle to write to the underlying file */
+  /** Handle to write to the underlying file. */
   private final OutStreamBase mFileOutStream;
-  /** number of key-value pairs added */
+  /** Number of key-value pairs added. */
   private long mKeyCount = 0;
-  /** key-value index */
+  /** Key-value index. */
   private Index mIndex;
-  /** key-value payload */
+  /** Key-value payload. */
   private PayloadWriter mPayloadWriter;
-  /** whether this writer is closed */
+  /** Whether this writer is closed. */
   private boolean mClosed;
-  /** whether this writer is canceled */
+  /** Whether this writer is canceled. */
   private boolean mCanceled;
-  /** maximum size of this partition in bytes */
+  /** Maximum size of this partition in bytes. */
   private long mMaxSizeBytes;
 
   /**

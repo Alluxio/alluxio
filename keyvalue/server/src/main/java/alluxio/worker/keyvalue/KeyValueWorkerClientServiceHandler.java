@@ -33,11 +33,11 @@ import alluxio.Sessions;
 import alluxio.client.keyvalue.ByteBufferKeyValuePartitionReader;
 import alluxio.client.keyvalue.Index;
 import alluxio.client.keyvalue.PayloadReader;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.AlluxioException;
-import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.thrift.ThriftIOException;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.BlockWorker;
@@ -51,7 +51,7 @@ import alluxio.worker.block.io.BlockReader;
 public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** BlockWorker handler for access block info */
+  /** BlockWorker handler for access block info. */
   private final BlockWorker mBlockWorker;
 
   /**

@@ -24,8 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.hadoop.mapred.InputSplit;
 
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
@@ -37,10 +37,10 @@ import alluxio.thrift.PartitionInfo;
 final class KeyValueInputSplit implements InputSplit {
   private static final long INVALID_BLOCK_ID = -1;
 
-  /** The block store client */
+  /** The block store client. */
   private AlluxioBlockStore mBlockStore;
   // TODO(cc): Use the concept of partition ID in the future.
-  /** The ID of the block represented by this split */
+  /** The ID of the block represented by this split. */
   private long mBlockId;
 
   /**
