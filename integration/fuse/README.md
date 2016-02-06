@@ -10,8 +10,8 @@ This project uses [jnr-fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on J
   (2.8.3 has been reported to also work - with some warnings)
 
 ## Building
-alluxio-fuse is automatically built with Alluxio when the `buildFuse` maven profile is active.
-This profile is automatically activated when maven detects a JDK 8 or newer.
+The alluxio-integration-fuse module is automatically built with Alluxio when the `buildFuse` maven 
+profile is active. This profile is automatically activated when maven detects a JDK 8 or newer.
 
 For compatibility, binary Alluxio distributions may ship without alluxio-fuse support. Please,
 rebuild your favourite Alluxio version yourself if you want to use alluxio-fuse (see [Building
@@ -45,7 +45,7 @@ The project is **experimental**, so use it at your own risk.
 
 ### Performance considerations
 Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected
-to be considerably worst than what you would see by using the `alluxio-client` directly.
+to be considerably worst than what you would see by using the `alluxio-core-client` directly.
 
 Most of the problems come from the fact that there are several memory copies going on for each call
 on `read` or `write` operations, and that FUSE caps the maximum granularity of writes to 128KB. This
