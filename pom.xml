@@ -127,7 +127,7 @@
     <findbugs.path>build/findbugs</findbugs.path>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <hadoop.version>2.2.0</hadoop.version>
-    <java.version>1.6</java.version>
+    <java.version>1.7</java.version>
     <jetty.version>7.6.15.v20140411</jetty.version>
     <junit.version>4.12</junit.version>
     <libthrift.version>0.9.3</libthrift.version>
