@@ -9,10 +9,10 @@
 - name: mkdir /alluxio
   script: mkdir.sh
 
-- name: clone alluxio from {{ tachyon_repo }} {{ tachyon_version }}
+- name: clone alluxio from {{ alluxio_repo }} {{ alluxio_version }}
   git: >
-    repo={{ tachyon_repo }}
+    repo={{ alluxio_repo }}
     dest=/alluxio
-    version={{ tachyon_version }}
+    version={{ alluxio_version }}
 
 # vim :set filetype=ansible.yaml:
