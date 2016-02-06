@@ -171,18 +171,21 @@ public class AbstractFileSystemTest {
   }
 
   /**
-   * Tests that initializing the {@link AbstractFileSystem} will reinitialize contexts so to pick
-   * up changes to the master address.
+   * Tests that initializing the {@link AbstractFileSystem} will reinitialize contexts to pick up
+   * changes to the master address.
    */
   @Test
   public void resetContextTest() throws Exception {
+    // Create system with master at localhost:19998
     URI uri = URI.create(Constants.HEADER + "localhost:19998/");
-
     Configuration conf = new Configuration();
     org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
+    // Change to otherhost:410
     URI newUri = URI.create(Constants.HEADER + "otherhost:410/");
     fs.initialize(newUri, conf);
+
+    // Make sure all contexts are using the new address
     InetSocketAddress newAddress = new InetSocketAddress("otherhost", 410);
     Assert.assertEquals(newAddress, ClientContext.getMasterAddress());
     Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(BlockStoreContext.INSTANCE,
