@@ -41,8 +41,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -67,7 +67,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
-  /** Prefix of the bucket, for example s3n://my-bucket-name/ */
+  /** Prefix of the bucket, for example s3n://my-bucket-name/ . */
   private final String mBucketPrefix;
 
   static {
