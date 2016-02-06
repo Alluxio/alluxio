@@ -1,4 +1,4 @@
-- hosts: TachyonMaster
+- hosts: AlluxioMaster
   tasks:
     - include: roles/mesos/tasks/start_master.yml
 
@@ -8,8 +8,8 @@
 
     - include: roles/alluxio/tasks/create_mount.yml
 
-    - include: roles/mesos/tasks/config_tachyon.yml
+    - include: roles/mesos/tasks/config_alluxio.yml
 
-- hosts: TachyonMaster
+- hosts: AlluxioMaster
   tasks:
-    - include: roles/tachyon/tasks/start_mesos_framework.yml
+    - include: roles/alluxio/tasks/start_mesos_framework.yml
