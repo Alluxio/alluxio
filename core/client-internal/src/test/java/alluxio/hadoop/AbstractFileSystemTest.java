@@ -54,8 +54,11 @@ import alluxio.client.util.ClientTestUtils;
  * See https://code.google.com/p/powermock/wiki/FAQ.
  */
 @PowerMockIgnore("javax.security.*")
-public class TFSTest {
-  private static final Logger LOG = LoggerFactory.getLogger(TFSTest.class.getName());
+/**
+ * Tests for {@link AbstractFileSystem}.
+ */
+public class AbstractFileSystemTest {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystemTest.class.getName());
 
   private ClassLoader getClassLoader(Class<?> clazz) {
     // Power Mock makes this hard, so try to hack it
