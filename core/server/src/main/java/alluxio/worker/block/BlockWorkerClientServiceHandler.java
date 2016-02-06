@@ -28,10 +28,10 @@ import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
-import alluxio.thrift.LockBlockResult;
 import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.ThriftIOException;
 import alluxio.thrift.BlockWorkerClientService;
+import alluxio.thrift.LockBlockResult;
+import alluxio.thrift.ThriftIOException;
 import alluxio.worker.WorkerContext;
 
 /**
@@ -41,9 +41,9 @@ import alluxio.worker.WorkerContext;
 public final class BlockWorkerClientServiceHandler implements BlockWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Block Worker handle that carries out most of the operations **/
+  /** Block Worker handle that carries out most of the operations. */
   private final BlockWorker mWorker;
-  /** Association between storage tier aliases and ordinals ond this worker */
+  /** Association between storage tier aliases and ordinals ond this worker. */
   private final StorageTierAssoc mStorageTierAssoc;
 
   /**

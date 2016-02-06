@@ -32,12 +32,12 @@ import alluxio.worker.WorkerContext;
 @NotThreadSafe
 public final class SessionCleaner implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  /** Block worker handler responsible for interacting with Alluxio and UFS storage */
+  /** Block worker handler responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
-  /** Milliseconds between each check */
+  /** Milliseconds between each check. */
   private final int mCheckIntervalMs;
 
-  /** Flag to indicate if the checking should continue */
+  /** Flag to indicate if the checking should continue. */
   private volatile boolean mRunning;
 
   /**
@@ -76,7 +76,7 @@ public final class SessionCleaner implements Runnable {
   }
 
   /**
-   * Stops the checking, once this method is called, the object should be discarded
+   * Stops the checking, once this method is called, the object should be discarded.
    */
   public void stop() {
     mRunning = false;

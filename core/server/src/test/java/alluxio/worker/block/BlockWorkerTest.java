@@ -37,8 +37,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import alluxio.Sessions;
 import alluxio.Configuration;
+import alluxio.Sessions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.DataServer;
@@ -49,9 +49,9 @@ import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertEquals;
 
 /**
  * Unit tests for {@link BlockWorker}.
@@ -109,7 +109,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * stop the DataServer to clean up
+   * Stop the DataServer to clean up.
    *
    * @throws IOException if clean up fails
    */

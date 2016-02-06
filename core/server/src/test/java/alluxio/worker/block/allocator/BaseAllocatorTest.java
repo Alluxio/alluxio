@@ -99,7 +99,7 @@ public class BaseAllocatorTest {
 
   /**
    * Given an allocator with the location and blockSize, we assert whether the block can be
-   * allocated
+   * allocated.
    */
   protected void assertTempBlockMeta(Allocator allocator, BlockStoreLocation location,
       long blockSize, boolean avail) throws IOException {

@@ -35,10 +35,10 @@ import alluxio.worker.file.FileSystemMasterClient;
 public final class PinListSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Block worker handle responsible for interacting with Alluxio and UFS storage */
+  /** Block worker handle responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
 
-  /** Client for all master communication */
+  /** Client for all master communication. */
   private FileSystemMasterClient mMasterClient;
 
   /**
