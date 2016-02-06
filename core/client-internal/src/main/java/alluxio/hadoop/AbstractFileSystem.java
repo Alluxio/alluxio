@@ -433,7 +433,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     ClientContext.getConf().set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
     ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
 
-    // These must be reset to pick up the change to the master address
+    // These must be reset to pick up the change to the master address.
+    // TODO(andrew): We should reset key value system in this situation - see TACHYON-1706.
     ClientContext.init();
     FileSystemContext.INSTANCE.reset();
     BlockStoreContext.INSTANCE.reset();
