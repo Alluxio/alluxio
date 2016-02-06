@@ -27,6 +27,7 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.thrift.transport.TServerSocket;
@@ -36,9 +37,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -66,34 +67,33 @@ public final class NetworkAddressUtils {
    */
   public enum ServiceType {
     /**
-     *
-     * Master RPC service (Thrift)
+     * Master RPC service (Thrift).
      */
     MASTER_RPC("Alluxio Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
         Constants.MASTER_RPC_PORT, Constants.DEFAULT_MASTER_PORT),
 
     /**
-     * Master web service (Jetty)
+     * Master web service (Jetty).
      */
     MASTER_WEB("Alluxio Master Web service", Constants.MASTER_WEB_HOSTNAME,
         Constants.MASTER_WEB_BIND_HOST, Constants.MASTER_WEB_PORT,
         Constants.DEFAULT_MASTER_WEB_PORT),
 
     /**
-     * Worker RPC service (Thrift)
+     * Worker RPC service (Thrift).
      */
     WORKER_RPC("Alluxio Worker RPC service", Constants.WORKER_HOSTNAME, Constants.WORKER_BIND_HOST,
         Constants.WORKER_RPC_PORT, Constants.DEFAULT_WORKER_PORT),
 
     /**
-     * Worker data service (Netty)
+     * Worker data service (Netty).
      */
     WORKER_DATA("Alluxio Worker data service", Constants.WORKER_DATA_HOSTNAME,
         Constants.WORKER_DATA_BIND_HOST, Constants.WORKER_DATA_PORT,
         Constants.DEFAULT_WORKER_DATA_PORT),
 
     /**
-     * Worker web service (Jetty)
+     * Worker web service (Jetty).
      */
     WORKER_WEB("Alluxio Worker Web service", Constants.WORKER_WEB_HOSTNAME,
         Constants.WORKER_WEB_BIND_HOST, Constants.WORKER_WEB_PORT,
@@ -151,7 +151,7 @@ public final class NetworkAddressUtils {
     }
 
     /**
-     * Gets the key of service port
+     * Gets the key of service port.
      *
      * @return key of service port
      */
@@ -160,7 +160,7 @@ public final class NetworkAddressUtils {
     }
 
     /**
-     * Gets the default port number on service
+     * Gets the default port number on service.
      *
      * @return default port
      */

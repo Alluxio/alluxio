@@ -18,7 +18,7 @@ package alluxio;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * System wide constants
+ * System wide constants.
  */
 @ThreadSafe
 public final class Constants {
@@ -362,13 +362,13 @@ public final class Constants {
    * Capped by the kernel to 128KB max (as of Linux 3.16.0).
    */
   public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
-  /** Have the fuse process log every FS request */
+  /** Have the fuse process log every FS request. */
   public static final String FUSE_DEBUG_ENABLE = "alluxio.fuse.debug.enabled";
-  /** Maximum number of Alluxio paths to cache for fuse conversion */
+  /** Maximum number of Alluxio paths to cache for fuse conversion. */
   public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
   public static final String FUSE_DEFAULT_MOUNTPOINT = "alluxio.fuse.mount.default";
   public static final String FUSE_FS_ROOT = "alluxio.fuse.fs.root";
-  /** FUSE file system name */
+  /** FUSE file system name. */
   public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
 
   public static final String OSS_ACCESS_KEY = "fs.oss.accessKeyId";
@@ -411,7 +411,8 @@ public final class Constants {
   // ttl related
   public static final long NO_TTL = -1;
 
-  /** Security */
+  // Security
+
   // Authentication
   public static final String SECURITY_AUTHENTICATION_TYPE = "alluxio.security.authentication.type";
   public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER =
