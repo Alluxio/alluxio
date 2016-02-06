@@ -20,7 +20,6 @@ import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -31,10 +30,12 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
-import alluxio.Configuration;
 
 /**
  * Main entry point to Alluxio-FUSE.
@@ -77,7 +78,8 @@ public final class AlluxioFuse {
   }
 
   /**
-   * Parses CLI options
+   * Parses CLI options.
+   *
    * @param args CLI args
    * @return Alluxio-FUSE configuration options
    */
