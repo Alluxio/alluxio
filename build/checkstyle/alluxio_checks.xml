@@ -235,6 +235,8 @@
       <property name="id" value="ProductionScope"/>
       <property name="scope" value="public"/>
     </module>
+    <!-- Checks that Javadoc is properly formatted -->
+    <module name="JavadocStyle"/>
   </module>
 
   <!-- always use Unix-style line separators -->
