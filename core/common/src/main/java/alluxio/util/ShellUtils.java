@@ -34,7 +34,7 @@ import alluxio.Constants;
 public final class ShellUtils {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  /** a Unix command to set permission */
+  /** a Unix command to set permission. */
   public static final String SET_PERMISSION_COMMAND = "chmod";
 
   /**
@@ -58,7 +58,7 @@ public final class ShellUtils {
     return new String[] {SET_PERMISSION_COMMAND, perm, filePath};
   }
 
-  /** Token separator regex used to parse Shell tool outputs */
+  /** Token separator regex used to parse Shell tool outputs. */
   public static final String TOKEN_SEPARATOR_REGEX = "[ \t\n\r\f]";
 
   private Process mProcess; // sub process used to execute the command
@@ -137,7 +137,7 @@ public final class ShellUtils {
     return mCommand;
   }
 
-  /** Parse the execution result */
+  /** Parse the execution result. */
   protected void parseExecResult(BufferedReader lines) throws IOException {
     mOutput = new StringBuffer();
     char[] buf = new char[512];

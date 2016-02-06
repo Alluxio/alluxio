@@ -101,13 +101,13 @@ import com.google.common.collect.Sets;
  */
 @ThreadSafe
 public class IndexedSet<T> implements Iterable<T> {
-  /** All objects in the set */
+  /** All objects in the set. */
   private final Set<T> mObjects = new HashSet<T>();
-  /** Map from field index to an index of field related object in the internal lists */
+  /** Map from field index to an index of field related object in the internal lists. */
   private final Map<FieldIndex<T>, Integer> mIndexMap;
-  /** List of maps from value of a specific field to set of objects with the field value */
+  /** List of maps from value of a specific field to set of objects with the field value. */
   private final List<Map<Object, Set<T>>> mSetIndexedByFieldValue;
-  /** Final object for synchronization */
+  /** Final object for synchronization. */
   private final Object mLock = new Object();
 
   /**
