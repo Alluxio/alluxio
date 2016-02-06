@@ -25,11 +25,11 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.collect.Lists;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -113,11 +113,13 @@ public class AlluxioShellUtils {
   }
 
   /**
-   * The utility function used to implement getAlluxioURIs
+   * The utility function used to implement getAlluxioURIs.
+   *
    * Basically, it recursively iterates through the directory from the parent directory of inputURI
    * (e.g., for input "/a/b/*", it will start from "/a/b") until it finds all the matches;
    * It does not go into a directory if the prefix mismatches
    * (e.g., for input "/a/b/*", it won't go inside directory "/a/c")
+   *
    * @param alluxioClient the client used to fetch metadata of Alluxio files
    * @param inputURI the input URI (could contain wildcards)
    * @param parentDir the {@link AlluxioURI} of the directory in which we are searching matched
