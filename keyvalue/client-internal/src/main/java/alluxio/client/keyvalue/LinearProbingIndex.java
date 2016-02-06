@@ -49,18 +49,18 @@ import alluxio.util.io.ByteIOUtils;
  */
 @NotThreadSafe
 public final class LinearProbingIndex implements Index {
-  /** Max number of probes for linear probing */
+  /** Max number of probes for linear probing. */
   public static final int MAX_PROBES = 50;
 
   // TODO(binfan): pick better seeds
   private static final int INDEX_HASHER_SEED = 0x1311;
   private static final int FINGERPRINT_HASHER_SEED = 0x7a91;
-  /** Hash function to calculate bucket index */
+  /** Hash function to calculate bucket index. */
   private static final HashFunction INDEX_HASHER = Hashing.murmur3_32(INDEX_HASHER_SEED);
-  /** Hash function to calculate fingerprint */
+  /** Hash function to calculate fingerprint. */
   private static final HashFunction FINGERPRINT_HASHER =
       Hashing.murmur3_32(FINGERPRINT_HASHER_SEED);
-  /** Size of each bucket in bytes */
+  /** Size of each bucket in bytes. */
   private static final int BUCKET_SIZE_BYTES = Constants.BYTES_IN_INTEGER + 1;
 
   /**
@@ -73,7 +73,7 @@ public final class LinearProbingIndex implements Index {
    * {@link #mBuf}.
    */
   private int mKeyCount;
-  /** A slice of mBuf corresponding to the hash table part */
+  /** A slice of mBuf corresponding to the hash table part. */
   private ByteBuffer mHashTableBuf;
   private int mNumBuckets;
 
