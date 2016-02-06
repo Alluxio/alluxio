@@ -24,8 +24,8 @@ import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.Version;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -33,7 +33,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 
 /**
- * An example to show to how use Alluxio's API
+ * An example to show to how use Alluxio's API.
  */
 public class BasicCheckpoint implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
