@@ -71,21 +71,21 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /** Default block size in bytes. */
   public static final int DEFAULT_USER_BLOCK_SIZE = Constants.KB;
 
-  /** The capacity of the worker in bytes */
+  /** The capacity of the worker in bytes. */
   private final long mWorkerCapacityBytes;
-  /** Block size for a user */
+  /** Block size for a user. */
   private final int mUserBlockSize;
   /**
    * If true (default), we start the cluster before running a test method. Otherwise, the method
    * must start the cluster explicitly.
    */
   private final boolean mStartCluster;
-  /** Configuration parameters for the {@link Configuration} object used in the cluster */
+  /** Configuration parameters for the {@link Configuration} object used in the cluster. */
   private final String[] mConfParams;
 
-  /** The Alluxio cluster being managed */
+  /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
-  /** The {@link Configuration} object used by the cluster */
+  /** The {@link Configuration} object used by the cluster. */
   private Configuration mTestConf = null;
 
   /**

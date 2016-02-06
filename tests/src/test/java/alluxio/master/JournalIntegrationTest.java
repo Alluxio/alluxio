@@ -28,9 +28,10 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
 import alluxio.client.ClientContext;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
@@ -40,7 +41,6 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -70,9 +70,7 @@ public class JournalIntegrationTest {
   private Configuration mMasterConfiguration = null;
 
   /**
-   * Test add block
-   *
-   * @throws Exception
+   * Tests adding a block.
    */
   @Test
   public void addBlockTest() throws Exception {
@@ -118,9 +116,7 @@ public class JournalIntegrationTest {
   }
 
   /**
-   * Test add checkpoint
-   *
-   * @throws Exception
+   * Tests loading metadata.
    */
   @Test
   public void loadMetadataTest() throws Exception {
@@ -157,9 +153,7 @@ public class JournalIntegrationTest {
   }
 
   /**
-   * Test completed Editlog deletion
-   *
-   * @throws Exception
+   * Tests completed edit log deletion.
    */
   @Test
   public void completedEditLogDeletionTest() throws Exception {
@@ -182,9 +176,7 @@ public class JournalIntegrationTest {
   }
 
   /**
-   * Test file and directory creation and deletion;
-   *
-   * @throws Exception
+   * Tests file and directory creation and deletion.
    */
   @Test
   public void deleteTest() throws Exception {
@@ -236,9 +228,7 @@ public class JournalIntegrationTest {
   }
 
   /**
-   * Test file and directory creation.
-   *
-   * @throws Exception
+   * Tests file and directory creation.
    */
   @Test
   public void fileDirectoryTest() throws Exception {
@@ -270,9 +260,7 @@ public class JournalIntegrationTest {
   }
 
   /**
-   * Test files creation.
-   *
-   * @throws Exception
+   * Tests file creation.
    */
   @Test
   public void fileTest() throws Exception {
@@ -299,7 +287,7 @@ public class JournalIntegrationTest {
   }
 
   /**
-   * Test journalling of inodes being pinned.
+   * Tests journalling of inodes being pinned.
    */
   @Test
   public void pinTest() throws Exception {
@@ -348,9 +336,7 @@ public class JournalIntegrationTest {
   }
 
   /**
-   * Test directory creation.
-   *
-   * @throws Exception
+   * Tests directory creation.
    */
   @Test
   public void directoryTest() throws Exception {
@@ -415,9 +401,7 @@ public class JournalIntegrationTest {
   }
 
   /**
-   * Test files creation.
-   *
-   * @throws Exception
+   * Tests files creation.
    */
   @Test
   public void manyFileTest() throws Exception {
@@ -443,9 +427,7 @@ public class JournalIntegrationTest {
   }
 
   /**
-   * Test reading multiple edit logs.
-   *
-   * @throws Exception
+   * Tests reading multiple edit logs.
    */
   @Test
   public void multiEditLogTest() throws Exception {
@@ -525,9 +507,7 @@ public class JournalIntegrationTest {
   // }
 
   /**
-   * Test file and directory creation, and rename;
-   *
-   * @throws Exception
+   * Tests file and directory creation, and rename.
    */
   @Test
   public void renameTest() throws Exception {
