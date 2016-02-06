@@ -54,8 +54,8 @@ import org.apache.hadoop.yarn.util.Records;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.yarn.YarnUtils.YarnContainerType;
@@ -106,11 +106,11 @@ public final class Client {
   private int mNumWorkers;
   /** Address to run Alluxio master. */
   private String mMasterAddress;
-  /** Maximum number of workers to allow on a single host */
+  /** Maximum number of workers to allow on a single host. */
   private int mMaxWorkersPerHost;
-  /** Id of the application */
+  /** Id of the application. */
   private ApplicationId mAppId;
-  /** Command line options */
+  /** Command line options. */
   private Options mOptions;
 
   /**
@@ -162,7 +162,7 @@ public final class Client {
   }
 
   /**
-   * Main run function for the client
+   * Main run function for the client.
    *
    * @return true if application completed successfully
    * @throws IOException if errors occur from ResourceManager
