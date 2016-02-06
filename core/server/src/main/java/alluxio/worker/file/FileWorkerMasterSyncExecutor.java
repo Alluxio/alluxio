@@ -54,11 +54,11 @@ import alluxio.worker.block.BlockMasterSync;
 final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Logic for managing async file persistence */
+  /** Logic for managing async file persistence. */
   private final FileDataManager mFileDataManager;
-  /** Client for communicating to file system master */
+  /** Client for communicating to file system master. */
   private final FileSystemMasterClient mMasterClient;
-  /** The thread pool to persist file */
+  /** The thread pool to persist file. */
   private final ExecutorService mPersistFileService;
 
   /**
