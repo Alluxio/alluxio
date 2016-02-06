@@ -38,8 +38,8 @@ import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
 import com.google.common.base.Preconditions;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -68,7 +68,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
-  /** Prefix of the bucket, for example oss://bucket-name/ */
+  /** Prefix of the bucket, for example oss://bucket-name/ . */
   private final String mBucketPrefix;
 
   /** The OSS endpoint. */

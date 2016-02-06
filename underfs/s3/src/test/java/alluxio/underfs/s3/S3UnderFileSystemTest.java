@@ -23,7 +23,7 @@ import org.powermock.reflect.Whitebox;
 
 /**
  * Tests for the private helper methods in {@link S3UnderFileSystem} that do not require an S3
- * backend
+ * backend.
  */
 public class S3UnderFileSystemTest {
   private S3UnderFileSystem mMockS3UnderFileSystem;
