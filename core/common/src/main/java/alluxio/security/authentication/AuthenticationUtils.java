@@ -26,8 +26,8 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.security.LoginUser;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -100,7 +100,7 @@ public final class AuthenticationUtils {
   }
 
   /**
-   * Creates a new Thrift socket what will connect to the given address
+   * Creates a new Thrift socket what will connect to the given address.
    *
    * @param address The given address to connect
    * @param timeoutMs the timeout in milliseconds

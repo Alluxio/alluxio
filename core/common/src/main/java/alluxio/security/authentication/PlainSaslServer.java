@@ -60,7 +60,7 @@ public final class PlainSaslServer implements SaslServer {
    * associated with the client connection thread for following action authorization usage.
    */
   private String mAuthorizationId;
-  /** Whether an authentication is complete or not */
+  /** Whether an authentication is complete or not. */
   private boolean mCompleted;
   private CallbackHandler mHandler;
 

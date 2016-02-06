@@ -31,7 +31,7 @@ public enum FileSystemAction {
   READ_WRITE("rw-"),
   ALL("rwx");
 
-  /** Symbolic representation */
+  /** Symbolic representation. */
   private final String mSymbol;
 
   /** Retain reference to value array. */
