@@ -29,21 +29,21 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
-import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -463,7 +463,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests that reading a file the whole way through with the STORE ReadType will recache it
+   * Tests that reading a file the whole way through with the STORE ReadType will recache it.
    */
   @Test
   public void completeFileReadTriggersRecache() throws IOException, AlluxioException {
@@ -482,7 +482,7 @@ public class RemoteBlockInStreamIntegrationTest {
 
   /**
    * Tests that not reading a file the whole way through then closing it will cause it to not
-   * recache
+   * recache.
    */
   @Test
   public void incompleteFileReadCancelsRecache() throws IOException, AlluxioException {
@@ -499,7 +499,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests that reading a file consisting of more than one block from the underfs works
+   * Tests that reading a file consisting of more than one block from the underfs works.
    */
   @Test
   public void readMultiBlockFile() throws IOException, AlluxioException {

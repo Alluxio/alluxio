@@ -19,8 +19,8 @@ import java.io.IOException;
 
 import org.powermock.reflect.Whitebox;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 
 /**
  * Utility methods for the tests using {@link LoginUser}.
@@ -37,7 +37,7 @@ public final class LoginUserTestUtils {
   }
 
   /**
-   * Resets the {@link LoginUser} and re-login with new user
+   * Resets the {@link LoginUser} and re-login with new user.
    *
    * @param conf the instance of {@link Configuration}
    * @param user the new user

@@ -24,16 +24,16 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
@@ -78,7 +78,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
   }
 
   /**
-   * Checks that we wrote the file correctly by reading it every possible way
+   * Checks that we wrote the file correctly by reading it every possible way.
    *
    * @param filePath path of the tmp file
    * @param underStorageType type of under storage write
