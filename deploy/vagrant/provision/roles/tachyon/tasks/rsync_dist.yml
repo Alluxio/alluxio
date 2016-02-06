@@ -1,5 +1,5 @@
-# For efficiency, only TachyonMaster will compile from source
-# other nodes rsync necessary runtime from TachyonMaster
+# For efficiency, only AlluxioMaster will compile from source
+# other nodes rsync necessary runtime from AlluxioMaster
 ---
 
 - name: install rsync
@@ -9,7 +9,7 @@
 - name: mkdir /alluxio
   script: mkdir.sh
 
-- name: rsync alluxio from TachyonMaster
+- name: rsync alluxio from AlluxioMaster
   script: rsync.sh
 
 # vim :set filetype=ansible.yaml:

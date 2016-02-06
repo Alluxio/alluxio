@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# let mapreduce be able to run against Tachyon
-TACHYON_CLIENT_JAR=$(ls /tachyon/core/client/target/tachyon-client-*-jar-with-dependencies.jar)
-echo "export HADOOP_CLASSPATH=\${HADOOP_CLASSPATH}:${TACHYON_CLIENT_JAR}" >> /hadoop/etc/hadoop/hadoop-env.sh
+# let mapreduce be able to run against Alluxio
+ALLUXIO_CLIENT_JAR=$(ls /alluxio/core/client/target/alluxio-client-*-jar-with-dependencies.jar)
+echo "export HADOOP_CLASSPATH=\${HADOOP_CLASSPATH}:${ALLUXIO_CLIENT_JAR}" >> /hadoop/etc/hadoop/hadoop-env.sh
 
 NODES=`cat /vagrant/files/workers`
 
@@ -21,12 +21,12 @@ cat > /hadoop/etc/hadoop/core-site.xml << EOF
   <value>hdfs://${namenode}:9000</value>
 </property>
 <property>
-  <name>fs.tachyon.impl</name>
-  <value>tachyon.hadoop.TFS</value>
+  <name>fs.alluxio.impl</name>
+  <value>alluxio.hadoop.TFS</value>
 </property>
 <property>
-  <name>fs.tachyon-ft.impl</name>
-  <value>tachyon.hadoop.TFSFT</value>
+  <name>fs.alluxio-ft.impl</name>
+  <value>alluxio.hadoop.TFSFT</value>
 </property>
 </configuration>
 EOF
