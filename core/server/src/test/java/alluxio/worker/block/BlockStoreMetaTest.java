@@ -39,9 +39,9 @@ import alluxio.worker.block.meta.StorageTier;
  */
 public class BlockStoreMetaTest {
   private static final long TEST_SESSION_ID = 33L;
-  /** block size in Bytes for test */
+  /** block size in Bytes for test. */
   private static final long TEST_BLOCK_SIZE = 200L;
-  /** num of total committed blocks */
+  /** num of total committed blocks. */
   private static final long COMMITTED_BLOCKS_NUM = 10L;
 
   private BlockMetadataManager mMetadataManager;

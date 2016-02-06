@@ -30,8 +30,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
@@ -100,7 +100,7 @@ public class LRFUEvictorTest {
   }
 
   /**
-   * Sort all blocks in ascending order of CRF
+   * Sort all blocks in ascending order of CRF.
    *
    * @return the sorted CRF of all blocks
    */

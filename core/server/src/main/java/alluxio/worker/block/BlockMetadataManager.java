@@ -138,7 +138,7 @@ public final class BlockMetadataManager {
   }
 
   /**
-   * Cleans up the meta data of the given temp block ids
+   * Cleans up the meta data of the given temp block ids.
    *
    * @param sessionId the id of the client associated with the temp blocks
    * @param tempBlockIds the list of temporary block ids to be cleaned up, non temporary block ids

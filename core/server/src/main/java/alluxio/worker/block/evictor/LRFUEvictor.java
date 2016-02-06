@@ -31,9 +31,9 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.collections.Pair;
-import alluxio.Configuration;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
@@ -99,7 +99,7 @@ public final class LRFUEvictor extends EvictorBase {
 
   /**
    * Calculates weight of an access, which is the function value of
-   * F(t) = pow (1.0 / {@link #mAttenuationFactor}, t * {@link #mStepFactor})
+   * F(t) = pow (1.0 / {@link #mAttenuationFactor}, t * {@link #mStepFactor}).
    *
    * @param logicTimeInterval time interval since that access to current
    * @return Function value of F(t)

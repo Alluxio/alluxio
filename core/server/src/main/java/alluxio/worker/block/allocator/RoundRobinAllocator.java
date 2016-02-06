@@ -104,7 +104,7 @@ public final class RoundRobinAllocator implements Allocator {
   }
 
   /**
-   * Finds an available dir in a given tier for a block with blockSize
+   * Finds an available dir in a given tier for a block with blockSize.
    *
    * @param tierView the tier to find a dir
    * @param blockSize the requested block size
