@@ -27,8 +27,8 @@ import org.apache.thrift.TProcessor;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.util.ThreadFactoryUtils;
@@ -43,14 +43,14 @@ import alluxio.worker.block.BlockWorker;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
 public final class FileSystemWorker extends WorkerBase {
-  /** Logic for managing file persistence */
+  /** Logic for managing file persistence. */
   private final FileDataManager mFileDataManager;
   /** Client for file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterWorkerClient;
-  /** Configuration object */
+  /** Configuration object. */
   private final Configuration mConf;
 
-  /** The service that persists files */
+  /** The service that persists files. */
   private Future<?> mFilePersistenceService;
 
   /**
