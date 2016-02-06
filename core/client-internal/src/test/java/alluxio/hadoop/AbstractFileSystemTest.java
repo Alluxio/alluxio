@@ -17,6 +17,7 @@ package alluxio.hadoop;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -163,6 +164,22 @@ public class AbstractFileSystemTest {
     PowerMockito.verifyStatic();
     alluxio.client.file.FileSystem.Factory.get();
     ClientTestUtils.resetClientContext();
+  }
+
+  /**
+   * Tests that initializing the {@link AbstractFileSystem} will reinitialize contexts so to pick
+   * up changes to the master address.
+   */
+  @Test
+  public void resetContextTest() throws Exception {
+    URI uri = URI.create(Constants.HEADER + "localhost:19998/");
+
+    Configuration conf = new Configuration();
+    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+
+    URI newUri = URI.create(Constants.HEADER + "otherhost:410/");
+    fs.initialize(newUri, conf);
+    Assert.assertEquals(new InetSocketAddress("otherhost", 410), ClientContext.getMasterAddress());
   }
 
   private boolean isHadoop1x() {
