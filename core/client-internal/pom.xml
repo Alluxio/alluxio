@@ -48,6 +48,14 @@
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>annotations</artifactId>
     </dependency>
+
+    <!-- Other projects' test-jars -->
+    <dependency>
+      <groupId>org.alluxio.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+    </dependency>
   </dependencies>
 
   <build>
