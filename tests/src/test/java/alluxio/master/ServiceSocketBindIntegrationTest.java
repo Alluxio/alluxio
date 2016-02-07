@@ -26,12 +26,12 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
-import alluxio.Configuration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -145,13 +145,11 @@ public class ServiceSocketBindIntegrationTest {
     // test Worker RPC service connectivity (application layer)
     Assert.assertTrue(mBlockMasterClient.isConnected());
 
-    // TODO(andrew) Add this test back when we drop support for Java 6 and can use
-    // InetSocketAddress.getHostString()
     // test Worker data socket bind (session layer)
-    // bindHost = mLocalAlluxioCluster.getWorker().getDataBindHost();
-    // Assert.assertThat("Worker Data bind address " + bindHost + "is not wildcard address",
-    // bindHost,
-    // CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
+    bindHost = mLocalAlluxioCluster.getWorker().getDataBindHost();
+    Assert.assertThat("Worker Data bind address " + bindHost + "is not wildcard address. Make sure"
+        + " the System property -Djava.net.preferIPv4Stack is set to true.", bindHost,
+        CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
 
     // test Worker data service connectivity (application layer)
     Assert.assertTrue(mWorkerDataService.isConnected());
