@@ -26,12 +26,12 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
-import alluxio.Configuration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -133,39 +133,38 @@ public class ServiceSocketBindIntegrationTest {
 
     // test Master RPC socket bind (session layer)
     String bindHost = mLocalAlluxioCluster.getMaster().getRPCBindHost();
-    Assert.assertThat("Master RPC bind address " + bindHost + "is not wildcard address", bindHost,
+    Assert.assertThat("Master RPC bind address " + bindHost + " is not wildcard address", bindHost,
         CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Master RPC service connectivity (application layer)
     Assert.assertTrue(mBlockMasterClient.isConnected());
 
     // test Worker RPC socket bind (session layer)
     bindHost = mLocalAlluxioCluster.getWorker().getRPCBindHost();
-    Assert.assertThat("Worker RPC address " + bindHost + "is not wildcard address", bindHost,
+    Assert.assertThat("Worker RPC address " + bindHost + " is not wildcard address", bindHost,
         CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Worker RPC service connectivity (application layer)
     Assert.assertTrue(mBlockMasterClient.isConnected());
 
-    // TODO(andrew) Add this test back when we drop support for Java 6 and can use
-    // InetSocketAddress.getHostString()
     // test Worker data socket bind (session layer)
-    // bindHost = mLocalAlluxioCluster.getWorker().getDataBindHost();
-    // Assert.assertThat("Worker Data bind address " + bindHost + "is not wildcard address",
-    // bindHost,
-    // CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
+    bindHost = mLocalAlluxioCluster.getWorker().getDataBindHost();
+    Assert.assertThat(
+        "Worker Data bind address " + bindHost + " is not wildcard address. Make sure the System"
+            + " property -Djava.net.preferIPv4Stack is set to true.",
+        bindHost, CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
 
     // test Worker data service connectivity (application layer)
     Assert.assertTrue(mWorkerDataService.isConnected());
 
     // test Master Web socket bind (session layer)
     bindHost = mLocalAlluxioCluster.getMaster().getWebBindHost();
-    Assert.assertThat("Master Web bind address " + bindHost + "is not wildcard address", bindHost,
+    Assert.assertThat("Master Web bind address " + bindHost + " is not wildcard address", bindHost,
         CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Master Web service connectivity (application layer)
     Assert.assertEquals(200, mMasterWebService.getResponseCode());
 
     // test Worker Web socket bind (session layer)
     bindHost = mLocalAlluxioCluster.getWorker().getWebBindHost();
-    Assert.assertThat("Worker Web bind address " + bindHost + "is not wildcard address", bindHost,
+    Assert.assertThat("Worker Web bind address " + bindHost + " is not wildcard address", bindHost,
         CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Worker Web service connectivity (application layer)
     Assert.assertEquals(200, mWorkerWebService.getResponseCode());
