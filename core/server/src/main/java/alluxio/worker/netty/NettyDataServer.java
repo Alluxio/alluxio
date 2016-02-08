@@ -31,8 +31,8 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.network.ChannelType;
 import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
@@ -121,9 +121,7 @@ public final class NettyDataServer implements DataServer {
   public String getBindHost() {
     // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
     // InetSocketAddress to get detailed info such as port.
-    // TODO(andrew): Change getHostName() to getHostString() when we drop java 6 support. Also,
-    // update the todo in ServiceSocketBindIntegrationTest
-    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getHostName();
+    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getHostString();
   }
 
   @Override
