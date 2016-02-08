@@ -13,7 +13,7 @@ function printUsage {
   echo -e "  format [-s]   \t Format Alluxio (if -s specified, only format if underfs is local and doesn't already exist)"
   echo -e "  formatWorker  \t Format Alluxio worker storage"
   echo -e "  bootstrap-conf\t Generate a config file if one doesn't exist"
-  echo -e "  tfs           \t Command line input for generic filesystem user client."
+  echo -e "  fs           \t Command line input for generic filesystem user client."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
   echo -e "  runClass      \t Run a Alluxio class with main method."
   echo -e "  runTest       \t Run a end-to-end test on a Alluxio cluster."
@@ -107,7 +107,7 @@ function runTest {
       exit 1
       ;;
   esac
-  ${LAUNCHER} ${BIN}/alluxio tfs rmr ${file}
+  ${LAUNCHER} ${BIN}/alluxio fs rmr ${file}
   ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${class} alluxio://${MASTER_ADDRESS}:19998 ${file} $2 $3
 
   # If test process received a signal abort early
@@ -255,8 +255,8 @@ case ${COMMAND} in
   CLASS=alluxio.Format
   PARAMETER=worker
 ;;
-"tfs")
-  CLASS=alluxio.shell.TfsShell
+"fs")
+  CLASS=alluxio.shell.AlluxioShell
 ;;
 "loadufs")
   CLASS=alluxio.client.UfsUtils
