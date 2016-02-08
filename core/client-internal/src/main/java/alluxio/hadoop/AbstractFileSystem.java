@@ -36,9 +36,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.client.ClientContext;
+import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -48,13 +50,13 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.Configuration;
+import alluxio.client.lineage.LineageContext;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -430,6 +432,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     ClientContext.getConf().set(Constants.MASTER_HOSTNAME, uri.getHost());
     ClientContext.getConf().set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
     ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
+
+    // These must be reset to pick up the change to the master address.
+    // TODO(andrew): We should reset key value system in this situation - see TACHYON-1706.
+    ClientContext.init();
+    FileSystemContext.INSTANCE.reset();
+    BlockStoreContext.INSTANCE.reset();
+    LineageContext.INSTANCE.reset();
 
     mFileSystem = FileSystem.Factory.get();
     mUri = URI.create(mAlluxioHeader);

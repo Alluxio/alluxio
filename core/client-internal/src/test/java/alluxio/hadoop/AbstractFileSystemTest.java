@@ -17,6 +17,7 @@ package alluxio.hadoop;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -37,10 +38,13 @@ import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
+import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.lineage.LineageContext;
 import alluxio.client.util.ClientTestUtils;
 
 /**
@@ -54,8 +58,31 @@ import alluxio.client.util.ClientTestUtils;
  * See https://code.google.com/p/powermock/wiki/FAQ.
  */
 @PowerMockIgnore("javax.security.*")
-public class TFSTest {
-  private static final Logger LOG = LoggerFactory.getLogger(TFSTest.class.getName());
+/**
+ * Tests for {@link AbstractFileSystem}.
+ */
+public class AbstractFileSystemTest {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private FileSystemContext mMockFileSystemContext;
+
+  /**
+   * Sets up the configuration before a test runs.
+   *
+   * @throws Exception when creating the mock fails
+   */
+  @Before
+  public void setup() throws Exception {
+    mockUserGroupInformation();
+    mockMasterClient();
+
+    if (isHadoop1x()) {
+      LOG.debug("Running TFS tests against hadoop 1x");
+    } else if (isHadoop2x()) {
+      LOG.debug("Running TFS tests against hadoop 2x");
+    } else {
+      LOG.warn("Running TFS tests against untargeted Hadoop version: " + getHadoopVersion());
+    }
+  }
 
   private ClassLoader getClassLoader(Class<?> clazz) {
     // Power Mock makes this hard, so try to hack it
@@ -88,12 +115,12 @@ public class TFSTest {
   }
 
   /**
-   * Ensures that Hadoop loads TFSFT when configured.
+   * Ensures that Hadoop loads {@link FaultTolerantFileSystem} when configured.
    *
    * @throws IOException when the file system cannot be retrieved
    */
   @Test
-  public void hadoopShouldLoadTfsFtWhenConfigured() throws IOException {
+  public void hadoopShouldLoadFaultTolerantFileSystemWhenConfiguredTest() throws IOException {
     final Configuration conf = new Configuration();
     if (isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
@@ -105,7 +132,6 @@ public class TFSTest {
     ClientContext.getConf().set(Constants.MASTER_HOSTNAME, uri.getHost());
     ClientContext.getConf().set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
     ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, "true");
-    mockMasterClient();
 
     final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
@@ -122,7 +148,7 @@ public class TFSTest {
    * @throws IOException when the file system cannot be retrieved
    */
   @Test
-  public void hadoopShouldLoadTfsWhenConfigured() throws IOException {
+  public void hadoopShouldLoadFileSystemWhenConfiguredTest() throws IOException {
     final Configuration conf = new Configuration();
     if (isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
@@ -134,7 +160,6 @@ public class TFSTest {
     ClientContext.getConf().set(Constants.MASTER_HOSTNAME, uri.getHost());
     ClientContext.getConf().set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
     ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, "false");
-    mockMasterClient();
 
     final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
@@ -143,6 +168,32 @@ public class TFSTest {
     PowerMockito.verifyStatic();
     alluxio.client.file.FileSystem.Factory.get();
     ClientTestUtils.resetClientContext();
+  }
+
+  /**
+   * Tests that initializing the {@link AbstractFileSystem} will reinitialize contexts to pick up
+   * changes to the master address.
+   */
+  @Test
+  public void resetContextTest() throws Exception {
+    // Create system with master at localhost:19998
+    URI uri = URI.create(Constants.HEADER + "localhost:19998/");
+    Configuration conf = new Configuration();
+    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+
+    // Change to otherhost:410
+    URI newUri = URI.create(Constants.HEADER + "otherhost:410/");
+    fs.initialize(newUri, conf);
+
+    // Make sure all contexts are using the new address
+    InetSocketAddress newAddress = new InetSocketAddress("otherhost", 410);
+    Assert.assertEquals(newAddress, ClientContext.getMasterAddress());
+    Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(BlockStoreContext.INSTANCE,
+        "mBlockMasterClientPool", "mMasterAddress"));
+    // Once from calling FileSystem.get, once from calling initialize.
+    Mockito.verify(mMockFileSystemContext, Mockito.times(2)).reset();
+    Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(LineageContext.INSTANCE,
+        "mLineageMasterClientPool", "mMasterAddress"));
   }
 
   private boolean isHadoop1x() {
@@ -155,11 +206,11 @@ public class TFSTest {
 
   private void mockMasterClient() {
     PowerMockito.mockStatic(FileSystemContext.class);
-    FileSystemContext mockContext = PowerMockito.mock(FileSystemContext.class);
+    mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     FileSystemMasterClient mockMaster =
         PowerMockito.mock(FileSystemMasterClient.class);
-    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mockContext);
-    Mockito.when(mockContext.acquireMasterClient()).thenReturn(mockMaster);
+    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mMockFileSystemContext);
+    Mockito.when(mMockFileSystemContext.acquireMasterClient()).thenReturn(mockMaster);
   }
 
   private void mockUserGroupInformation() throws IOException {
@@ -167,23 +218,5 @@ public class TFSTest {
     PowerMockito.mockStatic(UserGroupInformation.class);
     final UserGroupInformation ugi = Mockito.mock(UserGroupInformation.class);
     Mockito.when(UserGroupInformation.getCurrentUser()).thenReturn(ugi);
-  }
-
-  /**
-   * Sets up the configuration before a test runs.
-   *
-   * @throws Exception when creating the mock fails
-   */
-  @Before
-  public void setup() throws Exception {
-    mockUserGroupInformation();
-
-    if (isHadoop1x()) {
-      LOG.debug("Running TFS tests against hadoop 1x");
-    } else if (isHadoop2x()) {
-      LOG.debug("Running TFS tests against hadoop 2x");
-    } else {
-      LOG.warn("Running TFS tests against untargeted Hadoop version: " + getHadoopVersion());
-    }
   }
 }
