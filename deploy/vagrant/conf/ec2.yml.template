@@ -17,7 +17,7 @@ Instance_Type: "t2.small"
 # specify this to illustrate the usage of your cluster, especially when you
 # share the EC2 with others, without tags, it's hard to tell which cluster is yours.
 #
-# The machines will be named to {Tag}-TachyonMaster, {Tag}-TachyonWorker1...
+# The machines will be named to {Tag}-AlluxioMaster, {Tag}-AlluxioWorker1...
 Tag: "my"
 
 # By default, EC2 instance only mounts 10GB under root directory '/'.
@@ -33,7 +33,7 @@ Tag: "my"
 # mounted to "/disk0", "/disk1"... in sequence.
 #
 # If ufs is HDFS, all the /disk* will be used as HDFS's storage,
-# Otherwise, all the /disk* will be used as Tachyon's HDD Tiered Storage.
+# Otherwise, all the /disk* will be used as Alluxio's HDD Tiered Storage.
 #
 # Example:
 # 1. Instance Extra Storage(If the Storage colume specified in instance type matrix
@@ -88,7 +88,7 @@ Spot_Price: ""
 AMI: "ami-1ecae776"
 
 # EC2 network security groups and subnet id
-# Ensure ports used by Tachyon are on
+# Ensure ports used by Alluxio are on
 # For more information, check out
 # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html
 #

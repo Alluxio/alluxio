@@ -16,7 +16,7 @@ validate_provider(Provider)
 # load version configuration
 ZookeeperV = ZookeeperVersion.new('conf/zookeeper.yml')
 MesosV = MesosVersion.new('conf/mesos.yml')
-TachyonV = TachyonVersion.new('conf/alluxio.yml')
+AlluxioV = AlluxioVersion.new('conf/alluxio.yml')
 SparkV = SparkVersion.new('conf/spark.yml')
 UfsV = UfsVersion.new('conf/ufs.yml', Provider)
 
@@ -28,14 +28,14 @@ Vagrant.require_version ">= 1.6.5"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   (1..Total).each do |i|
     # multi vm config
-    if i <= TachyonV.masters
+    if i <= AlluxioV.masters
       if i == 1
-        name = "TachyonMaster"
+        name = "AlluxioMaster"
       else
-        name = "TachyonMaster#{i}"
+        name = "AlluxioMaster#{i}"
       end
     else
-      name = "TachyonWorker#{i - TachyonV.masters}"
+      name = "AlluxioWorker#{i - AlluxioV.masters}"
     end
     config.vm.define "#{name}" do |n|
       n.vm.hostname = "#{name}"
@@ -46,14 +46,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           ans.playbook = "provision/playbook.yml"
           ans.limit = "all" # to let "- hosts: all" work in playbooks
           mesos_repo, mesos_version = MesosV.repo_version
-          tachyon_repo, tachyon_version = TachyonV.repo_version
+          alluxio_repo, alluxio_version = AlluxioV.repo_version
           spark_repo, spark_version = SparkV.repo_version
           is_vb = Provider == "vb"
-          tachyon_dist = UfsV.tachyon_dist(tachyon_version)
-          puts "using alluxio distribution #{tachyon_dist}"
-          tachyon_platform = "standalone"
+          alluxio_dist = UfsV.alluxio_dist(alluxio_version)
+          puts "using alluxio distribution #{alluxio_dist}"
+          alluxio_platform = "standalone"
           if MesosV.type != "None"
-            tachyon_platform = "mesos"
+            alluxio_platform = "mesos"
           end
           ans.extra_vars = {
               zookeeper_type: ZookeeperV.type,
@@ -64,13 +64,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               mesos_dist: MesosV.dist,
               mesos_version: mesos_version,
 
-              tachyon_type:    TachyonV.type,
-              tachyon_repo:    tachyon_repo,
-              tachyon_dist:    tachyon_dist,
-              tachyon_memory:  TachyonV.memory,
-              tachyon_version: tachyon_version,
-              tachyon_masters: TachyonV.masters,
-              tachyon_platform: tachyon_platform,
+              alluxio_type:    AlluxioV.type,
+              alluxio_repo:    alluxio_repo,
+              alluxio_dist:    alluxio_dist,
+              alluxio_memory:  AlluxioV.memory,
+              alluxio_version: alluxio_version,
+              alluxio_masters: AlluxioV.masters,
+              alluxio_platform: alluxio_platform,
 
               spark_type:    SparkV.type,
               spark_repo:    spark_repo,
@@ -97,7 +97,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       # Provider specific init
       if Provider == "vb"
-        config_vb(n, i, Total, name, TachyonV.type == "Local")
+        config_vb(n, i, Total, name, AlluxioV.type == "Local")
       end
 
       if Provider == "docker"
