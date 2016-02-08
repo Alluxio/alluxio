@@ -1,4 +1,0 @@
-- name: configure alluxio-env.sh
-  script: config_tachyon.sh
-
-# vim :set filetype=ansible.yaml:

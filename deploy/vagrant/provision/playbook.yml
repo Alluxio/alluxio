@@ -14,30 +14,30 @@
       when: provider == "os"
 
 # Download, compile, configure all the cluster components.
-- hosts: TachyonMaster
+- hosts: AlluxioMaster
   tasks:
     - include: roles/vagrant_utils/tasks/main.yml
 
     # Ufs
     - include: roles/ufs_{{ ufs }}/tasks/download_release.yml
 
-    # Tachyon
-    - include: roles/tachyon/tasks/download_release.yml
-      when: tachyon_type == "Release"
+    # Alluxio
+    - include: roles/alluxio/tasks/download_release.yml
+      when: alluxio_type == "Release"
 
     - include: roles/alluxio/tasks/clone_local_repo.yml
       # vb syncs local repo to vm through kernel module instead of rsync
-      when: (tachyon_type == "Local") and (provider != "vb")
+      when: (alluxio_type == "Local") and (provider != "vb")
 
-    - include: roles/tachyon/tasks/clone_remote_repo.yml
-      when: tachyon_type == "Github"
+    - include: roles/alluxio/tasks/clone_remote_repo.yml
+      when: alluxio_type == "Github"
 
-    - include: roles/tachyon/tasks/compile.yml
-      when: tachyon_type != "Release"
+    - include: roles/alluxio/tasks/compile.yml
+      when: alluxio_type != "Release"
 
     - include: roles/alluxio/tasks/config.yml
 
-    - include: roles/lib/tasks/tachyon_tiered.yml
+    - include: roles/lib/tasks/alluxio_tiered.yml
       when: (ufs != "hadoop1") and (ufs != "hadoop2")
 
     # some ufs configurations depend on alluxio like alluxio client jar path for hdfs
@@ -80,15 +80,15 @@
       when: mesos_type != "None"
 
 # Start UFS.
-- hosts: TachyonMaster
+- hosts: AlluxioMaster
   tasks:
     - include: roles/ufs_{{ ufs }}/tasks/start.yml
 
-# Start Tachyon on the specified platform(e.x. standalone, mesos)
-- include: start_tachyon_on_{{ tachyon_platform }}.yml
+# Start Alluxio on the specified platform(e.x. standalone, mesos)
+- include: start_alluxio_on_{{ alluxio_platform }}.yml
 
 # Start computation frameworks.
-- hosts: TachyonMaster
+- hosts: AlluxioMaster
   tasks:
     - include: roles/spark/tasks/start.yml
       when: spark_type != "None"

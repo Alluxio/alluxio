@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script is to be run on TachyonMaster to RSYNC a file/directory to all TachyonWorkers
+# This script is to be run on AlluxioMaster to RSYNC a file/directory to all AlluxioWorkers
 # e.x. run `/vagrant-utils/copy-dir /alluxio/conf` on master will RSYNC alluxio conf to all workers
 # this is helpful when you change configurations on master and then RSYNC to all workers
 
