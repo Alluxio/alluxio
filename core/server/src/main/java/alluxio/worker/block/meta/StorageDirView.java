@@ -34,11 +34,11 @@ import alluxio.worker.block.BlockStoreLocation;
 @NotThreadSafe
 public final class StorageDirView {
 
-  /** the {@link StorageDir} this view is derived from */
+  /** The {@link StorageDir} this view is derived from. */
   private final StorageDir mDir;
-  /** the {@link StorageTierView} this view under */
+  /** The {@link StorageTierView} this view under. */
   private final StorageTierView mTierView;
-  /** the {@link BlockMetadataManagerView} this view is associated with */
+  /** The {@link BlockMetadataManagerView} this view is associated with. */
   private final BlockMetadataManagerView mManagerView;
 
   // The below data structures are used by the evictor to mark blocks to move in/out during
@@ -117,7 +117,7 @@ public final class StorageDirView {
   }
 
   /**
-   * Gets evictable bytes for this dir, i.e., the total bytes of total evictable blocks
+   * Gets evictable bytes for this dir, i.e., the total bytes of total evictable blocks.
    *
    * @return evictable bytes for this dir
    */

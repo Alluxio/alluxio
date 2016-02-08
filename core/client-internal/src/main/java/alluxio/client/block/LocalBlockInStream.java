@@ -23,8 +23,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 import com.google.common.io.Closer;
 
 import alluxio.client.ClientContext;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
@@ -42,7 +42,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
   private final BlockWorkerClient mBlockWorkerClient;
   /** The block store context which provides block worker clients. */
   private final BlockStoreContext mContext;
-  /** The file reader to read a local block */
+  /** The file reader to read a local block. */
   private final LocalFileBlockReader mReader;
 
   /**

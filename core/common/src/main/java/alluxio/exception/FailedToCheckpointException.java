@@ -28,7 +28,7 @@ public class FailedToCheckpointException extends AlluxioException {
       AlluxioExceptionType.FAILED_TO_CHECKPOINT;
 
   /**
-   * Constructs a new exception with the specified detail message
+   * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */

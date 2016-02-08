@@ -24,10 +24,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
 import alluxio.util.io.PathUtils;
 
 public final class UnderStorageSystemInterfaceIntegrationTest {
@@ -218,7 +218,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
-   * Tests if list recursive correctly returns all file names in all subdirectories
+   * Tests if list recursive correctly returns all file names in all subdirectories.
    *
    * @throws IOException if a non-Alluxio exception occurs
    */

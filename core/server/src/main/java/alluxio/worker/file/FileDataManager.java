@@ -36,10 +36,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import alluxio.Constants;
-import alluxio.Sessions;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.Sessions;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.underfs.UnderFileSystem;
@@ -59,10 +59,10 @@ public final class FileDataManager {
 
   private final UnderFileSystem mUfs;
 
-  /** Block worker handler for access block info */
+  /** Block worker handler for access block info. */
   private final BlockWorker mBlockWorker;
 
-  /** The file being persisted, and the inner map tracks the block id to lock id */
+  /** The file being persisted, and the inner map tracks the block id to lock id. */
   @GuardedBy("mLock")
   // the file being persisted,
   private final Map<Long, Map<Long, Long>> mPersistingInProgressFiles;

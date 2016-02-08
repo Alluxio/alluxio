@@ -29,9 +29,9 @@ import alluxio.worker.block.BlockStoreLocation;
  */
 @ThreadSafe
 public final class EvictionPlan {
-  /** A list of block transfer information, with block id, source and destination location */
+  /** A list of block transfer information, with block id, source and destination location. */
   private final List<BlockTransferInfo> mToMove;
-  /** A list of pairs of block id to remove and its location */
+  /** A list of pairs of block id to remove and its location. */
   private final List<Pair<Long, BlockStoreLocation>> mToEvict;
 
   /**

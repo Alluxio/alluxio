@@ -31,9 +31,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.AuthenticationUtils;

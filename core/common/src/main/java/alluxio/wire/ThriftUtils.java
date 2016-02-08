@@ -204,7 +204,7 @@ public final class ThriftUtils {
   }
 
   /**
-   * Converts a wire type to a thrift type
+   * Converts a wire type to a thrift type.
    *
    * @param workerInfo the wire representation of a worker descriptor
    * @return thrift representation of the worker descriptor
@@ -214,7 +214,7 @@ public final class ThriftUtils {
   }
 
   /**
-   * Converts a wire type to a thrift type
+   * Converts a wire type to a thrift type.
    *
    * @param workerNetAddress the wire representation of a worker net address
    * @return thrift representation of the worker net address

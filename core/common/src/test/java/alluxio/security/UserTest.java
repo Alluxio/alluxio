@@ -23,12 +23,12 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit test for {@link alluxio.security.User}
+ * Unit test for {@link User}.
  */
 public final class UserTest {
 
   /**
-   * This test verifies whether the {@link alluxio.security.User} could be used in Java security
+   * This test verifies whether the {@link User} could be used in Java security
    * framework.
    */
   @Test
@@ -46,7 +46,7 @@ public final class UserTest {
   }
 
   /**
-   * This test verifies that full realm format is valid as {@link alluxio.security.User} name.
+   * This test verifies that full realm format is valid as {@link User} name.
    */
   @Test
   public void realmAsUserNameTest() {

@@ -33,7 +33,7 @@ import alluxio.master.lineage.meta.Lineage;
  */
 @ThreadSafe
 public class RecomputePlan {
-  /** A list of lineages to recompute */
+  /** A list of lineages to recompute. */
   private final List<Lineage> mToRecompute;
 
   /**

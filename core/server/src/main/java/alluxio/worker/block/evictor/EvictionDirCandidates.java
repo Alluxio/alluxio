@@ -39,11 +39,11 @@ import alluxio.worker.block.meta.StorageDirView;
 class EvictionDirCandidates {
   /**
    * Map from {@link StorageDirView} to pair of list of candidate blockIds and their total size in
-   * bytes
+   * bytes.
    */
   private Map<StorageDirView, Pair<List<Long>, Long>> mDirCandidates =
       new HashMap<StorageDirView, Pair<List<Long>, Long>>();
-  /** Maximum sum of available bytes in a StorageDir and all its added blocks */
+  /** Maximum sum of available bytes in a StorageDir and all its added blocks. */
   private long mMaxBytes = 0;
   private StorageDirView mDirWithMaxBytes = null;
 

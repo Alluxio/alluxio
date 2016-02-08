@@ -29,9 +29,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.Configuration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterPrivateAccess;
@@ -172,7 +172,7 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Checks whether the time since startTime has exceeded the maximum timeout, then sleeps for
-   * {@link #CLUSTER_READY_POLL_INTERVAL_MS}ms
+   * {@link #CLUSTER_READY_POLL_INTERVAL_MS}ms.
    *
    * @param startTime the time to compare against the current time to check for timeout
    * @param actionMessage a message describing the action being waited for; this message is included

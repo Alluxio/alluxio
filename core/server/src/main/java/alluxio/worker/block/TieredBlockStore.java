@@ -35,11 +35,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.collections.Pair;
-import alluxio.Configuration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -887,16 +887,16 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * A wrapper on necessary info after a move block operation
+   * A wrapper on necessary info after a move block operation.
    */
   private static class MoveBlockResult {
-    /** Whether this move operation succeeds */
+    /** Whether this move operation succeeds. */
     private final boolean mSuccess;
-    /** Size of this block in bytes */
+    /** Size of this block in bytes. */
     private final long mBlockSize;
-    /** Source location of this block to move */
+    /** Source location of this block to move. */
     private final BlockStoreLocation mSrcLocation;
-    /** Destination location of this block to move */
+    /** Destination location of this block to move. */
     private final BlockStoreLocation mDstLocation;
 
     /**

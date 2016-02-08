@@ -71,13 +71,13 @@ import alluxio.util.network.NetworkAddressUtils;
  */
 @NotThreadSafe
 public final class Configuration {
-  /** File to set default properties */
+  /** File to set default properties. */
   public static final String DEFAULT_PROPERTIES = "alluxio-default.properties";
-  /** File to set customized properties */
+  /** File to set customized properties. */
   public static final String SITE_PROPERTIES = "alluxio-site.properties";
-  /** Regex string to find ${key} for variable substitution */
+  /** Regex string to find ${key} for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
-  /** Regex to find ${key} for variable substitution */
+  /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

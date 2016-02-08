@@ -31,7 +31,7 @@ import alluxio.Constants;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
 public abstract class WorkerBase implements Worker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  /** The executor service for the master sync */
+  /** The executor service for the master sync. */
   private final ExecutorService mExecutorService;
 
   /**

@@ -35,15 +35,15 @@ import alluxio.util.io.BufferUtils;
  */
 @ThreadSafe
 final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWritable> {
-  /** The partition reader for reading the key-value pairs */
+  /** The partition reader for reading the key-value pairs. */
   private final KeyValuePartitionReader mReader;
-  /** The iterator for iterating through all key-value pairs contained in the partition */
+  /** The iterator for iterating through all key-value pairs contained in the partition. */
   private final KeyValueIterator mKeyValuePairIterator;
-  /** Accumulated bytes of key-value pairs read so far */
+  /** Accumulated bytes of key-value pairs read so far. */
   private int mKeyValuePairsBytesRead;
-  /** Number of key-value pairs visited by the iterator */
+  /** Number of key-value pairs visited by the iterator. */
   private int mNumVisitedKeyValuePairs;
-  /** Number of key-value pairs */
+  /** Number of key-value pairs. */
   private final int mNumKeyValuePairs;
 
   /**
@@ -96,7 +96,7 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritDoc}.
    * <p>
    * @return total bytes of key-value pairs read so far, as an approximation for all read bytes
    */

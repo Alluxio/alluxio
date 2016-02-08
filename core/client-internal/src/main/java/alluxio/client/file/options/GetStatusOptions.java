@@ -25,7 +25,7 @@ import alluxio.annotation.PublicApi;
 @PublicApi
 @NotThreadSafe
 public final class GetStatusOptions {
-  /** Whether or not to check the ufs if the path does not exist in Alluxio */
+  /** Whether or not to check the ufs if the path does not exist in Alluxio. */
   private boolean mCheckUfs;
 
   /**

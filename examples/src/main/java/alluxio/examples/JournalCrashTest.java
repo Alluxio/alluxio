@@ -27,15 +27,15 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.Version;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.Configuration;
-import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.util.CommonUtils;
 
 /**
@@ -234,6 +234,8 @@ public class JournalCrashTest {
   }
 
   /**
+   * Runs the crash test.
+   *
    * Usage:
    * {@code java -cp
    * alluxio-<ALLUXIO-VERSION>-jar-with-dependencies.jar alluxio.examples.JournalCrashTest}

@@ -22,8 +22,8 @@ import java.util.Date;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
@@ -69,7 +69,7 @@ public final class CommandUtils {
   }
 
   /**
-   * Sets pin state for the input path
+   * Sets pin state for the input path.
    *
    * @param fs The {@link FileSystem} client
    * @param path The {@link AlluxioURI} path as the input of the command

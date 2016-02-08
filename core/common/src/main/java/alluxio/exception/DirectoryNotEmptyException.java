@@ -38,7 +38,7 @@ public class DirectoryNotEmptyException extends AlluxioException {
   }
 
   /**
-   * Constructs a new exception with the specified detail message and cause
+   * Constructs a new exception with the specified detail message and cause.
    *
    * @param message the detail message
    * @param cause the cause

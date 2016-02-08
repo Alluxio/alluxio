@@ -50,11 +50,11 @@ import alluxio.worker.block.BlockStoreLocation;
 public final class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mCapacityBytes;
-  /** A map from block id to block meta data */
+  /** A map from block id to block meta data. */
   private Map<Long, BlockMeta> mBlockIdToBlockMap;
-  /** A map from block id to temp block meta data */
+  /** A map from block id to temp block meta data. */
   private Map<Long, TempBlockMeta> mBlockIdToTempBlockMap;
-  /** A map from session id to the set of temp blocks created by this session */
+  /** A map from session id to the set of temp blocks created by this session. */
   private Map<Long, Set<Long>> mSessionIdToTempBlockIdsMap;
   private AtomicLong mAvailableBytes;
   private AtomicLong mCommittedBytes;

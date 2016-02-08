@@ -26,18 +26,18 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.lineage.options.CreateLineageOptions;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.client.lineage.options.GetLineageInfoListOptions;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDeletionException;
 import alluxio.exception.LineageDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.wire.LineageInfo;
@@ -106,7 +106,8 @@ public abstract class AbstractLineageClient implements LineageClient {
 
   /**
    * Transforms the list of {@link AlluxioURI} in a new list of Strings,
-   * where each string is {@link AlluxioURI#getPath()}
+   * where each string is {@link AlluxioURI#getPath()}.
+   *
    * @param uris the list of {@link AlluxioURI}s to be stripped
    * @return a new list of strings mapping the input URIs to theri path component
    */

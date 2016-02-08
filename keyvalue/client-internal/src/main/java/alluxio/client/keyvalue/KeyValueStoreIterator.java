@@ -31,11 +31,11 @@ import alluxio.thrift.PartitionInfo;
  */
 @NotThreadSafe
 public final class KeyValueStoreIterator implements KeyValueIterator {
-  /** All partitions */
+  /** All partitions. */
   private List<PartitionInfo> mPartitions;
-  /** Index of the partition being visited */
+  /** Index of the partition being visited. */
   private int mPartitionIndex = -1;
-  /** Iterator of the partition being visited */
+  /** Iterator of the partition being visited. */
   private KeyValueIterator mPartitionIterator;
 
   /**

@@ -56,7 +56,7 @@ public final class ClientMetrics {
   }
 
   /**
-   * Increment BLOCKS_READ_LOCAL counter by the amount specified
+   * Increment BLOCKS_READ_LOCAL counter by the amount specified.
    *
    * @param n amount to increment
    */
@@ -66,7 +66,7 @@ public final class ClientMetrics {
   }
 
   /**
-   * Increment BLOCKS_READ_REMOTE counter by the amount specified
+   * Increment BLOCKS_READ_REMOTE counter by the amount specified.
    *
    * @param n amount to increment
    */
@@ -76,7 +76,7 @@ public final class ClientMetrics {
   }
 
   /**
-   * Increment BLOCKS_WRITTEN_LOCAL counter by the amount specified
+   * Increment BLOCKS_WRITTEN_LOCAL counter by the amount specified.
    *
    * @param n amount to increment
    */
@@ -86,7 +86,7 @@ public final class ClientMetrics {
   }
 
   /**
-   * Increment BLOCKS_WRITTEN_REMOTE counter by the amount specified
+   * Increment BLOCKS_WRITTEN_REMOTE counter by the amount specified.
    *
    * @param n amount to increment
    */
@@ -96,7 +96,7 @@ public final class ClientMetrics {
   }
 
   /**
-   * Increment BYTES_READ_LOCAL counter by the amount specified
+   * Increment BYTES_READ_LOCAL counter by the amount specified.
    *
    * @param n amount to increment
    */
@@ -106,7 +106,7 @@ public final class ClientMetrics {
   }
 
   /**
-   * Increment BYTES_READ_REMOTE counter by the amount specified
+   * Increment BYTES_READ_REMOTE counter by the amount specified.
    *
    * @param n amount to increment
    */
@@ -116,7 +116,7 @@ public final class ClientMetrics {
   }
 
   /**
-   * Increment BYTES_READ_UFS counter by the amount specified
+   * Increment BYTES_READ_UFS counter by the amount specified.
    *
    * @param n amount to increment
    */
@@ -125,7 +125,7 @@ public final class ClientMetrics {
   }
 
   /**
-   * Increment BYTES_WRITTEN_LOCAL counter by the amount specified
+   * Increment BYTES_WRITTEN_LOCAL counter by the amount specified.
    *
    * @param n amount to increment
    */
@@ -135,7 +135,7 @@ public final class ClientMetrics {
   }
 
   /**
-   * Increment BYTES_WRITTEN_REMOTE counter by the amount specified
+   * Increment BYTES_WRITTEN_REMOTE counter by the amount specified.
    *
    * @param n amount to increment
    */
@@ -145,7 +145,7 @@ public final class ClientMetrics {
   }
 
   /**
-   * Increment BYTES_WRITTEN_UFS counter by the amount specified
+   * Increment BYTES_WRITTEN_UFS counter by the amount specified.
    *
    * @param n amount to increment
    */

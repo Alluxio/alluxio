@@ -27,10 +27,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
-import alluxio.client.ClientContext;
 import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
 import alluxio.util.io.BufferUtils;
@@ -46,7 +46,7 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   private final InetSocketAddress mMasterAddress = ClientContext.getMasterAddress();
   private final KeyValueMasterClient mMasterClient;
 
-  /** A list of partitions of the store */
+  /** A list of partitions of the store. */
   private final List<PartitionInfo> mPartitions;
 
   /**

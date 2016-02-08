@@ -26,10 +26,10 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
 import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.util.CommonUtils;
@@ -100,7 +100,7 @@ public class JournalShutdownIntegrationTest {
   private static final long TEST_TIME_MS = Constants.SECOND_MS;
 
   private ClientThread mCreateFileThread = null;
-  /** Executor for running client threads */
+  /** Executor for running client threads. */
   private final ExecutorService mExecutorsForClient = Executors.newFixedThreadPool(1);
   private Configuration mMasterConfiguration = null;
 

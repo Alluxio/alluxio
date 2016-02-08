@@ -28,7 +28,7 @@ import com.google.common.base.Preconditions;
  */
 @ThreadSafe
 public final class CheckpointPlan {
-  /** A list of lineage ids to checkpoint */
+  /** A list of lineage ids to checkpoint. */
   private final List<Long> mToCheckPoint;
 
   /**

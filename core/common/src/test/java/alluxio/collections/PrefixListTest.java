@@ -23,7 +23,7 @@ import org.junit.Test;
 import com.google.common.collect.ImmutableList;
 
 /**
- * Unit tests for {@link PrefixList}
+ * Unit tests for {@link PrefixList}.
  */
 public final class PrefixListTest {
 

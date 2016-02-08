@@ -31,21 +31,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
-import alluxio.client.RemoteBlockReader;
 import alluxio.client.FileSystemTestUtils;
+import alluxio.client.RemoteBlockReader;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
+import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.block.BlockWorkerClient;
-import alluxio.Configuration;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ConnectionFailedException;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
@@ -336,7 +336,7 @@ public class DataServerIntegrationTest {
   }
 
   /**
-   * Returns the MasterBlockInfo of the first block of the file
+   * Returns the MasterBlockInfo of the first block of the file.
    *
    * @param uri the uri of the file to get the first MasterBlockInfo for
    * @return the MasterBlockInfo of the first block in the file

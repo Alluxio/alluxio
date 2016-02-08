@@ -60,8 +60,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.yarn.YarnUtils.YarnContainerType;
@@ -437,7 +437,7 @@ public class ApplicationMasterTest {
   }
 
   /**
-   * Tests that large container request sizes are handled correctly
+   * Tests that large container request sizes are handled correctly.
    */
   @Test
   public void bigContainerRequestTest() {

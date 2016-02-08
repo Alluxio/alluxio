@@ -37,11 +37,11 @@ import alluxio.worker.WorkerContext;
  */
 @NotThreadSafe
 public final class StorageTier {
-  /** Alias value of this tier in tiered storage */
+  /** Alias value of this tier in tiered storage. */
   private final String mTierAlias;
-  /** Ordinal value of this tier in tiered storage, highest level is 0 */
+  /** Ordinal value of this tier in tiered storage, highest level is 0. */
   private final int mTierOrdinal;
-  /** Total capacity of all StorageDirs in bytes */
+  /** Total capacity of all StorageDirs in bytes. */
   private long mCapacityBytes;
   private List<StorageDir> mDirs;
 

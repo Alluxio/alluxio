@@ -25,7 +25,7 @@ import alluxio.annotation.PublicApi;
 @PublicApi
 @NotThreadSafe
 public final class DeleteLineageOptions {
-  /** Whether to delete all downstream lineages */
+  /** Whether to delete all downstream lineages. */
   private boolean mCascade;
 
   /**
