@@ -1,115 +1,115 @@
-.TH TFS 1
+.TH FS 1
 .SH NAME
 
-tfs \- command line interface for Alluxio provides users with basic file system operations
+fs \- command line interface for Alluxio provides users with basic file system operations
 
 .SH SYNOPSIS
 
-.B tfs
+.B fs
 [\fBcat\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBchgrp\fR \fIgroup path\fR]
 
-.B tfs
+.B fs
 [\fBchgrpr\fR \fIgroup path\fR]
 
-.B tfs
+.B fs
 [\fBchmod\fR \fIpermission path\fR]
 
-.B tfs
+.B fs
 [\fBchmodr\fR \fIpermission path\fR]
 
-.B tfs
+.B fs
 [\fBchown\fR \fIowner path\fR]
 
-.B tfs
+.B fs
 [\fBchownr\fR \fIowner path\fR]
 
-.B tfs
+.B fs
 [\fBcopyFromLocal\fR \fIsourcePath remotePath\fR]
 
-.B tfs
+.B fs
 [\fBcopyToLocal\fR \fIremotePath localPath\fR]
 
-.B tfs
+.B fs
 [\fBcount\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBdu\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBfileInfo\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBfree\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBgetCapacityBytes\fR]
 
-.B tfs
+.B fs
 [\fBgetUsedBytes\fR]
 
-.B tfs
+.B fs
 [\fBload\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBloadMetadata\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBlocation\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBls\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBlsr\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBmkdir\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBmount\fR \fIpath  uri\fR]
 
-.B tfs
+.B fs
 [\fBmv\fR \fIsource destination\fR]
 
-.B tfs
+.B fs
 [\fBpersist\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBpin\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBreport\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBrm\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBrmr\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBsetTtl\fR \fItime\fR]
 
-.B tfs
+.B fs
 [\fBtail\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBtouch\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBunmount\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBunpin\fR \fIpath\fR]
 
-.B tfs
+.B fs
 [\fBunsetTtl\fR]
 
 .SH DESCRIPTION
 
-.B tfs
+.B fs
 command line interface for Alluxio provides users with basic file system operations.
 
 .SH OPTIONS
