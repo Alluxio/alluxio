@@ -36,7 +36,7 @@ import alluxio.util.UnderFileSystemUtils;
  */
 public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   /**
-   * Test the local minidfscluster only
+   * Test the local minidfscluster only.
    */
   public static void main(String[] args) throws Exception {
     LocalMiniDFSCluster cluster = null;
@@ -95,7 +95,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   private boolean mIsStarted = false;
 
   /**
-   * To intiaize the local minidfscluster with single namenode and datanode
+   * Initializes a {@link LocalMiniDFSCluster with a single namenode and datanode.
    *
    * @param dfsBaseDirs the base directory for both namenode and datanode. The dfs.name.dir and
    *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
@@ -106,7 +106,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   }
 
   /**
-   * To initialize the local minidfscluster
+   * Creates a new {@link LocalMiniDFSCluster}.
    *
    * @param dfsBaseDirs the base directory for both namenode and datanode. The dfs.name.dir and
    *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
@@ -118,7 +118,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   }
 
   /**
-   * To initialize the local minidfscluster
+   * Creates a new {@link LocalMiniDFSCluster}.
    *
    * @param dfsBaseDirs the base directory for both namenode and datanode. The dfs.name.dir and
    *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
@@ -135,7 +135,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   }
 
   /**
-   * To initialize the local minidfscluster
+   * Creates a new {@link LocalMiniDFSCluster}.
    *
    * @param conf the base configuration to use in starting the servers. This will be modified as
    *        necessary.
@@ -169,7 +169,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   }
 
   /**
-   * Get the specified or real namenode port
+   * Gets the specified or real namenode port.
    *
    * @return port of namenode
    */
@@ -178,7 +178,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   }
 
   /**
-   * Get the namenode address for this minidfscluster
+   * Gets the namenode address for this {@LocalMiniDFSCluster}.
    *
    * @return namenode address
    */
@@ -196,7 +196,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   }
 
   /**
-   * To shutdown the minidfscluster in teardown phase.
+   * Shuts down the minidfscluster in teardown phase.
    *
    * @throws IOException
    */
@@ -210,7 +210,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   }
 
   /**
-   * To start the minidfscluster before using it
+   * Starts the minidfscluster before using it.
    *
    * @throws IOException
    */

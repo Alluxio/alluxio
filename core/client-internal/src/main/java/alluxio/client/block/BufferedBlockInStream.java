@@ -23,9 +23,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Preconditions;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
-import alluxio.Configuration;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
@@ -53,7 +53,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   protected ByteBuffer mBuffer;
   /** Flag indicating if the stream is closed, can only go from false to true. */
   protected boolean mClosed;
-  /** Flag indicating if the stream is read */
+  /** Flag indicating if the stream is read. */
   protected boolean mBlockIsRead;
 
   /**

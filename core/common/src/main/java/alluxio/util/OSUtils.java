@@ -24,9 +24,9 @@ import org.apache.commons.lang3.SystemUtils;
  */
 @ThreadSafe
 public final class OSUtils {
-  /** The OS name */
+  /** The OS name. */
   public static final String OS_NAME = System.getProperty("os.name");
-  /** The processor bit */
+  /** The processor bit. */
   public static final String PROCESSOR_BIT = System.getProperty("os.arch");
   /** The java vendor name used in this platform. */
   public static final String JAVA_VENDOR_NAME = System.getProperty("java.vendor");

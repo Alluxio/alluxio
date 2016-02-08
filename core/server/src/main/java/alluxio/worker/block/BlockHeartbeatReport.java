@@ -26,9 +26,9 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockHeartbeatReport {
-  /** Map of storage tier alias to a list of blocks ids added in the last heartbeat period */
+  /** Map of storage tier alias to a list of blocks ids added in the last heartbeat period. */
   private final Map<String, List<Long>> mAddedBlocks;
-  /** List of block ids removed in the last heartbeat period */
+  /** List of block ids removed in the last heartbeat period. */
   private final List<Long> mRemovedBlocks;
 
   /**

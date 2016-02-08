@@ -158,7 +158,7 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
-   * Gets the payloads of all the root nodes of the DAG
+   * Gets the payloads of all the root nodes of the DAG.
    *
    * @return all the root payloads
    */

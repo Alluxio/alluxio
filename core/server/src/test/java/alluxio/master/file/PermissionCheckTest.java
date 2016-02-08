@@ -28,9 +28,9 @@ import org.junit.rules.TemporaryFolder;
 
 import com.google.common.collect.Lists;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
@@ -55,16 +55,13 @@ import alluxio.wire.FileInfo;
 public class PermissionCheckTest {
   private static final String TEST_SUPER_GROUP = "test-supergroup";
 
-  /**
+  /*
    * The file structure for testing is:
-   * <pre>{@code
    *    /               admin     admin       755
    *    /testDir        user1     group1      755
    *    /testDir/file   user1     group1      644
    *    /testFile       user2     group2      644
-   * }</pre>
    */
-
   private static final String TEST_DIR_URI = "/testDir";
   private static final String TEST_DIR_FILE_URI = "/testDir/file";
   private static final String TEST_FILE_URI = "/testFile";
@@ -77,15 +74,13 @@ public class PermissionCheckTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  /**
+  /*
    * The user and group mappings for testing are:
-   * <pre>{@code
    *    admin -> admin
    *    user1 -> group1
    *    user2 -> group2
    *    user3 -> group1
    *    user4 -> test-supergroup
-   * }</pre>
    */
   private static final TestUser TEST_USER_ADMIN = new TestUser("admin", "admin");
   private static final TestUser TEST_USER_1 = new TestUser("user1", "group1");

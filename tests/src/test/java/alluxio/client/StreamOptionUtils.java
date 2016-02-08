@@ -15,13 +15,13 @@
 
 package alluxio.client;
 
+import alluxio.Configuration;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.policy.LocalFirstPolicy;
-import alluxio.Configuration;
 
 /**
- * A util class to obtain common CreateFile/OpenFile options for tests
+ * A util class to obtain common CreateFile/OpenFile options for tests.
  */
 // TODO(calvin): We can make these methods into constants
 public final class StreamOptionUtils {
@@ -30,7 +30,7 @@ public final class StreamOptionUtils {
   }
 
   /**
-   * Gets CacheThrough {@link CreateFileOptions}
+   * Gets CacheThrough {@link CreateFileOptions}.
    *
    * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
@@ -40,7 +40,7 @@ public final class StreamOptionUtils {
   }
 
   /**
-   * Gets MustCache {@link CreateFileOptions}
+   * Gets MustCache {@link CreateFileOptions}.
    *
    * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
@@ -50,7 +50,7 @@ public final class StreamOptionUtils {
   }
 
   /**
-   * Gets Through {@link CreateFileOptions}
+   * Gets Through {@link CreateFileOptions}.
    *
    * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
@@ -60,7 +60,7 @@ public final class StreamOptionUtils {
   }
 
   /**
-   * Gets WriteLocal {@link CreateFileOptions}
+   * Gets WriteLocal {@link CreateFileOptions}.
    *
    * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
@@ -71,7 +71,7 @@ public final class StreamOptionUtils {
   }
 
   /**
-   * Gets ReadCache {@link OpenFileOptions}
+   * Gets ReadCache {@link OpenFileOptions}.
    *
    * @param conf the Alluxio config
    * @return the {@link OpenFileOptions}
@@ -81,7 +81,7 @@ public final class StreamOptionUtils {
   }
 
   /**
-   * Gets ReadNoCache {@link OpenFileOptions}
+   * Gets ReadNoCache {@link OpenFileOptions}.
    *
    * @param conf the Alluxio config
    * @return the {@link OpenFileOptions}

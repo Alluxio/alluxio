@@ -20,8 +20,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.Version;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
@@ -31,8 +31,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileAlreadyExistsException;
 
 /**
  * Basic example of using the {@link FileSystem} for writing to and reading from files.
@@ -129,6 +129,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   /**
+   * Runs the example.
+   *
    * Usage: {@code java -cp <ALLUXIO-VERSION> BasicNonByteBufferOperations <master address>
    *   <file path> <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)>
    *   <WriteType (MUST_CACHE | CACHE_THROUGH | THROUGH)> <delete file> <number of files>}

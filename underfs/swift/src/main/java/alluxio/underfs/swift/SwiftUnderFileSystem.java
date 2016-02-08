@@ -41,8 +41,8 @@ import org.javaswift.joss.model.StoredObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.swift.http.SwiftDirectClient;
 
@@ -65,7 +65,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /** Container name of user's configured Alluxio container. */
   private final String mContainerName;
 
-  /** Prefix of the container, for example swift://my-container-name/ */
+  /** Prefix of the container, for example swift://my-container-name/ . */
   private final String mContainerPrefix;
 
   /** JOSS access object. */

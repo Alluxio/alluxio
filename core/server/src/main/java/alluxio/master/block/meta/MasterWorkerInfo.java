@@ -44,30 +44,30 @@ import alluxio.wire.WorkerNetAddress;
 @ThreadSafe
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  /** Worker's address */
+  /** Worker's address. */
   private final WorkerNetAddress mWorkerAddress;
-  /** The id of the worker */
+  /** The id of the worker. */
   private final long mId;
-  /** Start time of the worker in ms */
+  /** Start time of the worker in ms. */
   private final long mStartTimeMs;
-  /** Capacity of worker in bytes */
+  /** Capacity of worker in bytes. */
   private long mCapacityBytes;
-  /** Worker's used bytes */
+  /** Worker's used bytes. */
   private long mUsedBytes;
-  /** Worker's last updated time in ms */
+  /** Worker's last updated time in ms. */
   private long mLastUpdatedTimeMs;
   /** If true, the worker is considered registered. */
   private boolean mIsRegistered;
   /** Worker-specific mapping between storage tier alias and storage tier ordinal. */
   private StorageTierAssoc mStorageTierAssoc;
-  /** Mapping from storage tier alias to total bytes */
+  /** Mapping from storage tier alias to total bytes. */
   private Map<String, Long> mTotalBytesOnTiers;
-  /** Mapping from storage tier alias to used bytes */
+  /** Mapping from storage tier alias to used bytes. */
   private Map<String, Long> mUsedBytesOnTiers;
 
-  /** ids of blocks the worker contains */
+  /** ids of blocks the worker contains. */
   private Set<Long> mBlocks;
-  /** ids of blocks the worker should remove */
+  /** ids of blocks the worker should remove. */
   private Set<Long> mToRemoveBlocks;
 
   /**

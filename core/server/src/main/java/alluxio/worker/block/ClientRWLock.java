@@ -31,9 +31,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class ClientRWLock implements ReadWriteLock {
   // TODO(bin): Make this const a configurable.
-  /** Total number of permits. This value decides the max number of concurrent readers */
+  /** Total number of permits. This value decides the max number of concurrent readers. */
   private static final int MAX_AVAILABLE = 100;
-  /** Underlying Semaphore */
+  /** Underlying Semaphore. */
   private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, true);
 
   @Override

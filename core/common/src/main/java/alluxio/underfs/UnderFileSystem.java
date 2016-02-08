@@ -27,10 +27,10 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
-import alluxio.collections.Pair;
 import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.collections.Pair;
 import alluxio.util.io.PathUtils;
 
 /**
@@ -451,7 +451,7 @@ public abstract class UnderFileSystem {
   public abstract InputStream open(String path) throws IOException;
 
   /**
-   * Renames a file or folder from {@code src} to {@code dst} in under file system
+   * Renames a file or folder from {@code src} to {@code dst} in under file system.
    *
    * @param src The source file or folder name
    * @param dst The destination file or folder name
@@ -469,7 +469,7 @@ public abstract class UnderFileSystem {
   public abstract void setConf(Object conf);
 
   /**
-   * Changes posix file permission
+   * Changes posix file permission.
    *
    * @param path path of the file
    * @param posixPerm standard posix permission like "777", "775", etc

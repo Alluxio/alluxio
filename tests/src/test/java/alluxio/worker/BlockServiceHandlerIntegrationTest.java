@@ -30,9 +30,10 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
@@ -40,7 +41,6 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.Configuration;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -52,7 +52,7 @@ import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockWorkerClientServiceHandler;
 
 /**
- * Integration tests for {@link BlockWorkerClientServiceHandler}
+ * Integration tests for {@link BlockWorkerClientServiceHandler}.
  */
 public class BlockServiceHandlerIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10 * Constants.MB;

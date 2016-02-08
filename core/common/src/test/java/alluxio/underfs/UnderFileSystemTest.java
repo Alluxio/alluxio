@@ -20,12 +20,12 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
-import alluxio.collections.Pair;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.collections.Pair;
 
 /**
- * Unit tests for {@link UnderFileSystem}
+ * Unit tests for {@link UnderFileSystem}.
  */
 public final class UnderFileSystemTest {
   private Configuration mConf;

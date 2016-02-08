@@ -54,7 +54,8 @@ public class FileSystemContract extends AbstractFSContract {
   }
 
   /**
-   * Return the contract file for this filesystem
+   * Return the contract file for this filesystem.
+   *
    * @return the XML
    */
   protected String getContractXml() {
@@ -89,7 +90,8 @@ public class FileSystemContract extends AbstractFSContract {
   }
 
   /**
-   * Get the test data directory
+   * Get the test data directory.
+   *
    * @return the directory for test data
    */
   protected String getTestDataDir() {

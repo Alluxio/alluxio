@@ -21,19 +21,19 @@ import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import com.google.common.base.Joiner;
-
 import org.apache.commons.cli.CommandLine;
 
+import com.google.common.base.Joiner;
+
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
 
 /**
- * Persists a file or directory currently stored only in Alluxio to the UnderFileSystem
+ * Persists a file or directory currently stored only in Alluxio to the UnderFileSystem.
  */
 @ThreadSafe
 public final class PersistCommand extends AbstractShellCommand {

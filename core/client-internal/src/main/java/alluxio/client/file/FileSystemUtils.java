@@ -27,21 +27,21 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.io.Closer;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.AlluxioExceptionType;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.AlluxioException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 
 /**
- * Collection of utility methods to handle with {@link FileSystem} related objects
+ * Collection of utility methods to handle with {@link FileSystem} related objects.
  */
 @ThreadSafe
 public final class FileSystemUtils {

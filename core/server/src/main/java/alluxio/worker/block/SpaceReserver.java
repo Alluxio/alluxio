@@ -25,8 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import alluxio.Constants;
-import alluxio.StorageTierAssoc;
 import alluxio.Sessions;
+import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -44,7 +44,7 @@ public class SpaceReserver implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final BlockWorker mBlockWorker;
 
-  /** Association between storage tier aliases and ordinals for the worker */
+  /** Association between storage tier aliases and ordinals for the worker. */
   private final StorageTierAssoc mStorageTierAssoc;
 
   /** Mapping from tier alias to space size to be reserved on the tier. */
@@ -99,7 +99,7 @@ public class SpaceReserver implements Runnable {
   }
 
   /**
-   * Stops the checking, once this method is called, the object should be discarded
+   * Stops the checking, once this method is called, the object should be discarded.
    */
   public void stop() {
     LOG.info("Space reserver exits!");

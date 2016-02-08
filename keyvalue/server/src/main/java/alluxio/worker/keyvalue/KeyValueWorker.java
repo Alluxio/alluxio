@@ -26,8 +26,8 @@ import org.apache.thrift.TProcessor;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.WorkerBase;
@@ -39,9 +39,9 @@ import alluxio.worker.block.BlockWorker;
  */
 @ThreadSafe
 public class KeyValueWorker extends WorkerBase {
-  /** Configuration object */
+  /** Configuration object. */
   private final Configuration mConfiguration;
-  /** BlockWorker handle for access block info */
+  /** BlockWorker handle for access block info. */
   private final BlockWorker mBlockWorker;
   /** Logic for handling key-value RPC requests. */
   private final KeyValueWorkerClientServiceHandler mKeyValueServiceHandler;

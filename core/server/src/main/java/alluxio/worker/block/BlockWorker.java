@@ -30,14 +30,14 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.Sessions;
-import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -60,7 +60,9 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 /**
- * The class is responsible for managing all top level components of the Block Worker, including:
+ * The class is responsible for managing all top level components of the Block Worker.
+ *
+ * This includes:
  *
  * Servers: {@link BlockWorkerClientServiceHandler} (RPC Server), BlockDataServer (Data Server)
  *
@@ -98,13 +100,13 @@ public final class BlockWorker extends WorkerBase {
 
   /** Space reserver for the block data manager. */
   private SpaceReserver mSpaceReserver = null;
-  /** Block store delta reporter for master heartbeat */
+  /** Block store delta reporter for master heartbeat. */
   private BlockHeartbeatReporter mHeartbeatReporter;
-  /** Metrics reporter that listens on block events and increases metrics counters */
+  /** Metrics reporter that listens on block events and increases metrics counters. */
   private BlockMetricsReporter mMetricsReporter;
-  /** Session metadata, used to keep track of session heartbeats */
+  /** Session metadata, used to keep track of session heartbeats. */
   private Sessions mSessions;
-  /** Block Store manager */
+  /** Block Store manager. */
   private BlockStore mBlockStore;
 
   /**

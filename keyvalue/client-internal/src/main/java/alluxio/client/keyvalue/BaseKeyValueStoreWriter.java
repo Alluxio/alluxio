@@ -26,13 +26,13 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
 import alluxio.util.io.BufferUtils;
 
@@ -49,13 +49,13 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
 
   private long mPartitionIndex;
   private KeyValuePartitionWriter mWriter = null;
-  /** min key in the current partition */
+  /** Min key in the current partition. */
   private ByteBuffer mKeyStart = null;
-  /** max key in the current partition */
+  /** Max key in the current partition. */
   private ByteBuffer mKeyLimit = null;
-  /** whether this writer is closed */
+  /** Whether this writer is closed. */
   private boolean mClosed;
-  /** whether this writer is canceled */
+  /** Whether this writer is canceled. */
   private boolean mCanceled;
 
   /**

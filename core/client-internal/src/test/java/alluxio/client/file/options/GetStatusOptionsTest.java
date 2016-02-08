@@ -25,7 +25,7 @@ import org.junit.Test;
  */
 public class GetStatusOptionsTest {
   /**
-   * Tests that building a {@link GetStatusOptions} with the defaults works
+   * Tests that building a {@link GetStatusOptions} with the defaults works.
    */
   @Test
   public void defaultsTest() {

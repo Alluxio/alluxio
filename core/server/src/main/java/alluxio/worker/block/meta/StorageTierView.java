@@ -26,21 +26,21 @@ import com.google.common.base.Preconditions;
 import alluxio.worker.block.BlockMetadataManagerView;
 
 /**
- * This class is a wrapper of {@link StorageTier} to provide more limited access
+ * This class is a wrapper of {@link StorageTier} to provide more limited access.
  */
 @ThreadSafe
 public final class StorageTierView {
 
-  /** the {@link StorageTier} this view is derived from */
+  /** The {@link StorageTier} this view is derived from. */
   private final StorageTier mTier;
-  /** a list of {@link StorageDirView} under this StorageTierView */
+  /** A list of {@link StorageDirView} under this StorageTierView. */
   private final List<StorageDirView> mDirViews = new ArrayList<StorageDirView>();
-  /** the {@link BlockMetadataManagerView} this {@link StorageTierView} is under */
+  /** The {@link BlockMetadataManagerView} this {@link StorageTierView} is under. */
   private final BlockMetadataManagerView mManagerView;
 
   /**
    * Creates a {@link StorageTierView} using the actual {@link StorageTier} and the above
-   * {@link BlockMetadataManagerView}
+   * {@link BlockMetadataManagerView}.
    *
    * @param tier which the tierView is constructed from
    * @param view the {@link BlockMetadataManagerView} this tierView is associated with

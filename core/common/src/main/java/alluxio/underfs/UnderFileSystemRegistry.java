@@ -28,8 +28,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 
 /**
  * <p>
@@ -87,7 +87,7 @@ public final class UnderFileSystemRegistry {
   }
 
   /**
-   * Returns a read-only view of the available factories
+   * Returns a read-only view of the available factories.
    *
    * @return Read-only view of the available factories
    */
@@ -136,7 +136,7 @@ public final class UnderFileSystemRegistry {
   }
 
   /**
-   * Finds the first Under File System factory that supports the given path
+   * Finds the first Under File System factory that supports the given path.
    *
    * @param path Path
    * @param configuration Alluxio configuration
@@ -158,7 +158,7 @@ public final class UnderFileSystemRegistry {
   }
 
   /**
-   * Finds all the Under File System factories that support the given path
+   * Finds all the Under File System factories that support the given path.
    *
    * @param path Path
    * @param configuration Alluxio Configuration
@@ -201,7 +201,7 @@ public final class UnderFileSystemRegistry {
   }
 
   /**
-   * Registers a new factory
+   * Registers a new factory.
    * <p>
    * Factories are registered at the start of the factories list so they can override the existing
    * automatically discovered factories. Generally if you use the {@link ServiceLoader} mechanism
@@ -243,7 +243,7 @@ public final class UnderFileSystemRegistry {
   }
 
   /**
-   * Unregisters an existing factory
+   * Unregisters an existing factory.
    *
    * @param factory Factory to unregister
    */

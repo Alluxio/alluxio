@@ -17,8 +17,8 @@ package alluxio.master.file.options;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.master.MasterContext;
 import alluxio.thrift.SetAttributeTOptions;
 
@@ -28,7 +28,7 @@ import alluxio.thrift.SetAttributeTOptions;
 @NotThreadSafe
 public class SetAttributeOptions {
   /**
-   * Builder for {@link SetAttributeOptions}
+   * Builder for {@link SetAttributeOptions}.
    */
   public static class Builder {
     private Boolean mPinned;
