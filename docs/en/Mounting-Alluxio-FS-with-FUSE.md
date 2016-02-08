@@ -72,7 +72,7 @@ This will stop the background alluxio-fuse java process and unmount the file sys
 
 ## Optional configuration steps
 
-Alluxio-FUSE is based on the standard java alluxio-client to perform its operations. You might
+Alluxio-FUSE is based on the standard java alluxio-core-client to perform its operations. You might
 want to customize the behaviour of the alluxio client used by Alluxio-FUSE the same way you
 would for any other client application.
 
@@ -130,7 +130,7 @@ opened  with the `O_WRONLY` flag.
 # Performance considerations
 
 Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected
-to be considerably worse than what you would see by using the `alluxio-client` directly. In other
+to be considerably worse than what you would see by using the `alluxio-core-client` directly. In other
 words, if you are concerned about performance rather then functionality, then Alluxio-FUSE is
 not what you are looking for.
 

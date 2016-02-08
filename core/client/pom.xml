@@ -6,7 +6,7 @@
     <version>1.0.0-SNAPSHOT</version>
   </parent>
   <groupId>org.alluxio.alluxio</groupId>
-  <artifactId>alluxio-client</artifactId>
+  <artifactId>alluxio-core-client</artifactId>
   <packaging>jar</packaging>
   <name>Alluxio Core - Client Distribution</name>
   <description>Distribution of client for Alluxio core</description>
