@@ -6,7 +6,7 @@ alluxio.worker.block.heartbeat.timeout.ms,10000
 alluxio.worker.block.threads.max,2048
 alluxio.worker.block.threads.min,1
 alluxio.worker.data.bind.host,0.0.0.0
-alluxio.worker.data.folder,/tachyonworker/
+alluxio.worker.data.folder,/alluxioworker/
 alluxio.worker.data.port,29999
 alluxio.worker.data.server.class,alluxio.worker.netty.&#8203;NettyDataServer
 alluxio.worker.evictor.class,alluxio.worker.block.&#8203;evictor.LRUEvictor
