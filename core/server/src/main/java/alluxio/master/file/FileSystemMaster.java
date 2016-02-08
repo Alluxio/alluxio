@@ -1336,6 +1336,8 @@ public final class FileSystemMaster extends MasterBase {
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incFreeFileOps(1);
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.WRITE, path, false);
+
       Inode inode = mInodeTree.getInodeByPath(path);
 
       if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
@@ -1344,7 +1346,6 @@ public final class FileSystemMaster extends MasterBase {
         return false;
       }
 
-      checkPermission(FileSystemAction.WRITE, path, false);
       List<Inode> freeInodes = new ArrayList<Inode>();
       freeInodes.add(inode);
       if (inode.isDirectory()) {
@@ -1709,19 +1710,24 @@ public final class FileSystemMaster extends MasterBase {
       throws FileDoesNotExistException, AccessControlException, InvalidPathException {
     MasterContext.getMasterSource().incSetAttributeOps(1);
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.WRITE, path, false);
+      if (options.getOwner() != null || options.getGroup() != null
+          || options.getPermission() != Constants.INVALID_PERMISSION) {
+        checkOwner(path);
+      }
+
       long fileId = mInodeTree.getInodeByPath(path).getId();
       long opTimeMs = System.currentTimeMillis();
-
       Inode targetInode = mInodeTree.getInodeByPath(path);
       if (options.isRecursive() && targetInode.isDirectory()) {
         List<Inode> inodeChildren =
             mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
         for (Inode inode : inodeChildren) {
-          if (options.getGroup() != null
+          checkPermission(FileSystemAction.WRITE, mInodeTree.getPath(inode), false);
+          if (options.getOwner() != null || options.getGroup() != null
               || options.getPermission() != Constants.INVALID_PERMISSION) {
             checkOwner(path);
           }
-          checkPermission(FileSystemAction.WRITE, mInodeTree.getPath(inode), false);
         }
         for (Inode inode : inodeChildren) {
           long id = inode.getId();
@@ -1729,13 +1735,6 @@ public final class FileSystemMaster extends MasterBase {
           journalSetAttribute(id, opTimeMs, options);
         }
       }
-      if (options.getOwner() != null) {
-        PermissionChecker.checkSuperuser(getClientUser(), getGroups(getClientUser()));
-      }
-      if (options.getGroup() != null || options.getPermission() != Constants.INVALID_PERMISSION) {
-        checkOwner(path);
-      }
-      checkPermission(FileSystemAction.WRITE, path, false);
       setAttributeInternal(fileId, opTimeMs, options);
       journalSetAttribute(fileId, opTimeMs, options);
     }
