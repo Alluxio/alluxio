@@ -42,7 +42,7 @@ compile 'org.alluxio.alluxio:alluxio-core-client:1.0.0'
 
 #### SBT
 ```
-libraryDependencies += "org.alluxioalluxio" % "alluxio-core-client" % "1.0.0"
+libraryDependencies += "org.alluxio.alluxio" % "alluxio-core-client" % "1.0.0"
 ```
 
 ## Contributing to Alluxio
