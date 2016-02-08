@@ -2031,9 +2031,9 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if the path is invalid
    */
   private void checkOwner(AlluxioURI path) throws AccessControlException, InvalidPathException {
-    // throws exception if security is not enabled.
+    // bypasses permission checking if security is not enabled.
     if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
-      throw new AccessControlException(ExceptionMessage.SECURITY_IS_NOT_ENABLED.getMessage());
+      return;
     }
 
     // collects inodes info on the path
