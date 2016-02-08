@@ -193,12 +193,7 @@
     </module>
     <module name="OverloadMethodsDeclarationOrder"/>
     <module name="CustomImportOrder">
-      <!-- The default of java|javax matches many packages which are not standard.
-           TODO(andrew): checkstyle 2.17 fixes this but requires java 7, so we can
-           upgrade checkstyle and remove this line when we go to java 7. -->
-      <property name="standardPackageRegExp" value="^(java|javax)\..*"/>
       <property name="specialImportsRegExp" value="alluxio"/>
-      <property name="thirdPartyPackageRegExp" value=".*"/>
       <property name="customImportOrderRules" value="STATIC###SPECIAL_IMPORTS###THIRD_PARTY_PACKAGE###STANDARD_JAVA_PACKAGE"/>
     </module>
     <module name="MethodParamPad"/>
