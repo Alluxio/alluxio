@@ -40,11 +40,11 @@ cat > /hadoop/conf/core-site.xml << EOF
 </property>
 <property>
   <name>fs.alluxio.impl</name>
-  <value>alluxio.hadoop.TFS</value>
+  <value>alluxio.hadoop.FileSystem</value>
 </property>
 <property>
   <name>fs.alluxio-ft.impl</name>
-  <value>alluxio.hadoop.TFSFT</value>
+  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
 </property>
 </configuration>
 EOF
