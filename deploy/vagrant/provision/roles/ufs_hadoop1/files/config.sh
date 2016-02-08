@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # let mapreduce be able to run against Alluxio
-ALLUXIO_CLIENT_JAR=$(ls /alluxio/core/client/target/alluxio-client-*-jar-with-dependencies.jar)
+ALLUXIO_CLIENT_JAR=$(ls /alluxio/core/client/target/alluxio-core-client-*-jar-with-dependencies.jar)
 echo "export HADOOP_CLASSPATH=\${HADOOP_CLASSPATH}:${ALLUXIO_CLIENT_JAR}" >> /hadoop/conf/hadoop-env.sh
 
 NODES=`cat /vagrant/files/workers`

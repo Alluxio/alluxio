@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # let mapreduce be able to run against Alluxio
-ALLUXIO_CLIENT_JAR=$(ls /alluxio/core/client/target/alluxio-client-*-jar-with-dependencies.jar)
+ALLUXIO_CLIENT_JAR=$(ls /alluxio/core/client/target/alluxio-core-client-*-jar-with-dependencies.jar)
 echo "export HADOOP_CLASSPATH=\${HADOOP_CLASSPATH}:${ALLUXIO_CLIENT_JAR}" >> /hadoop/etc/hadoop/hadoop-env.sh
 
 NODES=`cat /vagrant/files/workers`
@@ -22,11 +22,11 @@ cat > /hadoop/etc/hadoop/core-site.xml << EOF
 </property>
 <property>
   <name>fs.alluxio.impl</name>
-  <value>alluxio.hadoop.TFS</value>
+  <value>alluxio.hadoop.FileSystem</value>
 </property>
 <property>
   <name>fs.alluxio-ft.impl</name>
-  <value>alluxio.hadoop.TFSFT</value>
+  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
 </property>
 </configuration>
 EOF

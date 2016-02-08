@@ -15,7 +15,7 @@ cat > /spark/conf/spark-defaults.conf <<EOF
   spark.eventLog.dir $EVENTLOG_DIR
   spark.history.fs.logDirectory $EVENTLOG_DIR
   spark.serializer org.apache.spark.serializer.KryoSerializer
-  spark.alluxioStore.url alluxio://AlluxioMaster:19998
+  spark.tachyonStore.url alluxio://AlluxioMaster:19998
   # externalBlockStore.url is needed in spark master branch
   spark.externalBlockStore.url alluxio://AlluxioMaster:19998
 EOF

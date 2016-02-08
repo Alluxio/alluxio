@@ -1,16 +1,16 @@
 # Local means copying the Alluxio repo which this directory resides in to remote machines and then compile in remote machines.
-# Release means using binary distribution from https://github.com/amplab/Alluxio/releases.
+# Release means using binary distribution from https://github.com/alluxio/alluxio/releases.
 # Github means cloning and compiling github repo.
 # {Github | Local | Release}
 Type: Local
 
 # github repo and version(can be branch, commit hash)
 Github:
-  Repo: https://github.com/amplab/alluxio
-  Version: branch-0.8
+  Repo: https://github.com/alluxio/alluxio
+  Version: branch-1.0
 
 Release:
-  Version: 0.8.2 # name of release version
+  Version: 1.0.0 # name of release version
 
 # how much memory to use (e.g. 1000MB, 2GB) per worker
 # make sure your virtual machine has more memory than what is specified here
