@@ -29,6 +29,8 @@ public abstract class Inode implements JournalEntryRepresentable {
 
   /**
    * Builder for {@link Inode}.
+   *
+   * @param <T> the concrete subclass of this object
    */
   public abstract static class Builder<T extends Builder<T>> {
     private long mCreationTimeMs;
