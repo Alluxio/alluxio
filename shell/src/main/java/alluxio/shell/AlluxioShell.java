@@ -57,7 +57,7 @@ public class AlluxioShell implements Closeable {
     } };
 
   /**
-   * Main method, starts a new FsShell.
+   * Main method, starts a new AlluxioShell.
    *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @throws IOException if closing the shell fails
@@ -130,7 +130,7 @@ public class AlluxioShell implements Closeable {
    * Method which prints the method to use all the commands.
    */
   private void printUsage() {
-    System.out.println("Usage: java FsShell");
+    System.out.println("Usage: java AlluxioShell");
     SortedSet<String> sortedCmds = new TreeSet<String>(mCommands.keySet());
     for (String cmd : sortedCmds) {
       System.out.format("%-60s%-95s%n", "       [" + mCommands.get(cmd).getUsage() + "]   ",
