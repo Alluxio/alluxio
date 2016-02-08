@@ -23,8 +23,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.ClientMetrics;
 
@@ -61,7 +61,7 @@ public final class ClientContext {
    * {@link Configuration} when {@link Configuration} is changed, e.g. the master hostname or port.
    * This method requires that configuration has been initialized.
    */
-  private static void init() {
+  public static void init() {
     String masterHostname = Preconditions.checkNotNull(sConf.get(Constants.MASTER_HOSTNAME));
     int masterPort = sConf.getInt(Constants.MASTER_RPC_PORT);
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
