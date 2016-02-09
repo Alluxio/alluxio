@@ -107,7 +107,7 @@ public class SpaceReserverTest {
     long blockId = 100;
     BlockStoreLocation tier0 = BlockStoreLocation.anyDirInTier("MEM");
     for (int i = 0; i < 4; i++) {
-      TieredBlockStoreTestUtils.cache(SESSION_ID, blockId ++, BLOCK_SIZE, mBlockStore, tier0);
+      TieredBlockStoreTestUtils.cache(SESSION_ID, blockId++, BLOCK_SIZE, mBlockStore, tier0);
     }
     BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
     Map<String, Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
@@ -126,7 +126,7 @@ public class SpaceReserverTest {
 
     // Reserve on under tier
     for (int i = 0; i < 10; i++) {
-      TieredBlockStoreTestUtils.cache(SESSION_ID, blockId ++, BLOCK_SIZE, mBlockStore, tier0);
+      TieredBlockStoreTestUtils.cache(SESSION_ID, blockId++, BLOCK_SIZE, mBlockStore, tier0);
     }
     storeMeta = mBlockStore.getBlockStoreMeta();
     usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
