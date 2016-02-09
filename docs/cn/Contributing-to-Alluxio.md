@@ -78,7 +78,7 @@ group: Resources
 
 -   请遵循已有代码的风格，我们使用[Google Java style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html)风格，但有以下不同：
     -  每行最多**100**个字符
-    -  导入包应遵循[该顺序](resources/order.importorder)，每组里面遵循**字母顺序**
+    -  导入包应遵循[该顺序](../resources/importorder.png)，每组里面遵循**字母顺序**
     -  使用`i ++`代替`i++`
     -  使用`i + j`代替`i+j`
     -  类和成员的修饰符，应按照Java语言规范推荐的顺序：**public protected private abstract static final transient volatile
@@ -90,7 +90,7 @@ group: Resources
     -  如果你使用IntelliJ IDEA:
        - 你可以使用我们提供的formatter，参考[Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)，或者在IntelliJ
        IDEA中使用[Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546)
-       - 要自动格式化**import**，在Preferences->Code Style->Java->Imports->Import中设置Layout为[该顺序](resources/order.importorder)
+       - 要自动格式化**import**，在Preferences->Code Style->Java->Imports->Import中设置Layout为[该顺序](../resources/importorder.png)
        - 要自动将方法按字母顺序重新排序，可以使用[Rearranger插件](http://plugins.jetbrains.com/plugin/173)，打开Preferences，查找rearrager，去除不必要的内容，然后右击，选择"Rearrange"，代码将格式化成你需要的风格。
 -   Alluxio使用SLF4J记录日志，典型用法为：
 
