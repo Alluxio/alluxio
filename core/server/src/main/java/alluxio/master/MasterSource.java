@@ -15,22 +15,21 @@
 
 package alluxio.master;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
-
 import alluxio.Constants;
 import alluxio.metrics.source.Source;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Master source collects information about master's internal state. Metrics like *Ops are used to

@@ -15,14 +15,14 @@
 
 package alluxio.worker.block.allocator;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
+
+import com.google.common.base.Preconditions;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A greedy allocator that returns the first Storage dir fitting the size of block to allocate. This

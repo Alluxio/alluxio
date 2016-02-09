@@ -15,9 +15,12 @@
 
 package alluxio.client.block;
 
-import java.io.File;
-import java.net.InetSocketAddress;
-import java.util.Arrays;
+import alluxio.Configuration;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.LockBlockResult;
+import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,12 +35,9 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import alluxio.Configuration;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.BlockLocation;
-import alluxio.wire.LockBlockResult;
-import alluxio.wire.WorkerNetAddress;
+import java.io.File;
+import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 /**
  * Tests for {@link AlluxioBlockStore}.

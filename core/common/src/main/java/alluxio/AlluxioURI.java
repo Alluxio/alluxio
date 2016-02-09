@@ -15,15 +15,15 @@
 
 package alluxio;
 
+import alluxio.util.OSUtils;
+
+import org.apache.commons.lang.StringUtils;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.commons.lang.StringUtils;
-
-import alluxio.util.OSUtils;
 
 /**
  * It uses a hierarchical URI internally. URI requires that String is escaped, {@link AlluxioURI}

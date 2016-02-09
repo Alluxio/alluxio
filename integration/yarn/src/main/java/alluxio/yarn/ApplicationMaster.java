@@ -15,16 +15,17 @@
 
 package alluxio.yarn;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.exception.ExceptionMessage;
+import alluxio.util.FormatUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.yarn.YarnUtils.YarnContainerType;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
+import com.google.common.collect.ConcurrentHashMultiset;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multiset;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
@@ -48,17 +49,15 @@ import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ConcurrentHashMultiset;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multiset;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.exception.ExceptionMessage;
-import alluxio.util.FormatUtils;
-import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.yarn.YarnUtils.YarnContainerType;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Actual owner of Alluxio running on Yarn. The YARN ResourceManager will launch this

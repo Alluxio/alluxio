@@ -15,23 +15,23 @@
 
 package alluxio.shell.command;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.exception.AlluxioException;
+import alluxio.util.FormatUtils;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
-
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.Configuration;
-import alluxio.exception.AlluxioException;
-import alluxio.util.FormatUtils;
 
 /**
  * Displays information for all directories and files directly under the path specified in args.

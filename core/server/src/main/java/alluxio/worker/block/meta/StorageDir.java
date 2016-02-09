@@ -15,6 +15,20 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.Constants;
+import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.util.io.FileUtils;
+import alluxio.worker.block.BlockStoreLocation;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,21 +40,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
-
-import alluxio.Constants;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.util.io.FileUtils;
-import alluxio.worker.block.BlockStoreLocation;
 
 /**
  * Represents a directory in a storage tier. It has a fixed capacity allocated to it on

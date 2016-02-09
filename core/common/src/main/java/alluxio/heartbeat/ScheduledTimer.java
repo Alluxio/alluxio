@@ -15,13 +15,13 @@
 
 package alluxio.heartbeat;
 
+import com.google.common.base.Preconditions;
+
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
 
 /**
  * This class can be used for controlling heartbeat execution of threads.

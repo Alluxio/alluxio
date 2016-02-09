@@ -15,17 +15,17 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.client.file.FileSystem;
+import alluxio.client.lineage.LineageFileSystem;
+import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.client.lineage.LineageFileSystem;
-import alluxio.Configuration;
-import alluxio.exception.AlluxioException;
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Reports to the master that a file is lost.

@@ -15,12 +15,6 @@
 
 package alluxio.client;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -28,6 +22,12 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility class for testing the Alluxio file system.

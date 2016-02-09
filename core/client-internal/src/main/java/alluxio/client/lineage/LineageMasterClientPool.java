@@ -15,13 +15,13 @@
 
 package alluxio.client.lineage;
 
-import java.net.InetSocketAddress;
-
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.resource.ResourcePool;
+
+import java.net.InetSocketAddress;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 final class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {

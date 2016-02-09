@@ -15,8 +15,8 @@
 
 package alluxio.client;
 
-import org.junit.Test;
 import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests {@link ClientUtils}.

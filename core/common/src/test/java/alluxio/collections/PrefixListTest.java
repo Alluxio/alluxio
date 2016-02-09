@@ -15,12 +15,11 @@
 
 package alluxio.collections;
 
-import java.util.List;
-
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableList;
+import java.util.List;
 
 /**
  * Unit tests for {@link PrefixList}.

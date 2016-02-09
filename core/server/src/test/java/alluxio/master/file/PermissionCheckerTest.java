@@ -15,20 +15,6 @@
 
 package alluxio.master.file;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
-import org.powermock.reflect.Whitebox;
-
-import com.google.common.collect.Lists;
-
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
@@ -47,6 +33,19 @@ import alluxio.master.journal.ReadWriteJournal;
 import alluxio.security.authorization.FileSystemAction;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.wire.FileInfo;
+
+import com.google.common.collect.Lists;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
+import org.powermock.reflect.Whitebox;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Unit tests for {@link PermissionChecker}.

@@ -15,18 +15,6 @@
 
 package alluxio.master;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.Constants;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalInputStream;
@@ -37,6 +25,17 @@ import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.ThreadFactoryUtils;
+
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This is the base class for all masters, and contains common functionality. Common functionality

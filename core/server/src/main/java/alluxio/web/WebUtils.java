@@ -15,15 +15,15 @@
 
 package alluxio.web;
 
+import alluxio.Constants;
+
+import com.google.common.base.Preconditions;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.Constants;
 
 @ThreadSafe
 final class WebUtils {

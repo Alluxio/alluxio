@@ -15,16 +15,16 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.AbstractAlluxioShellTest;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.io.IOException;
 
 /**
  * Tests for chown command.

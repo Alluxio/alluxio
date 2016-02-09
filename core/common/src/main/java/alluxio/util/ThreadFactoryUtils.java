@@ -15,11 +15,11 @@
 
 package alluxio.util;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 import java.util.concurrent.ThreadFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * Utility methods for the {@link ThreadFactory} class.

@@ -15,7 +15,8 @@
 
 package alluxio.worker.block.meta;
 
-import java.util.List;
+import alluxio.worker.WorkerContext;
+import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -25,8 +26,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import alluxio.worker.WorkerContext;
-import alluxio.worker.block.TieredBlockStoreTestUtils;
+import java.util.List;
 
 /**
  * Unit tests for {@link StorageTier}.

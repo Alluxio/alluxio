@@ -15,19 +15,19 @@
 
 package alluxio.master;
 
-import java.io.IOException;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.options.CreateFileOptions;
+import alluxio.exception.AlluxioException;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.Configuration;
-import alluxio.exception.AlluxioException;
+import java.io.IOException;
 
 /**
  * Test the internal implementation of alluxio Master via a

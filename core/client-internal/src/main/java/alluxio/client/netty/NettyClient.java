@@ -15,7 +15,14 @@
 
 package alluxio.client.netty;
 
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
+import alluxio.network.ChannelType;
+import alluxio.network.protocol.RPCMessage;
+import alluxio.network.protocol.RPCMessageDecoder;
+import alluxio.network.protocol.RPCMessageEncoder;
+import alluxio.util.network.NettyUtils;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -25,14 +32,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 
-import alluxio.Constants;
-import alluxio.client.ClientContext;
-import alluxio.Configuration;
-import alluxio.network.ChannelType;
-import alluxio.network.protocol.RPCMessage;
-import alluxio.network.protocol.RPCMessageDecoder;
-import alluxio.network.protocol.RPCMessageEncoder;
-import alluxio.util.network.NettyUtils;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Shared configuration and methods for the Netty client.

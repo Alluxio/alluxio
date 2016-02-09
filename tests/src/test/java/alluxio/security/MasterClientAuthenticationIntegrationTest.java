@@ -15,7 +15,14 @@
 
 package alluxio.security;
 
-import javax.security.sasl.AuthenticationException;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.ClientContext;
+import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.options.CreateFileOptions;
+import alluxio.exception.ConnectionFailedException;
+import alluxio.security.authentication.AuthenticationProvider;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -24,14 +31,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
-import alluxio.client.ClientContext;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.exception.ConnectionFailedException;
-import alluxio.security.authentication.AuthenticationProvider;
+import javax.security.sasl.AuthenticationException;
 
 /**
  * Though its name indicates that it provides the tests for Alluxio authentication. This class is

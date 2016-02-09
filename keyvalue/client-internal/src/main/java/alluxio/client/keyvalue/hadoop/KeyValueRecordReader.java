@@ -15,19 +15,19 @@
 
 package alluxio.client.keyvalue.hadoop;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapred.RecordReader;
-
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValuePartitionReader;
 import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
+
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.mapred.RecordReader;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Implements {@link RecordReader}, each record is a key-value pair stored in a partition of the

@@ -15,6 +15,17 @@
 
 package alluxio.underfs.oss;
 
+import alluxio.Constants;
+import alluxio.util.io.PathUtils;
+
+import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.ServiceException;
+import com.aliyun.oss.model.ObjectMetadata;
+import com.google.common.base.Preconditions;
+import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -29,18 +40,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.apache.commons.codec.binary.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.aliyun.oss.OSSClient;
-import com.aliyun.oss.ServiceException;
-import com.aliyun.oss.model.ObjectMetadata;
-import com.google.common.base.Preconditions;
-
-import alluxio.Constants;
-import alluxio.util.io.PathUtils;
 
 /**
  * A stream for writing a file into OSS. The data will be persisted to a temporary directory on the

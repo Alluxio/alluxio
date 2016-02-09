@@ -15,22 +15,21 @@
 
 package alluxio.underfs.s3;
 
-import java.io.IOException;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
-
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.jets3t.service.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
+import java.io.IOException;
 
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemFactory;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory for creating {@link S3UnderFileSystem}. It will ensure AWS credentials are present before

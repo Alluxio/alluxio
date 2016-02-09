@@ -15,17 +15,17 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.options.FreeOptions;
+import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.FreeOptions;
-import alluxio.Configuration;
-import alluxio.exception.AlluxioException;
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Frees the given file or folder from Alluxio in-memory (recursively freeing all children if a

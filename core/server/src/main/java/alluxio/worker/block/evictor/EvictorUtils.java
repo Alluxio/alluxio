@@ -15,12 +15,12 @@
 
 package alluxio.worker.block.evictor;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility functions for the evictor package.

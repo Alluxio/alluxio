@@ -15,6 +15,16 @@
 
 package alluxio.worker.block;
 
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.master.block.BlockId;
+import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.StorageDirView;
+import alluxio.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.StorageTierView;
+
+import com.google.common.base.Preconditions;
+
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -25,16 +35,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.ExceptionMessage;
-import alluxio.master.block.BlockId;
-import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.meta.StorageTier;
-import alluxio.worker.block.meta.StorageTierView;
 /**
  * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors and Allocators,
  * filtering out un-evictable blocks and un-allocatable space internally, so that evictors and

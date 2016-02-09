@@ -15,6 +15,14 @@
 
 package alluxio.underfs;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.collections.Pair;
+import alluxio.util.io.PathUtils;
+
+import com.google.common.base.Preconditions;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,14 +32,6 @@ import java.util.List;
 import java.util.Queue;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.collections.Pair;
-import alluxio.util.io.PathUtils;
 
 /**
  * Alluxio stores data into an under layer file system. Any file system implementing this interface

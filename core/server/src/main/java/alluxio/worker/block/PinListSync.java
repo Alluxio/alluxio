@@ -15,16 +15,16 @@
 
 package alluxio.worker.block;
 
-import java.util.Set;
-
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.Constants;
+import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.worker.file.FileSystemMasterClient;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
-import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.worker.file.FileSystemMasterClient;
+import java.util.Set;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * PinListSync periodically syncs the set of pinned inodes from master,  and saves the new pinned

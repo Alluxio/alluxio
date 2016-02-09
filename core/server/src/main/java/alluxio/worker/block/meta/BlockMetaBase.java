@@ -15,12 +15,12 @@
 
 package alluxio.worker.block.meta;
 
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.util.io.PathUtils;
+import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.util.io.PathUtils;
-import alluxio.worker.block.BlockStoreLocation;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A base class of the metadata of blocks in Alluxio managed storage.

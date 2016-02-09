@@ -15,14 +15,14 @@
 
 package alluxio.util.network;
 
-import java.net.InetSocketAddress;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import java.net.InetSocketAddress;
 
 /**
  * Tests the {@link NetworkAddressUtils} methods related to connecting to the master and worker

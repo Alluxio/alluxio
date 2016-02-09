@@ -15,15 +15,15 @@
 
 package alluxio.underfs.s3;
 
+import org.jets3t.service.S3Service;
+import org.jets3t.service.ServiceException;
+import org.jets3t.service.model.S3Object;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.jets3t.service.S3Service;
-import org.jets3t.service.ServiceException;
-import org.jets3t.service.model.S3Object;
 
 /**
  * A stream for reading a file from S3. The main purpose is to provide a faster skip method, as

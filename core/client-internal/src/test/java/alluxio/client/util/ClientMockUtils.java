@@ -15,11 +15,11 @@
 
 package alluxio.client.util;
 
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-
 import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
+
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 
 /**
  * Utility methods for mocking the client.

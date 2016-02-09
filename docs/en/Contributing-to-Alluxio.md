@@ -111,10 +111,9 @@ leverage the Scala shell, as discussed in this
     [Google Java style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html),
     with the following changes or deviations:
     -  Maximum line length of **100** characters.
-    -  Imported packages should be in [this order](../resources/order.importorder), then in
-    **alphabetical order** in each group.
     -  `i ++` instead of `i++`
     -  `i + j` instead of `i+j`
+    -  Third-party imports are grouped together to make IDE formatting much simpler.
     -  Class and member modifiers, when present, appear in the order recommended by the Java
     Language Specification: **public protected private abstract static final transient volatile
     synchronized native strictfp**, then as **alphabetical order**.
@@ -126,6 +125,8 @@ leverage the Scala shell, as discussed in this
        method declaration in the body of an interface is implicitly public and abstract.
        (http://docs.oracle.com/javase/specs/jls/se7/html/jls-9.html#jls-9.4)
 -   You can download our [Eclipse formatter](../resources/alluxio-code-formatter-eclipse.xml)
+    -  For Eclipse to organize your imports correctly, configure "Organize Imports" to look like
+       [this](../resources/eclipse_imports.png)
     -  If you use IntelliJ IDEA:
        - You can either use our formatter with the help from
          [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
@@ -133,7 +134,7 @@ leverage the Scala shell, as discussed in this
          IntelliJ IDEA.
        - To automatically format the **import**, configure in
          Preferences->Code Style->Java->Imports->Import Layout according to
-         [this order](../resources/order.importorder)
+         [this order](../resources/intellij_imports.png)
        - To automatically reorder methods alphabetically, try the
          [Rearranger Plugin](http://plugins.jetbrains.com/plugin/173), open Preferences, search for
          rearranger, remove the unnecessary comments, then right click, choose "Rearrange", codes

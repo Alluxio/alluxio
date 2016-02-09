@@ -15,9 +15,9 @@
 
 package alluxio.client.file.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.annotation.PublicApi;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method option for deleting a file.

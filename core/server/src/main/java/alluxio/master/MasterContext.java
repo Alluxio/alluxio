@@ -15,9 +15,9 @@
 
 package alluxio.master;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.Configuration;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A MasterContext object stores {@link Configuration}.

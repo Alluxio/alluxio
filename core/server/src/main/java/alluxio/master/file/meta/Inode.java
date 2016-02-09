@@ -15,11 +15,11 @@
 
 package alluxio.master.file.meta;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.wire.FileInfo;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * {@link Inode} is an abstract class, with information shared by all types of Inodes.
@@ -29,6 +29,8 @@ public abstract class Inode implements JournalEntryRepresentable {
 
   /**
    * Builder for {@link Inode}.
+   *
+   * @param <T> the concrete subclass of this object
    */
   public abstract static class Builder<T extends Builder<T>> {
     private long mCreationTimeMs;

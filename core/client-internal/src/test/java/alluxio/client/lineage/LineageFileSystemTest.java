@@ -15,6 +15,14 @@
 
 package alluxio.client.lineage;
 
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.options.CreateFileOptions;
+import alluxio.exception.LineageDoesNotExistException;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,14 +32,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
-
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.exception.LineageDoesNotExistException;
 
 /**
  * Tests {@link LineageFileSystem}.

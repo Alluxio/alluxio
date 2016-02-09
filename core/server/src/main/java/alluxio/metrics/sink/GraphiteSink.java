@@ -15,16 +15,16 @@
 
 package alluxio.metrics.sink;
 
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 
-import alluxio.metrics.MetricsSystem;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A sink which publishes metric values to a Graphite server.

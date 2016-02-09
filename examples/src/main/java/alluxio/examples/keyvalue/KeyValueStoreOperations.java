@@ -15,17 +15,9 @@
 
 package alluxio.examples.keyvalue;
 
-import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Maps;
-
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.Version;
 import alluxio.client.ClientContext;
 import alluxio.client.keyvalue.KeyValueIterator;
@@ -33,9 +25,16 @@ import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.Configuration;
 import alluxio.examples.Utils;
 import alluxio.util.io.BufferUtils;
+
+import com.google.common.collect.Maps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * This example illustrates how to create a key-value store, put key-value pairs into the store, and

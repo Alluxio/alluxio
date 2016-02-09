@@ -15,6 +15,14 @@
 
 package alluxio.job;
 
+import alluxio.Constants;
+import alluxio.wire.CommandLineJobInfo;
+import alluxio.wire.JobConfInfo;
+
+import com.google.common.io.Closer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -23,15 +31,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.io.Closer;
-
-import alluxio.Constants;
-import alluxio.wire.CommandLineJobInfo;
-import alluxio.wire.JobConfInfo;
 
 /**
  * A job that wraps a programmed run by command line. This job's caller should ensure the execution

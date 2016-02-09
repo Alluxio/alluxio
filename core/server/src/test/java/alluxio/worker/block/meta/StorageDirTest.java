@@ -15,23 +15,6 @@
 
 package alluxio.worker.block.meta;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
-
-import com.google.common.collect.Sets;
-import com.google.common.primitives.Ints;
-
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -41,6 +24,22 @@ import alluxio.util.io.BufferUtils;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
+
+import com.google.common.collect.Sets;
+import com.google.common.primitives.Ints;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * Unit tests for {@link StorageDir}.

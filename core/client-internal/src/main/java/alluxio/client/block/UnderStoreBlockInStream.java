@@ -15,14 +15,14 @@
 
 package alluxio.client.block;
 
+import alluxio.client.ClientContext;
+import alluxio.exception.ExceptionMessage;
+import alluxio.underfs.UnderFileSystem;
+
 import java.io.IOException;
 import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import alluxio.client.ClientContext;
-import alluxio.exception.ExceptionMessage;
-import alluxio.underfs.UnderFileSystem;
 
 /**
  * This class provides a streaming API to read a fixed chunk from a file in the under storage

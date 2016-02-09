@@ -15,6 +15,19 @@
 
 package alluxio.mesos;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.util.FormatUtils;
+import alluxio.util.io.PathUtils;
+
+import com.google.common.collect.Lists;
+import com.google.protobuf.ByteString;
+import org.apache.mesos.MesosSchedulerDriver;
+import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.CommandInfo;
+import org.apache.mesos.Scheduler;
+import org.apache.mesos.SchedulerDriver;
+
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,20 +36,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.apache.mesos.MesosSchedulerDriver;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.CommandInfo;
-import org.apache.mesos.Scheduler;
-import org.apache.mesos.SchedulerDriver;
-
-import com.google.common.collect.Lists;
-import com.google.protobuf.ByteString;
-
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.util.FormatUtils;
-import alluxio.util.io.PathUtils;
 
 /**
  * {@link AlluxioFramework} is an implementation of a Mesos framework that is responsible for

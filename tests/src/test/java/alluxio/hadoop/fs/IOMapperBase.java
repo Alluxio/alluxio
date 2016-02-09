@@ -15,10 +15,6 @@
 
 package alluxio.hadoop.fs;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.net.InetAddress;
-
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.LongWritable;
@@ -27,6 +23,10 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.InetAddress;
 
 /**
  * Base mapper class for IO operations.

@@ -15,9 +15,9 @@
 
 package alluxio.worker;
 
-import org.powermock.reflect.Whitebox;
-
 import alluxio.worker.file.FileSystemWorker;
+
+import org.powermock.reflect.Whitebox;
 
 /**
  * Class which provides access to private state of {@link AlluxioWorker}.

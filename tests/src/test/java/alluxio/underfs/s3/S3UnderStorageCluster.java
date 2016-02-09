@@ -15,20 +15,19 @@
 
 package alluxio.underfs.s3;
 
-import java.io.IOException;
-import java.util.UUID;
-
-import com.google.common.base.Preconditions;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.io.PathUtils;
+
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.UUID;
 
 /**
  * This class will use Amazon S3 as the backing store. The integration properties should be

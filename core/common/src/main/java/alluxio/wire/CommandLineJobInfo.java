@@ -15,12 +15,12 @@
 
 package alluxio.wire;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
-import alluxio.annotation.PublicApi;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The lineage command-line job descriptor.

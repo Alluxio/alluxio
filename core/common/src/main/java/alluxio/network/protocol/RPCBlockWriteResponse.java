@@ -15,13 +15,12 @@
 
 package alluxio.network.protocol;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
-
 import io.netty.buffer.ByteBuf;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This represents the response to a {@link RPCBlockWriteRequest}.

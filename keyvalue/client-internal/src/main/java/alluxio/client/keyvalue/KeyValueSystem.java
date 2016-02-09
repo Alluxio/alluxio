@@ -15,13 +15,13 @@
 
 package alluxio.client.keyvalue;
 
-import java.io.IOException;
-
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.AlluxioException;
+
+import java.io.IOException;
 
 /**
  * Client to access or create key-value stores in Alluxio.

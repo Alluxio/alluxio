@@ -15,10 +15,10 @@
 
 package alluxio.client.keyvalue;
 
-import java.io.IOException;
-
 import alluxio.annotation.PublicApi;
 import alluxio.exception.AlluxioException;
+
+import java.io.IOException;
 
 /**
  * Iterator to iterate over key-value pairs in {@link KeyValueSystem} or its partitions.

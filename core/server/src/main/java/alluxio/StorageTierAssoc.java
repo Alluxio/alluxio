@@ -15,14 +15,14 @@
 
 package alluxio;
 
+import alluxio.worker.block.meta.StorageTier;
+
+import com.google.common.collect.ImmutableBiMap;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.collect.ImmutableBiMap;
-
-import alluxio.worker.block.meta.StorageTier;
 
 /**
  * Creates a two-way mapping between {@link StorageTier} aliases and ordinal numbers from the given

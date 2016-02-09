@@ -15,17 +15,6 @@
 
 package alluxio.worker.block.evictor;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.collections.Pair;
@@ -37,6 +26,16 @@ import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
+
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides the basic implementation for every evictor.

@@ -15,6 +15,21 @@
 
 package alluxio.shell;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.file.FileSystem;
+import alluxio.shell.command.ShellCommand;
+import alluxio.util.CommonUtils;
+
+import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
@@ -26,35 +41,21 @@ import java.util.TreeSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
-import org.reflections.Reflections;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
-
-import alluxio.Constants;
-import alluxio.client.file.FileSystem;
-import alluxio.Configuration;
-import alluxio.shell.command.ShellCommand;
-import alluxio.util.CommonUtils;
-
 /**
  * Class for handling command line inputs.
  */
 @NotThreadSafe
 public class AlluxioShell implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final HashMap<String, String[]> CMD_ALIAS = new HashMap<String, String[]>() { {
+  private static final HashMap<String, String[]> CMD_ALIAS = new HashMap<String, String[]>() {
+    {
       put("chgrpr", new String[] {"chgrp", "-R"});
       put("chmodr", new String[] {"chmod", "-R"});
       put("chownr", new String[] {"chown", "-R"});
-      put("lsr",    new String[] {"ls",    "-R"});
-      put("rmr",    new String[] {"rm",    "-R"});
-    } };
+      put("lsr", new String[] {"ls", "-R"});
+      put("rmr", new String[] {"rm", "-R"});
+    }
+  };
 
   /**
    * Main method, starts a new AlluxioShell.

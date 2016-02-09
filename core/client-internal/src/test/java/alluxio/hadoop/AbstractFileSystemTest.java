@@ -15,12 +15,14 @@
 
 package alluxio.hadoop;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import alluxio.CommonTestUtils;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
+import alluxio.client.block.BlockStoreContext;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.lineage.LineageContext;
+import alluxio.client.util.ClientTestUtils;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -38,14 +40,12 @@ import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.CommonTestUtils;
-import alluxio.Constants;
-import alluxio.client.ClientContext;
-import alluxio.client.block.BlockStoreContext;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.lineage.LineageContext;
-import alluxio.client.util.ClientTestUtils;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 /**
  * Unit tests for {@link FileSystem}.

@@ -15,12 +15,12 @@
 
 package alluxio.underfs.glusterfs;
 
-import javax.annotation.concurrent.ThreadSafe;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A variant of {@link HdfsUnderFileSystem} that instead uses the Gluster FS.

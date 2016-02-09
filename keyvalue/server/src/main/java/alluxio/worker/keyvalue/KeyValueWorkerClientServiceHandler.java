@@ -15,19 +15,6 @@
 
 package alluxio.worker.keyvalue;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.client.keyvalue.ByteBufferKeyValuePartitionReader;
@@ -42,6 +29,18 @@ import alluxio.thrift.ThriftIOException;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * RPC service handler on worker side to read a local key-value block.

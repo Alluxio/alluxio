@@ -15,10 +15,10 @@
 
 package alluxio.worker.block.allocator;
 
-import org.junit.Test;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
+
+import org.junit.Test;
 
 /**
  * Unit tests for {@link MaxFreeAllocator}.

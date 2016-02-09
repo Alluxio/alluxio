@@ -15,18 +15,18 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.commons.cli.CommandLine;
-
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
+
+import org.apache.commons.cli.CommandLine;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Displays the file's all blocks info.

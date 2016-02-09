@@ -15,27 +15,26 @@
 
 package alluxio.client.block;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Lists;
-
 import alluxio.Constants;
 import alluxio.client.ClientContext;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.AlluxioException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Alluxio Block Store client. This is an internal client for all block level operations in Alluxio.

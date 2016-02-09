@@ -15,21 +15,20 @@
 
 package alluxio.util.io;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.commons.io.FilenameUtils;
-
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-
 import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.OSUtils;
+
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
+import org.apache.commons.io.FilenameUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utilities related to both Alluxio paths like {@link AlluxioURI} and local file paths.

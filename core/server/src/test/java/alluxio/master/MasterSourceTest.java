@@ -15,23 +15,8 @@
 
 package alluxio.master;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import com.codahale.metrics.Counter;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -49,6 +34,20 @@ import alluxio.master.journal.ReadWriteJournal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
+
+import com.codahale.metrics.Counter;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Unit tests for {@link MasterSource}.

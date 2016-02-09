@@ -15,12 +15,12 @@
 
 package alluxio.client;
 
-import java.io.IOException;
-
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.DeleteOptions;
-import alluxio.Configuration;
+
+import java.io.IOException;
 
 /**
  * @deprecated {@see FileSystem} for the supported API.

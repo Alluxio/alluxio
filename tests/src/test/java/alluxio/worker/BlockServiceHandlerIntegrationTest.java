@@ -15,21 +15,6 @@
 
 package alluxio.worker;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.thrift.TException;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
@@ -50,6 +35,21 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockWorkerClientServiceHandler;
+
+import org.apache.thrift.TException;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests for {@link BlockWorkerClientServiceHandler}.

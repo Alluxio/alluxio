@@ -15,10 +15,10 @@
 
 package alluxio.master.lineage.meta;
 
+import alluxio.proto.journal.Journal.JournalEntry;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import alluxio.proto.journal.Journal.JournalEntry;
 
 /**
  * Unit tests for {@link LineageIdGenerator}.

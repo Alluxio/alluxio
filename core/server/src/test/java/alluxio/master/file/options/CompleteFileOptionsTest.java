@@ -15,12 +15,12 @@
 
 package alluxio.master.file.options;
 
-import java.util.Random;
+import alluxio.Configuration;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.Configuration;
+import java.util.Random;
 
 /**
  * Unit tests for {@link CompleteFileOptions}.

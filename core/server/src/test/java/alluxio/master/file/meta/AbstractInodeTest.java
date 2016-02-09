@@ -15,12 +15,12 @@
 
 package alluxio.master.file.meta;
 
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
-
 import alluxio.Constants;
 import alluxio.master.block.BlockId;
 import alluxio.security.authorization.PermissionStatus;
+
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
 /**
  * Abstract class for serving inode tests.

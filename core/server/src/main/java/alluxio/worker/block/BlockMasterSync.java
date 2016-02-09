@@ -15,30 +15,30 @@
 
 package alluxio.worker.block;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.AlluxioException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.Command;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
