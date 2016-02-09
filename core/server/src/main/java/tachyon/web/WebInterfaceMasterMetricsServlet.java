@@ -29,7 +29,12 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 
+import com.google.common.base.Preconditions;
+
+import tachyon.master.MasterContext;
+import tachyon.master.MasterSource;
 import tachyon.master.TachyonMaster;
+import tachyon.util.CommonUtils;
 
 /**
  * Servlet that provides data for viewing the master metrics values
@@ -47,7 +52,7 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
    */
   public WebInterfaceMasterMetricsServlet(TachyonMaster master) {
     super();
-    mMaster = master;
+    mMaster = Preconditions.checkNotNull(master);
   }
 
   /**
@@ -81,17 +86,25 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
   private void populateValues(HttpServletRequest request) throws IOException {
     MetricRegistry mr = mMaster.getMasterMetricsSystem().getMetricRegistry();
 
-    Long masterCapacityTotal = (Long) mr.getGauges().get("master.CapacityTotal").getValue();
-    Long masterCapacityUsed = (Long) mr.getGauges().get("master.CapacityUsed").getValue();
+    MasterSource masterSource = MasterContext.getMasterSource();
+
+    Long masterCapacityTotal = (Long) mr.getGauges()
+        .get(CommonUtils.argsToString(".", masterSource.getName(), MasterSource.CAPACITY_TOTAL))
+        .getValue();
+    Long masterCapacityUsed = (Long) mr.getGauges()
+        .get(CommonUtils.argsToString(".", masterSource.getName(), MasterSource.CAPACITY_USED))
+        .getValue();
 
     int masterCapacityUsedPercentage = (int) (100L * masterCapacityUsed / masterCapacityTotal);
     request.setAttribute("masterCapacityUsedPercentage", masterCapacityUsedPercentage);
     request.setAttribute("masterCapacityFreePercentage", 100 - masterCapacityUsedPercentage);
 
-    Long masterUnderfsCapacityTotal =
-        (Long) mr.getGauges().get("master.UnderFsCapacityTotal").getValue();
-    Long masterUnderfsCapacityUsed =
-        (Long) mr.getGauges().get("master.UnderFsCapacityUsed").getValue();
+    Long masterUnderfsCapacityTotal = (Long) mr.getGauges().get(
+        CommonUtils.argsToString(".", masterSource.getName(), MasterSource.UNDER_FS_CAPACITY_TOTAL))
+        .getValue();
+    Long masterUnderfsCapacityUsed = (Long) mr.getGauges().get(
+        CommonUtils.argsToString(".", masterSource.getName(), MasterSource.UNDER_FS_CAPACITY_USED))
+        .getValue();
 
     int masterUnderfsCapacityUsedPercentage =
         (int) (100L * masterUnderfsCapacityUsed / masterUnderfsCapacityTotal);
@@ -100,23 +113,25 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("masterUnderfsCapacityFreePercentage",
         100 - masterUnderfsCapacityUsedPercentage);
 
-    Map<String,Counter> counters = mr.getCounters(new MetricFilter() {
+    Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
       @Override
       public boolean matches(String name, Metric metric) {
         return !(name.endsWith("Ops"));
       }
     });
 
-    Map<String,Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
+    Map<String, Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
       @Override
       public boolean matches(String name, Metric metric) {
         return name.endsWith("Ops");
       }
     });
 
-    Map<String,Metric> operations = new TreeMap<String, Metric>();
+    Map<String, Metric> operations = new TreeMap<String, Metric>();
     operations.putAll(counters);
-    operations.put("master.FilesPinned", mr.getGauges().get("master.FilesPinned"));
+    String filesPinnedProperty =
+        CommonUtils.argsToString(".", masterSource.getName(), MasterSource.FILES_PINNED);
+    operations.put(filesPinnedProperty, mr.getGauges().get(filesPinnedProperty));
 
     populateCountersValues(operations, rpcInvocations, request);
   }
