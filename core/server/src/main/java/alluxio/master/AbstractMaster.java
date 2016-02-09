@@ -43,7 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * or journal writing when the master is the leader.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
-public abstract class MasterBase implements Master {
+public abstract class AbstractMaster implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final long SHUTDOWN_TIMEOUT_MS = 10000;
@@ -69,7 +69,7 @@ public abstract class MasterBase implements Master {
    * @param journal the journal to use for tracking master operations
    * @param numThreads the number of threads to use in the Master's {@link ExecutorService}
    */
-  protected MasterBase(Journal journal, int numThreads) {
+  protected AbstractMaster(Journal journal, int numThreads) {
     mJournal = Preconditions.checkNotNull(journal);
     mNumThreads = numThreads;
   }
