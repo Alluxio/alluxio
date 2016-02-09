@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The base class for master clients.
  */
 @ThreadSafe
-public abstract class MasterClientBase extends ClientBase {
+public abstract class MasterClientBase extends AbstractClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**

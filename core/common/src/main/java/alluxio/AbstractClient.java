@@ -44,7 +44,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The base class for clients.
  */
 @ThreadSafe
-public abstract class ClientBase implements Closeable {
+public abstract class AbstractClient implements Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The number of times to retry a particular RPC. */
@@ -77,7 +77,7 @@ public abstract class ClientBase implements Closeable {
    * @param configuration the Alluxio configuration
    * @param mode the mode of the client for display
    */
-  public ClientBase(InetSocketAddress address, Configuration configuration, String mode) {
+  public AbstractClient(InetSocketAddress address, Configuration configuration, String mode) {
     mConfiguration = Preconditions.checkNotNull(configuration);
     mAddress = Preconditions.checkNotNull(address);
     mMode = mode;
