@@ -111,7 +111,7 @@ leverage the Scala shell, as discussed in this
     [Google Java style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html),
     with the following changes or deviations:
     -  Maximum line length of **100** characters.
-    -  Imported packages should be in [this order](resources/order.importorder), then in
+    -  Imported packages should be in [this order](../resources/order.importorder), then in
     **alphabetical order** in each group.
     -  `i ++` instead of `i++`
     -  `i + j` instead of `i+j`
@@ -125,7 +125,7 @@ leverage the Scala shell, as discussed in this
     -  Do not add `public` or `abstract` modifier to methods defined in an Java interface because
        method declaration in the body of an interface is implicitly public and abstract.
        (http://docs.oracle.com/javase/specs/jls/se7/html/jls-9.html#jls-9.4)
--   You can download our [Eclipse formatter](resources/alluxio-code-formatter-eclipse.xml)
+-   You can download our [Eclipse formatter](../resources/alluxio-code-formatter-eclipse.xml)
     -  If you use IntelliJ IDEA:
        - You can either use our formatter with the help from
          [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
@@ -133,7 +133,7 @@ leverage the Scala shell, as discussed in this
          IntelliJ IDEA.
        - To automatically format the **import**, configure in
          Preferences->Code Style->Java->Imports->Import Layout according to
-         [this order](resources/order.importorder)
+         [this order](../resources/order.importorder)
        - To automatically reorder methods alphabetically, try the
          [Rearranger Plugin](http://plugins.jetbrains.com/plugin/173), open Preferences, search for
          rearranger, remove the unnecessary comments, then right click, choose "Rearrange", codes
