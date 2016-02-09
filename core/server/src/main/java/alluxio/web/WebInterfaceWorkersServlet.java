@@ -20,6 +20,7 @@ import alluxio.Constants;
 import alluxio.master.block.BlockMaster;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
+import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Objects;
 
@@ -181,7 +182,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    */
   public WebInterfaceWorkersServlet(BlockMaster blockMaster) {
     mBlockMaster = blockMaster;
-    mConfiguration = new Configuration();
+    mConfiguration = WorkerContext.getConf();
   }
 
   /**
@@ -223,7 +224,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    request.setAttribute("debug", Constants.DEBUG);
+    request.setAttribute("debug", mConfiguration.getBoolean(Constants.DEBUG));
 
     List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
     NodeInfo[] normalNodeInfos = generateOrderedNodeInfos(workerInfos);
