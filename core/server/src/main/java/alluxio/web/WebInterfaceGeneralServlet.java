@@ -20,6 +20,7 @@ import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.Version;
 import alluxio.master.AlluxioMaster;
+import alluxio.master.MasterContext;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.FormatUtils;
 
@@ -105,6 +106,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   private static final long serialVersionUID = 2335205655766736309L;
 
   private final transient AlluxioMaster mMaster;
+  private final transient Configuration mConfiguration;
 
   /**
    * Creates a new instance of {@link WebInterfaceGeneralServlet}.
@@ -113,6 +115,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    */
   public WebInterfaceGeneralServlet(AlluxioMaster master) {
     mMaster = master;
+    mConfiguration = MasterContext.getConf();
   }
 
   /**
@@ -169,7 +172,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    request.setAttribute("debug", Constants.DEBUG);
+    request.setAttribute("debug", mConfiguration.getBoolean(Constants.DEBUG));
 
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
 
