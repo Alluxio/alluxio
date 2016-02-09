@@ -47,14 +47,14 @@
       <artifactId>alluxio-core-client-internal</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
-      <scope>test</scope>
+      <!--<scope>test</scope>-->
     </dependency>
     <dependency>
       <groupId>org.alluxio.alluxio</groupId>
       <artifactId>alluxio-core-server</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
-      <scope>test</scope>
+      <!--<scope>test</scope>-->
     </dependency>
   </dependencies>
 </project>
