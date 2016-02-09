@@ -18,10 +18,10 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
+import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
 import alluxio.client.ClientUtils;
-import alluxio.client.AbstractOutStream;
 import alluxio.client.UnderStorageType;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.file.options.CompleteFileOptions;
@@ -38,12 +38,12 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
@@ -211,7 +211,7 @@ public class FileOutStream extends AbstractOutStream {
       mUnderStorageOutputStream.write(b);
       ClientContext.getClientMetrics().incBytesWrittenUfs(1);
     }
-    mBytesWritten++;
+    mBytesWritten ++;
   }
 
   @Override
@@ -265,8 +265,8 @@ public class FileOutStream extends AbstractOutStream {
 
     if (mAlluxioStorageType.isStore()) {
       try {
-        WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
-            mContext.getAluxioBlockStore().getWorkerInfoList(), mBlockSize);
+        WorkerNetAddress address = mLocationPolicy
+            .getWorkerForNextBlock(mContext.getAluxioBlockStore().getWorkerInfoList(), mBlockSize);
         mCurrentBlockOutStream =
             mContext.getAluxioBlockStore().getOutStream(getNextBlockId(), mBlockSize, address);
         mShouldCacheCurrentBlock = true;
