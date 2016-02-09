@@ -48,13 +48,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class AlluxioShell implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final HashMap<String, String[]> CMD_ALIAS = new HashMap<String, String[]>() { {
+  private static final HashMap<String, String[]> CMD_ALIAS = new HashMap<String, String[]>() {
+    {
       put("chgrpr", new String[] {"chgrp", "-R"});
       put("chmodr", new String[] {"chmod", "-R"});
       put("chownr", new String[] {"chown", "-R"});
-      put("lsr",    new String[] {"ls",    "-R"});
-      put("rmr",    new String[] {"rm",    "-R"});
-    } };
+      put("lsr", new String[] {"ls", "-R"});
+      put("rmr", new String[] {"rm", "-R"});
+    }
+  };
 
   /**
    * Main method, starts a new AlluxioShell.
