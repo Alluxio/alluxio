@@ -15,10 +15,10 @@ Tachyon除了提供[Filesystem API](File-System-API.html) 让应用程序来读�
 就像Tachyon文件系统中的文件一样，键值存储的语义是write-once。
 
 * 用户可以创建一个键值存储并且把键值对放入其中。键值对放入存储后是不可变的。 
-* 键值对放入键值存储后，用户可以打开并使用该键值存储。？
+* 键值存储完整保存后，用户可以打开并使用该键值存储。
 
 单个键值存储可以用TachyonURI来表示路径，比如`tachyon://path/my-kvstore`.
-取决于用户指定的总容量和数据块大小，单个键值存储可能有一个以上的分区，分区是Tachyon内部来管理，对用户透明。
+取决于总容量和用户指定的数据块大小，单个键值存储可能有一个以上的分区，分区是由Tachyon内部来管理，对用户透明。
 
 # 通过Java应用程序来访问键值存储
 
@@ -47,9 +47,9 @@ writer.close();
 需要注意的是, 
 
 * 在writer关闭之前，该键值存储是不完整的并且不可用;
-* 在某些情况下，该键值存储的空间会大于一个分区的最大容许容量。在这种情况下，writer会把键值对卸乳多个分区，
+* 在某些情况下，该键值存储的空间会大于一个分区的最大容许容量。在这种情况下，writer会把键值对存于多个分区，
 分区的切换对于用户是透明的。
-* 写入的键应该是排了序的并且没有重复的键。
+* 写入的键应该是排了序的并且没有重复的键值。
 
 ## 从存储中读取值
 
@@ -105,3 +105,28 @@ conf.setOutputFormat(KeyValueOutputFormat.class);
 conf.setOutputCommitter(KeyValueOutputCommitter.class);
 FileOutputFormat.setOutputPath(conf, new Path("tachyon://output-store"));
 ```
+
+# 键值存储配置参数
+
+Tachyon默认配置是禁用键值存储的，可以通过配置`tachyon.keyvalue.enabled`为true来启用 (see 
+[configuration parameters](Configuration-Settings.html))
+
+以下是键值存储的配置参数：
+
+<table class="table table-striped">
+<tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
+<tr>
+  <td>tachyon.keyvalue.enabled</td>
+  <td>false</td>
+  <td>
+  Whether the keyvalue interface is enabled.
+  </td>
+</tr>
+<tr>
+  <td>tachyon.keyvalue.partition.size.bytes.max</td>
+  <td>512MB
+  <td>
+  Maximum size of each partition.
+  </td>
+</tr>
+</table>
