@@ -213,7 +213,7 @@ public final class ReplayCacheTest {
 
     @Override
     public Long call() throws AlluxioException {
-      return ++ mCount;
+      return ++mCount;
     }
   }
 
@@ -225,7 +225,7 @@ public final class ReplayCacheTest {
 
     @Override
     public Long call() throws AlluxioException, IOException {
-      return ++ mCount;
+      return ++mCount;
     }
   }
 

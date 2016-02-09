@@ -85,7 +85,7 @@ public class JournalShutdownIntegrationTest {
           }
           // The create operation may succeed at the master side but still returns false due to the
           // shutdown. So the mSuccessNum may be less than the actual success number.
-          mSuccessNum ++;
+          mSuccessNum++;
           CommonUtils.sleepMs(100);
         }
       } catch (Exception e) {
@@ -127,7 +127,7 @@ public class JournalShutdownIntegrationTest {
 
     int actualFiles = fsMaster.getFileInfoList(new AlluxioURI(TEST_FILE_DIR)).size();
     Assert.assertTrue((successFiles == actualFiles) || (successFiles + 1 == actualFiles));
-    for (int f = 0; f < successFiles; f ++) {
+    for (int f = 0; f < successFiles; f++) {
       Assert.assertTrue(
           fsMaster.getFileId(new AlluxioURI(TEST_FILE_DIR + f)) != IdUtils.INVALID_FILE_ID);
     }
@@ -177,7 +177,7 @@ public class JournalShutdownIntegrationTest {
   public void multiMasterJournalCrashIntegrationTest() throws Exception {
     LocalAlluxioClusterMultiMaster cluster = setupMultiMasterCluster();
     // Kill the leader one by one.
-    for (int kills = 0; kills < TEST_NUM_MASTERS; kills ++) {
+    for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
       CommonUtils.sleepMs(TEST_TIME_MS);
       Assert.assertTrue(cluster.killLeader());
     }

@@ -59,7 +59,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
 
   private boolean readFile(FileSystem fs) throws IOException, AlluxioException {
     boolean pass = true;
-    for (int i = 0; i < mNumFiles; i ++) {
+    for (int i = 0; i < mNumFiles; i++) {
       AlluxioURI filePath = new AlluxioURI(mFileFolder + "/part-" + i);
       LOG.debug("Reading data from {}", filePath);
       FileInStream is = fs.openFile(filePath);
@@ -67,7 +67,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
       ByteBuffer buf = ByteBuffer.allocate((int) status.getBlockSizeBytes());
       is.read(buf.array());
       buf.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < mNumFiles; k ++) {
+      for (int k = 0; k < mNumFiles; k++) {
         pass = pass && (buf.getInt() == k);
       }
       is.close();
@@ -76,10 +76,10 @@ public class BasicCheckpoint implements Callable<Boolean> {
   }
 
   private void writeFile(FileSystem fs) throws IOException, AlluxioException {
-    for (int i = 0; i < mNumFiles; i ++) {
+    for (int i = 0; i < mNumFiles; i++) {
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < mNumFiles; k ++) {
+      for (int k = 0; k < mNumFiles; k++) {
         buf.putInt(k);
       }
       buf.flip();

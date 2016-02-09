@@ -177,7 +177,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     // try {
     // return mFileSystem.create(new Path(path), true, 4096, replication, blockSizeBytes);
     // } catch (IOException e) {
-    // cnt ++;
+    // cnt++;
     // LOG.error("{} : {}", cnt, e.getMessage(), e);
     // te = e;
     // continue;
@@ -317,7 +317,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       int i = 0;
       for (FileStatus status : files) {
         // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i ++] =  status.getPath().getName();
+        rtn[i++] =  status.getPath().getName();
       }
       return rtn;
     } else {

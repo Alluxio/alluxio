@@ -47,7 +47,7 @@ public abstract class StorageTierAssoc {
   protected StorageTierAssoc(Configuration conf, String levelsProperty, String aliasFormat) {
     int levels = conf.getInt(levelsProperty);
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<String, Integer>();
-    for (int i = 0; i < levels; i ++) {
+    for (int i = 0; i < levels; i++) {
       String alias = conf.get(String.format(aliasFormat, i));
       builder.put(alias, i);
     }
@@ -62,7 +62,7 @@ public abstract class StorageTierAssoc {
    */
   protected StorageTierAssoc(List<String> storageTierAliases) {
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<String, Integer>();
-    for (int ordinal = 0; ordinal < storageTierAliases.size(); ordinal ++) {
+    for (int ordinal = 0; ordinal < storageTierAliases.size(); ordinal++) {
       builder.put(storageTierAliases.get(ordinal), ordinal);
     }
     mAliasToOrdinal = builder.build();
@@ -97,7 +97,7 @@ public abstract class StorageTierAssoc {
   public List<String> getOrderedStorageAliases() {
     int size = size();
     List<String> ret = new ArrayList<String>(size);
-    for (int i = 0; i < size; i ++) {
+    for (int i = 0; i < size; i++) {
       ret.add(getAlias(i));
     }
     return ret;

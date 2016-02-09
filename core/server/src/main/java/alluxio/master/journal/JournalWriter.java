@@ -98,7 +98,7 @@ public final class JournalWriter {
     mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
     String logFilename = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
     while (mUfs.exists(logFilename)) {
-      mNextCompleteLogNumber ++;
+      mNextCompleteLogNumber++;
       // generate the next completed log filename in the sequence.
       logFilename = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
     }
@@ -192,7 +192,7 @@ public final class JournalWriter {
     while (mUfs.exists(logFilename)) {
       LOG.info("Deleting completed log: {}", logFilename);
       mUfs.delete(logFilename, true);
-      logNumber ++;
+      logNumber++;
       // generate the next completed log filename in the sequence.
       logFilename = mJournal.getCompletedLogFilePath(logNumber);
     }
@@ -223,7 +223,7 @@ public final class JournalWriter {
     mUfs.rename(currentLog, completedLog);
     LOG.info("Completed current log: {} to completed log: {}", currentLog, completedLog);
 
-    mNextCompleteLogNumber ++;
+    mNextCompleteLogNumber++;
   }
 
   /**
@@ -257,7 +257,7 @@ public final class JournalWriter {
         throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
       mJournal.getJournalFormatter().serialize(
-          entry.toBuilder().setSequenceNumber(mNextEntrySequenceNumber ++).build(), mOutputStream);
+          entry.toBuilder().setSequenceNumber(mNextEntrySequenceNumber++).build(), mOutputStream);
     }
 
     /**
@@ -335,7 +335,7 @@ public final class JournalWriter {
         throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
       mJournal.getJournalFormatter().serialize(
-          entry.toBuilder().setSequenceNumber(mNextEntrySequenceNumber ++).build(),
+          entry.toBuilder().setSequenceNumber(mNextEntrySequenceNumber++).build(),
           mDataOutputStream);
     }
 

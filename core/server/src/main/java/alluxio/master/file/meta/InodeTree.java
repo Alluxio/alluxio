@@ -282,7 +282,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
 
     // Fill in the directories that were missing.
-    for (int k = pathIndex; k < parentPath.length; k ++) {
+    for (int k = pathIndex; k < parentPath.length; k++) {
       Inode dir =
           new InodeDirectory.Builder().setName(pathComponents[k])
               .setId(mDirectoryIdGenerator.getNewDirectoryId())
@@ -597,7 +597,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     inodes.add(current);
 
     // iterate from 1, because 0 is root and it's already added
-    for (int i = 1; i < pathComponents.length; i ++) {
+    for (int i = 1; i < pathComponents.length; i++) {
       Inode next = ((InodeDirectory) current).getChild(pathComponents[i]);
       if (next == null) {
         // The user might want to create the nonexistent directories, so return the traversal result

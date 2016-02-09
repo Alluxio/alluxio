@@ -482,7 +482,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
         ObjectListing listing = mOssClient.listObjects(listObjectsRequest);
         List<OSSObjectSummary> objectSummaryList = listing.getObjectSummaries();
         String[] ret = new String[objectSummaryList.size()];
-        for (int i = 0; i < objectSummaryList.size(); i ++) {
+        for (int i = 0; i < objectSummaryList.size(); i++) {
           // Remove parent portion of the key
           String child = getChildName(objectSummaryList.get(i).getKey(), path);
           // Prune the special folder suffix

@@ -65,7 +65,7 @@ public class PartialLRUEvictorTest extends EvictorTestBase {
     long delta = smallestCapacity / 10;
     int nDir = bottomTierDirCapacity.length;
     // free space of StorageDir increases with Dir index
-    for (int i = 0; i < nDir; i ++) {
+    for (int i = 0; i < nDir; i++) {
       cache(SESSION_ID, BLOCK_ID + i, bottomTierDirCapacity[i] - i * delta, bottomTierLevel, i);
     }
 
@@ -97,7 +97,7 @@ public class PartialLRUEvictorTest extends EvictorTestBase {
     long smallestCapacity = firstTierDirCapacity[0];
     long delta = smallestCapacity / 10;
     int nDir = firstTierDirCapacity.length;
-    for (int i = 0; i < nDir; i ++) {
+    for (int i = 0; i < nDir; i++) {
       cache(SESSION_ID, BLOCK_ID + i, firstTierDirCapacity[i] - delta * i, firstTierOrdinal, i);
     }
     BlockStoreLocation anyDirInFirstTier =
@@ -133,9 +133,9 @@ public class PartialLRUEvictorTest extends EvictorTestBase {
 
     for (int tierLevel : TieredBlockStoreTestUtils.TIER_ORDINAL) {
       long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[tierLevel];
-      for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx ++) {
+      for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx++) {
         cache(SESSION_ID, blockId, tierCapacity[dirIdx] - dirIdx * delta, tierLevel, dirIdx);
-        blockId ++;
+        blockId++;
       }
     }
 

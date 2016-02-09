@@ -62,7 +62,7 @@ public final class KeyValuePartitionIntegrationTest {
    */
   private List<KeyValuePair> genKeyValuePairs(int length) {
     List<KeyValuePair> pairs = Lists.newArrayListWithExpectedSize(length);
-    for (int i = 0; i < length; i ++) {
+    for (int i = 0; i < length; i++) {
       String key = String.format("%s_%d", BASE_KEY, i);
       String value = String.format("%s_%d", BASE_VALUE, i);
       pairs.add(new KeyValuePair(key.getBytes(), value.getBytes()));
@@ -119,9 +119,9 @@ public final class KeyValuePartitionIntegrationTest {
   public void sizeTest() throws Exception {
     byte[][] keys = new byte[][]{KEY1, KEY2};
     byte[][] values = new byte[][]{VALUE1, VALUE2};
-    for (int size = 0; size <= 2; size ++) {
+    for (int size = 0; size <= 2; size++) {
       mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri);
-      for (int i = 0; i < size; i ++) {
+      for (int i = 0; i < size; i++) {
         mKeyValuePartitionWriter.put(keys[i], values[i]);
       }
       mKeyValuePartitionWriter.close();

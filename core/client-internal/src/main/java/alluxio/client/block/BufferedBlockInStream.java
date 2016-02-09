@@ -91,7 +91,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     if (!mBufferIsValid || mBuffer.remaining() == 0) {
       updateBuffer();
     }
-    mPos ++;
+    mPos++;
     mBlockIsRead = true;
     return BufferUtils.byteToInt(mBuffer.get());
   }

@@ -60,7 +60,7 @@ public final class ByteIOUtilsTest {
     long[] values = new long[] {0, 1, 2, 0x7f, 0xff, 0xffff, 0xffffff, 0xffffffff};
     for (long i : values) {
       int v = (int) i;
-      for (int pos = 0; pos < 4; pos ++) {
+      for (int pos = 0; pos < 4; pos++) {
         ByteIOUtils.writeInt(mBuf, pos, v);
         Assert.assertEquals(v, ByteIOUtils.readInt(mBuf, pos));
       }
@@ -76,7 +76,7 @@ public final class ByteIOUtilsTest {
         new long[] {0, 1, 2, 0x7f, 0xff, 0xffff, 0xffffff, 0xffffffff, 0xffffffffffL,
             0xffffffffffffL, 0xffffffffffffffL, 0xffffffffffffffffL};
     for (long v : values) {
-      for (int pos = 0; pos < 8; pos ++) {
+      for (int pos = 0; pos < 8; pos++) {
         ByteIOUtils.writeLong(mBuf, 0, v);
         Assert.assertEquals(v, ByteIOUtils.readLong(mBuf, 0));
       }

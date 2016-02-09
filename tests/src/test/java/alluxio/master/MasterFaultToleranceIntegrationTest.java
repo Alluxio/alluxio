@@ -81,7 +81,7 @@ public class MasterFaultToleranceIntegrationTest {
     answer
         .add(new Pair<Long, AlluxioURI>(mFileSystem.getStatus(folderName).getFileId(), folderName));
 
-    for (int k = 0; k < 10; k ++) {
+    for (int k = 0; k < 10; k++) {
       AlluxioURI path =
           new AlluxioURI(PathUtils.concatPath(folderName, folderName.toString().substring(1) + k));
       mFileSystem.createFile(path).close();
@@ -100,7 +100,7 @@ public class MasterFaultToleranceIntegrationTest {
     List<String> files = FileSystemTestUtils.listFiles(mFileSystem, AlluxioURI.SEPARATOR);
     Collections.sort(files);
     Assert.assertEquals(answer.size(), files.size());
-    for (int k = 0; k < answer.size(); k ++) {
+    for (int k = 0; k < answer.size(); k++) {
       Assert.assertEquals(answer.get(k).getSecond().toString(),
           mFileSystem.getStatus(answer.get(k).getSecond()).getPath());
       Assert.assertEquals(answer.get(k).getFirst().longValue(),
@@ -112,12 +112,12 @@ public class MasterFaultToleranceIntegrationTest {
   public void createFileFaultTest() throws Exception {
     int clients = 10;
     List<Pair<Long, AlluxioURI>> answer = Lists.newArrayList();
-    for (int k = 0; k < clients; k ++) {
+    for (int k = 0; k < clients; k++) {
       faultTestDataCreation(new AlluxioURI("/data" + k), answer);
     }
     faultTestDataCheck(answer);
 
-    for (int kills = 0; kills < MASTERS - 1; kills ++) {
+    for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mLocalAlluxioClusterMultiMaster.killLeader());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
       faultTestDataCheck(answer);
@@ -129,7 +129,7 @@ public class MasterFaultToleranceIntegrationTest {
   public void deleteFileFaultTest() throws Exception {
     // Kill leader -> create files -> kill leader -> delete files, repeat.
     List<Pair<Long, AlluxioURI>> answer = Lists.newArrayList();
-    for (int kills = 0; kills < MASTERS - 1; kills ++) {
+    for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mLocalAlluxioClusterMultiMaster.killLeader());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
 
@@ -164,13 +164,13 @@ public class MasterFaultToleranceIntegrationTest {
     int clients = 10;
     CreateFileOptions option =
         CreateFileOptions.defaults().setBlockSizeBytes(1024).setWriteType(WriteType.THROUGH);
-    for (int k = 0; k < clients; k ++) {
+    for (int k = 0; k < clients; k++) {
       mFileSystem.createFile(new AlluxioURI(AlluxioURI.SEPARATOR + k), option).close();
     }
     List<String> files = FileSystemTestUtils.listFiles(mFileSystem, AlluxioURI.SEPARATOR);
     Assert.assertEquals(clients, files.size());
     Collections.sort(files);
-    for (int k = 0; k < clients; k ++) {
+    for (int k = 0; k < clients; k++) {
       Assert.assertEquals(AlluxioURI.SEPARATOR + k, files.get(k));
     }
   }
@@ -184,12 +184,12 @@ public class MasterFaultToleranceIntegrationTest {
     Assert.assertNotEquals(-1, leaderIndex);
 
     List<Pair<Long, AlluxioURI>> answer = Lists.newArrayList();
-    for (int k = 0; k < 5; k ++) {
+    for (int k = 0; k < 5; k++) {
       faultTestDataCreation(new AlluxioURI("/data" + k), answer);
     }
     faultTestDataCheck(answer);
 
-    for (int kills = 0; kills < MASTERS - 1; kills ++) {
+    for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mLocalAlluxioClusterMultiMaster.killStandby());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
 

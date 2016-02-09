@@ -113,7 +113,7 @@ public class FileOutStreamTest {
 
           @Override
           public Long answer(InvocationOnMock invocation) throws Throwable {
-            return mCount ++;
+            return mCount++;
           }
         });
 
@@ -183,7 +183,7 @@ public class FileOutStreamTest {
   @Test
   public void manyBytesWriteTest() throws IOException {
     int bytesToWrite = (int) ((BLOCK_LENGTH * 5) + (BLOCK_LENGTH / 2));
-    for (int i = 0; i < bytesToWrite; i ++) {
+    for (int i = 0; i < bytesToWrite; i++) {
       mTestStream.write(i);
     }
     verifyIncreasingBytesWritten(bytesToWrite);
@@ -227,7 +227,7 @@ public class FileOutStreamTest {
         .thenReturn(true);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
-    for (long streamIndex = 0; streamIndex < 2; streamIndex ++) {
+    for (long streamIndex = 0; streamIndex < 2; streamIndex++) {
       Assert.assertFalse(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
       Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
     }
@@ -246,7 +246,7 @@ public class FileOutStreamTest {
   public void cancelTest() throws Exception {
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.cancel();
-    for (long streamIndex = 0; streamIndex < 2; streamIndex ++) {
+    for (long streamIndex = 0; streamIndex < 2; streamIndex++) {
       Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
       Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
     }
@@ -466,7 +466,7 @@ public class FileOutStreamTest {
    */
   private void verifyIncreasingBytesWritten(int start, int len) {
     long filledStreams = len / BLOCK_LENGTH;
-    for (long streamIndex = 0; streamIndex < filledStreams; streamIndex ++) {
+    for (long streamIndex = 0; streamIndex < filledStreams; streamIndex++) {
       Assert.assertTrue("stream " + streamIndex + " was never written",
           mAlluxioOutStreamMap.containsKey(streamIndex));
       Assert.assertArrayEquals(BufferUtils

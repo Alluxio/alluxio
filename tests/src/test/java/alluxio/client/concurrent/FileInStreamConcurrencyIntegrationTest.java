@@ -67,7 +67,7 @@ public final class FileInStreamConcurrencyIntegrationTest {
     FileSystemTestUtils.createByteFile(sFileSystem, uniqPath, BLOCK_SIZE * 2, sWriteAlluxio);
 
     List<Thread> threads = Lists.newArrayList();
-    for (int i = 0; i < READ_THREADS_NUM; i ++) {
+    for (int i = 0; i < READ_THREADS_NUM; i++) {
       threads.add(new Thread(new FileRead(new AlluxioURI(uniqPath))));
     }
 

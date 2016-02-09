@@ -33,7 +33,7 @@ public class StorageTierAssocTest {
 
     List<String> expectedOrderedAliases = new ArrayList<String>();
 
-    for (int i = 0; i < size; i ++) {
+    for (int i = 0; i < size; i++) {
       String alias = conf.get(String.format(aliasFormat, i));
       Assert.assertEquals(i, assoc.getOrdinal(alias));
       Assert.assertEquals(alias, assoc.getAlias(i));
@@ -77,7 +77,7 @@ public class StorageTierAssocTest {
 
     Assert.assertEquals(orderedAliases.size(), masterAssoc.size());
     Assert.assertEquals(orderedAliases.size(), workerAssoc.size());
-    for (int i = 0; i < orderedAliases.size(); i ++) {
+    for (int i = 0; i < orderedAliases.size(); i++) {
       String alias = orderedAliases.get(i);
       Assert.assertEquals(alias, masterAssoc.getAlias(i));
       Assert.assertEquals(i, masterAssoc.getOrdinal(alias));

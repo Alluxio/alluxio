@@ -292,7 +292,7 @@ public abstract class ClientBase implements Closeable {
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws IOException,
       ConnectionFailedException {
     int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+    while (!mClosed && (retry++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return rpc.call();
@@ -321,7 +321,7 @@ public abstract class ClientBase implements Closeable {
   protected synchronized <V> V retryRPC(RpcCallableThrowsAlluxioTException<V> rpc)
       throws AlluxioException, IOException {
     int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+    while (!mClosed && (retry++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return rpc.call();

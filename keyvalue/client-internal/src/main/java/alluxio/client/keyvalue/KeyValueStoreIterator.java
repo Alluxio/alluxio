@@ -69,7 +69,7 @@ public final class KeyValueStoreIterator implements KeyValueIterator {
     KeyValuePair ret = mPartitionIterator.next();
     if (!mPartitionIterator.hasNext()) {
       // Current partition has all been iterated, move to next partition.
-      mPartitionIndex ++;
+      mPartitionIndex++;
       if (mPartitionIndex < mPartitions.size()) {
         long blockId = mPartitions.get(mPartitionIndex).getBlockId();
         KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId);

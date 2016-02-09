@@ -43,7 +43,7 @@ public final class FileSystemContextTest {
 
     // Acquire all the clients
     for (int i = 0; i < ClientContext.getConf()
-        .getInt(Constants.USER_FILE_MASTER_CLIENT_THREADS); i ++) {
+        .getInt(Constants.USER_FILE_MASTER_CLIENT_THREADS); i++) {
       clients.add(FileSystemContext.INSTANCE.acquireMasterClient());
     }
     Thread acquireThread = new Thread(new AcquireClient());

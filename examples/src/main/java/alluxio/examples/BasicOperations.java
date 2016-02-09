@@ -77,7 +77,7 @@ public class BasicOperations implements Callable<Boolean> {
     throws IOException, AlluxioException {
     ByteBuffer buf = ByteBuffer.allocate(mNumbers * 4);
     buf.order(ByteOrder.nativeOrder());
-    for (int k = 0; k < mNumbers; k ++) {
+    for (int k = 0; k < mNumbers; k++) {
       buf.putInt(k);
     }
     LOG.debug("Writing data...");
@@ -98,7 +98,7 @@ public class BasicOperations implements Callable<Boolean> {
     ByteBuffer buf = ByteBuffer.allocate((int) is.remaining());
     is.read(buf.array());
     buf.order(ByteOrder.nativeOrder());
-    for (int k = 0; k < mNumbers; k ++) {
+    for (int k = 0; k < mNumbers; k++) {
       pass = pass && (buf.getInt() == k);
     }
     is.close();

@@ -105,7 +105,7 @@ public class FileSystemMasterIntegrationTest {
         ExecutorService executor = Executors.newCachedThreadPool();
         try {
           ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
-          for (int i = 0; i < FILES_PER_NODE; i ++) {
+          for (int i = 0; i < FILES_PER_NODE; i++) {
             Callable<Void> call = (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
                 path.join(Integer.toString(i))));
             futures.add(executor.submit(call));
@@ -117,7 +117,7 @@ public class FileSystemMasterIntegrationTest {
           executor.shutdown();
         }
       } else {
-        for (int i = 0; i < FILES_PER_NODE; i ++) {
+        for (int i = 0; i < FILES_PER_NODE; i++) {
           exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
         }
       }
@@ -158,7 +158,7 @@ public class FileSystemMasterIntegrationTest {
           ExecutorService executor = Executors.newCachedThreadPool();
           try {
             ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
-            for (int i = 0; i < FILES_PER_NODE; i ++) {
+            for (int i = 0; i < FILES_PER_NODE; i++) {
               Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
                   path.join(Integer.toString(i))));
               futures.add(executor.submit(call));
@@ -170,7 +170,7 @@ public class FileSystemMasterIntegrationTest {
             executor.shutdown();
           }
         } else {
-          for (int i = 0; i < FILES_PER_NODE; i ++) {
+          for (int i = 0; i < FILES_PER_NODE; i++) {
             exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
           }
         }
@@ -230,7 +230,7 @@ public class FileSystemMasterIntegrationTest {
         ExecutorService executor = Executors.newCachedThreadPool();
         try {
           ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
-          for (int i = 0; i < FILES_PER_NODE; i ++) {
+          for (int i = 0; i < FILES_PER_NODE; i++) {
             Callable<Void> call = (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, mRootPath,
                 mRootPath2, path.join(Integer.toString(i))));
             futures.add(executor.submit(call));
@@ -242,7 +242,7 @@ public class FileSystemMasterIntegrationTest {
           executor.shutdown();
         }
       } else {
-        for (int i = 0; i < FILES_PER_NODE; i ++) {
+        for (int i = 0; i < FILES_PER_NODE; i++) {
           exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
         }
       }
@@ -337,7 +337,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void concurrentCreateJournalTest() throws Exception {
     // Makes sure the file id's are the same between a master info and the journal it creates
-    for (int i = 0; i < 5; i ++) {
+    for (int i = 0; i < 5; i++) {
       ConcurrentCreator concurrentCreator =
           new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
       concurrentCreator.call();
@@ -425,14 +425,14 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void createFilePerfTest() throws Exception {
-    for (int k = 0; k < 200; k ++) {
+    for (int k = 0; k < 200; k++) {
       CreateDirectoryOptions options =
           new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
       mFsMaster.mkdir(
           new AlluxioURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0"),
           options);
     }
-    for (int k = 0; k < 200; k ++) {
+    for (int k = 0; k < 200; k++) {
       mFsMaster.getFileInfo(mFsMaster.getFileId(
           new AlluxioURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0")));
     }
@@ -606,11 +606,11 @@ public class FileSystemMasterIntegrationTest {
 
     HashSet<Long> ids = new HashSet<Long>();
     HashSet<Long> dirIds = new HashSet<Long>();
-    for (int i = 0; i < 10; i ++) {
+    for (int i = 0; i < 10; i++) {
       AlluxioURI dir = new AlluxioURI("/i" + i);
       mFsMaster.mkdir(dir, CreateDirectoryOptions.defaults());
       dirIds.add(mFsMaster.getFileId(dir));
-      for (int j = 0; j < 10; j ++) {
+      for (int j = 0; j < 10; j++) {
         ids.add(mFsMaster.create(dir.join("j" + j), options));
       }
     }
@@ -633,16 +633,16 @@ public class FileSystemMasterIntegrationTest {
     CreateFileOptions options =
         new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(64).build();
 
-    for (int i = 0; i < 10; i ++) {
+    for (int i = 0; i < 10; i++) {
       mFsMaster.mkdir(new AlluxioURI("/i" + i), CreateDirectoryOptions.defaults());
-      for (int j = 0; j < 10; j ++) {
+      for (int j = 0; j < 10; j++) {
         mFsMaster.create(new AlluxioURI("/i" + i + "/j" + j), options);
       }
     }
 
     Assert.assertEquals(1,
         mFsMaster.getFileInfoList(new AlluxioURI("/i0/j0")).size());
-    for (int i = 0; i < 10; i ++) {
+    for (int i = 0; i < 10; i++) {
       Assert.assertEquals(10,
           mFsMaster.getFileInfoList(new AlluxioURI("/i" + i)).size());
     }

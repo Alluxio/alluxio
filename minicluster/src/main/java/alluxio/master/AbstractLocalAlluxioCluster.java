@@ -232,7 +232,7 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // Creates storage dirs for worker
     int numLevel = conf.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
-    for (int level = 0; level < numLevel; level ++) {
+    for (int level = 0; level < numLevel; level++) {
       String tierLevelDirPath =
           String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = conf.get(tierLevelDirPath).split(",");
@@ -386,7 +386,7 @@ public abstract class AbstractLocalAlluxioCluster {
         Long.toString(mWorkerCapacityBytes));
 
     int numLevel = testConf.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
-    for (int level = 1; level < numLevel; level ++) {
+    for (int level = 1; level < numLevel; level++) {
       String tierLevelDirPath =
           String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = testConf.get(tierLevelDirPath).split(",");

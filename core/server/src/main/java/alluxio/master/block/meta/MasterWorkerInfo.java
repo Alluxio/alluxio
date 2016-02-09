@@ -105,7 +105,7 @@ public final class MasterWorkerInfo {
       final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
     // If the storage aliases do not have strictly increasing ordinal value based on the total
     // ordering, throw an error
-    for (int i = 0; i < storageTierAliases.size() - 1; i ++) {
+    for (int i = 0; i < storageTierAliases.size() - 1; i++) {
       if (globalStorageTierAssoc.getOrdinal(storageTierAliases.get(i)) >= globalStorageTierAssoc
           .getOrdinal(storageTierAliases.get(i + 1))) {
         throw new IllegalArgumentException(

@@ -124,7 +124,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
     checkAndAdvanceBlockInStream();
     int data = mCurrentBlockInStream.read();
-    mPos ++;
+    mPos++;
     if (mShouldCacheCurrentBlock) {
       try {
         mCurrentCacheStream.write(data);

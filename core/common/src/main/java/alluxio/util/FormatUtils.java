@@ -42,7 +42,7 @@ public final class FormatUtils {
   public static String parametersToString(Object... objs) {
     StringBuilder sb = new StringBuilder("(");
     if (objs != null) {
-      for (int k = 0; k < objs.length; k ++) {
+      for (int k = 0; k < objs.length; k++) {
         if (k != 0) {
           sb.append(", ");
         }
@@ -66,7 +66,7 @@ public final class FormatUtils {
    */
   public static String byteBufferToString(ByteBuffer buf) {
     StringBuilder sb = new StringBuilder();
-    for (int k = 0; k < buf.limit() / 4; k ++) {
+    for (int k = 0; k < buf.limit() / 4; k++) {
       if (k != 0) {
         sb.append(" ");
       }
@@ -84,7 +84,7 @@ public final class FormatUtils {
    */
   public static String byteArrayToHexString(byte[] bytes) {
     StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < bytes.length; i ++) {
+    for (int i = 0; i < bytes.length; i++) {
       sb.append(String.format("0x%02X", bytes[i]));
       if (i != bytes.length - 1) {
         sb.append(" ");

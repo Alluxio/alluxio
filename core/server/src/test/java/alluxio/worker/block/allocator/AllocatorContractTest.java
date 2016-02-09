@@ -98,25 +98,25 @@ public class AllocatorContractTest extends BaseAllocatorTest {
       conf.set(Constants.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
       Allocator tierAllocator = Allocator.Factory.create(conf, getManagerView());
-      for (int i = 0; i < DEFAULT_RAM_NUM; i ++) {
+      for (int i = 0; i < DEFAULT_RAM_NUM; i++) {
         assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE - 1, true);
       }
-      for (int i = 0; i < DEFAULT_SSD_NUM; i ++) {
+      for (int i = 0; i < DEFAULT_SSD_NUM; i++) {
         assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc2, DEFAULT_SSD_SIZE - 1, true);
       }
-      for (int i = 0; i < DEFAULT_HDD_NUM; i ++) {
+      for (int i = 0; i < DEFAULT_HDD_NUM; i++) {
         assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc3, DEFAULT_HDD_SIZE - 1, true);
       }
 
       resetManagerView();
       Allocator anyAllocator = Allocator.Factory.create(conf, getManagerView());
-      for (int i = 0; i < DEFAULT_RAM_NUM; i ++) {
+      for (int i = 0; i < DEFAULT_RAM_NUM; i++) {
         assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_RAM_SIZE - 1, true);
       }
-      for (int i = 0; i < DEFAULT_SSD_NUM; i ++) {
+      for (int i = 0; i < DEFAULT_SSD_NUM; i++) {
         assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_SSD_SIZE - 1, true);
       }
-      for (int i = 0; i < DEFAULT_HDD_NUM; i ++) {
+      for (int i = 0; i < DEFAULT_HDD_NUM; i++) {
         assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_HDD_SIZE - 1, true);
       }
     }
