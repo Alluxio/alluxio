@@ -117,7 +117,7 @@ Key-Value support in Tachyon is disabled by default, and it can be enabled in Ta
 `tachyon.keyvalue.enabled` to true (see
 [configuration parameters](Configuration-Settings.html))
 
-These are the configuration parameters for tiered storage.
+These are the configuration parameters for Key-Value support.
 
 <table class="table table-striped">
 <tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
@@ -125,7 +125,7 @@ These are the configuration parameters for tiered storage.
   <td>tachyon.keyvalue.enabled</td>
   <td>false</td>
   <td>
-  Whether the keyvalue interface is enabled.
+  Whether the key-value interface is enabled.
   </td>
 </tr>
 <tr>
