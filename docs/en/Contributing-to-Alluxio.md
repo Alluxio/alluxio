@@ -113,6 +113,7 @@ leverage the Scala shell, as discussed in this
     -  Maximum line length of **100** characters.
     -  `i ++` instead of `i++`
     -  `i + j` instead of `i+j`
+    -  Third-party imports are grouped together to make IDE formatting much simpler.
     -  Class and member modifiers, when present, appear in the order recommended by the Java
     Language Specification: **public protected private abstract static final transient volatile
     synchronized native strictfp**, then as **alphabetical order**.
