@@ -834,7 +834,7 @@ public final class FileSystemMaster extends MasterBase {
 
     // We go through each inode, removing it from it's parent set and from mDelInodes. If it's a
     // file, we deal with the checkpoints and blocks as well.
-    for (int i = delInodes.size() - 1; i >= 0; i --) {
+    for (int i = delInodes.size() - 1; i >= 0; i--) {
       Inode delInode = delInodes.get(i);
 
       // TODO(jiri): What should the Alluxio behavior be when a UFS delete operation fails?

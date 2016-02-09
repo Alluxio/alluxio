@@ -178,7 +178,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean exists(String path) throws IOException {
     String newPath = stripPrefixIfPresent(path);
-    return isObjectExists(newPath) ;
+    return isObjectExists(newPath);
   }
 
   /**
