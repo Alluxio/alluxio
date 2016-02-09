@@ -261,7 +261,7 @@ public class AlluxioFramework {
         case TASK_LOST: // intend to fall through
         case TASK_ERROR:
           if (status.getTaskId().getValue().equals(String.valueOf(mMasterTaskId))) {
-            mMasterCount --;
+            mMasterCount--;
           }
           break;
         case TASK_RUNNING:

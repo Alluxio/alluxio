@@ -67,14 +67,14 @@ public class LRUEvictorTest extends EvictorTestBase {
     long[] bottomTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[bottomTierOrdinal];
     int nDir = bottomTierDirCapacity.length;
     // fill in dirs from larger to smaller capacity with blockId equal to BLOCK_ID plus dir index
-    for (int i = nDir - 1; i >= 0; i --) {
+    for (int i = nDir - 1; i >= 0; i--) {
       cache(SESSION_ID, BLOCK_ID + i, bottomTierDirCapacity[i], bottomTierOrdinal, i);
     }
     BlockStoreLocation anyDirInBottomTier =
         BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[bottomTierOrdinal]);
     // request smallest capacity and update access time on the evicted block for nDir times, the dir
     // to evict blocks from should be in the same order as caching
-    for (int i = nDir - 1; i >= 0; i --) {
+    for (int i = nDir - 1; i >= 0; i--) {
       EvictionPlan plan =
           mEvictor.freeSpaceWithView(bottomTierDirCapacity[0], anyDirInBottomTier, mManagerView);
       Assert.assertNotNull(plan);
