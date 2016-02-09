@@ -27,7 +27,12 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 
+import com.google.common.base.Preconditions;
+
+import tachyon.util.CommonUtils;
 import tachyon.worker.TachyonWorker;
+import tachyon.worker.WorkerContext;
+import tachyon.worker.WorkerSource;
 
 /**
  * Servlet that provides data for viewing the worker metrics values
@@ -44,7 +49,7 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
    */
   public WebInterfaceWorkerMetricsServlet(TachyonWorker worker) {
     super();
-    mWorker = worker;
+    mWorker = Preconditions.checkNotNull(worker);
   }
 
   /**
@@ -78,31 +83,39 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
   private void populateValues(HttpServletRequest request) throws IOException {
     MetricRegistry mr = mWorker.getWorkerMetricsSystem().getMetricRegistry();
 
-    Long workerCapacityTotal = (Long) mr.getGauges().get("worker.CapacityTotal").getValue();
-    Long workerCapacityUsed = (Long) mr.getGauges().get("worker.CapacityUsed").getValue();
+    WorkerSource workerSource = WorkerContext.getWorkerSource();
+
+    Long workerCapacityTotal = (Long) mr.getGauges()
+        .get(CommonUtils.argsToString(".", workerSource.getName(), WorkerSource.CAPACITY_TOTAL))
+        .getValue();
+    Long workerCapacityUsed = (Long) mr.getGauges()
+        .get(CommonUtils.argsToString(".", workerSource.getName(), WorkerSource.CAPACITY_USED))
+        .getValue();
 
     int workerCapacityUsedPercentage = (int) (100L * workerCapacityUsed / workerCapacityTotal);
     request.setAttribute("workerCapacityUsedPercentage", workerCapacityUsedPercentage);
     request.setAttribute("workerCapacityFreePercentage", 100 - workerCapacityUsedPercentage);
 
-    Map<String,Counter> counters = mr.getCounters(new MetricFilter() {
+    Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
       @Override
       public boolean matches(String name, Metric metric) {
         return !(name.endsWith("Ops"));
       }
     });
 
-    Map<String,Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
+    Map<String, Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
       @Override
       public boolean matches(String name, Metric metric) {
         return name.endsWith("Ops");
       }
     });
 
-    Map<String,Metric> operations = new TreeMap<String, Metric>();
+    Map<String, Metric> operations = new TreeMap<String, Metric>();
     operations.putAll(counters);
-    operations.put("worker.BlocksCached", mr.getGauges().get("worker.BlocksCached"));
+    String blockCachedProperty =
+        CommonUtils.argsToString(".", workerSource.getName(), WorkerSource.BLOCKS_CACHED);
+    operations.put(blockCachedProperty, mr.getGauges().get(blockCachedProperty));
 
-    populateCountersValues(operations,rpcInvocations, request);
+    populateCountersValues(operations, rpcInvocations, request);
   }
 }
