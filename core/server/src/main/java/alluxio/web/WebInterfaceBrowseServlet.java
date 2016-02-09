@@ -306,7 +306,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     AlluxioURI currentPath = new AlluxioURI(AlluxioURI.SEPARATOR);
     long fileId = mMaster.getFileSystemMaster().getFileId(currentPath);
     pathInfos[0] = new UIFileInfo(mMaster.getFileSystemMaster().getFileInfo(fileId));
-    for (int i = 1; i < splitPath.length - 1; i ++) {
+    for (int i = 1; i < splitPath.length - 1; i++) {
       currentPath = currentPath.join(splitPath[i]);
       fileId = mMaster.getFileSystemMaster().getFileId(currentPath);
       pathInfos[i] = new UIFileInfo(mMaster.getFileSystemMaster().getFileInfo(fileId));

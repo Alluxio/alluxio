@@ -324,7 +324,7 @@ public class DFSIOIntegrationTest implements Tool {
 
       fs.delete(controlDir, true);
 
-      for (int i = 0; i < nrFiles; i ++) {
+      for (int i = 0; i < nrFiles; i++) {
         String name = getFileName(i);
         Path controlFile = new Path(controlDir, "in_file_" + name);
         SequenceFile.Writer writer = null;
@@ -419,7 +419,7 @@ public class DFSIOIntegrationTest implements Tool {
   public static class WriteMapper extends IOStatMapper {
 
     public WriteMapper() {
-      for (int i = 0; i < mBufferSize; i ++) {
+      for (int i = 0; i < mBufferSize; i++) {
         mBuffer[i] = (byte) ('0' + i % 50);
       }
     }
@@ -483,7 +483,7 @@ public class DFSIOIntegrationTest implements Tool {
   public static class AppendMapper extends IOStatMapper {
 
     public AppendMapper() {
-      for (int i = 0; i < mBufferSize; i ++) {
+      for (int i = 0; i < mBufferSize; i++) {
         mBuffer[i] = (byte) ('0' + i % 50);
       }
     }
@@ -669,7 +669,7 @@ public class DFSIOIntegrationTest implements Tool {
       default:
         return;
     }
-    for (int i = 0; i < nrFiles; i ++) {
+    for (int i = 0; i < nrFiles; i++) {
       ioer.doIO(Reporter.NULL, BASE_FILE_NAME + Integer.toString(i), fileSize);
     }
     ioer.close();
@@ -710,7 +710,7 @@ public class DFSIOIntegrationTest implements Tool {
       return -1;
     }
 
-    for (int i = 0; i < args.length; i ++) { // parse command line
+    for (int i = 0; i < args.length; i++) { // parse command line
       if (args[i].startsWith("-read")) {
         testType = TestType.TEST_TYPE_READ;
       } else if (args[i].equals("-write")) {

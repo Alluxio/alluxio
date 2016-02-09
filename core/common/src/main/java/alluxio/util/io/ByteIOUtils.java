@@ -73,8 +73,8 @@ public final class ByteIOUtils {
    */
   public static int readInt(byte[] buf, int pos) {
     checkBoundary(buf, pos, 4);
-    return (((buf[pos ++] & 0xff) << 24) | ((buf[pos ++] & 0xff) << 16)
-        | ((buf[pos ++] & 0xff) << 8) | (buf[pos] & 0xff));
+    return (((buf[pos++] & 0xff) << 24) | ((buf[pos++] & 0xff) << 16)
+        | ((buf[pos++] & 0xff) << 8) | (buf[pos] & 0xff));
   }
 
   /**
@@ -98,10 +98,10 @@ public final class ByteIOUtils {
    */
   public static long readLong(byte[] buf, int pos) {
     checkBoundary(buf, pos, 8);
-    return (((long) (buf[pos ++] & 0xff) << 56) | ((long) (buf[pos ++] & 0xff) << 48)
-        | ((long) (buf[pos ++] & 0xff) << 40) | ((long) (buf[pos ++] & 0xff) << 32)
-        | ((long) (buf[pos ++] & 0xff) << 24) | ((long) (buf[pos ++] & 0xff) << 16)
-        | ((long) (buf[pos ++] & 0xff) << 8) | ((long) (buf[pos] & 0xff)));
+    return (((long) (buf[pos++] & 0xff) << 56) | ((long) (buf[pos++] & 0xff) << 48)
+        | ((long) (buf[pos++] & 0xff) << 40) | ((long) (buf[pos++] & 0xff) << 32)
+        | ((long) (buf[pos++] & 0xff) << 24) | ((long) (buf[pos++] & 0xff) << 16)
+        | ((long) (buf[pos++] & 0xff) << 8) | ((long) (buf[pos] & 0xff)));
   }
 
   /**
@@ -149,7 +149,7 @@ public final class ByteIOUtils {
    */
   public static void writeShort(byte[] buf, int pos, short v) {
     checkBoundary(buf, pos, 2);
-    buf[pos ++] = (byte) (0xff & (v >> 8));
+    buf[pos++] = (byte) (0xff & (v >> 8));
     buf[pos] = (byte) (0xff & v);
   }
 
@@ -175,9 +175,9 @@ public final class ByteIOUtils {
    */
   public static void writeInt(byte[] buf, int pos, int v) {
     checkBoundary(buf, pos, 4);
-    buf[pos ++] = (byte) (0xff & (v >> 24));
-    buf[pos ++] = (byte) (0xff & (v >> 16));
-    buf[pos ++] = (byte) (0xff & (v >> 8));
+    buf[pos++] = (byte) (0xff & (v >> 24));
+    buf[pos++] = (byte) (0xff & (v >> 16));
+    buf[pos++] = (byte) (0xff & (v >> 8));
     buf[pos] = (byte) (0xff & v);
   }
 
@@ -189,9 +189,9 @@ public final class ByteIOUtils {
    * @param v int value to write
    */
   public static void writeInt(ByteBuffer buf, int pos, int v) {
-    buf.put(pos ++, (byte) (0xff & (v >> 24)));
-    buf.put(pos ++, (byte) (0xff & (v >> 16)));
-    buf.put(pos ++, (byte) (0xff & (v >> 8)));
+    buf.put(pos++, (byte) (0xff & (v >> 24)));
+    buf.put(pos++, (byte) (0xff & (v >> 16)));
+    buf.put(pos++, (byte) (0xff & (v >> 8)));
     buf.put(pos, (byte) (0xff & v));
   }
 
@@ -219,13 +219,13 @@ public final class ByteIOUtils {
    */
   public static void writeLong(byte[] buf, int pos, long v) {
     checkBoundary(buf, pos, 8);
-    buf[pos ++] = (byte) (0xff & (v >> 56));
-    buf[pos ++] = (byte) (0xff & (v >> 48));
-    buf[pos ++] = (byte) (0xff & (v >> 40));
-    buf[pos ++] = (byte) (0xff & (v >> 32));
-    buf[pos ++] = (byte) (0xff & (v >> 24));
-    buf[pos ++] = (byte) (0xff & (v >> 16));
-    buf[pos ++] = (byte) (0xff & (v >> 8));
+    buf[pos++] = (byte) (0xff & (v >> 56));
+    buf[pos++] = (byte) (0xff & (v >> 48));
+    buf[pos++] = (byte) (0xff & (v >> 40));
+    buf[pos++] = (byte) (0xff & (v >> 32));
+    buf[pos++] = (byte) (0xff & (v >> 24));
+    buf[pos++] = (byte) (0xff & (v >> 16));
+    buf[pos++] = (byte) (0xff & (v >> 8));
     buf[pos] = (byte) (0xff & v);
   }
 

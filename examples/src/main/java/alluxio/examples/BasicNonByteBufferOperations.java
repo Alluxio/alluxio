@@ -88,7 +88,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     DataOutputStream os = new DataOutputStream(fileOutStream);
     try {
       os.writeInt(mLength);
-      for (int i = 0; i < mLength; i ++) {
+      for (int i = 0; i < mLength; i++) {
         os.writeInt(i);
       }
     } finally {
@@ -117,7 +117,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options));
     try {
       int length = input.readInt();
-      for (int i = 0; i < length; i ++) {
+      for (int i = 0; i < length; i++) {
         if (input.readInt() != i) {
           return false;
         }

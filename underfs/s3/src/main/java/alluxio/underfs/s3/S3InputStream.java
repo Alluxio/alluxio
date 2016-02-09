@@ -76,7 +76,7 @@ public class S3InputStream extends InputStream {
   public int read() throws IOException {
     int ret = mInputStream.read();
     if (ret != -1) {
-      mPos ++;
+      mPos++;
     }
     return ret;
   }

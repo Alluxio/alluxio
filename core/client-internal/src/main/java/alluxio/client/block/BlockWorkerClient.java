@@ -304,7 +304,7 @@ public final class BlockWorkerClient extends ClientBase {
   @Override
   public synchronized void connect() throws IOException {
     int tries = 0;
-    while (tries ++ <= CONNECTION_RETRY_TIMES) {
+    while (tries++ <= CONNECTION_RETRY_TIMES) {
       connectOperation();
       if (isConnected()) {
         return;

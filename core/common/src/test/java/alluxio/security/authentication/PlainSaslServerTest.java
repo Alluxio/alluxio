@@ -65,11 +65,11 @@ public class PlainSaslServerTest{
     byte[] pw = password.getBytes("UTF8");
     byte[] result = new byte[pw.length + auth.length + 2];
     int pos = 0;
-    result[pos ++] = sSEPARATOR;
+    result[pos++] = sSEPARATOR;
     System.arraycopy(auth, 0, result, pos, auth.length);
 
     pos += auth.length;
-    result[pos ++] = sSEPARATOR;
+    result[pos++] = sSEPARATOR;
 
     System.arraycopy(pw, 0, result, pos, pw.length);
     return result;

@@ -121,15 +121,15 @@ public final class LinearProbingIndex implements Index {
     int bucketIndex = indexHash(key);
     int pos = bucketIndex * BUCKET_SIZE_BYTES;
     // Linear probing until the next empty bucket (fingerprint is 0) is found
-    for (int probe = 0; probe < MAX_PROBES; probe ++) {
+    for (int probe = 0; probe < MAX_PROBES; probe++) {
       byte fingerprint = ByteIOUtils.readByte(mHashTableBuf, pos);
       if (fingerprint == 0) {
         // bucket is empty
         // Pack key and value into a byte array payload
         final int offset = writer.insert(key, value);
-        ByteIOUtils.writeByte(mHashTableBuf, pos ++, fingerprintHash(key));
+        ByteIOUtils.writeByte(mHashTableBuf, pos++, fingerprintHash(key));
         ByteIOUtils.writeInt(mHashTableBuf, pos, offset);
-        mKeyCount ++;
+        mKeyCount++;
         return true;
       }
       bucketIndex = (bucketIndex + 1) % mNumBuckets;
@@ -157,7 +157,7 @@ public final class LinearProbingIndex implements Index {
     byte fingerprint = fingerprintHash(key);
     int bucketOffset = bucketIndex * BUCKET_SIZE_BYTES;
     // Linear probing until a bucket having the same key is found.
-    for (int probe = 0; probe < MAX_PROBES; probe ++) {
+    for (int probe = 0; probe < MAX_PROBES; probe++) {
       if (fingerprint == ByteIOUtils.readByte(mHashTableBuf, bucketOffset)) {
         int offset = ByteIOUtils.readInt(mHashTableBuf, bucketOffset + 1);
         ByteBuffer keyStored = reader.getKey(offset);
@@ -262,7 +262,7 @@ public final class LinearProbingIndex implements Index {
             int offset = ByteIOUtils.readInt(mHashTableBuf, mOffset + 1);
             ByteBuffer key = reader.getKey(offset);
             mOffset += BUCKET_SIZE_BYTES;
-            mKeyIndex ++;
+            mKeyIndex++;
             return key;
           }
           mOffset += BUCKET_SIZE_BYTES;

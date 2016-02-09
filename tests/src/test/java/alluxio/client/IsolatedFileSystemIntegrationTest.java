@@ -68,11 +68,11 @@ public class IsolatedFileSystemIntegrationTest {
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<AlluxioURI>();
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
       files.add(new AlluxioURI(uniqPath + k));
     }
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 0; k < numOfFiles; k++) {
       Assert.assertTrue(mFileSystem.getStatus(files.get(k)).getInMemoryPercentage() == 100);
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
@@ -81,7 +81,7 @@ public class IsolatedFileSystemIntegrationTest {
     CommonUtils.sleepMs(mWorkerToMasterHeartbeatIntervalMs);
 
     Assert.assertFalse(mFileSystem.getStatus(files.get(0)).getInMemoryPercentage() == 100);
-    for (int k = 1; k <= numOfFiles; k ++) {
+    for (int k = 1; k <= numOfFiles; k++) {
       Assert.assertTrue(mFileSystem.getStatus(files.get(k)).getInMemoryPercentage() == 100);
     }
   }
@@ -94,11 +94,11 @@ public class IsolatedFileSystemIntegrationTest {
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<AlluxioURI>();
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
       files.add(new AlluxioURI(uniqPath + k));
     }
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 0; k < numOfFiles; k++) {
       URIStatus info = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       is = mFileSystem.openFile(files.get(k), FileSystemTestUtils.toOpenFileOptions(mWriteBoth));
@@ -109,7 +109,7 @@ public class IsolatedFileSystemIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
 
-    for (int k = 1; k < numOfFiles; k ++) {
+    for (int k = 1; k < numOfFiles; k++) {
       URIStatus info = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
@@ -127,11 +127,11 @@ public class IsolatedFileSystemIntegrationTest {
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<AlluxioURI>();
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
       files.add(new AlluxioURI(uniqPath + k));
     }
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 0; k < numOfFiles; k++) {
       URIStatus info = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       is = mFileSystem.openFile(files.get(k), FileSystemTestUtils.toOpenFileOptions(mWriteBoth));
@@ -148,7 +148,7 @@ public class IsolatedFileSystemIntegrationTest {
     CommonUtils.sleepMs(getSleepMs());
     URIStatus info = mFileSystem.getStatus(files.get(0));
     Assert.assertFalse(info.getInMemoryPercentage() == 100);
-    for (int k = 1; k <= numOfFiles; k ++) {
+    for (int k = 1; k <= numOfFiles; k++) {
       info = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
@@ -162,11 +162,11 @@ public class IsolatedFileSystemIntegrationTest {
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<AlluxioURI>();
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
       files.add(new AlluxioURI(uniqPath + k));
     }
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 0; k < numOfFiles; k++) {
       URIStatus info = mFileSystem.getStatus(files.get(k));
       is = mFileSystem.openFile(files.get(k), FileSystemTestUtils.toOpenFileOptions(mWriteBoth));
       buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
@@ -180,7 +180,7 @@ public class IsolatedFileSystemIntegrationTest {
     CommonUtils.sleepMs(getSleepMs());
     URIStatus info = mFileSystem.getStatus(files.get(0));
     Assert.assertFalse(info.getInMemoryPercentage() == 100);
-    for (int k = 1; k <= numOfFiles; k ++) {
+    for (int k = 1; k <= numOfFiles; k++) {
       URIStatus in = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(in.getInMemoryPercentage() == 100);
     }
@@ -194,11 +194,11 @@ public class IsolatedFileSystemIntegrationTest {
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<AlluxioURI>();
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
       files.add(new AlluxioURI(uniqPath + k));
     }
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 0; k < numOfFiles; k++) {
       URIStatus info = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       is = mFileSystem.openFile(files.get(k), FileSystemTestUtils.toOpenFileOptions(mWriteBoth));
@@ -211,7 +211,7 @@ public class IsolatedFileSystemIntegrationTest {
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
-    for (int k = 1; k < numOfFiles; k ++) {
+    for (int k = 1; k < numOfFiles; k++) {
       URIStatus info = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
@@ -230,11 +230,11 @@ public class IsolatedFileSystemIntegrationTest {
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<AlluxioURI>();
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
       files.add(new AlluxioURI(uniqPath + k));
     }
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 0; k < numOfFiles; k++) {
       URIStatus info = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       is = mFileSystem.openFile(files.get(k), FileSystemTestUtils.toOpenFileOptions(mWriteBoth));
@@ -251,7 +251,7 @@ public class IsolatedFileSystemIntegrationTest {
     CommonUtils.sleepMs(getSleepMs());
     URIStatus info = mFileSystem.getStatus(files.get(0));
     Assert.assertFalse(info.getInMemoryPercentage() == 100);
-    for (int k = 1; k <= numOfFiles; k ++) {
+    for (int k = 1; k <= numOfFiles; k++) {
       URIStatus in = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(in.getInMemoryPercentage() == 100);
     }

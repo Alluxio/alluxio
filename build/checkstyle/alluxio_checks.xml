@@ -65,6 +65,7 @@
     <property name="message" value="Extra newline"/>
   </module>
 
+  <!-- All Java AST specific tests live under TreeWalker module. -->
   <module name="TreeWalker">
     <!-- Checks that a class which has only private constructors is declared as final. -->
     <module name="FinalClass"/>
@@ -234,6 +235,20 @@
     </module>
     <!-- Checks that Javadoc is properly formatted -->
     <module name="JavadocStyle"/>
+
+    <!-- Checks that there is no whitespace before various unary operators.-->
+    <module name="NoWhitespaceBefore">
+      <!--<property name="tokens" value="SEMI, DOT, POST_DEC, POST_INC"/>-->
+      <property name="tokens" value="POST_INC"/>
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Checks that there is no whitespace after various unary operators. -->
+    <module name="NoWhitespaceAfter">
+      <!--<property name="tokens" value="BNOT, DEC, DOT, INC, LNOT, UNARY_MINUS, UNARY_PLUS"/>-->
+      <property name="tokens" value="INC, UNARY_PLUS"/>
+      <property name="severity" value="error"/>
+    </module>
   </module>
 
   <!-- always use Unix-style line separators -->

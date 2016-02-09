@@ -44,7 +44,7 @@ public abstract class SleepingRetry implements RetryPolicy {
     if (mMaxRetries > mCount) {
       try {
         getSleepUnit().sleep(getSleepTime());
-        mCount ++;
+        mCount++;
         return true;
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();

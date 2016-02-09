@@ -104,7 +104,7 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
     Preconditions.checkArgument(value.length > 0, "Cannot put an empty value");
     Preconditions.checkState(!mClosed);
     mIndex.put(key, value, mPayloadWriter);
-    mKeyCount ++;
+    mKeyCount++;
   }
 
   @Override

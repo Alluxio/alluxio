@@ -173,7 +173,7 @@ public final class BufferUtils {
    */
   public static byte[] getIncreasingByteArray(int start, int len) {
     byte[] ret = new byte[len];
-    for (int k = 0; k < len; k ++) {
+    for (int k = 0; k < len; k++) {
       ret[k] = (byte) (k + start);
     }
     return ret;
@@ -206,7 +206,7 @@ public final class BufferUtils {
     if (arr == null || arr.length != len) {
       return false;
     }
-    for (int k = 0; k < len; k ++) {
+    for (int k = 0; k < len; k++) {
       if (arr[k] != (byte) (start + k)) {
         return false;
       }
@@ -254,7 +254,7 @@ public final class BufferUtils {
     if (buf.remaining() != len) {
       return false;
     }
-    for (int k = 0; k < len; k ++) {
+    for (int k = 0; k < len; k++) {
       if (buf.get() != (byte) (start + k)) {
         return false;
       }
@@ -282,7 +282,7 @@ public final class BufferUtils {
    */
   public static ByteBuffer getIncreasingIntBuffer(int start, int len) {
     ByteBuffer ret = ByteBuffer.allocate(len * 4);
-    for (int k = 0; k < len; k ++) {
+    for (int k = 0; k < len; k++) {
       ret.putInt(start + k);
     }
     ret.flip();

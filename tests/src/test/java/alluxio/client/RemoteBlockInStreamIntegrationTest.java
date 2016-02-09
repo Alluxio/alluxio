@@ -131,7 +131,7 @@ public class RemoteBlockInStreamIntegrationTest {
       while (value != -1) {
         Assert.assertTrue(value >= 0);
         Assert.assertTrue(value < 256);
-        ret[cnt ++] = (byte) value;
+        ret[cnt++] = (byte) value;
         value = is.read();
       }
       Assert.assertEquals(cnt, k);
@@ -150,7 +150,7 @@ public class RemoteBlockInStreamIntegrationTest {
       while (value != -1) {
         Assert.assertTrue(value >= 0);
         Assert.assertTrue(value < 256);
-        ret[cnt ++] = (byte) value;
+        ret[cnt++] = (byte) value;
         value = is.read();
       }
       Assert.assertEquals(cnt, k);
@@ -165,7 +165,7 @@ public class RemoteBlockInStreamIntegrationTest {
       while (value != -1) {
         Assert.assertTrue(value >= 0);
         Assert.assertTrue(value < 256);
-        ret[cnt ++] = (byte) value;
+        ret[cnt++] = (byte) value;
         value = is.read();
       }
       Assert.assertEquals(cnt, k);
@@ -271,7 +271,7 @@ public class RemoteBlockInStreamIntegrationTest {
       while (value != -1) {
         Assert.assertTrue(value >= 0);
         Assert.assertTrue(value < 256);
-        ret[cnt ++] = (byte) value;
+        ret[cnt++] = (byte) value;
         value = is.read();
       }
       Assert.assertEquals(cnt, k);
@@ -473,7 +473,7 @@ public class RemoteBlockInStreamIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, len);
 
     FileInStream is = mFileSystem.openFile(uri, mReadCache);
-    for (int i = 0; i < len; ++ i) {
+    for (int i = 0; i < len; ++i) {
       Assert.assertEquals(i, is.read());
     }
     is.close();
@@ -508,15 +508,15 @@ public class RemoteBlockInStreamIntegrationTest {
     int numBlocks = 10;
     AlluxioURI uri = new AlluxioURI(uniqPath);
     FileOutStream os = mFileSystem.createFile(uri, mWriteUnderStore);
-    for (int i = 0; i < numBlocks; i ++) {
-      for (int j = 0; j < blockSizeByte; j ++) {
+    for (int i = 0; i < numBlocks; i++) {
+      for (int j = 0; j < blockSizeByte; j++) {
         os.write((byte) (i * blockSizeByte + j));
       }
     }
     os.close();
 
     FileInStream is = mFileSystem.openFile(uri, mReadCache);
-    for (int i = 0; i < blockSizeByte * numBlocks; i ++) {
+    for (int i = 0; i < blockSizeByte * numBlocks; i++) {
       Assert.assertEquals((byte) i, is.read());
     }
     is.close();

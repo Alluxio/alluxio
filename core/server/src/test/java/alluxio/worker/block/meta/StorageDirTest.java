@@ -120,7 +120,7 @@ public final class StorageDirTest {
 
     int nBlock = 10;
     long availableBytes = TEST_DIR_CAPACITY;
-    for (int blockId = 0; blockId < nBlock; blockId ++) {
+    for (int blockId = 0; blockId < nBlock; blockId++) {
       int blockSizeBytes = blockId + 1;
       newBlockFile(testDir, String.valueOf(blockId), blockSizeBytes);
       availableBytes -= blockSizeBytes;
@@ -129,7 +129,7 @@ public final class StorageDirTest {
     mDir = newStorageDir(testDir);
     Assert.assertEquals(TEST_DIR_CAPACITY, mDir.getCapacityBytes());
     Assert.assertEquals(availableBytes, mDir.getAvailableBytes());
-    for (int blockId = 0; blockId < nBlock; blockId ++) {
+    for (int blockId = 0; blockId < nBlock; blockId++) {
       Assert.assertTrue(mDir.hasBlockMeta(blockId));
     }
   }

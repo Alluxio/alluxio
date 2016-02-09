@@ -42,8 +42,8 @@ public class PairTest {
     mObjs[4] = BOOL_TYPE;
     mObjs[5] = CHAR_TYPE;
 
-    for (int j = 0; j < mObjs.length - 1; j ++) {
-      for (int k = j + 1; k < mObjs.length; k ++) {
+    for (int j = 0; j < mObjs.length - 1; j++) {
+      for (int k = j + 1; k < mObjs.length; k++) {
         Pair<Object, Object> tPair = new Pair<Object, Object>(mObjs[j], mObjs[k]);
         Assert.assertEquals(mObjs[j], tPair.getFirst());
         Assert.assertEquals(mObjs[k], tPair.getSecond());

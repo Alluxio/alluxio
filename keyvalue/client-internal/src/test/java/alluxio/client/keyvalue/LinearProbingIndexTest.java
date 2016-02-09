@@ -65,7 +65,7 @@ public class LinearProbingIndexTest {
     int testKeys = 100;
     byte[][] keys = new byte[testKeys][];
     byte[][] values = new byte[testKeys][];
-    for (int i = 0; i < testKeys; i ++) {
+    for (int i = 0; i < testKeys; i++) {
       keys[i] = String.format("test-key:%d", i).getBytes();
       values[i] = String.format("test-val:%d", i).getBytes();
     }
@@ -73,7 +73,7 @@ public class LinearProbingIndexTest {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
 
     // Insert this batch of key-value pairs
-    for (int i = 0; i < testKeys; i ++) {
+    for (int i = 0; i < testKeys; i++) {
       Assert.assertTrue(index.put(keys[i], values[i], mPayloadWriter));
       Assert.assertEquals(i + 1, index.keyCount());
     }
@@ -82,7 +82,7 @@ public class LinearProbingIndexTest {
     // Read all keys back, expect same value as inserted
     BasePayloadReader payloadReader =
         new BasePayloadReader(ByteBuffer.wrap(mOutStream.toByteArray()));
-    for (int i = 0; i < testKeys; i ++) {
+    for (int i = 0; i < testKeys; i++) {
       ByteBuffer value = index.get(ByteBuffer.wrap(keys[i]), payloadReader);
       Assert.assertEquals(ByteBuffer.wrap(values[i]), value);
     }

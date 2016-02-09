@@ -289,7 +289,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       // TODO(andrew): Handle the case where something goes wrong and some worker containers never
       // get allocated. See TACHYON-1410
       mOutstandingWorkerContainerRequestsLatch.await();
-      round ++;
+      round++;
     }
     if (mWorkerHosts.size() < mNumWorkers) {
       LOG.error(
@@ -355,7 +355,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
           ExceptionMessage.YARN_NOT_ENOUGH_HOSTS.getMessage(neededWorkers, hosts.length));
     }
     // Make container requests for workers to ResourceManager
-    for (int i = currentNumWorkers; i < mNumWorkers; i ++) {
+    for (int i = currentNumWorkers; i < mNumWorkers; i++) {
       // TODO(andrew): Consider partitioning the available hosts among the worker requests
       ContainerRequest containerAsk = new ContainerRequest(workerResource, hosts,
           null /* any racks */, WORKER_PRIORITY, relaxLocality);

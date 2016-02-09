@@ -140,7 +140,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
         PayloadReader payloadReader = reader.getPayloadReader();
 
         List<ByteBuffer> ret = Lists.newArrayListWithExpectedSize(numKeys);
-        for (int i = 0; i < numKeys; i ++) {
+        for (int i = 0; i < numKeys; i++) {
           ByteBuffer nextKey = index.nextKey(currentKey, payloadReader);
           if (nextKey == null) {
             break;

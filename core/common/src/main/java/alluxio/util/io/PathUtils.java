@@ -146,7 +146,7 @@ public final class PathUtils {
     if (pathComponents.length < prefixComponents.length) {
       return false;
     }
-    for (int i = 0; i < prefixComponents.length; i ++) {
+    for (int i = 0; i < prefixComponents.length; i++) {
       if (!pathComponents[i].equals(prefixComponents[i])) {
         return false;
       }

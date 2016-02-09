@@ -53,7 +53,7 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
       mContainerId = mContainerIdGenerator.getNewContainerId();
       mSequenceNumber = 0;
     } else {
-      mSequenceNumber ++;
+      mSequenceNumber++;
     }
     return directoryId;
   }

@@ -209,7 +209,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     NodeInfo[] ret = new NodeInfo[workerInfos.size()];
     int index = 0;
     for (WorkerInfo workerInfo : workerInfos) {
-      ret[index ++] = new NodeInfo(workerInfo);
+      ret[index++] = new NodeInfo(workerInfo);
     }
     Arrays.sort(ret);
 

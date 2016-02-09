@@ -148,7 +148,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     Map<String, Long> totalBytesOnTiers = mMaster.getBlockMaster().getTotalBytesOnTiers();
     Map<String, Long> usedBytesOnTiers = mMaster.getBlockMaster().getUsedBytesOnTiers();
 
-    for (int ordinal = 0; ordinal < globalStorageTierAssoc.size(); ordinal ++) {
+    for (int ordinal = 0; ordinal < globalStorageTierAssoc.size(); ordinal++) {
       String tierAlias = globalStorageTierAssoc.getAlias(ordinal);
       if (totalBytesOnTiers.containsKey(tierAlias) && totalBytesOnTiers.get(tierAlias) > 0) {
         StorageTierInfo info =
