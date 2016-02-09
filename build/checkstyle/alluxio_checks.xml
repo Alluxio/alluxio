@@ -236,11 +236,17 @@
     <!-- Checks that Javadoc is properly formatted -->
     <module name="JavadocStyle"/>
 
-    <!-- Checks that there is no whitespace after various unary operators. Linebreaks are allowed. -->
+    <!-- Checks that there is no whitespace before various unary operators.-->
+    <module name="NoWhitespaceBefore">
+      <!--<property name="tokens" value="SEMI, DOT, POST_DEC, POST_INC"/>-->
+      <property name="tokens" value="POST_INC"/>
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Checks that there is no whitespace after various unary operators. -->
     <module name="NoWhitespaceAfter">
       <!--<property name="tokens" value="BNOT, DEC, DOT, INC, LNOT, UNARY_MINUS, UNARY_PLUS"/>-->
       <property name="tokens" value="INC, UNARY_PLUS"/>
-      <property name="allowLineBreaks" value="true"/>
       <property name="severity" value="error"/>
     </module>
   </module>
