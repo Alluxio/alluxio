@@ -78,7 +78,13 @@ group: Resources
 
 -   请遵循已有代码的风格，我们使用[Google Java style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html)风格，但有以下不同：
     -  每行最多**100**个字符
+<<<<<<< HEAD
     -  导入包应遵循[该顺序](../resources/importorder.png)，每组里面遵循**字母顺序**
+||||||| merged common ancestors
+    -  导入包应遵循[该顺序](resources/order.importorder)，每组里面遵循**字母顺序**
+=======
+    -  导入包应遵循[该顺序](../resources/order.importorder)，每组里面遵循**字母顺序**
+>>>>>>> upstream/master
     -  使用`i ++`代替`i++`
     -  使用`i + j`代替`i+j`
     -  类和成员的修饰符，应按照Java语言规范推荐的顺序：**public protected private abstract static final transient volatile
@@ -86,11 +92,17 @@ group: Resources
     -  类成员变量要使用`m`前缀，例如`public static String sUnderFSAddress;`
     -  静态成员变量要使用`s`前缀，例如`public static String sUnderFSAddress;`
     -  在Java接口中不要对方法使用`public`或`abstract`修饰符，这是因为在接口中声明的方法隐式被认为是public和abstract (http://docs.oracle.com/javase/specs/jls/se7/html/jls-9.html#jls-9.4)
--   你可以下载我们提供的[Eclipse formatter](resources/alluxio-code-formatter-eclipse.xml)
+-   你可以下载我们提供的[Eclipse formatter](../resources/alluxio-code-formatter-eclipse.xml)
     -  如果你使用IntelliJ IDEA:
        - 你可以使用我们提供的formatter，参考[Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)，或者在IntelliJ
        IDEA中使用[Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546)
+<<<<<<< HEAD
        - 要自动格式化**import**，在Preferences->Code Style->Java->Imports->Import中设置Layout为[该顺序](../resources/importorder.png)
+||||||| merged common ancestors
+       - 要自动格式化**import**，在Preferences->Code Style->Java->Imports->Import中设置Layout为[该顺序](resources/order.importorder)
+=======
+       - 要自动格式化**import**，在Preferences->Code Style->Java->Imports->Import中设置Layout为[该顺序](../resources/order.importorder)
+>>>>>>> upstream/master
        - 要自动将方法按字母顺序重新排序，可以使用[Rearranger插件](http://plugins.jetbrains.com/plugin/173)，打开Preferences，查找rearrager，去除不必要的内容，然后右击，选择"Rearrange"，代码将格式化成你需要的风格。
 -   Alluxio使用SLF4J记录日志，典型用法为：
 
