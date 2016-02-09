@@ -15,13 +15,13 @@
 
 package alluxio.client.block;
 
-import java.net.InetSocketAddress;
-
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.resource.ResourcePool;
+
+import java.net.InetSocketAddress;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Class for managing block master clients. After obtaining a client with

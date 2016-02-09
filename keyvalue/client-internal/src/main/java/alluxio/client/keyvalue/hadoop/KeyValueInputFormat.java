@@ -15,11 +15,15 @@
 
 package alluxio.client.keyvalue.hadoop;
 
-import java.io.IOException;
-import java.util.List;
+import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
+import alluxio.client.ClientContext;
+import alluxio.client.keyvalue.KeyValueMasterClient;
+import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.exception.AlluxioException;
+import alluxio.thrift.PartitionInfo;
 
-import javax.annotation.concurrent.ThreadSafe;
-
+import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileInputFormat;
 import org.apache.hadoop.mapred.InputFormat;
@@ -28,15 +32,10 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.mapred.Reporter;
 
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.util.List;
 
-import alluxio.AlluxioURI;
-import alluxio.annotation.PublicApi;
-import alluxio.client.ClientContext;
-import alluxio.client.keyvalue.KeyValueMasterClient;
-import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.exception.AlluxioException;
-import alluxio.thrift.PartitionInfo;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Implementation of {@link org.apache.hadoop.mapred.InputFormat} for MapReduce programs to access

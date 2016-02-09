@@ -15,16 +15,16 @@
 
 package alluxio.mesos;
 
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.Format;
+import alluxio.master.AlluxioMaster;
+import alluxio.underfs.UnderFileSystemRegistry;
 
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.MesosExecutorDriver;
 import org.apache.mesos.Protos;
 
-import alluxio.Format;
-import alluxio.master.AlluxioMaster;
-import alluxio.underfs.UnderFileSystemRegistry;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * {@link AlluxioMasterExecutor} is an implementation of a Mesos executor responsible for

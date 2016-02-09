@@ -15,27 +15,27 @@
 
 package alluxio.client.lineage;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.MasterClientBase;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.LineageDoesNotExistException;
+import alluxio.job.CommandLineJob;
+import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.LineageMasterClientService;
+import alluxio.wire.LineageInfo;
+import alluxio.wire.ThriftUtils;
+
+import org.apache.thrift.TException;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.thrift.TException;
-
-import alluxio.Constants;
-import alluxio.MasterClientBase;
-import alluxio.Configuration;
-import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.LineageDoesNotExistException;
-import alluxio.exception.AlluxioException;
-import alluxio.job.CommandLineJob;
-import alluxio.thrift.LineageMasterClientService;
-import alluxio.thrift.AlluxioService;
-import alluxio.thrift.AlluxioTException;
-import alluxio.wire.LineageInfo;
-import alluxio.wire.ThriftUtils;
 
 /**
  * A wrapper for the thrift client to interact with the lineage master, used by alluxio clients.

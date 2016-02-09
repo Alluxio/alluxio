@@ -15,10 +15,6 @@
 
 package alluxio.client.file.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Throwables;
-
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
@@ -26,6 +22,10 @@ import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.util.CommonUtils;
+
+import com.google.common.base.Throwables;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for opening a file for reading.

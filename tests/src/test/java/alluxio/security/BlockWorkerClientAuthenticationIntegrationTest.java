@@ -15,9 +15,13 @@
 
 package alluxio.security;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.ClientContext;
+import alluxio.client.block.BlockWorkerClient;
+import alluxio.client.util.ClientTestUtils;
+import alluxio.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
+import alluxio.worker.ClientMetrics;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -26,13 +30,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.ClientContext;
-import alluxio.client.block.BlockWorkerClient;
-import alluxio.client.util.ClientTestUtils;
-import alluxio.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
-import alluxio.worker.ClientMetrics;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Test RPC authentication between worker and its client, in four modes: NOSASL, SIMPLE, CUSTOM,

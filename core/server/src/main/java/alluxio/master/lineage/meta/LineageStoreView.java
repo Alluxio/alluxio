@@ -15,13 +15,13 @@
 
 package alluxio.master.lineage.meta;
 
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.exception.LineageDoesNotExistException;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.exception.LineageDoesNotExistException;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class exposes a read-only view of {@link LineageStore} to checkpoint schedulers and

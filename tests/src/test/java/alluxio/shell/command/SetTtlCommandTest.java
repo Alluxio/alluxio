@@ -15,16 +15,16 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.FileSystemTestUtils;
+import alluxio.client.WriteType;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.client.FileSystemTestUtils;
-import alluxio.client.WriteType;
-import alluxio.shell.AbstractAlluxioShellTest;
+import java.io.IOException;
 
 /**
  * Tests for setTtl command.

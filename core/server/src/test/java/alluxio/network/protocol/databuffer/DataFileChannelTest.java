@@ -15,13 +15,10 @@
 
 package alluxio.network.protocol.databuffer;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import alluxio.util.io.BufferUtils;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.FileRegion;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -29,10 +26,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.FileRegion;
-
-import alluxio.util.io.BufferUtils;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 /**
  * Tests for the {@link DataFileChannel} class.

@@ -15,11 +15,12 @@
 
 package alluxio.worker.block;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import alluxio.collections.Pair;
+import alluxio.worker.WorkerContext;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,12 +28,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.google.common.collect.ImmutableMap;
-
-import alluxio.collections.Pair;
-import alluxio.worker.WorkerContext;
-import alluxio.worker.block.meta.StorageDir;
-import alluxio.worker.block.meta.StorageTier;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Unit tests for {@link BlockStoreMeta}.

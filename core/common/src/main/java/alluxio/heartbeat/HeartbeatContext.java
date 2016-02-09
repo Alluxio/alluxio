@@ -15,10 +15,10 @@
 
 package alluxio.heartbeat;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This is a static class for storing and retrieving heartbeat related information.

@@ -15,16 +15,6 @@
 
 package alluxio.master.lineage.checkpoint;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.google.common.collect.Lists;
-
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.job.JobConf;
@@ -36,6 +26,15 @@ import alluxio.master.lineage.meta.LineageStore;
 import alluxio.master.lineage.meta.LineageStoreView;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
+
+import com.google.common.collect.Lists;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * Unit tests for {@link CheckpointLatestPlanner}.

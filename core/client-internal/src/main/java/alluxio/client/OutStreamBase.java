@@ -15,12 +15,12 @@
 
 package alluxio.client;
 
+import alluxio.annotation.PublicApi;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import alluxio.annotation.PublicApi;
 
 /**
  * An abstraction of the output stream API in Alluxio to write data to a file or a block. In

@@ -15,15 +15,15 @@
 
 package alluxio.client.keyvalue;
 
-import java.nio.ByteBuffer;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.Constants;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.ByteIOUtils;
+
+import com.google.common.base.Preconditions;
+
+import java.nio.ByteBuffer;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * An implementation of {@link PayloadReader} capable of randomly accessing the underlying payload

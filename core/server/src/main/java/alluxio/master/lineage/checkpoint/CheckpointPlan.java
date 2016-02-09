@@ -15,12 +15,12 @@
 
 package alluxio.master.lineage.checkpoint;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
+
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 
 /**
  * A plan for checkpointing lineage. It essentially contains a list of lineages to checkpoint in

@@ -15,17 +15,16 @@
 
 package alluxio.shell.command;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.client.file.FileSystem;
+
+import com.google.common.base.Preconditions;
+import org.apache.commons.cli.CommandLine;
+
 import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.commons.cli.CommandLine;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.Configuration;
 
 /**
  * Sets a new TTL value for the file at path both of the TTL value and the path are specified by

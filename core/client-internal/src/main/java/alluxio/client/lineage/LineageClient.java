@@ -15,20 +15,20 @@
 
 package alluxio.client.lineage;
 
-import java.io.IOException;
-import java.util.List;
-
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.lineage.options.CreateLineageOptions;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.client.lineage.options.GetLineageInfoListOptions;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDeletionException;
 import alluxio.exception.LineageDoesNotExistException;
-import alluxio.exception.AlluxioException;
 import alluxio.job.Job;
 import alluxio.wire.LineageInfo;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * User facing interface for the Alluxio Lineage client APIs.

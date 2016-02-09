@@ -15,15 +15,15 @@
 
 package alluxio.master.file.meta;
 
-import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.master.block.BlockId;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+
+import com.google.common.base.Preconditions;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Inode id management for directory inodes. Keep track of a block container id, along with a block

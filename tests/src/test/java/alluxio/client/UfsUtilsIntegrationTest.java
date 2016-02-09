@@ -15,22 +15,22 @@
 
 package alluxio.client;
 
-import java.util.List;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.file.FileSystem;
+import alluxio.collections.PrefixList;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.collections.PrefixList;
-import alluxio.Configuration;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.UnderFileSystemUtils;
-import alluxio.util.io.PathUtils;
+import java.util.List;
 
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.

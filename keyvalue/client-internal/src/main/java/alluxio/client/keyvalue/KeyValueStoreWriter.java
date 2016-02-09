@@ -15,13 +15,13 @@
 
 package alluxio.client.keyvalue;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import alluxio.annotation.PublicApi;
 import alluxio.client.Cancelable;
 import alluxio.exception.AlluxioException;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Interface for writers which create new key-value stores in Alluxio.

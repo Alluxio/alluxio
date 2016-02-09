@@ -15,6 +15,24 @@
 
 package alluxio.web;
 
+import alluxio.AlluxioURI;
+import alluxio.WorkerStorageTierAssoc;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.URIStatus;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.master.block.BlockId;
+import alluxio.worker.WorkerContext;
+import alluxio.worker.block.BlockStoreMeta;
+import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.meta.BlockMeta;
+
+import com.google.common.base.Preconditions;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,24 +45,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.AlluxioURI;
-import alluxio.WorkerStorageTierAssoc;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.file.URIStatus;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
-import alluxio.exception.AlluxioException;
-import alluxio.master.block.BlockId;
-import alluxio.worker.WorkerContext;
-import alluxio.worker.block.BlockStoreMeta;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.meta.BlockMeta;
 
 /**
  * Servlet that provides data for displaying block info of a worker.

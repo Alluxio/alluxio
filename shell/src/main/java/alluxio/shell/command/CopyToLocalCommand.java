@@ -15,6 +15,22 @@
 
 package alluxio.shell.command;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.ReadType;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.OpenFileOptions;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.shell.AlluxioShellUtils;
+
+import com.google.common.base.Joiner;
+import com.google.common.io.Closer;
+import org.apache.commons.cli.CommandLine;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -22,23 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Joiner;
-import com.google.common.io.Closer;
-
-import org.apache.commons.cli.CommandLine;
-
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
-import alluxio.Configuration;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.AlluxioException;
-import alluxio.shell.AlluxioShellUtils;
 
 /**
  * Copies a file or a directory from the Alluxio filesystem to the local filesystem.

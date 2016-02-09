@@ -15,13 +15,13 @@
 
 package alluxio.underfs.swift;
 
-import java.io.IOException;
-import java.util.UUID;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
+
+import java.io.IOException;
+import java.util.UUID;
 
 /**
  * This class will use SoftLayer or OpenStack Swift as the backing store.

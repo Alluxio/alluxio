@@ -15,14 +15,14 @@
 
 package alluxio.worker.block;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.Constants;
+import alluxio.util.CommonUtils;
+import alluxio.worker.WorkerContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
-import alluxio.util.CommonUtils;
-import alluxio.worker.WorkerContext;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * SessionCleaner periodically checks if any session have become zombies, removes the zombie session

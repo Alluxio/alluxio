@@ -15,13 +15,13 @@
 
 package alluxio.underfs.glusterfs;
 
-import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
+
+import com.google.common.base.Preconditions;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory for creating {@link GlusterFSUnderFileSystem}.

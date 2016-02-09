@@ -15,14 +15,14 @@
 
 package alluxio.security.group.provider;
 
+import alluxio.Configuration;
+import alluxio.security.group.GroupMappingService;
+import alluxio.util.CommonUtils;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-
-import alluxio.Configuration;
-import alluxio.security.group.GroupMappingService;
-import alluxio.util.CommonUtils;
 
 /**
  * A simple shell-based implementation of {@link GroupMappingService} that exec's the {@code groups}

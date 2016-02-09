@@ -15,11 +15,11 @@
 
 package alluxio.retry;
 
+import com.google.common.base.Preconditions;
+
 import java.util.Random;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Preconditions;
 
 /**
  * Each retry will cause a sleep to happen. This sleep will grow over time exponentially so each

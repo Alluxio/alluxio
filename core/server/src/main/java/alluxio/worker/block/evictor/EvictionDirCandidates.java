@@ -15,15 +15,15 @@
 
 package alluxio.worker.block.evictor;
 
+import alluxio.collections.Pair;
+import alluxio.worker.block.meta.StorageDirView;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import alluxio.collections.Pair;
-import alluxio.worker.block.meta.StorageDirView;
 
 /**
  * A collection of candidate blocks for eviction organized by directory.

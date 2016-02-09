@@ -15,13 +15,13 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
+import alluxio.AlluxioURI;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.AlluxioURI;
-import alluxio.shell.AbstractAlluxioShellTest;
+import java.io.IOException;
 
 /**
  * Tests for mv command.

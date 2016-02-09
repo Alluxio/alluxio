@@ -15,20 +15,20 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
+import alluxio.client.FileSystemTestUtils;
+import alluxio.client.WriteType;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.shell.AlluxioShellUtilsTest;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.client.ClientContext;
-import alluxio.client.FileSystemTestUtils;
-import alluxio.client.WriteType;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.AlluxioException;
-import alluxio.shell.AbstractAlluxioShellTest;
-import alluxio.shell.AlluxioShellUtilsTest;
+import java.io.IOException;
 
 /**
  * Tests for persist command.

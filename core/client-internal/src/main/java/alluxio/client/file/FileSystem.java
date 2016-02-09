@@ -15,9 +15,6 @@
 
 package alluxio.client.file;
 
-import java.io.IOException;
-import java.util.List;
-
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
@@ -41,6 +38,9 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Basic file system interface supporting metadata operations and data operations. Developers

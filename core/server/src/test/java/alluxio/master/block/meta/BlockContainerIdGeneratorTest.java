@@ -15,13 +15,13 @@
 
 package alluxio.master.block.meta;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import alluxio.master.block.BlockContainerIdGenerator;
 import alluxio.proto.journal.Block;
 import alluxio.proto.journal.Journal;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link BlockContainerIdGenerator}.

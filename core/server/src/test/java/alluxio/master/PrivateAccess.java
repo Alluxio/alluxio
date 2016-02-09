@@ -15,9 +15,9 @@
 
 package alluxio.master;
 
-import org.powermock.reflect.Whitebox;
-
 import alluxio.master.block.BlockMaster;
+
+import org.powermock.reflect.Whitebox;
 
 /**
  * Class which provides access to private state of {@link AlluxioMaster}.

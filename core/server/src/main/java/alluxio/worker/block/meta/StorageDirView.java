@@ -15,17 +15,17 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.BlockStoreLocation;
+
+import com.google.common.base.Preconditions;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.worker.block.BlockMetadataManagerView;
-import alluxio.worker.block.BlockStoreLocation;
 
 /**
  * This class is a wrapper of {@link StorageDir} to provide more limited access and a filtered list

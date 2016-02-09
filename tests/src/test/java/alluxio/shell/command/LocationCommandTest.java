@@ -15,13 +15,13 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.shell.AbstractAlluxioShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.exception.ExceptionMessage;
-import alluxio.shell.AbstractAlluxioShellTest;
+import java.io.IOException;
 
 /**
  * Test for location command.

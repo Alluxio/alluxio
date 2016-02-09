@@ -15,16 +15,15 @@
 
 package alluxio.network.protocol.databuffer;
 
-import java.nio.ByteBuffer;
+import alluxio.util.io.BufferUtils;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.FileRegion;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.FileRegion;
-
-import alluxio.util.io.BufferUtils;
+import java.nio.ByteBuffer;
 
 /**
  * Tests for the {@link DataByteBuffer} class.

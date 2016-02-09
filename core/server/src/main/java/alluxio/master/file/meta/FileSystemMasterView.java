@@ -15,15 +15,15 @@
 
 package alluxio.master.file.meta;
 
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.wire.FileInfo;
+
+import com.google.common.base.Preconditions;
+
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class exposes a read-only view of {@link FileSystemMaster}.

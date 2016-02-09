@@ -15,20 +15,20 @@
 
 package alluxio.underfs;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Arrays;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.util.io.PathUtils;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Arrays;
 
 public final class UnderStorageSystemInterfaceIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();

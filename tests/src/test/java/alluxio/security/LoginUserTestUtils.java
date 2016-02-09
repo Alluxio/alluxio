@@ -15,12 +15,12 @@
 
 package alluxio.security;
 
-import java.io.IOException;
+import alluxio.Configuration;
+import alluxio.Constants;
 
 import org.powermock.reflect.Whitebox;
 
-import alluxio.Configuration;
-import alluxio.Constants;
+import java.io.IOException;
 
 /**
  * Utility methods for the tests using {@link LoginUser}.

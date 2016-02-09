@@ -15,10 +15,8 @@
 
 package alluxio;
 
-import java.util.HashMap;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -27,8 +25,10 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.util.CommonUtils;
-import alluxio.util.io.PathUtils;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility to get leader from zookeeper.

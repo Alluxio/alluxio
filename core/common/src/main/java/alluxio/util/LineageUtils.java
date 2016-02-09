@@ -15,10 +15,10 @@
 
 package alluxio.util;
 
-import javax.annotation.concurrent.ThreadSafe;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility methods for lineage.

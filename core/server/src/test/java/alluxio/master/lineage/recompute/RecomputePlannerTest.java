@@ -15,6 +15,16 @@
 
 package alluxio.master.lineage.recompute;
 
+import alluxio.job.CommandLineJob;
+import alluxio.job.Job;
+import alluxio.job.JobConf;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.meta.FileSystemMasterView;
+import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.lineage.meta.LineageIdGenerator;
+import alluxio.master.lineage.meta.LineageStore;
+
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,17 +32,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.google.common.collect.Lists;
-
-import alluxio.job.CommandLineJob;
-import alluxio.job.Job;
-import alluxio.job.JobConf;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.meta.FileSystemMasterView;
-import alluxio.master.lineage.meta.LineageIdGenerator;
-import alluxio.master.lineage.meta.LineageStore;
 
 /**
  * Unit tests for {@link RecomputePlanner}.

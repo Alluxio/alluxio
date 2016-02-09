@@ -15,13 +15,13 @@
 
 package alluxio.underfs.glusterfs;
 
-import java.io.IOException;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.underfs.UnderFileSystemCluster;
 
 import org.apache.commons.lang3.StringUtils;
 
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.underfs.UnderFileSystemCluster;
+import java.io.IOException;
 
 public class GlusterFSCluster extends UnderFileSystemCluster {
 

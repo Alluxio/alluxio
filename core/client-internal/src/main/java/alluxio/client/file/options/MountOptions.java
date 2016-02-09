@@ -15,11 +15,11 @@
 
 package alluxio.client.file.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.annotation.PublicApi;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method option for mounting a path.

@@ -15,9 +15,9 @@
 
 package alluxio.client.block;
 
-import java.io.IOException;
-
 import alluxio.util.io.BufferUtils;
+
+import java.io.IOException;
 
 /**
  * Test class for mocking {@link BufferedBlockInStream}. The stream will read in increasing bytes

@@ -15,13 +15,20 @@
 
 package alluxio.worker.file;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
-import java.util.List;
-import java.util.Set;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.Sessions;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.InvalidWorkerStateException;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.BufferUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.wire.FileInfo;
+import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.io.BlockReader;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,20 +38,12 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-import alluxio.Constants;
-import alluxio.Sessions;
-import alluxio.Configuration;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.io.BufferUtils;
-import alluxio.util.io.PathUtils;
-import alluxio.wire.FileInfo;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.io.BlockReader;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Tests {@link FileDataManager}.

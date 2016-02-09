@@ -15,6 +15,14 @@
 
 package alluxio.underfs.local;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -27,14 +35,6 @@ import java.util.List;
 import java.util.Stack;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.io.FileUtils;
-import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * Local FS {@link UnderFileSystem} implementation.

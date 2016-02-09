@@ -15,6 +15,12 @@
 
 package alluxio.worker.block;
 
+import alluxio.collections.Pair;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
+
+import com.google.common.base.Preconditions;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,12 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.collections.Pair;
-import alluxio.worker.block.meta.StorageDir;
-import alluxio.worker.block.meta.StorageTier;
 
 /**
  * This class holds the meta data information of a block store.

@@ -15,21 +15,20 @@
 
 package alluxio.replay;
 
-import java.io.IOException;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.google.common.base.Throwables;
-
-import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.AlluxioExceptionType;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.replay.ReplayCache.ReplayCallable;
 import alluxio.replay.ReplayCache.ReplayCallableThrowsIOException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
+
+import com.google.common.base.Throwables;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.IOException;
 
 /**
  * Tests for {@link ReplayCache}.

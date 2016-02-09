@@ -15,10 +15,9 @@
 
 package alluxio.security.authentication;
 
-import java.net.InetSocketAddress;
-
-import javax.security.sasl.AuthenticationException;
-import javax.security.sasl.SaslException;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TThreadPoolServer;
@@ -33,9 +32,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.util.network.NetworkAddressUtils;
+import java.net.InetSocketAddress;
+
+import javax.security.sasl.AuthenticationException;
+import javax.security.sasl.SaslException;
 
 /**
  * Unit test for methods of {@link AuthenticationUtils}

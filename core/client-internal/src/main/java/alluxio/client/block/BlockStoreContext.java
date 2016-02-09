@@ -15,14 +15,6 @@
 
 package alluxio.client.block;
 
-import java.io.IOException;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-
 import alluxio.client.ClientContext;
 import alluxio.client.ClientUtils;
 import alluxio.exception.ExceptionMessage;
@@ -32,7 +24,14 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.ClientMetrics;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A shared context in each client JVM for common block master client functionality such as a pool

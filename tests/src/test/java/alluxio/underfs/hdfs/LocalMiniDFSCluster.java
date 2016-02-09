@@ -15,19 +15,19 @@
 
 package alluxio.underfs.hdfs;
 
-import java.io.File;
-import java.io.IOException;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemCluster;
+import alluxio.util.UnderFileSystemUtils;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 
-import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCluster;
-import alluxio.util.UnderFileSystemUtils;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * A local MiniDFSCluster for testing {@code HdfsUnderFileSystem}. This class emulates an HDFS

@@ -15,10 +15,10 @@
 
 package alluxio.security.group;
 
+import alluxio.security.group.provider.IdentityUserGroupsMapping;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
 /**
  * Unit test for {@link alluxio.security.group.provider.IdentityUserGroupsMapping}.

@@ -15,6 +15,11 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.util.io.BufferUtils;
+
+import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -23,11 +28,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
-
-import alluxio.util.io.BufferUtils;
 
 /**
  * This class provides write access to a temp block data file locally stored in managed storage.

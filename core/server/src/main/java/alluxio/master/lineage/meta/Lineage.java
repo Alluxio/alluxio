@@ -15,22 +15,21 @@
 
 package alluxio.master.lineage.meta;
 
-import java.util.Collections;
-import java.util.List;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.apache.commons.lang.builder.ToStringBuilder;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.job.JobConf;
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Lineage.LineageEntry;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang.builder.ToStringBuilder;
+
+import java.util.Collections;
+import java.util.List;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A lineage tracks the dependencies imposed by a job, including the input files the job depends on,

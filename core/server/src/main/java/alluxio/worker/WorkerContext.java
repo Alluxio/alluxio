@@ -15,10 +15,10 @@
 
 package alluxio.worker;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.Configuration;
 import alluxio.wire.WorkerNetAddress;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A {@link WorkerContext} object stores {@link Configuration}.

@@ -15,10 +15,6 @@
 
 package alluxio.security.authorization;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
@@ -27,6 +23,10 @@ import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.PlainSaslServer;
 import alluxio.util.CommonUtils;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The permission status for a file or directory.

@@ -15,12 +15,12 @@
 
 package alluxio.worker.block.evictor;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.StorageDirView;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class is used to evict old blocks in certain StorageDir by LRU. The main difference

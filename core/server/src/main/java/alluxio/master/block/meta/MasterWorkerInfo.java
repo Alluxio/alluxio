@@ -15,6 +15,18 @@
 
 package alluxio.master.block.meta;
 
+import alluxio.Constants;
+import alluxio.StorageTierAssoc;
+import alluxio.WorkerStorageTierAssoc;
+import alluxio.util.CommonUtils;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,19 +36,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
-
-import alluxio.Constants;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
-import alluxio.util.CommonUtils;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
 
 /**
  * Metadata for an Alluxio worker.

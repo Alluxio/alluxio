@@ -15,12 +15,12 @@
 
 package alluxio.master.file.meta.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.master.MasterContext;
 import alluxio.security.authorization.PermissionStatus;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method option for creating a path.

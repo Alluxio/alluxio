@@ -15,12 +15,12 @@
 
 package alluxio.metrics.sink;
 
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
+
 import java.util.Properties;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.MetricRegistry;
 
 /**
  * A sink which listens for new metrics and exposes them as namespaces MBeans.

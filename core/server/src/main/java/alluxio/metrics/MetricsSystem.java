@@ -15,6 +15,17 @@
 
 package alluxio.metrics;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.metrics.sink.MetricsServlet;
+import alluxio.metrics.sink.Sink;
+import alluxio.metrics.source.Source;
+
+import com.codahale.metrics.MetricRegistry;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,18 +33,6 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.codahale.metrics.MetricRegistry;
-
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.metrics.sink.MetricsServlet;
-import alluxio.metrics.sink.Sink;
-import alluxio.metrics.source.Source;
 /**
  * A MetricsSystem is created by a specific instance(master, worker). It polls the metrics sources
  * periodically and pass the data to the sinks.
