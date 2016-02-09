@@ -492,7 +492,7 @@ public class FileInStreamTest {
 
   /**
    * Tests cache streams are created with the proper block sizes when the file size is smaller
-   * than block size and we skip before reading
+   * than block size and we skip before reading.
    */
   @Test
   public void cacheStreamBlockSizeTest() throws Exception {
