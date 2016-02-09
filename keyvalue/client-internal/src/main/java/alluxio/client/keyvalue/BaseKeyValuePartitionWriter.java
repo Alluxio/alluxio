@@ -16,8 +16,8 @@
 package alluxio.client.keyvalue;
 
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.AbstractOutStream;
+import alluxio.client.ClientContext;
 import alluxio.util.io.ByteIOUtils;
 
 import com.google.common.base.Preconditions;

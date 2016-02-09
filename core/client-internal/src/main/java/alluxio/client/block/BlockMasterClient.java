@@ -15,9 +15,9 @@
 
 package alluxio.client.block;
 
+import alluxio.AbstractMasterClient;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.AbstractMasterClient;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.thrift.AlluxioService;
