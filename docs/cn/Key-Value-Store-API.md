@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Key Value Store Client API
-nickname: Key Value Store API
+title: 键值存储（Key Value Store）客户端API
+nickname: 键值存储（Key Value Store) API
 group: Features
 priority: 4
 ---
