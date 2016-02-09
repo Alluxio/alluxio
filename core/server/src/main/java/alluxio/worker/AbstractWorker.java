@@ -28,7 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This is the base class for all workers, and contains common functionality.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
-public abstract class WorkerBase implements Worker {
+public abstract class AbstractWorker implements Worker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The executor service for the master sync. */
   private final ExecutorService mExecutorService;
@@ -36,7 +36,7 @@ public abstract class WorkerBase implements Worker {
   /**
    * @param executorService executor service to use internally
    */
-  protected WorkerBase(ExecutorService executorService)  {
+  protected AbstractWorker(ExecutorService executorService)  {
     mExecutorService = Preconditions.checkNotNull(executorService);
   }
 
