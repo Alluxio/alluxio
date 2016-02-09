@@ -285,10 +285,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @return the size of the current block being written
    */
   private long getCurrentBlockSize() {
-    // The size of the last block, 0 if it is equal the the normal block size
+    // The size of the last block, 0 if it is equal to the normal block size
     long lastBlockSize = mFileLength % mBlockSize;
-    // If we are not in the last block or if the last block is equal to normal block size, return
-    // the normal block size. Otherwise return the block size of the last block.
+    // If we are not in the last block or if the last block is equal to the normal block size,
+    // return the normal block size. Otherwise return the block size of the last block.
     if (mFileLength - mPos > lastBlockSize) {
       return mBlockSize;
     } else {
