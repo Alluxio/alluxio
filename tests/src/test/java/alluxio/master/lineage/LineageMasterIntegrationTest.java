@@ -41,7 +41,6 @@ import alluxio.wire.LineageInfo;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;

@@ -26,7 +26,6 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
 import com.google.common.base.Preconditions;
-
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;

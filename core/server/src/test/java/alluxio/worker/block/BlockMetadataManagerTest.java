@@ -26,7 +26,6 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

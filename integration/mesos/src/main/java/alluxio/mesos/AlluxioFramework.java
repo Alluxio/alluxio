@@ -22,7 +22,6 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
-
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;

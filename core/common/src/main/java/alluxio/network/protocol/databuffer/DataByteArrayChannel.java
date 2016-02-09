@@ -16,7 +16,6 @@
 package alluxio.network.protocol.databuffer;
 
 import com.google.common.base.Preconditions;
-
 import io.netty.buffer.Unpooled;
 
 import java.nio.ByteBuffer;

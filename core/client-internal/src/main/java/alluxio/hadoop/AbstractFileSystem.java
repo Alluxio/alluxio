@@ -42,7 +42,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;

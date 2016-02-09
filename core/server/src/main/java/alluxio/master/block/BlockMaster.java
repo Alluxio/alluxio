@@ -52,9 +52,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Message;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -19,7 +19,6 @@ import alluxio.Constants;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
-
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Object;

@@ -23,7 +23,6 @@ import alluxio.util.CommonUtils;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;

@@ -23,7 +23,6 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 
 import com.google.common.base.Preconditions;
-
 import org.junit.Assert;
 
 import java.util.ArrayList;

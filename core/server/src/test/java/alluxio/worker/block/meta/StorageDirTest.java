@@ -27,7 +27,6 @@ import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

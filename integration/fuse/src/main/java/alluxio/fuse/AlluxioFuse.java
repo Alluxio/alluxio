@@ -21,7 +21,6 @@ import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
 
 import com.google.common.collect.Lists;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;

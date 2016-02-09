@@ -20,7 +20,6 @@ import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 
 import com.google.common.base.Preconditions;
-
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;

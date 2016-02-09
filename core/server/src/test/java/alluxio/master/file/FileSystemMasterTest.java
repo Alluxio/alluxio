@@ -44,7 +44,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;

@@ -22,7 +22,6 @@ import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.ServiceException;
 import com.aliyun.oss.model.ObjectMetadata;
 import com.google.common.base.Preconditions;
-
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

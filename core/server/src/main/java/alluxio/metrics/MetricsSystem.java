@@ -22,7 +22,6 @@ import alluxio.metrics.sink.Sink;
 import alluxio.metrics.source.Source;
 
 import com.codahale.metrics.MetricRegistry;
-
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -58,9 +58,7 @@ import alluxio.wire.LineageInfo;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.protobuf.Message;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -23,7 +23,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 
 import com.google.common.base.Joiner;
-
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;

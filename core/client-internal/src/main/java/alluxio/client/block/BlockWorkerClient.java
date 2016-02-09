@@ -36,7 +36,6 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.ClientMetrics;
 
 import com.google.common.base.Preconditions;
-
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;

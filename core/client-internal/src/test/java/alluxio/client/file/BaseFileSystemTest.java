@@ -32,7 +32,6 @@ import alluxio.client.file.options.UnmountOptions;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Lists;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

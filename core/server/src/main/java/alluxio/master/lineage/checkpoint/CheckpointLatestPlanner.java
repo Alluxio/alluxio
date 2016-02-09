@@ -23,7 +23,6 @@ import alluxio.master.lineage.meta.LineageStateUtils;
 import alluxio.master.lineage.meta.LineageStoreView;
 
 import com.google.common.collect.Lists;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -27,7 +27,6 @@ import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
-
 import org.apache.thrift.TException;
 
 import java.util.List;

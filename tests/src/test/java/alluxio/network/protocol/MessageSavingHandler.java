@@ -18,7 +18,6 @@ package alluxio.network.protocol;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-
 import org.junit.Assert;
 
 import java.util.concurrent.Semaphore;

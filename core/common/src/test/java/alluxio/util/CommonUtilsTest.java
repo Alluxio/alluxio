@@ -19,7 +19,6 @@ import alluxio.Configuration;
 import alluxio.security.group.GroupMappingService;
 
 import com.google.common.collect.Lists;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

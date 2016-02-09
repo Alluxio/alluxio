@@ -21,7 +21,6 @@ import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.lineage.meta.Lineage;
 
 import com.google.common.collect.Lists;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;

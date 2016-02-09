@@ -21,7 +21,6 @@ import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import com.google.common.collect.Sets;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

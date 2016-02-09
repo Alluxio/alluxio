@@ -26,7 +26,6 @@ import alluxio.yarn.YarnUtils.YarnContainerType;
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;

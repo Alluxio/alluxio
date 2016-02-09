@@ -19,7 +19,6 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.master.LocalAlluxioCluster;
 
 import com.google.common.base.Preconditions;
-
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;

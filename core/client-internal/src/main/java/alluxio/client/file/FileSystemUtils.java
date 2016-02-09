@@ -29,7 +29,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 
 import com.google.common.io.Closer;
-
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

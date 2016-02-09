@@ -27,7 +27,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.base.Preconditions;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

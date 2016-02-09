@@ -24,7 +24,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 
 import com.google.common.io.Closer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

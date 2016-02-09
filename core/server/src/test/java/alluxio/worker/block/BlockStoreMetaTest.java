@@ -21,7 +21,6 @@ import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.collect.ImmutableMap;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

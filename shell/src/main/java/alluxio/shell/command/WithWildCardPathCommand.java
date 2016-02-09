@@ -21,7 +21,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.shell.AlluxioShellUtils;
 
 import com.google.common.base.Joiner;
-
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;

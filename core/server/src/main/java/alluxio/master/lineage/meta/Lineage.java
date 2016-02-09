@@ -24,7 +24,6 @@ import alluxio.proto.journal.Lineage.LineageEntry;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import java.util.Collections;

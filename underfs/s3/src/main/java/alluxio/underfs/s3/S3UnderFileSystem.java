@@ -21,7 +21,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
-
 import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;

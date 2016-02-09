@@ -20,7 +20,6 @@ import alluxio.master.AlluxioMaster;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
-
 import org.eclipse.jetty.servlet.ServletHolder;
 
 import java.net.InetSocketAddress;

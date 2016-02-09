@@ -24,7 +24,6 @@ import alluxio.worker.WorkerContext;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

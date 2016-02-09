@@ -45,7 +45,6 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.base.Throwables;
-
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

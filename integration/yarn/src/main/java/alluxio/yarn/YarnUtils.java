@@ -17,7 +17,6 @@ package alluxio.yarn;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;

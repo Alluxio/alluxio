@@ -24,7 +24,6 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
 import com.google.common.base.Throwables;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

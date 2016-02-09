@@ -37,13 +37,11 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.base.Preconditions;
-
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

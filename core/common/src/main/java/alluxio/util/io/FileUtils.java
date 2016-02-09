@@ -21,7 +21,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.util.ShellUtils;
 
 import com.google.common.io.Files;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

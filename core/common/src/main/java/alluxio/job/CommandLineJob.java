@@ -20,7 +20,6 @@ import alluxio.wire.CommandLineJobInfo;
 import alluxio.wire.JobConfInfo;
 
 import com.google.common.io.Closer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

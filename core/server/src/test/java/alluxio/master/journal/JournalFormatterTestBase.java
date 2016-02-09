@@ -49,7 +49,6 @@ import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

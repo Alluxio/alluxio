@@ -31,7 +31,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.Lists;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
