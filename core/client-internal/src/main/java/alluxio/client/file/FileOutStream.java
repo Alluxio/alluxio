@@ -38,12 +38,12 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
