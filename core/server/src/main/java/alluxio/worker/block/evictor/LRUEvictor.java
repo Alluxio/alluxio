@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * least recently used item based on its access.
  */
 @NotThreadSafe
-public final class LRUEvictor extends AbstractEvictor {
+public class LRUEvictor extends AbstractEvictor {
   private static final int LINKED_HASH_MAP_INIT_CAPACITY = 200;
   private static final float LINKED_HASH_MAP_INIT_LOAD_FACTOR = 0.75f;
   private static final boolean LINKED_HASH_MAP_ACCESS_ORDERED = true;
