@@ -141,7 +141,7 @@ public final class LinearProbingIndex implements Index {
   @Override
   public ByteBuffer get(ByteBuffer key, PayloadReader reader) {
     int bucketOffset = bucketOffset(key, reader);
-    if (bucketOffset == - 1) {
+    if (bucketOffset == -1) {
       return null;
     }
     return reader.getValue(ByteIOUtils.readInt(mHashTableBuf, bucketOffset + 1));

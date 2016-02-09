@@ -60,7 +60,7 @@ public class BufferUtilsTest {
     }
     List<ByteBuffer> bufListClone = BufferUtils.cloneByteBufferList(bufList);
     Assert.assertEquals(listLength, bufListClone.size());
-    for (int k = 0 ; k < listLength; k++) {
+    for (int k = 0; k < listLength; k++) {
       Assert.assertEquals(bufList.get(k), bufListClone.get(k));
     }
   }
@@ -99,7 +99,7 @@ public class BufferUtilsTest {
     }
     List<ByteBuffer> bufListClone = BufferUtils.cloneByteBufferList(bufDirectList);
     Assert.assertEquals(listLength, bufListClone.size());
-    for (int k = 0 ; k < listLength; k++) {
+    for (int k = 0; k < listLength; k++) {
       Assert.assertEquals(bufDirectList.get(k), bufListClone.get(k));
     }
   }
