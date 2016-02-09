@@ -15,9 +15,9 @@
 
 package alluxio.worker.block.evictor;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.worker.block.BlockStoreLocation;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Provides information about the transfer of a block.

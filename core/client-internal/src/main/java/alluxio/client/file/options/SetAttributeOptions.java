@@ -15,14 +15,14 @@
 
 package alluxio.client.file.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.exception.PreconditionMessage;
 import alluxio.thrift.SetAttributeTOptions;
+
+import com.google.common.base.Preconditions;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for setting any number of a path's attributes. If a value is set as null, it

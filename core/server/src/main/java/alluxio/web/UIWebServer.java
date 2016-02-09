@@ -15,11 +15,13 @@
 
 package alluxio.web;
 
-import java.io.File;
-import java.net.InetSocketAddress;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -32,13 +34,10 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
+import java.io.File;
+import java.net.InetSocketAddress;
 
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Class that bootstraps and starts the web server for the web interface.
  */

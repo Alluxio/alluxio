@@ -15,6 +15,8 @@
 
 package alluxio.security.login;
 
+import alluxio.security.User;
+
 import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
@@ -24,8 +26,6 @@ import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
-
-import alluxio.security.User;
 
 /**
  * A login module that search the Kerberos or OS user from Subject, and then convert to an Alluxio

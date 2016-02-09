@@ -15,17 +15,17 @@
 
 package alluxio.metrics.sink;
 
+import alluxio.metrics.MetricsSystem;
+
+import com.codahale.metrics.CsvReporter;
+import com.codahale.metrics.MetricRegistry;
+
 import java.io.File;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.codahale.metrics.CsvReporter;
-import com.codahale.metrics.MetricRegistry;
-
-import alluxio.metrics.MetricsSystem;
 
 /**
  * A sink which creates a CSV file of the metric values.

@@ -15,9 +15,9 @@
 
 package alluxio.master.journal;
 
-import java.io.IOException;
-
 import alluxio.proto.journal.Journal.JournalEntry;
+
+import java.io.IOException;
 
 /**
  * This input stream retrieves {@link JournalEntry} from journal checkpoint files and journal log

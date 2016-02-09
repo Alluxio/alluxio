@@ -15,17 +15,17 @@
 
 package alluxio.shell.command;
 
+import alluxio.Configuration;
+import alluxio.client.file.FileSystem;
+import alluxio.client.lineage.AlluxioLineage;
+import alluxio.wire.LineageInfo;
+
+import org.apache.commons.cli.CommandLine;
+
 import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.commons.cli.CommandLine;
-
-import alluxio.client.file.FileSystem;
-import alluxio.client.lineage.AlluxioLineage;
-import alluxio.Configuration;
-import alluxio.wire.LineageInfo;
 
 /**
  * Lists all the lineages.

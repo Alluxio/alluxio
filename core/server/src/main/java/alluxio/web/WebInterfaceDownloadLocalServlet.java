@@ -15,6 +15,12 @@
 
 package alluxio.web;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+
+import com.google.common.io.ByteStreams;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -27,12 +33,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.google.common.io.ByteStreams;
-
-import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.Constants;
 
 /**
  * Servlet for downloading a local file.

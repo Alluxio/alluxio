@@ -15,11 +15,11 @@
 
 package alluxio.shell.command;
 
-import org.junit.Assert;
-import org.junit.Test;
-
 import alluxio.exception.ExceptionMessage;
 import alluxio.shell.AbstractAlluxioShellTest;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Test for loadMetadata command.

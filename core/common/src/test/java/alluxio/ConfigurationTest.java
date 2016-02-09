@@ -15,9 +15,7 @@
 
 package alluxio;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -27,7 +25,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.util.network.NetworkAddressUtils;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Unit test for the {@link Configuration} class.

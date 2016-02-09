@@ -15,25 +15,23 @@
 
 package alluxio.client.netty;
 
+import alluxio.Constants;
+import alluxio.exception.ExceptionMessage;
+import alluxio.network.protocol.RPCMessage;
+import alluxio.network.protocol.RPCResponse;
+
+import com.google.common.base.Preconditions;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-
-import alluxio.Constants;
-import alluxio.exception.ExceptionMessage;
-import alluxio.network.protocol.RPCMessage;
-import alluxio.network.protocol.RPCResponse;
 
 /**
  * This handles all the messages received by the client channel.

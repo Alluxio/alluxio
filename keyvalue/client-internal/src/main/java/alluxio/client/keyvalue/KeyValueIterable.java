@@ -15,10 +15,10 @@
 
 package alluxio.client.keyvalue;
 
-import java.io.IOException;
-
 import alluxio.annotation.PublicApi;
 import alluxio.exception.AlluxioException;
+
+import java.io.IOException;
 
 /**
  * Interface to be implemented in classes that support iterating over key-value pairs.

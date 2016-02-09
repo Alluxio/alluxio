@@ -15,12 +15,12 @@
 
 package alluxio.master.journal;
 
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.exception.ExceptionMessage;
+import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.protobuf.Message;
 
-import alluxio.exception.ExceptionMessage;
-import alluxio.proto.journal.Journal.JournalEntry;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utils for working with the journal.

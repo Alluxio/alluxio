@@ -15,24 +15,23 @@
 
 package alluxio.client.keyvalue;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.file.FileSystem;
+import alluxio.exception.AlluxioException;
+import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
-
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.exception.AlluxioException;
-import alluxio.util.io.PathUtils;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Integration tests for {@link KeyValuePartitionReader} and {@link KeyValuePartitionWriter}.

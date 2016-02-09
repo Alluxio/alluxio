@@ -15,19 +15,19 @@
 
 package alluxio.client.keyvalue;
 
+import alluxio.Constants;
+import alluxio.util.io.BufferUtils;
+import alluxio.util.io.ByteIOUtils;
+
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
-
-import alluxio.Constants;
-import alluxio.util.io.BufferUtils;
-import alluxio.util.io.ByteIOUtils;
 
 /**
  * Index structure using linear probing. It keeps a collection of buckets. Each bucket stores a

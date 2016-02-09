@@ -15,11 +15,11 @@
 
 package alluxio.hadoop;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import alluxio.Constants;
-import alluxio.Configuration;
 
 /**
  * Tests for the {@link ConfUtils} class.

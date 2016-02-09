@@ -15,19 +15,18 @@
 
 package alluxio.master.journal;
 
-import java.io.IOException;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.master.MasterContext;
+import alluxio.underfs.UnderFileSystem;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
+import java.io.IOException;
 
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.master.MasterContext;
-import alluxio.underfs.UnderFileSystem;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class manages reading from the journal. The reading must occur in two phases:

@@ -15,14 +15,14 @@
 
 package alluxio.shell.command;
 
-import org.junit.Assert;
-import org.junit.Test;
-
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.shell.AbstractAlluxioShellTest;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests the "pin" and "unpin" commands.

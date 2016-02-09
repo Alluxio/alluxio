@@ -15,16 +15,16 @@
 
 package alluxio.client.keyvalue;
 
-import java.io.Closeable;
-import java.io.IOException;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.AlluxioURI;
 import alluxio.client.Cancelable;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
+
+import com.google.common.base.Preconditions;
+
+import java.io.Closeable;
+import java.io.IOException;
 
 /**
  * Interface for a writer which creates an Alluxio key-value partition.

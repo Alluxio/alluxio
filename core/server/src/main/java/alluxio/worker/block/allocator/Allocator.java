@@ -15,16 +15,16 @@
 
 package alluxio.worker.block.allocator;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.Configuration;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 
 /**
  * Interface for the allocation policy of Alluxio managed data.

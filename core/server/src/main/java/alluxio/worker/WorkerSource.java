@@ -15,14 +15,14 @@
 
 package alluxio.worker;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.metrics.source.Source;
+import alluxio.worker.block.BlockWorker;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 
-import alluxio.metrics.source.Source;
-import alluxio.worker.block.BlockWorker;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Worker source collects a worker's internal state.

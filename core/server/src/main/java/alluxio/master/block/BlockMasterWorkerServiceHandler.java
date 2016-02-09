@@ -15,20 +15,20 @@
 
 package alluxio.master.block;
 
+import alluxio.Constants;
+import alluxio.exception.AlluxioException;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.BlockMasterWorkerService;
+import alluxio.thrift.Command;
+import alluxio.thrift.WorkerNetAddress;
+import alluxio.wire.ThriftUtils;
+
+import com.google.common.base.Preconditions;
+
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.Constants;
-import alluxio.exception.AlluxioException;
-import alluxio.thrift.BlockMasterWorkerService;
-import alluxio.thrift.Command;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.WorkerNetAddress;
-import alluxio.wire.ThriftUtils;
 
 /**
  * This class is a Thrift handler for block master RPCs invoked by an Alluxio worker.

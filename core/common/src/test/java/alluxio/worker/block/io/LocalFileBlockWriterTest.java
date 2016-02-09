@@ -15,10 +15,7 @@
 
 package alluxio.worker.block.io;
 
-import java.io.File;
-import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.WritableByteChannel;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,7 +24,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import alluxio.util.io.BufferUtils;
+import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * Tests for the {@link LocalFileBlockWriter} class.

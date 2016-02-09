@@ -15,13 +15,13 @@
 
 package alluxio.client.lineage;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.mockito.internal.util.reflection.Whitebox;
-
 import alluxio.AlluxioURI;
 import alluxio.client.UnderStorageType;
 import alluxio.client.file.options.OutStreamOptions;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.mockito.internal.util.reflection.Whitebox;
 
 /**
  * Tests {@link LineageFileOutStream}.

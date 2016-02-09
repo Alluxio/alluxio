@@ -15,16 +15,16 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.util.io.PathUtils;
+import alluxio.worker.WorkerContext;
+import alluxio.worker.block.TieredBlockStoreTestUtils;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import alluxio.util.io.PathUtils;
-import alluxio.worker.WorkerContext;
-import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 /**
  * Unit tests for {@link TempBlockMeta}.

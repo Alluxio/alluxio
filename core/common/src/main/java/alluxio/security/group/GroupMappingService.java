@@ -15,16 +15,16 @@
 
 package alluxio.security.group;
 
-import java.io.IOException;
-import java.util.List;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.annotation.PublicApi;
+import alluxio.util.CommonUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
-import alluxio.annotation.PublicApi;
-import alluxio.Configuration;
-import alluxio.util.CommonUtils;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Interface for Alluxio user-to-groups mapping. {@link GroupMappingService} allows for server to

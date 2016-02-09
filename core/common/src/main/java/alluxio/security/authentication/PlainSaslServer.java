@@ -15,6 +15,13 @@
 
 package alluxio.security.authentication;
 
+import alluxio.Configuration;
+import alluxio.exception.ExceptionMessage;
+import alluxio.security.User;
+import alluxio.util.SecurityUtils;
+
+import com.google.common.base.Preconditions;
+
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -27,13 +34,6 @@ import javax.security.sasl.AuthorizeCallback;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.Configuration;
-import alluxio.exception.ExceptionMessage;
-import alluxio.security.User;
-import alluxio.util.SecurityUtils;
 
 /**
  * This class provides PLAIN SASL authentication.

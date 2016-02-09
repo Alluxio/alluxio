@@ -15,6 +15,21 @@
 
 package alluxio.client;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.Version;
+import alluxio.client.file.FileSystem;
+import alluxio.collections.Pair;
+import alluxio.collections.PrefixList;
+import alluxio.exception.AlluxioException;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -22,21 +37,6 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.Version;
-import alluxio.client.file.FileSystem;
-import alluxio.collections.Pair;
-import alluxio.collections.PrefixList;
-import alluxio.Configuration;
-import alluxio.exception.AlluxioException;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils;
 
 /**
  * Utilities related to under file system.

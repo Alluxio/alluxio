@@ -15,16 +15,16 @@
 
 package alluxio.client.keyvalue;
 
+import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystem;
+import alluxio.exception.AlluxioException;
+
+import com.google.common.base.Preconditions;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.exception.AlluxioException;
 
 /**
  * Interface for a reader which accesses an Alluxio key-value partition.

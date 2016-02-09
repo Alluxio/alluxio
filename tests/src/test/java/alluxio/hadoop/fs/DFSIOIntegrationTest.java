@@ -15,20 +15,11 @@
 
 package alluxio.hadoop.fs;
 
-import java.io.BufferedReader;
-import java.io.Closeable;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.net.URI;
-import java.util.Date;
-import java.util.Random;
-import java.util.StringTokenizer;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.hadoop.ConfUtils;
+import alluxio.hadoop.FileSystem;
 
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
@@ -57,11 +48,20 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.Configuration;
-import alluxio.hadoop.ConfUtils;
-import alluxio.hadoop.FileSystem;
+import java.io.BufferedReader;
+import java.io.Closeable;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.net.URI;
+import java.util.Date;
+import java.util.Random;
+import java.util.StringTokenizer;
 
 /**
  * Distributed i/o benchmark.

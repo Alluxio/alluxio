@@ -15,12 +15,12 @@
 
 package alluxio.client.keyvalue;
 
+import alluxio.annotation.PublicApi;
+import alluxio.exception.AlluxioException;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import alluxio.annotation.PublicApi;
-import alluxio.exception.AlluxioException;
 
 /**
  * Interface for readers which accesses key-value stores in Alluxio.

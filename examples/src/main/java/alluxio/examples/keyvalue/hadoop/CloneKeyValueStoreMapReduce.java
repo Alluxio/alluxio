@@ -15,8 +15,9 @@
 
 package alluxio.examples.keyvalue.hadoop;
 
-import java.io.IOException;
-import java.util.Iterator;
+import alluxio.client.keyvalue.hadoop.KeyValueInputFormat;
+import alluxio.client.keyvalue.hadoop.KeyValueOutputCommitter;
+import alluxio.client.keyvalue.hadoop.KeyValueOutputFormat;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
@@ -30,9 +31,8 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
 
-import alluxio.client.keyvalue.hadoop.KeyValueInputFormat;
-import alluxio.client.keyvalue.hadoop.KeyValueOutputCommitter;
-import alluxio.client.keyvalue.hadoop.KeyValueOutputFormat;
+import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * This boring MapReduce job clones a key-value store to a different URI.

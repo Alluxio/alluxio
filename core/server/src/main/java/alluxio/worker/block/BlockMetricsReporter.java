@@ -15,15 +15,15 @@
 
 package alluxio.worker.block;
 
-import java.util.List;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerSource;
+
+import java.util.List;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class listens on block events and increases the metrics counters.

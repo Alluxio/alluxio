@@ -15,11 +15,11 @@
 
 package alluxio.hadoop;
 
-import java.net.URI;
-
 import org.apache.hadoop.fs.Path;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.net.URI;
 
 /**
  * Tests for the {@link HadoopUtils} class.

@@ -15,17 +15,17 @@
 
 package alluxio.client.file.options;
 
-import java.util.Random;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.thrift.CreateFileTOptions;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.Random;
 
 /**
  * Tests for the {@link CreateFileOptions} class.

@@ -15,7 +15,10 @@
 
 package alluxio.hadoop;
 
-import java.net.URI;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.FileSystemTestUtils;
+import alluxio.client.WriteType;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -25,10 +28,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.FileSystemTestUtils;
-import alluxio.client.WriteType;
+import java.net.URI;
 
 /**
  * Integration tests for {@link FileSystem#getFileBlockLocations(FileStatus, long, long)}.

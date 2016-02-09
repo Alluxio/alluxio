@@ -15,9 +15,9 @@
 
 package alluxio.util;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import org.apache.commons.lang3.SystemUtils;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * OS related utility functions.

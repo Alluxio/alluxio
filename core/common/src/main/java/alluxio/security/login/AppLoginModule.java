@@ -15,6 +15,10 @@
 
 package alluxio.security.login;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.security.User;
+
 import java.io.IOException;
 import java.util.Map;
 
@@ -26,10 +30,6 @@ import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
-
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.security.User;
 
 /**
  * An app login module that creates a user based on the user name provided through application

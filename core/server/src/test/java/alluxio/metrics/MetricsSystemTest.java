@@ -15,15 +15,15 @@
 
 package alluxio.metrics;
 
-import java.util.Properties;
+import alluxio.Configuration;
+import alluxio.master.MasterSource;
+import alluxio.worker.WorkerSource;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import alluxio.Configuration;
-import alluxio.master.MasterSource;
-import alluxio.worker.WorkerSource;
+import java.util.Properties;
 
 /**
  * Unit tests for {@link MetricsSystem}.

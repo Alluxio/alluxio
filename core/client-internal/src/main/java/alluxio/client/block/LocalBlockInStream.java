@@ -15,13 +15,6 @@
 
 package alluxio.client.block;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.io.Closer;
-
 import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -29,6 +22,13 @@ import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.worker.block.io.LocalFileBlockReader;
+
+import com.google.common.io.Closer;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class provides a streaming API to read a block in Alluxio. The data will be directly read

@@ -15,18 +15,18 @@
 
 package alluxio.master.keyvalue;
 
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.exception.AlluxioException;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.KeyValueMasterClientService;
+import alluxio.thrift.PartitionInfo;
+import alluxio.thrift.ThriftIOException;
+
 import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.exception.AlluxioException;
-import alluxio.thrift.KeyValueMasterClientService;
-import alluxio.thrift.PartitionInfo;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.ThriftIOException;
 
 /**
  * This class is a Thrift handler for key-value master RPCs invoked by an Alluxio client.

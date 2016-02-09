@@ -15,8 +15,15 @@
 
 package alluxio.hadoop;
 
-import java.io.IOException;
-import java.util.Arrays;
+import alluxio.AlluxioURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.FileSystemTestUtils;
+import alluxio.client.WriteType;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.util.io.BufferUtils;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -30,15 +37,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
-import alluxio.client.FileSystemTestUtils;
-import alluxio.client.WriteType;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.AlluxioException;
-import alluxio.util.io.BufferUtils;
+import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Integration tests for {@link HdfsFileInputStream}.

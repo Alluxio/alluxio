@@ -15,7 +15,8 @@
 
 package alluxio.client.block;
 
-import java.util.Arrays;
+import alluxio.exception.PreconditionMessage;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -23,8 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.exception.PreconditionMessage;
-import alluxio.util.io.BufferUtils;
+import java.util.Arrays;
 
 /**
  * Tests for the {@link BufferedBlockOutStream} class.

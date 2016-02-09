@@ -15,17 +15,17 @@
 
 package alluxio.client;
 
-import java.io.IOException;
-
-import org.junit.Test;
-
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
+
+import org.junit.Test;
+
+import java.io.IOException;
 
 /**
  * Integration tests for {@link alluxio.client.file.FileOutStream}.

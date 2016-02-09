@@ -15,16 +15,16 @@
 
 package alluxio.client;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.util.CommonUtils;
+
+import com.google.common.base.Throwables;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-
-import com.google.common.base.Throwables;
-
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.util.CommonUtils;
 
 /**
  * The interface to read remote block from data server.

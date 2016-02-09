@@ -15,10 +15,10 @@
 
 package alluxio.master.journal;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.AlluxioURI;
 import alluxio.master.MasterContext;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class encapsulates the journal for a master. The journal is made up of 2 components:

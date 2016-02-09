@@ -15,16 +15,16 @@
 
 package alluxio.examples;
 
-import java.util.concurrent.Callable;
+import alluxio.Constants;
+import alluxio.client.AlluxioStorageType;
+import alluxio.client.ReadType;
+import alluxio.client.UnderStorageType;
+import alluxio.client.WriteType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
-import alluxio.client.ReadType;
-import alluxio.client.AlluxioStorageType;
-import alluxio.client.UnderStorageType;
-import alluxio.client.WriteType;
+import java.util.concurrent.Callable;
 
 /**
  * Utilities to run the examples.

@@ -15,18 +15,6 @@
 
 package alluxio.worker.file;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.apache.thrift.TProcessor;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.heartbeat.HeartbeatContext;
@@ -37,6 +25,17 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.WorkerBase;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
+
+import com.google.common.base.Preconditions;
+import org.apache.thrift.TProcessor;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class is responsible for managing all top level components of the file system worker.

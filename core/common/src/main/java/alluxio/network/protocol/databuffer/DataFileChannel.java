@@ -15,13 +15,12 @@
 
 package alluxio.network.protocol.databuffer;
 
+import com.google.common.base.Preconditions;
+import io.netty.channel.DefaultFileRegion;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-
-import com.google.common.base.Preconditions;
-
-import io.netty.channel.DefaultFileRegion;
 
 /**
  * A DataBuffer with the underlying data being a {@link FileChannel}.

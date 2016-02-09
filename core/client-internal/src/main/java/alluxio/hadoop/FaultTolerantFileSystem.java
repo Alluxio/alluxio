@@ -15,9 +15,9 @@
 
 package alluxio.hadoop;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.Constants;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * An Alluxio client API compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}

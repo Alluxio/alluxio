@@ -15,15 +15,15 @@
 
 package alluxio.security.authentication;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslServer;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * Tests the {@link PlainSaslServerProvider} class.

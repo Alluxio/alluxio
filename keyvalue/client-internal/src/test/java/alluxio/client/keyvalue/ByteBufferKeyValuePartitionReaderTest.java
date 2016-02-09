@@ -15,7 +15,7 @@
 
 package alluxio.client.keyvalue;
 
-import java.nio.ByteBuffer;
+import alluxio.client.ByteArrayOutStream;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -24,7 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.client.ByteArrayOutStream;
+import java.nio.ByteBuffer;
 
 /**
  * Unit tests of {@link ByteBufferKeyValuePartitionReader}.

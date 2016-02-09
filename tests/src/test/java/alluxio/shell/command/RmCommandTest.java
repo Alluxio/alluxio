@@ -15,16 +15,16 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
+import alluxio.AlluxioURI;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.shell.AlluxioShellUtilsTest;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.AlluxioURI;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.AlluxioException;
-import alluxio.shell.AbstractAlluxioShellTest;
-import alluxio.shell.AlluxioShellUtilsTest;
+import java.io.IOException;
 
 /**
  * Tests for rm command.

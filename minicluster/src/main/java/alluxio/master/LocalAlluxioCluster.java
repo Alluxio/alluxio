@@ -15,19 +15,19 @@
 
 package alluxio.master;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.Configuration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AlluxioWorker;
 import alluxio.worker.WorkerContext;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Local Alluxio cluster for integration tests.

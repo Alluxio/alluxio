@@ -15,6 +15,14 @@
 
 package alluxio.web;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.master.block.BlockMaster;
+import alluxio.util.FormatUtils;
+import alluxio.wire.WorkerInfo;
+
+import com.google.common.base.Objects;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,14 +34,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.google.common.base.Objects;
-
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.master.block.BlockMaster;
-import alluxio.util.FormatUtils;
-import alluxio.wire.WorkerInfo;
 
 /**
  * Servlet that provides data for displaying detail info of all workers.

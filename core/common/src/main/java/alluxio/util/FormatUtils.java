@@ -15,14 +15,14 @@
 
 package alluxio.util;
 
+import alluxio.Constants;
+import alluxio.security.authorization.FileSystemPermission;
+
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import alluxio.Constants;
-import alluxio.security.authorization.FileSystemPermission;
 
 /**
  * Utility methods to parse specific formats, print according to specific formats or transform among

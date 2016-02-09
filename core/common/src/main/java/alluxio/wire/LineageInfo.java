@@ -15,15 +15,15 @@
 
 package alluxio.wire;
 
-import java.util.List;
-
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
-import alluxio.annotation.PublicApi;
+import java.util.List;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The lineage descriptor.

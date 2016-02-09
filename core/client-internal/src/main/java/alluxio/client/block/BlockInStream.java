@@ -15,12 +15,12 @@
 
 package alluxio.client.block;
 
+import alluxio.client.BoundedStream;
+import alluxio.client.Seekable;
+
 import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import alluxio.client.BoundedStream;
-import alluxio.client.Seekable;
 
 /**
  * This class represents a stream to a block in the Alluxio system. The data source of the block

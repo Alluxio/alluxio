@@ -15,12 +15,12 @@
 
 package alluxio.client.file.policy;
 
-import java.util.List;
-
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileOutStream;
 import alluxio.wire.WorkerNetAddress;
+
+import java.util.List;
 
 /**
  * <p>

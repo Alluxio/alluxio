@@ -15,12 +15,12 @@
 
 package alluxio.security.authentication;
 
-import javax.security.sasl.AuthenticationException;
-
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import javax.security.sasl.AuthenticationException;
 
 /**
  * Tests the {@link CustomAuthenticationProvider} class.

@@ -15,14 +15,14 @@
 
 package alluxio.client.file;
 
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.annotation.PublicApi;
+import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.annotation.PublicApi;
-import alluxio.wire.FileInfo;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Wrapper around {@link FileInfo}. Represents the metadata about a file or directory in Alluxio.

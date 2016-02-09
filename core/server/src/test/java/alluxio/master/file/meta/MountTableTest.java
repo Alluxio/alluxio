@@ -15,14 +15,14 @@
 
 package alluxio.master.file.meta;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link MountTable}.

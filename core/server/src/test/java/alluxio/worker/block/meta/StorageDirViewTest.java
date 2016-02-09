@@ -15,9 +15,13 @@
 
 package alluxio.worker.block.meta;
 
-import java.io.File;
-import java.util.List;
+import alluxio.worker.WorkerContext;
+import alluxio.worker.block.BlockMetadataManager;
+import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.TieredBlockStoreTestUtils;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Assert;
@@ -27,13 +31,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-import alluxio.worker.WorkerContext;
-import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataManagerView;
-import alluxio.worker.block.TieredBlockStoreTestUtils;
+import java.io.File;
+import java.util.List;
 
 /**
  * Tests for the {@link StorageDirView} class.

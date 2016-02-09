@@ -15,8 +15,12 @@
 
 package alluxio.worker.block.meta;
 
-import java.io.File;
+import alluxio.worker.WorkerContext;
+import alluxio.worker.block.BlockMetadataManager;
+import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.TieredBlockStoreTestUtils;
 
+import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -25,12 +29,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import com.google.common.collect.Sets;
-
-import alluxio.worker.WorkerContext;
-import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataManagerView;
-import alluxio.worker.block.TieredBlockStoreTestUtils;
+import java.io.File;
 
 /**
  * Unit tests for {@link StorageTierView}.

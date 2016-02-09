@@ -15,13 +15,13 @@
 
 package alluxio.fuse;
 
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
+
 import java.io.Closeable;
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
 
 /**
  * Convenience class to encapsulate input/output streams of open alluxio files.

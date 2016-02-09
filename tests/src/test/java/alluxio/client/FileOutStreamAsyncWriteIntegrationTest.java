@@ -15,14 +15,8 @@
 
 package alluxio.client;
 
-import java.util.concurrent.TimeUnit;
-
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import alluxio.IntegrationTestUtils;
 import alluxio.AlluxioURI;
+import alluxio.IntegrationTestUtils;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.heartbeat.HeartbeatContext;
@@ -30,6 +24,12 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
+
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests for {@link alluxio.client.file.FileOutStream} of under storage type being async

@@ -15,8 +15,18 @@
 
 package alluxio.client;
 
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemUtils;
+import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.util.ClientTestUtils;
+import alluxio.exception.AlluxioException;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -25,18 +35,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemUtils;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.util.ClientTestUtils;
-import alluxio.Configuration;
-import alluxio.exception.AlluxioException;
-import alluxio.util.CommonUtils;
-import alluxio.util.io.PathUtils;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for {@link alluxio.client.file.FileSystemUtils}.

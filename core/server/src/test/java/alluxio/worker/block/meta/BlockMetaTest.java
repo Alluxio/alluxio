@@ -15,7 +15,10 @@
 
 package alluxio.worker.block.meta;
 
-import java.io.IOException;
+import alluxio.util.io.BufferUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.worker.WorkerContext;
+import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -24,10 +27,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import alluxio.util.io.BufferUtils;
-import alluxio.util.io.PathUtils;
-import alluxio.worker.WorkerContext;
-import alluxio.worker.block.TieredBlockStoreTestUtils;
+import java.io.IOException;
 
 /**
  * Unit tests for {@link BlockMeta}.

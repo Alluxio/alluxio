@@ -15,12 +15,12 @@
 
 package alluxio.underfs.oss;
 
-import org.junit.Assert;
-import org.junit.Test;
-
 import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for the {@link OSSUnderFileSystemFactory}.

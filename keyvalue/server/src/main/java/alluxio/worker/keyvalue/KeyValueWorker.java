@@ -15,17 +15,6 @@
 
 package alluxio.worker.keyvalue;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Executors;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.thrift.TProcessor;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.thrift.KeyValueWorkerClientService;
@@ -33,6 +22,16 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.WorkerBase;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
+
+import com.google.common.base.Preconditions;
+import org.apache.thrift.TProcessor;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Executors;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A worker serving key-value queries.

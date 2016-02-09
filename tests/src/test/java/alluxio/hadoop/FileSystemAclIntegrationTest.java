@@ -15,8 +15,9 @@
 
 package alluxio.hadoop;
 
-import java.io.IOException;
-import java.net.URI;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.security.authentication.AuthType;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -29,9 +30,8 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.security.authentication.AuthType;
+import java.io.IOException;
+import java.net.URI;
 
 /**
  * Integration tests for {@link FileSystem#setOwner(Path, String, String)} and

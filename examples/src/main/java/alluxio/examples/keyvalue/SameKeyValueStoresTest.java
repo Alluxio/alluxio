@@ -15,14 +15,8 @@
 
 package alluxio.examples.keyvalue;
 
-import java.nio.ByteBuffer;
-import java.util.concurrent.Callable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.Version;
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
@@ -31,6 +25,12 @@ import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.examples.Utils;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.BufferUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
+import java.util.concurrent.Callable;
 
 /**
  * Tests whether two key-value stores contain the same set of key-value pairs.

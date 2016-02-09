@@ -15,11 +15,11 @@
 
 package alluxio.job;
 
+import com.google.common.base.Preconditions;
+
 import java.io.Serializable;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
 
 /**
  * A Job that can run at Alluxio.

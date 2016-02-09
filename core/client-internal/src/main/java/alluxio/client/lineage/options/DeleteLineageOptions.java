@@ -15,9 +15,9 @@
 
 package alluxio.client.lineage.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.annotation.PublicApi;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The method option for deleting a lineage.

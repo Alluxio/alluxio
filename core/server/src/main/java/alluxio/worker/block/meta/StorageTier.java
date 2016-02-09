@@ -15,13 +15,6 @@
 
 package alluxio.worker.block.meta;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.Constants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -29,6 +22,13 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerContext;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Represents a tier of storage, for example memory or SSD. It serves as a container of
