@@ -18,7 +18,7 @@ package alluxio.client.keyvalue;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.MasterClientBase;
+import alluxio.AbstractMasterClient;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
@@ -38,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This wrapper provides thread safety, and retry mechanism.
  */
 @ThreadSafe
-public final class KeyValueMasterClient extends MasterClientBase {
+public final class KeyValueMasterClient extends AbstractMasterClient {
   private KeyValueMasterClientService.Client mClient = null;
 
   /**

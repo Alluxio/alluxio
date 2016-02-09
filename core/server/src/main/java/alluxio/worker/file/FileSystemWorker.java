@@ -65,7 +65,7 @@ public final class FileSystemWorker extends WorkerBase {
     mConf = WorkerContext.getConf();
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker));
 
-    // Setup MasterClientBase
+    // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
   }
