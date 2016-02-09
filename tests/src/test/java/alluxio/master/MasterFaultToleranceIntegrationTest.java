@@ -46,12 +46,12 @@ public class MasterFaultToleranceIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static final int MASTERS = 5;
 
-  private LocalAlluxioClusterMultiMaster mLocalAlluxioClusterMultiMaster = null;
+  private MultiMasterLocalAlluxioCluster mMultiMasterLocalAlluxioCluster = null;
   private FileSystem mFileSystem = null;
 
   @After
   public final void after() throws Exception {
-    mLocalAlluxioClusterMultiMaster.stop();
+    mMultiMasterLocalAlluxioCluster.stop();
     // Reset the master conf.
     MasterContext.getConf().merge(new Configuration());
   }
@@ -61,10 +61,10 @@ public class MasterFaultToleranceIntegrationTest {
     // TODO(gpang): Implement multi-master cluster as a resource.
     // Reset the master conf.
     MasterContext.getConf().merge(new Configuration());
-    mLocalAlluxioClusterMultiMaster =
-        new LocalAlluxioClusterMultiMaster(WORKER_CAPACITY_BYTES, MASTERS, BLOCK_SIZE);
-    mLocalAlluxioClusterMultiMaster.start();
-    mFileSystem = mLocalAlluxioClusterMultiMaster.getClient();
+    mMultiMasterLocalAlluxioCluster =
+        new MultiMasterLocalAlluxioCluster(WORKER_CAPACITY_BYTES, MASTERS, BLOCK_SIZE);
+    mMultiMasterLocalAlluxioCluster.start();
+    mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();
   }
 
   /**
@@ -117,7 +117,7 @@ public class MasterFaultToleranceIntegrationTest {
     faultTestDataCheck(answer);
 
     for (int kills = 0; kills < MASTERS - 1; kills++) {
-      Assert.assertTrue(mLocalAlluxioClusterMultiMaster.killLeader());
+      Assert.assertTrue(mMultiMasterLocalAlluxioCluster.killLeader());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
       faultTestDataCheck(answer);
       faultTestDataCreation(new AlluxioURI("/data_kills_" + kills), answer);
@@ -129,7 +129,7 @@ public class MasterFaultToleranceIntegrationTest {
     // Kill leader -> create files -> kill leader -> delete files, repeat.
     List<Pair<Long, AlluxioURI>> answer = Lists.newArrayList();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
-      Assert.assertTrue(mLocalAlluxioClusterMultiMaster.killLeader());
+      Assert.assertTrue(mMultiMasterLocalAlluxioCluster.killLeader());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
 
       if (kills % 2 != 0) {
@@ -179,7 +179,7 @@ public class MasterFaultToleranceIntegrationTest {
     // If standby masters are killed(or node failure), current leader should not be affected and the
     // cluster should run properly.
 
-    int leaderIndex = mLocalAlluxioClusterMultiMaster.getLeaderIndex();
+    int leaderIndex = mMultiMasterLocalAlluxioCluster.getLeaderIndex();
     Assert.assertNotEquals(-1, leaderIndex);
 
     List<Pair<Long, AlluxioURI>> answer = Lists.newArrayList();
@@ -189,11 +189,11 @@ public class MasterFaultToleranceIntegrationTest {
     faultTestDataCheck(answer);
 
     for (int kills = 0; kills < MASTERS - 1; kills++) {
-      Assert.assertTrue(mLocalAlluxioClusterMultiMaster.killStandby());
+      Assert.assertTrue(mMultiMasterLocalAlluxioCluster.killStandby());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
 
       // Leader should not change.
-      Assert.assertEquals(leaderIndex, mLocalAlluxioClusterMultiMaster.getLeaderIndex());
+      Assert.assertEquals(leaderIndex, mMultiMasterLocalAlluxioCluster.getLeaderIndex());
       // Cluster should still work.
       faultTestDataCheck(answer);
       faultTestDataCreation(new AlluxioURI("/data_kills_" + kills), answer);
@@ -206,7 +206,7 @@ public class MasterFaultToleranceIntegrationTest {
 
     List<Pair<Long, AlluxioURI>> emptyAnswer = Lists.newArrayList();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
-      Assert.assertTrue(mLocalAlluxioClusterMultiMaster.killLeader());
+      Assert.assertTrue(mMultiMasterLocalAlluxioCluster.killLeader());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
 
       // TODO(cc) Why this test fail without this line? [TACHYON-970]

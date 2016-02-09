@@ -35,8 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Example to use
  * <pre>
  * // Create a cluster instance
- * localAlluxioCluster = new LocalAlluxioCluster(WORKER_CAPACITY_BYTES,
- *     QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
+ * localAlluxioCluster = new LocalAlluxioCluster(WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES);
  * // If you have special conf parameter to set for integration tests:
  * Configuration testConf = localAlluxioCluster.newTestConf();
  * testConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
