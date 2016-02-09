@@ -49,7 +49,7 @@ import java.util.Set;
  * blocks evicted by {@link LRUEvictor} are in the right order should be in {@link LRUEvictorTest}.
  */
 @RunWith(Parameterized.class)
-public class EvictorContractTestBase extends EvictorTestBase {
+public final class EvictorContractTest extends EvictorTestBase {
   private static final int TEST_TIER_LEVEL = 0;
   private static final int TEST_DIR = 0;
 
@@ -85,7 +85,7 @@ public class EvictorContractTestBase extends EvictorTestBase {
   /**
    * @param evictorClassName the class name of the evictor
    */
-  public EvictorContractTestBase(String evictorClassName) {
+  public EvictorContractTest(String evictorClassName) {
     mEvictorClassName = evictorClassName;
   }
 
