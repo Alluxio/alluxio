@@ -17,7 +17,7 @@ package alluxio.client.keyvalue;
 
 import alluxio.Constants;
 import alluxio.client.ClientContext;
-import alluxio.client.OutStreamBase;
+import alluxio.client.AbstractOutStream;
 import alluxio.util.io.ByteIOUtils;
 
 import com.google.common.base.Preconditions;
@@ -46,7 +46,7 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Handle to write to the underlying file. */
-  private final OutStreamBase mFileOutStream;
+  private final AbstractOutStream mFileOutStream;
   /** Number of key-value pairs added. */
   private long mKeyCount = 0;
   /** Key-value index. */
@@ -65,7 +65,7 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
    *
    * @param fileOutStream output stream to store the key-value file
    */
-  BaseKeyValuePartitionWriter(OutStreamBase fileOutStream) {
+  BaseKeyValuePartitionWriter(AbstractOutStream fileOutStream) {
     mFileOutStream = Preconditions.checkNotNull(fileOutStream);
     // TODO(binfan): write a header in the file
 

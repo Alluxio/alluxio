@@ -21,7 +21,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
 import alluxio.client.ClientUtils;
-import alluxio.client.OutStreamBase;
+import alluxio.client.AbstractOutStream;
 import alluxio.client.UnderStorageType;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.file.options.CompleteFileOptions;
@@ -54,7 +54,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public class FileOutStream extends OutStreamBase {
+public class FileOutStream extends AbstractOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mBlockSize;
