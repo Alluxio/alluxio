@@ -211,7 +211,7 @@ public class FileOutStream extends AbstractOutStream {
       mUnderStorageOutputStream.write(b);
       ClientContext.getClientMetrics().incBytesWrittenUfs(1);
     }
-    mBytesWritten ++;
+    mBytesWritten++;
   }
 
   @Override
