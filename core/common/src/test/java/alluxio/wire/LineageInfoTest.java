@@ -60,13 +60,13 @@ public class LineageInfoTest {
     byte[] bytes = new byte[5];
     List<String> inputFiles = Lists.newArrayList();
     long numInputFiles = random.nextInt(10) + 1;
-    for (int i = 0; i < numInputFiles; i ++) {
+    for (int i = 0; i < numInputFiles; i++) {
       random.nextBytes(bytes);
       inputFiles.add(new String(bytes));
     }
     List<String> outputFiles = Lists.newArrayList();
     long numOutputFiles = random.nextInt(10) + 1;
-    for (int i = 0; i < numOutputFiles; i ++) {
+    for (int i = 0; i < numOutputFiles; i++) {
       random.nextBytes(bytes);
       outputFiles.add(new String(bytes));
     }
@@ -74,12 +74,12 @@ public class LineageInfoTest {
     long creationTimeMs = random.nextLong();
     List<Long> parents = Lists.newArrayList();
     long numParents = random.nextInt(10) + 1;
-    for (int i = 0; i < numParents; i ++) {
+    for (int i = 0; i < numParents; i++) {
       parents.add(random.nextLong());
     }
     List<Long> children = Lists.newArrayList();
     long numChildren = random.nextInt(10) + 1;
-    for (int i = 0; i < numChildren; i ++) {
+    for (int i = 0; i < numChildren; i++) {
       children.add(random.nextLong());
     }
 

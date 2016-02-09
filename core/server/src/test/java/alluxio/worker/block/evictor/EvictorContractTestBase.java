@@ -163,7 +163,7 @@ public class EvictorContractTestBase extends EvictorTestBase {
         if (dir != dirLeft) {
           TieredBlockStoreTestUtils.cache(SESSION_ID, blockId, dir.getCapacityBytes(), dir,
               mMetaManager, mEvictor);
-          blockId ++;
+          blockId++;
         }
       }
     }
@@ -210,7 +210,7 @@ public class EvictorContractTestBase extends EvictorTestBase {
     for (StorageDir dir : dirs) {
       TieredBlockStoreTestUtils.cache(SESSION_ID, blockId, dir.getCapacityBytes() - 1, dir,
           mMetaManager, mEvictor);
-      blockId ++;
+      blockId++;
     }
 
     long requestBytes = dirs.get(dirs.size() - 1).getCapacityBytes();
@@ -238,7 +238,7 @@ public class EvictorContractTestBase extends EvictorTestBase {
         minCapacity = Math.min(minCapacity, capacity);
         TieredBlockStoreTestUtils
             .cache(SESSION_ID, blockId, capacity - 1, dir, mMetaManager, mEvictor);
-        blockId ++;
+        blockId++;
       }
     }
 

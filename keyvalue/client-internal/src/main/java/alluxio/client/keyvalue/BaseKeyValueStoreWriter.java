@@ -178,6 +178,6 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     long blockId = blockIds.get(0);
     PartitionInfo info = new PartitionInfo(mKeyStart, mKeyLimit, blockId);
     mMasterClient.completePartition(mStoreUri, info);
-    mPartitionIndex ++;
+    mPartitionIndex++;
   }
 }

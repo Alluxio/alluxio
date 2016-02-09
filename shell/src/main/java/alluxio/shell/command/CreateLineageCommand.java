@@ -84,7 +84,7 @@ public final class CreateLineageCommand extends AbstractShellCommand {
       outputFiles.add(new AlluxioURI(path));
     }
     String cmd = "";
-    for (int i = 2; i < args.length; i ++) {
+    for (int i = 2; i < args.length; i++) {
       cmd += args[i] + " ";
     }
 

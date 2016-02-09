@@ -86,7 +86,7 @@ public final class BufferedBlockInStreamIntegrationTest {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
-        for (int i = 0; i < 2; i ++) {
+        for (int i = 0; i < 2; i++) {
           FileInStream is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
           byte[] ret = new byte[k];
           int value = is.read();

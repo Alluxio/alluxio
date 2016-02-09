@@ -509,7 +509,7 @@ public final class FileSystemMaster extends MasterBase {
       // the blocks (except the last one) is the same size as the file block size.
       long inMemoryLength = 0;
       long fileBlockSize = fileInode.getBlockSizeBytes();
-      for (int i = 0; i < blockInfoList.size(); i ++) {
+      for (int i = 0; i < blockInfoList.size(); i++) {
         BlockInfo blockInfo = blockInfoList.get(i);
         inMemoryLength += blockInfo.getLength();
         if (i < blockInfoList.size() - 1 && blockInfo.getLength() != fileBlockSize) {

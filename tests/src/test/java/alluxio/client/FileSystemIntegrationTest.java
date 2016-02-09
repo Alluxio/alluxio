@@ -70,7 +70,7 @@ public class FileSystemIntegrationTest {
   @Test
   public void createFileTest() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
-    for (int k = 1; k < 5; k ++) {
+    for (int k = 1; k < 5; k++) {
       AlluxioURI uri = new AlluxioURI(uniqPath + k);
       mFileSystem.createFile(uri, mWriteBoth).close();
       Assert.assertNotNull(mFileSystem.getStatus(uri));
@@ -100,14 +100,14 @@ public class FileSystemIntegrationTest {
   public void deleteFileTest() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
 
-    for (int k = 0; k < 5; k ++) {
+    for (int k = 0; k < 5; k++) {
       AlluxioURI fileURI = new AlluxioURI(uniqPath + k);
       FileSystemTestUtils.createByteFile(mFileSystem, fileURI.getPath(), k, mWriteBoth);
       Assert.assertTrue(mFileSystem.getStatus(fileURI).getInMemoryPercentage() == 100);
       Assert.assertNotNull(mFileSystem.getStatus(fileURI));
     }
 
-    for (int k = 0; k < 5; k ++) {
+    for (int k = 0; k < 5; k++) {
       AlluxioURI fileURI = new AlluxioURI(uniqPath + k);
       mFileSystem.delete(fileURI);
       Assert.assertFalse(mFileSystem.exists(fileURI));
@@ -131,7 +131,7 @@ public class FileSystemIntegrationTest {
   public void mkdirTest() throws IOException, AlluxioException {
     String uniqPath = PathUtils.uniqPath();
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
-    for (int k = 0; k < 10; k ++) {
+    for (int k = 0; k < 10; k++) {
       mFileSystem.createDirectory(new AlluxioURI(uniqPath + k), options);
       try {
         mFileSystem.createDirectory(new AlluxioURI(uniqPath + k), options);
@@ -148,7 +148,7 @@ public class FileSystemIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     AlluxioURI path1 = new AlluxioURI(uniqPath + 1);
     mFileSystem.createFile(path1, mWriteBoth).close();
-    for (int k = 1; k < 10; k ++) {
+    for (int k = 1; k < 10; k++) {
       AlluxioURI fileA = new AlluxioURI(uniqPath + k);
       AlluxioURI fileB = new AlluxioURI(uniqPath + (k + 1));
       URIStatus existingFile = mFileSystem.getStatus(fileA);

@@ -91,7 +91,7 @@ public class FileInStreamTest {
     // Set up BufferedBlockInStreams and caching streams
     mCacheStreams = Lists.newArrayList();
     List<Long> blockIds = Lists.newArrayList();
-    for (int i = 0; i < NUM_STREAMS; i ++) {
+    for (int i = 0; i < NUM_STREAMS; i++) {
       blockIds.add((long) i);
       mCacheStreams.add(new TestBufferedBlockOutStream(i, BLOCK_LENGTH));
       Mockito.when(mBlockStore.getInStream(i)).thenAnswer(new Answer<BufferedBlockInStream>() {
@@ -126,7 +126,7 @@ public class FileInStreamTest {
    */
   @Test
   public void singleByteReadTest() throws Exception {
-    for (int i = 0; i < FILE_LENGTH; i ++) {
+    for (int i = 0; i < FILE_LENGTH; i++) {
       Assert.assertEquals(i & 0xff, mTestStream.read());
     }
     verifyCacheStreams(FILE_LENGTH);
@@ -203,7 +203,7 @@ public class FileInStreamTest {
     Assert.assertEquals(0, FILE_LENGTH % chunksize);
     byte[] buffer = new byte[chunksize];
     int offset = 0;
-    for (int i = 0; i < FILE_LENGTH / chunksize; i ++) {
+    for (int i = 0; i < FILE_LENGTH / chunksize; i++) {
       mTestStream.read(buffer, 0, chunksize);
       Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(offset, chunksize), buffer);
       offset += chunksize;
@@ -528,14 +528,14 @@ public class FileInStreamTest {
    * @param dataRead the bytes to read
    */
   private void verifyCacheStreams(long dataRead) {
-    for (int streamIndex = 0; streamIndex < NUM_STREAMS; streamIndex ++) {
+    for (int streamIndex = 0; streamIndex < NUM_STREAMS; streamIndex++) {
       TestBufferedBlockOutStream stream = mCacheStreams.get(streamIndex);
       byte[] data = stream.getWrittenData();
       if (streamIndex * BLOCK_LENGTH > dataRead) {
         Assert.assertEquals(0, data.length);
       } else {
         long dataStart = streamIndex * BLOCK_LENGTH;
-        for (int i = 0; i < BLOCK_LENGTH && dataStart + i < dataRead; i ++) {
+        for (int i = 0; i < BLOCK_LENGTH && dataStart + i < dataRead; i++) {
           Assert.assertEquals((byte) (dataStart + i), data[i]);
         }
       }

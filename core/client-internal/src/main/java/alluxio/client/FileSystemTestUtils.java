@@ -92,7 +92,7 @@ public final class FileSystemTestUtils {
       FileOutStream os = fs.createFile(fileURI, options);
 
       byte[] arr = new byte[len];
-      for (int k = 0; k < len; k ++) {
+      for (int k = 0; k < len; k++) {
         arr[k] = (byte) k;
       }
       os.write(arr);

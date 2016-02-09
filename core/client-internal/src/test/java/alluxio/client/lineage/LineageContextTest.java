@@ -40,7 +40,7 @@ public final class LineageContextTest {
 
     // acquire all the clients
     for (int i = 0; i < ClientContext.getConf()
-        .getInt(Constants.USER_LINEAGE_MASTER_CLIENT_THREADS); i ++) {
+        .getInt(Constants.USER_LINEAGE_MASTER_CLIENT_THREADS); i++) {
       clients.add(LineageContext.INSTANCE.acquireMasterClient());
     }
 

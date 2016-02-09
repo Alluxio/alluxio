@@ -106,7 +106,7 @@ public class SpaceReserverTest {
     // Reserve on top tier
     long blockId = 100;
     BlockStoreLocation tier0 = BlockStoreLocation.anyDirInTier("MEM");
-    for (int i = 0; i < 4; i ++) {
+    for (int i = 0; i < 4; i++) {
       TieredBlockStoreTestUtils.cache(SESSION_ID, blockId ++, BLOCK_SIZE, mBlockStore, tier0);
     }
     BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
@@ -125,7 +125,7 @@ public class SpaceReserverTest {
     Assert.assertEquals(1 * BLOCK_SIZE, (long) usedBytesOnTiers.get("HDD"));
 
     // Reserve on under tier
-    for (int i = 0; i < 10; i ++) {
+    for (int i = 0; i < 10; i++) {
       TieredBlockStoreTestUtils.cache(SESSION_ID, blockId ++, BLOCK_SIZE, mBlockStore, tier0);
     }
     storeMeta = mBlockStore.getBlockStoreMeta();

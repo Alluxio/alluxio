@@ -70,8 +70,8 @@ public class IndexedSetTest {
     @SuppressWarnings("unchecked")
     IndexedSet<Pair> set = new IndexedSet<Pair>(mIntIndex, mLongIndex);
     mSet = set;
-    for (int i = 0; i < 3; i ++) {
-      for (long l = 0; l < 3; l ++) {
+    for (int i = 0; i < 3; i++) {
+      for (long l = 0; l < 3; l++) {
         mSet.add(new Pair(i, l));
       }
     }
@@ -82,11 +82,11 @@ public class IndexedSetTest {
    */
   @Test
   public void containsTest() {
-    for (int i = 0; i < 3; i ++) {
+    for (int i = 0; i < 3; i++) {
       Assert.assertTrue(mSet.contains(mIntIndex, i));
     }
     Assert.assertFalse(mSet.contains(mIntIndex, 4));
-    for (long l = 0; l < 3; l ++) {
+    for (long l = 0; l < 3; l++) {
       Assert.assertTrue(mSet.contains(mLongIndex, l));
     }
     Assert.assertFalse(mSet.contains(mLongIndex, 4L));
@@ -97,7 +97,7 @@ public class IndexedSetTest {
    */
   @Test
   public void getTest() {
-    for (int i = 0; i < 3; i ++) {
+    for (int i = 0; i < 3; i++) {
       Set<Pair> set = mSet.getByField(mIntIndex, i);
       Assert.assertEquals(3, set.size());
       List<Long> longs = new ArrayList<Long>(set.size());
@@ -105,7 +105,7 @@ public class IndexedSetTest {
         longs.add(o.longValue());
       }
       Collections.sort(longs);
-      for (int j = 0; j < 3; j ++) {
+      for (int j = 0; j < 3; j++) {
         Assert.assertEquals(new Long(j), longs.get(j));
       }
 
@@ -118,7 +118,7 @@ public class IndexedSetTest {
         ints.add(o.intValue());
       }
       Collections.sort(ints);
-      for (int j = 0; j < 3; j ++) {
+      for (int j = 0; j < 3; j++) {
         Assert.assertEquals(new Integer(j), ints.get(j));
       }
     }
@@ -161,7 +161,7 @@ public class IndexedSetTest {
     Assert.assertEquals(0, mSet.getByField(mIntIndex, 1).size());
     Assert.assertEquals(3, mSet.getByField(mIntIndex, 0).size());
     Assert.assertEquals(3, mSet.getByField(mIntIndex, 2).size());
-    for (long l = 0; l < 3; l ++) {
+    for (long l = 0; l < 3; l++) {
       Assert.assertEquals(2, mSet.getByField(mLongIndex, l).size());
     }
   }
@@ -171,7 +171,7 @@ public class IndexedSetTest {
    */
   @Test
   public void addTheSameObjectMultipleTimesTest() {
-    for (int i = 0; i < 3; i ++) {
+    for (int i = 0; i < 3; i++) {
       Assert.assertEquals(9, mSet.size());
       Assert.assertEquals(3, mSet.getByField(mIntIndex, i).size());
       for (Pair p : mSet.getByField(mIntIndex, i)) {

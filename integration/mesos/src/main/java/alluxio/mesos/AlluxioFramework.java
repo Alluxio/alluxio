@@ -155,7 +155,7 @@ public class AlluxioFramework {
           targetMem = masterMem;
           mMasterHostname = offer.getHostname();
           mTaskName = sConf.get(Constants.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME);
-          mMasterCount ++;
+          mMasterCount++;
           mMasterTaskId = mLaunchedTasks;
 
         } else if (mMasterLaunched && !mWorkers.contains(offer.getHostname())
@@ -225,7 +225,7 @@ public class AlluxioFramework {
                 .setExecutor(executorBuilder).build();
 
         launch.addTaskInfos(Protos.TaskInfo.newBuilder(task));
-        mLaunchedTasks ++;
+        mLaunchedTasks++;
 
         // NOTE: We use the new API `acceptOffers` here to launch tasks.
         // The 'launchTasks' API will be deprecated.

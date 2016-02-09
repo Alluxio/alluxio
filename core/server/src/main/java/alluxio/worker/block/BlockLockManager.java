@@ -73,7 +73,7 @@ public final class BlockLockManager {
    * Creates a new instance of {@link BlockLockManager}.
    */
   public BlockLockManager() {
-    for (int i = 0; i < NUM_LOCKS; i ++) {
+    for (int i = 0; i < NUM_LOCKS; i++) {
       mLockArray[i] = new ClientRWLock();
     }
   }

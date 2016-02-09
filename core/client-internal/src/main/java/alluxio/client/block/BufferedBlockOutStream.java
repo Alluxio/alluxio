@@ -89,7 +89,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
       flush();
     }
     BufferUtils.putIntByteBuffer(mBuffer, b);
-    mWrittenBytes ++;
+    mWrittenBytes++;
   }
 
   @Override

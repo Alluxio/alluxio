@@ -241,7 +241,8 @@
 
     <!-- Checks that there is no whitespace after various unary operators. Linebreaks are allowed. -->
     <module name="NoWhitespaceAfter">
-      <property name="tokens" value="BNOT, DEC, DOT, INC, LNOT, UNARY_MINUS, UNARY_PLUS"/>
+      <!--<property name="tokens" value="BNOT, DEC, DOT, INC, LNOT, UNARY_MINUS, UNARY_PLUS"/>-->
+      <property name="tokens" value="INC, UNARY_PLUS"/>
       <property name="allowLineBreaks" value="true"/>
       <property name="severity" value="error"/>
     </module>

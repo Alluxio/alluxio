@@ -38,7 +38,7 @@ public class TtlBucketTest {
    */
   @Test
   public void intervalTest() {
-    for (long i = 0; i < 10; i ++) {
+    for (long i = 0; i < 10; i++) {
       mBucket = new TtlBucket(i);
       Assert.assertEquals(mBucket.getTtlIntervalEndTimeMs(), mBucket.getTtlIntervalStartTimeMs()
           + TtlBucket.getTtlIntervalMs());
@@ -51,8 +51,8 @@ public class TtlBucketTest {
    */
   @Test
   public void compareIntervalStartTimeTest() {
-    for (long i = 0; i < 10; i ++) {
-      for (long j = i + 1; j < 10; j ++) {
+    for (long i = 0; i < 10; i++) {
+      for (long j = i + 1; j < 10; j++) {
         TtlBucket bucket1 = new TtlBucket(i);
         Assert.assertEquals(i, bucket1.getTtlIntervalStartTimeMs());
 

@@ -36,7 +36,7 @@ public class BufferUtilsTest {
     final int bufferSize = 10;
     ByteBuffer buf = ByteBuffer.allocate(bufferSize);
     ByteBuffer bufClone = null;
-    for (byte i = 0; i < bufferSize; i ++) {
+    for (byte i = 0; i < bufferSize; i++) {
       buf.put(i);
     }
     bufClone = BufferUtils.cloneByteBuffer(buf);
@@ -51,16 +51,16 @@ public class BufferUtilsTest {
     final int bufferSize = 10;
     final int listLength = 10;
     ArrayList<ByteBuffer> bufList = new ArrayList<ByteBuffer>(listLength);
-    for (int k = 0; k < listLength; k ++) {
+    for (int k = 0; k < listLength; k++) {
       ByteBuffer buf = ByteBuffer.allocate(bufferSize);
-      for (byte i = 0; i < bufferSize; i ++) {
+      for (byte i = 0; i < bufferSize; i++) {
         buf.put((byte) (i + k));
       }
       bufList.add(buf);
     }
     List<ByteBuffer> bufListClone = BufferUtils.cloneByteBufferList(bufList);
     Assert.assertEquals(listLength, bufListClone.size());
-    for (int k = 0 ; k < listLength; k ++) {
+    for (int k = 0 ; k < listLength; k++) {
       Assert.assertEquals(bufList.get(k), bufListClone.get(k));
     }
   }
@@ -74,7 +74,7 @@ public class BufferUtilsTest {
     final int bufferSize = 10;
     ByteBuffer bufDirect = ByteBuffer.allocateDirect(bufferSize);
     ByteBuffer bufClone = null;
-    for (byte i = 0; i < bufferSize; i ++) {
+    for (byte i = 0; i < bufferSize; i++) {
       bufDirect.put(i);
     }
     bufClone = BufferUtils.cloneByteBuffer(bufDirect);
@@ -90,16 +90,16 @@ public class BufferUtilsTest {
     final int bufferSize = 10;
     final int listLength = 10;
     ArrayList<ByteBuffer> bufDirectList = new ArrayList<ByteBuffer>(listLength);
-    for (int k = 0; k < listLength; k ++) {
+    for (int k = 0; k < listLength; k++) {
       ByteBuffer bufDirect = ByteBuffer.allocateDirect(bufferSize);
-      for (byte i = 0; i < bufferSize; i ++) {
+      for (byte i = 0; i < bufferSize; i++) {
         bufDirect.put((byte) (i + k));
       }
       bufDirectList.add(bufDirect);
     }
     List<ByteBuffer> bufListClone = BufferUtils.cloneByteBufferList(bufDirectList);
     Assert.assertEquals(listLength, bufListClone.size());
-    for (int k = 0 ; k < listLength; k ++) {
+    for (int k = 0 ; k < listLength; k++) {
       Assert.assertEquals(bufDirectList.get(k), bufListClone.get(k));
     }
   }
@@ -111,14 +111,14 @@ public class BufferUtilsTest {
   public void generateNewByteBufferFromThriftRPCResultsTest() {
     final int bufferSize = 10;
     ByteBuffer mockRPCbuf = ByteBuffer.allocate(bufferSize);
-    for (byte i = 0; i < bufferSize; i ++) {
+    for (byte i = 0; i < bufferSize; i++) {
       mockRPCbuf.put(i);
     }
     mockRPCbuf.position(bufferSize / 2);
     ByteBuffer buf = BufferUtils.generateNewByteBufferFromThriftRPCResults(mockRPCbuf);
     Assert.assertEquals(0, buf.position());
     Assert.assertEquals(bufferSize / 2, buf.capacity());
-    for (int i = 0; i < bufferSize / 2; i ++) {
+    for (int i = 0; i < bufferSize / 2; i++) {
       Assert.assertEquals(mockRPCbuf.get(i + bufferSize / 2), buf.get(i));
     }
   }
@@ -180,7 +180,7 @@ public class BufferUtilsTest {
     for (TestCase testCase : testCases) {
       byte[] result = BufferUtils.getIncreasingByteArray(testCase.mStart, testCase.mLength);
       Assert.assertEquals(testCase.mExpected.length, result.length);
-      for (int k = 0; k < result.length; k ++) {
+      for (int k = 0; k < result.length; k++) {
         Assert.assertEquals(testCase.mExpected[k], result[k]);
       }
     }
@@ -257,7 +257,7 @@ public class BufferUtilsTest {
     for (TestCase testCase : testCases) {
       ByteBuffer result = BufferUtils.getIncreasingByteBuffer(testCase.mStart, testCase.mLength);
       Assert.assertEquals(testCase.mExpected.capacity(), result.capacity());
-      for (int k = 0; k < result.capacity(); k ++) {
+      for (int k = 0; k < result.capacity(); k++) {
         Assert.assertEquals(testCase.mExpected.get(k), result.get(k));
       }
     }
@@ -336,7 +336,7 @@ public class BufferUtilsTest {
     for (TestCase testCase : testCases) {
       ByteBuffer result = BufferUtils.getIncreasingIntBuffer(testCase.mStart, testCase.mLength);
       Assert.assertEquals(testCase.mExpected.limit(), result.limit());
-      for (int k = 0; k < result.limit(); k ++) {
+      for (int k = 0; k < result.limit(); k++) {
         Assert.assertEquals(testCase.mExpected.get(k), result.get(k));
       }
     }
@@ -356,7 +356,7 @@ public class BufferUtilsTest {
     // bufferArray keeps reference to each buffer to avoid auto GC
     ByteBuffer[] bufferArray = new ByteBuffer[MAX_ITERATIONS];
     try {
-      for (int i = 0; i < MAX_ITERATIONS; i ++) {
+      for (int i = 0; i < MAX_ITERATIONS; i++) {
         ByteBuffer buf = ByteBuffer.allocateDirect(BUFFER_SIZE);
         bufferArray[i] = buf;
         BufferUtils.cleanDirectBuffer(buf);

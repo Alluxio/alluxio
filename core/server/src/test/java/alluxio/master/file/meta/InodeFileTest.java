@@ -113,10 +113,10 @@ public final class InodeFileTest extends AbstractInodeTest {
     InodeFile inodeFile = createInodeFile(1);
     List<Long> blockIds = Lists.newArrayList();
     final int NUM_BLOCKS = 3;
-    for (int i = 0; i < NUM_BLOCKS; i ++) {
+    for (int i = 0; i < NUM_BLOCKS; i++) {
       blockIds.add(inodeFile.getNewBlockId());
     }
-    for (int i = 0; i < NUM_BLOCKS; i ++) {
+    for (int i = 0; i < NUM_BLOCKS; i++) {
       Assert.assertEquals(blockIds.get(i), (Long) inodeFile.getBlockIdByIndex(i));
     }
     try {

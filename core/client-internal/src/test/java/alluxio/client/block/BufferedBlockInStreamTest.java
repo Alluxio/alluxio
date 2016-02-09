@@ -45,7 +45,7 @@ public class BufferedBlockInStreamTest {
    */
   @Test
   public void singleByteReadTest() throws Exception {
-    for (int i = 0; i < BLOCK_LENGTH; i ++) {
+    for (int i = 0; i < BLOCK_LENGTH; i++) {
       Assert.assertEquals(i, mTestStream.read());
     }
   }

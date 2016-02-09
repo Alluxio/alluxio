@@ -73,7 +73,7 @@ public class Performance {
    */
   public static void createFiles() throws AlluxioException, IOException {
     final long startTimeMs = CommonUtils.getCurrentMs();
-    for (int k = 0; k < sFiles; k ++) {
+    for (int k = 0; k < sFiles; k++) {
       sFileSystem.createFile(new AlluxioURI(sFileName + (k + sBaseFileNumber))).close();
       LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile"));
     }
@@ -161,14 +161,14 @@ public class Performance {
         if (mMemoryOnly) {
           dst = ByteBuffer.allocateDirect((int) sFileBytes);
         }
-        for (int times = mLeft; times < mRight; times ++) {
+        for (int times = mLeft; times < mRight; times++) {
           final long startTimeMs = System.currentTimeMillis();
           if (!mMemoryOnly) {
             file = new RandomAccessFile(FOLDER + (times + sBaseFileNumber), "rw");
             dst = file.getChannel().map(MapMode.READ_WRITE, 0, sFileBytes);
           }
           dst.order(ByteOrder.nativeOrder());
-          for (int k = 0; k < sBlocksPerFile; k ++) {
+          for (int k = 0; k < sBlocksPerFile; k++) {
             mBuf.putInt(0, k + mWorkerId);
             dst.put(mBuf.array());
           }
@@ -186,14 +186,14 @@ public class Performance {
         if (mMemoryOnly) {
           dst = ByteBuffer.allocateDirect((int) sFileBytes);
         }
-        for (int times = mLeft; times < mRight; times ++) {
+        for (int times = mLeft; times < mRight; times++) {
           final long startTimeMs = System.currentTimeMillis();
           if (!mMemoryOnly) {
             file = new RandomAccessFile(FOLDER + (times + sBaseFileNumber), "rw");
             dst = file.getChannel().map(MapMode.READ_WRITE, 0, sFileBytes);
           }
           dst.order(ByteOrder.nativeOrder());
-          for (int k = 0; k < sBlocksPerFile; k ++) {
+          for (int k = 0; k < sBlocksPerFile; k++) {
             dst.get(mBuf.array());
           }
           sum += mBuf.get(times % 16);
@@ -250,11 +250,11 @@ public class Performance {
       }
 
       mBuf.flip();
-      for (int pId = mLeft; pId < mRight; pId ++) {
+      for (int pId = mLeft; pId < mRight; pId++) {
         final long startTimeMs = System.currentTimeMillis();
         FileOutStream os =
             mFileSystem.createFile(new AlluxioURI(sFileName + (pId + sBaseFileNumber)));
-        for (int k = 0; k < sBlocksPerFile; k ++) {
+        for (int k = 0; k < sBlocksPerFile; k++) {
           mBuf.putInt(0, k + mWorkerId);
           os.write(mBuf.array());
         }
@@ -304,13 +304,13 @@ public class Performance {
         ByteBuffer buf = ByteBuffer.allocate(sBlockSizeBytes);
         LOG.info("Verifying the reading data...");
 
-        for (int pId = mLeft; pId < mRight; pId ++) {
+        for (int pId = mLeft; pId < mRight; pId++) {
           InputStream is =
               mFileSystem.openFile(new AlluxioURI(sFileName + (pId + sBaseFileNumber)));
           is.read(buf.array());
           buf.order(ByteOrder.nativeOrder());
-          for (int i = 0; i < sBlocksPerFile; i ++) {
-            for (int k = 0; k < sBlockSizeBytes / 4; k ++) {
+          for (int i = 0; i < sBlocksPerFile; i++) {
+            for (int k = 0; k < sBlockSizeBytes / 4; k++) {
               int tmp = buf.getInt();
               if ((k == 0 && tmp == (i + mWorkerId)) || (k != 0 && tmp == k)) {
                 LOG.debug("Partition at {} is {}", k, tmp);
@@ -325,7 +325,7 @@ public class Performance {
 
       long sum = 0;
       if (sAlluxioStreamingRead) {
-        for (int pId = mLeft; pId < mRight; pId ++) {
+        for (int pId = mLeft; pId < mRight; pId++) {
           final long startTimeMs = System.currentTimeMillis();
           InputStream is =
               mFileSystem.openFile(new AlluxioURI(sFileName + (pId + sBaseFileNumber)));
@@ -340,11 +340,11 @@ public class Performance {
           logPerIteration(startTimeMs, pId, "th ReadAlluxioFile @ Worker ", pId);
         }
       } else {
-        for (int pId = mLeft; pId < mRight; pId ++) {
+        for (int pId = mLeft; pId < mRight; pId++) {
           final long startTimeMs = System.currentTimeMillis();
           InputStream is =
               mFileSystem.openFile(new AlluxioURI(sFileName + (pId + sBaseFileNumber)));
-          for (int i = 0; i < sBlocksPerFile; i ++) {
+          for (int i = 0; i < sBlocksPerFile; i++) {
             is.read(mBuf.array());
           }
           sum += mBuf.get(pId % 16);
@@ -428,11 +428,11 @@ public class Performance {
       String str = "th " + mMsg + " @ Worker ";
 
       if (mWrite) {
-        for (int times = mLeft; times < mRight; times ++) {
+        for (int times = mLeft; times < mRight; times++) {
           final long startTimeMs = System.currentTimeMillis();
           String filePath = sFileName + (times + sBaseFileNumber);
           OutputStream os = mHdfsFs.create(new Path(filePath));
-          for (int k = 0; k < sBlocksPerFile; k ++) {
+          for (int k = 0; k < sBlocksPerFile; k++) {
             mBuf.putInt(0, k + mWorkerId);
             os.write(mBuf.array());
           }
@@ -440,7 +440,7 @@ public class Performance {
           logPerIteration(startTimeMs, times, str, mWorkerId);
         }
       } else {
-        for (int times = mLeft; times < mRight; times ++) {
+        for (int times = mLeft; times < mRight; times++) {
           final long startTimeMs = System.currentTimeMillis();
           String filePath = sFileName + (times + sBaseFileNumber);
           InputStream is = mHdfsFs.open(new Path(filePath));
@@ -472,10 +472,10 @@ public class Performance {
   private static void memoryCopyTest(boolean write, boolean memoryOnly) {
     ByteBuffer[] bufs = new ByteBuffer[sThreads];
 
-    for (int thread = 0; thread < sThreads; thread ++) {
+    for (int thread = 0; thread < sThreads; thread++) {
       ByteBuffer sRawData = ByteBuffer.allocate(sBlockSizeBytes);
       sRawData.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < sBlockSizeBytes / 4; k ++) {
+      for (int k = 0; k < sBlockSizeBytes / 4; k++) {
         sRawData.putInt(k);
       }
       bufs[thread] = sRawData;
@@ -485,16 +485,16 @@ public class Performance {
 
     GeneralWorker[] workerThreads = new GeneralWorker[sThreads];
     int t = sFiles / sThreads;
-    for (int thread = 0; thread < sThreads; thread ++) {
+    for (int thread = 0; thread < sThreads; thread++) {
       workerThreads[thread] = new GeneralWorker(thread, t * thread, t * (thread + 1), bufs[thread],
           write, memoryOnly, msg);
     }
 
     final long startTimeMs = System.currentTimeMillis();
-    for (int thread = 0; thread < sThreads; thread ++) {
+    for (int thread = 0; thread < sThreads; thread++) {
       workerThreads[thread].start();
     }
-    for (int thread = 0; thread < sThreads; thread ++) {
+    for (int thread = 0; thread < sThreads; thread++) {
       try {
         workerThreads[thread].join();
       } catch (InterruptedException e) {
@@ -511,10 +511,10 @@ public class Performance {
   private static void AlluxioTest(boolean write) throws IOException {
     ByteBuffer[] bufs = new ByteBuffer[sThreads];
 
-    for (int thread = 0; thread < sThreads; thread ++) {
+    for (int thread = 0; thread < sThreads; thread++) {
       ByteBuffer sRawData = ByteBuffer.allocate(sBlockSizeBytes);
       sRawData.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < sBlockSizeBytes / 4; k ++) {
+      for (int k = 0; k < sBlockSizeBytes / 4; k++) {
         sRawData.putInt(k);
       }
       bufs[thread] = sRawData;
@@ -522,7 +522,7 @@ public class Performance {
 
     Worker[] workerThreads = new Worker[sThreads];
     int t = sFiles / sThreads;
-    for (int thread = 0; thread < sThreads; thread ++) {
+    for (int thread = 0; thread < sThreads; thread++) {
       if (write) {
         workerThreads[thread] =
             new AlluxioWriterWorker(thread, t * thread, t * (thread + 1), bufs[thread]);
@@ -533,10 +533,10 @@ public class Performance {
     }
 
     final long startTimeMs = System.currentTimeMillis();
-    for (int thread = 0; thread < sThreads; thread ++) {
+    for (int thread = 0; thread < sThreads; thread++) {
       workerThreads[thread].start();
     }
-    for (int thread = 0; thread < sThreads; thread ++) {
+    for (int thread = 0; thread < sThreads; thread++) {
       try {
         workerThreads[thread].join();
       } catch (InterruptedException e) {
@@ -552,10 +552,10 @@ public class Performance {
   private static void HdfsTest(boolean write) throws IOException {
     ByteBuffer[] bufs = new ByteBuffer[sThreads];
 
-    for (int thread = 0; thread < sThreads; thread ++) {
+    for (int thread = 0; thread < sThreads; thread++) {
       ByteBuffer sRawData = ByteBuffer.allocate(sBlockSizeBytes);
       sRawData.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < sBlockSizeBytes / 4; k ++) {
+      for (int k = 0; k < sBlockSizeBytes / 4; k++) {
         sRawData.putInt(k);
       }
       bufs[thread] = sRawData;
@@ -564,16 +564,16 @@ public class Performance {
     Worker[] workerThreads = new Worker[sThreads];
     int t = sFiles / sThreads;
     String msg = (write ? "Write " : "Read ");
-    for (int thread = 0; thread < sThreads; thread ++) {
+    for (int thread = 0; thread < sThreads; thread++) {
       workerThreads[thread] =
           new HdfsWorker(thread, t * thread, t * (thread + 1), bufs[thread], write, msg);
     }
 
     final long startTimeMs = System.currentTimeMillis();
-    for (int thread = 0; thread < sThreads; thread ++) {
+    for (int thread = 0; thread < sThreads; thread++) {
       workerThreads[thread].start();
     }
-    for (int thread = 0; thread < sThreads; thread ++) {
+    for (int thread = 0; thread < sThreads; thread++) {
       try {
         workerThreads[thread].join();
       } catch (InterruptedException e) {
@@ -677,7 +677,7 @@ public class Performance {
       throw new RuntimeException("No Test Case " + testCase);
     }
 
-    for (int k = 0; k < RESULT_ARRAY_SIZE; k ++) {
+    for (int k = 0; k < RESULT_ARRAY_SIZE; k++) {
       System.out.print(sResults[k] + " ");
     }
     System.out.println();

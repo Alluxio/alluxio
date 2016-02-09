@@ -205,7 +205,7 @@ public class AlluxioURITest {
             new AlluxioURI("hdfs://localhost:8080/a/b/c.txt"),
             new AlluxioURI("s3://localhost:8080/a/b/c.txt")};
 
-    for (int i = 0; i < uris.length - 1; i ++) {
+    for (int i = 0; i < uris.length - 1; i++) {
       Assert.assertTrue(uris[i].compareTo(uris[i + 1]) < 0);
       Assert.assertTrue(uris[i + 1].compareTo(uris[i]) > 0);
       Assert.assertEquals(0, uris[i].compareTo(uris[i]));
@@ -225,7 +225,7 @@ public class AlluxioURITest {
             new AlluxioURI("alluxio", "127.0.0.1:8080", "/a/b/c.txt"),
             new AlluxioURI(
                 new AlluxioURI("alluxio://127.0.0.1:8080/a"), new AlluxioURI("b/c.txt"))};
-    for (int i = 0; i < uriFromDifferentConstructor.length - 1; i ++) {
+    for (int i = 0; i < uriFromDifferentConstructor.length - 1; i++) {
       Assert.assertTrue(uriFromDifferentConstructor[i].equals(uriFromDifferentConstructor[i + 1]));
     }
   }

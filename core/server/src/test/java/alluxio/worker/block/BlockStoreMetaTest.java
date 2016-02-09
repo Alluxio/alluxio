@@ -63,7 +63,7 @@ public class BlockStoreMetaTest {
 
     // Add and commit COMMITTED_BLOCKS_NUM temp blocks repeatedly
     StorageDir dir = mMetadataManager.getTier("MEM").getDir(0);
-    for (long blockId = 0L; blockId < COMMITTED_BLOCKS_NUM; blockId ++) {
+    for (long blockId = 0L; blockId < COMMITTED_BLOCKS_NUM; blockId++) {
       TieredBlockStoreTestUtils.cache(TEST_SESSION_ID, blockId, TEST_BLOCK_SIZE, dir,
           mMetadataManager, null);
     }

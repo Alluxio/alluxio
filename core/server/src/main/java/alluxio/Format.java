@@ -91,7 +91,7 @@ public final class Format {
     } else if ("WORKER".equals(args[0].toUpperCase())) {
       String workerDataFolder = configuration.get(Constants.WORKER_DATA_FOLDER);
       int storageLevels = configuration.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
-      for (int level = 0; level < storageLevels; level ++) {
+      for (int level = 0; level < storageLevels; level++) {
         String tierLevelDirPath =
             String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
         String[] dirPaths = configuration.get(tierLevelDirPath).split(",");

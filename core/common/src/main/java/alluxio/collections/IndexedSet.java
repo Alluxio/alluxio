@@ -137,12 +137,12 @@ public class IndexedSet<T> implements Iterable<T> {
   public IndexedSet(FieldIndex<T> field, FieldIndex<T>... otherFields) {
     mIndexMap = new HashMap<FieldIndex<T>, Integer>(otherFields.length + 1);
     mIndexMap.put(field, 0);
-    for (int i = 1; i <= otherFields.length; i ++) {
+    for (int i = 1; i <= otherFields.length; i++) {
       mIndexMap.put(otherFields[i - 1], i);
     }
 
     mSetIndexedByFieldValue = new ArrayList<Map<Object, Set<T>>>(mIndexMap.size());
-    for (int i = 0; i < mIndexMap.size(); i ++) {
+    for (int i = 0; i < mIndexMap.size(); i++) {
       mSetIndexedByFieldValue.add(new HashMap<Object, Set<T>>());
     }
   }

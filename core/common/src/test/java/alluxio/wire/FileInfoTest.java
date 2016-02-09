@@ -87,7 +87,7 @@ public class FileInfoTest {
     boolean persisted = random.nextBoolean();
     List<Long> blockIds = Lists.newArrayList();
     long numElements = random.nextInt(10) + 1;
-    for (int i = 0; i < numElements; i ++) {
+    for (int i = 0; i < numElements; i++) {
       blockIds.add(random.nextLong());
     }
     int inMemoryPercentage = random.nextInt();

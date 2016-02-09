@@ -105,7 +105,7 @@ public final class PermissionChecker {
       InvalidPathException {
     String[] pathComponents = PathUtils.getPathComponents(path.getPath());
 
-    for (int i = fileInfoList.size(); i < pathComponents.length; i ++) {
+    for (int i = fileInfoList.size(); i < pathComponents.length; i++) {
       fileInfoList.add(null);
     }
     checkByFileInfoList(user, groups, action, path.getPath(), fileInfoList, false);
@@ -125,7 +125,7 @@ public final class PermissionChecker {
       List<FileInfo> fileInfoList) throws AccessControlException, InvalidPathException {
     String[] pathComponents = PathUtils.getPathComponents(path.getPath());
 
-    for (int i = fileInfoList.size(); i < pathComponents.length; i ++) {
+    for (int i = fileInfoList.size(); i < pathComponents.length; i++) {
       fileInfoList.add(null);
     }
     checkByFileInfoList(user, groups, null, path.getPath(), fileInfoList, true);
@@ -180,7 +180,7 @@ public final class PermissionChecker {
     }
 
     // traverses parent path to ensure inodes in it are all executable
-    for (int i = 0; i < size - 1; i ++) {
+    for (int i = 0; i < size - 1; i++) {
       check(user, groups, fileInfoList.get(i), FileSystemAction.EXECUTE, path);
     }
 

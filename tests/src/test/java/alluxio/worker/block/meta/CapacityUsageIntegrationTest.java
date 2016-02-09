@@ -60,7 +60,7 @@ public class CapacityUsageIntegrationTest {
       throws IOException, AlluxioException {
     ByteBuffer buf = ByteBuffer.allocate(len);
     buf.order(ByteOrder.nativeOrder());
-    for (int k = 0; k < len; k ++) {
+    for (int k = 0; k < len; k++) {
       buf.put((byte) k);
     }
 
@@ -89,7 +89,7 @@ public class CapacityUsageIntegrationTest {
   // @Test
   public void deleteDuringEvictionTest() throws IOException, AlluxioException {
     // This test may not trigger eviction each time, repeat it 20 times.
-    for (int i = 0; i < 20; i ++) {
+    for (int i = 0; i < 20; i++) {
       deleteDuringEviction(i);
       CommonUtils.sleepMs(2 * HEARTBEAT_INTERVAL_MS); // ensure second delete completes
     }

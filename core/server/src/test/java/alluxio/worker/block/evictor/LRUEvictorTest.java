@@ -101,13 +101,13 @@ public class LRUEvictorTest extends EvictorTestBase {
     int firstTierOrdinal = TieredBlockStoreTestUtils.TIER_ORDINAL[0];
     long[] firstTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0];
     int nDir = firstTierDirCapacity.length;
-    for (int i = 0; i < nDir; i ++) {
+    for (int i = 0; i < nDir; i++) {
       cache(SESSION_ID, BLOCK_ID + i, firstTierDirCapacity[i], firstTierOrdinal, i);
     }
     BlockStoreLocation anyDirInFirstTier =
         BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[firstTierOrdinal]);
     long smallestCapacity = firstTierDirCapacity[0];
-    for (int i = 0; i < nDir; i ++) {
+    for (int i = 0; i < nDir; i++) {
       EvictionPlan plan =
           mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
       Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
@@ -135,9 +135,9 @@ public class LRUEvictorTest extends EvictorTestBase {
     long blockId = BLOCK_ID;
     for (int tierOrdinal : TieredBlockStoreTestUtils.TIER_ORDINAL) {
       long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[tierOrdinal];
-      for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx ++) {
+      for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx++) {
         cache(SESSION_ID, blockId, tierCapacity[dirIdx], tierOrdinal, dirIdx);
-        blockId ++;
+        blockId++;
       }
     }
 
@@ -145,7 +145,7 @@ public class LRUEvictorTest extends EvictorTestBase {
         BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[0]);
     int nDirInFirstTier = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0].length;
     long smallestCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0][0];
-    for (int i = 0; i < nDirInFirstTier; i ++) {
+    for (int i = 0; i < nDirInFirstTier; i++) {
       EvictionPlan plan =
           mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
       Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));

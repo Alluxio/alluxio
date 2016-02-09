@@ -94,7 +94,7 @@ public class LocalAlluxioClusterMultiMaster extends AbstractLocalAlluxioCluster 
    * @return index of leader master in {@link #mMasters}, or -1 if there is no leader temporarily
    */
   public int getLeaderIndex() {
-    for (int i = 0; i < mNumOfMasters; i ++) {
+    for (int i = 0; i < mNumOfMasters; i++) {
       if (mMasters.get(i).isServing()) {
         return i;
       }
@@ -108,7 +108,7 @@ public class LocalAlluxioClusterMultiMaster extends AbstractLocalAlluxioCluster 
    * @return true if a standby master is successfully killed, otherwise, false
    */
   public boolean killStandby() {
-    for (int k = 0; k < mNumOfMasters; k ++) {
+    for (int k = 0; k < mNumOfMasters; k++) {
       if (!mMasters.get(k).isServing()) {
         try {
           LOG.info("master {} is a standby. killing it...", k);
@@ -130,7 +130,7 @@ public class LocalAlluxioClusterMultiMaster extends AbstractLocalAlluxioCluster 
    * @return true if the leader master is successfully killed, false otherwise
    */
   public boolean killLeader() {
-    for (int k = 0; k < mNumOfMasters; k ++) {
+    for (int k = 0; k < mNumOfMasters; k++) {
       if (mMasters.get(k).isServing()) {
         try {
           LOG.info("master {} is the leader. killing it...", k);
@@ -187,7 +187,7 @@ public class LocalAlluxioClusterMultiMaster extends AbstractLocalAlluxioCluster 
     mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
     MasterContext.reset(mMasterConf);
 
-    for (int k = 0; k < mNumOfMasters; k ++) {
+    for (int k = 0; k < mNumOfMasters; k++) {
       final LocalAlluxioMaster master = LocalAlluxioMaster.create(mHome);
       master.start();
       LOG.info("master NO.{} started, isServing: {}, address: {}", k, master.isServing(),
@@ -205,7 +205,7 @@ public class LocalAlluxioClusterMultiMaster extends AbstractLocalAlluxioCluster 
     LOG.info("waiting for a leader.");
     boolean hasLeader = false;
     while (!hasLeader) {
-      for (int i = 0; i < mMasters.size(); i ++) {
+      for (int i = 0; i < mMasters.size(); i++) {
         if (mMasters.get(i).isServing()) {
           LOG.info("master NO.{} is selected as leader. address: {}", i,
               mMasters.get(i).getAddress());
@@ -221,7 +221,7 @@ public class LocalAlluxioClusterMultiMaster extends AbstractLocalAlluxioCluster 
   @Override
   public void stopTFS() throws Exception {
     mWorker.stop();
-    for (int k = 0; k < mNumOfMasters; k ++) {
+    for (int k = 0; k < mNumOfMasters; k++) {
       // Use kill() instead of stop(), because stop() does not work well in multi-master mode.
       mMasters.get(k).kill();
     }

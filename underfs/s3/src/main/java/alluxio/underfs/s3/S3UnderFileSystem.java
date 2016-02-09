@@ -498,7 +498,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       S3Object[] objs = mClient.listObjects(mBucketName, path, "");
       if (recursive) {
         String[] ret = new String[objs.length];
-        for (int i = 0; i < objs.length; i ++) {
+        for (int i = 0; i < objs.length; i++) {
           // Remove parent portion of the key
           String child = getChildName(objs[i].getKey(), path);
           // Prune the special folder suffix

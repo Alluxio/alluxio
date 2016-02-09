@@ -106,7 +106,7 @@ public class FileInStreamIntegrationTest {
         while (value != -1) {
           Assert.assertTrue(value >= 0);
           Assert.assertTrue(value < 256);
-          ret[cnt ++] = (byte) value;
+          ret[cnt++] = (byte) value;
           value = is.read();
         }
         Assert.assertEquals(cnt, k);
@@ -120,7 +120,7 @@ public class FileInStreamIntegrationTest {
         while (value != -1) {
           Assert.assertTrue(value >= 0);
           Assert.assertTrue(value < 256);
-          ret[cnt ++] = (byte) value;
+          ret[cnt++] = (byte) value;
           value = is.read();
         }
         Assert.assertEquals(cnt, k);
