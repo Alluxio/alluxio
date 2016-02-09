@@ -35,7 +35,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.DataServer;
-import alluxio.worker.WorkerBase;
+import alluxio.worker.AbstractWorker;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.io.BlockReader;
@@ -70,7 +70,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Logic: {@link BlockWorker} (Logic for all block related storage operations)
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
-public final class BlockWorker extends WorkerBase {
+public final class BlockWorker extends AbstractWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Runnable responsible for heartbeating and registration with master. */

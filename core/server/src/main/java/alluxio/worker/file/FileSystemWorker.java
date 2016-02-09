@@ -22,7 +22,7 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
-import alluxio.worker.WorkerBase;
+import alluxio.worker.AbstractWorker;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 
@@ -41,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class is responsible for managing all top level components of the file system worker.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
-public final class FileSystemWorker extends WorkerBase {
+public final class FileSystemWorker extends AbstractWorker {
   /** Logic for managing file persistence. */
   private final FileDataManager mFileDataManager;
   /** Client for file system master communication. */
