@@ -332,8 +332,36 @@ public class BlockWorkerTest {
     long sessionId = mRandom.nextLong();
     String tierAlias = "MEM";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
+    BlockStoreLocation existingLocation = Mockito.mock(BlockStoreLocation.class);
+    when(existingLocation.belongsTo(location)).thenReturn(false);
+    BlockMeta meta = Mockito.mock(BlockMeta.class);
+    when(meta.getBlockLocation()).thenReturn(existingLocation);
+    when(mBlockStore.getBlockMeta(Mockito.eq(sessionId), Mockito.eq(blockId), Mockito.anyLong()))
+        .thenReturn(meta);
     mBlockWorker.moveBlock(sessionId, blockId, tierAlias);
     verify(mBlockStore).moveBlock(sessionId, blockId, location);
+  }
+
+  /**
+   * Tests the {@link BlockWorker#moveBlock(long, long, String)} method no-ops if the block is
+   * already at the destination location.
+   *
+   * @throws Exception if the moveBlock check fails
+   */
+  @Test
+  public void moveBlockNoopTest() throws Exception {
+    long blockId = mRandom.nextLong();
+    long sessionId = mRandom.nextLong();
+    String tierAlias = "MEM";
+    BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
+    BlockStoreLocation existingLocation = Mockito.mock(BlockStoreLocation.class);
+    when(existingLocation.belongsTo(location)).thenReturn(true);
+    BlockMeta meta = Mockito.mock(BlockMeta.class);
+    when(meta.getBlockLocation()).thenReturn(existingLocation);
+    when(mBlockStore.getBlockMeta(Mockito.eq(sessionId), Mockito.eq(blockId), Mockito.anyLong()))
+        .thenReturn(meta);
+    mBlockWorker.moveBlock(sessionId, blockId, tierAlias);
+    verify(mBlockStore, Mockito.times(0)).moveBlock(sessionId, blockId, location);
   }
 
   /**
