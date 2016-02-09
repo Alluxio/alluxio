@@ -15,18 +15,18 @@
 
 package alluxio;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
-import alluxio.util.network.NetworkAddressUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The base class for master clients.

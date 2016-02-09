@@ -15,6 +15,14 @@
 
 package alluxio.web;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.StorageTierAssoc;
+import alluxio.Version;
+import alluxio.master.AlluxioMaster;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.FormatUtils;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,14 +33,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import alluxio.Constants;
-import alluxio.StorageTierAssoc;
-import alluxio.Version;
-import alluxio.Configuration;
-import alluxio.master.AlluxioMaster;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.FormatUtils;
 
 /**
  * Servlet that provides data for viewing the general status of the filesystem.

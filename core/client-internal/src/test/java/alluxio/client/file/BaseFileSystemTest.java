@@ -15,21 +15,6 @@
 
 package alluxio.client.file;
 
-import java.util.List;
-
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
-
-import com.google.common.collect.Lists;
-
 import alluxio.AlluxioURI;
 import alluxio.client.ClientContext;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -45,6 +30,21 @@ import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.wire.FileInfo;
+
+import com.google.common.collect.Lists;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
+
+import java.util.List;
 
 /**
 * Unit test for functionality in {@link BaseFileSystem}.

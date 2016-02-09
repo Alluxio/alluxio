@@ -15,15 +15,6 @@
 
 package alluxio.client;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
@@ -38,6 +29,15 @@ import alluxio.exception.AlluxioException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.io.BufferUtils;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Abstract classes for all integration tests of {@link FileOutStream}.

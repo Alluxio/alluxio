@@ -15,8 +15,10 @@
 
 package alluxio.worker.block;
 
-import java.net.InetSocketAddress;
-import java.util.Map;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.worker.DataServer;
+import alluxio.worker.WorkerContext;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -31,10 +33,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.worker.DataServer;
-import alluxio.worker.WorkerContext;
+import java.net.InetSocketAddress;
+import java.util.Map;
 
 /**
  * Unit tests for {@link SpaceReserver}.

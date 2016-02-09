@@ -15,7 +15,11 @@
 
 package alluxio.worker.block;
 
-import java.io.IOException;
+import alluxio.Constants;
+import alluxio.exception.ExceptionMessage;
+import alluxio.thrift.BlockMasterWorkerService;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.worker.WorkerContext;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,11 +29,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import alluxio.Constants;
-import alluxio.exception.ExceptionMessage;
-import alluxio.thrift.BlockMasterWorkerService;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.WorkerContext;
+import java.io.IOException;
 
 /**
  * Unit tests for {@link BlockMasterClient}.

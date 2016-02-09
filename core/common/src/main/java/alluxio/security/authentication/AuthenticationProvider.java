@@ -15,10 +15,10 @@
 
 package alluxio.security.authentication;
 
-import javax.security.sasl.AuthenticationException;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
+
+import javax.security.sasl.AuthenticationException;
 
 /**
  * Abstraction for an authentication provider for different authentication types.

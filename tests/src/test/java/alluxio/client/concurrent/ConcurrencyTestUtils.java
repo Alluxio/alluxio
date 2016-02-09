@@ -15,6 +15,8 @@
 
 package alluxio.client.concurrent;
 
+import org.junit.Assert;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,8 +24,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import org.junit.Assert;
 
 /**
  * A set of utility methods for testing concurrency.

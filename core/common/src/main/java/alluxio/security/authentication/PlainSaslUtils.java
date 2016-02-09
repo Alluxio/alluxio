@@ -15,6 +15,13 @@
 
 package alluxio.security.authentication;
 
+import alluxio.Configuration;
+
+import org.apache.thrift.transport.TSaslClientTransport;
+import org.apache.thrift.transport.TSaslServerTransport;
+import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportFactory;
+
 import java.io.IOException;
 import java.security.Security;
 import java.util.HashMap;
@@ -26,13 +33,6 @@ import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.SaslException;
-
-import org.apache.thrift.transport.TSaslClientTransport;
-import org.apache.thrift.transport.TSaslServerTransport;
-import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TTransportFactory;
-
-import alluxio.Configuration;
 
 /**
  * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism. There is a new

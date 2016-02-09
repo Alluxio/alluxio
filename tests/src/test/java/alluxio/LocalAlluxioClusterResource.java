@@ -15,21 +15,21 @@
 
 package alluxio;
 
+import alluxio.exception.ConnectionFailedException;
+import alluxio.master.LocalAlluxioCluster;
+
+import com.google.common.base.Preconditions;
+
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
+
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.exception.ConnectionFailedException;
-import alluxio.master.LocalAlluxioCluster;
 
 /**
  * A JUnit Rule resource for automatically managing a local alluxio cluster for testing. To use it,

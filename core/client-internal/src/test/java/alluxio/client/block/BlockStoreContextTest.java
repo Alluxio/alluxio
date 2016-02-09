@@ -15,7 +15,14 @@
 
 package alluxio.client.block;
 
-import java.util.List;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.collect.Lists;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,14 +34,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import com.google.common.collect.Lists;
-
-import alluxio.Constants;
-import alluxio.client.ClientContext;
-import alluxio.Configuration;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import java.util.List;
 
 /**
  * Tests {@link BlockStoreContext}.

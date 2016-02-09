@@ -15,18 +15,18 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.commons.cli.CommandLine;
-
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
+
+import org.apache.commons.cli.CommandLine;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Creates a 0 byte file specified by argv. The file will be written to UnderFileSystem.

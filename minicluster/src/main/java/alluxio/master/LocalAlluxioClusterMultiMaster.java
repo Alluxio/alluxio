@@ -15,24 +15,24 @@
 
 package alluxio.master;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
+import alluxio.client.file.FileSystem;
+import alluxio.client.util.ClientTestUtils;
+import alluxio.exception.ConnectionFailedException;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.worker.WorkerContext;
+
+import com.google.common.base.Throwables;
+
+import org.apache.curator.test.TestingServer;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.apache.curator.test.TestingServer;
-
-import com.google.common.base.Throwables;
-
-import alluxio.Constants;
-import alluxio.client.ClientContext;
-import alluxio.client.file.FileSystem;
-import alluxio.client.util.ClientTestUtils;
-import alluxio.Configuration;
-import alluxio.exception.ConnectionFailedException;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.worker.WorkerContext;
 
 /**
  * A local Alluxio cluster with multiple masters.

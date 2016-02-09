@@ -15,11 +15,11 @@
 
 package alluxio.network.protocol;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import com.google.common.primitives.Shorts;
 
 import io.netty.buffer.ByteBuf;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This represents a simple RPC response, containing an error.

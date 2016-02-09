@@ -15,6 +15,8 @@
 
 package alluxio.worker.block;
 
+import com.google.common.collect.Lists;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,8 +25,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.collect.Lists;
 
 /**
  * Represents the delta of the block store within one heartbeat period. For now, newly committed

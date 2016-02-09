@@ -15,13 +15,13 @@
 
 package alluxio.util;
 
+import alluxio.Configuration;
+import alluxio.underfs.UnderFileSystem;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import alluxio.Configuration;
-import alluxio.underfs.UnderFileSystem;
 
 /**
  * Utility functions for working with {@link alluxio.underfs.UnderFileSystem}.

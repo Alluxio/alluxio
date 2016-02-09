@@ -15,19 +15,6 @@
 
 package alluxio.worker.block;
 
-import java.io.File;
-import java.lang.reflect.Field;
-
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
-
-import com.google.common.collect.Sets;
-
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -39,6 +26,19 @@ import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
+
+import com.google.common.collect.Sets;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.lang.reflect.Field;
 
 /**
  * Unit tests for {@link TieredBlockStore}.

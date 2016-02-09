@@ -15,11 +15,11 @@
 
 package alluxio.security.authentication;
 
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.security.sasl.AuthenticationException;
-
 import alluxio.Configuration;
 import alluxio.util.CommonUtils;
+
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.security.sasl.AuthenticationException;
 
 /**
  * An authentication provider implementation that allows {@link AuthenticationProvider} to be

@@ -15,9 +15,18 @@
 
 package alluxio.client.keyvalue;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.ClientContext;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.util.io.BufferUtils;
+import alluxio.util.io.PathUtils;
+
+import com.google.common.collect.Lists;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,18 +36,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.google.common.collect.Lists;
-
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
-import alluxio.client.ClientContext;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.AlluxioException;
-import alluxio.util.io.BufferUtils;
-import alluxio.util.io.PathUtils;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Integration tests for {@link KeyValueSystem}.

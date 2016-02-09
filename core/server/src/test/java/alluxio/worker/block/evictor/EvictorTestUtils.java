@@ -15,21 +15,21 @@
 
 package alluxio.worker.block.evictor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Assert;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.collections.Pair;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
+
+import com.google.common.base.Preconditions;
+
+import org.junit.Assert;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class provides utility methods for testing Evictors.

@@ -15,17 +15,17 @@
 
 package alluxio.master.file.meta;
 
-import java.util.List;
+import alluxio.Constants;
+import alluxio.exception.BlockInfoException;
+import alluxio.exception.FileAlreadyCompletedException;
+import alluxio.exception.InvalidFileSizeException;
+
+import com.google.common.collect.Lists;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
-
-import alluxio.Constants;
-import alluxio.exception.FileAlreadyCompletedException;
-import alluxio.exception.InvalidFileSizeException;
-import alluxio.exception.BlockInfoException;
+import java.util.List;
 
 /**
  * Unit tests for {@link InodeFile}.

@@ -15,7 +15,12 @@
 
 package alluxio.master.lineage.recompute;
 
-import java.util.concurrent.TimeUnit;
+import alluxio.job.Job;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.meta.FileSystemMasterView;
+import alluxio.master.lineage.meta.Lineage;
+
+import com.google.common.collect.Lists;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,12 +28,7 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.google.common.collect.Lists;
-
-import alluxio.job.Job;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.meta.FileSystemMasterView;
-import alluxio.master.lineage.meta.Lineage;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Unit tests for {@link RecomputeExecutor}.

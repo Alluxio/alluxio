@@ -15,19 +15,8 @@
 
 package alluxio.master;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import com.google.common.collect.Sets;
-
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.AlluxioURI;
+import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -36,6 +25,17 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.worker.file.FileSystemMasterClient;
+
+import com.google.common.collect.Sets;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 public final class PinIntegrationTest {
   @Rule

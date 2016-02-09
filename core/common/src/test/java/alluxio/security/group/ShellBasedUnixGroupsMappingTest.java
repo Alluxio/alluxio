@@ -15,9 +15,8 @@
 
 package alluxio.security.group;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
+import alluxio.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,8 +26,9 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
-import alluxio.util.CommonUtils;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Unit test for {@link alluxio.security.group.provider.ShellBasedUnixGroupsMapping}.

@@ -15,17 +15,6 @@
 
 package alluxio.web;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Ordering;
-
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.master.file.meta.PersistenceState;
@@ -33,6 +22,17 @@ import alluxio.security.authorization.FileSystemPermission;
 import alluxio.util.FormatUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Ordering;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Contains information about a file to be displayed in the UI.

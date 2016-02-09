@@ -15,14 +15,14 @@
 
 package alluxio.worker.block.evictor;
 
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.collections.Pair;
+import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.collections.Pair;
-import alluxio.worker.block.BlockStoreLocation;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class provides information about the blocks that need to be moved when evicting.

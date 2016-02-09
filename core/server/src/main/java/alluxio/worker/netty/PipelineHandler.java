@@ -15,16 +15,16 @@
 
 package alluxio.worker.netty;
 
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.network.protocol.RPCMessage;
+import alluxio.network.protocol.RPCMessageDecoder;
+import alluxio.network.protocol.RPCMessageEncoder;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
-import alluxio.network.protocol.RPCMessage;
-import alluxio.network.protocol.RPCMessageDecoder;
-import alluxio.network.protocol.RPCMessageEncoder;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Adds the block server's pipeline into the channel.

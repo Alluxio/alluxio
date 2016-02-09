@@ -15,19 +15,19 @@
 
 package alluxio.client.lineage;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A stream API to write a file when lineage is enabled. It supports asynchronous persistence of the

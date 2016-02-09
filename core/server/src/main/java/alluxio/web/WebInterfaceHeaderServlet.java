@@ -15,6 +15,11 @@
 
 package alluxio.web;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
+
 import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -22,11 +27,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * Servlet that provides data for the header navigation bar.

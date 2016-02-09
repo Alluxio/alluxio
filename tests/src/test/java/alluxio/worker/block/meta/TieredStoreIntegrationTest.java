@@ -15,7 +15,21 @@
 
 package alluxio.worker.block.meta;
 
-import java.io.IOException;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.FileSystemTestUtils;
+import alluxio.client.ReadType;
+import alluxio.client.WriteType;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.exception.AlluxioException;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -25,21 +39,7 @@ import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
-import alluxio.client.FileSystemTestUtils;
-import alluxio.client.WriteType;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
-import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.Configuration;
-import alluxio.exception.AlluxioException;
-import alluxio.util.CommonUtils;
-import alluxio.util.io.BufferUtils;
+import java.io.IOException;
 
 /**
  * Integration tests for {@link alluxio.worker.block.meta.StorageTier}.

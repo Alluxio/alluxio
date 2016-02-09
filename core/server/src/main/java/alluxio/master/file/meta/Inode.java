@@ -15,11 +15,11 @@
 
 package alluxio.master.file.meta;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.wire.FileInfo;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * {@link Inode} is an abstract class, with information shared by all types of Inodes.

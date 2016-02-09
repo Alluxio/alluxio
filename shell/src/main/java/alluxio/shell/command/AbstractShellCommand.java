@@ -15,7 +15,8 @@
 
 package alluxio.shell.command;
 
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.Configuration;
+import alluxio.client.file.FileSystem;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -24,8 +25,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import alluxio.client.file.FileSystem;
-import alluxio.Configuration;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The base class for all the {@link ShellCommand} classes. It provides a default argument

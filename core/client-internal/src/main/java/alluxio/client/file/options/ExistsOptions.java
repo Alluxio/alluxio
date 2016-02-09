@@ -15,9 +15,9 @@
 
 package alluxio.client.file.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.annotation.PublicApi;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for checking the existence of a path.

@@ -15,14 +15,14 @@
 
 package alluxio.master;
 
-import java.io.IOException;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
+
+import java.io.IOException;
 
 public class MasterTestUtils {
   public static FileSystemMaster createFileSystemMasterFromJournal(Configuration configuration)

@@ -15,10 +15,31 @@
 
 package alluxio.fuse;
 
-import java.util.Collections;
-import java.util.List;
+import static jnr.constants.platform.OpenFlags.O_RDONLY;
+import static jnr.constants.platform.OpenFlags.O_RDWR;
+import static jnr.constants.platform.OpenFlags.O_WRONLY;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.wire.FileInfo;
 
 import com.google.common.cache.LoadingCache;
+
+import jnr.ffi.Pointer;
+import jnr.ffi.Runtime;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,31 +47,11 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.Configuration;
-import alluxio.wire.FileInfo;
-
-import jnr.ffi.Pointer;
-import jnr.ffi.Runtime;
 import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
 
-import static jnr.constants.platform.OpenFlags.O_RDONLY;
-import static jnr.constants.platform.OpenFlags.O_RDWR;
-import static jnr.constants.platform.OpenFlags.O_WRONLY;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertArrayEquals;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Isolation tests for {@link AlluxioFuseFileSystem}.

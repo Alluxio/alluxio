@@ -15,15 +15,15 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.Configuration;
+import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.file.FileSystem;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.file.FileSystem;
-import alluxio.Configuration;
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Gets number of bytes used in the {@link FileSystem}.

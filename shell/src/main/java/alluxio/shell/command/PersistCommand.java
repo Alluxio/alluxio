@@ -15,22 +15,22 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.commons.cli.CommandLine;
-
-import com.google.common.base.Joiner;
-
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+
+import com.google.common.base.Joiner;
+
+import org.apache.commons.cli.CommandLine;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Persists a file or directory currently stored only in Alluxio to the UnderFileSystem.

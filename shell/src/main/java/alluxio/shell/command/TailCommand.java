@@ -15,22 +15,22 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.commons.cli.CommandLine;
-
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.Configuration;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+
+import org.apache.commons.cli.CommandLine;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Prints the file's last 1KB of contents to the console.

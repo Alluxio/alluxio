@@ -15,14 +15,14 @@
 
 package alluxio.client.file.policy;
 
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.client.block.BlockWorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A policy that returns the worker with the most available bytes. The policy returns null if no

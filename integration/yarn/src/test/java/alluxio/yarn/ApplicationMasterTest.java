@@ -15,14 +15,17 @@
 
 package alluxio.yarn;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.util.CommonUtils;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.yarn.YarnUtils.YarnContainerType;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
@@ -54,17 +57,14 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Sets;
-
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.util.CommonUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.yarn.YarnUtils.YarnContainerType;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Unit tests for {@link ApplicationMaster}.

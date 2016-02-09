@@ -15,19 +15,19 @@
 
 package alluxio.web;
 
+import alluxio.wire.BlockLocation;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
-
-import alluxio.wire.BlockLocation;
-import alluxio.wire.FileBlockInfo;
-import alluxio.wire.WorkerNetAddress;
 
 /**
  * Contains information for displaying a file block in the UI.

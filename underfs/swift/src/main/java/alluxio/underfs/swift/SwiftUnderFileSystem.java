@@ -15,16 +15,10 @@
 
 package alluxio.underfs.swift;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.swift.http.SwiftDirectClient;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
@@ -41,10 +35,16 @@ import org.javaswift.joss.model.StoredObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.swift.http.SwiftDirectClient;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library.

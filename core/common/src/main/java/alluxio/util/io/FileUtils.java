@@ -15,20 +15,20 @@
 
 package alluxio.util.io;
 
-import java.io.File;
-import java.io.IOException;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.exception.InvalidPathException;
+import alluxio.util.ShellUtils;
 
-import javax.annotation.concurrent.ThreadSafe;
+import com.google.common.io.Files;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
 
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.exception.InvalidPathException;
-import alluxio.util.ShellUtils;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Provides utility methods for working with files and directories.

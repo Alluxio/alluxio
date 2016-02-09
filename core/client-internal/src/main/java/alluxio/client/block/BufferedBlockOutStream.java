@@ -15,20 +15,20 @@
 
 package alluxio.client.block;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.Cancelable;
 import alluxio.client.ClientContext;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
+
+import com.google.common.base.Preconditions;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides a stream API to write a block to Alluxio. An instance of this class can be obtained by

@@ -15,9 +15,9 @@
 
 package alluxio.master.journal;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.Version;
+import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.CommonUtils;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -27,9 +27,9 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 
-import alluxio.Version;
-import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.util.CommonUtils;
+import java.io.IOException;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Tool for reading the journal. It reads binary journal entries and prints human-readable ones to

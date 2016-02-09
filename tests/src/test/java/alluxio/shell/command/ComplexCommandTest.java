@@ -15,21 +15,21 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.FileSystemTestUtils;
+import alluxio.client.WriteType;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.client.FileSystemTestUtils;
-import alluxio.client.WriteType;
-import alluxio.Configuration;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.AlluxioException;
-import alluxio.shell.AbstractAlluxioShellTest;
-import alluxio.util.UnderFileSystemUtils;
-import alluxio.util.io.PathUtils;
+import java.io.IOException;
 
 /**
  * Tests consisting of multiple commands.

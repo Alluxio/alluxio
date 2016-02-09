@@ -15,11 +15,11 @@
 
 package alluxio.network.protocol.databuffer;
 
-import java.nio.ByteBuffer;
-
 import com.google.common.base.Preconditions;
 
 import io.netty.buffer.ByteBuf;
+
+import java.nio.ByteBuffer;
 
 /**
  * A DataBuffer with the underlying data being a {@link ByteBuf}.

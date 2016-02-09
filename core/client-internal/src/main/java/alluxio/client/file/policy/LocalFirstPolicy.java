@@ -15,15 +15,15 @@
 
 package alluxio.client.file.policy;
 
-import java.util.Collections;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.client.ClientContext;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
+
+import java.util.Collections;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 /**
  * A policy that returns local host first, and if the local worker doesn't have enough availability,
  * it randomly picks a worker from the active workers list for each block write.

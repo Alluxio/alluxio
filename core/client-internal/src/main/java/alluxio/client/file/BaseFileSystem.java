@@ -15,12 +15,6 @@
 
 package alluxio.client.file;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -36,12 +30,18 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.AlluxioException;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
 * Default implementation of the {@link FileSystem} interface. Developers can extend this class

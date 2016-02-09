@@ -15,9 +15,9 @@
 
 package alluxio.network;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import io.netty.channel.epoll.Epoll;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * What type of netty channel to use. {@link #NIO} and {@link #EPOLL} are supported currently.

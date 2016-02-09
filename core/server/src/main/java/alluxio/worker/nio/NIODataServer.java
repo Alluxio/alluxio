@@ -15,6 +15,20 @@
 
 package alluxio.worker.nio;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.worker.DataServer;
+import alluxio.worker.DataServerMessage;
+import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.io.BlockReader;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -29,20 +43,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.DataServer;
-import alluxio.worker.DataServerMessage;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.io.BlockReader;
 
 /**
  * The server to serve data file read requests from remote machines. The current implementation is

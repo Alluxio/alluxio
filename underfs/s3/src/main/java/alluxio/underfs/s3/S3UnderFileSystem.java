@@ -15,18 +15,12 @@
 
 package alluxio.underfs.s3;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.PathUtils;
 
-import javax.annotation.concurrent.ThreadSafe;
+import com.google.common.base.Preconditions;
 
 import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
@@ -39,12 +33,18 @@ import org.jets3t.service.utils.Mimetypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.io.PathUtils;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * S3 FS {@link UnderFileSystem} implementation based on the jets3t library.

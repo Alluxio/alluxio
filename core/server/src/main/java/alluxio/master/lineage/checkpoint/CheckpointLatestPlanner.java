@@ -15,19 +15,19 @@
 
 package alluxio.master.lineage.checkpoint;
 
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Lists;
-
 import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.lineage.meta.Lineage;
 import alluxio.master.lineage.meta.LineageStateUtils;
 import alluxio.master.lineage.meta.LineageStoreView;
+
+import com.google.common.collect.Lists;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class tries to checkpoint the latest created lineage that is ready for persistence. This

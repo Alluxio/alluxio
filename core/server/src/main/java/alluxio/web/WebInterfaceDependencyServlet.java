@@ -15,6 +15,10 @@
 
 package alluxio.web;
 
+import alluxio.master.AlluxioMaster;
+
+import com.google.common.base.Preconditions;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,10 +29,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.master.AlluxioMaster;
 
 /**
  * Servlet for dependencies, such as parent and children file names in the web interface.

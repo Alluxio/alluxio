@@ -15,12 +15,27 @@
 
 package alluxio.client.block;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import alluxio.ClientBase;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.HeartbeatThread;
+import alluxio.security.authentication.AuthenticationUtils;
+import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.BlockWorkerClientService;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.LockBlockResult;
+import alluxio.wire.ThriftUtils;
+import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.ClientMetrics;
 
-import javax.annotation.concurrent.ThreadSafe;
+import com.google.common.base.Preconditions;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -30,27 +45,12 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
-import alluxio.ClientBase;
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.heartbeat.HeartbeatThread;
-import alluxio.security.authentication.AuthenticationUtils;
-import alluxio.thrift.BlockWorkerClientService;
-import alluxio.thrift.AlluxioService;
-import alluxio.thrift.AlluxioTException;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.LockBlockResult;
-import alluxio.wire.ThriftUtils;
-import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.ClientMetrics;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The client talks to a block worker server. It keeps sending keep alive message to the worker

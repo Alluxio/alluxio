@@ -15,11 +15,11 @@
 
 package alluxio.metrics.source;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A Source which collects JVM metrics, including JVM memory usage, GC counts, GC times, etc.

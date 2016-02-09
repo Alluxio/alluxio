@@ -15,15 +15,15 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.Constants;
+import alluxio.master.MasterContext;
+
+import com.google.common.base.Objects;
+
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Objects;
-
-import alluxio.Constants;
-import alluxio.master.MasterContext;
 
 /**
  * A bucket with all files whose ttl value lies in the bucket's time interval. The bucket's time

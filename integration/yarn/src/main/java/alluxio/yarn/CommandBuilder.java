@@ -15,11 +15,11 @@
 
 package alluxio.yarn;
 
+import com.google.common.base.Preconditions;
+
 import java.util.Vector;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Preconditions;
 
 /**
  * This class is used to build a string representing a shell command by adding arguments.

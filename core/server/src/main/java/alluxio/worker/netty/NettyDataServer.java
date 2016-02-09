@@ -15,11 +15,12 @@
 
 package alluxio.worker.netty;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.network.ChannelType;
+import alluxio.util.network.NettyUtils;
+import alluxio.worker.DataServer;
+import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -31,12 +32,11 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.network.ChannelType;
-import alluxio.util.network.NettyUtils;
-import alluxio.worker.DataServer;
-import alluxio.worker.block.BlockWorker;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Runs a netty data server that responds to block requests.

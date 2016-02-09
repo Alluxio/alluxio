@@ -15,6 +15,18 @@
 
 package alluxio.web;
 
+import alluxio.AlluxioURI;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.master.AlluxioMaster;
+import alluxio.master.MasterContext;
+import alluxio.security.LoginUser;
+import alluxio.security.authentication.PlainSaslServer;
+import alluxio.util.SecurityUtils;
+import alluxio.wire.FileInfo;
+
+import com.google.common.base.Preconditions;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,18 +37,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.AlluxioURI;
-import alluxio.exception.AccessControlException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.master.MasterContext;
-import alluxio.master.AlluxioMaster;
-import alluxio.security.LoginUser;
-import alluxio.security.authentication.PlainSaslServer;
-import alluxio.util.SecurityUtils;
-import alluxio.wire.FileInfo;
 
 /**
  * Servlet that provides data for displaying which files are currently in memory.

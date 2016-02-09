@@ -15,17 +15,17 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.options.SetAttributeOptions;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.Configuration;
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Changes the permission of a file or directory specified by args.

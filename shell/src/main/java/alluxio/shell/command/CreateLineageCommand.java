@@ -15,24 +15,24 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
+import alluxio.client.file.FileSystem;
+import alluxio.client.lineage.AlluxioLineage;
+import alluxio.exception.AlluxioException;
+import alluxio.job.CommandLineJob;
+import alluxio.job.JobConf;
 
 import com.google.common.collect.Lists;
 
 import org.apache.commons.cli.CommandLine;
 
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.client.ClientContext;
-import alluxio.client.file.FileSystem;
-import alluxio.client.lineage.AlluxioLineage;
-import alluxio.Configuration;
-import alluxio.exception.AlluxioException;
-import alluxio.job.CommandLineJob;
-import alluxio.job.JobConf;
+import java.io.IOException;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Creates a lineage for the given input files, output files, and command line job.

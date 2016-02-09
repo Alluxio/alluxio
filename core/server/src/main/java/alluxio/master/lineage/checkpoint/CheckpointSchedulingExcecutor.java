@@ -15,20 +15,20 @@
 
 package alluxio.master.lineage.checkpoint;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.lineage.LineageMaster;
+
+import com.google.common.base.Preconditions;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Schedules a checkpoint plan.

@@ -15,6 +15,24 @@
 
 package alluxio.shell.command;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.shell.AlluxioShellUtils;
+import alluxio.util.io.PathUtils;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.io.Closer;
+
+import org.apache.commons.cli.CommandLine;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,24 +41,6 @@ import java.nio.channels.FileChannel;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.io.Closer;
-
-import org.apache.commons.cli.CommandLine;
-
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.Configuration;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.AlluxioException;
-import alluxio.shell.AlluxioShellUtils;
-import alluxio.util.io.PathUtils;
 
 /**
  * Copies the specified file specified by "source path" to the path specified by "remote path".

@@ -15,11 +15,11 @@
 
 package alluxio.wire;
 
-import java.util.Random;
-
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Random;
 
 public class LockBlockResultTest {
 

@@ -15,12 +15,12 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.Constants;
+
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import alluxio.Constants;
 
 /**
  * A list of non-empty {@link TtlBucket}s sorted by ttl interval start time of each bucket.

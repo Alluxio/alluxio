@@ -15,14 +15,13 @@
 
 package alluxio.underfs.hdfs;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Stack;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
+import alluxio.underfs.UnderFileSystem;
 
-import javax.annotation.concurrent.ThreadSafe;
+import com.google.common.base.Throwables;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.BlockLocation;
@@ -37,13 +36,14 @@ import org.apache.hadoop.security.SecurityUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Throwables;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Stack;
 
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.retry.RetryPolicy;
-import alluxio.retry.CountingRetry;
-import alluxio.underfs.UnderFileSystem;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * HDFS {@link UnderFileSystem} implementation.

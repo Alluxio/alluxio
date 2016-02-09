@@ -15,16 +15,16 @@
 
 package alluxio.worker;
 
-import java.util.concurrent.ExecutorService;
+import alluxio.Constants;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import com.google.common.base.Preconditions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
+import java.util.concurrent.ExecutorService;
 
-import alluxio.Constants;
+import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This is the base class for all workers, and contains common functionality.
  */

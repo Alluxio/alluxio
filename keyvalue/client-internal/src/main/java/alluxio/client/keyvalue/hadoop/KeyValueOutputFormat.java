@@ -15,9 +15,10 @@
 
 package alluxio.client.keyvalue.hadoop;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
+import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.exception.AlluxioException;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.BytesWritable;
@@ -29,10 +30,9 @@ import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.TaskAttemptID;
 import org.apache.hadoop.util.Progressable;
 
-import alluxio.AlluxioURI;
-import alluxio.annotation.PublicApi;
-import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.exception.AlluxioException;
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * An {@link OutputFormat} implementation to let MapReduce job write to a key-value store under the

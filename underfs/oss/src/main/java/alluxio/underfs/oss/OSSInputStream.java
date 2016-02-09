@@ -15,14 +15,14 @@
 
 package alluxio.underfs.oss;
 
+import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.model.OSSObject;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.aliyun.oss.OSSClient;
-import com.aliyun.oss.model.OSSObject;
 
 /**
  * A stream for reading a file from OSS. This input stream returns 0 when calling read with an empty

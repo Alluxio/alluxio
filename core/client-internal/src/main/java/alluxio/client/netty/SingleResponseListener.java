@@ -15,15 +15,15 @@
 
 package alluxio.client.netty;
 
+import alluxio.network.protocol.RPCResponse;
+
+import com.google.common.util.concurrent.SettableFuture;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.util.concurrent.SettableFuture;
-
-import alluxio.network.protocol.RPCResponse;
 
 /**
  * A simple listener that waits for a single {@link RPCResponse} message from the remote server.

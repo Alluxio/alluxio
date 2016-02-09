@@ -15,15 +15,15 @@
 
 package alluxio.util.io;
 
-import java.util.LinkedList;
+import alluxio.Constants;
+import alluxio.exception.InvalidPathException;
 
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.Constants;
-import alluxio.exception.InvalidPathException;
+import java.util.LinkedList;
 
 /**
  * Tests for the {@link PathUtils} class.

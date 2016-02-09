@@ -15,9 +15,7 @@
 
 package alluxio.network.protocol;
 
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.network.protocol.databuffer.DataBuffer;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
@@ -28,7 +26,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.FileRegion;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
-import alluxio.network.protocol.databuffer.DataBuffer;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Simple Netty encoder for RPCMessages.

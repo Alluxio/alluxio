@@ -15,21 +15,6 @@
 
 package alluxio.worker.block.evictor;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.worker.WorkerContext;
@@ -41,6 +26,21 @@ import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.allocator.MaxFreeAllocator;
 import alluxio.worker.block.meta.StorageDir;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Unit tests for specific behavior of {@link LRFUEvictor} such as evicting/moving blocks with

@@ -15,6 +15,9 @@
 
 package alluxio.worker.block.io;
 
+import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -22,9 +25,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 
 /**
  * This class provides read access to a block data file locally stored in managed storage.

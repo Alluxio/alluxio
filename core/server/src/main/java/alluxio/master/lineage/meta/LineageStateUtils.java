@@ -15,16 +15,16 @@
 
 package alluxio.master.lineage.meta;
 
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.collect.Lists;
-
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.wire.FileInfo;
+
+import com.google.common.collect.Lists;
+
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility methods for checking the state of lineage files.

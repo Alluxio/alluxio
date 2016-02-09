@@ -15,11 +15,6 @@
 
 package alluxio.worker;
 
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicLong;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.block.BlockMaster;
 import alluxio.thrift.Command;
@@ -27,6 +22,11 @@ import alluxio.thrift.CommandType;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterSync;
+
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicLong;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The single place to get, set, and update worker id.

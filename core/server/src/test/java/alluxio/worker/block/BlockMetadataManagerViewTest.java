@@ -15,8 +15,17 @@
 
 package alluxio.worker.block;
 
-import java.io.File;
-import java.util.List;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.master.block.BlockId;
+import alluxio.worker.WorkerContext;
+import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageDirView;
+import alluxio.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.StorageTierView;
+
+import com.google.common.collect.Sets;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -27,17 +36,8 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
-import com.google.common.collect.Sets;
-
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.ExceptionMessage;
-import alluxio.master.block.BlockId;
-import alluxio.worker.WorkerContext;
-import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.StorageDir;
-import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.meta.StorageTier;
-import alluxio.worker.block.meta.StorageTierView;
+import java.io.File;
+import java.util.List;
 
 /**
  * Unit tests for {@link BlockMetadataManagerView}.

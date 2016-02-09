@@ -15,7 +15,14 @@
 
 package alluxio.master.lineage.meta;
 
-import java.util.List;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.LineageDoesNotExistException;
+import alluxio.job.CommandLineJob;
+import alluxio.job.Job;
+import alluxio.job.JobConf;
+import alluxio.master.journal.JournalOutputStream;
+
+import com.google.common.collect.Lists;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -24,14 +31,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
-import com.google.common.collect.Lists;
-
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.LineageDoesNotExistException;
-import alluxio.job.CommandLineJob;
-import alluxio.job.Job;
-import alluxio.job.JobConf;
-import alluxio.master.journal.JournalOutputStream;
+import java.util.List;
 
 /**
  * Unit tests for {@link LineageStore}.

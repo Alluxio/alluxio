@@ -15,7 +15,8 @@
 
 package alluxio.security;
 
-import java.lang.reflect.Field;
+import alluxio.Configuration;
+import alluxio.Constants;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -23,8 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.Constants;
-import alluxio.Configuration;
+import java.lang.reflect.Field;
 
 /**
  * Unit test for {@link alluxio.security.LoginUser}.

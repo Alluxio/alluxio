@@ -15,21 +15,21 @@
 
 package alluxio.master.keyvalue;
 
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.Constants;
 import alluxio.master.Master;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
+
+import com.google.common.base.Preconditions;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory to create a {@link KeyValueMaster} instance.

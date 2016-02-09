@@ -15,14 +15,6 @@
 
 package alluxio.master;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Supplier;
-
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
@@ -30,6 +22,14 @@ import alluxio.client.file.FileSystem;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+
+import com.google.common.base.Supplier;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Constructs an isolated master. Primary users of this class are the {@link LocalAlluxioCluster}

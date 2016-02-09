@@ -15,14 +15,6 @@
 
 package alluxio.worker.block;
 
-import java.io.IOException;
-import java.util.List;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
@@ -33,6 +25,14 @@ import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.LockBlockResult;
 import alluxio.thrift.ThriftIOException;
 import alluxio.worker.WorkerContext;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class is a Thrift handler for block worker RPCs invoked by an Alluxio client.

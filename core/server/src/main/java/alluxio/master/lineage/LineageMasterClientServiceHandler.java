@@ -15,26 +15,26 @@
 
 package alluxio.master.lineage;
 
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.exception.AlluxioException;
+import alluxio.job.CommandLineJob;
+import alluxio.job.JobConf;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.CommandLineJobInfo;
+import alluxio.thrift.LineageInfo;
+import alluxio.thrift.LineageMasterClientService;
+import alluxio.thrift.ThriftIOException;
+import alluxio.wire.ThriftUtils;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.exception.AlluxioException;
-import alluxio.job.CommandLineJob;
-import alluxio.job.JobConf;
-import alluxio.thrift.CommandLineJobInfo;
-import alluxio.thrift.LineageInfo;
-import alluxio.thrift.LineageMasterClientService;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.ThriftIOException;
-import alluxio.wire.ThriftUtils;
 
 /**
  * This class is a Thrift handler for lineage master RPCs invoked by an Alluxio client.

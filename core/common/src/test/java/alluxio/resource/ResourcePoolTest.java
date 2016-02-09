@@ -15,13 +15,13 @@
 
 package alluxio.resource;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Unit test for {@code ResourcePool} class.

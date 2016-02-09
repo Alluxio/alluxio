@@ -15,11 +15,15 @@
 
 package alluxio.shell;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.FileSystemTestUtils;
+import alluxio.client.WriteType;
+import alluxio.client.file.FileSystem;
+import alluxio.exception.AlluxioException;
+import alluxio.master.LocalAlluxioCluster;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.thrift.TException;
@@ -28,15 +32,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
-import alluxio.client.FileSystemTestUtils;
-import alluxio.client.WriteType;
-import alluxio.client.file.FileSystem;
-import alluxio.Configuration;
-import alluxio.exception.AlluxioException;
-import alluxio.master.LocalAlluxioCluster;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Unit tests on alluxio.command.Utils.

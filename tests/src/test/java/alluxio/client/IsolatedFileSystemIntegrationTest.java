@@ -15,28 +15,28 @@
 
 package alluxio.client;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.CreateFileOptions;
+import alluxio.exception.AlluxioException;
+import alluxio.master.LocalAlluxioCluster;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.Configuration;
-import alluxio.exception.AlluxioException;
-import alluxio.master.LocalAlluxioCluster;
-import alluxio.util.CommonUtils;
-import alluxio.util.io.PathUtils;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Integration tests on Alluxio client (do not reuse the {@link LocalAlluxioCluster}).

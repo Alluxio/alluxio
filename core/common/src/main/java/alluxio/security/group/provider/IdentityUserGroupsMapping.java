@@ -15,13 +15,13 @@
 
 package alluxio.security.group.provider;
 
-import java.io.IOException;
-import java.util.List;
+import alluxio.Configuration;
+import alluxio.security.group.GroupMappingService;
 
 import com.google.common.collect.Lists;
 
-import alluxio.Configuration;
-import alluxio.security.group.GroupMappingService;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * A simple implementation of {@link GroupMappingService} that returns a group which is same name

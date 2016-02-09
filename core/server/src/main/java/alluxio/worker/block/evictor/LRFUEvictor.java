@@ -15,6 +15,21 @@
 
 package alluxio.worker.block.evictor;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.collections.Pair;
+import alluxio.worker.WorkerContext;
+import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.allocator.Allocator;
+import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.StorageDirView;
+import alluxio.worker.block.meta.StorageTierView;
+
+import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -26,21 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
-
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.collections.Pair;
-import alluxio.worker.WorkerContext;
-import alluxio.worker.block.BlockMetadataManagerView;
-import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.allocator.Allocator;
-import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.meta.StorageTierView;
 
 /**
  * This class is used to evict blocks by LRFU. LRFU evict blocks with minimum CRF, where CRF of a

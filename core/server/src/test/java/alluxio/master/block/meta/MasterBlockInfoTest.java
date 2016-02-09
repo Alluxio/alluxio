@@ -15,13 +15,13 @@
 
 package alluxio.master.block.meta;
 
-import java.util.List;
+import alluxio.Constants;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import alluxio.Constants;
+import java.util.List;
 
 /**
  * Unit tests for {@link MasterBlockInfo}.

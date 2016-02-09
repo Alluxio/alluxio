@@ -15,18 +15,18 @@
 
 package alluxio.master.journal;
 
-import java.io.IOException;
+import alluxio.Constants;
+import alluxio.master.Master;
+import alluxio.proto.journal.Journal.JournalEntry;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import com.google.common.base.Preconditions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
+import java.io.IOException;
 
-import alluxio.Constants;
-import alluxio.master.Master;
-import alluxio.proto.journal.Journal.JournalEntry;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class tails the journal for a master. It will process the journal checkpoint file, and then

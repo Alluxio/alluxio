@@ -15,16 +15,16 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.Constants;
+import alluxio.security.authorization.PermissionStatus;
+import alluxio.wire.FileInfo;
+
+import com.google.common.collect.Sets;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Sets;
-
-import alluxio.Constants;
-import alluxio.security.authorization.PermissionStatus;
-import alluxio.wire.FileInfo;
 
 /**
  * Unit tests for {@link InodeDirectory}.

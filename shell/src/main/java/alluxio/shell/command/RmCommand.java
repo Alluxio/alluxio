@@ -15,18 +15,18 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.options.DeleteOptions;
+import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.DeleteOptions;
-import alluxio.Configuration;
-import alluxio.exception.AlluxioException;
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Removes the file specified by argv.

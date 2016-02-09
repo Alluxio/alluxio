@@ -15,18 +15,10 @@
 
 package alluxio.client.file;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.thrift.TException;
-
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterClientBase;
-import alluxio.AlluxioURI;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -34,14 +26,22 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.Configuration;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.AlluxioException;
-import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.exception.ConnectionFailedException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.ThriftUtils;
+
+import org.apache.thrift.TException;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by alluxio clients.

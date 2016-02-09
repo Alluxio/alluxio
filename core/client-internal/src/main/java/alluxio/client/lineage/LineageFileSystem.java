@@ -15,18 +15,18 @@
 
 package alluxio.client.lineage;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDoesNotExistException;
-import alluxio.exception.AlluxioException;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Alluxio lineage file system client. This class provides lineage support in the file system

@@ -15,13 +15,14 @@
 
 package alluxio.worker.block.evictor;
 
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import alluxio.worker.WorkerContext;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.TieredBlockStoreTestUtils;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
+
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.Reflection;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -30,14 +31,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import com.google.common.reflect.ClassPath;
-import com.google.common.reflect.Reflection;
-
-import alluxio.worker.WorkerContext;
-import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.TieredBlockStoreTestUtils;
-import alluxio.worker.block.meta.StorageDir;
-import alluxio.worker.block.meta.StorageTier;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * This is a parametrized unit test for classes that implement the {@link Evictor} interface.

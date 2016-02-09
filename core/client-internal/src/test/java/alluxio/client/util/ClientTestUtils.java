@@ -15,15 +15,15 @@
 
 package alluxio.client.util;
 
-import org.powermock.reflect.Whitebox;
-
-import com.google.common.base.Throwables;
-
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
+
+import com.google.common.base.Throwables;
+
+import org.powermock.reflect.Whitebox;
 
 /**
  * Utility methods for the client tests.
