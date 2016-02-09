@@ -107,7 +107,7 @@ public class SpaceReserver implements Runnable {
   }
 
   private void reserveSpace() {
-    for (int ordinal = mStorageTierAssoc.size() - 1; ordinal >= 0 ; ordinal --) {
+    for (int ordinal = mStorageTierAssoc.size() - 1; ordinal >= 0; ordinal--) {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long bytesReserved = mBytesToReserveOnTiers.get(tierAlias);
       try {

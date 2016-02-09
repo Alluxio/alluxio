@@ -163,7 +163,7 @@ public final class FormatUtils {
       } else {
         break;
       }
-      index --;
+      index--;
     }
     spaceSize = spaceSize.substring(0, index + 1);
     double ret = Double.parseDouble(spaceSize);
