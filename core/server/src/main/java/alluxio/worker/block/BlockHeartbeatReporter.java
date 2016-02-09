@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * through {@link alluxio.worker.block.BlockWorker#commitBlock(long, long)}.
  */
 @ThreadSafe
-public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
+public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListener {
   /** Lock for operations on the removed and added block collections. */
   private final Object mLock;
 

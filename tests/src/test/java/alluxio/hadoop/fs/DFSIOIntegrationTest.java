@@ -362,7 +362,7 @@ public class DFSIOIntegrationTest implements Tool {
    * <li>i/o rate squared</li>
    * </ul>
    */
-  private abstract static class IOStatMapper extends IOMapperBase<Long> {
+  private abstract static class IOStatMapper extends AbstractIOMapper<Long> {
     protected CompressionCodec mCompressionCodec;
 
     IOStatMapper() {}
@@ -391,7 +391,7 @@ public class DFSIOIntegrationTest implements Tool {
     }
 
     @Override
-    // IOMapperBase
+    // AbstractIOMapper
     void collectStats(OutputCollector<Text, Text> output, String name, long execTime, Long objSize)
         throws IOException {
       long totalSize = objSize.longValue();
@@ -425,7 +425,7 @@ public class DFSIOIntegrationTest implements Tool {
     }
 
     @Override
-    // IOMapperBase
+    // AbstractIOMapper
     public Closeable getIOStream(String name) throws IOException {
       // create file
       OutputStream out = mFS.create(new Path(getDataDir(getConf()), name), true, mBufferSize);
@@ -437,7 +437,7 @@ public class DFSIOIntegrationTest implements Tool {
     }
 
     @Override
-    // IOMapperBase, totalSize is in bytes
+    // AbstractIOMapper, totalSize is in bytes
     public Long doIO(Reporter reporter, String name, long totalSize) throws IOException {
       OutputStream out = (OutputStream) this.mStream;
       // write to the file
@@ -489,7 +489,7 @@ public class DFSIOIntegrationTest implements Tool {
     }
 
     @Override
-    // IOMapperBase
+    // AbstractIOMapper
     public Closeable getIOStream(String name) throws IOException {
       // open file for append
       OutputStream out = mFS.append(new Path(getDataDir(getConf()), name), mBufferSize);
@@ -501,7 +501,7 @@ public class DFSIOIntegrationTest implements Tool {
     }
 
     @Override
-    // IOMapperBase, totalSize is in Bytes
+    // AbstractIOMapper, totalSize is in Bytes
     public Long doIO(Reporter reporter, String name, long totalSize) throws IOException {
       OutputStream out = (OutputStream) this.mStream;
       // write to the file
@@ -530,7 +530,7 @@ public class DFSIOIntegrationTest implements Tool {
     public ReadMapper() {}
 
     @Override
-    // IOMapperBase
+    // AbstractIOMapper
     public Closeable getIOStream(String name) throws IOException {
       // open file
       InputStream in = mFS.open(new Path(getDataDir(getConf()), name));
@@ -542,7 +542,7 @@ public class DFSIOIntegrationTest implements Tool {
     }
 
     @Override
-    // IOMapperBase, totalSize in Bytes
+    // AbstractIOMapper, totalSize in Bytes
     public Long doIO(Reporter reporter, String name, long totalSize) throws IOException {
       InputStream in = (InputStream) this.mStream;
       long actualSize = 0;
@@ -591,7 +591,7 @@ public class DFSIOIntegrationTest implements Tool {
     }
 
     @Override
-    // IOMapperBase
+    // AbstractIOMapper
     public Closeable getIOStream(String name) throws IOException {
       Path filePath = new Path(getDataDir(getConf()), name);
       mFileSize = mFS.getFileStatus(filePath).getLen();
@@ -605,7 +605,7 @@ public class DFSIOIntegrationTest implements Tool {
     }
 
     @Override
-    // IOMapperBase, totalSize in Bytes
+    // AbstractIOMapper, totalSize in Bytes
     public Long doIO(Reporter reporter, String name, long totalSize) throws IOException {
       PositionedReadable in = (PositionedReadable) this.mStream;
       long actualSize = 0;
