@@ -15,6 +15,16 @@
 
 package alluxio.util;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.security.group.GroupMappingService;
+import alluxio.util.ShellUtils.ExitCodeException;
+
+import com.google.common.collect.Lists;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -23,16 +33,6 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Lists;
-
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.security.group.GroupMappingService;
-import alluxio.util.ShellUtils.ExitCodeException;
 
 /**
  * Common utilities shared by all components in Alluxio.

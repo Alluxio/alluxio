@@ -15,11 +15,6 @@
 
 package alluxio.client;
 
-import java.io.IOException;
-import java.util.List;
-
-import com.google.common.collect.Lists;
-
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -31,6 +26,11 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.collect.Lists;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * @deprecated {@see FileSystem} for the supported API.

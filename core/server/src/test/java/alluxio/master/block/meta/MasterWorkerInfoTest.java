@@ -15,9 +15,15 @@
 
 package alluxio.master.block.meta;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import alluxio.Constants;
+import alluxio.MasterStorageTierAssoc;
+import alluxio.StorageTierAssoc;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -25,15 +31,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-import alluxio.Constants;
-import alluxio.MasterStorageTierAssoc;
-import alluxio.StorageTierAssoc;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Unit tests for {@link MasterWorkerInfo}.

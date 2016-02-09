@@ -15,15 +15,15 @@
 
 package alluxio.collections;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+
+import org.apache.commons.lang.Validate;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.commons.lang.Validate;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 /**
  * Prefix list is used to do file filtering.
  */

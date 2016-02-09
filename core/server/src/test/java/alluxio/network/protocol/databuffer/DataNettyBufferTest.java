@@ -15,7 +15,9 @@
 
 package alluxio.network.protocol.databuffer;
 
-import java.nio.ByteBuffer;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.CompositeByteBuf;
+import io.netty.buffer.Unpooled;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -24,9 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.CompositeByteBuf;
-import io.netty.buffer.Unpooled;
+import java.nio.ByteBuffer;
 
 /**
  * Tests for the {@link DataNettyBuffer} class.

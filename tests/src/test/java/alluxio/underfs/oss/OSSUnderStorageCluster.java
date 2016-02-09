@@ -15,13 +15,13 @@
 
 package alluxio.underfs.oss;
 
-import java.io.IOException;
-import java.util.UUID;
-
 import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.io.PathUtils;
+
+import java.io.IOException;
+import java.util.UUID;
 
 public class OSSUnderStorageCluster extends UnderFileSystemCluster {
 

@@ -15,14 +15,14 @@
 
 package alluxio.master.file.meta.options;
 
-import java.util.Random;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.master.MasterContext;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.master.MasterContext;
+import java.util.Random;
 
 /**
  * Unit tests for {@link CreatePathOptions}.

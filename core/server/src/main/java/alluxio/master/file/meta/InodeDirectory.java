@@ -15,19 +15,19 @@
 
 package alluxio.master.file.meta;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.collect.ImmutableSet;
-
 import alluxio.Constants;
 import alluxio.collections.IndexedSet;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.wire.FileInfo;
+
+import com.google.common.collect.ImmutableSet;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Alluxio file system's directory representation in the file system master.

@@ -15,17 +15,14 @@
 
 package alluxio.yarn;
 
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.yarn.YarnUtils.YarnContainerType;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
@@ -51,14 +48,17 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.Apps;
 import org.apache.hadoop.yarn.util.Records;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.util.CommonUtils;
-import alluxio.util.io.PathUtils;
-import alluxio.yarn.YarnUtils.YarnContainerType;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The client to submit the application to run Alluxio to YARN ResourceManager.

@@ -15,6 +15,13 @@
 
 package alluxio.master;
 
+import alluxio.Constants;
+
+import com.google.common.io.Closer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -23,13 +30,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.io.Closer;
-
-import alluxio.Constants;
 
 /**
  * The recompute command class. Used to execute the recomputation.

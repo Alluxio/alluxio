@@ -15,13 +15,13 @@
 
 package alluxio.worker;
 
+import alluxio.Constants;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import alluxio.Constants;
 
 /**
  * ClientMetrics is used to pass client metrics from client to worker by session heartbeat.

@@ -15,7 +15,7 @@
 
 package alluxio.network.protocol;
 
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.network.protocol.databuffer.DataBuffer;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
-import alluxio.network.protocol.databuffer.DataBuffer;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This is the main base class for all RPC messages to the DataServer. The message and type encoding

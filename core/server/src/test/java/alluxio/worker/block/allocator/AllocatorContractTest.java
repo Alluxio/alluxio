@@ -15,22 +15,22 @@
 
 package alluxio.worker.block.allocator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.worker.WorkerContext;
+
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.Reflection;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.reflect.ClassPath;
-import com.google.common.reflect.Reflection;
-
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.worker.WorkerContext;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * This is the class to test the "contract" of different kinds of allocators,

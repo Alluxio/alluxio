@@ -15,9 +15,9 @@
 
 package alluxio.client;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.annotation.PublicApi;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Convenience modes for commonly used read types.

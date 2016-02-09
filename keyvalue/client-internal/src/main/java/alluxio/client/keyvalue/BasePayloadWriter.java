@@ -15,16 +15,16 @@
 
 package alluxio.client.keyvalue;
 
+import alluxio.client.OutStreamBase;
+import alluxio.util.io.ByteIOUtils;
+
+import com.google.common.base.Preconditions;
+
 import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.client.OutStreamBase;
-import alluxio.util.io.ByteIOUtils;
 
 /**
  * An implementation of {@link PayloadWriter} using stream API to write to underlying payload

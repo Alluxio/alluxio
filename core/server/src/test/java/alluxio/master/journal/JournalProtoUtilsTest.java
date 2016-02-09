@@ -15,16 +15,16 @@
 
 package alluxio.master.journal;
 
-import org.junit.Assert;
-import org.junit.Test;
+import alluxio.exception.ExceptionMessage;
+import alluxio.proto.journal.File.AddMountPointEntry;
+import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.protobuf.Message;
 import com.google.protobuf.UnknownFieldSet;
 import com.google.protobuf.UnknownFieldSet.Field;
 
-import alluxio.exception.ExceptionMessage;
-import alluxio.proto.journal.File.AddMountPointEntry;
-import alluxio.proto.journal.Journal.JournalEntry;
+import org.junit.Assert;
+import org.junit.Test;
 /**
  * Unit tests for {@link JournalProtoUtils}.
  */

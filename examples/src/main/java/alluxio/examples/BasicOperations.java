@@ -15,14 +15,6 @@
 
 package alluxio.examples;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.concurrent.Callable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.Version;
@@ -37,6 +29,14 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.concurrent.Callable;
 
 /**
  * Example to show the basic operations of Alluxio.

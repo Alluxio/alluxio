@@ -15,11 +15,11 @@
 
 package alluxio.security.authorization;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A class for file/directory permissions.

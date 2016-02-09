@@ -15,21 +15,21 @@
 
 package alluxio.security.authentication;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
-import javax.annotation.concurrent.ThreadSafe;
-import javax.security.sasl.SaslException;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.security.LoginUser;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
 
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.security.LoginUser;
-import alluxio.util.network.NetworkAddressUtils;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+
+import javax.annotation.concurrent.ThreadSafe;
+import javax.security.sasl.SaslException;
 
 /**
  * This class provides factory methods for authentication in Alluxio. Based on different

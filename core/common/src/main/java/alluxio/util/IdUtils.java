@@ -15,15 +15,15 @@
 
 package alluxio.util;
 
-import java.util.UUID;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.Constants;
+import alluxio.master.block.BlockId;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
-import alluxio.master.block.BlockId;
+import java.util.UUID;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility methods for working with an id in Alluxio.

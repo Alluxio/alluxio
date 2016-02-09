@@ -15,13 +15,7 @@
 
 package alluxio.util.io;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import alluxio.AlluxioURI;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -29,7 +23,13 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import alluxio.AlluxioURI;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Tests for the {@link FileUtils} class.

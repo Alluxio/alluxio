@@ -15,16 +15,16 @@
 
 package alluxio.hadoop.contract;
 
-import java.io.IOException;
-import java.net.URI;
+import alluxio.Constants;
+import alluxio.hadoop.FileSystem;
+import alluxio.master.LocalAlluxioCluster;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 
-import alluxio.Constants;
-import alluxio.hadoop.FileSystem;
-import alluxio.master.LocalAlluxioCluster;
+import java.io.IOException;
+import java.net.URI;
 
 /**
  * This class provides an implementation of {@link AbstractFSContract} using {@link FileSystem}.

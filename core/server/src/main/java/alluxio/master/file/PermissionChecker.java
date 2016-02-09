@@ -15,12 +15,6 @@
 
 package alluxio.master.file;
 
-import java.util.List;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
@@ -30,6 +24,12 @@ import alluxio.security.authorization.FileSystemAction;
 import alluxio.security.authorization.FileSystemPermission;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
+
+import com.google.common.base.Preconditions;
+
+import java.util.List;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Base class to provide permission check logic.

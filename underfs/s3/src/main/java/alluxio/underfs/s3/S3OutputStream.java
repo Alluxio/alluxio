@@ -15,6 +15,18 @@
 
 package alluxio.underfs.s3;
 
+import alluxio.Constants;
+import alluxio.util.io.PathUtils;
+
+import com.google.common.base.Preconditions;
+
+import org.jets3t.service.S3Service;
+import org.jets3t.service.ServiceException;
+import org.jets3t.service.model.S3Object;
+import org.jets3t.service.utils.Mimetypes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,18 +39,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.jets3t.service.S3Service;
-import org.jets3t.service.ServiceException;
-import org.jets3t.service.model.S3Object;
-import org.jets3t.service.utils.Mimetypes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.Constants;
-import alluxio.util.io.PathUtils;
 
 /**
  * A stream for writing a file into S3. The data will be persisted to a temporary directory on the

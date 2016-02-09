@@ -15,17 +15,17 @@
 
 package alluxio.client.file.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.Constants;
+import alluxio.annotation.PublicApi;
+import alluxio.client.AlluxioStorageType;
+import alluxio.client.ClientContext;
+import alluxio.client.ReadType;
+import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.util.CommonUtils;
 
 import com.google.common.base.Throwables;
 
-import alluxio.Constants;
-import alluxio.annotation.PublicApi;
-import alluxio.client.ClientContext;
-import alluxio.client.ReadType;
-import alluxio.client.AlluxioStorageType;
-import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.util.CommonUtils;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method option for reading a file.

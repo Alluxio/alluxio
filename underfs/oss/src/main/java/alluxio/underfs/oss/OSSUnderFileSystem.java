@@ -15,19 +15,10 @@
 
 package alluxio.underfs.oss;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.ClientConfiguration;
 import com.aliyun.oss.OSSClient;
@@ -38,10 +29,19 @@ import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
 import com.google.common.base.Preconditions;
 
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.io.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Aliyun OSS {@link UnderFileSystem} implementation.

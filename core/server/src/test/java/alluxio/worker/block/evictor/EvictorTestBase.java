@@ -15,19 +15,19 @@
 
 package alluxio.worker.block.evictor;
 
-import java.io.File;
-import java.util.Collections;
-
-import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.allocator.MaxFreeAllocator;
+
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.util.Collections;
 
 /**
  * Base class for unit tests of evictors.

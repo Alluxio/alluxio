@@ -15,9 +15,6 @@
 
 package alluxio.worker.block;
 
-import java.io.IOException;
-import java.util.Set;
-
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
@@ -27,6 +24,9 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
+
+import java.io.IOException;
+import java.util.Set;
 
 /**
  * A blob store interface to represent the local storage managing and serving all the blocks in the

@@ -15,11 +15,11 @@
 
 package alluxio.client.block;
 
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.heartbeat.HeartbeatExecutor;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.heartbeat.HeartbeatExecutor;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Session client sends periodical heartbeats to the worker it is talking to. If it fails to do so,

@@ -15,6 +15,9 @@
 
 package alluxio.security.login;
 
+import alluxio.security.User;
+import alluxio.security.authentication.AuthType;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,9 +25,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
 import javax.security.auth.login.Configuration;
-
-import alluxio.security.User;
-import alluxio.security.authentication.AuthType;
 
 /**
  * A JAAS configuration that defines the login modules, by which JAAS uses to login.

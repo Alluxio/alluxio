@@ -15,9 +15,9 @@
 
 package alluxio.security.login;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.util.OSUtils;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class provides constants used in JAAS login.

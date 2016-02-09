@@ -15,6 +15,12 @@
 
 package alluxio.security;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.security.authentication.AuthType;
+import alluxio.security.login.AppLoginModule;
+import alluxio.security.login.LoginModuleConfiguration;
+
 import java.io.IOException;
 import java.util.Set;
 
@@ -23,12 +29,6 @@ import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
-
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.security.authentication.AuthType;
-import alluxio.security.login.AppLoginModule;
-import alluxio.security.login.LoginModuleConfiguration;
 
 /**
  * A Singleton of LoginUser, which is an instance of {@link alluxio.security.User}. It represents

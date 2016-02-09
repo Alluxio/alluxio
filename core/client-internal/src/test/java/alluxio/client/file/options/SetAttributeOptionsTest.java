@@ -15,12 +15,12 @@
 
 package alluxio.client.file.options;
 
-import java.util.Random;
+import alluxio.thrift.SetAttributeTOptions;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.thrift.SetAttributeTOptions;
+import java.util.Random;
 
 /**
  * Tests for the {@link SetAttributeOptions} class.

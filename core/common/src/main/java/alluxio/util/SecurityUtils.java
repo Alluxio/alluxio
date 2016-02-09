@@ -15,11 +15,11 @@
 
 package alluxio.util;
 
-import javax.annotation.concurrent.ThreadSafe;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.security.authentication.AuthType;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility methods for security.

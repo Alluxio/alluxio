@@ -15,14 +15,14 @@
 
 package alluxio.client.lineage;
 
-import java.util.List;
-
-import org.junit.Test;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
 
 import com.google.common.collect.Lists;
 
-import alluxio.Constants;
-import alluxio.client.ClientContext;
+import org.junit.Test;
+
+import java.util.List;
 
 /**
  * Tests {@link LineageContext}.

@@ -15,6 +15,11 @@
 
 package alluxio.master;
 
+import alluxio.Configuration;
+import alluxio.client.file.FileSystem;
+
+import com.google.common.base.Supplier;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,11 +27,6 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Supplier;
-
-import alluxio.client.file.FileSystem;
-import alluxio.Configuration;
 
 /**
  * Keeps a collection of all clients ({@link FileSystem}) returned. The main reason for this is

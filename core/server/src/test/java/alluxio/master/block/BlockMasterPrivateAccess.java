@@ -15,10 +15,10 @@
 
 package alluxio.master.block;
 
-import org.powermock.reflect.Whitebox;
-
 import alluxio.collections.IndexedSet;
 import alluxio.master.block.meta.MasterWorkerInfo;
+
+import org.powermock.reflect.Whitebox;
 
 /**
  * Class which provides access to private state of {@link BlockMaster}.

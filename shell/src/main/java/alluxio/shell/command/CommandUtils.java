@@ -15,18 +15,18 @@
 
 package alluxio.shell.command;
 
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.exception.AlluxioException;
+
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.exception.AlluxioException;
 
 /**
  * Common util methods for executing commands.

@@ -15,13 +15,13 @@
 
 package alluxio.client.lineage;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A dummy file output stream that does nothing. This is used for lineage recomputation. When the

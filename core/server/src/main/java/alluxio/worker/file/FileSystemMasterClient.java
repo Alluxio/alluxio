@@ -15,27 +15,27 @@
 
 package alluxio.worker.file;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.MasterClientBase;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ConnectionFailedException;
+import alluxio.thrift.AlluxioService;
+import alluxio.thrift.FileSystemCommand;
+import alluxio.thrift.FileSystemMasterWorkerService;
+import alluxio.wire.FileInfo;
+import alluxio.wire.ThriftUtils;
+
+import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import alluxio.Constants;
-import alluxio.MasterClientBase;
-import alluxio.Configuration;
-import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.AlluxioException;
-import alluxio.thrift.FileSystemCommand;
-import alluxio.thrift.FileSystemMasterWorkerService;
-import alluxio.thrift.AlluxioService;
-import alluxio.wire.FileInfo;
-import alluxio.wire.ThriftUtils;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by Alluxio worker.

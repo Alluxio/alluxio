@@ -15,16 +15,16 @@
 
 package alluxio.client.block;
 
+import alluxio.client.ClientContext;
+import alluxio.client.RemoteBlockReader;
+import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.ExceptionMessage;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import alluxio.client.ClientContext;
-import alluxio.client.RemoteBlockReader;
-import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.ExceptionMessage;
 
 /**
  * This class provides a streaming API to read a block in Alluxio. The data will be transferred

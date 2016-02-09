@@ -15,7 +15,7 @@
 
 package alluxio.underfs;
 
-import java.io.IOException;
+import alluxio.Configuration;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,7 +27,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import alluxio.Configuration;
+import java.io.IOException;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(UnderFileSystemCluster.class)

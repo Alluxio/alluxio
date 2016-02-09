@@ -15,22 +15,22 @@
 
 package alluxio.replay;
 
-import java.io.IOException;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.Constants;
+import alluxio.exception.AlluxioException;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.ThriftIOException;
 
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
-import alluxio.Constants;
-import alluxio.exception.AlluxioException;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.ThriftIOException;
+import java.io.IOException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * An RPC cache which uses RPC keys to avoid repeating non-idempotent RPCs due to retries.

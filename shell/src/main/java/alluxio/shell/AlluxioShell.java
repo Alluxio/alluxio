@@ -15,6 +15,22 @@
 
 package alluxio.shell;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.file.FileSystem;
+import alluxio.shell.command.ShellCommand;
+import alluxio.util.CommonUtils;
+
+import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
@@ -25,22 +41,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
-import org.reflections.Reflections;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
-
-import alluxio.Constants;
-import alluxio.client.file.FileSystem;
-import alluxio.Configuration;
-import alluxio.shell.command.ShellCommand;
-import alluxio.util.CommonUtils;
 
 /**
  * Class for handling command line inputs.

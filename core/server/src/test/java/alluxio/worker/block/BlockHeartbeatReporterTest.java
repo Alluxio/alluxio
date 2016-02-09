@@ -15,12 +15,12 @@
 
 package alluxio.worker.block;
 
-import java.util.List;
-import java.util.Map;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Unit tests for {@link BlockHeartbeatReporter}.

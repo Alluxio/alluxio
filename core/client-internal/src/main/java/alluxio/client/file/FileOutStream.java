@@ -15,36 +15,36 @@
 
 package alluxio.client.file;
 
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.annotation.PublicApi;
+import alluxio.client.AlluxioStorageType;
+import alluxio.client.ClientContext;
+import alluxio.client.ClientUtils;
+import alluxio.client.OutStreamBase;
+import alluxio.client.UnderStorageType;
+import alluxio.client.block.BufferedBlockOutStream;
+import alluxio.client.file.options.CompleteFileOptions;
+import alluxio.client.file.options.OutStreamOptions;
+import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.PreconditionMessage;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.PathUtils;
+import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.base.Preconditions;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.annotation.PublicApi;
-import alluxio.client.ClientContext;
-import alluxio.client.ClientUtils;
-import alluxio.client.OutStreamBase;
-import alluxio.client.AlluxioStorageType;
-import alluxio.client.UnderStorageType;
-import alluxio.client.block.BufferedBlockOutStream;
-import alluxio.client.file.options.CompleteFileOptions;
-import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.PreconditionMessage;
-import alluxio.exception.AlluxioException;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.io.PathUtils;
-import alluxio.wire.WorkerNetAddress;
 
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the

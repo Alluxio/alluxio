@@ -15,12 +15,12 @@
 
 package alluxio.master.file.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.master.MasterContext;
 import alluxio.thrift.CreateFileTOptions;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method option for creating a file.

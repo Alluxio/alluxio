@@ -15,15 +15,15 @@
 
 package alluxio.heartbeat;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.Constants;
+import alluxio.util.CommonUtils;
+
+import com.google.common.base.Preconditions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
-
-import alluxio.Constants;
-import alluxio.util.CommonUtils;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Thread class to execute a heartbeat periodically. This thread is daemonic, so it will not prevent

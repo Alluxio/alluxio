@@ -15,15 +15,15 @@
 
 package alluxio.client;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.net.InetSocketAddress;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.util.CommonUtils;
 
 import com.google.common.base.Throwables;
 
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.util.CommonUtils;
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 /**
  * The interface to write a remote block to the data server.

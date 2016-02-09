@@ -15,17 +15,17 @@
 
 package alluxio.underfs.glusterfs;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemFactory;
+import alluxio.underfs.UnderFileSystemRegistry;
+
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
-
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemRegistry;
 
 /**
  * Unit tests for {@link GlusterFSUnderFileSystem}.

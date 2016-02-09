@@ -15,10 +15,17 @@
 
 package alluxio.worker.block;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.worker.WorkerContext;
+import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.TempBlockMeta;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -28,17 +35,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.worker.WorkerContext;
-import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.StorageDir;
-import alluxio.worker.block.meta.StorageTier;
-import alluxio.worker.block.meta.TempBlockMeta;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Unit tests for {@link BlockMetadataManager}.

@@ -15,22 +15,22 @@
 
 package alluxio.client.keyvalue;
 
+import alluxio.Constants;
+import alluxio.exception.AlluxioException;
+import alluxio.util.io.BufferUtils;
+import alluxio.util.io.ByteIOUtils;
+
+import com.google.common.base.Preconditions;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.Constants;
-import alluxio.exception.AlluxioException;
-import alluxio.util.io.BufferUtils;
-import alluxio.util.io.ByteIOUtils;
 
 /**
  * Reader that implements {@link KeyValuePartitionReader} to access a key-value file using random

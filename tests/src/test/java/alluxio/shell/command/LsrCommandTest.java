@@ -15,13 +15,8 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
-
-import org.junit.Assert;
-import org.junit.Test;
-
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.URIStatus;
@@ -29,6 +24,11 @@ import alluxio.exception.AlluxioException;
 import alluxio.master.MasterContext;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.shell.AbstractAlluxioShellTest;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.io.IOException;
 
 /**
  * Test for lsr command.

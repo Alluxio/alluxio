@@ -15,27 +15,26 @@
 
 package alluxio.security.authorization;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.security.LoginUser;
+import alluxio.security.authentication.AuthType;
+import alluxio.security.authentication.PlainSaslServer;
+import alluxio.security.group.GroupMappingService;
+import alluxio.security.group.provider.IdentityUserGroupsMapping;
+
+import com.google.common.collect.Lists;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
-
-import com.google.common.collect.Lists;
-
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.security.LoginUser;
-import alluxio.security.authentication.AuthType;
-import alluxio.security.authentication.PlainSaslServer;
-import alluxio.security.group.GroupMappingService;
-import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
 /**
  * Tests the {@link PermissionStatus} class.

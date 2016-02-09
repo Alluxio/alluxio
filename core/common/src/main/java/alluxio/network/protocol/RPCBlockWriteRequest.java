@@ -15,16 +15,16 @@
 
 package alluxio.network.protocol;
 
-import java.nio.ByteBuffer;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataByteBuffer;
 
 import com.google.common.primitives.Longs;
 
 import io.netty.buffer.ByteBuf;
 
-import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataByteBuffer;
+import java.nio.ByteBuffer;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This represents the request to write a block to a DataServer.

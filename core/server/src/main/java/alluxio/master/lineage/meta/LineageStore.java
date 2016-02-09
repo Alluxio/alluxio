@@ -15,16 +15,6 @@
 
 package alluxio.master.lineage.meta;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
 import alluxio.collections.DirectedAcyclicGraph;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.LineageDoesNotExistException;
@@ -32,6 +22,16 @@ import alluxio.job.Job;
 import alluxio.master.journal.JournalCheckpointStreamable;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.proto.journal.Lineage.LineageEntry;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A store of lineages. This class is thread-safe.

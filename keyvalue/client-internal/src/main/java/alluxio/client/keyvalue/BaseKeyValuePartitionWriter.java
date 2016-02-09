@@ -15,19 +15,19 @@
 
 package alluxio.client.keyvalue;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.OutStreamBase;
 import alluxio.util.io.ByteIOUtils;
+
+import com.google.common.base.Preconditions;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Writer that implements {@link KeyValuePartitionWriter} using the Alluxio file stream interface to

@@ -15,17 +15,6 @@
 
 package alluxio.client.lineage;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
@@ -41,6 +30,17 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.wire.LineageInfo;
+
+import com.google.common.base.Preconditions;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Alluxio Lineage client. This class provides implementation of interacting with Alluxio Lineage

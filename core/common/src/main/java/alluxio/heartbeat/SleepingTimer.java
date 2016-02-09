@@ -15,12 +15,12 @@
 
 package alluxio.heartbeat;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.Constants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class can be used for executing heartbeats periodically.

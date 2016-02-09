@@ -15,23 +15,23 @@
 
 package alluxio.client.block;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.util.io.FileUtils;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.worker.block.io.LocalFileBlockWriter;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import com.google.common.io.Closer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.io.Closer;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
-import alluxio.Constants;
-import alluxio.client.ClientContext;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.AlluxioException;
-import alluxio.util.io.FileUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.block.io.LocalFileBlockWriter;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides a streaming API to write to an Alluxio block. This output stream will directly write the

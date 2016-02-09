@@ -15,16 +15,16 @@
 
 package alluxio.client.block;
 
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.ClientUtils;
 import alluxio.resource.ResourcePool;
 import alluxio.wire.WorkerNetAddress;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Class for managing local block worker clients. After obtaining a client with

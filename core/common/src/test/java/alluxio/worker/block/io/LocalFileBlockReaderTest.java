@@ -15,9 +15,7 @@
 
 package alluxio.worker.block.io;
 
-import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.ReadableByteChannel;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,7 +24,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import alluxio.util.io.BufferUtils;
+import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.ReadableByteChannel;
 
 /**
  * Tests for the {@link LocalFileBlockReader} class.

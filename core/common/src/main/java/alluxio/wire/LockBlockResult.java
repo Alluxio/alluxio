@@ -15,10 +15,10 @@
 
 package alluxio.wire;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The lock block operation result.

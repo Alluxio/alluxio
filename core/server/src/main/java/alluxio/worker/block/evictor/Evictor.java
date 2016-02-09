@@ -15,17 +15,17 @@
 
 package alluxio.worker.block.evictor;
 
-import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Throwables;
-
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.Configuration;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
+
+import com.google.common.base.Throwables;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Interface for the eviction policy in Alluxio.

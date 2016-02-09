@@ -15,10 +15,10 @@
 
 package alluxio.worker;
 
+import org.apache.thrift.TProcessor;
+
 import java.io.IOException;
 import java.util.Map;
-
-import org.apache.thrift.TProcessor;
 
 /**
  * Interface of an Alluxio worker.

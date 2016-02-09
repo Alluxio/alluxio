@@ -15,17 +15,17 @@
 
 package alluxio.web;
 
-import java.net.InetSocketAddress;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.eclipse.jetty.servlet.ServletHolder;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.Configuration;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.block.BlockWorker;
+
+import com.google.common.base.Preconditions;
+
+import org.eclipse.jetty.servlet.ServletHolder;
+
+import java.net.InetSocketAddress;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A worker's UI web server.

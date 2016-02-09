@@ -15,12 +15,12 @@
 
 package alluxio.security;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.util.Set;
 
 import javax.security.auth.Subject;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * Unit test for {@link User}.

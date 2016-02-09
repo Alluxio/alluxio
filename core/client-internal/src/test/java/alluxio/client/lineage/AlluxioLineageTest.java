@@ -15,7 +15,15 @@
 
 package alluxio.client.lineage;
 
-import java.util.List;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
+import alluxio.client.lineage.options.DeleteLineageOptions;
+import alluxio.client.util.ClientTestUtils;
+import alluxio.job.CommandLineJob;
+import alluxio.job.JobConf;
+
+import com.google.common.collect.Lists;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -28,15 +36,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import com.google.common.collect.Lists;
-
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.client.ClientContext;
-import alluxio.client.lineage.options.DeleteLineageOptions;
-import alluxio.client.util.ClientTestUtils;
-import alluxio.job.CommandLineJob;
-import alluxio.job.JobConf;
+import java.util.List;
 
 /**
  * Tests {@link AlluxioLineage}.

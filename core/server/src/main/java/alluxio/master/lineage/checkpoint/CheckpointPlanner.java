@@ -15,13 +15,13 @@
 
 package alluxio.master.lineage.checkpoint;
 
-import com.google.common.base.Throwables;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.lineage.meta.LineageStoreView;
 import alluxio.util.CommonUtils;
+
+import com.google.common.base.Throwables;
 
 /**
  * Generates plans for lineage checkpointing.

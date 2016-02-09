@@ -15,12 +15,12 @@
 
 package alluxio.worker.netty;
 
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+
 import java.io.Closeable;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 
 /**
  * A listener that will close the given resource when the operation completes. This class accepts

@@ -15,8 +15,13 @@
 
 package alluxio.worker.block.evictor;
 
-import java.io.File;
-import java.util.Collections;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.worker.block.BlockMetadataManager;
+import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.TieredBlockStoreTestUtils;
+import alluxio.worker.block.allocator.Allocator;
+import alluxio.worker.block.allocator.MaxFreeAllocator;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -24,13 +29,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataManagerView;
-import alluxio.worker.block.TieredBlockStoreTestUtils;
-import alluxio.worker.block.allocator.Allocator;
-import alluxio.worker.block.allocator.MaxFreeAllocator;
+import java.io.File;
+import java.util.Collections;
 
 /**
  * Test {@link Evictor.Factory} by passing in different evictor strategy class names through the

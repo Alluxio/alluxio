@@ -15,8 +15,7 @@
 
 package alluxio.hadoop.fs;
 
-import java.io.IOException;
-import java.util.Iterator;
+import alluxio.Constants;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.MapReduceBase;
@@ -26,7 +25,8 @@ import org.apache.hadoop.mapred.Reporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
+import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * Reducer that accumulates values based on their type.

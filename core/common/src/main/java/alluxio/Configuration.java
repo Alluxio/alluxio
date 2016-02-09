@@ -15,6 +15,19 @@
 
 package alluxio;
 
+import alluxio.exception.ExceptionMessage;
+import alluxio.network.ChannelType;
+import alluxio.util.FormatUtils;
+import alluxio.util.network.NetworkAddressUtils;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+
+import org.apache.commons.lang3.SerializationUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
@@ -26,19 +39,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.apache.commons.lang3.SerializationUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
-
-import alluxio.exception.ExceptionMessage;
-import alluxio.network.ChannelType;
-import alluxio.util.FormatUtils;
-import alluxio.util.network.NetworkAddressUtils;
 
 /**
  * <p>

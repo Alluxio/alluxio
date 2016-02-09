@@ -15,10 +15,12 @@
 
 package alluxio.client.keyvalue.hadoop;
 
-import java.io.IOException;
-import java.util.List;
+import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
+import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.exception.AlluxioException;
 
-import javax.annotation.concurrent.ThreadSafe;
+import com.google.common.collect.Lists;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -28,12 +30,10 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobContext;
 import org.apache.hadoop.mapred.TaskAttemptContext;
 
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.util.List;
 
-import alluxio.AlluxioURI;
-import alluxio.annotation.PublicApi;
-import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.exception.AlluxioException;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Extension of {@link FileOutputCommitter} where creating, completing, or deleting a

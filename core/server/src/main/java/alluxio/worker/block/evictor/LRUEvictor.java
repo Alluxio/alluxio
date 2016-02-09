@@ -15,6 +15,15 @@
 
 package alluxio.worker.block.evictor;
 
+import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.allocator.Allocator;
+import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.StorageDirView;
+import alluxio.worker.block.meta.StorageTierView;
+
+import com.google.common.collect.Lists;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -22,15 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.collect.Lists;
-
-import alluxio.worker.block.BlockMetadataManagerView;
-import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.allocator.Allocator;
-import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.meta.StorageTierView;
 
 /**
  * Implementation of an evictor which follows the least recently used algorithm. It discards the

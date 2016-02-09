@@ -15,18 +15,18 @@
 
 package alluxio.client.file.policy;
 
-import java.util.List;
-
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.google.common.collect.Lists;
-
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.collect.Lists;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.List;
 
 /**
  * Tests {@link LocalFirstPolicy}.

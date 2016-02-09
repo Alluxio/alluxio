@@ -15,16 +15,16 @@
 
 package alluxio.master.journal;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.CommonUtils;
 
 import com.google.common.base.Throwables;
 
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.util.CommonUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * This describes the interface for serializing and deserializing entries in the journal.

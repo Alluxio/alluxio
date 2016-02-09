@@ -15,11 +15,32 @@
 
 package alluxio.master.lineage;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.IntegrationTestConstants;
+import alluxio.IntegrationTestUtils;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.WriteType;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.lineage.AlluxioLineage;
+import alluxio.client.lineage.LineageFileSystem;
+import alluxio.client.lineage.LineageMasterClient;
+import alluxio.client.lineage.options.DeleteLineageOptions;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.job.CommandLineJob;
+import alluxio.job.JobConf;
+import alluxio.master.file.meta.PersistenceState;
+import alluxio.util.CommonUtils;
+import alluxio.wire.LineageInfo;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -28,32 +49,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
-import alluxio.Constants;
-import alluxio.IntegrationTestConstants;
-import alluxio.IntegrationTestUtils;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.lineage.LineageFileSystem;
-import alluxio.client.lineage.LineageMasterClient;
-import alluxio.client.lineage.AlluxioLineage;
-import alluxio.client.lineage.options.DeleteLineageOptions;
-import alluxio.Configuration;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
-import alluxio.job.CommandLineJob;
-import alluxio.job.JobConf;
-import alluxio.master.file.meta.PersistenceState;
-import alluxio.util.CommonUtils;
-import alluxio.wire.LineageInfo;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests for the lineage module.

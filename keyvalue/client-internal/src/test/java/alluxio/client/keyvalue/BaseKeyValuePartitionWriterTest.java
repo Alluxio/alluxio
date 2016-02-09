@@ -15,17 +15,17 @@
 
 package alluxio.client.keyvalue;
 
-import java.nio.ByteBuffer;
+import alluxio.Constants;
+import alluxio.client.ByteArrayOutStream;
+import alluxio.client.ClientContext;
+import alluxio.client.util.ClientTestUtils;
 
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.Constants;
-import alluxio.client.ByteArrayOutStream;
-import alluxio.client.ClientContext;
-import alluxio.client.util.ClientTestUtils;
+import java.nio.ByteBuffer;
 
 /**
  * Unit test of {@link BaseKeyValuePartitionWriter}.

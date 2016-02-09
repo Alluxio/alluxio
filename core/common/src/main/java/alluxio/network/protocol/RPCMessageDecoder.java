@@ -15,12 +15,7 @@
 
 package alluxio.network.protocol;
 
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import alluxio.Constants;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
@@ -28,7 +23,12 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 
-import alluxio.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Simple Netty decoder which converts the input ByteBuf into an RPCMessage.

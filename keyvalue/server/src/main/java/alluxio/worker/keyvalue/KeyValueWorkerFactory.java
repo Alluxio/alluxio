@@ -15,18 +15,18 @@
 
 package alluxio.worker.keyvalue;
 
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import alluxio.Constants;
 import alluxio.worker.Worker;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.block.BlockWorker;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory to create a {@link KeyValueWorker} instance.

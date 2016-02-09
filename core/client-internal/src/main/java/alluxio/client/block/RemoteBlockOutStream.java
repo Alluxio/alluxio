@@ -15,14 +15,14 @@
 
 package alluxio.client.block;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.client.ClientContext;
 import alluxio.client.RemoteBlockWriter;
 import alluxio.exception.AlluxioException;
 import alluxio.wire.WorkerNetAddress;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides a streaming API to write to an Alluxio block. This output stream will send the write

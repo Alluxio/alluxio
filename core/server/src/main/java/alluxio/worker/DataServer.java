@@ -15,17 +15,17 @@
 
 package alluxio.worker;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.util.CommonUtils;
+import alluxio.worker.block.BlockWorker;
+
+import com.google.common.base.Throwables;
+
 import java.io.Closeable;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Throwables;
-
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.util.CommonUtils;
-import alluxio.worker.block.BlockWorker;
 
 /**
  * Defines how to interact with a server running the data protocol.

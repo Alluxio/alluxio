@@ -15,17 +15,8 @@
 
 package alluxio.worker.block;
 
-import java.io.IOException;
-import java.util.Collections;
-
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
-
-import com.google.common.base.Preconditions;
-import com.google.common.primitives.Ints;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -35,6 +26,15 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
+
+import com.google.common.base.Preconditions;
+import com.google.common.primitives.Ints;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.IOException;
+import java.util.Collections;
 
 /**
  * Utility methods for setting and testing {@link TieredBlockStore}.

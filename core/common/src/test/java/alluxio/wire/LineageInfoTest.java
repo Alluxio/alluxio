@@ -15,14 +15,14 @@
 
 package alluxio.wire;
 
-import java.util.List;
-import java.util.Random;
+import com.google.common.collect.Lists;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Random;
 
 public class LineageInfoTest {
 

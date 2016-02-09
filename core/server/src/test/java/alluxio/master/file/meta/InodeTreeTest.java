@@ -15,8 +15,26 @@
 
 package alluxio.master.file.meta;
 
-import java.util.List;
-import java.util.Set;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.exception.BlockInfoException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.master.MasterContext;
+import alluxio.master.block.BlockMaster;
+import alluxio.master.file.PermissionChecker;
+import alluxio.master.file.meta.options.CreatePathOptions;
+import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalOutputStream;
+import alluxio.master.journal.ReadWriteJournal;
+import alluxio.security.authorization.PermissionStatus;
+import alluxio.util.CommonUtils;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,29 +44,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 import org.powermock.reflect.Whitebox;
 
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.exception.BlockInfoException;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterContext;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.file.meta.options.CreatePathOptions;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.ReadWriteJournal;
-import alluxio.master.file.PermissionChecker;
-import alluxio.security.authorization.PermissionStatus;
-import alluxio.util.CommonUtils;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Unit tests for {@link InodeTree}.

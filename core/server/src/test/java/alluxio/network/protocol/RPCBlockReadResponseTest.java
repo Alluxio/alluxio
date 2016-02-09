@@ -15,7 +15,10 @@
 
 package alluxio.network.protocol;
 
-import java.nio.ByteBuffer;
+import alluxio.network.protocol.databuffer.DataByteBuffer;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -23,10 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-
-import alluxio.network.protocol.databuffer.DataByteBuffer;
+import java.nio.ByteBuffer;
 
 /**
  * Unit tests for {@link RPCBlockReadResponse}.

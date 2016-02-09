@@ -15,12 +15,12 @@
 
 package alluxio.client.block;
 
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.annotation.PublicApi;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 
-import alluxio.annotation.PublicApi;
-import alluxio.wire.WorkerNetAddress;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Information of an active block worker.

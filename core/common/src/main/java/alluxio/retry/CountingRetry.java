@@ -15,9 +15,9 @@
 
 package alluxio.retry;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import com.google.common.base.Preconditions;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * An option which allows retrying based on maximum count.
