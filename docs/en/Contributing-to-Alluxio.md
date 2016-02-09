@@ -111,19 +111,11 @@ leverage the Scala shell, as discussed in this
     [Google Java style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html),
     with the following changes or deviations:
     -  Maximum line length of **100** characters.
-    -  `i ++` instead of `i++`
-    -  `i + j` instead of `i+j`
     -  Third-party imports are grouped together to make IDE formatting much simpler.
-    -  Class and member modifiers, when present, appear in the order recommended by the Java
-    Language Specification: **public protected private abstract static final transient volatile
-    synchronized native strictfp**, then as **alphabetical order**.
     -  Class member variable names should be prefixed with `m`, for example `private WorkerClient
        mWorkerClient;`
     -  Static variable names should be prefixed with `s`, for example `public static String
     sUnderFSAddress;`
-    -  Do not add `public` or `abstract` modifier to methods defined in an Java interface because
-       method declaration in the body of an interface is implicitly public and abstract.
-       (http://docs.oracle.com/javase/specs/jls/se7/html/jls-9.html#jls-9.4)
 -   You can download our [Eclipse formatter](../resources/alluxio-code-formatter-eclipse.xml)
     -  For Eclipse to organize your imports correctly, configure "Organize Imports" to look like
        [this](../resources/eclipse_imports.png)
