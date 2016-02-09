@@ -28,6 +28,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.AlluxioMaster;
+import alluxio.master.MasterContext;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.PlainSaslServer;
 import alluxio.util.SecurityUtils;
@@ -68,7 +69,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    */
   public WebInterfaceBrowseServlet(AlluxioMaster master) {
     mMaster = master;
-    mConfiguration = new Configuration();
+    mConfiguration = MasterContext.getConf();
   }
 
   /**
@@ -142,7 +143,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         && PlainSaslServer.AuthorizedClientUser.get(mConfiguration) == null) {
       PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(mConfiguration).getName());
     }
-    request.setAttribute("debug", Constants.DEBUG);
+    request.setAttribute("debug", mConfiguration.getBoolean(Constants.DEBUG));
     request.setAttribute("viewLog", false);
 
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
