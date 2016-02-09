@@ -29,3 +29,19 @@ Tachyon除了提供[Filesystem API](File-System-API.html) 让应用程序来读�
 ```java
 KeyValueSystem kvs = KeyValueSystem.Factory().get();
 ```
+
+## 创建一个新的键值存储
+
+可以通过调用`KeyValueSystem#createStore(TachyonURI)`来创建一个新的键值存储。将返回一个writer用于后续
+加入键值对。To create a new key-value store, use , which returns a writer to add key-value pairs. 可以参照下面的例子:
+
+```java
+KeyValueStoreWriter writer = kvs.createStore(new TachyonURI("tachyon://path/my-kvstore"));
+// Insert key-value pair ("100", "foo")
+writer.put("100", "foo");
+// Insert key-value pair ("200", "bar")
+writer.put("200", "bar");
+// Close and complete the store
+writer.close();
+```
+
