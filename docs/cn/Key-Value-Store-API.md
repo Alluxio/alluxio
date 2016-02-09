@@ -20,3 +20,12 @@ Tachyon除了提供[Filesystem API](File-System-API.html) 让应用程序来读�
 单个键值存储可以用TachyonURI来表示路径，比如`tachyon://path/my-kvstore`.
 取决于用户指定的总容量和数据块大小，单个键值存储可能有一个以上的分区，分区是Tachyon内部来管理，对用户透明。
 
+# 通过Java应用程序来访问键值存储
+
+### 获取一个键值存储的客户端
+
+要想用Java代码获取一个Tachyon键值存储客户端实例，可以使用:
+
+```java
+KeyValueSystem kvs = KeyValueSystem.Factory().get();
+```
