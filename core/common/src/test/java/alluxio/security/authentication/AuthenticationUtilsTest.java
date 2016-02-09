@@ -388,7 +388,7 @@ public class AuthenticationUtilsTest {
         throw new RuntimeException("TThreadPoolServer does not start serving");
       }
       Thread.sleep(50);
-      count --;
+      count--;
     }
   }
 
