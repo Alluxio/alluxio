@@ -25,7 +25,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Throwables;
-
 import org.apache.curator.test.TestingServer;
 
 import java.io.IOException;

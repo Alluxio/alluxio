@@ -22,7 +22,6 @@ import alluxio.retry.RetryPolicy;
 import alluxio.underfs.UnderFileSystem;
 
 import com.google.common.base.Throwables;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;

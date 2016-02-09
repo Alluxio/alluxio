@@ -26,7 +26,6 @@ import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 
 import com.google.common.collect.Lists;
-
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;

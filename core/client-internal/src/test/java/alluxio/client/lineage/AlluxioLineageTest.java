@@ -24,7 +24,6 @@ import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 
 import com.google.common.collect.Lists;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

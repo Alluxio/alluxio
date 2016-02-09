@@ -29,7 +29,6 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
-
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;

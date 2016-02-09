@@ -26,7 +26,6 @@ import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.collect.Sets;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

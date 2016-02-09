@@ -21,7 +21,6 @@ import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
 
 import com.google.common.collect.Lists;
-
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;

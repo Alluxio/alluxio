@@ -28,7 +28,6 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Lists;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

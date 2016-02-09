@@ -19,7 +19,6 @@ import alluxio.Constants;
 import alluxio.client.ClientContext;
 
 import com.google.common.collect.Lists;
-
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -24,7 +24,6 @@ import alluxio.security.group.GroupMappingService;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
 import com.google.common.collect.Lists;
-
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;

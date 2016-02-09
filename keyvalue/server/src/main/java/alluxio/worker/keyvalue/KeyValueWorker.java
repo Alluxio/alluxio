@@ -24,7 +24,6 @@ import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
-
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;

@@ -37,16 +37,13 @@ import alluxio.client.file.URIStatus;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.LoadingCache;
-
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
 import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
 

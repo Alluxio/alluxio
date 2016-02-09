@@ -19,7 +19,6 @@ import alluxio.util.io.BufferUtils;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.FileRegion;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

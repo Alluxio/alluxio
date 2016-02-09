@@ -17,7 +17,6 @@ package alluxio.network.protocol;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
-
 import io.netty.buffer.ByteBuf;
 
 import javax.annotation.concurrent.ThreadSafe;

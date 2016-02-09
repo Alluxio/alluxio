@@ -39,7 +39,6 @@ import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;

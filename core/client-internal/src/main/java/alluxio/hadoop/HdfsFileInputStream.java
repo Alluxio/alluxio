@@ -30,7 +30,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.primitives.Ints;
-
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.Path;

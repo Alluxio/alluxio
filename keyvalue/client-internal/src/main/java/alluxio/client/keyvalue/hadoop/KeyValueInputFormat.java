@@ -24,7 +24,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
 
 import com.google.common.collect.Lists;
-
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileInputFormat;
 import org.apache.hadoop.mapred.InputFormat;

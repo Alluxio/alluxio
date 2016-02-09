@@ -23,7 +23,6 @@ import alluxio.util.OSUtils;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-
 import org.apache.commons.io.FilenameUtils;
 
 import java.util.ArrayList;

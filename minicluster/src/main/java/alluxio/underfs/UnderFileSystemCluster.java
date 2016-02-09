@@ -21,7 +21,6 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;

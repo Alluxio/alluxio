@@ -28,7 +28,6 @@ import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

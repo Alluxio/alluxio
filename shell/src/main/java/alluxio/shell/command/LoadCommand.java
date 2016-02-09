@@ -26,7 +26,6 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 
 import com.google.common.io.Closer;
-
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;

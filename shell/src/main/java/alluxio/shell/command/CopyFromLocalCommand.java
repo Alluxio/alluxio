@@ -30,7 +30,6 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closer;
-
 import org.apache.commons.cli.CommandLine;
 
 import java.io.File;

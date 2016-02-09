@@ -25,7 +25,6 @@ import alluxio.master.lineage.meta.LineageIdGenerator;
 import alluxio.master.lineage.meta.LineageStore;
 
 import com.google.common.collect.Lists;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

@@ -23,7 +23,6 @@ import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

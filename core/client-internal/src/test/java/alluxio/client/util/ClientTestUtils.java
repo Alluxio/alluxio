@@ -22,7 +22,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
 
 import com.google.common.base.Throwables;
-
 import org.powermock.reflect.Whitebox;
 
 /**

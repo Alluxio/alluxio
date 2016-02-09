@@ -27,7 +27,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.Sets;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

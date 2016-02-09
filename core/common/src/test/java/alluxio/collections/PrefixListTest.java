@@ -16,7 +16,6 @@
 package alluxio.collections;
 
 import com.google.common.collect.ImmutableList;
-
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -19,7 +19,6 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;

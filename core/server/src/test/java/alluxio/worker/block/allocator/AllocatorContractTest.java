@@ -21,7 +21,6 @@ import alluxio.worker.WorkerContext;
 
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

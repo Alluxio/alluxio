@@ -18,7 +18,6 @@ package alluxio.master;
 import alluxio.Constants;
 
 import com.google.common.io.Closer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

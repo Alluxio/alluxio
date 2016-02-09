@@ -22,7 +22,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import com.google.protobuf.Message;
 import com.google.protobuf.UnknownFieldSet;
 import com.google.protobuf.UnknownFieldSet.Field;
-
 import org.junit.Assert;
 import org.junit.Test;
 /**

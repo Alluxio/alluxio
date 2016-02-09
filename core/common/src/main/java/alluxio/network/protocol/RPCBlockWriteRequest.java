@@ -19,7 +19,6 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 
 import com.google.common.primitives.Longs;
-
 import io.netty.buffer.ByteBuf;
 
 import java.nio.ByteBuffer;

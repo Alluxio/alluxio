@@ -18,7 +18,6 @@ package alluxio.network.protocol.databuffer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
