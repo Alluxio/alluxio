@@ -491,6 +491,23 @@ public class FileInStreamTest {
   }
 
   /**
+   * Tests cache streams are created with the proper block sizes when the file size is smaller
+   * than block size and we skip before reading
+   */
+  @Test
+  public void cacheStreamBlockSizeTest() throws Exception {
+    long smallSize = BLOCK_LENGTH / 2;
+    mInfo.setLength(smallSize);
+    mTestStream =
+        new FileInStream(new URIStatus(mInfo), InStreamOptions.defaults().setReadType(
+            ReadType.CACHE));
+    mTestStream.skip(smallSize / 2);
+    mTestStream.read(new byte[1]);
+    Mockito.verify(mBlockStore, Mockito.times(1)).getOutStream(Mockito.anyLong(),
+        Mockito.eq(smallSize), Mockito.any(WorkerNetAddress.class));
+  }
+
+  /**
    * Tests that reading dataRead bytes into a buffer will properly write those bytes to the cache
    * streams and that the correct bytes are read from the {@link FileInStream}.
    *
