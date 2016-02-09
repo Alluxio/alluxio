@@ -15,7 +15,7 @@
 
 package alluxio.client.keyvalue;
 
-import alluxio.ClientBase;
+import alluxio.AbstractClient;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
@@ -42,7 +42,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * thread safety.
  */
 @ThreadSafe
-public final class KeyValueWorkerClient extends ClientBase {
+public final class KeyValueWorkerClient extends AbstractClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private KeyValueWorkerClientService.Client mClient = null;

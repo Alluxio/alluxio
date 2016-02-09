@@ -101,7 +101,7 @@ public final class StorageDir {
    * Initializes meta data for existing blocks in this {@link StorageDir}.
    *
    * Only paths satisfying the contract defined in
-   * {@link BlockMetaBase#commitPath(StorageDir, long)} are legal, should be in format like
+   * {@link AbstractBlockMeta#commitPath(StorageDir, long)} are legal, should be in format like
    * {dir}/{blockId}. other paths will be deleted.
    *
    * @throws BlockAlreadyExistsException when meta data of existing committed blocks already exists

@@ -29,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class listens on block events and increases the metrics counters.
  */
 @NotThreadSafe
-public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
+public final class BlockMetricsReporter extends AbstractBlockStoreEventListener {
   private final WorkerSource mWorkerSource;
   private final StorageTierAssoc mStorageTierAssoc;
 
