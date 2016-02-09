@@ -57,6 +57,40 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class AlluxioWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private static AlluxioWorker sAlluxioWorker = null;
+
+  /**
+   * Main method for Alluxio Worker. A Block Worker will be started and the Alluxio Worker will
+   * continue to run until the Block Worker thread exits.
+   *
+   * @param args command line arguments, should be empty
+   */
+  public static void main(String[] args) {
+    checkArgs(args);
+    sAlluxioWorker = new AlluxioWorker();
+    try {
+      sAlluxioWorker.start();
+    } catch (Exception e) {
+      LOG.error("Uncaught exception while running worker, stopping it and exiting.", e);
+      try {
+        sAlluxioWorker.stop();
+      } catch (Exception ex) {
+        // continue to exit
+        LOG.error("Uncaught exception while stopping worker, simply exiting.", ex);
+      }
+      System.exit(-1);
+    }
+  }
+
+  /**
+   * Returns a handle to the Alluxio worker instance.
+   *
+   * @return Alluxio master handle
+   */
+  public static AlluxioWorker get() {
+    return sAlluxioWorker;
+  }
+
   private Configuration mConfiguration;
 
   /** The worker serving blocks. */
@@ -150,29 +184,6 @@ public final class AlluxioWorker {
   }
 
   /**
-   * Main method for Alluxio Worker. A Block Worker will be started and the Alluxio Worker will
-   * continue to run until the Block Worker thread exits.
-   *
-   * @param args command line arguments, should be empty
-   */
-  public static void main(String[] args) {
-    checkArgs(args);
-    AlluxioWorker worker = new AlluxioWorker();
-    try {
-      worker.start();
-    } catch (Exception e) {
-      LOG.error("Uncaught exception while running worker, stopping it and exiting.", e);
-      try {
-        worker.stop();
-      } catch (Exception ex) {
-        // continue to exit
-        LOG.error("Uncaught exception while stopping worker, simply exiting.", ex);
-      }
-      System.exit(-1);
-    }
-  }
-
-  /**
    * @return the worker RPC service bind host
    */
   public String getRPCBindHost() {
@@ -216,10 +227,10 @@ public final class AlluxioWorker {
   }
 
   /**
-   * @return the worker service handler (used by unit test only)
+   * @return the block worker
    */
-  public BlockWorkerClientServiceHandler getBlockWorkerServiceHandler() {
-    return mBlockWorker.getWorkerServiceHandler();
+  public BlockWorker getBlockWorker() {
+    return mBlockWorker;
   }
 
   /**
