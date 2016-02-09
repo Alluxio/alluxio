@@ -15,6 +15,25 @@
 
 package alluxio.web;
 
+import alluxio.AlluxioURI;
+import alluxio.client.ReadType;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.OpenFileOptions;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.master.MasterContext;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.security.LoginUser;
+import alluxio.security.authentication.PlainSaslServer;
+import alluxio.util.SecurityUtils;
+import alluxio.wire.FileInfo;
+
+import com.google.common.base.Preconditions;
+import com.google.common.io.ByteStreams;
+
 import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -23,25 +42,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.google.common.base.Preconditions;
-import com.google.common.io.ByteStreams;
-
-import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
-import alluxio.exception.AlluxioException;
-import alluxio.master.MasterContext;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.security.LoginUser;
-import alluxio.security.authentication.PlainSaslServer;
-import alluxio.util.SecurityUtils;
-import alluxio.wire.FileInfo;
 
 /**
  * Servlet for downloading a file.

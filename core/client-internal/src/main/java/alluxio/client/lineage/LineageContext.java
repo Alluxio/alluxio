@@ -15,9 +15,9 @@
 
 package alluxio.client.lineage;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.client.ClientContext;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A shared context in each client JVM for common lineage master client functionality such as a pool

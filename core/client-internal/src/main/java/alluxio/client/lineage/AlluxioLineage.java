@@ -15,24 +15,24 @@
 
 package alluxio.client.lineage;
 
-import java.io.IOException;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
 import alluxio.client.lineage.options.CreateLineageOptions;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.client.lineage.options.GetLineageInfoListOptions;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDeletionException;
 import alluxio.exception.LineageDoesNotExistException;
-import alluxio.exception.AlluxioException;
 import alluxio.job.Job;
 import alluxio.wire.LineageInfo;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A {@link LineageClient} implementation. This class does not access the master client directly

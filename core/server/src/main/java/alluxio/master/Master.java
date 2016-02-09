@@ -15,15 +15,15 @@
 
 package alluxio.master;
 
-import java.io.IOException;
-import java.util.Map;
-
-import org.apache.thrift.TProcessor;
-
 import alluxio.master.journal.JournalCheckpointStreamable;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
+
+import org.apache.thrift.TProcessor;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * This interface contains common operations for all masters.

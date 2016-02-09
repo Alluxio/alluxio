@@ -15,16 +15,6 @@
 
 package alluxio.shell;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.collect.Lists;
-
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
@@ -34,6 +24,16 @@ import alluxio.exception.AlluxioException;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+
+import com.google.common.collect.Lists;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Class for convenience methods used by {@link AlluxioShell}.

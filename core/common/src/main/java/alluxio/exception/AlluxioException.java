@@ -15,9 +15,9 @@
 
 package alluxio.exception;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.thrift.AlluxioTException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * General {@link AlluxioException} used throughout the system. It must be able serialize itself to

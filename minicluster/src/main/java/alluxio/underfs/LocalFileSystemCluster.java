@@ -15,12 +15,12 @@
 
 package alluxio.underfs;
 
+import alluxio.Configuration;
+
 import java.io.File;
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import alluxio.Configuration;
 
 /**
  * The mock cluster for local file system.

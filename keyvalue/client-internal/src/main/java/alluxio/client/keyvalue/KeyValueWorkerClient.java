@@ -15,25 +15,25 @@
 
 package alluxio.client.keyvalue;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.ClientBase;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.exception.AlluxioException;
+import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.KeyValueWorkerClientService;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.ClientBase;
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.exception.AlluxioException;
-import alluxio.thrift.KeyValueWorkerClientService;
-import alluxio.thrift.AlluxioService;
-import alluxio.thrift.AlluxioTException;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.WorkerNetAddress;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Client for talking to a key-value worker server.

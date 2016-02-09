@@ -15,16 +15,16 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.commons.cli.CommandLine;
-
+import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
 import alluxio.client.lineage.options.DeleteLineageOptions;
-import alluxio.Configuration;
+
+import org.apache.commons.cli.CommandLine;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Deletes a lineage by its id. If the cascade flag is set to true it performs a cascading delete.

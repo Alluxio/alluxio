@@ -15,18 +15,6 @@
 
 package alluxio.master.lineage.recompute;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.util.concurrent.Futures;
-
 import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
@@ -36,6 +24,17 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.lineage.meta.Lineage;
 import alluxio.master.lineage.meta.LineageStateUtils;
 import alluxio.util.ThreadFactoryUtils;
+
+import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.Futures;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A periodical executor that detects lost files and launches recompute jobs.

@@ -15,26 +15,26 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.MasterClientBase;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ConnectionFailedException;
+import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.BlockMasterClientService;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.ThriftUtils;
+import alluxio.wire.WorkerInfo;
+
+import org.apache.thrift.TException;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.thrift.TException;
-
-import alluxio.Constants;
-import alluxio.MasterClientBase;
-import alluxio.Configuration;
-import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.AlluxioException;
-import alluxio.thrift.BlockMasterClientService;
-import alluxio.thrift.AlluxioService;
-import alluxio.thrift.AlluxioTException;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.ThriftUtils;
-import alluxio.wire.WorkerInfo;
 
 /**
  * A wrapper for the thrift client to interact with the block master, used by alluxio clients.

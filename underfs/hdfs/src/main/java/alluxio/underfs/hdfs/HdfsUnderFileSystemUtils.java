@@ -15,11 +15,11 @@
 
 package alluxio.underfs.hdfs;
 
-import javax.annotation.concurrent.ThreadSafe;
-
-import alluxio.Constants;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility methods for the HDFS implementation of the {@link UnderFileSystem}.

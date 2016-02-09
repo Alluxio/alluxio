@@ -15,10 +15,10 @@
 
 package alluxio.underfs.hdfs;
 
+import alluxio.Configuration;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import alluxio.Configuration;
 
 /**
  * Tests {@link HdfsUnderFileSystemUtils}.

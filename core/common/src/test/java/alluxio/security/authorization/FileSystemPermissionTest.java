@@ -15,14 +15,14 @@
 
 package alluxio.security.authorization;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.exception.ExceptionMessage;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.exception.ExceptionMessage;
 
 /**
  * Tests the {@link FileSystemPermission} class.

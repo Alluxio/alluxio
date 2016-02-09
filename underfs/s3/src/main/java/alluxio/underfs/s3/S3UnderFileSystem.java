@@ -15,6 +15,23 @@
 
 package alluxio.underfs.s3;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.PathUtils;
+
+import com.google.common.base.Preconditions;
+import org.jets3t.service.Jets3tProperties;
+import org.jets3t.service.S3Service;
+import org.jets3t.service.ServiceException;
+import org.jets3t.service.impl.rest.httpclient.RestS3Service;
+import org.jets3t.service.model.S3Object;
+import org.jets3t.service.model.StorageObject;
+import org.jets3t.service.security.AWSCredentials;
+import org.jets3t.service.utils.Mimetypes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -27,24 +44,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.jets3t.service.Jets3tProperties;
-import org.jets3t.service.S3Service;
-import org.jets3t.service.ServiceException;
-import org.jets3t.service.impl.rest.httpclient.RestS3Service;
-import org.jets3t.service.model.S3Object;
-import org.jets3t.service.model.StorageObject;
-import org.jets3t.service.security.AWSCredentials;
-import org.jets3t.service.utils.Mimetypes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.io.PathUtils;
 
 /**
  * S3 FS {@link UnderFileSystem} implementation based on the jets3t library.

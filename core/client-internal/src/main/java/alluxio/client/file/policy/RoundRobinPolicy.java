@@ -15,13 +15,13 @@
 
 package alluxio.client.file.policy;
 
+import alluxio.client.block.BlockWorkerInfo;
+import alluxio.wire.WorkerNetAddress;
+
 import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.wire.WorkerNetAddress;
 
 /**
  * A policy that chooses the worker for the next block in a round-robin manner and skips workers

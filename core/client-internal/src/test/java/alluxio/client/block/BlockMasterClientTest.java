@@ -15,7 +15,9 @@
 
 package alluxio.client.block;
 
-import java.io.IOException;
+import alluxio.Constants;
+import alluxio.exception.ExceptionMessage;
+import alluxio.thrift.BlockMasterClientService;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,9 +27,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import alluxio.Constants;
-import alluxio.exception.ExceptionMessage;
-import alluxio.thrift.BlockMasterClientService;
+import java.io.IOException;
 
 /**
  * Tests for the {@link BlockMasterClient} class.

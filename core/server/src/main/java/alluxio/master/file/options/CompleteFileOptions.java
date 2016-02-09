@@ -15,11 +15,11 @@
 
 package alluxio.master.file.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.Configuration;
 import alluxio.master.MasterContext;
 import alluxio.thrift.CompleteFileTOptions;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method option for completing a file.

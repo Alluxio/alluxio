@@ -15,16 +15,15 @@
 
 package alluxio.network.protocol;
 
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataNettyBuffer;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
-
 import io.netty.buffer.ByteBuf;
 
-import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataNettyBuffer;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This represents the response of a {@link RPCBlockReadRequest}.

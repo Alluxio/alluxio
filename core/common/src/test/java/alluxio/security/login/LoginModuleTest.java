@@ -15,18 +15,18 @@
 
 package alluxio.security.login;
 
-import java.security.Principal;
-
-import javax.security.auth.Subject;
-import javax.security.auth.login.LoginContext;
-import javax.security.auth.login.LoginException;
+import alluxio.security.User;
 
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.security.User;
+import java.security.Principal;
+
+import javax.security.auth.Subject;
+import javax.security.auth.login.LoginContext;
+import javax.security.auth.login.LoginException;
 
 /**
  * Unit test for the login modules defined in {@link AlluxioLoginModule} and

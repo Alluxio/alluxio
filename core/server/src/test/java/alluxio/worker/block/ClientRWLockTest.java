@@ -15,11 +15,11 @@
 
 package alluxio.worker.block;
 
-import java.util.concurrent.locks.Lock;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.concurrent.locks.Lock;
 
 /**
  * Unit tests for {@link ClientRWLock}.

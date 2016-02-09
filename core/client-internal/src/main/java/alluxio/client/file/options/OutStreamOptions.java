@@ -15,19 +15,19 @@
 
 package alluxio.client.file.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Throwables;
-
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.client.ClientContext;
 import alluxio.client.AlluxioStorageType;
+import alluxio.client.ClientContext;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.Configuration;
 import alluxio.util.CommonUtils;
+
+import com.google.common.base.Throwables;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method option for writing a file.

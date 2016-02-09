@@ -15,16 +15,16 @@
 
 package alluxio.client.file.options;
 
-import org.junit.Assert;
-import org.junit.Test;
-
 import alluxio.Constants;
+import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
-import alluxio.client.AlluxioStorageType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.client.util.ClientTestUtils;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests for the {@link InStreamOptions} class.

@@ -15,26 +15,25 @@
 
 package alluxio.client.concurrent;
 
-import java.util.List;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.ClientContext;
+import alluxio.client.FileSystemTestUtils;
+import alluxio.client.StreamOptionUtils;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.options.CreateFileOptions;
+import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
-
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.AlluxioURI;
-import alluxio.client.ClientContext;
-import alluxio.client.StreamOptionUtils;
-import alluxio.client.FileSystemTestUtils;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.Configuration;
-import alluxio.util.io.PathUtils;
+import java.util.List;
 
 /**
  * Tests the concurrency of {@link FileInStream}.

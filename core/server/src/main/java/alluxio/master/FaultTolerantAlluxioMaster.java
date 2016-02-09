@@ -15,19 +15,9 @@
 
 package alluxio.master;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LeaderSelectorClient;
-import alluxio.Configuration;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadOnlyJournal;
@@ -35,6 +25,15 @@ import alluxio.master.lineage.LineageMaster;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The fault tolerant version of {@link AlluxioMaster} that uses zookeeper and standby masters.

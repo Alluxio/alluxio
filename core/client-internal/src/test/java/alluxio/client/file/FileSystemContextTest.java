@@ -15,15 +15,14 @@
 
 package alluxio.client.file;
 
-import java.util.List;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
 
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
-
-import alluxio.Constants;
-import alluxio.client.ClientContext;
+import java.util.List;
 
 /**
  * Tests {@link FileSystemContext}.

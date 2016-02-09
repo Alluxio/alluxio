@@ -15,20 +15,20 @@
 
 package alluxio.client.keyvalue.hadoop;
 
+import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.exception.AlluxioException;
+import alluxio.thrift.PartitionInfo;
+
+import org.apache.hadoop.mapred.InputSplit;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.apache.hadoop.mapred.InputSplit;
-
-import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.exception.AlluxioException;
-import alluxio.thrift.PartitionInfo;
 
 /**
  * Implements {@link InputSplit}, each split contains one partition of the {@link KeyValueSystem}.

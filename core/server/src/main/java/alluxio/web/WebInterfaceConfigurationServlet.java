@@ -15,6 +15,13 @@
 
 package alluxio.web;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.master.file.FileSystemMaster;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -28,13 +35,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-
-import alluxio.Constants;
-import alluxio.Configuration;
-import alluxio.master.file.FileSystemMaster;
 
 /**
  * Servlet that provides data for displaying the system's configuration.

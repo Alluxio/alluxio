@@ -15,17 +15,17 @@
 
 package alluxio.util.network;
 
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
-import alluxio.wire.WorkerNetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 
 /**
  * Tests for the {@link NetworkAddressUtils} class.

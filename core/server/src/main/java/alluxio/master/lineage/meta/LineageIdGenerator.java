@@ -15,13 +15,13 @@
 
 package alluxio.master.lineage.meta;
 
-import java.util.concurrent.atomic.AtomicLong;
-
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Lineage.LineageIdGeneratorEntry;
+
+import java.util.concurrent.atomic.AtomicLong;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Generates the lineage id as sequence number.

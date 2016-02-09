@@ -15,11 +15,11 @@
 
 package alluxio.client.lineage.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.annotation.PublicApi;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The method option for retrieving a list of lineage information.

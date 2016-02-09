@@ -15,11 +15,6 @@
 
 package alluxio.examples;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.concurrent.Callable;
-
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.Version;
@@ -33,6 +28,11 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.concurrent.Callable;
 
 /**
  * Basic example of using the {@link FileSystem} for writing to and reading from files.

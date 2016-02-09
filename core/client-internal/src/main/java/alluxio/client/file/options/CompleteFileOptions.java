@@ -15,10 +15,10 @@
 
 package alluxio.client.file.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.CompleteFileTOptions;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The method option for completing a file.

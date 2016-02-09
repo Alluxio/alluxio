@@ -15,16 +15,16 @@
 
 package alluxio.fuse;
 
+import alluxio.Constants;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import alluxio.Constants;
 
 /**
  * Utility methods for Alluxio-FUSE.

@@ -15,13 +15,13 @@
 
 package alluxio.util.io;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * Tests the {@link BufferUtils} class.

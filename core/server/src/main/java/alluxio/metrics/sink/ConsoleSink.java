@@ -15,15 +15,15 @@
 
 package alluxio.metrics.sink;
 
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
 
-import alluxio.metrics.MetricsSystem;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A sink which outputs metric values to the console.

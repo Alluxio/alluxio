@@ -15,13 +15,13 @@
 
 package alluxio.master.block;
 
-import java.util.concurrent.atomic.AtomicLong;
-
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+
+import java.util.concurrent.atomic.AtomicLong;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class generates unique block container ids.

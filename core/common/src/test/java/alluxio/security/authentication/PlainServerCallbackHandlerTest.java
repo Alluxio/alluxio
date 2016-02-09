@@ -15,20 +15,20 @@
 
 package alluxio.security.authentication;
 
-import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.callback.NameCallback;
-import javax.security.auth.callback.PasswordCallback;
-import javax.security.sasl.AuthenticationException;
-import javax.security.sasl.AuthorizeCallback;
+import alluxio.Configuration;
+import alluxio.Constants;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import alluxio.Configuration;
-import alluxio.Constants;
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.callback.NameCallback;
+import javax.security.auth.callback.PasswordCallback;
+import javax.security.sasl.AuthenticationException;
+import javax.security.sasl.AuthorizeCallback;
 
 /**
  * Tests the {@link PlainSaslServer.PlainServerCallbackHandler} class.

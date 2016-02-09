@@ -15,9 +15,8 @@
 
 package alluxio.util.network;
 
-import java.util.concurrent.ThreadFactory;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.network.ChannelType;
+import alluxio.util.ThreadFactoryUtils;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
@@ -29,8 +28,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-import alluxio.network.ChannelType;
-import alluxio.util.ThreadFactoryUtils;
+import java.util.concurrent.ThreadFactory;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility methods for working with Netty.

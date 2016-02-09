@@ -15,8 +15,10 @@
 
 package alluxio.client.keyvalue.hadoop;
 
-import java.io.IOException;
-import java.util.Arrays;
+import alluxio.AlluxioURI;
+import alluxio.client.keyvalue.KeyValueStoreWriter;
+import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.exception.AlluxioException;
 
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.RecordWriter;
@@ -24,10 +26,8 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.Progressable;
 import org.apache.http.annotation.ThreadSafe;
 
-import alluxio.AlluxioURI;
-import alluxio.client.keyvalue.KeyValueStoreWriter;
-import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.exception.AlluxioException;
+import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * A {@link RecordWriter} to write key-value pairs into a temporary key-value store.

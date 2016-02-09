@@ -15,9 +15,9 @@
 
 package alluxio.master.journal;
 
-import java.io.IOException;
-
 import alluxio.proto.journal.Journal.JournalEntry;
+
+import java.io.IOException;
 
 /**
  * This output stream writes {@link JournalEntry} objects to the journal. This output stream can

@@ -15,6 +15,13 @@
 
 package alluxio.underfs.swift.http;
 
+import alluxio.Constants;
+import alluxio.underfs.swift.SwiftOutputStream;
+
+import org.javaswift.joss.model.Access;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -22,14 +29,6 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.javaswift.joss.model.Access;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import alluxio.Constants;
-import alluxio.underfs.swift.SwiftOutputStream;
 
 /**
  * Contains direct calls to OpenStack Swift. This is needed to bypass certain limitations in the

@@ -15,6 +15,18 @@
 
 package alluxio.util.network;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.util.OSUtils;
+import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+import org.apache.thrift.transport.TServerSocket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.Inet4Address;
@@ -29,19 +41,6 @@ import java.util.Enumeration;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.thrift.transport.TServerSocket;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-
-import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.util.OSUtils;
-import alluxio.wire.WorkerNetAddress;
 
 /**
  * Common network address related utilities shared by all components in Alluxio.

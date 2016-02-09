@@ -15,12 +15,21 @@
 
 package alluxio.hadoop;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
+import alluxio.client.ReadType;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.OpenFileOptions;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.util.io.BufferUtils;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
+import com.google.common.primitives.Ints;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.Path;
@@ -29,21 +38,11 @@ import org.apache.hadoop.fs.Seekable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.primitives.Ints;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.client.ClientContext;
-import alluxio.client.ReadType;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
-import alluxio.Configuration;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.AlluxioException;
-import alluxio.util.io.BufferUtils;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * An input stream for reading a file from HDFS.

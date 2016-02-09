@@ -15,16 +15,16 @@
 
 package alluxio.client.keyvalue;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Iterator;
+import alluxio.client.ByteArrayOutStream;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import alluxio.client.ByteArrayOutStream;
-import alluxio.util.io.BufferUtils;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Iterator;
 
 /**
  * Unit tests of {@link LinearProbingIndex}.

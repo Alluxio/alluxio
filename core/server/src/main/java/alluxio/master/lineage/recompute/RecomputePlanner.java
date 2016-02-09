@@ -15,17 +15,6 @@
 
 package alluxio.master.lineage.recompute;
 
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
-
 import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDoesNotExistException;
@@ -33,6 +22,16 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.lineage.meta.Lineage;
 import alluxio.master.lineage.meta.LineageStateUtils;
 import alluxio.master.lineage.meta.LineageStore;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Plans the recompute strategy. It takes a list of lost files as input and outputs a recompute

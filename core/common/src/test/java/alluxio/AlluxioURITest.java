@@ -15,11 +15,11 @@
 
 package alluxio;
 
+import alluxio.util.OSUtils;
+
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
-
-import alluxio.util.OSUtils;
 
 /**
  * Unit tests for {@link AlluxioURI}.

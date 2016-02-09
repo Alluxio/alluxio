@@ -15,20 +15,19 @@
 
 package alluxio.worker;
 
+import alluxio.Constants;
+import alluxio.network.protocol.RPCMessage;
+import alluxio.network.protocol.RPCResponse;
+
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.Constants;
-import alluxio.network.protocol.RPCMessage;
-import alluxio.network.protocol.RPCResponse;
 
 /**
  * The message type used to send data request and response for remote data.

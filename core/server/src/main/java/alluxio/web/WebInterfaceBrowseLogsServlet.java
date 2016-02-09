@@ -15,6 +15,9 @@
 
 package alluxio.web;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
@@ -29,9 +32,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import alluxio.Constants;
-import alluxio.Configuration;
 
 /**
  * Servlet that provides data for browsing log files.

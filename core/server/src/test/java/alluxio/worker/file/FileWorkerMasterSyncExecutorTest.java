@@ -15,9 +15,10 @@
 
 package alluxio.worker.file;
 
-import java.io.IOException;
-import java.util.List;
+import alluxio.thrift.FileSystemCommand;
+import alluxio.worker.WorkerIdRegistry;
 
+import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,10 +26,8 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.google.common.collect.Lists;
-
-import alluxio.thrift.FileSystemCommand;
-import alluxio.worker.WorkerIdRegistry;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Tests {@link FileWorkerMasterSyncExecutor}.

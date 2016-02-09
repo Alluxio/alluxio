@@ -15,24 +15,23 @@
 
 package alluxio.shell.command;
 
-import java.io.IOException;
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.commons.cli.CommandLine;
-
-import com.google.common.io.Closer;
-
-import alluxio.Constants;
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.Configuration;
 import alluxio.exception.AlluxioException;
+
+import com.google.common.io.Closer;
+import org.apache.commons.cli.CommandLine;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Loads a file or directory in Alluxio space, makes it resident in memory.

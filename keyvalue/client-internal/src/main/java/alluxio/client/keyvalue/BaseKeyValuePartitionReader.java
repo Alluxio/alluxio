@@ -15,17 +15,6 @@
 
 package alluxio.client.keyvalue;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.List;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.block.AlluxioBlockStore;
@@ -33,6 +22,16 @@ import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.List;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Default implementation of {@link KeyValuePartitionReader} to talk to a remote key-value worker to

@@ -15,17 +15,17 @@
 
 package alluxio.worker.block.allocator;
 
-import java.util.Map;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
+
+import java.util.Map;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A round-robin allocator that allocates a block in the storage dir. It will allocate the block in

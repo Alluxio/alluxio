@@ -15,17 +15,6 @@
 
 package alluxio.client.keyvalue;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.List;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
@@ -35,6 +24,16 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.thrift.PartitionInfo;
 import alluxio.util.io.BufferUtils;
+
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.List;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Default implementation of {@link KeyValueStoreWriter} to create an Alluxio key-value store.

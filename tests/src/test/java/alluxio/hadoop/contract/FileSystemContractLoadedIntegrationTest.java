@@ -15,7 +15,7 @@
 
 package alluxio.hadoop.contract;
 
-import java.net.URL;
+import alluxio.LocalAlluxioClusterResource;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
@@ -23,7 +23,7 @@ import org.apache.hadoop.fs.contract.AbstractFSContractTestBase;
 import org.junit.Rule;
 import org.junit.Test;
 
-import alluxio.LocalAlluxioClusterResource;
+import java.net.URL;
 
 public class FileSystemContractLoadedIntegrationTest extends AbstractFSContractTestBase {
   @Rule

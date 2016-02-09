@@ -15,22 +15,21 @@
 
 package alluxio.client.netty;
 
-import java.io.IOException;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
-
-import io.netty.channel.ChannelHandlerContext;
-
 import alluxio.exception.ExceptionMessage;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
+
+import io.netty.channel.ChannelHandlerContext;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
+
+import java.io.IOException;
 
 /**
  * Tests for the {@link ClientHandler} class.

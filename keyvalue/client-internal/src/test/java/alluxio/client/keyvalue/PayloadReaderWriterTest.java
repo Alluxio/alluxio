@@ -15,12 +15,12 @@
 
 package alluxio.client.keyvalue;
 
-import java.nio.ByteBuffer;
+import alluxio.client.ByteArrayOutStream;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.client.ByteArrayOutStream;
+import java.nio.ByteBuffer;
 
 /**
  * Unit test of {@link BasePayloadWriter}.

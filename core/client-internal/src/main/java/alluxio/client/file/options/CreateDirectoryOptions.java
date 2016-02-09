@@ -15,14 +15,14 @@
 
 package alluxio.client.file.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.thrift.CreateDirectoryTOptions;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for creating a directory.

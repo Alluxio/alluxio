@@ -15,18 +15,17 @@
 
 package alluxio.underfs;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.util.io.PathUtils;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Base class for a UFS cluster.

@@ -15,23 +15,23 @@
 
 package alluxio.client.keyvalue;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.MasterClientBase;
+import alluxio.exception.AlluxioException;
+import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.KeyValueMasterClientService;
+import alluxio.thrift.PartitionInfo;
+
+import org.apache.thrift.TException;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.thrift.TException;
-
-import alluxio.Constants;
-import alluxio.MasterClientBase;
-import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.exception.AlluxioException;
-import alluxio.thrift.KeyValueMasterClientService;
-import alluxio.thrift.PartitionInfo;
-import alluxio.thrift.AlluxioService;
-import alluxio.thrift.AlluxioTException;
 
 /**
  * A wrapper for the thrift client to interact with the key-value master, used by Alluxio clients.

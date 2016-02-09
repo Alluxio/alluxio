@@ -15,18 +15,18 @@
 
 package alluxio.client;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.worker.ClientMetrics;
+
+import com.google.common.base.Preconditions;
+
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.util.ThreadFactoryUtils;
-import alluxio.worker.ClientMetrics;
 
 /**
  * A shared context in each client JVM. It provides common functionality such as the Alluxio

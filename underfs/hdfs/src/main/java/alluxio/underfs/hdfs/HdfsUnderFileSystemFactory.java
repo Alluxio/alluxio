@@ -15,19 +15,18 @@
 
 package alluxio.underfs.hdfs;
 
-import java.util.Map;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-
 import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+
+import java.util.Map;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory for creating {@link HdfsUnderFileSystem}.

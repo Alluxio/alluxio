@@ -15,15 +15,15 @@
 
 package alluxio.worker.block.evictor;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.meta.StorageDir;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Unit tests for specific behavior of {@link PartialLRUEvictor} such as evicting/moving least

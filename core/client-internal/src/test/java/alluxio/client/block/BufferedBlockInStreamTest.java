@@ -15,11 +15,11 @@
 
 package alluxio.client.block;
 
+import alluxio.util.io.BufferUtils;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import alluxio.util.io.BufferUtils;
 
 /**
  * Tests for the {@link BufferedBlockInStream} class.

@@ -15,15 +15,15 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.worker.block.BlockMetadataManagerView;
+
+import com.google.common.base.Preconditions;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.worker.block.BlockMetadataManagerView;
 
 /**
  * This class is a wrapper of {@link StorageTier} to provide more limited access.

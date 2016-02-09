@@ -15,12 +15,12 @@
 
 package alluxio.hadoop.contract;
 
+import alluxio.LocalAlluxioClusterResource;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractContractOpenTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.junit.Rule;
-
-import alluxio.LocalAlluxioClusterResource;
 
 public class FileSystemContractOpenIntegrationTest extends AbstractContractOpenTest {
   @Rule

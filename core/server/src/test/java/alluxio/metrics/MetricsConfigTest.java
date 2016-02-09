@@ -15,12 +15,12 @@
 
 package alluxio.metrics;
 
-import java.util.Map;
-import java.util.Properties;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Unit tests for {@link MetricsConfig}.

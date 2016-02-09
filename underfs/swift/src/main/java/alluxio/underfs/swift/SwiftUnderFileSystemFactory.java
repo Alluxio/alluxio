@@ -15,21 +15,20 @@
 
 package alluxio.underfs.swift;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemFactory;
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory for creating {@link SwiftUnderFileSystem}.

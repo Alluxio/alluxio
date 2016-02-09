@@ -15,17 +15,16 @@
 
 package alluxio.master.file.meta;
 
-import java.util.Collections;
-import java.util.List;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Unit tests for {@link TtlBucketList}.

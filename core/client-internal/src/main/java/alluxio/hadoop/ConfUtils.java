@@ -15,18 +15,18 @@
 
 package alluxio.hadoop;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.Configuration;
+import alluxio.Constants;
 
 import org.apache.hadoop.io.DefaultStringifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import alluxio.Constants;
-import alluxio.Configuration;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility class for {@link Configuration}.

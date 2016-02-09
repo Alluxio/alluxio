@@ -15,14 +15,14 @@
 
 package alluxio.master.lineage.recompute;
 
-import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.master.lineage.meta.Lineage;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
-import alluxio.master.lineage.meta.Lineage;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A plan for recomputing the lost files. It essentially contains a batch of jobs from the

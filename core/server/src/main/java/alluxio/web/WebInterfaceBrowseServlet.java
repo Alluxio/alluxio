@@ -15,6 +15,30 @@
 
 package alluxio.web;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.client.ReadType;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.OpenFileOptions;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.master.AlluxioMaster;
+import alluxio.security.LoginUser;
+import alluxio.security.authentication.PlainSaslServer;
+import alluxio.util.SecurityUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.collect.Lists;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,30 +49,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.google.common.collect.Lists;
-
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
-import alluxio.Configuration;
-import alluxio.exception.AccessControlException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
-import alluxio.exception.AlluxioException;
-import alluxio.master.AlluxioMaster;
-import alluxio.security.LoginUser;
-import alluxio.security.authentication.PlainSaslServer;
-import alluxio.util.SecurityUtils;
-import alluxio.util.io.PathUtils;
-import alluxio.wire.BlockLocation;
-import alluxio.wire.FileBlockInfo;
-import alluxio.wire.FileInfo;
-import alluxio.wire.WorkerNetAddress;
 
 /**
  * Servlet that provides data for browsing the file system.
