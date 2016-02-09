@@ -111,14 +111,6 @@ leverage the Scala shell, as discussed in this
     [Google Java style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html),
     with the following changes or deviations:
     -  Maximum line length of **100** characters.
-<<<<<<< HEAD
-||||||| merged common ancestors
-    -  Imported packages should be in [this order](resources/order.importorder), then in
-    **alphabetical order** in each group.
-=======
-    -  Imported packages should be in [this order](../resources/order.importorder), then in
-    **alphabetical order** in each group.
->>>>>>> upstream/master
     -  `i ++` instead of `i++`
     -  `i + j` instead of `i+j`
     -  Class and member modifiers, when present, appear in the order recommended by the Java
@@ -131,15 +123,9 @@ leverage the Scala shell, as discussed in this
     -  Do not add `public` or `abstract` modifier to methods defined in an Java interface because
        method declaration in the body of an interface is implicitly public and abstract.
        (http://docs.oracle.com/javase/specs/jls/se7/html/jls-9.html#jls-9.4)
-<<<<<<< HEAD
 -   You can download our [Eclipse formatter](../resources/alluxio-code-formatter-eclipse.xml)
     -  For Eclipse to organize your imports correctly, configure "Organize Imports" to look like
        [this](../resources/importorder.png)
-||||||| merged common ancestors
--   You can download our [Eclipse formatter](resources/alluxio-code-formatter-eclipse.xml)
-=======
--   You can download our [Eclipse formatter](../resources/alluxio-code-formatter-eclipse.xml)
->>>>>>> upstream/master
     -  If you use IntelliJ IDEA:
        - You can either use our formatter with the help from
          [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
@@ -147,13 +133,7 @@ leverage the Scala shell, as discussed in this
          IntelliJ IDEA.
        - To automatically format the **import**, configure in
          Preferences->Code Style->Java->Imports->Import Layout according to
-<<<<<<< HEAD
          [this order](../resources/importorder.png)
-||||||| merged common ancestors
-         [this order](resources/order.importorder)
-=======
-         [this order](../resources/order.importorder)
->>>>>>> upstream/master
        - To automatically reorder methods alphabetically, try the
          [Rearranger Plugin](http://plugins.jetbrains.com/plugin/173), open Preferences, search for
          rearranger, remove the unnecessary comments, then right click, choose "Rearrange", codes
