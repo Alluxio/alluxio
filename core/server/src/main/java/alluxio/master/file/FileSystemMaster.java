@@ -2044,12 +2044,13 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Checks whether a user has permission to set an attribute on a given path.
+   * Checks whether a user has permission to edit the attribute of a given path.
    *
    * @param path the path to check permission on
    * @param superuserRequired indicates whether it requires to be the superuser
    * @param ownerRequired indicates whether it requires to be the owner of this path
    * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
    */
   private void checkSetAttributePermission(AlluxioURI path, boolean superuserRequired, boolean
       ownerRequired) throws AccessControlException, InvalidPathException {
