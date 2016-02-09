@@ -125,7 +125,7 @@ public final class CommonUtils {
    * microbenchmarks.
    */
   public static void warmUpLoop() {
-    for (int k = 0; k < 10000000; k ++) {}
+    for (int k = 0; k < 10000000; k++) {}
   }
 
   /**

@@ -107,7 +107,7 @@ public class CommonUtilsTest {
       }
       String[] got = CommonUtils.toStringArray(input);
       Assert.assertEquals(testCase.mExpected.length, got.length);
-      for (int k = 0; k < got.length; k ++) {
+      for (int k = 0; k < got.length; k++) {
         Assert.assertEquals(testCase.mExpected[k], got[k]);
       }
     }

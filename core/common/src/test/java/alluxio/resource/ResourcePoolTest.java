@@ -52,7 +52,7 @@ public class ResourcePoolTest {
 
     @Override
     protected Integer createNewResource() {
-      mPort ++;
+      mPort++;
       return Integer.valueOf(mPort);
     }
   }
@@ -83,7 +83,7 @@ public class ResourcePoolTest {
     TestResourcePool testPool = new TestResourcePool(POOL_SIZE, queue);
     Mockito.when(queue.isEmpty()).thenReturn(true);
     Mockito.when(queue.poll()).thenThrow(new InterruptedException());
-    for (int i = 0; i < POOL_SIZE + 1; i ++) {
+    for (int i = 0; i < POOL_SIZE + 1; i++) {
       testPool.acquire();
     }
   }

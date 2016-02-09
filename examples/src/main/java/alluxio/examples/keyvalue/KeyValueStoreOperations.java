@@ -80,7 +80,7 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
   private void putKeyValuePairs(KeyValueStoreWriter writer) throws Exception {
     LOG.info("Putting key-value pairs...");
     // API: KeyValueStoreWriter#put
-    for (int i = 0; i < mNumKeyValuePairs; i ++) {
+    for (int i = 0; i < mNumKeyValuePairs; i++) {
       // Keys are 0, 1, 2, etc.
       byte[] key = ByteBuffer.allocate(4).putInt(i).array();
       // Values are byte arrays of length {@link #mValueLength}.

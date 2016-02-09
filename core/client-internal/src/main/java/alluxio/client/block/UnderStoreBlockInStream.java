@@ -62,14 +62,14 @@ public final class UnderStoreBlockInStream extends BlockInStream {
   @Override
   public int read() throws IOException {
     int data = mUnderStoreStream.read();
-    mPos ++;
+    mPos++;
     return data;
   }
 
   @Override
   public int read(byte[] b) throws IOException {
     int data = mUnderStoreStream.read(b);
-    mPos ++;
+    mPos++;
     return data;
   }
 

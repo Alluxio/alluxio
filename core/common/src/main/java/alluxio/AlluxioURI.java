@@ -199,7 +199,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI> {
 
     int slash = path.length() == 1 && path.charAt(0) == '/' ? -1 : 0;
     while (slash != -1) {
-      depth ++;
+      depth++;
       slash = path.indexOf(SEPARATOR, slash + 1);
     }
     return depth;

@@ -97,7 +97,7 @@ public final class HeartbeatThreadTest {
     List<Thread> mThreads = new LinkedList<Thread>();
 
     // Start the threads.
-    for (int i = 0; i < NUMBER_OF_THREADS; i ++) {
+    for (int i = 0; i < NUMBER_OF_THREADS; i++) {
       Thread thread = new DummyHeartbeatTestThread(i);
       thread.start();
       mThreads.add(thread);
@@ -155,7 +155,7 @@ public final class HeartbeatThreadTest {
 
     @Override
     public void heartbeat() {
-      mCounter ++;
+      mCounter++;
     }
 
     @Override

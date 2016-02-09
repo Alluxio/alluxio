@@ -114,7 +114,7 @@ public final class KeyValueSystemIntegrationTest {
     final int keyLength = 4; // 4Byte key
     final int valueLength = 5 * Constants.KB; // 5KB value
     mWriter = sKeyValueSystem.createStore(mStoreUri);
-    for (int i = 0; i < numKeys; i ++) {
+    for (int i = 0; i < numKeys; i++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = BufferUtils.getIncreasingByteArray(i, valueLength);
       mWriter.put(key, value);
@@ -122,7 +122,7 @@ public final class KeyValueSystemIntegrationTest {
     mWriter.close();
 
     mReader = sKeyValueSystem.openStore(mStoreUri);
-    for (int i = 0; i < numKeys; i ++) {
+    for (int i = 0; i < numKeys; i++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = mReader.get(key);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(i, valueLength, value));
@@ -189,7 +189,7 @@ public final class KeyValueSystemIntegrationTest {
     keyValuePairs.add(pairs);
 
     int numStoreUri = storeUris.size();
-    for (int i = 0; i < numStoreUri; i ++) {
+    for (int i = 0; i < numStoreUri; i++) {
       List<KeyValuePair> expectedPairs = keyValuePairs.get(i);
       List<KeyValuePair> iteratedPairs = Lists.newArrayList();
       mReader = sKeyValueSystem.openStore(storeUris.get(i));
@@ -224,7 +224,7 @@ public final class KeyValueSystemIntegrationTest {
     ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
         String.valueOf(maxPartitionSize));
     mWriter = sKeyValueSystem.createStore(mStoreUri);
-    for (int i = 0; i < numKeys; i ++) {
+    for (int i = 0; i < numKeys; i++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = BufferUtils.getIncreasingByteArray(i, valueLength);
       mWriter.put(key, value);
@@ -238,7 +238,7 @@ public final class KeyValueSystemIntegrationTest {
     }
 
     mReader = sKeyValueSystem.openStore(mStoreUri);
-    for (int i = 0; i < numKeys; i ++) {
+    for (int i = 0; i < numKeys; i++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = mReader.get(key);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(i, valueLength, value));
@@ -284,7 +284,7 @@ public final class KeyValueSystemIntegrationTest {
   private AlluxioURI createStoreOfSize(int size, List<KeyValuePair> pairs) throws Exception {
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
     KeyValueStoreWriter writer = sKeyValueSystem.createStore(path);
-    for (int i = 0; i < size; i ++) {
+    for (int i = 0; i < size; i++) {
       byte[] key = genBaseKey(i).getBytes();
       byte[] value = genBaseValue(i).getBytes();
       writer.put(key, value);
@@ -326,7 +326,7 @@ public final class KeyValueSystemIntegrationTest {
 
     AlluxioURI storeUri = new AlluxioURI(PathUtils.uniqPath());
     mWriter = sKeyValueSystem.createStore(storeUri);
-    for (int i = 0; i < partitionNumber; i ++) {
+    for (int i = 0; i < partitionNumber; i++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = BufferUtils.getIncreasingByteArray(i, valueLength);
       mWriter.put(key, value);
@@ -417,8 +417,8 @@ public final class KeyValueSystemIntegrationTest {
     };
     final int length = storeCreationMethodAndParameter.length;
 
-    for (int i = 0; i < length; i ++) {
-      for (int j = 0; j < length; j ++) {
+    for (int i = 0; i < length; i++) {
+      for (int j = 0; j < length; j++) {
         int method1 = storeCreationMethodAndParameter[i][0];
         int parameter1 = storeCreationMethodAndParameter[i][1];
         List<KeyValuePair> pairs1 = Lists.newArrayList();

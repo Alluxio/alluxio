@@ -104,7 +104,7 @@ public class BaseAllocatorTest {
   protected void assertTempBlockMeta(Allocator allocator, BlockStoreLocation location,
       long blockSize, boolean avail) throws IOException {
 
-    mTestBlockId ++;
+    mTestBlockId++;
     StorageDirView dirView =
         allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
     TempBlockMeta tempBlockMeta =
@@ -127,7 +127,7 @@ public class BaseAllocatorTest {
   protected void assertTempBlockMeta(Allocator allocator, BlockStoreLocation location,
       int blockSize, boolean avail, String tierAlias, int dirIndex) throws Exception {
 
-    mTestBlockId ++;
+    mTestBlockId++;
 
     StorageDirView dirView =
         allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());

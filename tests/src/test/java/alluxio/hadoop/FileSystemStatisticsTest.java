@@ -78,7 +78,7 @@ public class FileSystemStatisticsTest {
   public void bytesWrittenStatisticsTest() throws Exception {
     long originStat = sStatistics.getBytesWritten();
     OutputStream os = sTFS.create(new Path("/testFile-write"));
-    for (int i = 0; i < FILE_LEN; i ++) {
+    for (int i = 0; i < FILE_LEN; i++) {
       os.write(1);
     }
     os.close();
@@ -95,12 +95,12 @@ public class FileSystemStatisticsTest {
 
     // Call all the overridden methods and check the statistics.
     sTFS.create(new Path("/testFile-create")).close();
-    exceptedWriteOps ++;
+    exceptedWriteOps++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
     sTFS.delete(new Path("/testFile-create"), true);
-    exceptedWriteOps ++;
+    exceptedWriteOps++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
@@ -113,12 +113,12 @@ public class FileSystemStatisticsTest {
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
     FileStatus fStatus = sTFS.getFileStatus(new Path("/testFile-read"));
-    exceptedReadOps ++;
+    exceptedReadOps++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
     sTFS.getFileBlockLocations(fStatus, 0, FILE_LEN);
-    exceptedReadOps ++;
+    exceptedReadOps++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
@@ -131,22 +131,22 @@ public class FileSystemStatisticsTest {
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
     sTFS.listStatus(new Path("/"));
-    exceptedReadOps ++;
+    exceptedReadOps++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
     sTFS.mkdirs(new Path("/testDir"));
-    exceptedWriteOps ++;
+    exceptedWriteOps++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
     sTFS.open(new Path("/testFile-read")).close();
-    exceptedReadOps ++;
+    exceptedReadOps++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
     sTFS.rename(new Path("/testDir"), new Path("/testDir-rename"));
-    exceptedWriteOps ++;
+    exceptedWriteOps++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 

@@ -73,7 +73,7 @@ public class BufferedBlockOutStreamTest {
    */
   @Test
   public void singleByteWriteTest() throws Exception {
-    for (int i = 0; i < BLOCK_LENGTH; i ++) {
+    for (int i = 0; i < BLOCK_LENGTH; i++) {
       mTestStream.write(INCREASING_BYTES[i]);
       Assert.assertEquals(i + 1, mTestStream.getWrittenBytes());
     }

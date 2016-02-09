@@ -76,7 +76,7 @@ public class JournalIntegrationTest {
     AlluxioURI uri = new AlluxioURI("/xyz");
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(64);
     FileOutStream os = mFileSystem.createFile(uri, options);
-    for (int k = 0; k < 1000; k ++) {
+    for (int k = 0; k < 1000; k++) {
       os.write(k);
     }
     os.close();
@@ -156,7 +156,7 @@ public class JournalIntegrationTest {
    */
   @Test
   public void completedEditLogDeletionTest() throws Exception {
-    for (int i = 0; i < 124; i ++) {
+    for (int i = 0; i < 124; i++) {
       mFileSystem.createFile(new AlluxioURI("/a" + i),
           CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64)).close();
     }
@@ -181,10 +181,10 @@ public class JournalIntegrationTest {
   public void deleteTest() throws Exception {
     CreateDirectoryOptions recMkdir = CreateDirectoryOptions.defaults().setRecursive(true);
     DeleteOptions recDelete = DeleteOptions.defaults().setRecursive(true);
-    for (int i = 0; i < 10; i ++) {
+    for (int i = 0; i < 10; i++) {
       String dirPath = "/i" + i;
       mFileSystem.createDirectory(new AlluxioURI(dirPath), recMkdir);
-      for (int j = 0; j < 10; j ++) {
+      for (int j = 0; j < 10; j++) {
         CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + j + 1) * 64);
         String filePath = dirPath + "/j" + j;
         mFileSystem.createFile(new AlluxioURI(filePath), option).close();
@@ -207,8 +207,8 @@ public class JournalIntegrationTest {
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(5, fsMaster.getFileInfoList(mRootUri).size());
-    for (int i = 0; i < 5; i ++) {
-      for (int j = 0; j < 5; j ++) {
+    for (int i = 0; i < 5; i++) {
+      for (int j = 0; j < 5; j++) {
         Assert.assertTrue(
             fsMaster.getFileId(new AlluxioURI("/i" + i + "/j" + j)) != IdUtils.INVALID_FILE_ID);
       }
@@ -231,9 +231,9 @@ public class JournalIntegrationTest {
    */
   @Test
   public void fileDirectoryTest() throws Exception {
-    for (int i = 0; i < 10; i ++) {
+    for (int i = 0; i < 10; i++) {
       mFileSystem.createDirectory(new AlluxioURI("/i" + i));
-      for (int j = 0; j < 10; j ++) {
+      for (int j = 0; j < 10; j++) {
         CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + j + 1) * 64);
         mFileSystem.createFile(new AlluxioURI("/i" + i + "/j" + j), option).close();
       }
@@ -249,8 +249,8 @@ public class JournalIntegrationTest {
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(10, fsMaster.getFileInfoList(mRootUri).size());
-    for (int i = 0; i < 10; i ++) {
-      for (int j = 0; j < 10; j ++) {
+    for (int i = 0; i < 10; i++) {
+      for (int j = 0; j < 10; j++) {
         Assert.assertTrue(
             fsMaster.getFileId(new AlluxioURI("/i" + i + "/j" + j)) != IdUtils.INVALID_FILE_ID);
       }
@@ -404,7 +404,7 @@ public class JournalIntegrationTest {
    */
   @Test
   public void manyFileTest() throws Exception {
-    for (int i = 0; i < 10; i ++) {
+    for (int i = 0; i < 10; i++) {
       CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + 1) * 64);
       mFileSystem.createFile(new AlluxioURI("/a" + i), option).close();
     }
@@ -419,7 +419,7 @@ public class JournalIntegrationTest {
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(10, fsMaster.getFileInfoList(mRootUri).size());
-    for (int k = 0; k < 10; k ++) {
+    for (int k = 0; k < 10; k++) {
       Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/a" + k)) != IdUtils.INVALID_FILE_ID);
     }
     fsMaster.stop();
@@ -430,7 +430,7 @@ public class JournalIntegrationTest {
    */
   @Test
   public void multiEditLogTest() throws Exception {
-    for (int i = 0; i < 124; i ++) {
+    for (int i = 0; i < 124; i++) {
       CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64);
       mFileSystem.createFile(new AlluxioURI("/a" + i), op);
     }
@@ -445,7 +445,7 @@ public class JournalIntegrationTest {
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(124, fsMaster.getFileInfoList(mRootUri).size());
-    for (int k = 0; k < 124; k ++) {
+    for (int k = 0; k < 124; k++) {
       Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/a" + k)) != IdUtils.INVALID_FILE_ID);
     }
     fsMaster.stop();
@@ -477,7 +477,7 @@ public class JournalIntegrationTest {
   // JournalWriter journalWriter = journal.getNewWriter();
   // journalWriter.setMaxLogSize(100);
   // JournalOutputStream entryOs = journalWriter.getEntryOutputStream();
-  // for (int i = 0; i < 124; i ++) {
+  // for (int i = 0; i < 124; i++) {
   // entryOs.writeEntry(new InodeFileEntry(System.currentTimeMillis(), i, "/sth" + i, 0L, false,
   // System.currentTimeMillis(), Constants.DEFAULT_BLOCK_SIZE_BYTE, 10, false, false,
   // "/sth" + i, Lists.newArrayList(1L)));
@@ -494,7 +494,7 @@ public class JournalIntegrationTest {
   // log = new EditLog(journalPath, false, 0, mMasterAlluxioConf);
   // int numOfCompleteFilesLeft = numOfCompleteFiles - numOfCompleteFiles / 2 + 1;
   // Assert.assertEquals(numOfCompleteFilesLeft, ufs.list(completedStr).length);
-  // for (int i = 0; i < numOfCompleteFilesLeft; i ++) {
+  // for (int i = 0; i < numOfCompleteFilesLeft; i++) {
   // Assert.assertTrue(ufs.exists(completedStr + i + ".editLog"));
   // }
   // EditLog.setBackUpLogStartNum(-1);
@@ -510,9 +510,9 @@ public class JournalIntegrationTest {
    */
   @Test
   public void renameTest() throws Exception {
-    for (int i = 0; i < 10; i ++) {
+    for (int i = 0; i < 10; i++) {
       mFileSystem.createDirectory(new AlluxioURI("/i" + i));
-      for (int j = 0; j < 10; j ++) {
+      for (int j = 0; j < 10; j++) {
         CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + j + 1) * 64);
         AlluxioURI path = new AlluxioURI("/i" + i + "/j" + j);
         mFileSystem.createFile(path, option).close();
@@ -531,8 +531,8 @@ public class JournalIntegrationTest {
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(10, fsMaster.getFileInfoList(mRootUri).size());
-    for (int i = 0; i < 10; i ++) {
-      for (int j = 0; j < 10; j ++) {
+    for (int i = 0; i < 10; i++) {
+      for (int j = 0; j < 10; j++) {
         Assert.assertTrue(
             fsMaster.getFileId(new AlluxioURI("/ii" + i + "/jj" + j)) != IdUtils.INVALID_FILE_ID);
       }

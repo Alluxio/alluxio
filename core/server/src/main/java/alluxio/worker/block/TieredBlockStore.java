@@ -195,7 +195,7 @@ public final class TieredBlockStore implements BlockStore {
   public TempBlockMeta createBlockMeta(long sessionId, long blockId, BlockStoreLocation location,
       long initialBlockSize)
           throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    for (int i = 0; i < MAX_RETRIES + 1; i ++) {
+    for (int i = 0; i < MAX_RETRIES + 1; i++) {
       TempBlockMeta tempBlockMeta =
           createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
       if (tempBlockMeta != null) {
@@ -262,7 +262,7 @@ public final class TieredBlockStore implements BlockStore {
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
-    for (int i = 0; i < MAX_RETRIES + 1; i ++) {
+    for (int i = 0; i < MAX_RETRIES + 1; i++) {
       Pair<Boolean, BlockStoreLocation> requestResult =
           requestSpaceInternal(blockId, additionalBytes);
       if (requestResult.getFirst()) {
@@ -288,7 +288,7 @@ public final class TieredBlockStore implements BlockStore {
       BlockStoreLocation newLocation)
           throws BlockDoesNotExistException, BlockAlreadyExistsException,
           InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
-    for (int i = 0; i < MAX_RETRIES + 1; i ++) {
+    for (int i = 0; i < MAX_RETRIES + 1; i++) {
       MoveBlockResult moveResult = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
       if (moveResult.getSuccess()) {
         synchronized (mBlockStoreEventListeners) {

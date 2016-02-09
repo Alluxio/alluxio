@@ -81,7 +81,7 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
     valueWritable.set(new BytesWritable(BufferUtils.newByteArrayFromByteBuffer(pair.getValue())));
 
     mKeyValuePairsBytesRead += keyWritable.getLength() + valueWritable.getLength();
-    mNumVisitedKeyValuePairs ++;
+    mNumVisitedKeyValuePairs++;
     return true;
   }
 

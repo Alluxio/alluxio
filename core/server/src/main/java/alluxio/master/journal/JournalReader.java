@@ -122,7 +122,7 @@ public class JournalReader {
         mJournal.getJournalFormatter().deserialize(mUfs.open(currentLogPath));
 
     // Increment the log file number.
-    mCurrentLogNumber ++;
+    mCurrentLogNumber++;
     return jis;
   }
 

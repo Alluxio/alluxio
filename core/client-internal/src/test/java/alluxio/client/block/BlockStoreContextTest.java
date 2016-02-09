@@ -65,7 +65,7 @@ public final class BlockStoreContextTest {
 
     // Acquire all the clients
     for (int i = 0; i < ClientContext.getConf()
-        .getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS); i ++) {
+        .getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS); i++) {
       clients.add(BlockStoreContext.INSTANCE.acquireMasterClient());
     }
 
@@ -145,7 +145,7 @@ public final class BlockStoreContextTest {
 
     // Acquire all the clients
     for (int i = 0; i < ClientContext.getConf()
-        .getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS); i ++) {
+        .getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS); i++) {
       clients.add(BlockStoreContext.INSTANCE.acquireWorkerClient());
     }
 

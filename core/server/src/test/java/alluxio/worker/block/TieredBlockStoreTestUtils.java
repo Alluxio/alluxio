@@ -96,7 +96,7 @@ public class TieredBlockStoreTestUtils {
     conf.set(Constants.WORKER_TIERED_STORE_LEVELS, String.valueOf(nTier));
 
     // sets up each tier in turn
-    for (int i = 0; i < nTier; i ++) {
+    for (int i = 0; i < nTier; i++) {
       setupConfTier(tierOrdinal[i], tierAlias[i], tierPath[i], tierCapacity[i]);
     }
   }
@@ -176,7 +176,7 @@ public class TieredBlockStoreTestUtils {
       return dirs;
     }
     String[][] newDirs = new String[dirs.length][];
-    for (int i = 0; i < dirs.length; i ++) {
+    for (int i = 0; i < dirs.length; i++) {
       newDirs[i] = createDirHierarchy(baseDir, dirs[i]);
     }
     return newDirs;
@@ -195,7 +195,7 @@ public class TieredBlockStoreTestUtils {
       return dirs;
     }
     String[] newDirs = new String[dirs.length];
-    for (int i = 0; i < dirs.length; i ++) {
+    for (int i = 0; i < dirs.length; i++) {
       newDirs[i] = PathUtils.concatPath(baseDir, dirs[i]);
       FileUtils.createDir(newDirs[i]);
     }
@@ -348,8 +348,8 @@ public class TieredBlockStoreTestUtils {
    */
   public static long getDefaultTotalCapacityBytes() {
     long totalCapacity = 0;
-    for (int i = 0; i < TIER_CAPACITY_BYTES.length; i ++) {
-      for (int j = 0; j < TIER_CAPACITY_BYTES[i].length; j ++) {
+    for (int i = 0; i < TIER_CAPACITY_BYTES.length; i++) {
+      for (int j = 0; j < TIER_CAPACITY_BYTES[i].length; j++) {
         totalCapacity += TIER_CAPACITY_BYTES[i][j];
       }
     }
@@ -363,7 +363,7 @@ public class TieredBlockStoreTestUtils {
    */
   public static long getDefaultDirNum() {
     int dirNum = 0;
-    for (int i = 0; i < TIER_PATH.length; i ++) {
+    for (int i = 0; i < TIER_PATH.length; i++) {
       dirNum += TIER_PATH[i].length;
     }
     return dirNum;

@@ -237,7 +237,7 @@ public final class BlockMetadataManagerViewTest {
     List<StorageDirView> dirViews1 = tierView1.getDirViews();
     List<StorageDirView> dirViews2 = tierView2.getDirViews();
     Assert.assertEquals(dirViews1.size(), dirViews2.size());
-    for (int i = 0; i < dirViews1.size(); i ++) {
+    for (int i = 0; i < dirViews1.size(); i++) {
       StorageDirView dirView1 = dirViews1.get(i);
       StorageDirView dirView2 = dirViews2.get(i);
       Assert.assertEquals(dirView1.getAvailableBytes(), dirView2.getAvailableBytes());
@@ -290,7 +290,7 @@ public final class BlockMetadataManagerViewTest {
     }
     List<StorageTier> tiers2 = mMetaManager.getTiersBelow(tierAlias);
     Assert.assertEquals(tierViews1.size(), tiers2.size());
-    for (int i = 0; i < tierViews1.size(); i ++) {
+    for (int i = 0; i < tierViews1.size(); i++) {
       assertSameTierView(tierViews1.get(i), new StorageTierView(tiers2.get(i), mMetaManagerView));
     }
   }

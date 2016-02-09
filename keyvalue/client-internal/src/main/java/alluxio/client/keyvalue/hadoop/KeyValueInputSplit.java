@@ -73,7 +73,7 @@ final class KeyValueInputSplit implements InputSplit {
       List<BlockWorkerInfo> workersInfo = mBlockStore.getWorkerInfoList();
       int workersInfoSize = workersInfo.size();
       String[] locations = new String[workersInfoSize];
-      for (int i = 0; i < workersInfoSize; i ++) {
+      for (int i = 0; i < workersInfoSize; i++) {
         locations[i] = workersInfo.get(i).getNetAddress().getHost();
       }
       return locations;

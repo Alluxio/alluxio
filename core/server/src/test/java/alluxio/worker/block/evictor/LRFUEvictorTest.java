@@ -137,17 +137,17 @@ public class LRFUEvictorTest {
     long[] bottomTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[bottomTierOrdinal];
     int nDir = bottomTierDirCapacity.length;
     // fill in dirs from larger to smaller capacity with blockId equal to BLOCK_ID plus dir index
-    for (int i = 0; i < nDir; i ++) {
+    for (int i = 0; i < nDir; i++) {
       cache(SESSION_ID, BLOCK_ID + i, bottomTierDirCapacity[i], bottomTierOrdinal, i);
       // update CRF of blocks when blocks are committed
       blockIdToCRF.put(BLOCK_ID + i, calculateAccessWeight(nDir - 1 - i));
     }
     // access blocks in the order: 10, 10, 11, 10, 11, 12. Update CRF of all blocks
     // during each access
-    for (int i = 0; i < nDir; i ++) {
-      for (int j = 0; j <= i; j ++) {
+    for (int i = 0; i < nDir; i++) {
+      for (int j = 0; j <= i; j++) {
         access(BLOCK_ID + j);
-        for (int k = 0; k < nDir; k ++) {
+        for (int k = 0; k < nDir; k++) {
           if (k == j) {
             blockIdToCRF.put(BLOCK_ID + k,
                 blockIdToCRF.get(BLOCK_ID + k) * calculateAccessWeight(1L) + 1.0);
@@ -164,7 +164,7 @@ public class LRFUEvictorTest {
         BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[bottomTierOrdinal]);
     // request smallest capacity and update access time on the evicted block for nDir times, the dir
     // to evict blocks from should be in the same order as sorted blockCRF
-    for (int i = 0; i < nDir; i ++) {
+    for (int i = 0; i < nDir; i++) {
       EvictionPlan plan =
           mEvictor.freeSpaceWithView(bottomTierDirCapacity[0], anyDirInBottomTier, mManagerView);
       Assert.assertNotNull(plan);
@@ -174,7 +174,7 @@ public class LRFUEvictorTest {
       long objectBlockId = blockCRF.get(i).getKey();
       Assert.assertEquals(objectBlockId + " " + toEvictBlockId, objectBlockId, toEvictBlockId);
       // update CRF of the chosen block in case that it is chosen again
-      for (int j = 0; j < nDir; j ++) {
+      for (int j = 0; j < nDir; j++) {
         access(toEvictBlockId);
       }
     }
@@ -195,17 +195,17 @@ public class LRFUEvictorTest {
     long[] firstTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0];
     int nDir = firstTierDirCapacity.length;
     Map<Long, Double> blockIdToCRF = new HashMap<Long, Double>();
-    for (int i = 0; i < nDir; i ++) {
+    for (int i = 0; i < nDir; i++) {
       cache(SESSION_ID, BLOCK_ID + i, firstTierDirCapacity[i], firstTierOrdinal, i);
       // update CRF of blocks when blocks are committed
       blockIdToCRF.put(BLOCK_ID + i, calculateAccessWeight(nDir - 1 - i));
     }
     // access blocks in the order: 10, 10, 11. Update CRF of all blocks
     // during each access
-    for (int i = 0; i < nDir; i ++) {
-      for (int j = 0; j <= i; j ++) {
+    for (int i = 0; i < nDir; i++) {
+      for (int j = 0; j <= i; j++) {
         access(BLOCK_ID + j);
-        for (int k = 0; k < nDir; k ++) {
+        for (int k = 0; k < nDir; k++) {
           if (k == j) {
             blockIdToCRF.put(BLOCK_ID + k,
                 blockIdToCRF.get(BLOCK_ID + k) * calculateAccessWeight(1L) + 1.0);
@@ -222,7 +222,7 @@ public class LRFUEvictorTest {
     long smallestCapacity = firstTierDirCapacity[0];
     // request smallest capacity and update access time on the moved block for nDir times, the dir
     // to move blocks from should be in the same order as sorted blockCRF
-    for (int i = 0; i < nDir; i ++) {
+    for (int i = 0; i < nDir; i++) {
       EvictionPlan plan =
           mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
       Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
@@ -232,7 +232,7 @@ public class LRFUEvictorTest {
       long objectBlockId = blockCRF.get(i).getKey();
       Assert.assertEquals(objectBlockId, blockId);
       // update CRF of the chosen block in case that it is chosen again
-      for (int j = 0; j < nDir; j ++) {
+      for (int j = 0; j < nDir; j++) {
         access(objectBlockId);
       }
     }
@@ -258,20 +258,20 @@ public class LRFUEvictorTest {
     Map<Long, Double> blockIdToCRF = new HashMap<Long, Double>();
     for (int tierOrdinal : TieredBlockStoreTestUtils.TIER_ORDINAL) {
       long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[tierOrdinal];
-      for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx ++) {
+      for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx++) {
         cache(SESSION_ID, blockId, tierCapacity[dirIdx], tierOrdinal, dirIdx);
         // update CRF of blocks when blocks are committed
         blockIdToCRF.put(blockId, calculateAccessWeight(totalBlocks - 1 - (blockId - BLOCK_ID)));
-        blockId ++;
+        blockId++;
       }
     }
 
     // access blocks in the order: 10, 10, 11, 10, 11, 12, 10, 11, 12, 13, 10, 11, 12, 13, 14
     // Update CRF of all blocks during each access
-    for (int i = 0; i < totalBlocks; i ++) {
-      for (int j = 0; j <= i; j ++) {
+    for (int i = 0; i < totalBlocks; i++) {
+      for (int j = 0; j <= i; j++) {
         access(BLOCK_ID + j);
-        for (int k = 0; k < totalBlocks; k ++) {
+        for (int k = 0; k < totalBlocks; k++) {
           if (k == j) {
             blockIdToCRF.put(BLOCK_ID + k,
                 blockIdToCRF.get(BLOCK_ID + k) * calculateAccessWeight(1L) + 1.0);
@@ -288,7 +288,7 @@ public class LRFUEvictorTest {
     List<Long> blocksInFirstTier = new ArrayList<Long>();
     // sorted blocks in the second tier
     List<Long> blocksInSecondTier = new ArrayList<Long>();
-    for (int i = 0; i < blockCRF.size(); i ++) {
+    for (int i = 0; i < blockCRF.size(); i++) {
       long block = blockCRF.get(i).getKey();
       if (block - BLOCK_ID < TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0].length) {
         blocksInFirstTier.add(block);
@@ -301,7 +301,7 @@ public class LRFUEvictorTest {
         BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[0]);
     int nDirInFirstTier = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0].length;
     long smallestCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0][0];
-    for (int i = 0; i < nDirInFirstTier; i ++) {
+    for (int i = 0; i < nDirInFirstTier; i++) {
       EvictionPlan plan =
           mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
       Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
@@ -317,10 +317,10 @@ public class LRFUEvictorTest {
       long objectBlockIdInSecondTier = blocksInSecondTier.get(i);
       Assert.assertEquals(objectBlockIdInSecondTier, blockIdEvictedInSecondTier);
       // update CRF of the chosen blocks in case that they are chosen again
-      for (int j = 0; j < totalBlocks; j ++) {
+      for (int j = 0; j < totalBlocks; j++) {
         access(blockIdMovedInFirstTier);
       }
-      for (int j = 0; j < totalBlocks; j ++) {
+      for (int j = 0; j < totalBlocks; j++) {
         access(blockIdEvictedInSecondTier);
       }
     }

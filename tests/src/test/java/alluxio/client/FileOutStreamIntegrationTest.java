@@ -48,7 +48,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   private void writeTest1Util(AlluxioURI filePath, int len, CreateFileOptions op)
       throws IOException, AlluxioException {
     FileOutStream os = mFileSystem.createFile(filePath, op);
-    for (int k = 0; k < len; k ++) {
+    for (int k = 0; k < len; k++) {
       os.write((byte) k);
     }
     os.close();

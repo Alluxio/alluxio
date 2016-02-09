@@ -156,7 +156,7 @@ public class DataServerIntegrationTest {
     final int length = 20;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
-    for (int i = 0; i < 10; i ++) {
+    for (int i = 0; i < 10; i++) {
       DataServerMessage recvMsg = request(block);
       assertValid(recvMsg, length, block.getBlockId(), 0, length);
     }

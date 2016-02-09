@@ -89,7 +89,7 @@ public final class HdfsFileInputStreamIntegrationTest {
    */
   @Test
   public void readTest1() throws IOException {
-    for (int i = 0; i < FILE_LEN; i ++) {
+    for (int i = 0; i < FILE_LEN; i++) {
       int value = mInMemInputStream.read();
       Assert.assertEquals(i & 0x00ff, value);
       value = mUfsInputStream.read();

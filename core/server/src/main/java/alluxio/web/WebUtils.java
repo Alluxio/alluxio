@@ -38,7 +38,7 @@ final class WebUtils {
    */
   public static String convertByteArrayToStringWithoutEscape(byte[] data, int offset, int length) {
     StringBuilder sb = new StringBuilder(length);
-    for (int i = offset; i < length && i < data.length; i ++) {
+    for (int i = offset; i < length && i < data.length; i++) {
       sb.append((char) data[i]);
     }
     return sb.toString();

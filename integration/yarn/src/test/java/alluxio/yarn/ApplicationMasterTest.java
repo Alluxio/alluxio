@@ -185,7 +185,7 @@ public class ApplicationMasterTest {
     // Mock the Yarn client to give a NodeReport with NUM_WORKERS nodes
     List<NodeReport> nodeReports = Lists.newArrayList();
     final List<String> nodeHosts = Lists.newArrayList();
-    for (int i = 0; i < NUM_WORKERS; i ++) {
+    for (int i = 0; i < NUM_WORKERS; i++) {
       String host = "host" + i;
       NodeReport report = Mockito.mock(NodeReport.class);
       Mockito.when(report.getNodeId()).thenReturn(NodeId.newInstance(host, 0));
@@ -303,7 +303,7 @@ public class ApplicationMasterTest {
     final List<Container> mockContainers = Lists.newArrayList();
     List<NodeReport> nodeReports = Lists.newArrayList();
     List<String> hosts = Lists.newArrayList(MASTER_ADDRESS);
-    for (int i = 0; i < numContainers - 1; i ++) {
+    for (int i = 0; i < numContainers - 1; i++) {
       String host = "host" + i;
       hosts.add(host);
     }

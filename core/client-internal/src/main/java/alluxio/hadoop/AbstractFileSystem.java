@@ -260,7 +260,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     List<FileBlockInfo> blocks = getFileBlocks(path);
 
     List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
-    for (int k = 0; k < blocks.size(); k ++) {
+    for (int k = 0; k < blocks.size(); k++) {
       FileBlockInfo info = blocks.get(k);
       long offset = info.getOffset();
       long end = offset + info.getBlockInfo().getLength();
@@ -472,7 +472,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     FileStatus[] ret = new FileStatus[statuses.size()];
-    for (int k = 0; k < statuses.size(); k ++) {
+    for (int k = 0; k < statuses.size(); k++) {
       URIStatus status = statuses.get(k);
       // TODO(hy): Replicate 3 with the number of disk replications.
       ret[k] = new FileStatus(status.getLength(), status.isFolder(), 3, status.getBlockSizeBytes(),

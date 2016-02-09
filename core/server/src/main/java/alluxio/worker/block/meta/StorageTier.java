@@ -59,7 +59,7 @@ public final class StorageTier {
 
     // Add the worker data folder path after each storage directory, the final path will be like
     // /mnt/ramdisk/alluxioworker
-    for (int i = 0; i < dirPaths.length; i ++) {
+    for (int i = 0; i < dirPaths.length; i++) {
       dirPaths[i] = PathUtils.concatPath(dirPaths[i].trim(), workerDataFolder);
     }
 
@@ -70,7 +70,7 @@ public final class StorageTier {
     mDirs = new ArrayList<StorageDir>(dirPaths.length);
 
     long totalCapacity = 0;
-    for (int i = 0; i < dirPaths.length; i ++) {
+    for (int i = 0; i < dirPaths.length; i++) {
       int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
       long capacity = FormatUtils.parseSpaceSize(dirQuotas[index]);
       totalCapacity += capacity;

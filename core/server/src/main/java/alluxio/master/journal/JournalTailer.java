@@ -129,7 +129,7 @@ public final class JournalTailer {
           mLatestSequenceNumber = inputStream.getLatestSequenceNumber();
         }
         inputStream.close();
-        numFilesProcessed ++;
+        numFilesProcessed++;
         LOG.info("{}: Finished processing the log file.", mMaster.getName());
       } else {
         return numFilesProcessed;

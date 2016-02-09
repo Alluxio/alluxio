@@ -153,7 +153,7 @@ public class JournalCrashTest {
           // Ignore the exception and still keep requesting to master.
           continue;
         }
-        mSuccessNum ++;
+        mSuccessNum++;
         CommonUtils.sleepMs(100);
       }
     }
@@ -192,7 +192,7 @@ public class JournalCrashTest {
       int successNum = clientThread.getSuccessNum();
       LOG.info("Expected Status: OpType[{}] WorkDir[{}] SuccessNum[{}].",
           opType, workDir, successNum);
-      for (int s = 0; s < successNum; s ++) {
+      for (int s = 0; s < successNum; s++) {
         AlluxioURI checkURI = new AlluxioURI(workDir + s);
         if (ClientOpType.CREATE_FILE == opType) {
           if (!sFileSystem.exists(checkURI)) {
@@ -265,7 +265,7 @@ public class JournalCrashTest {
 
     int rounds = 0;
     while (System.currentTimeMillis() - startTimeMs < sTotalTimeMs) {
-      rounds ++;
+      rounds++;
       long aliveTimeMs = (long)(Math.random() * sMaxAliveTimeMs) + 100;
       LOG.info("Round {}: Planning Master Alive Time {}ms.", rounds, aliveTimeMs);
 
@@ -367,17 +367,17 @@ public class JournalCrashTest {
    */
   private static void setupClientThreads() {
     sClientThreadList = new ArrayList<ClientThread>();
-    for (int i = 0; i < sCreateFileClientNum; i ++) {
+    for (int i = 0; i < sCreateFileClientNum; i++) {
       ClientThread thread = new ClientThread(sTestDir + "/createFile" + i + "/",
           ClientOpType.CREATE_FILE);
       sClientThreadList.add(thread);
     }
-    for (int i = 0; i < sCreateDeleteClientNum; i ++) {
+    for (int i = 0; i < sCreateDeleteClientNum; i++) {
       ClientThread thread = new ClientThread(sTestDir + "/createDelete" + i + "/",
           ClientOpType.CREATE_DELETE_FILE);
       sClientThreadList.add(thread);
     }
-    for (int i = 0; i < sCreateRenameClientNum; i ++) {
+    for (int i = 0; i < sCreateRenameClientNum; i++) {
       ClientThread thread = new ClientThread(sTestDir + "/createRename" + i + "/",
           ClientOpType.CREATE_RENAME_FILE);
       sClientThreadList.add(thread);

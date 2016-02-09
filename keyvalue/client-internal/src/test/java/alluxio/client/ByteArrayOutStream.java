@@ -36,7 +36,7 @@ public final class ByteArrayOutStream extends OutStreamBase {
   @Override
   public void write(int b) {
     mOut.write(b);
-    mBytesWritten ++;
+    mBytesWritten++;
   }
 
   @Override
