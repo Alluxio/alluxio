@@ -80,3 +80,28 @@ while (iterator.hasNext()) {
 // Close the reader on the store
 reader.close()
 ```
+
+# 在Hadoop MapReduce内访问键值存储
+ 
+## MapReduce InputFormat
+
+Tachyon提供了一种`InputFormat`的实现使得Hadoop MapReduce程序可以访问键值存储。它使用一个key-value 
+URI作为参数，把键值对放入键值存储内。
+ 
+```java
+conf.setInputFormat(KeyValueInputFormat.class);
+FileInputFormat.setInputPaths(conf, new Path("tachyon://input-store"));
+```
+
+
+## MapReduce OutputFormat
+Tachyon同时提供了一种`OutputFormat`的实现使得Hadoop MapReduce程序可以创建一个键值存储。它使用一个
+key-value URI作为参数把键值对放入键值存储内。
+ 
+```java
+conf.setOutputKeyClass(BytesWritable.class);
+conf.setOutputValueClass(BytesWritable.class);
+conf.setOutputFormat(KeyValueOutputFormat.class);
+conf.setOutputCommitter(KeyValueOutputCommitter.class);
+FileOutputFormat.setOutputPath(conf, new Path("tachyon://output-store"));
+```
