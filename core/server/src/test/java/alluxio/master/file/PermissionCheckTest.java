@@ -728,19 +728,19 @@ public class PermissionCheckTest {
         (short) 0600, false);
   }
 
-  private void verifySetAcl(TestUser owner, String path, String user, String group,
+  private void verifySetAcl(TestUser runUser, String path, String owner, String group,
       short permission, boolean recursive) throws Exception {
-    PlainSaslServer.AuthorizedClientUser.set(owner.getUser());
+    PlainSaslServer.AuthorizedClientUser.set(runUser.getUser());
     SetAttributeOptions options =
-        new SetAttributeOptions.Builder().setOwner(user).setGroup(group).setPermission(permission)
-            .setRecursive(recursive).build();
+        new SetAttributeOptions.Builder().setOwner(owner).setGroup(group)
+            .setPermission(permission).setRecursive(recursive).build();
     mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
     PlainSaslServer.AuthorizedClientUser.set(TEST_USER_ADMIN.getUser());
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
         new AlluxioURI(path)));
-    if (user != null) {
-      Assert.assertEquals(user, fileInfo.getUserName());
+    if (owner != null) {
+      Assert.assertEquals(owner, fileInfo.getUserName());
     }
     if (group != null) {
       Assert.assertEquals(group, fileInfo.getGroupName());
