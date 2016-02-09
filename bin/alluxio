@@ -107,7 +107,7 @@ function runTest {
       exit 1
       ;;
   esac
-  ${LAUNCHER} ${BIN}/alluxio fs rmr ${file}
+  ${LAUNCHER} ${BIN}/alluxio fs rm -R ${file}
   ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${class} alluxio://${MASTER_ADDRESS}:19998 ${file} $2 $3
 
   # If test process received a signal abort early
