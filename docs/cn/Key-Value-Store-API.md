@@ -65,3 +65,18 @@ reader.get("300");
 // Close the reader on the store
 reader.close();
 ```
+## 通过迭代器遍历存储中的键值对
+
+可以参照下面的例子：
+
+```java
+KeyValueStoreReader reader = kvs.openStore(new TachyonURI("tachyon://path/kvstore/"));
+KeyValueIterator iterator = reader.iterator();
+while (iterator.hasNext()) {
+  KeyValuePair pair = iterator.next();
+  ByteBuffer key = pair.getkKey();
+  ByteBuffer value = pair.getValue();
+}
+// Close the reader on the store
+reader.close()
+```
