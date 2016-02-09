@@ -1709,12 +1709,13 @@ public final class FileSystemMaster extends MasterBase {
   public void setAttribute(AlluxioURI path, SetAttributeOptions options)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException {
     MasterContext.getMasterSource().incSetAttributeOps(1);
+    // for chown
+    boolean superuserRequired = options.getOwner() != null;
+    // for chgrp, chmod
+    boolean ownerRequired =
+        (options.getGroup() != null) || (options.getPermission() != Constants.INVALID_PERMISSION);
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.WRITE, path, false);
-      if (options.getOwner() != null || options.getGroup() != null
-          || options.getPermission() != Constants.INVALID_PERMISSION) {
-        checkOwner(path);
-      }
+      checkSetAttributePermission(path, superuserRequired, ownerRequired);
 
       long fileId = mInodeTree.getInodeByPath(path).getId();
       long opTimeMs = System.currentTimeMillis();
@@ -1723,11 +1724,7 @@ public final class FileSystemMaster extends MasterBase {
         List<Inode> inodeChildren =
             mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
         for (Inode inode : inodeChildren) {
-          checkPermission(FileSystemAction.WRITE, mInodeTree.getPath(inode), false);
-          if (options.getOwner() != null || options.getGroup() != null
-              || options.getPermission() != Constants.INVALID_PERMISSION) {
-            checkOwner(path);
-          }
+          checkSetAttributePermission(mInodeTree.getPath(inode), superuserRequired, ownerRequired);
         }
         for (Inode inode : inodeChildren) {
           long id = inode.getId();
@@ -2047,8 +2044,34 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Checks user's permission on a path. If the path is invalid, it should bypass the
-   * {@link InvalidPathException} and the logic at operation will handle it.
+   * Checks whether a user has permission to set an attribute on a given path.
+   *
+   * @param path the path to check permission on
+   * @param superuserRequired indicates whether it requires to be the superuser
+   * @param ownerRequired indicates whether it requires to be the owner of this path
+   * @throws AccessControlException if permission checking fails
+   */
+  private void checkSetAttributePermission(AlluxioURI path, boolean superuserRequired, boolean
+      ownerRequired) throws AccessControlException, InvalidPathException {
+    // bypasses permission checking if security is not enabled.
+    if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
+      return;
+    }
+
+    checkPermission(FileSystemAction.WRITE, path, false);
+    // For chown, superuser is required
+    if (superuserRequired) {
+      PermissionChecker.checkSuperuser(getClientUser(), getGroups(getClientUser()));
+    }
+    // For chgrp or chmod, owner is required
+    if (ownerRequired) {
+      checkOwner(path);
+    }
+  }
+
+  /**
+   * Checks whether a user has permission to perform a specific action on a path. If the path is
+   * invalid, it should bypass the {@link InvalidPathException}.
    *
    * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
