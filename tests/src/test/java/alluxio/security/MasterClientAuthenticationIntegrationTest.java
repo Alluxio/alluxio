@@ -37,7 +37,7 @@ import javax.security.sasl.AuthenticationException;
  * Though its name indicates that it provides the tests for Alluxio authentication. This class is
  * likely to test four authentication modes: NOSASL, SIMPLE, CUSTOM, KERBEROS.
  */
-// TODO(bin): add tests for {@link LocalAlluxioClusterMultiMaster} in fault tolerant mode
+// TODO(bin): add tests for {@link MultiMasterLocalAlluxioCluster} in fault tolerant mode
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
 public final class MasterClientAuthenticationIntegrationTest {
   @Rule

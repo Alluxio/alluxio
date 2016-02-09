@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A local Alluxio cluster with multiple masters.
  */
 @NotThreadSafe
-public class LocalAlluxioClusterMultiMaster extends AbstractLocalAlluxioCluster {
+public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
@@ -49,7 +49,7 @@ public class LocalAlluxioClusterMultiMaster extends AbstractLocalAlluxioCluster 
    * @param masters the number of the master
    * @param userBlockSize the block size for a user
    */
-  public LocalAlluxioClusterMultiMaster(long workerCapacityBytes, int masters, int userBlockSize) {
+  public MultiMasterLocalAlluxioCluster(long workerCapacityBytes, int masters, int userBlockSize) {
     super(workerCapacityBytes, userBlockSize);
     mNumOfMasters = masters;
 
