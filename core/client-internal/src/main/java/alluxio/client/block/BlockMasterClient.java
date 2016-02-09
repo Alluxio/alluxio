@@ -17,7 +17,7 @@ package alluxio.client.block;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.MasterClientBase;
+import alluxio.AbstractMasterClient;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.thrift.AlluxioService;
@@ -43,7 +43,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * to provide retries.
  */
 @ThreadSafe
-public final class BlockMasterClient extends MasterClientBase {
+public final class BlockMasterClient extends AbstractMasterClient {
   private BlockMasterClientService.Client mClient = null;
 
   /**

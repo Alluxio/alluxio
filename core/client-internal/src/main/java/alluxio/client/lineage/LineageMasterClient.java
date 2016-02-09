@@ -17,7 +17,7 @@ package alluxio.client.lineage;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.MasterClientBase;
+import alluxio.AbstractMasterClient;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.LineageDoesNotExistException;
@@ -44,7 +44,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * to provide retries.
  */
 @ThreadSafe
-public final class LineageMasterClient extends MasterClientBase {
+public final class LineageMasterClient extends AbstractMasterClient {
   private LineageMasterClientService.Client mClient = null;
 
   /**

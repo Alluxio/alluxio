@@ -15,10 +15,10 @@
 
 package alluxio.client.file;
 
+import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.MasterClientBase;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -50,7 +50,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * to provide retries.
  */
 @ThreadSafe
-public final class FileSystemMasterClient extends MasterClientBase {
+public final class FileSystemMasterClient extends AbstractMasterClient {
   private FileSystemMasterClientService.Client mClient = null;
 
   /**
