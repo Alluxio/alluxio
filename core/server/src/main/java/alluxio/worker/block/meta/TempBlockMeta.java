@@ -21,7 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Represents the metadata of an uncommitted block in Alluxio managed storage.
  */
 @NotThreadSafe
-public class TempBlockMeta extends BlockMetaBase {
+public final class TempBlockMeta extends AbstractBlockMeta {
   private final long mSessionId;
   private long mTempBlockSize;
 

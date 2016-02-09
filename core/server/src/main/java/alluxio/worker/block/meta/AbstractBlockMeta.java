@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A base class of the metadata of blocks in Alluxio managed storage.
  */
 @ThreadSafe
-public abstract class BlockMetaBase {
+public abstract class AbstractBlockMeta {
   /**
    * All blocks are created as temp blocks before committed. They are stored in BlockStore under a
    * subdir of its {@link StorageDir}, the subdir is the same as the creator's sessionId, and the
@@ -62,12 +62,12 @@ public abstract class BlockMetaBase {
   protected final StorageDir mDir;
 
   /**
-   * Creates a new instance of {@link BlockMetaBase}.
+   * Creates a new instance of {@link AbstractBlockMeta}.
    *
    * @param blockId the block id
    * @param dir the parent directory
    */
-  public BlockMetaBase(long blockId, StorageDir dir) {
+  public AbstractBlockMeta(long blockId, StorageDir dir) {
     mBlockId = blockId;
     mDir = Preconditions.checkNotNull(dir);
   }
