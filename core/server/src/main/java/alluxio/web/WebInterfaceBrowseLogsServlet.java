@@ -17,6 +17,8 @@ package alluxio.web;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.master.MasterContext;
+import alluxio.worker.WorkerContext;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -56,7 +58,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    * @param isMasterServlet whether this is a master servlet
    */
   public WebInterfaceBrowseLogsServlet(boolean isMasterServlet) {
-    mConfiguration = new Configuration();
+    mConfiguration = isMasterServlet ? MasterContext.getConf() : WorkerContext.getConf();
     String prefix = isMasterServlet ? "/" : "/worker/";
     mBrowseJsp = prefix + "browse.jsp";
     mViewJsp = prefix + "viewFile.jsp";
@@ -114,7 +116,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    request.setAttribute("debug", Constants.DEBUG);
+    request.setAttribute("debug", mConfiguration.getBoolean(Constants.DEBUG));
     request.setAttribute("invalidPathError", "");
     request.setAttribute("viewingOffset", 0);
     request.setAttribute("downloadLogFile", 1);
@@ -122,8 +124,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
     request.setAttribute("currentPath", "");
     request.setAttribute("viewLog", true);
 
-    String logsPath =
-        mConfiguration.get(Constants.LOGS_DIR);
+    String logsPath = mConfiguration.get(Constants.LOGS_DIR);
     File logsDir = new File(logsPath);
     String requestFile = request.getParameter("path");
 

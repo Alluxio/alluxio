@@ -30,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public abstract class OutStreamBase extends OutputStream implements Cancelable {
+public abstract class AbstractOutStream extends OutputStream implements Cancelable {
   // TODO(binfan): make mBytesWritten long so we could make offset > 2GB. This
   // requires checking the codebase for this assumption (using int to denote an offset).
   // See ALLUXIO-1536.

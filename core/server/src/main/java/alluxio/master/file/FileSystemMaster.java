@@ -33,7 +33,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.master.MasterBase;
+import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
@@ -120,7 +120,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The master that handles all file system metadata management.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
-public final class FileSystemMaster extends MasterBase {
+public final class FileSystemMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Handle to the block master. */

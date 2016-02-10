@@ -37,7 +37,7 @@ import java.net.InetAddress;
  * by subsequent reducers.
  *
  */
-public abstract class IOMapperBase<T> extends Configured implements
+public abstract class AbstractIOMapper<T> extends Configured implements
     Mapper<Text, LongWritable, Text, Text> {
 
   protected byte[] mBuffer;
@@ -46,7 +46,7 @@ public abstract class IOMapperBase<T> extends Configured implements
   protected String mHostname;
   protected Closeable mStream;
 
-  public IOMapperBase() {}
+  public AbstractIOMapper() {}
 
   @Override
   public void configure(JobConf conf) {

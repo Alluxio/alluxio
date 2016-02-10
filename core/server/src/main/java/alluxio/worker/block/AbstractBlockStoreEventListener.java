@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * interface with empty methods bodies.
  */
 @NotThreadSafe
-public abstract class BlockStoreEventListenerBase implements BlockStoreEventListener {
+public abstract class AbstractBlockStoreEventListener implements BlockStoreEventListener {
 
   @Override
   public void onAccessBlock(long sessionId, long blockId) {}

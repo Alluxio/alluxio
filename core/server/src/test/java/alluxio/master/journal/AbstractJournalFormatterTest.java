@@ -73,7 +73,7 @@ import java.util.List;
  * <p>
  * See example usage in {@link ProtoBufJournalFormatterTest}.
  */
-public abstract class JournalFormatterTestBase {
+public abstract class AbstractJournalFormatterTest {
   protected static final long TEST_CONTAINER_ID = 2011L;
   protected static final long TEST_BLOCK_ID = 2015L;
   protected static final long TEST_FILE_ID = 1L;

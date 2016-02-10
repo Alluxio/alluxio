@@ -34,8 +34,8 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.AbstractWorker;
 import alluxio.worker.DataServer;
-import alluxio.worker.WorkerBase;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.io.BlockReader;
@@ -70,7 +70,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Logic: {@link BlockWorker} (Logic for all block related storage operations)
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
-public final class BlockWorker extends WorkerBase {
+public final class BlockWorker extends AbstractWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Runnable responsible for heartbeating and registration with master. */
@@ -493,7 +493,19 @@ public final class BlockWorker extends WorkerBase {
   public void moveBlock(long sessionId, long blockId, String tierAlias)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
+    // TODO(calvin): Move this logic into BlockStore#moveBlockInternal if possible
+    // Because the move operation is expensive, we first check if the operation is necessary
     BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tierAlias);
+    long lockId = mBlockStore.lockBlock(sessionId, blockId);
+    try {
+      BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
+      if (meta.getBlockLocation().belongsTo(dst)) {
+        return;
+      }
+    } finally {
+      mBlockStore.unlockBlock(lockId);
+    }
+    // Execute the block move if necessary
     mBlockStore.moveBlock(sessionId, blockId, dst);
   }
 

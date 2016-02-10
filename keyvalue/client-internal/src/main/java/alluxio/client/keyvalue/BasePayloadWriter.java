@@ -15,7 +15,7 @@
 
 package alluxio.client.keyvalue;
 
-import alluxio.client.OutStreamBase;
+import alluxio.client.AbstractOutStream;
 import alluxio.util.io.ByteIOUtils;
 
 import com.google.common.base.Preconditions;
@@ -36,14 +36,14 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 final class BasePayloadWriter implements Closeable, Flushable, PayloadWriter {
-  private OutStreamBase mOutStream;
+  private AbstractOutStream mOutStream;
 
   /**
    * Constructs a {@link BasePayloadWriter} instance.
    *
    * @param out the stream to output payload
    */
-  BasePayloadWriter(OutStreamBase out) {
+  BasePayloadWriter(AbstractOutStream out) {
     mOutStream = Preconditions.checkNotNull(out);
   }
 

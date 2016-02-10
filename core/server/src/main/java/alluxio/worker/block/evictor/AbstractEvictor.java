@@ -19,8 +19,8 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.collections.Pair;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.worker.block.AbstractBlockStoreEventListener;
 import alluxio.worker.block.BlockMetadataManagerView;
-import alluxio.worker.block.BlockStoreEventListenerBase;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.BlockMeta;
@@ -41,18 +41,18 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Provides the basic implementation for every evictor.
  */
 @NotThreadSafe
-public abstract class EvictorBase extends BlockStoreEventListenerBase implements Evictor {
+public abstract class AbstractEvictor extends AbstractBlockStoreEventListener implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   protected final Allocator mAllocator;
   protected BlockMetadataManagerView mManagerView;
 
   /**
-   * Creates a new instance of {@link EvictorBase}.
+   * Creates a new instance of {@link AbstractEvictor}.
    *
    * @param view a view of block metadata information
    * @param allocator an allocation policy
    */
-  public EvictorBase(BlockMetadataManagerView view, Allocator allocator) {
+  public AbstractEvictor(BlockMetadataManagerView view, Allocator allocator) {
     mManagerView = Preconditions.checkNotNull(view);
     mAllocator = Preconditions.checkNotNull(allocator);
   }

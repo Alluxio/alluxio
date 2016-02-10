@@ -15,9 +15,9 @@
 
 package alluxio.worker.block;
 
+import alluxio.AbstractMasterClient;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.MasterClientBase;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.thrift.AlluxioService;
@@ -44,7 +44,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * to provide retries.
  */
 @ThreadSafe
-public final class BlockMasterClient extends MasterClientBase {
+public final class BlockMasterClient extends AbstractMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private BlockMasterWorkerService.Client mClient = null;
 

@@ -27,12 +27,12 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 /**
- * Unit tests for {@link BlockMetaBase}.
+ * Unit tests for {@link AbstractBlockMeta}.
  */
-public class BlockMetaBaseTest {
-  // This class extending BlockMetaBase is only for test purpose
-  private class BlockMetaBaseForTest extends BlockMetaBase {
-    public BlockMetaBaseForTest(long blockId, StorageDir dir) {
+public class AbstractBlockMetaTest {
+  // This class extending AbstractBlockMeta is only for test purpose
+  private class AbstractBlockMetaForTest extends AbstractBlockMeta {
+    public AbstractBlockMetaForTest(long blockId, StorageDir dir) {
       super(blockId, dir);
     }
 
@@ -58,7 +58,7 @@ public class BlockMetaBaseTest {
   private String mTestDirPath;
   private StorageTier mTier;
   private StorageDir mDir;
-  private BlockMetaBaseForTest mBlockMeta;
+  private AbstractBlockMetaForTest mBlockMeta;
 
   /**
    * Sets up all dependencies before a test runs.
@@ -74,7 +74,7 @@ public class BlockMetaBaseTest {
 
     mTier = StorageTier.newStorageTier(TEST_TIER_ALIAS);
     mDir = mTier.getDir(0);
-    mBlockMeta = new BlockMetaBaseForTest(TEST_BLOCK_ID, mDir);
+    mBlockMeta = new AbstractBlockMetaForTest(TEST_BLOCK_ID, mDir);
   }
 
   /**
@@ -86,7 +86,7 @@ public class BlockMetaBaseTest {
   }
 
   /**
-   * Tests the {@link BlockMetaBase#getBlockId()} method.
+   * Tests the {@link AbstractBlockMeta#getBlockId()} method.
    */
   @Test
   public void getBlockIdTest() {
@@ -94,7 +94,7 @@ public class BlockMetaBaseTest {
   }
 
   /**
-   * Tests the {@link BlockMetaBase#getBlockLocation()} method.
+   * Tests the {@link AbstractBlockMeta#getBlockLocation()} method.
    */
   @Test
   public void getBlockLocationTest() {
@@ -104,7 +104,7 @@ public class BlockMetaBaseTest {
   }
 
   /**
-   * Tests the {@link BlockMetaBase#getParentDir()} method.
+   * Tests the {@link AbstractBlockMeta#getParentDir()} method.
    */
   @Test
   public void getParentDirTest() {

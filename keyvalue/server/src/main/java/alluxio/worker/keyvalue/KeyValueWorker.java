@@ -19,7 +19,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.worker.WorkerBase;
+import alluxio.worker.AbstractWorker;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 
@@ -37,7 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A worker serving key-value queries.
  */
 @ThreadSafe
-public class KeyValueWorker extends WorkerBase {
+public final class KeyValueWorker extends AbstractWorker {
   /** Configuration object. */
   private final Configuration mConfiguration;
   /** BlockWorker handle for access block info. */

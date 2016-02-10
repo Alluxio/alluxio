@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The base class for master clients.
  */
 @ThreadSafe
-public abstract class MasterClientBase extends ClientBase {
+public abstract class AbstractMasterClient extends AbstractClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -45,7 +45,7 @@ public abstract class MasterClientBase extends ClientBase {
    * @param masterAddress the master address
    * @param configuration the Alluxio configuration
    */
-  public MasterClientBase(InetSocketAddress masterAddress, Configuration configuration) {
+  public AbstractMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
     super(masterAddress, configuration, "master");
     mUseZookeeper = mConfiguration.getBoolean(Constants.ZOOKEEPER_ENABLED);
   }
