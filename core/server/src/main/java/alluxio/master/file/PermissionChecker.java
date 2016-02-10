@@ -34,7 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Base class to provide permission check logic.
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class PermissionChecker {
   private static boolean sPermissionCheckEnabled;
 
