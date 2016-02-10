@@ -27,14 +27,14 @@ import com.codahale.metrics.json.MetricsModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Abstract class that provides a common method for parsing metrics data
+ * Abstract class that provides a common method for parsing metrics data.
  */
 public abstract class WebInterfaceAbstractMetricsServlet extends HttpServlet {
 
   protected ObjectMapper mObjectMapper;
 
   /**
-   * create a new instance of {@link WebInterfaceAbstractMetricsServlet}.
+   * creates a new instance of {@link WebInterfaceAbstractMetricsServlet}.
    */
   public WebInterfaceAbstractMetricsServlet() {
     mObjectMapper = new ObjectMapper().registerModule(new MetricsModule(TimeUnit.SECONDS,
@@ -46,7 +46,7 @@ public abstract class WebInterfaceAbstractMetricsServlet extends HttpServlet {
    *
    * @param request The {@link HttpServletRequest} object
    */
-  protected void populateCountersValues(Map<String, Metric> operations,
+  protected void populateCounterValues(Map<String, Metric> operations,
       Map<String, Counter> rpcInvocations, HttpServletRequest request) {
 
     for (Map.Entry<String, Metric> entry : operations.entrySet()) {

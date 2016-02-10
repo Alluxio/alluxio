@@ -33,26 +33,26 @@ import com.google.common.base.Preconditions;
 
 import tachyon.master.MasterContext;
 import tachyon.master.MasterSource;
-import tachyon.master.TachyonMaster;
+import tachyon.metrics.MetricsSystem;
 import tachyon.util.CommonUtils;
 
 /**
- * Servlet that provides data for viewing the master metrics values
+ * Servlet that provides data for viewing the master metrics values.
  */
 @ThreadSafe
 public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstractMetricsServlet {
 
   private static final long serialVersionUID = -1481253168100363787L;
-  private final transient TachyonMaster mMaster;
+  private final transient MetricsSystem mMasterMetricsSystem;
 
   /**
    * Creates a new instance of {@link WebInterfaceMasterMetricsServlet}.
    *
-   * @param master Tachyon master
+   * @param masterMetricsSystem Tachyon master metric system
    */
-  public WebInterfaceMasterMetricsServlet(TachyonMaster master) {
+  public WebInterfaceMasterMetricsServlet(MetricsSystem masterMetricsSystem) {
     super();
-    mMaster = Preconditions.checkNotNull(master);
+    mMasterMetricsSystem = Preconditions.checkNotNull(masterMetricsSystem);
   }
 
   /**
@@ -84,7 +84,7 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
    * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    MetricRegistry mr = mMaster.getMasterMetricsSystem().getMetricRegistry();
+    MetricRegistry mr = mMasterMetricsSystem.getMetricRegistry();
 
     MasterSource masterSource = MasterContext.getMasterSource();
 
@@ -100,10 +100,10 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("masterCapacityFreePercentage", 100 - masterCapacityUsedPercentage);
 
     Long masterUnderfsCapacityTotal = (Long) mr.getGauges().get(
-        CommonUtils.argsToString(".", masterSource.getName(), MasterSource.UNDER_FS_CAPACITY_TOTAL))
+        CommonUtils.argsToString(".", masterSource.getName(), MasterSource.UFS_CAPACITY_TOTAL))
         .getValue();
     Long masterUnderfsCapacityUsed = (Long) mr.getGauges().get(
-        CommonUtils.argsToString(".", masterSource.getName(), MasterSource.UNDER_FS_CAPACITY_USED))
+        CommonUtils.argsToString(".", masterSource.getName(), MasterSource.UFS_CAPACITY_USED))
         .getValue();
 
     int masterUnderfsCapacityUsedPercentage =
@@ -133,6 +133,6 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
         CommonUtils.argsToString(".", masterSource.getName(), MasterSource.FILES_PINNED);
     operations.put(filesPinnedProperty, mr.getGauges().get(filesPinnedProperty));
 
-    populateCountersValues(operations, rpcInvocations, request);
+    populateCounterValues(operations, rpcInvocations, request);
   }
 }

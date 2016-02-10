@@ -69,9 +69,9 @@ public class MasterSource implements Source {
   public static final String CAPACITY_TOTAL = "CapacityTotal";
   public static final String CAPACITY_USED = "CapacityUsed";
   public static final String CAPACITY_FREE = "CapacityFree";
-  public static final String UNDER_FS_CAPACITY_TOTAL = "UnderFsCapacityTotal";
-  public static final String UNDER_FS_CAPACITY_USED = "UnderFsCapacityUsed";
-  public static final String UNDER_FS_CAPACITY_FREE = "UnderFsCapacityFree";
+  public static final String UFS_CAPACITY_TOTAL = "UfsCapacityTotal";
+  public static final String UFS_CAPACITY_USED = "UfsCapacityUsed";
+  public static final String UFS_CAPACITY_FREE = "UfsCapacityFree";
   public static final String WORKERS = "Workers";
   public static final String PATHS_TOTAL = "PathsTotal";
   public static final String FILES_PINNED = "FilesPinned";
@@ -160,7 +160,7 @@ public class MasterSource implements Source {
       }
     });
 
-    mMetricRegistry.register(MetricRegistry.name(UNDER_FS_CAPACITY_TOTAL), new Gauge<Long>() {
+    mMetricRegistry.register(MetricRegistry.name(UFS_CAPACITY_TOTAL), new Gauge<Long>() {
       @Override
       public Long getValue() {
         long ret = 0L;
@@ -175,7 +175,7 @@ public class MasterSource implements Source {
       }
     });
 
-    mMetricRegistry.register(MetricRegistry.name(UNDER_FS_CAPACITY_USED), new Gauge<Long>() {
+    mMetricRegistry.register(MetricRegistry.name(UFS_CAPACITY_USED), new Gauge<Long>() {
       @Override
       public Long getValue() {
         long ret = 0L;
@@ -190,7 +190,7 @@ public class MasterSource implements Source {
       }
     });
 
-    mMetricRegistry.register(MetricRegistry.name(UNDER_FS_CAPACITY_FREE), new Gauge<Long>() {
+    mMetricRegistry.register(MetricRegistry.name(UFS_CAPACITY_FREE), new Gauge<Long>() {
       @Override
       public Long getValue() {
         long ret = 0L;

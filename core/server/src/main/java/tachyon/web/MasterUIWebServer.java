@@ -63,7 +63,8 @@ public final class MasterUIWebServer extends UIWebServer {
         "/browseLogs");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet(conf)),
         "/header");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMasterMetricsServlet(master)),
-            "/metricsui");
+    mWebAppContext.addServlet(
+        new ServletHolder(new WebInterfaceMasterMetricsServlet(master.getMasterMetricsSystem())),
+        "/metricsui");
   }
 }
