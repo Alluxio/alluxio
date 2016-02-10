@@ -1,4 +1,6 @@
 <code_scheme name="AlluxioCodeStyle">
+  <option name="FIELD_NAME_PREFIX" value="m" />
+  <option name="STATIC_FIELD_NAME_PREFIX" value="s" />
   <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="99" />
   <option name="NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" value="99" />
   <option name="IMPORT_LAYOUT_TABLE">
@@ -14,57 +16,18 @@
       <package name="javax" withSubpackages="true" static="false" />
     </value>
   </option>
-  <option name="RIGHT_MARGIN" value="100" />
-  <option name="JD_ALIGN_PARAM_COMMENTS" value="false" />
-  <option name="JD_ALIGN_EXCEPTION_COMMENTS" value="false" />
-  <option name="JD_DO_NOT_WRAP_ONE_LINE_COMMENTS" value="true" />
-  <option name="KEEP_CONTROL_STATEMENT_IN_ONE_LINE" value="false" />
-  <option name="KEEP_BLANK_LINES_IN_CODE" value="1" />
-  <option name="BLANK_LINES_AFTER_CLASS_HEADER" value="1" />
-  <option name="ALIGN_MULTILINE_PARAMETERS_IN_CALLS" value="true" />
-  <option name="ALIGN_MULTILINE_BINARY_OPERATION" value="true" />
-  <option name="ALIGN_MULTILINE_ASSIGNMENT" value="true" />
-  <option name="ALIGN_MULTILINE_TERNARY_OPERATION" value="true" />
-  <option name="ALIGN_MULTILINE_THROWS_LIST" value="true" />
-  <option name="ALIGN_MULTILINE_EXTENDS_LIST" value="true" />
-  <option name="ALIGN_MULTILINE_PARENTHESIZED_EXPRESSION" value="true" />
-  <option name="ALIGN_MULTILINE_ARRAY_INITIALIZER_EXPRESSION" value="true" />
-  <option name="CALL_PARAMETERS_WRAP" value="1" />
-  <option name="METHOD_PARAMETERS_WRAP" value="1" />
-  <option name="EXTENDS_LIST_WRAP" value="1" />
-  <option name="THROWS_LIST_WRAP" value="1" />
-  <option name="EXTENDS_KEYWORD_WRAP" value="1" />
-  <option name="THROWS_KEYWORD_WRAP" value="1" />
-  <option name="METHOD_CALL_CHAIN_WRAP" value="1" />
-  <option name="BINARY_OPERATION_WRAP" value="1" />
-  <option name="BINARY_OPERATION_SIGN_ON_NEXT_LINE" value="true" />
-  <option name="TERNARY_OPERATION_WRAP" value="1" />
-  <option name="TERNARY_OPERATION_SIGNS_ON_NEXT_LINE" value="true" />
-  <option name="FOR_STATEMENT_WRAP" value="1" />
-  <option name="ARRAY_INITIALIZER_WRAP" value="1" />
-  <option name="ASSIGNMENT_WRAP" value="5" />
-  <option name="WRAP_COMMENTS" value="true" />
-  <option name="IF_BRACE_FORCE" value="3" />
-  <option name="DOWHILE_BRACE_FORCE" value="3" />
-  <option name="WHILE_BRACE_FORCE" value="3" />
-  <option name="FOR_BRACE_FORCE" value="3" />
+  <option name="ENABLE_JAVADOC_FORMATTING" value="false" />
   <JavaCodeStyleSettings>
     <option name="ANNOTATION_PARAMETER_WRAP" value="1" />
   </JavaCodeStyleSettings>
   <XML>
     <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
   </XML>
-  <ADDITIONAL_INDENT_OPTIONS fileType="java">
-    <option name="INDENT_SIZE" value="2" />
-    <option name="CONTINUATION_INDENT_SIZE" value="4" />
-    <option name="TAB_SIZE" value="8" />
-  </ADDITIONAL_INDENT_OPTIONS>
   <codeStyleSettings language="JAVA">
     <option name="RIGHT_MARGIN" value="100" />
     <option name="KEEP_LINE_BREAKS" value="false" />
     <option name="KEEP_FIRST_COLUMN_COMMENT" value="false" />
     <option name="ALIGN_MULTILINE_PARAMETERS" value="false" />
-    <option name="ALIGN_MULTILINE_RESOURCES" value="false" />
     <option name="ALIGN_MULTILINE_FOR" value="false" />
     <option name="SPACE_BEFORE_ARRAY_INITIALIZER_LBRACE" value="true" />
     <option name="CALL_PARAMETERS_WRAP" value="1" />
@@ -78,7 +41,6 @@
     <option name="BINARY_OPERATION_WRAP" value="1" />
     <option name="BINARY_OPERATION_SIGN_ON_NEXT_LINE" value="true" />
     <option name="TERNARY_OPERATION_WRAP" value="1" />
-    <option name="KEEP_SIMPLE_CLASSES_IN_ONE_LINE" value="true" />
     <option name="FOR_STATEMENT_WRAP" value="1" />
     <option name="ARRAY_INITIALIZER_WRAP" value="1" />
     <option name="ASSIGNMENT_WRAP" value="1" />
@@ -90,7 +52,7 @@
     <option name="WRAP_LONG_LINES" value="true" />
     <option name="PARAMETER_ANNOTATION_WRAP" value="1" />
     <option name="VARIABLE_ANNOTATION_WRAP" value="1" />
-    <option name="ENUM_CONSTANTS_WRAP" value="2" />
+    <option name="ENUM_CONSTANTS_WRAP" value="5" />
     <indentOptions>
       <option name="INDENT_SIZE" value="2" />
       <option name="CONTINUATION_INDENT_SIZE" value="4" />
@@ -98,4 +60,3 @@
     </indentOptions>
   </codeStyleSettings>
 </code_scheme>
-
