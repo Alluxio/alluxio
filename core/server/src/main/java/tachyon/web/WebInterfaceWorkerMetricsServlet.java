@@ -92,7 +92,8 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
         .get(CommonUtils.argsToString(".", workerSource.getName(), WorkerSource.CAPACITY_USED))
         .getValue();
 
-    int workerCapacityUsedPercentage = (int) (100L * workerCapacityUsed / workerCapacityTotal);
+    int workerCapacityUsedPercentage =
+        (workerCapacityTotal > 0) ? (int) (100L * workerCapacityUsed / workerCapacityTotal) : 0;
     request.setAttribute("workerCapacityUsedPercentage", workerCapacityUsedPercentage);
     request.setAttribute("workerCapacityFreePercentage", 100 - workerCapacityUsedPercentage);
 
