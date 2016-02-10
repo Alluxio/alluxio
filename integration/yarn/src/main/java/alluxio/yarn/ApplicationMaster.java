@@ -287,7 +287,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       LOG.info("Waiting for {} worker containers to be allocated",
           mOutstandingWorkerContainerRequestsLatch.getCount());
       // TODO(andrew): Handle the case where something goes wrong and some worker containers never
-      // get allocated. See TACHYON-1410
+      // get allocated. See ALLUXIO-1410
       mOutstandingWorkerContainerRequestsLatch.await();
       round++;
     }
@@ -330,7 +330,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     LOG.info("Waiting for master container to be allocated");
     // Wait for the latch to be decremented in launchAlluxioMasterContainers
     // TODO(andrew): Handle the case where something goes wrong and a master container never
-    // gets allocated. See TACHYON-1410
+    // gets allocated. See ALLUXIO-1410
     mMasterContainerAllocatedLatch.await();
   }
 

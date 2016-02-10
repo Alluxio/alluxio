@@ -53,7 +53,7 @@ import java.net.URL;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, UserGroupInformation.class})
 /*
- * [TACHYON-1384] Tell PowerMock to defer the loading of javax.security classes to the system
+ * [ALLUXIO-1384] Tell PowerMock to defer the loading of javax.security classes to the system
  * classloader in order to avoid linkage error when running this test with CDH.
  * See https://code.google.com/p/powermock/wiki/FAQ.
  */

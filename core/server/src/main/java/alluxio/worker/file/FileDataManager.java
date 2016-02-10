@@ -52,7 +52,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Responsible for storing files into under file system.
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class FileDataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

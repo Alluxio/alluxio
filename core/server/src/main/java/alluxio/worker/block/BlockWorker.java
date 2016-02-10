@@ -69,7 +69,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * Logic: {@link BlockWorker} (Logic for all block related storage operations)
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class BlockWorker extends AbstractWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

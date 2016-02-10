@@ -166,7 +166,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * {@link #create(Path, boolean, int, short, long, Progressable)}, except fails if parent
    * directory doesn't already exist.
    *
-   * TODO(hy): We need to refactor this method after having a new internal API support (TACHYON-46).
+   * TODO(hy): We need to refactor this method after having a new internal API support (ALLUXIO-46).
    *
    * @param cPath the file name to open
    * @param overwrite if a file with this name already exists, then if true, the file will be
@@ -433,7 +433,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
 
     // These must be reset to pick up the change to the master address.
-    // TODO(andrew): We should reset key value system in this situation - see TACHYON-1706.
+    // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
     ClientContext.init();
     FileSystemContext.INSTANCE.reset();
     BlockStoreContext.INSTANCE.reset();
