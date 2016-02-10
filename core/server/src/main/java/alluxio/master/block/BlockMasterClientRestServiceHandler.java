@@ -15,16 +15,16 @@
 
 package alluxio.master.block;
 
+import alluxio.Constants;
+import alluxio.exception.AlluxioException;
+import alluxio.master.AlluxioMaster;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import alluxio.Constants;
-import alluxio.exception.AlluxioException;
-import alluxio.master.AlluxioMaster;
 
 /**
  * This class is a REST handler for block master requests.

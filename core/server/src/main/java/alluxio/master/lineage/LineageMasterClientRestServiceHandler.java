@@ -15,6 +15,15 @@
 
 package alluxio.master.lineage;
 
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.exception.AlluxioException;
+import alluxio.job.CommandLineJob;
+import alluxio.job.JobConf;
+import alluxio.master.AlluxioMaster;
+
+import com.google.common.collect.Lists;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -25,15 +34,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import com.google.common.collect.Lists;
-
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.exception.AlluxioException;
-import alluxio.job.CommandLineJob;
-import alluxio.job.JobConf;
-import alluxio.master.AlluxioMaster;
 
 /**
  * This class is a REST handler for lineage master requests.

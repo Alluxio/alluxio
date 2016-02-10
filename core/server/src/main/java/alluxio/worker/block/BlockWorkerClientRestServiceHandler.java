@@ -15,6 +15,15 @@
 
 package alluxio.worker.block;
 
+import alluxio.Constants;
+import alluxio.Sessions;
+import alluxio.StorageTierAssoc;
+import alluxio.WorkerStorageTierAssoc;
+import alluxio.exception.AlluxioException;
+import alluxio.wire.LockBlockResult;
+import alluxio.worker.AlluxioWorker;
+import alluxio.worker.WorkerContext;
+
 import java.io.IOException;
 
 import javax.ws.rs.GET;
@@ -24,15 +33,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import alluxio.Constants;
-import alluxio.Sessions;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
-import alluxio.exception.AlluxioException;
-import alluxio.wire.LockBlockResult;
-import alluxio.worker.AlluxioWorker;
-import alluxio.worker.WorkerContext;
 
 /**
  * This class is a REST handler for block worker requests.
@@ -213,7 +213,7 @@ public final class BlockWorkerClientRestServiceHandler {
   @Path(REQUEST_SPACE)
   @Produces(MediaType.APPLICATION_JSON)
   public Response requestSpace(@QueryParam("sessionId") long sessionId,
-                               @QueryParam("blockId") long blockId, @QueryParam("requestBytes") long requestBytes) {
+      @QueryParam("blockId") long blockId, @QueryParam("requestBytes") long requestBytes) {
     try {
       mBlockWorker.requestSpace(sessionId, blockId, requestBytes);
       return Response.ok().build();
