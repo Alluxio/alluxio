@@ -26,7 +26,6 @@ import alluxio.web.UIWebServer;
 import alluxio.web.WorkerUIWebServer;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.BlockWorkerClientServiceHandler;
 import alluxio.worker.file.FileSystemWorker;
 
 import com.google.common.base.Throwables;

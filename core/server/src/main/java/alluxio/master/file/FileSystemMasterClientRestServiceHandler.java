@@ -15,6 +15,15 @@
 
 package alluxio.master.file;
 
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.exception.AlluxioException;
+import alluxio.master.AlluxioMaster;
+import alluxio.master.MasterContext;
+import alluxio.master.file.options.CompleteFileOptions;
+import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.SetAttributeOptions;
+
 import java.io.IOException;
 
 import javax.ws.rs.GET;
@@ -25,15 +34,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import alluxio.Constants;
-import alluxio.AlluxioURI;
-import alluxio.exception.AlluxioException;
-import alluxio.master.MasterContext;
-import alluxio.master.AlluxioMaster;
-import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.SetAttributeOptions;
 
 /**
  * This class is a REST handler for file system master requests.
@@ -291,6 +291,10 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param pinned the pinned flag value to use
    * @param ttl the time-to-live (in seconds) to use
    * @param persisted the persisted flag value to use
+   * @param owner the file owner
+   * @param group the file group
+   * @param permission the file permission bits
+   * @param recursive whether the attribute should be set recursively
    * @return the response object
    */
   @PUT
