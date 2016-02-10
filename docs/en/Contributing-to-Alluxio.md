@@ -26,9 +26,9 @@ There are a few things that new contributors can do to familiarize themselves wi
 5.  [Build Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
 
 6.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request. You are also welcome to address
-issues in our [JIRA](https://alluxio.atlassian.net/browse/TACHYON).
+issues in our [JIRA](https://alluxio.atlassian.net/browse/ALLUXIO).
 Here is a list of
-[tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)
+[tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)
 for New Contributors. Please limit 2 tasks per New Contributor.
 Afterwards, try some Beginner/Intermediate tasks, or ask in the
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users).
@@ -55,7 +55,7 @@ For a tutorial, see the GitHub guides on
     ticket to the proposed code changes. for example:
 
 ~~~~~
-[TACHYON-100] Implement an awesome new feature
+[ALLUXIO-100] Implement an awesome new feature
 ~~~~~
 
 -   In the description field of the pull request, please include a link to the JIRA ticket.

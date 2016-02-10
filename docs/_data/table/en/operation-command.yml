@@ -25,16 +25,16 @@ du:
 fileInfo:
   Print the information of the blocks of a specified file.
 free:
-  Free a file or all files under a directory from Tachyon. If the file/directory is also
+  Free a file or all files under a directory from Alluxio. If the file/directory is also
   in under storage, it will still be available there.
 getCapacityBytes:
-  Get the capacity of the TachyonFS.
+  Get the capacity of the AlluxioFS.
 getUsedBytes:
-  Get number of bytes used in the TachyonFS.
+  Get number of bytes used in the AlluxioFS.
 load:
-  Load the data of a file or a directory from under storage into Tachyon.
+  Load the data of a file or a directory from under storage into Alluxio.
 loadMetadata:
-  Load the metadata of a file or a directory from under storage into Tachyon.
+  Load the metadata of a file or a directory from under storage into Alluxio.
 location:
   Display a list of hosts that have the file data.
 ls:
@@ -47,16 +47,16 @@ mkdir:
   Create directory(ies) under the given paths, along with any necessary parent directories. Multiple paths separated by spaces or tabs. This
   command will fail if any of the given paths already exist.
 mount:
-  Mount the underlying file system path "uri" into the Tachyon namespace as "path". The "path"
+  Mount the underlying file system path "uri" into the Alluxio namespace as "path". The "path"
   is assumed not to exist and is created by the operation. No data or metadata is loaded from
-  under storage into Tachyon. After a path is mounted, operations on objects under the mounted
+  under storage into Alluxio. After a path is mounted, operations on objects under the mounted
   path are mirror to the mounted under storage.
 mv:
   Move a file or directory specified by "source" to a new location "destination". This command
   will fail if "destination" already exists.
 persist:
-  Persist a file or directory currently stored only in Tachyon to the underlying file system.
-    
+  Persist a file or directory currently stored only in Alluxio to the underlying file system.
+
 pin:
   Pin the given file to avoid evicting it from memory. If the given path is a directory, it
   recursively pins all the files contained and any new files created within this directory.
@@ -75,11 +75,11 @@ tail:
 touch:
   Create a 0-byte file at the specified location.
 unmount:
-  Unmount the underlying file system path mounted in the Tachyon namespace as "path". Tachyon
-  objects under "path" are removed from Tachyon, but they still exist in the previously mounted
+  Unmount the underlying file system path mounted in the Alluxio namespace as "path". Alluxio
+  objects under "path" are removed from Alluxio, but they still exist in the previously mounted
   under storage.
 unpin:
-  Unpin the given file to allow Tachyon to evict this file again. If the given path is a
+  Unpin the given file to allow Alluxio to evict this file again. If the given path is a
   directory, it recursively unpins all files contained and any new files created within this
   directory.
 unsetTtl:
