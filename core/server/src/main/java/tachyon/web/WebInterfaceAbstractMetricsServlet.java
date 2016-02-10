@@ -34,7 +34,7 @@ public abstract class WebInterfaceAbstractMetricsServlet extends HttpServlet {
   protected ObjectMapper mObjectMapper;
 
   /**
-   * creates a new instance of {@link WebInterfaceAbstractMetricsServlet}.
+   * Creates a new instance of {@link WebInterfaceAbstractMetricsServlet}.
    */
   public WebInterfaceAbstractMetricsServlet() {
     mObjectMapper = new ObjectMapper().registerModule(new MetricsModule(TimeUnit.SECONDS,

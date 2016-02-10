@@ -176,13 +176,9 @@ public class MetricsSystem {
       String classPath = entry.getValue().getProperty("class");
       if (classPath != null) {
         try {
-
-          Class<? extends Sink> clazz = Class.forName(classPath).asSubclass(Sink.class);
-
           Sink sink =
-                  clazz.getConstructor(Properties.class, MetricRegistry.class)
-                          .newInstance(entry.getValue(), mMetricRegistry);
-
+              (Sink) Class.forName(classPath).getConstructor(Properties.class, MetricRegistry.class)
+                  .newInstance(entry.getValue(), mMetricRegistry);
           if (entry.getKey().equals("servlet")) {
             mMetricsServlet = (MetricsServlet) sink;
           } else {
