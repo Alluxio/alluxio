@@ -24,7 +24,7 @@ group: Resources
 
 5.  [构建Alluxio主分支](Building-Alluxio-Master-Branch.html)
 
-6.  Fork Alluxio Github仓库，并添加一两个单元测试或者javadoc文件，再提交一个pull request。也欢迎你处理我们的[JIRA](https://alluxio.atlassian.net/browse/TACHYON)中的issues。这里是专门为新的开发者准备的一些[任务](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)，每个新开发者最多只能做其中的两个任务，在这之后，尝试去做一些Beginner/Intermediate任务，或者在[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)里询问。可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行基本Github操作。
+6.  Fork Alluxio Github仓库，并添加一两个单元测试或者javadoc文件，再提交一个pull request。也欢迎你处理我们的[JIRA](https://alluxio.atlassian.net/browse/ALLUXIO)中的issues。这里是专门为新的开发者准备的一些[任务](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)，每个新开发者最多只能做其中的两个任务，在这之后，尝试去做一些Beginner/Intermediate任务，或者在[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)里询问。可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行基本Github操作。
 
 ### 提交代码
 
@@ -39,7 +39,7 @@ group: Resources
 -   在你提交的pull request的标题中，确保其引用了该JIRA ticket，这将会连接到该指定的ticket。例如：
 
 ~~~~~
-[TACHYON-100] Implement an awesome new feature
+[ALLUXIO-100] Implement an awesome new feature
 ~~~~~
 
 -   在pull request的描述框中，请添加该JIRA ticket的超链接。
