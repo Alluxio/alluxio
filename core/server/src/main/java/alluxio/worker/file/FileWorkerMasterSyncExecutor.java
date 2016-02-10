@@ -49,7 +49,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * TODO(yupeng): merge this with {@link BlockMasterSync} to use a central command pattern.
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

@@ -116,7 +116,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
 
   /**
    * Test writing to a file for longer than HEARTBEAT_INTERVAL_MS to make sure the sessionId doesn't
-   * change. Tracks [TACHYON-171].
+   * change. Tracks [ALLUXIO-171].
    *
    * @throws IOException
    * @throws InterruptedException
