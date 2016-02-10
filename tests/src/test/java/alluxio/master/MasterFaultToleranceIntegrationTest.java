@@ -209,7 +209,7 @@ public class MasterFaultToleranceIntegrationTest {
       Assert.assertTrue(mMultiMasterLocalAlluxioCluster.killLeader());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
 
-      // TODO(cc) Why this test fail without this line? [TACHYON-970]
+      // TODO(cc) Why this test fail without this line? [ALLUXIO-970]
       faultTestDataCheck(emptyAnswer);
 
       // If worker is successfully re-registered, the capacity bytes should not change.

@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This class is a Thrift handler for block worker RPCs invoked by an Alluxio client.
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class BlockWorkerClientServiceHandler implements BlockWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

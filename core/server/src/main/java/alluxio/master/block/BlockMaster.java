@@ -77,7 +77,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This master manages the metadata for all the blocks and block workers in Alluxio.
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class BlockMaster extends AbstractMaster implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

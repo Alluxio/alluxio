@@ -46,7 +46,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This class is a Thrift handler for file system master RPCs invoked by an Alluxio client.
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class FileSystemMasterClientServiceHandler implements
     FileSystemMasterClientService.Iface {
   private final FileSystemMaster mFileSystemMaster;

@@ -119,7 +119,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The master that handles all file system metadata management.
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class FileSystemMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
