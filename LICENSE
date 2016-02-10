@@ -203,9 +203,9 @@
 
 =======================================================================
 
-Tachyon Subcomponents:
+Alluxio Subcomponents:
 
-The Tachyon project contains subcomponents with separate copyright
+The Alluxio project contains subcomponents with separate copyright
 notices and license terms. Your use of the source code for the these
 subcomponents is subject to the terms and conditions of the following
 licenses.
@@ -214,7 +214,7 @@ licenses.
 The Apache License
 -----------------------------------------------------------------------
 
-Tachyon bundles portions of the following under the Apache License 2.0 as detailed
+Alluxio bundles portions of the following under the Apache License 2.0 as detailed
 above:
 
  - Bootstrap 2 (http://getbootstrap.com) - Copyright 2011-2015 Twitter Inc
@@ -223,7 +223,7 @@ above:
 The MIT License
 -----------------------------------------------------------------------
 
-Tachyon bundles portions of the following under the MIT License:
+Alluxio bundles portions of the following under the MIT License:
 
  - jQuery (http://jquery.com) - Copyright 2014 jQuery Foundation and other contributors
  - Modernizr (http://modernizr.com) - Copyright 2009-2015 Modernizr
@@ -250,7 +250,7 @@ THE SOFTWARE.
 The BSD 2-Clause License
 -----------------------------------------------------------------------
 
-Tachyon bundles portions of the following under the BSD 2-Clause License:
+Alluxio bundles portions of the following under the BSD 2-Clause License:
 
  -  Pygments (http://pygments.org) - Copyright 2006-2015 various contributors
 
@@ -283,7 +283,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Eclipse Public License
 -----------------------------------------------------------------------
 
-Tachyon depends on Jetty the following portions of which are under the Eclipse Public License
+Alluxio depends on Jetty the following portions of which are under the Eclipse Public License
 
  - org.eclipse.jetty.orbit:org.eclipse.jdt.core (https://www.eclipse.org/jetty/)
 
@@ -471,6 +471,6 @@ trial in any resulting litigation.
 Public Domain
 -----------------------------------------------------------------------
 
-Tachyon bundles portions of the following which are in the public domain:
+Alluxio bundles portions of the following which are in the public domain:
 
  - Cookies.js (https://github.com/ScottHamper/Cookies/)

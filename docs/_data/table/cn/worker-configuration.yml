@@ -3,7 +3,7 @@ alluxio.worker.allocator.class:
   `alluxio.worker.block.allocator.GreedyAllocator`,
   `alluxio.worker.block.allocator.RoundRobinAllocator`。
 alluxio.worker.bind.host:
-  Tachyon worker节点绑定的主机名，参考<a href="#configure-multihomed-networks">多宿主网络</a>
+  Alluxio worker节点绑定的主机名，参考<a href="#configure-multihomed-networks">多宿主网络</a>
 alluxio.worker.block.heartbeat.interval.ms:
   worker心跳时间间隔（单位：毫秒）。
 alluxio.worker.block.heartbeat.timeout.ms:
@@ -13,11 +13,11 @@ alluxio.worker.block.threads.max:
 alluxio.worker.block.threads.min:
   worker能处理的最小RPC请求数目，该值用于配置具有数据块worker的RPC Thrift服务器。
 alluxio.worker.data.bind.host:
-  运行Tachyon worker数据服务的主机名，参考<a href="#configure-multihomed-networks">多宿主网络</a>
+  运行Alluxio worker数据服务的主机名，参考<a href="#configure-multihomed-networks">多宿主网络</a>
 alluxio.worker.data.folder:
-  每个存储目录中的一个相对路径，该路径被Tachyon worker用作层次化存储中存放数据的文件夹。
+  每个存储目录中的一个相对路径，该路径被Alluxio worker用作层次化存储中存放数据的文件夹。
 alluxio.worker.data.port:
-  运行Tachyon worker数据服务的端口。
+  运行Alluxio worker数据服务的端口。
 alluxio.worker.data.server.class:
   选择运行worker的网络栈，可选值为：`alluxio.worker.netty.NettyDataServer`和`alluxio.worker.nio.NIODataServer`。
 alluxio.worker.evictor.class:
@@ -32,7 +32,7 @@ alluxio.worker.file.persist.pool.size:
 alluxio.worker.filesystem.heartbeat.interval.ms:
   worker和文件系统master之间的心跳检测时间间隔（单位：毫秒）。
 alluxio.worker.hostname:
-  Tachyon worker的主机名。
+  Alluxio worker的主机名。
 alluxio.worker.memory.size:
   每个worker节点的内存容量。
 alluxio.worker.network.netty.boss.threads:
@@ -50,11 +50,11 @@ alluxio.worker.network.netty.watermark.low:
 alluxio.worker.network.netty.worker.threads:
   "处理请求的线程数目，0表示#cpuCores * 2"
 alluxio.worker.port:
-  Tachyon worker节点运行端口。
+  Alluxio worker节点运行端口。
 alluxio.worker.session.timeout.ms:
   worker和client连接的超时时间（单位：毫秒），超时后表明该会话失效。
 alluxio.worker.tieredstore.block.locks:
-  一个Tachyon数据块worker的数据块锁数目。较大值会达到更好的锁粒度，但会使用更多空间。
+  一个Alluxio数据块worker的数据块锁数目。较大值会达到更好的锁粒度，但会使用更多空间。
 alluxio.worker.tieredstore.levels:
   worker上的存储层数目。
 alluxio.worker.tieredstore.level0.alias:
@@ -70,12 +70,12 @@ alluxio.worker.tieredstore.reserver.enabled:
 alluxio.worker.tieredstore.reserver.interval.ms:
   空间预留服务运行的时间间隔（单位：毫秒），该服务为每个存储层预留一定比例的空间。
 alluxio.worker.web.bind.host:
-  Tachyon worker web服务绑定的主机名，参考See <a href="#configure-multihomed-networks">多宿主网络</a>
+  Alluxio worker web服务绑定的主机名，参考See <a href="#configure-multihomed-networks">多宿主网络</a>
 alluxio.worker.web.hostname:
-  Tachyon worker web UI绑定的主机名。
+  Alluxio worker web UI绑定的主机名。
 alluxio.worker.web.port:
-  Tachyon worker web UI运行的端口号。
+  Alluxio worker web UI运行的端口号。
 alluxio.worker.keytab.file:
-  Tachyon worker的Kerberos密钥对文件。
+  Alluxio worker的Kerberos密钥对文件。
 alluxio.worker.principal:
-  Tachyon worker的Kerberos主体。
+  Alluxio worker的Kerberos主体。
