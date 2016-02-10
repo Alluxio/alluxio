@@ -29,24 +29,14 @@ transparent to users.
 
 To obtain a Tachyon key-value store client in Java code, use:
 
-```java
-KeyValueSystem kvs = KeyValueSystem.Factory().get();
-```
+{% include Key-Value-Store-API/get-key-value-system.md %}
 
 ## Creating a new key-value store
 
 To create a new key-value store, use `KeyValueSystem#createStore(TachyonURI)`, which returns
 a writer to add key-value pairs. For example:
 
-```java
-KeyValueStoreWriter writer = kvs.createStore(new TachyonURI("tachyon://path/my-kvstore"));
-// Insert key-value pair ("100", "foo")
-writer.put("100", "foo");
-// Insert key-value pair ("200", "bar")
-writer.put("200", "bar");
-// Close and complete the store
-writer.close();
-```
+{% include Key-Value-Store-API/create-new-key-value.md %}
 
 Note that, 
 
@@ -61,29 +51,11 @@ transparent.
 To query a complete key-value store, use `KeyValueSystem#openStore(TachyonURI)`, which returns
 a reader to retrieve value by the key. For example:
 
-```java
-KeyValueStoreReader reader = kvs.openStore(new TachyonURI("tachyon://path/kvstore/"));
-// Return "foo"
-reader.get("100"); 
-// Return null as no value associated with "300"
-reader.get("300");
-// Close the reader on the store
-reader.close();
-```
+{% include Key-Value-Store-API/read-value.md %}
 
 ## Iterating key-value pairs over a store
 
-```java
-KeyValueStoreReader reader = kvs.openStore(new TachyonURI("tachyon://path/kvstore/"));
-KeyValueIterator iterator = reader.iterator();
-while (iterator.hasNext()) {
-  KeyValuePair pair = iterator.next();
-  ByteBuffer key = pair.getkKey();
-  ByteBuffer value = pair.getValue();
-}
-// Close the reader on the store
-reader.close()
-```
+{% include Key-Value-Store-API/iterate-key-values.md %}
 
 # Accessing Key-Value Store in Hadoop MapReduce
  
@@ -92,10 +64,7 @@ reader.close()
 Tachyon provides an implementation of `InputFormat` for Hadoop MapReduce programs to access
 a key-value store. It takes a key-value URI, and emits key-value pairs stored in the store:
  
-```java
-conf.setInputFormat(KeyValueInputFormat.class);
-FileInputFormat.setInputPaths(conf, new Path("tachyon://input-store"));
-```
+{% include Key-Value-Store-API/set-input-format.md %}
 
 
 ## MapReduce OutputFormat
@@ -103,13 +72,7 @@ Similarly, Tachyon also provides an implementation of `OutputFormat` for Hadoop 
  to create a key-value store by taking a key-value URI, and saving key-value pairs to the
  KeyValueStore:
  
-```java
-conf.setOutputKeyClass(BytesWritable.class);
-conf.setOutputValueClass(BytesWritable.class);
-conf.setOutputFormat(KeyValueOutputFormat.class);
-conf.setOutputCommitter(KeyValueOutputCommitter.class);
-FileOutputFormat.setOutputPath(conf, new Path("tachyon://output-store"));
-```
+{% include Key-Value-Store-API/set-output-format.md %}
 
 # Configuration Parameters For Key-Value Stores
 
@@ -119,20 +82,4 @@ Key-Value support in Tachyon is disabled by default, and it can be enabled in Ta
 
 These are the configuration parameters for Key-Value support.
 
-<table class="table table-striped">
-<tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
-<tr>
-  <td>tachyon.keyvalue.enabled</td>
-  <td>false</td>
-  <td>
-  Whether the key-value interface is enabled.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.keyvalue.partition.size.bytes.max</td>
-  <td>512MB
-  <td>
-  Maximum size of each partition.
-  </td>
-</tr>
-</table>
+{% include Key-Value-Store-API/key-value-configuration.md %}
