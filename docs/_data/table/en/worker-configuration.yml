@@ -4,7 +4,7 @@ alluxio.worker.allocator.class:
   `alluxio.worker.block.allocator.GreedyAllocator`,
   `alluxio.worker.block.allocator.RoundRobinAllocator`."
 alluxio.worker.bind.host:
-  The hostname Tachyon's worker node binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
+  The hostname Alluxio's worker node binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
 alluxio.worker.block.heartbeat.interval.ms:
   The interval (in milliseconds) between block worker's heartbeats
 alluxio.worker.block.heartbeat.timeout.ms:
@@ -16,12 +16,12 @@ alluxio.worker.block.threads.min:
   The minimum number of incoming RPC requests to block worker that can be handled.
   This value is used for configuring the Thrift server for RPC with block worker.
 alluxio.worker.data.bind.host:
-  The hostname that the Tachyon worker's data server runs on. See
+  The hostname that the Alluxio worker's data server runs on. See
   <a href="#configure-multihomed-networks">multi-homed networks</a>
 alluxio.worker.data.folder:
-  A relative path within each storage directory used as the data folder for Tachyon worker to put data for tiered store.
+  A relative path within each storage directory used as the data folder for Alluxio worker to put data for tiered store.
 alluxio.worker.data.port:
-  The port Tachyon's worker's data server runs on.
+  The port Alluxio's worker's data server runs on.
 alluxio.worker.data.server.class:
   "Selects the networking stack to run the worker with. Valid options are:
   `alluxio.worker.netty.NettyDataServer`, `alluxio.worker.nio.NIODataServer`."
@@ -39,7 +39,7 @@ alluxio.worker.file.persist.pool.size:
 alluxio.worker.filesystem.heartbeat.interval.ms:
   The heartbeat interval (in milliseconds) between the worker and file system master.
 alluxio.worker.hostname:
-  The hostname of Tachyon worker.
+  The hostname of Alluxio worker.
 alluxio.worker.memory.size:
   Memory capacity of each worker node.
 alluxio.worker.network.netty.boss.threads:
@@ -62,12 +62,12 @@ alluxio.worker.network.netty.watermark.low:
 alluxio.worker.network.netty.worker.threads:
   "How many threads to use for processing requests. Zero defaults to #cpuCores * 2."
 alluxio.worker.port:
-  The port Tachyon's worker node runs on.
+  The port Alluxio's worker node runs on.
 alluxio.worker.session.timeout.ms:
   Timeout (in milliseconds) between worker and client connection indicating a lost session
   connection.
 alluxio.worker.tieredstore.block.locks:
-  Total number of block locks for a Tachyon block worker. Larger value leads to finer locking
+  Total number of block locks for a Alluxio block worker. Larger value leads to finer locking
   granularity, but uses more space.
 alluxio.worker.tieredstore.levels:
   The number of storage tiers on the worker
@@ -89,12 +89,12 @@ alluxio.worker.tieredstore.reserver.interval.ms:
   The time period (in milliseconds) of space reserver service, which keeps certain portion of
   available space on each layer.
 alluxio.worker.web.bind.host:
-  The hostname Tachyon worker's web server binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
+  The hostname Alluxio worker's web server binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
 alluxio.worker.web.hostname:
-  The hostname Tachyon worker's web UI binds to.
+  The hostname Alluxio worker's web UI binds to.
 alluxio.worker.web.port:
-  The port Tachyon worker's web UI runs on.
+  The port Alluxio worker's web UI runs on.
 alluxio.worker.keytab.file:
-  Kerberos keytab file for Tachyon worker.
+  Kerberos keytab file for Alluxio worker.
 alluxio.worker.principal:
-  Kerberos principal for Tachyon worker.
+  Kerberos principal for Alluxio worker.
