@@ -15,7 +15,7 @@
 
 package alluxio.client.block;
 
-import alluxio.ClientBase;
+import alluxio.AbstractClient;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
@@ -59,7 +59,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * thread safety.
  */
 @ThreadSafe
-public final class BlockWorkerClient extends ClientBase {
+public final class BlockWorkerClient extends AbstractClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
 

@@ -18,7 +18,7 @@ package alluxio.master.journal;
 /**
  * Unit tests for {@link ProtoBufJournalFormatter}.
  */
-public class ProtoBufJournalFormatterTest extends JournalFormatterTestBase {
+public final class ProtoBufJournalFormatterTest extends AbstractJournalFormatterTest {
   @Override
   protected JournalFormatter getFormatter() {
     return new ProtoBufJournalFormatter();

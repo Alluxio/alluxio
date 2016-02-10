@@ -54,7 +54,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * when {@link #mStepFactor} is close to 1.
  */
 @NotThreadSafe
-public final class LRFUEvictor extends EvictorBase {
+public final class LRFUEvictor extends AbstractEvictor {
   // Map from block id to the last updated logic time count
   private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMap<Long, Long>();
   // Map from block id to the CRF value of the block

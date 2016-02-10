@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Utility functions for the evictor package.
  */
 @ThreadSafe
-// TODO(calvin): This could be moved into EvictorBase.
+// TODO(calvin): This could be moved into AbstractEvictor.
 public final class EvictorUtils {
 
   /**

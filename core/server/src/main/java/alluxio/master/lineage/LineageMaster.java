@@ -30,7 +30,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
-import alluxio.master.MasterBase;
+import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
@@ -76,7 +76,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * manage all lineage-related activities.
  */
 @NotThreadSafe
-public final class LineageMaster extends MasterBase {
+public final class LineageMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Configuration mConfiguration;

@@ -26,8 +26,8 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.evictor.Evictor;
+import alluxio.worker.block.meta.AbstractBlockMeta;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.BlockMetaBase;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
@@ -212,7 +212,7 @@ public final class BlockMetadataManager {
    * @return the path of this block in this location
    */
   public String getBlockPath(long blockId, BlockStoreLocation location) {
-    return BlockMetaBase.commitPath(getDir(location), blockId);
+    return AbstractBlockMeta.commitPath(getDir(location), blockId);
   }
 
   /**
