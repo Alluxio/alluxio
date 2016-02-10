@@ -26,24 +26,15 @@ Tachyon除了提供[Filesystem API](File-System-API.html) 让应用程序来读�
 
 要想用Java代码获取一个Tachyon键值存储客户端实例，可以使用:
 
-```java
-KeyValueSystem kvs = KeyValueSystem.Factory().get();
-```
+{% include Key-Value-Store-API/get-key-value-system.md %}
 
 ## 创建一个新的键值存储
 
 可以通过调用`KeyValueSystem#createStore(TachyonURI)`来创建一个新的键值存储。将返回一个writer用于后续
 加入键值对。可以参照下面的例子：
 
-```java
-KeyValueStoreWriter writer = kvs.createStore(new TachyonURI("tachyon://path/my-kvstore"));
-// Insert key-value pair ("100", "foo")
-writer.put("100", "foo");
-// Insert key-value pair ("200", "bar")
-writer.put("200", "bar");
-// Close and complete the store
-writer.close();
-```
+{% include Key-Value-Store-API/create-new-key-value.md %}
+
 需要注意的是, 
 
 * 在writer关闭之前，该键值存储是不完整的并且不可用;
@@ -56,30 +47,13 @@ writer.close();
 可以通过调用`KeyValueSystem#openStore(TachyonURI)`来读取一个完整的键值存储。将返回一个reader用于后续
 基于键的值读取。可以参照下面的例子：
 
-```java
-KeyValueStoreReader reader = kvs.openStore(new TachyonURI("tachyon://path/kvstore/"));
-// Return "foo"
-reader.get("100"); 
-// Return null as no value associated with "300"
-reader.get("300");
-// Close the reader on the store
-reader.close();
-```
+{% include Key-Value-Store-API/read-value.md %}
+
 ## 通过迭代器遍历存储中的键值对
 
 可以参照下面的例子：
 
-```java
-KeyValueStoreReader reader = kvs.openStore(new TachyonURI("tachyon://path/kvstore/"));
-KeyValueIterator iterator = reader.iterator();
-while (iterator.hasNext()) {
-  KeyValuePair pair = iterator.next();
-  ByteBuffer key = pair.getkKey();
-  ByteBuffer value = pair.getValue();
-}
-// Close the reader on the store
-reader.close()
-```
+{% include Key-Value-Store-API/iterate-key-values.md %}
 
 # 在Hadoop MapReduce内访问键值存储
  
@@ -88,23 +62,14 @@ reader.close()
 Tachyon提供了一种`InputFormat`的实现使得Hadoop MapReduce程序可以访问键值存储。它使用一个key-value 
 URI作为参数，把键值对放入键值存储内。
  
-```java
-conf.setInputFormat(KeyValueInputFormat.class);
-FileInputFormat.setInputPaths(conf, new Path("tachyon://input-store"));
-```
+{% include Key-Value-Store-API/set-input-format.md %}
 
 
 ## MapReduce OutputFormat
 Tachyon同时提供了一种`OutputFormat`的实现使得Hadoop MapReduce程序可以创建一个键值存储。它使用一个
 key-value URI作为参数把键值对放入键值存储内。
  
-```java
-conf.setOutputKeyClass(BytesWritable.class);
-conf.setOutputValueClass(BytesWritable.class);
-conf.setOutputFormat(KeyValueOutputFormat.class);
-conf.setOutputCommitter(KeyValueOutputCommitter.class);
-FileOutputFormat.setOutputPath(conf, new Path("tachyon://output-store"));
-```
+{% include Key-Value-Store-API/set-output-format.md %}
 
 # 键值存储配置参数
 
@@ -113,20 +78,4 @@ Tachyon默认配置是禁用键值存储的，可以通过配置`tachyon.keyvalu
 
 以下是键值存储的配置参数：
 
-<table class="table table-striped">
-<tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
-<tr>
-  <td>tachyon.keyvalue.enabled</td>
-  <td>false</td>
-  <td>
-  Whether the keyvalue interface is enabled.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.keyvalue.partition.size.bytes.max</td>
-  <td>512MB
-  <td>
-  Maximum size of each partition.
-  </td>
-</tr>
-</table>
+{% include Key-Value-Store-API/key-value-configuration.md %}
