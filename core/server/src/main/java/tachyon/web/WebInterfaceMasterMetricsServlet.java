@@ -95,7 +95,8 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
         .get(CommonUtils.argsToString(".", masterSource.getName(), MasterSource.CAPACITY_USED))
         .getValue();
 
-    int masterCapacityUsedPercentage = (int) (100L * masterCapacityUsed / masterCapacityTotal);
+    int masterCapacityUsedPercentage =
+        (masterCapacityTotal > 0) ? (int) (100L * masterCapacityUsed / masterCapacityTotal) : 0;
     request.setAttribute("masterCapacityUsedPercentage", masterCapacityUsedPercentage);
     request.setAttribute("masterCapacityFreePercentage", 100 - masterCapacityUsedPercentage);
 
@@ -106,8 +107,8 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
         CommonUtils.argsToString(".", masterSource.getName(), MasterSource.UFS_CAPACITY_USED))
         .getValue();
 
-    int masterUnderfsCapacityUsedPercentage =
-        (int) (100L * masterUnderfsCapacityUsed / masterUnderfsCapacityTotal);
+    int masterUnderfsCapacityUsedPercentage = (masterUnderfsCapacityTotal > 0)
+        ? (int) (100L * masterUnderfsCapacityUsed / masterUnderfsCapacityTotal) : 0;
     request.setAttribute("masterUnderfsCapacityUsedPercentage",
         masterUnderfsCapacityUsedPercentage);
     request.setAttribute("masterUnderfsCapacityFreePercentage",
