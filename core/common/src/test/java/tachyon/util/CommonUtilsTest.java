@@ -60,7 +60,7 @@ public class CommonUtilsTest {
    * Tests the {@link CommonUtils#listToString(List)} method.
    */
   @Test
-  public void listToStringTest() {
+  public void argsToStringTest() {
     Assert.assertEquals("", CommonUtils.argsToString(".",""));
     Assert.assertEquals("foo", CommonUtils.argsToString(".","foo"));
     Assert.assertEquals("foo,bar", CommonUtils.argsToString(",", "foo", "bar"));
@@ -72,7 +72,7 @@ public class CommonUtilsTest {
    * Tests the {@link CommonUtils#argsToString(String, Object[])} method.
    */
   @Test
-  public void argsToStringTest() {
+  public void listToStringTest() {
     class TestCase {
       List<Object> mInput;
       String mExpected;

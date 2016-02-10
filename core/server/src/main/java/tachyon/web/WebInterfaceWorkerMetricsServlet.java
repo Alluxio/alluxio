@@ -29,27 +29,27 @@ import com.codahale.metrics.MetricRegistry;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.metrics.MetricsSystem;
 import tachyon.util.CommonUtils;
-import tachyon.worker.TachyonWorker;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 
 /**
- * Servlet that provides data for viewing the worker metrics values
+ * Servlet that provides data for viewing the worker metrics values.
  */
 public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstractMetricsServlet {
 
   private static final long serialVersionUID = -1481253168100363787L;
-  private final transient TachyonWorker mWorker;
+  private final transient MetricsSystem mWorkerMetricsSystem;
 
   /**
    * Creates a new instance of {@link WebInterfaceWorkerMetricsServlet}.
    *
-   * @param worker Tachyon worker
+   * @param workerMetricsSystem Tachyon worker metrics system
    */
-  public WebInterfaceWorkerMetricsServlet(TachyonWorker worker) {
+  public WebInterfaceWorkerMetricsServlet(MetricsSystem workerMetricsSystem) {
     super();
-    mWorker = Preconditions.checkNotNull(worker);
+    mWorkerMetricsSystem = Preconditions.checkNotNull(workerMetricsSystem);
   }
 
   /**
@@ -81,7 +81,7 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
    * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    MetricRegistry mr = mWorker.getWorkerMetricsSystem().getMetricRegistry();
+    MetricRegistry mr = mWorkerMetricsSystem.getMetricRegistry();
 
     WorkerSource workerSource = WorkerContext.getWorkerSource();
 
@@ -116,6 +116,6 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
         CommonUtils.argsToString(".", workerSource.getName(), WorkerSource.BLOCKS_CACHED);
     operations.put(blockCachedProperty, mr.getGauges().get(blockCachedProperty));
 
-    populateCountersValues(operations, rpcInvocations, request);
+    populateCounterValues(operations, rpcInvocations, request);
   }
 }

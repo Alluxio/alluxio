@@ -46,9 +46,8 @@ public final class WorkerUIWebServer extends UIWebServer {
    * @param conf Tachyon configuration
    */
   public WorkerUIWebServer(ServiceType serviceType, InetSocketAddress webAddress,
-                           TachyonWorker tachyonWorker, BlockWorker blockWorker,
-                           InetSocketAddress workerAddress, long startTimeMs,
-                           TachyonConf conf) {
+      TachyonWorker tachyonWorker, BlockWorker blockWorker, InetSocketAddress workerAddress,
+      long startTimeMs, TachyonConf conf) {
     super(serviceType, webAddress, conf);
     Preconditions.checkNotNull(blockWorker, "Block Worker cannot be null");
     Preconditions.checkNotNull(workerAddress, "Worker address cannot be null");
@@ -63,6 +62,6 @@ public final class WorkerUIWebServer extends UIWebServer {
         "/browseLogs");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet(conf)), "/header");
     mWebAppContext.addServlet(new ServletHolder(new
-        WebInterfaceWorkerMetricsServlet(tachyonWorker)), "/metricsui");
+        WebInterfaceWorkerMetricsServlet(tachyonWorker.getWorkerMetricsSystem())), "/metricsui");
   }
 }

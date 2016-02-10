@@ -60,9 +60,9 @@ The following shows the details of the available metrics.
 * CapacityUsed: Used capacity of the file system in bytes.
 * CapacityFree: Free capacity of the file system in bytes.
 * PathsTotal: Total number of files and directories in the file system.
-* UnderFsCapacityTotal: Total capacity of the under file system in bytes.
-* UnderFsCapacityUsed: Used capacity of the under file system in bytes.
-* UnderFsCapacityFree: Free capacity of the under file system in bytes.
+* UfsCapacityTotal: Total capacity of the under file system in bytes.
+* UfsCapacityUsed: Used capacity of the under file system in bytes.
+* UfsCapacityFree: Free capacity of the under file system in bytes.
 * Workers: Number of the workers.
 
 ### Logical Operations
