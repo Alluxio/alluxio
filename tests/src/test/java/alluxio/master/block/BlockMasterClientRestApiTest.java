@@ -71,18 +71,18 @@ public class BlockMasterClientRestApiTest extends AbstractRestApiTest {
 
     // Create test cases.
     List<TestCase> testCases = Lists.newArrayList();
-    testCases.add(new TestCase(BlockMasterClientRestServiceHandler.SERVICE_NAME,
+    testCases.add(new MasterTestCase(BlockMasterClientRestServiceHandler.SERVICE_NAME,
         Maps.<String, String>newHashMap(), "GET", Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME));
-    testCases.add(new TestCase(BlockMasterClientRestServiceHandler.SERVICE_VERSION,
+    testCases.add(new MasterTestCase(BlockMasterClientRestServiceHandler.SERVICE_VERSION,
         Maps.<String, String>newHashMap(), "GET", Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION));
     testCases.add(
-        new TestCase(BlockMasterClientRestServiceHandler.GET_BLOCK_INFO, getBlockInfoParams, "GET",
-            blockInfo));
-    testCases.add(new TestCase(BlockMasterClientRestServiceHandler.GET_CAPACITY_BYTES,
+        new MasterTestCase(BlockMasterClientRestServiceHandler.GET_BLOCK_INFO, getBlockInfoParams,
+            "GET", blockInfo));
+    testCases.add(new MasterTestCase(BlockMasterClientRestServiceHandler.GET_CAPACITY_BYTES,
         Maps.<String, String>newHashMap(), "GET", capacityBytes));
-    testCases.add(new TestCase(BlockMasterClientRestServiceHandler.GET_USED_BYTES,
+    testCases.add(new MasterTestCase(BlockMasterClientRestServiceHandler.GET_USED_BYTES,
         Maps.<String, String>newHashMap(), "GET", usedBytes));
-    testCases.add(new TestCase(BlockMasterClientRestServiceHandler.GET_WORKER_INFO_LIST,
+    testCases.add(new MasterTestCase(BlockMasterClientRestServiceHandler.GET_WORKER_INFO_LIST,
         Maps.<String, String>newHashMap(), "GET", workerInfos));
 
     // Execute test cases.

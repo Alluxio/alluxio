@@ -233,7 +233,7 @@ public final class BlockWorkerClientRestServiceHandler {
   @Path(UNLOCK_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
   public Response unlockBlock(@QueryParam("sessionId") long sessionId,
-                              @QueryParam("blockId") long blockId) {
+      @QueryParam("blockId") long blockId) {
     try {
       mBlockWorker.unlockBlock(sessionId, blockId);
       return Response.ok().build();
