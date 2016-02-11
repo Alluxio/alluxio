@@ -42,7 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * mostly consists of journal operations, like initialization, journal tailing when in standby mode,
  * or journal writing when the master is the leader.
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1664)
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public abstract class AbstractMaster implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

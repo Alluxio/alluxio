@@ -1,9 +1,9 @@
 alluxio.master.bind.host:
-  Tachyon master绑定的主机名。参考<a href="#configure-multihomed-networks">多宿主网络</a>
+  Alluxio master绑定的主机名。参考<a href="#configure-multihomed-networks">多宿主网络</a>
 alluxio.master.heartbeat.interval.ms:
-  Tachyon master心跳间隔（单位：毫秒）。
+  Alluxio master心跳间隔（单位：毫秒）。
 alluxio.master.hostname:
-  Tachyon master主机名。
+  Alluxio master主机名。
 alluxio.master.format.file_prefix:
   当journal被格式化时，在joural文件夹下生成的文件的文件名前缀。当判断journal是否被格式化时master会查找文件名以该前缀开头的文件。
 alluxio.master.journal.folder:
@@ -17,27 +17,27 @@ alluxio.master.journal.tailer.&#8203;shutdown.quiet.wait.time.ms:
 alluxio.master.journal.tailer.sleep.time.ms:
   指定当备用master无法检测到leader master journal的更新时，其睡眠时间（单位：毫秒）。
 alluxio.master.lineage.checkpoint.interval.ms:
-  Tachyon checkpoint机制的时间间隔（单位：毫秒）。
+  Alluxio checkpoint机制的时间间隔（单位：毫秒）。
 alluxio.master.lineage.checkpoint.class:
   用于生成lineage文件的checkpoint策略的类名，默认的策略是将最新的完整的lineage作为检查点，即所有输出文件都完成了的lineage。
 alluxio.master.lineage.recompute.interval.ms:
-  Tachyon执行重新计算任务的时间间隔（单位：毫秒），executor根据lineage扫描到所有丢失的文件，然后重新执行对应的计算任务。
+  Alluxio执行重新计算任务的时间间隔（单位：毫秒），executor根据lineage扫描到所有丢失的文件，然后重新执行对应的计算任务。
 alluxio.master.lineage.recompute.log.path:
   执行重新计算任务时将日志的标准输出重定向到该配置项指定的路径。
 alluxio.master.port:
-  Tachyon master的运行端口。
+  Alluxio master的运行端口。
 alluxio.master.retry:
   client尝试与master相连的最大重试次数。
 alluxio.master.ttlchecker.interval.ms:
   清除过期ttl值的文件任务的时间间隔（单位：毫秒）。
 alluxio.master.web.bind.host:
-  Tachyon master web UI绑定的主机名。参考<a href="#configure-multihomed-networks">多宿主网络</a>
+  Alluxio master web UI绑定的主机名。参考<a href="#configure-multihomed-networks">多宿主网络</a>
 alluxio.master.web.hostname:
-  提供Tachyon Master web UI的主机名。
+  提供Alluxio Master web UI的主机名。
 alluxio.master.web.port:
-  Tachyon web UI运行端口。
+  Alluxio web UI运行端口。
 alluxio.master.whitelist:
-  以该配置中的前缀开头的路径是可缓存的，这些前缀用分号隔开。Tachyon在第一次读这些文件时会尝试缓存这些可缓存的文件。
+  以该配置中的前缀开头的路径是可缓存的，这些前缀用分号隔开。Alluxio在第一次读这些文件时会尝试缓存这些可缓存的文件。
 alluxio.master.worker.threads.max:
   与master相连的最大worker数目。
 alluxio.master.worker.timeout.ms:
@@ -51,6 +51,6 @@ alluxio.master.tieredstore.global.level1.alias:
 alluxio.master.tieredstore.global.level2.alias:
   整个系统中第三存储层的名称。
 alluxio.master.keytab.file:
-  Tachyon master的Kerberos密钥表文件。
+  Alluxio master的Kerberos密钥表文件。
 alluxio.master.principal:
-  Tachyon master的Kerberos主体。
+  Alluxio master的Kerberos主体。

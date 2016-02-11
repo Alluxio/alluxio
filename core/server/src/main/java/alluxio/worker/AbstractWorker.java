@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This is the base class for all workers, and contains common functionality.
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. TACHYON-1624)
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public abstract class AbstractWorker implements Worker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The executor service for the master sync. */
