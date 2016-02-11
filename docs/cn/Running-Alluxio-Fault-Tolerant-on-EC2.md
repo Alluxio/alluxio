@@ -62,10 +62,10 @@ priority: 4
 在`deploy/vagrant/conf/alluxio.yml`配置文件中，将`Masters`设置为你想要的AlluxioMasters的数量，在容错
 模式下，`Masters`的值应该大于1。
 
-Vagrant脚本默认会在[该区域(**us-east-1**)和可用区域(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)中创建一个名为*alluxio-vagrant-test*的[安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
+Vagrant脚本默认会在[该区域(**us-east-1**)和可用区域(**us-east-1b**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)中创建一个名为*alluxio-vagrant-test*的[安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
 该安全组会在区域中自动建立，并且所有inbound及outbound网络流量都将打开。你可以在`ec2.yml`配置文件中设置*security group*、*region*以及*availability zone*的值。
 
-现在你可以以Hadoop2.4.1为底层文件系统，在us-east-1a下启动Alluxio集群了，在`deploy/vagrant`目录下运行：
+现在你可以以Hadoop2.4.1为底层文件系统，在us-east-1b下启动Alluxio集群了，在`deploy/vagrant`目录下运行：
 
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/launch-cluster.md %}
 
