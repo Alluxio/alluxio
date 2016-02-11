@@ -15,20 +15,16 @@
 
 package alluxio.master.block;
 
-import static org.mockito.Mockito.when;
-
+import alluxio.AbstractRestApiTest;
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.master.AlluxioMaster;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockInfoTest;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerInfoTest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import org.junit.Assert;
-import org.junit.Rule;
+import com.google.common.collect.Maps;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -37,107 +33,65 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
-
-import javax.ws.rs.core.Response;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMaster.class)
-public class BlockMasterClientRestApiTest {
-  @Rule
-  public LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
+public class BlockMasterClientRestApiTest extends AbstractRestApiTest {
 
-  private URL createURL(String suffix) throws Exception {
-    return new URL(
-        "http://" + mResource.get().getMasterHostname() + ":" + mResource.get().getMaster()
-            .getWebLocalPort() + "/v1/api/" + suffix);
-  }
-
-  private String getResponse(HttpURLConnection connection) throws Exception {
-    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-    StringBuffer response = new StringBuffer();
-
-    String inputLine;
-    while ((inputLine = in.readLine()) != null) {
-      response.append(inputLine);
-    }
-    in.close();
-
-    return response.toString();
-  }
-
-  public class TestCase {
-    public String mSuffix;
-    public String mMethod;
-    public Object mExpectedResult;
-
-    public TestCase(String suffix, String method, Object expectedResult) {
-      mSuffix = suffix;
-      mMethod = method;
-      mExpectedResult = expectedResult;
-    }
-
-    public String getSuffix() {
-      return mSuffix;
-    }
-
-    public String getMethod() {
-      return mMethod;
-    }
-
-    public Object getExpectedResult() {
-      return mExpectedResult;
-    }
-  }
-
+  @Override
   @Test
   public void endpointsTest() throws Exception {
-    BlockInfo blockInfo = BlockInfoTest.createRandom();
+    // Create test input values.
+    Map<String, String> getBlockInfoParams = Maps.newHashMap();
+    getBlockInfoParams.put("blockId", "1");
+
+    // Generate random return values.
     Random random = new Random();
+    BlockInfo blockInfo = BlockInfoTest.createRandom();
     long capacityBytes = random.nextLong();
     long usedBytes = random.nextLong();
     List<WorkerInfo> workerInfos = Lists.newArrayList();
-    workerInfos.add(WorkerInfoTest.createRandom());
+    int numWorkerInfos = random.nextInt(10);
+    for (int i = 0; i < numWorkerInfos; i++) {
+      workerInfos.add(WorkerInfoTest.createRandom());
+    }
 
+    // Set up mocks.
     BlockMaster blockMaster = PowerMockito.mock(BlockMaster.class);
-    when(blockMaster.getBlockInfo(Mockito.anyLong())).thenReturn(blockInfo);
-    when(blockMaster.getCapacityBytes()).thenReturn(capacityBytes);
-    when(blockMaster.getUsedBytes()).thenReturn(usedBytes);
-    when(blockMaster.getWorkerInfoList()).thenReturn(workerInfos);
-
+    Mockito.doReturn(blockInfo).when(blockMaster).getBlockInfo(Mockito.anyLong());
+    Mockito.doReturn(capacityBytes).when(blockMaster).getCapacityBytes();
+    Mockito.doReturn(usedBytes).when(blockMaster).getUsedBytes();
+    Mockito.doReturn(workerInfos).when(blockMaster).getWorkerInfoList();
     AlluxioMaster alluxioMaster = PowerMockito.mock(AlluxioMaster.class);
-    when(alluxioMaster.getBlockMaster()).thenReturn(blockMaster);
+    Mockito.doReturn(blockMaster).when(alluxioMaster).getBlockMaster();
     Whitebox.setInternalState(AlluxioMaster.class, "sAlluxioMaster", alluxioMaster);
 
+    // Create test cases.
     List<TestCase> testCases = Lists.newArrayList();
-    testCases.add(new TestCase(BlockMasterClientRestServiceHandler.SERVICE_NAME, "GET",
-        Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME));
-    testCases.add(new TestCase(BlockMasterClientRestServiceHandler.SERVICE_VERSION, "GET",
-        Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION));
-    testCases
-        .add(new TestCase(BlockMasterClientRestServiceHandler.GET_BLOCK_INFO, "GET", blockInfo));
+    testCases.add(new TestCase(BlockMasterClientRestServiceHandler.SERVICE_NAME,
+        Maps.<String, String>newHashMap(), "GET", Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME));
+    testCases.add(new TestCase(BlockMasterClientRestServiceHandler.SERVICE_VERSION,
+        Maps.<String, String>newHashMap(), "GET", Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION));
     testCases.add(
-        new TestCase(BlockMasterClientRestServiceHandler.GET_CAPACITY_BYTES, "GET", capacityBytes));
-    testCases
-        .add(new TestCase(BlockMasterClientRestServiceHandler.GET_USED_BYTES, "GET", usedBytes));
-    testCases.add(
-        new TestCase(BlockMasterClientRestServiceHandler.GET_WORKER_INFO_LIST, "GET", workerInfos));
+        new TestCase(BlockMasterClientRestServiceHandler.GET_BLOCK_INFO, getBlockInfoParams, "GET",
+            blockInfo));
+    testCases.add(new TestCase(BlockMasterClientRestServiceHandler.GET_CAPACITY_BYTES,
+        Maps.<String, String>newHashMap(), "GET", capacityBytes));
+    testCases.add(new TestCase(BlockMasterClientRestServiceHandler.GET_USED_BYTES,
+        Maps.<String, String>newHashMap(), "GET", usedBytes));
+    testCases.add(new TestCase(BlockMasterClientRestServiceHandler.GET_WORKER_INFO_LIST,
+        Maps.<String, String>newHashMap(), "GET", workerInfos));
 
-    for (TestCase testCase : testCases) {
-      HttpURLConnection connection =
-          (HttpURLConnection) createURL(testCase.getSuffix()).openConnection();
-      connection.setRequestMethod(testCase.getMethod());
-      connection.connect();
-      Assert.assertEquals(connection.getResponseCode(), Response.Status.OK.getStatusCode());
-      ObjectMapper mapper = new ObjectMapper();
-      String expected = mapper.writeValueAsString(testCase.getExpectedResult());
-      expected = expected.replaceAll("^\"|\"$", ""); // needed to handle string return values
-      Assert.assertEquals(expected, getResponse(connection));
-    }
+    // Execute test cases.
+    run(testCases);
+
+    // Verify invocations.
+    Mockito.verify(blockMaster).getBlockInfo(Mockito.anyLong());
+    Mockito.verify(blockMaster).getCapacityBytes();
+    Mockito.verify(blockMaster).getUsedBytes();
+    Mockito.verify(blockMaster).getWorkerInfoList();
   }
 }

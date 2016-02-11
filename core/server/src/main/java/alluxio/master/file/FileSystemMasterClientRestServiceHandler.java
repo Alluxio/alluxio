@@ -46,6 +46,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   public static final String COMPLETE_FILE = "file/complete_file";
   public static final String CREATE_DIRECTORY = "file/create_directory";
   public static final String GET_FILE_BLOCK_INFO_LIST = "file/file_block_info_list";
+  public static final String GET_NEW_BLOCK_ID_FOR_FILE = "file/new_block_id_for_file";
   public static final String GET_STATUS = "file/status";
   public static final String GET_STATUS_INTERNAL = "file/status_internal";
   public static final String GET_UFS_ADDRESS = "file/ufs_address";
@@ -53,7 +54,6 @@ public final class FileSystemMasterClientRestServiceHandler {
   public static final String LIST_STATUS = "file/list_status";
   public static final String LOAD_METADATA = "file/load_metadata";
   public static final String MOUNT = "file/mount";
-  public static final String NEW_BLOCK_ID_FOR_FILE = "file/new_block_id_for_file";
   public static final String REMOVE = "file/remove";
   public static final String RENAME = "file/rename";
   public static final String SCHEDULE_ASYNC_PERSIST = "file/schedule_async_persist";
@@ -91,7 +91,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   @Path(COMPLETE_FILE)
   @Produces(MediaType.APPLICATION_JSON)
   public Response completeFile(@QueryParam("path") String path,
-                               @QueryParam("ufsLength") long ufsLength) {
+      @QueryParam("ufsLength") long ufsLength) {
     try {
       CompleteFileOptions options =
           new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(ufsLength).build();
@@ -144,6 +144,60 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @param path the file path
+   * @return the response object
+   */
+  @POST
+  @Path(GET_NEW_BLOCK_ID_FOR_FILE)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getNewBlockIdForFile(@QueryParam("path") String path) {
+    try {
+      return Response.ok(mFileSystemMaster.getNewBlockIdForFile(new AlluxioURI(path))).build();
+    } catch (AlluxioException e) {
+      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    }
+  }
+  /**
+   * @param path the file path
+   * @return the response object
+   */
+  @GET
+  @Path(GET_STATUS)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getStatus(@QueryParam("path") String path) {
+    try {
+      return Response.ok(mFileSystemMaster.getFileInfo(new AlluxioURI(path))).build();
+    } catch (AlluxioException e) {
+      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    }
+  }
+
+  /**
+   * @param fileId the file id
+   * @return the response path
+   */
+  @GET
+  @Path(GET_STATUS_INTERNAL)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getStatusInternal(@QueryParam("fileId") long fileId) {
+    try {
+      return Response.ok(mFileSystemMaster.getFileInfo(fileId)).build();
+    } catch (AlluxioException e) {
+      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    }
+  }
+
+  /**
+   * @return the response object
+   */
+  @GET
+  @Path(GET_UFS_ADDRESS)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getUfsAddress() {
+    return Response.ok(mFileSystemMaster.getUfsAddress()).build();
+  }
+
+  /**
    * @param path the path
    * @param recursive whether the path should be freed recursively
    * @return the response object
@@ -177,18 +231,17 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
-   * @param alluxioPath the alluxio path to load metadata for
+   * @param path the alluxio path to load metadata for
    * @param recursive whether metadata should be loaded recursively
    * @return the response object
    */
   @POST
   @Path(LOAD_METADATA)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response loadMetadata(@QueryParam("alluxioPath") String alluxioPath,
+  public Response loadMetadata(@QueryParam("path") String path,
       @QueryParam("recursive") boolean recursive) {
     try {
-      return Response.ok(mFileSystemMaster.loadMetadata(new AlluxioURI(alluxioPath), recursive))
-          .build();
+      return Response.ok(mFileSystemMaster.loadMetadata(new AlluxioURI(path), recursive)).build();
     } catch (AlluxioException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     } catch (IOException e) {
@@ -197,36 +250,20 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
-   * @param alluxioPath the alluxio mount point
+   * @param path the alluxio mount point
    * @param ufsPath the UFS path to mount
    * @return the response object
    */
   @POST
   @Path(MOUNT)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response mount(@QueryParam("alluxioPath") String alluxioPath,
-      @QueryParam("ufsPath") String ufsPath) {
+  public Response mount(@QueryParam("path") String path, @QueryParam("ufsPath") String ufsPath) {
     try {
-      mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath));
+      mFileSystemMaster.mount(new AlluxioURI(path), new AlluxioURI(ufsPath));
       return Response.ok().build();
     } catch (AlluxioException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     } catch (IOException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
-    }
-  }
-
-  /**
-   * @param path the file path
-   * @return the response object
-   */
-  @POST
-  @Path(NEW_BLOCK_ID_FOR_FILE)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response getNewBlockIdForFile(@QueryParam("path") String path) {
-    try {
-      return Response.ok(mFileSystemMaster.getNewBlockIdForFile(new AlluxioURI(path))).build();
-    } catch (AlluxioException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
   }
@@ -275,7 +312,7 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param path the file path
    * @return the response object
    */
-  @GET
+  @POST
   @Path(SCHEDULE_ASYNC_PERSIST)
   @Produces(MediaType.APPLICATION_JSON)
   public Response scheduleAsyncPersist(@QueryParam("path") String path) {
@@ -321,47 +358,7 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param path the file path
    * @return the response object
    */
-  @GET
-  @Path(GET_STATUS)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response getStatus(@QueryParam("path") String path) {
-    try {
-      return Response.ok(mFileSystemMaster.getFileInfo(new AlluxioURI(path))).build();
-    } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
-    }
-  }
-
-  /**
-   * @param fileId the file id
-   * @return the response path
-   */
-  @GET
-  @Path(GET_STATUS_INTERNAL)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response getStatusInternal(@QueryParam("fileId") long fileId) {
-    try {
-      return Response.ok(mFileSystemMaster.getFileInfo(fileId)).build();
-    } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
-    }
-  }
-
-  /**
-   * @return the response object
-   */
-  @GET
-  @Path(GET_UFS_ADDRESS)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response getUfsAddress() {
-    return Response.ok(mFileSystemMaster.getUfsAddress()).build();
-  }
-
-  /**
-   * @param path the file path
-   * @return the response object
-   */
-  @GET
+  @POST
   @Path(UNMOUNT)
   @Produces(MediaType.APPLICATION_JSON)
   public Response unmount(@QueryParam("path") String path) {
