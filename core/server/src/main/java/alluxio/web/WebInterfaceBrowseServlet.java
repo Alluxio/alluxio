@@ -144,7 +144,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(mConfiguration).getName());
     }
     request.setAttribute("debug", mConfiguration.getBoolean(Constants.DEBUG));
-    request.setAttribute("viewLog", false);
+    request.setAttribute("showPermissions", false);
 
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("invalidPathError", "");
