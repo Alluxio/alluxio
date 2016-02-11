@@ -62,7 +62,7 @@ name and `Key_Path` to the path to the pem key.
 By default, the Vagrant script creates a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
 named *alluxio-vagrant-test* at
-[Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
+[Region(**us-east-1**) and Availability Zone(**us-east-1b**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
 The security group will be set up automatically in the region with all inbound/outbound network
 traffic opened. You can change the security group, region and availability zone in `ec2.yml`.
 
@@ -71,7 +71,7 @@ In the configuration file `deploy/vagrant/conf/mesos.yml`, set the value of `Typ
 release.
 
 Now you can launch the Mesos cluster and Alluxio Mesos Framework which in turn launches a Alluxio
-cluster with Hadoop version 2.4.1 as under filesystem in us-east-1a by running the script under
+cluster with Hadoop version 2.4.1 as under filesystem in us-east-1b by running the script under
 `deploy/vagrant`:
 
 {% include Running-Alluxio-on-EC2-Mesos/launch-cluster.md %}
