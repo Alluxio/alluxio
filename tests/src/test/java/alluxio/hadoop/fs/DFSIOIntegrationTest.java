@@ -302,7 +302,7 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_SKIP, execTime);
   }
 
-  // TODO(hy): Should active this unit test after TACHYON-25 has been solved
+  // TODO(hy): Should active this unit test after ALLUXIO-25 has been solved
   // @Test (timeout = 25000)
   public void testAppend() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =

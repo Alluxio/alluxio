@@ -87,18 +87,18 @@ public abstract class AbstractRestApiTest {
     for (Map.Entry<String, String> parameter : testCase.getParameters().entrySet()) {
       sb.append(parameter.getKey() + "=" + parameter.getValue() + "&");
     }
+    String hostname = "";
+    int port = 0;
     if (testCase.mService == MASTER_SERVICE) {
-      return new URL(
-          "http://" + mResource.get().getMasterHostname() + ":" + mResource.get().getWorker()
-              .getWebLocalPort() + "/v1/api/" + testCase.getSuffix() + "?" + sb.toString());
+      hostname = mResource.get().getMasterHostname();
+      port = mResource.get().getMaster().getWebLocalPort();
     }
     if (testCase.mService == WORKER_SERVICE) {
-      return new URL(
-          "http://" + mResource.get().getWorkerAddress().getHost() + ":" + mResource.get()
-              .getWorker().getWebLocalPort() + "/v1/api/" + testCase.getSuffix() + "?" + sb
-              .toString());
+      hostname = mResource.get().getWorkerAddress().getHost();
+      port = mResource.get().getWorkerAddress().getWebPort();
     }
-    return null;
+    return new URL("http://" + hostname + ":" + port + "/v1/api/" + testCase.getSuffix() + "?" + sb
+        .toString());
   }
 
   protected String getResponse(HttpURLConnection connection) throws Exception {

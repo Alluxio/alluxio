@@ -1,11 +1,11 @@
-Tachyon Documentation
+Alluxio Documentation
 =====================
 
-Welcome to the Tachyon documentation!
+Welcome to the Alluxio documentation!
 
-This README will walk you through navigating and building the Tachyon documentation, which is
-included here with the Tachyon source code. By building it yourself, you can be sure that you have
-the documentation that corresponds to whichever version of Tachyon you currently have checked out of
+This README will walk you through navigating and building the Alluxio documentation, which is
+included here with the Alluxio source code. By building it yourself, you can be sure that you have
+the documentation that corresponds to whichever version of Alluxio you currently have checked out of
 version control.
 
 Read on to learn more about viewing documentation in plain text (i.e., markdown) or building the
@@ -13,7 +13,7 @@ documentation yourself.
 
 ## Documentation Markdown
 
-We include the Tachyon documentation as part of the source (as opposed to using a hosted wiki, such
+We include the Alluxio documentation as part of the source (as opposed to using a hosted wiki, such
 as the Github wiki, as the definitive documentation) to enable the documentation to evolve along
 with the source code and be captured by revision control (currently git). This way the code
 automatically includes the version of the documentation that is relevant regardless of which version
@@ -53,5 +53,5 @@ at [http://localhost:4000](http://localhost:4000).
 
 ## Multi-lauguage Support
 
-The markdown files for Tachyon documentation in different languages are stored in separate
+The markdown files for Alluxio documentation in different languages are stored in separate
 directories, e.g., `docs/en` for English documentation and `docs/cn` for Chinese documentation.

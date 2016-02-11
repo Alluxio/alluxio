@@ -1,7 +1,7 @@
 alluxio.debug:
   设置为true后即可启用debug模式，会记录更多日志，且在Web UI中会显示更多信息。
 alluxio.home:
-  Tachyon安装目录。
+  Alluxio安装目录。
 alluxio.logs.dir:
   存放日志文件的路径。
 alluxio.keyvalue.enabled:
@@ -11,11 +11,11 @@ alluxio.keyvalue.partition.size.bytes.max:
 alluxio.metrics.conf.file:
   度量系统配置文件路径，默认是`conf`文件夹下的`metrics.properties`文件。
 alluxio.network.host.resolution.&#8203;timeout.ms:
-  Tachyon在启动Master和Worker过程中，需要确保它们在监听外部可达且可解析的主机名。如果没有显式指定主机名，Tachyon会自动尝试选择一个合适的主机名。该配置项指定用于判断一个候选主机名在网络上是否可达的最长等待时间。
+  Alluxio在启动Master和Worker过程中，需要确保它们在监听外部可达且可解析的主机名。如果没有显式指定主机名，Alluxio会自动尝试选择一个合适的主机名。该配置项指定用于判断一个候选主机名在网络上是否可达的最长等待时间。
 alluxio.test.mode:
   设置在测试过程中是否启用某些特殊行为。
 alluxio.underfs.address:
-  Tachyon在底层文件系统中的文件夹。
+  Alluxio在底层文件系统中的文件夹。
 alluxio.underfs.glusterfs.impl:
   作为底层存储系统的glusterFS的实现类，其提供的接口与Hadoop兼容。
 alluxio.underfs.glusterfs.mapred.&#8203;system.dir:
