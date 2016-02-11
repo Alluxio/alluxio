@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({LineageMaster.class})
 public class LineageMasterClientRestApiTest extends AbstractRestApiTest {
@@ -87,23 +86,20 @@ public class LineageMasterClientRestApiTest extends AbstractRestApiTest {
 
     // Create test cases.
     List<TestCase> testCases = Lists.newArrayList();
-    testCases.add(new TestCase(LineageMasterClientRestServiceHandler.SERVICE_NAME,
+    testCases.add(new MasterTestCase(LineageMasterClientRestServiceHandler.SERVICE_NAME,
         Maps.<String, String>newHashMap(), "GET", Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME));
-    testCases.add(new TestCase(LineageMasterClientRestServiceHandler.SERVICE_VERSION,
+    testCases.add(new MasterTestCase(LineageMasterClientRestServiceHandler.SERVICE_VERSION,
         Maps.<String, String>newHashMap(), "GET", Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION));
-    testCases.add(
-        new TestCase(LineageMasterClientRestServiceHandler.CREATE_LINEAGE, createLineageParams,
-            "POST", createLineageResult));
-    testCases.add(
-        new TestCase(LineageMasterClientRestServiceHandler.DELETE_LINEAGE, deleteLineageParams,
-            "POST", deleteLineageResult));
-    testCases.add(new TestCase(LineageMasterClientRestServiceHandler.GET_LINEAGE_INFO_LIST,
+    testCases.add(new MasterTestCase(LineageMasterClientRestServiceHandler.CREATE_LINEAGE,
+        createLineageParams, "POST", createLineageResult));
+    testCases.add(new MasterTestCase(LineageMasterClientRestServiceHandler.DELETE_LINEAGE,
+        deleteLineageParams, "POST", deleteLineageResult));
+    testCases.add(new MasterTestCase(LineageMasterClientRestServiceHandler.GET_LINEAGE_INFO_LIST,
         Maps.<String, String>newHashMap(), "GET", lineageInfos));
-    testCases.add(new TestCase(LineageMasterClientRestServiceHandler.REINITIALIZE_FILE,
+    testCases.add(new MasterTestCase(LineageMasterClientRestServiceHandler.REINITIALIZE_FILE,
         reinitializeFileParams, "POST", reinitializeFileResult));
-    testCases.add(
-        new TestCase(LineageMasterClientRestServiceHandler.REPORT_LOST_FILE, reportLostFileParams,
-            "POST", ""));
+    testCases.add(new MasterTestCase(LineageMasterClientRestServiceHandler.REPORT_LOST_FILE,
+        reportLostFileParams, "POST", ""));
 
     // Execute test cases.
     run(testCases);
@@ -114,7 +110,8 @@ public class LineageMasterClientRestApiTest extends AbstractRestApiTest {
             Mockito.<Job>any());
     Mockito.verify(lineageMaster).deleteLineage(Mockito.anyLong(), Mockito.anyBoolean());
     Mockito.verify(lineageMaster).getLineageInfoList();
-    Mockito.verify(lineageMaster).reinitializeFile(Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong());
+    Mockito.verify(lineageMaster)
+        .reinitializeFile(Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong());
     Mockito.verify(lineageMaster).reportLostFile(Mockito.anyString());
   }
 }

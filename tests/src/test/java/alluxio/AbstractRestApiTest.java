@@ -29,18 +29,23 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 
 public abstract class AbstractRestApiTest {
+  private static final String MASTER_SERVICE = "master";
+  private static final String WORKER_SERVICE = "worker";
+
   protected class TestCase {
     public String mSuffix;
     public Map<String,String> mParameters;
     public String mMethod;
     public Object mExpectedResult;
+    public String mService;
 
-    public TestCase(String suffix, Map<String, String> parameters, String method,
-        Object expectedResult) {
+    protected TestCase(String suffix, Map<String, String> parameters, String method,
+        Object expectedResult, String service) {
       mSuffix = suffix;
       mParameters = parameters;
       mMethod = method;
       mExpectedResult = expectedResult;
+      mService = service;
     }
 
     public String getSuffix() {
@@ -60,6 +65,20 @@ public abstract class AbstractRestApiTest {
     }
   }
 
+  public class MasterTestCase extends TestCase {
+    public MasterTestCase(String suffix, Map<String, String> parameters, String method,
+        Object expectedResult) {
+      super(suffix, parameters, method, expectedResult, MASTER_SERVICE);
+    }
+  }
+
+  public class WorkerTestCase extends TestCase {
+    public WorkerTestCase(String suffix, Map<String, String> parameters, String method,
+        Object expectedResult) {
+      super(suffix, parameters, method, expectedResult, WORKER_SERVICE);
+    }
+  }
+
   @Rule
   protected LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
 
@@ -68,9 +87,18 @@ public abstract class AbstractRestApiTest {
     for (Map.Entry<String, String> parameter : testCase.getParameters().entrySet()) {
       sb.append(parameter.getKey() + "=" + parameter.getValue() + "&");
     }
-    return new URL(
-        "http://" + mResource.get().getMasterHostname() + ":" + mResource.get().getMaster()
-            .getWebLocalPort() + "/v1/api/" + testCase.getSuffix() + "?" + sb.toString());
+    if (testCase.mService == MASTER_SERVICE) {
+      return new URL(
+          "http://" + mResource.get().getMasterHostname() + ":" + mResource.get().getWorker()
+              .getWebLocalPort() + "/v1/api/" + testCase.getSuffix() + "?" + sb.toString());
+    }
+    if (testCase.mService == WORKER_SERVICE) {
+      return new URL(
+          "http://" + mResource.get().getWorkerAddress().getHost() + ":" + mResource.get()
+              .getWorker().getWebLocalPort() + "/v1/api/" + testCase.getSuffix() + "?" + sb
+              .toString());
+    }
+    return null;
   }
 
   protected String getResponse(HttpURLConnection connection) throws Exception {

@@ -112,8 +112,8 @@ public class FileSystemMasterClientRestApiTest extends AbstractRestApiTest {
     FileInfo fileInfo = FileInfoTest.createRandom();
     long loadMetadataResult = random.nextLong();
     long scheduleAsyncPersistResult = random.nextLong();
-    int ufsAddressLength = random.nextInt(10);
     String ufsAddress = "";
+    int ufsAddressLength = random.nextInt(10);
     for (int i = 0; i < ufsAddressLength; i++) {
       ufsAddress += random.nextInt(96) + 32; // generates a random alphanumeric symbol
     }
@@ -140,49 +140,52 @@ public class FileSystemMasterClientRestApiTest extends AbstractRestApiTest {
 
     // Create test cases.
     List<TestCase> testCases = Lists.newArrayList();
-    testCases.add(new TestCase(FileSystemMasterClientRestServiceHandler.SERVICE_NAME,
+    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.SERVICE_NAME,
         Maps.<String, String>newHashMap(), "GET",
         Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME));
-    testCases.add(new TestCase(FileSystemMasterClientRestServiceHandler.SERVICE_VERSION,
+    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.SERVICE_VERSION,
         Maps.<String, String>newHashMap(), "GET",
         Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION));
-    testCases.add(
-        new TestCase(FileSystemMasterClientRestServiceHandler.COMPLETE_FILE, completeFileParams,
-            "POST", ""));
-    testCases.add(new TestCase(FileSystemMasterClientRestServiceHandler.CREATE_DIRECTORY,
+    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.COMPLETE_FILE,
+        completeFileParams, "POST", ""));
+    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.CREATE_DIRECTORY,
         createDirectoryParams, "POST", ""));
-    testCases.add(new TestCase(FileSystemMasterClientRestServiceHandler.GET_FILE_BLOCK_INFO_LIST,
-        getFileBlockInfoListParams, "GET", fileBlockInfos));
-    testCases.add(new TestCase(FileSystemMasterClientRestServiceHandler.GET_NEW_BLOCK_ID_FOR_FILE,
-        getNewBlockIdForFileParams, "POST", newBlockId));
     testCases.add(
-        new TestCase(FileSystemMasterClientRestServiceHandler.GET_STATUS, getStatusParams, "GET",
-            fileInfo));
-    testCases.add(new TestCase(FileSystemMasterClientRestServiceHandler.GET_STATUS_INTERNAL,
+        new MasterTestCase(FileSystemMasterClientRestServiceHandler.GET_FILE_BLOCK_INFO_LIST,
+            getFileBlockInfoListParams, "GET", fileBlockInfos));
+    testCases.add(
+        new MasterTestCase(FileSystemMasterClientRestServiceHandler.GET_NEW_BLOCK_ID_FOR_FILE,
+            getNewBlockIdForFileParams, "POST", newBlockId));
+    testCases.add(
+        new MasterTestCase(FileSystemMasterClientRestServiceHandler.GET_STATUS, getStatusParams,
+            "GET", fileInfo));
+    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.GET_STATUS_INTERNAL,
         getStatusInternalParams, "GET", fileInfo));
-    testCases.add(new TestCase(FileSystemMasterClientRestServiceHandler.GET_UFS_ADDRESS,
+    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.GET_UFS_ADDRESS,
         Maps.<String, String>newHashMap(), "GET", ufsAddress));
-    testCases
-        .add(new TestCase(FileSystemMasterClientRestServiceHandler.FREE, freeParams, "POST", ""));
     testCases.add(
-        new TestCase(FileSystemMasterClientRestServiceHandler.LIST_STATUS, listStatusParams, "GET",
-            fileInfos));
+        new MasterTestCase(FileSystemMasterClientRestServiceHandler.FREE, freeParams, "POST", ""));
     testCases.add(
-        new TestCase(FileSystemMasterClientRestServiceHandler.LOAD_METADATA, loadMetadataParams,
-            "POST", loadMetadataResult));
-    testCases
-        .add(new TestCase(FileSystemMasterClientRestServiceHandler.MOUNT, mountParams, "POST", ""));
+        new MasterTestCase(FileSystemMasterClientRestServiceHandler.LIST_STATUS, listStatusParams,
+            "GET", fileInfos));
+    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.LOAD_METADATA,
+        loadMetadataParams, "POST", loadMetadataResult));
     testCases.add(
-        new TestCase(FileSystemMasterClientRestServiceHandler.REMOVE, removeParams, "POST", ""));
+        new MasterTestCase(FileSystemMasterClientRestServiceHandler.MOUNT, mountParams, "POST",
+            ""));
     testCases.add(
-        new TestCase(FileSystemMasterClientRestServiceHandler.RENAME, renameParams, "POST", ""));
-    testCases.add(new TestCase(FileSystemMasterClientRestServiceHandler.SCHEDULE_ASYNC_PERSIST,
-        scheduleAsyncPersistParams, "POST", scheduleAsyncPersistResult));
+        new MasterTestCase(FileSystemMasterClientRestServiceHandler.REMOVE, removeParams, "POST",
+            ""));
     testCases.add(
-        new TestCase(FileSystemMasterClientRestServiceHandler.SET_ATTRIBUTE, setAttributeParams,
-            "PUT", ""));
+        new MasterTestCase(FileSystemMasterClientRestServiceHandler.RENAME, renameParams, "POST",
+            ""));
     testCases.add(
-        new TestCase(FileSystemMasterClientRestServiceHandler.UNMOUNT, unmountParams, "POST",
+        new MasterTestCase(FileSystemMasterClientRestServiceHandler.SCHEDULE_ASYNC_PERSIST,
+            scheduleAsyncPersistParams, "POST", scheduleAsyncPersistResult));
+    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.SET_ATTRIBUTE,
+        setAttributeParams, "PUT", ""));
+    testCases.add(
+        new MasterTestCase(FileSystemMasterClientRestServiceHandler.UNMOUNT, unmountParams, "POST",
             unmountResult));
 
     // Execute test cases.
