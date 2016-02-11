@@ -53,10 +53,10 @@ Alluxio可以由Apache YARN启动并管理。该向导介绍如何使用Alluxio�
 
 在`deploy/vagrant/conf/ec2.yml`配置文件中，将`Keypair`设置为你的keypair名，`Key_Path`设置成pem key路径。
 
-Vagrant脚本默认会在[区域(**us-east-1**)和可用区域(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)中创建一个名为*alluxio-vagrant-test*的[安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
+Vagrant脚本默认会在[区域(**us-east-1**)和可用区域(**us-east-1b**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)中创建一个名为*alluxio-vagrant-test*的[安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
 该安全组会在区域中自动建立，而且所有入站及出站的网络流量都将打开。你可以在`ec2.yml`配置文件中设置*security group*、*region*以及*availability zone*的值。
 
-现在可以启动Alluxio集群，该集群在in us-east-1a中以Hadoop2.4.1为底层文件系统，运行`deploy/vagrant`下的脚本：
+现在可以启动Alluxio集群，该集群在in us-east-1b中以Hadoop2.4.1为底层文件系统，运行`deploy/vagrant`下的脚本：
 
 {% include Running-Alluxio-on-EC2-Yarn/launch-Alluxio.md %}
 
