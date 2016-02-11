@@ -155,7 +155,7 @@ public final class LineageMasterClientRestServiceHandler {
    * @param path the file path
    * @return the response object
    */
-  @GET
+  @POST
   @Path(REPORT_LOST_FILE)
   @Produces(MediaType.APPLICATION_JSON)
   public Response reportLostFile(@QueryParam("path") String path) {
