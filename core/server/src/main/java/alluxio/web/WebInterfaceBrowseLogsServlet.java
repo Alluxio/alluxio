@@ -122,7 +122,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
     request.setAttribute("downloadLogFile", 1);
     request.setAttribute("baseUrl", "./browseLogs");
     request.setAttribute("currentPath", "");
-    request.setAttribute("showPermissions", true);
+    request.setAttribute("showPermissions", false);
 
     String logsPath = mConfiguration.get(Constants.LOGS_DIR);
     File logsDir = new File(logsPath);
