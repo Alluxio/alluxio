@@ -99,6 +99,26 @@ The workers page gives an overview of all Tachyon worker nodes divided into two 
 
     A list of all workers proclaimed as dead by the master, usually due to a long timeout waiting
     for the worker heartbeat. Possible causes include system restart or network failures.
+    
+## Master Metrics 
+
+To Access master metrics section, click on the “Metrics” tab in the navigation bar.
+
+![masterMetrics]({{site.data.img.screenshot_masterMetrics}})
+
+This section shows all master metrics. It includes the following sections:
+
+* **Master Gauges**
+
+    Overall measures of the master.
+
+* **Logical Operation**
+
+    Number of operations performed.
+
+* **RPC Invocation**
+
+    Number of RPC invocations per operation.
 
 # Tachyon Workers Web Interface
 
@@ -118,3 +138,19 @@ master, but shows information specific to a single worker. Therefore, it has sim
 In the "BlockInfo" page, you can see the files on the worker, and other information such as the 
 file size and which tiers the files is stored on. Also, if you click on a file, you can view all 
 the blocks of that file.
+
+## Worker Metrics 
+
+To Access worker metrics section, click on the “Metrics” tab in the navigation bar.
+
+![workerMetrics]({{site.data.img.screenshot_workerMetrics}})
+
+This section shows all worker metrics. It includes the following sections:
+
+* **Worker Gauges**
+
+    Overall measures of the worker.
+
+* **Logical Operation**
+
+    Number of operations performed.

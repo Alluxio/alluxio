@@ -30,40 +30,61 @@ import tachyon.worker.block.BlockWorker;
 @NotThreadSafe
 public class WorkerSource implements Source {
   private static final String WORKER_SOURCE_NAME = "worker";
+
+  public static final String BLOCKS_ACCESSED = "BlocksAccessed";
+  public static final String BLOCKS_CANCELED = "BlocksCanceled";
+  public static final String BLOCKS_DELETED = "BlocksDeleted";
+  public static final String BLOCKS_EVICTED = "BlocksEvicted";
+  public static final String BLOCKS_PROMOTED = "BlocksPromoted";
+  public static final String BLOCKS_READ_LOCAL = "BlocksReadLocal";
+  public static final String BLOCKS_READ_REMOTE = "BlocksReadRemote";
+  public static final String BLOCKS_WRITTEN_LOCAL = "BlocksWrittenLocal";
+  public static final String BLOCKS_WRITTEN_REMOTE = "BlocksWrittenRemote";
+  public static final String BYTES_READ_LOCAL = "BytesReadLocal";
+  public static final String BYTES_READ_REMOTE = "BytesReadRemote";
+  public static final String BYTES_READ_UFS = "BytesReadUfs";
+  public static final String BYTES_WRITTEN_LOCAL = "BytesWrittenLocal";
+  public static final String BYTES_WRITTEN_REMOTE = "BytesWrittenRemote";
+  public static final String BYTES_WRITTEN_UFS = "BytesWrittenUfs";
+  public static final String CAPACITY_TOTAL = "CapacityTotal";
+  public static final String CAPACITY_USED = "CapacityUsed";
+  public static final String CAPACITY_FREE = "CapacityFree";
+  public static final String BLOCKS_CACHED = "BlocksCached";
+
   private boolean mGaugesRegistered = false;
   private final MetricRegistry mMetricRegistry = new MetricRegistry();
   private final Counter mBlocksAccessed =
-      mMetricRegistry.counter(MetricRegistry.name("BlocksAccessed"));
+      mMetricRegistry.counter(MetricRegistry.name(BLOCKS_ACCESSED));
   private final Counter mBlocksCanceled =
-      mMetricRegistry.counter(MetricRegistry.name("BlocksCanceled"));
+      mMetricRegistry.counter(MetricRegistry.name(BLOCKS_CANCELED));
   private final Counter mBlocksDeleted =
-      mMetricRegistry.counter(MetricRegistry.name("BlocksDeleted"));
+      mMetricRegistry.counter(MetricRegistry.name(BLOCKS_DELETED));
   private final Counter mBlocksEvicted =
-      mMetricRegistry.counter(MetricRegistry.name("BlocksEvicted"));
+      mMetricRegistry.counter(MetricRegistry.name(BLOCKS_EVICTED));
   private final Counter mBlocksPromoted =
-      mMetricRegistry.counter(MetricRegistry.name("BlocksPromoted"));
+      mMetricRegistry.counter(MetricRegistry.name(BLOCKS_PROMOTED));
 
   // metrics from client
   private final Counter mBlocksReadLocal = mMetricRegistry.counter(MetricRegistry
-      .name("BlocksReadLocal"));
+      .name(BLOCKS_READ_LOCAL));
   private final Counter mBlocksReadRemote = mMetricRegistry.counter(MetricRegistry
-      .name("BlocksReadRemote"));
+      .name(BLOCKS_READ_REMOTE));
   private final Counter mBlocksWrittenLocal = mMetricRegistry.counter(MetricRegistry
-      .name("BlocksWrittenLocal"));
+      .name(BLOCKS_WRITTEN_LOCAL));
   private final Counter mBlocksWrittenRemote = mMetricRegistry.counter(MetricRegistry
-      .name("BlocksWrittenRemote"));
+      .name(BLOCKS_WRITTEN_REMOTE));
   private final Counter mBytesReadLocal = mMetricRegistry.counter(MetricRegistry
-      .name("BytesReadLocal"));
+      .name(BYTES_READ_LOCAL));
   private final Counter mBytesReadRemote = mMetricRegistry.counter(MetricRegistry
-      .name("BytesReadRemote"));
+      .name(BYTES_READ_REMOTE));
   private final Counter mBytesReadUfs = mMetricRegistry.counter(MetricRegistry
-      .name("BytesReadUfs"));
+      .name(BYTES_READ_UFS));
   private final Counter mBytesWrittenLocal = mMetricRegistry.counter(MetricRegistry
-      .name("BytesWrittenLocal"));
+      .name(BYTES_WRITTEN_LOCAL));
   private final Counter mBytesWrittenRemote = mMetricRegistry.counter(MetricRegistry
-      .name("BytesWrittenRemote"));
+      .name(BYTES_WRITTEN_REMOTE));
   private final Counter mBytesWrittenUfs = mMetricRegistry.counter(MetricRegistry
-      .name("BytesWrittenUfs"));
+      .name(BYTES_WRITTEN_UFS));
 
   @Override
   public String getName() {
@@ -219,21 +240,21 @@ public class WorkerSource implements Source {
     if (mGaugesRegistered) {
       return;
     }
-    mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
+    mMetricRegistry.register(MetricRegistry.name(CAPACITY_TOTAL), new Gauge<Long>() {
       @Override
       public Long getValue() {
         return blockWorker.getStoreMeta().getCapacityBytes();
       }
     });
 
-    mMetricRegistry.register(MetricRegistry.name("CapacityUsed"), new Gauge<Long>() {
+    mMetricRegistry.register(MetricRegistry.name(CAPACITY_USED), new Gauge<Long>() {
       @Override
       public Long getValue() {
         return blockWorker.getStoreMeta().getUsedBytes();
       }
     });
 
-    mMetricRegistry.register(MetricRegistry.name("CapacityFree"), new Gauge<Long>() {
+    mMetricRegistry.register(MetricRegistry.name(CAPACITY_FREE), new Gauge<Long>() {
       @Override
       public Long getValue() {
         return blockWorker.getStoreMeta().getCapacityBytes()
@@ -241,7 +262,7 @@ public class WorkerSource implements Source {
       }
     });
 
-    mMetricRegistry.register(MetricRegistry.name("BlocksCached"), new Gauge<Integer>() {
+    mMetricRegistry.register(MetricRegistry.name(BLOCKS_CACHED), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
         return blockWorker.getStoreMeta().getNumberOfBlocks();

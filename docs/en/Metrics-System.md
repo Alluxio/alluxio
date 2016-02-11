@@ -60,9 +60,9 @@ The following shows the details of the available metrics.
 * CapacityUsed: Used capacity of the file system in bytes.
 * CapacityFree: Free capacity of the file system in bytes.
 * PathsTotal: Total number of files and directories in the file system.
-* UnderFsCapacityTotal: Total capacity of the under file system in bytes.
-* UnderFsCapacityUsed: Used capacity of the under file system in bytes.
-* UnderFsCapacityFree: Free capacity of the under file system in bytes.
+* UfsCapacityTotal: Total capacity of the under file system in bytes.
+* UfsCapacityUsed: Used capacity of the under file system in bytes.
+* UfsCapacityFree: Free capacity of the under file system in bytes.
 * Workers: Number of the workers.
 
 ### Logical Operations
@@ -93,7 +93,7 @@ The following shows the details of the available metrics.
 * GetNewBlockOps: Total number of GetNewBlock operations.
 * MountOps: Total number of Mount operations.
 * RenamePathOps: Total number of the RenamePath operations.
-* SetStateOps: Total number of the SetState operations.
+* SetAttributeOps: Total number of the SetAttribute operations.
 * UnmountOps: Total number of Unmount operations.
 
 ## Worker
