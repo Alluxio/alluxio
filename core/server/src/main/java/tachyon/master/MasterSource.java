@@ -41,58 +41,93 @@ import tachyon.wire.FileInfo;
 public class MasterSource implements Source {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String MASTER_SOURCE_NAME = "master";
+
+  public static final String DIRECTORIES_CREATED = "DirectoriesCreated";
+  public static final String FILE_BLOCK_INFOS_GOT = "FileBlockInfosGot";
+  public static final String FILE_INFOS_GOT = "FileInfosGot";
+  public static final String FILES_COMPLETED = "FilesCompleted";
+  public static final String FILES_CREATED = "FilesCreated";
+  public static final String FILES_FREED = "FilesFreed";
+  public static final String FILES_PERSISTED = "FilesPersisted";
+  public static final String NEW_BLOCKS_GOT = "NewBlocksGot";
+  public static final String PATHS_DELETED = "PathsDeleted";
+  public static final String PATHS_MOUNTED = "PathsMounted";
+  public static final String PATHS_RENAMED = "PathsRenamed";
+  public static final String PATHS_UNMOUNTED = "PathsUnmounted";
+  public static final String COMPLETE_FILE_OPS = "CompleteFileOps";
+  public static final String CREATE_DIRECTORY_OPS = "CreateDirectoryOps";
+  public static final String CREATE_FILE_OPS = "CreateFileOps";
+  public static final String DELETE_PATH_OPS = "DeletePathOps";
+  public static final String FREE_FILE_OPS = "FreeFileOps";
+  public static final String GET_FILE_BLOCK_INFO_OPS = "GetFileBlockInfoOps";
+  public static final String GET_FILE_INFO_OPS = "GetFileInfoOps";
+  public static final String GET_NEW_BLOCK_OPS = "GetNewBlockOps";
+  public static final String MOUNT_OPS = "MountOps";
+  public static final String RENAME_PATH_OPS = "RenamePathOps";
+  public static final String SET_ATTRIBUTE_OPS = "SetAttributeOps";
+  public static final String UNMOUNT_OPS = "UnmountOps";
+  public static final String CAPACITY_TOTAL = "CapacityTotal";
+  public static final String CAPACITY_USED = "CapacityUsed";
+  public static final String CAPACITY_FREE = "CapacityFree";
+  public static final String UFS_CAPACITY_TOTAL = "UfsCapacityTotal";
+  public static final String UFS_CAPACITY_USED = "UfsCapacityUsed";
+  public static final String UFS_CAPACITY_FREE = "UfsCapacityFree";
+  public static final String WORKERS = "Workers";
+  public static final String PATHS_TOTAL = "PathsTotal";
+  public static final String FILES_PINNED = "FilesPinned";
+
   private boolean mGaugesRegistered = false;
   private final MetricRegistry mMetricRegistry = new MetricRegistry();
 
   private final Counter mDirectoriesCreated =
-          mMetricRegistry.counter(MetricRegistry.name("DirectoriesCreated"));
+          mMetricRegistry.counter(MetricRegistry.name(DIRECTORIES_CREATED));
   private final Counter mFileBlockInfosGot =
-          mMetricRegistry.counter(MetricRegistry.name("FileBlockInfosGot"));
+          mMetricRegistry.counter(MetricRegistry.name(FILE_BLOCK_INFOS_GOT));
   private final Counter mFileInfosGot =
-          mMetricRegistry.counter(MetricRegistry.name("FileInfosGot"));
+          mMetricRegistry.counter(MetricRegistry.name(FILE_INFOS_GOT));
   private final Counter mFilesCompleted =
-          mMetricRegistry.counter(MetricRegistry.name("FilesCompleted"));
+          mMetricRegistry.counter(MetricRegistry.name(FILES_COMPLETED));
   private final Counter mFilesCreated =
-          mMetricRegistry.counter(MetricRegistry.name("FilesCreated"));
+          mMetricRegistry.counter(MetricRegistry.name(FILES_CREATED));
   private final Counter mFilesFreed =
-          mMetricRegistry.counter(MetricRegistry.name("FilesFreed"));
+          mMetricRegistry.counter(MetricRegistry.name(FILES_FREED));
   private final Counter mFilesPersisted =
-          mMetricRegistry.counter(MetricRegistry.name("FilesPersisted"));
+          mMetricRegistry.counter(MetricRegistry.name(FILES_PERSISTED));
   private final Counter mNewBlocksGot =
-          mMetricRegistry.counter(MetricRegistry.name("NewBlocksGot"));
+          mMetricRegistry.counter(MetricRegistry.name(NEW_BLOCKS_GOT));
   private final Counter mPathsDeleted =
-          mMetricRegistry.counter(MetricRegistry.name("PathsDeleted"));
+          mMetricRegistry.counter(MetricRegistry.name(PATHS_DELETED));
   private final Counter mPathsMounted =
-          mMetricRegistry.counter(MetricRegistry.name("PathsMounted"));
+          mMetricRegistry.counter(MetricRegistry.name(PATHS_MOUNTED));
   private final Counter mPathsRenamed =
-          mMetricRegistry.counter(MetricRegistry.name("PathsRenamed"));
+          mMetricRegistry.counter(MetricRegistry.name(PATHS_RENAMED));
   private final Counter mPathsUnmounted =
-          mMetricRegistry.counter(MetricRegistry.name("PathsUnmounted"));
+          mMetricRegistry.counter(MetricRegistry.name(PATHS_UNMOUNTED));
 
   private final Counter mCompleteFileOps =
-      mMetricRegistry.counter(MetricRegistry.name("CompleteFileOps"));
+      mMetricRegistry.counter(MetricRegistry.name(COMPLETE_FILE_OPS));
   private final Counter mCreateDirectoryOps =
-          mMetricRegistry.counter(MetricRegistry.name("CreateDirectoryOps"));
+          mMetricRegistry.counter(MetricRegistry.name(CREATE_DIRECTORY_OPS));
   private final Counter mCreateFileOps =
-          mMetricRegistry.counter(MetricRegistry.name("CreateFileOps"));
+          mMetricRegistry.counter(MetricRegistry.name(CREATE_FILE_OPS));
   private final Counter mDeletePathOps =
-          mMetricRegistry.counter(MetricRegistry.name("DeletePathOps"));
+          mMetricRegistry.counter(MetricRegistry.name(DELETE_PATH_OPS));
   private final Counter mFreeFileOps =
-      mMetricRegistry.counter(MetricRegistry.name("FreeFileOps"));
+      mMetricRegistry.counter(MetricRegistry.name(FREE_FILE_OPS));
   private final Counter mGetFileBlockInfoOps =
-          mMetricRegistry.counter(MetricRegistry.name("GetFileBlockInfoOps"));
+          mMetricRegistry.counter(MetricRegistry.name(GET_FILE_BLOCK_INFO_OPS));
   private final Counter mGetFileInfoOps =
-          mMetricRegistry.counter(MetricRegistry.name("GetFileInfoOps"));
+          mMetricRegistry.counter(MetricRegistry.name(GET_FILE_INFO_OPS));
   private final Counter mGetNewBlockOps =
-          mMetricRegistry.counter(MetricRegistry.name("GetNewBlockOps"));
+          mMetricRegistry.counter(MetricRegistry.name(GET_NEW_BLOCK_OPS));
   private final Counter mMountOps =
-          mMetricRegistry.counter(MetricRegistry.name("MountOps"));
+          mMetricRegistry.counter(MetricRegistry.name(MOUNT_OPS));
   private final Counter mRenamePathOps =
-      mMetricRegistry.counter(MetricRegistry.name("RenamePathOps"));
+      mMetricRegistry.counter(MetricRegistry.name(RENAME_PATH_OPS));
   private final Counter mSetAttributeOps =
-          mMetricRegistry.counter(MetricRegistry.name("SetAttributeOps"));
+          mMetricRegistry.counter(MetricRegistry.name(SET_ATTRIBUTE_OPS));
   private final Counter mUnmountOps =
-      mMetricRegistry.counter(MetricRegistry.name("UnmountOps"));
+      mMetricRegistry.counter(MetricRegistry.name(UNMOUNT_OPS));
 
   /**
    * Registers metric gauges.
@@ -103,21 +138,21 @@ public class MasterSource implements Source {
     if (mGaugesRegistered) {
       return;
     }
-    mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
+    mMetricRegistry.register(MetricRegistry.name(CAPACITY_TOTAL), new Gauge<Long>() {
       @Override
       public Long getValue() {
         return tachyonMaster.getBlockMaster().getCapacityBytes();
       }
     });
 
-    mMetricRegistry.register(MetricRegistry.name("CapacityUsed"), new Gauge<Long>() {
+    mMetricRegistry.register(MetricRegistry.name(CAPACITY_USED), new Gauge<Long>() {
       @Override
       public Long getValue() {
         return tachyonMaster.getBlockMaster().getUsedBytes();
       }
     });
 
-    mMetricRegistry.register(MetricRegistry.name("CapacityFree"), new Gauge<Long>() {
+    mMetricRegistry.register(MetricRegistry.name(CAPACITY_FREE), new Gauge<Long>() {
       @Override
       public Long getValue() {
         return tachyonMaster.getBlockMaster().getCapacityBytes()
@@ -125,7 +160,7 @@ public class MasterSource implements Source {
       }
     });
 
-    mMetricRegistry.register(MetricRegistry.name("UnderFsCapacityTotal"), new Gauge<Long>() {
+    mMetricRegistry.register(MetricRegistry.name(UFS_CAPACITY_TOTAL), new Gauge<Long>() {
       @Override
       public Long getValue() {
         long ret = 0L;
@@ -140,7 +175,7 @@ public class MasterSource implements Source {
       }
     });
 
-    mMetricRegistry.register(MetricRegistry.name("UnderFsCapacityUsed"), new Gauge<Long>() {
+    mMetricRegistry.register(MetricRegistry.name(UFS_CAPACITY_USED), new Gauge<Long>() {
       @Override
       public Long getValue() {
         long ret = 0L;
@@ -155,7 +190,7 @@ public class MasterSource implements Source {
       }
     });
 
-    mMetricRegistry.register(MetricRegistry.name("UnderFsCapacityFree"), new Gauge<Long>() {
+    mMetricRegistry.register(MetricRegistry.name(UFS_CAPACITY_FREE), new Gauge<Long>() {
       @Override
       public Long getValue() {
         long ret = 0L;
@@ -170,21 +205,21 @@ public class MasterSource implements Source {
       }
     });
 
-    mMetricRegistry.register(MetricRegistry.name("Workers"), new Gauge<Integer>() {
+    mMetricRegistry.register(MetricRegistry.name(WORKERS), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
         return tachyonMaster.getBlockMaster().getWorkerCount();
       }
     });
 
-    mMetricRegistry.register(MetricRegistry.name("PathsTotal"), new Gauge<Integer>() {
+    mMetricRegistry.register(MetricRegistry.name(PATHS_TOTAL), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
         return tachyonMaster.getFileSystemMaster().getNumberOfPaths();
       }
     });
 
-    mMetricRegistry.register(MetricRegistry.name("FilesPinned"), new Gauge<Integer>() {
+    mMetricRegistry.register(MetricRegistry.name(FILES_PINNED), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
         return tachyonMaster.getFileSystemMaster().getNumberOfPinnedFiles();
