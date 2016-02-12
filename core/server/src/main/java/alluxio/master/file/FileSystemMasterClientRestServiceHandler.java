@@ -39,6 +39,7 @@ import javax.ws.rs.core.Response;
  * This class is a REST handler for file system master requests.
  */
 @Path("/")
+@Produces(MediaType.APPLICATION_JSON)
 // TODO(jiri): Figure out why Jersey complains if this is changed to "/file".
 public final class FileSystemMasterClientRestServiceHandler {
   public static final String SERVICE_NAME = "file/service_name";
@@ -67,7 +68,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @GET
   @Path(SERVICE_NAME)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response name() {
     return Response.ok(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME).build();
   }
@@ -77,7 +77,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @GET
   @Path(SERVICE_VERSION)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response version() {
     return Response.ok(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION).build();
   }
@@ -89,7 +88,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(COMPLETE_FILE)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response completeFile(@QueryParam("path") String path,
       @QueryParam("ufsLength") long ufsLength) {
     try {
@@ -111,7 +109,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(CREATE_DIRECTORY)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response createDirectory(@QueryParam("path") String path,
       @QueryParam("persisted") boolean persisted, @QueryParam("recursive") boolean recursive,
       @QueryParam("allowExists") boolean allowExists) {
@@ -134,7 +131,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @GET
   @Path(GET_FILE_BLOCK_INFO_LIST)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response getFileBlockInfoList(@QueryParam("path") String path) {
     try {
       return Response.ok(mFileSystemMaster.getFileBlockInfoList(new AlluxioURI(path))).build();
@@ -149,7 +145,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(GET_NEW_BLOCK_ID_FOR_FILE)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response getNewBlockIdForFile(@QueryParam("path") String path) {
     try {
       return Response.ok(mFileSystemMaster.getNewBlockIdForFile(new AlluxioURI(path))).build();
@@ -163,7 +158,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @GET
   @Path(GET_STATUS)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response getStatus(@QueryParam("path") String path) {
     try {
       return Response.ok(mFileSystemMaster.getFileInfo(new AlluxioURI(path))).build();
@@ -178,7 +172,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @GET
   @Path(GET_STATUS_INTERNAL)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response getStatusInternal(@QueryParam("fileId") long fileId) {
     try {
       return Response.ok(mFileSystemMaster.getFileInfo(fileId)).build();
@@ -192,7 +185,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @GET
   @Path(GET_UFS_ADDRESS)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response getUfsAddress() {
     return Response.ok(mFileSystemMaster.getUfsAddress()).build();
   }
@@ -204,7 +196,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(FREE)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response free(@QueryParam("path") String path,
       @QueryParam("recursive") boolean recursive) {
     try {
@@ -221,7 +212,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @GET
   @Path(LIST_STATUS)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response listStatus(@QueryParam("path") String path) {
     try {
       return Response.ok(mFileSystemMaster.getFileInfoList(new AlluxioURI(path))).build();
@@ -237,7 +227,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(LOAD_METADATA)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response loadMetadata(@QueryParam("path") String path,
       @QueryParam("recursive") boolean recursive) {
     try {
@@ -256,7 +245,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(MOUNT)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response mount(@QueryParam("path") String path, @QueryParam("ufsPath") String ufsPath) {
     try {
       mFileSystemMaster.mount(new AlluxioURI(path), new AlluxioURI(ufsPath));
@@ -275,7 +263,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(REMOVE)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response remove(@QueryParam("path") String path,
       @QueryParam("recursive") boolean recursive) {
     try {
@@ -295,7 +282,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(RENAME)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response rename(@QueryParam("srcPath") String srcPath,
       @QueryParam("dstPath") String dstPath) {
     try {
@@ -314,7 +300,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(SCHEDULE_ASYNC_PERSIST)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response scheduleAsyncPersist(@QueryParam("path") String path) {
     try {
       return Response.ok(mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path))).build();
@@ -336,7 +321,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @PUT
   @Path(SET_ATTRIBUTE)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response setAttribute(@QueryParam("path") String path,
       @QueryParam("pinned") boolean pinned, @QueryParam("ttl") long ttl,
       @QueryParam("persisted") boolean persisted, @QueryParam("owner") String owner,
@@ -360,7 +344,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(UNMOUNT)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response unmount(@QueryParam("path") String path) {
     try {
       return Response.ok(mFileSystemMaster.unmount(new AlluxioURI(path))).build();

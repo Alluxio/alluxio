@@ -30,6 +30,7 @@ import javax.ws.rs.core.Response;
  * This class is a REST handler for block master requests.
  */
 @Path("/")
+@Produces(MediaType.APPLICATION_JSON)
 // TODO(jiri): Figure out why Jersey complains if this is changed to "/block".
 public final class BlockMasterClientRestServiceHandler {
   public static final String SERVICE_NAME = "block/service_name";
@@ -51,7 +52,6 @@ public final class BlockMasterClientRestServiceHandler {
    */
   @GET
   @Path(SERVICE_NAME)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response getServiceName() {
     return Response.ok(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME).build();
 
@@ -67,7 +67,6 @@ public final class BlockMasterClientRestServiceHandler {
    */
   @GET
   @Path(SERVICE_VERSION)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response getServiceVersion() {
     return Response.ok(Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION).build();
   }
@@ -78,7 +77,6 @@ public final class BlockMasterClientRestServiceHandler {
    */
   @GET
   @Path(GET_BLOCK_INFO)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response getBlockInfo(@QueryParam("blockId") long blockId) {
     try {
       return Response.ok(mBlockMaster.getBlockInfo(blockId)).build();
@@ -92,7 +90,6 @@ public final class BlockMasterClientRestServiceHandler {
    */
   @GET
   @Path(GET_CAPACITY_BYTES)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response getCapacityBytes() {
     return Response.ok(mBlockMaster.getCapacityBytes()).build();
   }
@@ -102,7 +99,6 @@ public final class BlockMasterClientRestServiceHandler {
    */
   @GET
   @Path(GET_USED_BYTES)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response getUsedBytes() {
     return Response.ok(mBlockMaster.getUsedBytes()).build();
   }
@@ -112,7 +108,6 @@ public final class BlockMasterClientRestServiceHandler {
    */
   @GET
   @Path(GET_WORKER_INFO_LIST)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response getWorkerInfoList() {
     return Response.ok(mBlockMaster.getWorkerInfoList()).build();
   }

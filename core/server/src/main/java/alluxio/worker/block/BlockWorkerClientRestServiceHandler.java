@@ -306,8 +306,8 @@ public final class BlockWorkerClientRestServiceHandler {
    */
   @PUT
   @Path(WRITE_BLOCK)
-  @Consumes(MediaType.APPLICATION_OCTET_STREAM)
   @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_OCTET_STREAM)
   public Response writeBlock(@QueryParam("sessionId") long sessionId,
       @QueryParam("blockId") long blockId, @QueryParam("offset") long offset,
       @QueryParam("length") long length, byte[] data) {
