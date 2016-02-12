@@ -39,6 +39,7 @@ import javax.ws.rs.core.Response;
  * This class is a REST handler for lineage master requests.
  */
 @Path("/")
+@Produces(MediaType.APPLICATION_JSON)
 // TODO(jiri): Figure out why Jersey complains if this is changed to "/lineage".
 public final class LineageMasterClientRestServiceHandler {
   public static final String SERVICE_NAME = "lineage/service_name";
@@ -56,7 +57,6 @@ public final class LineageMasterClientRestServiceHandler {
    */
   @GET
   @Path(SERVICE_NAME)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response name() {
     return Response.ok(Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME).build();
   }
@@ -66,7 +66,6 @@ public final class LineageMasterClientRestServiceHandler {
    */
   @GET
   @Path(SERVICE_VERSION)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response version() {
     return Response.ok(Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION).build();
   }
@@ -80,7 +79,6 @@ public final class LineageMasterClientRestServiceHandler {
    */
   @POST
   @Path(CREATE_LINEAGE)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response createLineage(@QueryParam("inputFiles") String inputFiles,
       @QueryParam("outputFiles") String outputFiles, @QueryParam("job.command") String command,
       @QueryParam("job.command.conf.outputFile") String outputFile) {
@@ -109,7 +107,6 @@ public final class LineageMasterClientRestServiceHandler {
    */
   @POST
   @Path(DELETE_LINEAGE)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response deleteLineage(@QueryParam("lineageId") long lineageId,
       @QueryParam("cascade") boolean cascade) {
     try {
@@ -124,7 +121,6 @@ public final class LineageMasterClientRestServiceHandler {
    */
   @GET
   @Path(GET_LINEAGE_INFO_LIST)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response getLineageInfoList() {
     try {
       return Response.ok(mLineageMaster.getLineageInfoList()).build();
@@ -141,7 +137,6 @@ public final class LineageMasterClientRestServiceHandler {
    */
   @POST
   @Path(REINITIALIZE_FILE)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response reinitializeFile(@QueryParam("path") String path,
       @QueryParam("blockSizeBytes") long blockSizeBytes, @QueryParam("ttl") long ttl) {
     try {
@@ -157,7 +152,6 @@ public final class LineageMasterClientRestServiceHandler {
    */
   @POST
   @Path(REPORT_LOST_FILE)
-  @Produces(MediaType.APPLICATION_JSON)
   public Response reportLostFile(@QueryParam("path") String path) {
     try {
       mLineageMaster.reportLostFile(path);
