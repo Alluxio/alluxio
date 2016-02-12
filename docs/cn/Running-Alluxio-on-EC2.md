@@ -56,7 +56,7 @@ Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及销毁集
 
 在`deploy/vagrant/conf/ec2.yml`配置文件中，将`Keypair`设置为你的keypair名，`Key_Path`设置成pem key路径。
 
-Vagrant脚本默认会在[该区域(**us-east-1**)和可用区域(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)中创建一个名为*alluxio-vagrant-test*的[安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
+Vagrant脚本默认会在[该区域(**us-east-1**)和可用区域(**us-east-1b**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)中创建一个名为*alluxio-vagrant-test*的[安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
 该安全组会在区域中自动建立，并且所有inbound及outbound网络流量都将打开。你可以在`ec2.yml`配置文件中设置*security group*、*region*以及*availability zone*的值。
 
 Vagrant脚本默认使用[Amazon S3](http://aws.amazon.com/s3)作为Alluxio的底层文件系统，但需要配置你的S3桶的名字。你可以从[AWS web console](https://console.aws.amazon.com/console)登录[Amazon S3](http://aws.amazon.com/s3/)图形界面，创建一个新的桶，然后将`conf/ufs.yml`中的`S3:Bucket`域设置为桶的名字。你也可以选择使用其他系统作为Alluxio的底层存储，比如Hadoop文件系统，只要在`conf/ufs.yml`中配置合适的`Type`和相关配置项即可。

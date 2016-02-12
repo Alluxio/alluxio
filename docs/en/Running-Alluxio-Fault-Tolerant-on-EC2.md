@@ -71,11 +71,11 @@ number of AlluxioMasters you want. In fault tolerant mode, value of `Masters` sh
 By default, the Vagrant script creates a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
 named *alluxio-vagrant-test* at
-[Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
+[Region(**us-east-1**) and Availability Zone(**us-east-1b**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
 The security group will be set up automatically in the region with all inbound/outbound network
 traffic opened. You can change the *security group*, *region* and *availability zone* in `ec2.yml`.
 
-Now you can launch the Alluxio cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running
+Now you can launch the Alluxio cluster with Hadoop2.4.1 as under filesystem in us-east-1b by running
 the script under `deploy/vagrant`:
 
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/launch-cluster.md %}
