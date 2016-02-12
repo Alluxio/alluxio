@@ -67,6 +67,8 @@ named *alluxio-vagrant-test* at
 The security group will be set up automatically in the region with all inbound/outbound network
 traffic opened. You can change the security group, region and availability zone in `ec2.yml`.
 
+Finally, set the "Type" field in `deploy/vagrant/conf/ufs.yml` to `hadoop2`.
+
 Now you can launch the Alluxio cluster with Hadoop2.4.1 as under filesystem in us-east-1b by running
 the script under `deploy/vagrant`:
 
