@@ -20,9 +20,12 @@ import alluxio.Constants;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.LockBlockResultTest;
 import alluxio.worker.AlluxioWorker;
+import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -31,12 +34,16 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.net.HttpURLConnection;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import javax.ws.rs.core.Response;
+
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioWorker.class, BlockWorker.class})
+@PrepareForTest({AlluxioWorker.class, BlockReader.class, BlockWorker.class, BlockWriter.class})
 public class BlockWorkerClientRestApiTest extends AbstractRestApiTest {
 
   @Override
@@ -139,5 +146,92 @@ public class BlockWorkerClientRestApiTest extends AbstractRestApiTest {
     Mockito.verify(blockWorker)
         .requestSpace(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
     Mockito.verify(blockWorker).unlockBlock(Mockito.anyLong(), Mockito.anyLong());
+  }
+
+  @Test
+  public void readTest() throws Exception {
+    // Create test input values.
+    Map<String, String> readBlockParams = Maps.newHashMap();
+    readBlockParams.put("blockId", "1");
+    readBlockParams.put("sessionId", "1");
+    readBlockParams.put("lockId", "1");
+    readBlockParams.put("offset", "1");
+    readBlockParams.put("length", "-1");
+
+    // Generate random return values.
+    Random random = new Random();
+    byte[] bytes = new byte[64];
+    random.nextBytes(bytes);
+    ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+
+    // Set up mocks.
+    BlockReader blockReader = PowerMockito.mock(BlockReader.class);
+    Mockito.doReturn(byteBuffer).when(blockReader).read(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.doReturn((long) 1).when(blockReader).getLength();
+    BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
+    Mockito.doReturn(blockReader).when(blockWorker)
+        .readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
+    AlluxioWorker alluxioWorker = PowerMockito.mock(AlluxioWorker.class);
+    Mockito.doReturn(blockWorker).when(alluxioWorker).getBlockWorker();
+    Whitebox.setInternalState(AlluxioWorker.class, "sAlluxioWorker", alluxioWorker);
+
+    // Create the test case.
+    WorkerTestCase testCase =
+        new WorkerTestCase(BlockWorkerClientRestServiceHandler.READ_BLOCK, readBlockParams, "GET",
+            "");
+
+    // Execute the test case.
+    HttpURLConnection connection = (HttpURLConnection) createURL(testCase).openConnection();
+    connection.setRequestMethod(testCase.getMethod());
+    connection.connect();
+    Assert.assertEquals(testCase.getSuffix(), connection.getResponseCode(),
+        Response.Status.OK.getStatusCode());
+    Assert.assertEquals(new String(byteBuffer.array()), getResponse(connection));
+
+    // Verify invocations.
+    Mockito.verify(blockWorker)
+        .readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
+    Mockito.verify(blockWorker).accessBlock(Mockito.anyLong(), Mockito.anyLong());
+  }
+
+  @Test
+  public void writeTest() throws Exception {
+    // Create test input values.
+    Map<String, String> writeBlockParams = Maps.newHashMap();
+    writeBlockParams.put("blockId", "1");
+    writeBlockParams.put("sessionId", "1");
+    writeBlockParams.put("offset", "1");
+    writeBlockParams.put("length", "-1");
+    Random random = new Random();
+    byte[] bytes = new byte[64];
+    random.nextBytes(bytes);
+
+    // Set up mocks.
+    BlockWriter blockWriter = PowerMockito.mock(BlockWriter.class);
+    BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
+    Mockito.doReturn(blockWriter).when(blockWorker)
+        .getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong());
+    AlluxioWorker alluxioWorker = PowerMockito.mock(AlluxioWorker.class);
+    Mockito.doReturn(blockWorker).when(alluxioWorker).getBlockWorker();
+    Whitebox.setInternalState(AlluxioWorker.class, "sAlluxioWorker", alluxioWorker);
+
+    // Create the test case.
+    WorkerTestCase testCase =
+        new WorkerTestCase(BlockWorkerClientRestServiceHandler.WRITE_BLOCK, writeBlockParams, "PUT",
+            "");
+
+    // Execute the test case.
+    HttpURLConnection connection = (HttpURLConnection) createURL(testCase).openConnection();
+    connection.setRequestMethod(testCase.getMethod());
+    connection.setDoOutput(true);
+    connection.connect();
+    connection.getOutputStream().write(bytes);
+    Assert.assertEquals(testCase.getSuffix(), connection.getResponseCode(),
+        Response.Status.OK.getStatusCode());
+    Assert.assertEquals("", getResponse(connection));
+
+    // Verify invocations.
+    Mockito.verify(blockWorker).getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.verify(blockWriter).append(ByteBuffer.wrap(bytes));
   }
 }

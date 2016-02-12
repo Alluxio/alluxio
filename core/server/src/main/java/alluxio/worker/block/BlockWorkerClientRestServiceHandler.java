@@ -23,11 +23,18 @@ import alluxio.exception.AlluxioException;
 import alluxio.wire.LockBlockResult;
 import alluxio.worker.AlluxioWorker;
 import alluxio.worker.WorkerContext;
+import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
+
+import com.google.common.base.Preconditions;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -48,9 +55,11 @@ public final class BlockWorkerClientRestServiceHandler {
   public static final String CANCEL_BLOCK = "block/cancel_block";
   public static final String LOCK_BLOCK = "block/lock_block";
   public static final String PROMOTE_BLOCK = "block/promote_block";
+  public static final String READ_BLOCK = "block/read_block";
   public static final String REQUEST_BLOCK_LOCATION = "block/request_block_location";
   public static final String REQUEST_SPACE = "block/request_space";
   public static final String UNLOCK_BLOCK = "block/unlock_block";
+  public static final String WRITE_BLOCK = "block/write_block";
 
   private BlockWorker mBlockWorker = AlluxioWorker.get().getBlockWorker();
   private StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
@@ -184,6 +193,51 @@ public final class BlockWorkerClientRestServiceHandler {
   /**
    * @param sessionId the session id
    * @param blockId the block id
+   * @param lockId the lock id
+   * @param offset the offset to start the read at
+   * @param length the number of bytes to read (the value -1 means read until EOF)
+   * @return the response object
+   */
+  @GET
+  @Path(READ_BLOCK)
+  @Produces(MediaType.APPLICATION_OCTET_STREAM)
+  public Response readBlock(@QueryParam("sessionId") long sessionId,
+      @QueryParam("blockId") long blockId, @QueryParam("lockId") long lockId,
+      @QueryParam("offset") long offset, @QueryParam("length") long length) {
+    Preconditions.checkState(offset >= 0, "invalid offset: %s", offset);
+    Preconditions.checkState(length >= -1, "invalid length (except for -1): %s", length);
+
+    BlockReader reader = null;
+    try {
+      reader = mBlockWorker.readBlockRemote(sessionId, blockId, lockId);
+      final long fileLength = reader.getLength();
+      Preconditions
+          .checkArgument(offset <= fileLength, "offset %s is larger than file length %s", offset,
+              fileLength);
+      Preconditions.checkArgument(length == -1 || offset + length <= fileLength,
+          "offset %s plus length %s is larger than file length %s", offset, length, fileLength);
+      final long readLength = (length == -1) ? fileLength - offset : length;
+      ByteBuffer buffer = reader.read(offset, readLength);
+      mBlockWorker.accessBlock(sessionId, blockId);
+      return Response.ok(buffer.array()).build();
+    } catch (AlluxioException e) {
+      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    } catch (IOException e) {
+      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    } finally {
+      try {
+        if (reader != null) {
+          reader.close();
+        }
+      } catch (IOException e) {
+        // TODO(jiri): Decide how to handle this.
+      }
+    }
+  }
+
+  /**
+   * @param sessionId the session id
+   * @param blockId the block id
    * @param initialBytes the initial number of bytes to allocate
    * @return the response object
    */
@@ -239,6 +293,54 @@ public final class BlockWorkerClientRestServiceHandler {
       return Response.ok().build();
     } catch (AlluxioException e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    }
+  }
+
+  /**
+   * @param sessionId the session id
+   * @param blockId the block id
+   * @param offset the offset to start the read at
+   * @param length the number of bytes to read (the value -1 means read until EOF)
+   * @param data the data to write
+   * @return the response object
+   */
+  @PUT
+  @Path(WRITE_BLOCK)
+  @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response writeBlock(@QueryParam("sessionId") long sessionId,
+      @QueryParam("blockId") long blockId, @QueryParam("offset") long offset,
+      @QueryParam("length") long length, byte[] data) {
+    Preconditions.checkState(offset >= 0, "invalid offset: %s", offset);
+    Preconditions.checkState(length >= -1, "invalid length (except for -1): %s", length);
+
+    BlockWriter writer = null;
+    try {
+      ByteBuffer buffer = ByteBuffer.wrap(data);
+      if (offset == 0) {
+        // This is the first write to the block, so create the temp block file. The file will only
+        // be created if the first write starts at offset 0. This allocates enough space for the
+        // write.
+        mBlockWorker.createBlockRemote(sessionId, blockId, mStorageTierAssoc.getAlias(0), length);
+      } else {
+        // Allocate enough space in the existing temporary block for the write.
+        mBlockWorker.requestSpace(sessionId, blockId, length);
+      }
+      writer = mBlockWorker.getTempBlockWriterRemote(sessionId, blockId);
+      writer.append(buffer);
+      return Response.ok().build();
+    } catch (AlluxioException e) {
+      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    } catch (IOException e) {
+      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    } finally {
+      try {
+        if (writer != null) {
+          writer.close();
+        }
+      } catch (IOException e) {
+        // TODO(jiri): Decide how to handle this.
+      }
     }
   }
 }
