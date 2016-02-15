@@ -56,7 +56,7 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
    */
   public static AlluxioURI getTaskOutputURI(TaskAttemptContext taskContext) {
     int taskId = taskContext.getTaskAttemptID().getTaskID().getId();
-    return getJobOutputURI(taskContext).join(FileOutputCommitter.PENDING_DIR_NAME)
+    return getJobOutputURI(taskContext).join(KeyValueOutputCommitter.getPendingDirName())
         .join("_" + TaskAttemptID.forName(String.valueOf(taskId)));
   }
 

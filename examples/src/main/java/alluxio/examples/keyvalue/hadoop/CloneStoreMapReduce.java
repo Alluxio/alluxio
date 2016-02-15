@@ -66,7 +66,11 @@ public final class CloneStoreMapReduce {
    */
   public static void main(String[] args) throws Exception {
     Configuration conf = new Configuration();
-    Job job = Job.getInstance(conf);
+
+    // NOTE(binfan): we are using the deprecated constructor of Job instance to compile with
+    // hadoop 1.0. If this is not a concern, the preferred way is
+    //     Job job = Job.getInstance(conf);
+    Job job = new Job(conf);
 
     job.setJobName("CloneStoreMapReduce");
     job.setJarByClass(CloneStoreMapReduce.class);

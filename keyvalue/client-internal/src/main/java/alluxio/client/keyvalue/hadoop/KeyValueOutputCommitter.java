@@ -16,6 +16,7 @@
 package alluxio.client.keyvalue.hadoop;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
@@ -27,6 +28,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -43,6 +46,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public final class KeyValueOutputCommitter extends FileOutputCommitter {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private static final KeyValueSystem KEY_VALUE_SYSTEM = KeyValueSystem.Factory.create();
 
   public KeyValueOutputCommitter(Path outputPath, TaskAttemptContext taskContext)
@@ -90,14 +95,27 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
    * calls {@link FileOutputCommitter#abortTask(TaskAttemptContext)}.
    */
   @Override
-  public void abortTask(TaskAttemptContext taskContext) throws IOException {
-    for (AlluxioURI tempStoreUri : getTaskTemporaryStores(taskContext)) {
-      try {
-        KEY_VALUE_SYSTEM.deleteStore(tempStoreUri);
-      } catch (AlluxioException e) {
-        throw new IOException(e);
+  public void abortTask(TaskAttemptContext taskContext) {
+    // TODO(binfan): in Hadoop 1.x FileOutputCommitter#abortTask doesn't throw IOException. To
+    // keep the code compile with early Hadoop versions, we catch this exception.
+    try {
+      for (AlluxioURI tempStoreUri : getTaskTemporaryStores(taskContext)) {
+        try {
+          KEY_VALUE_SYSTEM.deleteStore(tempStoreUri);
+        } catch (AlluxioException e) {
+          throw new IOException(e);
+        }
       }
+      super.abortTask(taskContext);
+    } catch (IOException e) {
+      LOG.error("Failed to abort task", taskContext);
     }
-    super.abortTask(taskContext);
+  }
+
+  /**
+   * @return the temp directory name
+   */
+  public static String getPendingDirName() {
+    return FileOutputCommitter.TEMP_DIR_NAME;
   }
 }
