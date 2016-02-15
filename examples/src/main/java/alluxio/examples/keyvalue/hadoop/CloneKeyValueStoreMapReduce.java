@@ -16,23 +16,18 @@
 package alluxio.examples.keyvalue.hadoop;
 
 import alluxio.client.keyvalue.hadoop.KeyValueInputFormat;
-import alluxio.client.keyvalue.hadoop.KeyValueOutputCommitter;
 import alluxio.client.keyvalue.hadoop.KeyValueOutputFormat;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapred.FileInputFormat;
-import org.apache.hadoop.mapred.FileOutputFormat;
-import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reducer;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 /**
  * This boring MapReduce job clones a key-value store to a different URI.
@@ -41,25 +36,25 @@ public final class CloneKeyValueStoreMapReduce {
   /**
    * The mapper emits all key-value pairs it receives to reducers.
    */
-  public static class Map extends MapReduceBase
-      implements Mapper<BytesWritable, BytesWritable, BytesWritable, BytesWritable> {
-    @Override
-    public void map(BytesWritable key, BytesWritable value,
-        OutputCollector<BytesWritable, BytesWritable> out, Reporter reporter) throws IOException {
-      out.collect(key, value);
+  public static class CloneStoreMapper
+      extends Mapper<BytesWritable, BytesWritable, BytesWritable, BytesWritable> {
+
+    public void map(BytesWritable key, BytesWritable value, Context context)
+        throws IOException, InterruptedException {
+      context.write(key, value);
     }
   }
 
   /**
    * The reducer writes all key-value pairs it receives to the new key-value store.
    */
-  public static class Reduce extends MapReduceBase
-      implements Reducer<BytesWritable, BytesWritable, BytesWritable, BytesWritable> {
-    @Override
-    public void reduce(BytesWritable key, Iterator<BytesWritable> values,
-        OutputCollector<BytesWritable, BytesWritable> out, Reporter reporter) throws IOException {
-      while (values.hasNext()) {
-        out.collect(key, values.next());
+  public static class CloneStoreReducer
+      extends Reducer<BytesWritable, BytesWritable, BytesWritable, BytesWritable> {
+
+    public void reduce(BytesWritable key, Iterable<BytesWritable> values, Context context)
+        throws IOException, InterruptedException {
+      for (BytesWritable value : values) {
+        context.write(key, value);
       }
     }
   }
@@ -70,22 +65,24 @@ public final class CloneKeyValueStoreMapReduce {
    * @throws Exception if any exception happens
    */
   public static void main(String[] args) throws Exception {
-    JobConf conf = new JobConf(CloneKeyValueStoreMapReduce.class);
-    conf.setJobName("clone key-value store");
+    Configuration conf = new Configuration();
+    Job job = Job.getInstance(conf);
 
-    conf.setOutputKeyClass(BytesWritable.class);
-    conf.setOutputValueClass(BytesWritable.class);
+    job.setJobName("CloneKeyValueStore");
+    job.setJarByClass(CloneKeyValueStoreMapReduce.class);
 
-    conf.setMapperClass(Map.class);
-    conf.setReducerClass(Reduce.class);
+    job.setOutputKeyClass(BytesWritable.class);
+    job.setOutputValueClass(BytesWritable.class);
 
-    conf.setInputFormat(KeyValueInputFormat.class);
-    conf.setOutputFormat(KeyValueOutputFormat.class);
-    conf.setOutputCommitter(KeyValueOutputCommitter.class);
+    job.setMapperClass(CloneStoreMapper.class);
+    job.setReducerClass(CloneStoreReducer.class);
 
-    FileInputFormat.setInputPaths(conf, new Path(args[0]));
-    FileOutputFormat.setOutputPath(conf, new Path(args[1]));
+    job.setInputFormatClass(KeyValueInputFormat.class);
+    job.setOutputFormatClass(KeyValueOutputFormat.class);
 
-    JobClient.runJob(conf);
+    FileInputFormat.addInputPath(job, new Path(args[0]));
+    FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+    System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
 }
