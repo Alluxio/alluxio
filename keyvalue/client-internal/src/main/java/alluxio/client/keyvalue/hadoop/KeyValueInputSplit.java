@@ -21,6 +21,7 @@ import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
 
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.InputSplit;
 
 import java.io.DataInput;
@@ -34,7 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Implements {@link InputSplit}, each split contains one partition of the {@link KeyValueSystem}.
  */
 @NotThreadSafe
-final class KeyValueInputSplit extends InputSplit {
+final class KeyValueInputSplit extends InputSplit implements Writable {
   private static final long INVALID_BLOCK_ID = -1;
 
   /** The block store client. */
