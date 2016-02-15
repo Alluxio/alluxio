@@ -21,8 +21,9 @@ import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
 
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapred.RecordWriter;
+import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.util.Progressable;
 import org.apache.http.annotation.ThreadSafe;
 
@@ -33,7 +34,7 @@ import java.util.Arrays;
  * A {@link RecordWriter} to write key-value pairs into a temporary key-value store.
  */
 @ThreadSafe
-class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable> {
+class KeyValueRecordWriter extends RecordWriter<BytesWritable, BytesWritable> {
   private final KeyValueStoreWriter mWriter;
   private final Progressable mProgress;
 
@@ -68,7 +69,7 @@ class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable>
   }
 
   @Override
-  public synchronized void close(Reporter reporter) throws IOException {
+  public synchronized void close(TaskAttemptContext context) throws IOException {
     // Completes the new store.
     mWriter.close();
   }
