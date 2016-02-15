@@ -32,7 +32,7 @@ import java.io.IOException;
 /**
  * This boring MapReduce job clones a key-value store to a different URI.
  */
-public final class CloneKeyValueStoreMapReduce {
+public final class CloneStoreMapReduce {
   /**
    * The mapper emits all key-value pairs it receives to reducers.
    */
@@ -68,8 +68,8 @@ public final class CloneKeyValueStoreMapReduce {
     Configuration conf = new Configuration();
     Job job = Job.getInstance(conf);
 
-    job.setJobName("CloneKeyValueStore");
-    job.setJarByClass(CloneKeyValueStoreMapReduce.class);
+    job.setJobName("CloneStoreMapReduce");
+    job.setJarByClass(CloneStoreMapReduce.class);
 
     job.setOutputKeyClass(BytesWritable.class);
     job.setOutputValueClass(BytesWritable.class);
