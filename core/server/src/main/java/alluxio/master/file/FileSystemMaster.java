@@ -2216,7 +2216,8 @@ public final class FileSystemMaster extends AbstractMaster {
               inode.setPersistenceState(PersistenceState.LOST);
             }
           } catch (FileDoesNotExistException e) {
-            LOG.error("Exception trying to get inode from inode tree: {}", e.toString());
+            // TODO(calvin): Re-add this logic when we update the logic of freeing/removing blocks
+            // LOG.error("Exception trying to get inode from inode tree: {}", e.toString());
           }
         }
       }
