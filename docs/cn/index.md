@@ -1,18 +1,18 @@
----
+﻿---
 layout: global
 title: 概览
 group: Home
 ---
 
-Tachyon是一个以内存为核心的开源分布式存储系统，能够为不同计算框架（如Apache Spark，Apache MapReduce
-Apache Flink）下编写的集群任务提供可靠的内存级数据共享。在大数据生态系统中，Tachyon介于计算框架(如Apache
+Tachyon是一个以内存为核心的开源分布式存储系统，能够为不同计算框架（如Apache Spark，Apache MapReduce，
+Apache Flink）下编写的集群作业提供可靠的内存级数据共享。在大数据生态系统中，Tachyon介于计算框架(如Apache
 Spark，Apache MapReduce，Apache Flink)和现有的存储系统（如Amazon S3，OpenStack Swift，GlusterFS，HDFS，
 Ceph，OSS）之间。Tachyon为大数据软件栈带来了显著的性能提升。以[百度](https://www.baidu.com)为例，使用
 Tachyon后，其数据处理性能提升了30倍。除性能外，Tachyon为新型大数据应用作用于传统存储系统的数据建立了桥梁。
-用户可以以独立集群方式(如Amazon EC2)运行Tachyon，也可以从Apache Mesos或Apache Yarn上启动Tachyon。
+用户可以以独立集群方式(如Amazon EC2)运行Tachyon，也可以从Apache Mesos或Apache YARN上启动Tachyon。
 
-Tachyon与Hadoop兼容。这意味着已有的Spark和MapReduce程序可以不修改代码直接在Tachyon上运行。Tachyon是开源
-项目([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE))，已在多家公司部署。
+Tachyon与Hadoop是兼容的。这意味着已有的Spark和MapReduce程序可以不修改代码直接在Tachyon上运行。Tachyon是一个已在
+多家公司部署的开源项目([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE))。
 Tachyon是发展最快的开源大数据项目之一。自2013年4月开源以来， 已有超过50个组织机构的
 [200多贡献者](https://github.com/amplab/tachyon/graphs/contributors)参与到Tachyon的开发中。包括
 [阿里巴巴](http://www.alibaba.com), [百度](https://www.baidu.com), [CMU](https://www.cmu.edu/)，
@@ -42,7 +42,7 @@ Tachyon是发展最快的开源大数据项目之一。自2013年4月开源以�
 InputStream和OutputStream的接口和对内存映射I/O的高效支持。我们推荐使用这套API以获得Tachyon的最好性能。
 另外，Tachyon提供兼容Hadoop的文件系统接口，Hadoop MapReduce和Spark可以使用Tachyon代替HDFS。
 
-* **可插拔的底层存储** 在容错方面，Tachyon定期备份内存数据到底层存储系统。Tachyon提供了通用接口以简化插入
+* **可插拔的底层存储** 在容错方面，Tachyon备份内存数据到底层存储系统。Tachyon提供了通用接口以简化插入
 不同的底层存储系统。目前我们支持Amazon S3，OpenStack Swift，Apache HDFS，GlusterFS以及单节点本地文件系
 统，后续也会支持很多其它的文件系统。
 
@@ -51,9 +51,9 @@ InputStream和OutputStream的接口和对内存映射I/O的高效支持。我们
 略可以方便地加入Tachyon，而且pin的概念允许用户直接控制数据的存放位置。
 
 * **[统一命名空间](Unified-and-Transparent-Namespace.html)** Tachyon通过挂载功能在不同的存储系统之间实
-现高效的数据管理。并且，透明命名在持久化这些对象到底层存储系统时可以保留这些对象的文件名和目录层次结构
+现高效的数据管理。并且，透明命名在持久化这些对象到底层存储系统时可以保留这些对象的文件名和目录层次结构。
 
-* **[血统(Lineage)](Lineage-API.html)** 通过血统(Lineage)，Tachyon可以不受容错的限制实现高吞吐的写入，
+* **[世系(Lineage)](Lineage-API.html)** 通过血统(Lineage)，Tachyon可以不受容错的限制实现高吞吐的写入，
 丢失的输出可以通过重新执行创建这一输出的任务来恢复。应用将输出写入内存，Tachyon以异步方式定期备份数据到底层
 文件系统。写入失败时，Tachyon启动任务重执行恢复丢失的文件。
 
@@ -63,7 +63,7 @@ InputStream和OutputStream的接口和对内存映射I/O的高效支持。我们
 
 # 快速入门
 
-为了快速地启动tachyon并运行，阅读一下[快速入门](Getting-Started.html)页面，该页面描述了如何部署Tachyon并
+如果要快速地架设tachyon并运行，请阅读[快速入门](Getting-Started.html)页面，该页面描述了如何部署Tachyon并
 在本地环境下运行几个基本的样例。
 
 # 下载
