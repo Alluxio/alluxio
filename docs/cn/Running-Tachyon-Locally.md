@@ -1,4 +1,4 @@
----
+﻿---
 layout: global
 title: 本地运行Tachyon
 nickname: 本地机器上运行Tachyon
@@ -8,7 +8,7 @@ priority: 1
 
 # 单机上独立运行Tachyon
 
-开始之前需要安装[Java](Java-Setup.html)(JDK 7或更高版本)。
+这部分的前提条件是你安装了[Java](Java-Setup.html)(JDK 7或更高版本)。
 
 下载Tachyon二进制发行版{{site.TACHYON_RELEASED_VERSION}}:
 
@@ -22,7 +22,7 @@ priority: 1
 
 * `conf/tachyon-env.sh`中的`TACHYON_UNDERFS_ADDRESS`设置成本地文件系统的临时目录：（例如，`export TACHYON_UNDERFS_ADDRESS=/tmp`）。
 
-* 远程登录服务打开，`ssh localhost`能成功。
+* 远程登录服务开启，`ssh localhost`能成功。
 
 接着，格式化Tachyon文件系统并启动。*注意：因为Tachyon需要创建
 [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt)，启动
@@ -36,7 +36,7 @@ Tachyon会要求用户输入root密码。如果不想重复输入root密码，�
 
 {% include Running-Tachyon-Locally/run-sample.md %}
 
-因为是首个样例程序，能够看到如下输出：
+对于首个样例程序，你应该能够看到如下输出：
 
 {% include Running-Tachyon-Locally/first-sample-output.md %}
 
@@ -48,6 +48,6 @@ Tachyon会要求用户输入root密码。如果不想重复输入root密码，�
 
 {% include Running-Tachyon-Locally/run-tests.md %}
 
-可以在任意时刻执行以下脚本停止Tachyon:
+可以在任意时刻执行以下命令以关闭Tachyon:
 
 {% include Running-Tachyon-Locally/tachyon-stop.md %}
