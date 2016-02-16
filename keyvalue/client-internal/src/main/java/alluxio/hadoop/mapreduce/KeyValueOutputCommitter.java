@@ -39,7 +39,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Extension of {@link FileOutputCommitter} where creating, completing, or deleting a {@link
  * KeyValueSystem} in different phases of a job's or task's lifecycle is considered.
- * <p/>
+ * <p>
  * This committer must be used along with {@link KeyValueOutputFormat} to merge the key-value stores
  * created by each Reducer into one key-value store under the MapReduce output directory.
  */

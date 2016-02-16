@@ -41,7 +41,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Implementation of {@link org.apache.hadoop.mapred.InputFormat} for MapReduce programs to access
  * {@link KeyValueSystem}.
- * <p/>
+ * <p>
  * It takes a {@link KeyValueSystem} URI, and emits key-value pairs stored in the KeyValueStore to
  * {@link org.apache.hadoop.mapred.Mapper}s.
  */
@@ -54,15 +54,15 @@ public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesW
   /**
    * Returns a list of {@link KeyValueInputSplit} where each split is one key-value partition.
    *
-   * @param context MapReduce job configuration
+   * @param jobContext MapReduce job configuration
    * @return list of {@link InputSplit}s, each split is a partition
    * @throws IOException if information about the partition cannot be retrieved
    */
   @Override
-  public List<InputSplit> getSplits(JobContext context) throws IOException {
+  public List<InputSplit> getSplits(JobContext jobContext) throws IOException {
     // The paths are MapReduce program's inputs specified in
     // {@code mapreduce.input.fileinputformat.inputdir}, each path should be a key-value store.
-    Path[] paths = FileInputFormat.getInputPaths(context);
+    Path[] paths = FileInputFormat.getInputPaths(jobContext);
     List<InputSplit> splits = Lists.newArrayList();
     try {
       for (Path path : paths) {
@@ -80,7 +80,7 @@ public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesW
 
   @Override
   public RecordReader<BytesWritable, BytesWritable> createRecordReader(InputSplit inputSplit,
-      TaskAttemptContext context) throws IOException {
+      TaskAttemptContext taskContext) throws IOException {
     return new KeyValueRecordReader();
   }
 }

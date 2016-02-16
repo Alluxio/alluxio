@@ -21,16 +21,17 @@ import alluxio.hadoop.mapreduce.KeyValueOutputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
 
 /**
- * This boring MapReduce job clones a key-value store to a different URI.
+ * This MapReduce job reads a key-value store and saves the same key-value data to another
+ * key-value store with a different URI.
  */
 public final class CloneStoreMapReduce {
   /**
@@ -68,7 +69,7 @@ public final class CloneStoreMapReduce {
     Configuration conf = new Configuration();
 
     // NOTE(binfan): we are using the deprecated constructor of Job instance to compile with
-    // hadoop 1.0. If this is not a concern, the preferred way is
+    // hadoop-1.0. If this is not a concern, a better way is
     //     Job job = Job.getInstance(conf);
     Job job = new Job(conf);
 
