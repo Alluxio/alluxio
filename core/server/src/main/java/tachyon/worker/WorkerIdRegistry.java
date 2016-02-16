@@ -24,6 +24,7 @@ import tachyon.exception.ConnectionFailedException;
 import tachyon.master.block.BlockMaster;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
+import tachyon.wire.WorkerNetAddress;
 import tachyon.worker.block.BlockMasterClient;
 import tachyon.worker.block.BlockMasterSync;
 
@@ -59,8 +60,8 @@ public final class WorkerIdRegistry {
    * @throws ConnectionFailedException if network connection failed
    */
   public static void registerWithBlockMaster(BlockMasterClient masterClient,
-      NetAddress workerAddress) throws IOException, ConnectionFailedException {
-    sWorkerId.set(masterClient.getId(workerAddress.toThrift()));
+      WorkerNetAddress workerAddress) throws IOException, ConnectionFailedException {
+    sWorkerId.set(masterClient.getId(workerAddress));
   }
 
   /**

@@ -1,0 +1,81 @@
+tachyon.worker.allocator.class:
+  worker在特定存储层上分配不同存储目录空间的策略，有效值包括：`tachyon.worker.block.allocator.MaxFreeAllocator`,
+  `tachyon.worker.block.allocator.GreedyAllocator`,
+  `tachyon.worker.block.allocator.RoundRobinAllocator`。
+tachyon.worker.bind.host:
+  Tachyon worker节点绑定的主机名，参考<a href="#configure-multihomed-networks">多宿主网络</a>
+tachyon.worker.block.heartbeat.interval.ms:
+  worker心跳时间间隔（单位：毫秒）。
+tachyon.worker.block.heartbeat.timeout.ms:
+  worker心跳超时时间（单位：毫秒）。
+tachyon.worker.block.threads.max:
+  worker能处理的最大RPC请求数目，该值用于配置具有数据块worker的RPC Thrift服务器。
+tachyon.worker.block.threads.min:
+  worker能处理的最小RPC请求数目，该值用于配置具有数据块worker的RPC Thrift服务器。
+tachyon.worker.data.bind.host:
+  运行Tachyon worker数据服务的主机名，参考<a href="#configure-multihomed-networks">多宿主网络</a>
+tachyon.worker.data.folder:
+  每个存储目录中的一个相对路径，该路径被Tachyon worker用作层次化存储中存放数据的文件夹。
+tachyon.worker.data.port:
+  运行Tachyon worker数据服务的端口。
+tachyon.worker.data.server.class:
+  选择运行worker的网络栈，可选值为：`tachyon.worker.netty.NettyDataServer`和`tachyon.worker.nio.NIODataServer`。
+tachyon.worker.evictor.class:
+  当某个存储层空间不足时，worker剔除块文件的策略。可选值包括`tachyon.worker.block.evictor.LRFUEvictor`、
+  `tachyon.worker.block.evictor.GreedyEvictor`、 `tachyon.worker.block.evictor.LRUEvictor`。
+tachyon.worker.evictor.lrfu.attenuation.factor:
+  在[2, INF)之间的一个衰减因子，用于控制LRFU策略行为。
+tachyon.worker.evictor.lrfu.step.factor:
+  在[0, 1]之间的一个因子，用于控制LRFU策略行为：较小值使LRFU更接近于LFU，较大值更接近于LRU。
+tachyon.worker.file.persist.pool.size:
+  在worker上用于异步存储ASYNC_THROUGH类型文件的线程池大小。每个线程会存储一个文件。
+tachyon.worker.filesystem.heartbeat.interval.ms:
+  worker和文件系统master之间的心跳检测时间间隔（单位：毫秒）。
+tachyon.worker.hostname:
+  Tachyon worker的主机名。
+tachyon.worker.memory.size:
+  每个worker节点的内存容量。
+tachyon.worker.network.netty.boss.threads:
+  收到新的请求时启用的线程数目。
+tachyon.worker.network.netty.file.transfer:
+  当将文件返回给用户时，该配置项用于选择数据如何传输，有效值为`MAPPED` (使用java MappedByteBuffer)以及`TRANSFER` (使用Java FileChannel.transferTo)
+tachyon.worker.network.netty.shutdown.quiet.period:
+  沉默期时间长度（单位：秒）。当netty服务器正终止时，要确保在该时间段内不会产生RPC调用。如果出现了RPC调用，那么在该netty服务器终止时会该沉默期会重新开始。
+tachyon.worker.network.netty.shutdown.timeout:
+  等待netty服务器终止的最长时间（单位：秒）（忽略沉默期）。
+tachyon.worker.network.netty.watermark.high:
+  在切换到不可写状态之前，写队列中可存放的最大字节数。
+tachyon.worker.network.netty.watermark.low:
+  一旦写队列中的high watermark达到了，该队列在切换到可写状态之前必须刷新到该配置项指定的low watermark。
+tachyon.worker.network.netty.worker.threads:
+  "处理请求的线程数目，0表示#cpuCores * 2"
+tachyon.worker.port:
+  Tachyon worker节点运行端口。
+tachyon.worker.session.timeout.ms:
+  worker和client连接的超时时间（单位：毫秒），超时后表明该会话失效。
+tachyon.worker.tieredstore.block.locks:
+  一个Tachyon数据块worker的数据块锁数目。较大值会达到更好的锁粒度，但会使用更多空间。
+tachyon.worker.tieredstore.levels:
+  worker上的存储层数目。
+tachyon.worker.tieredstore.level0.alias:
+  在worker上最高存储层的别名，该值一定要对应master配置项中全局存储层之一。禁止将全局继承结构中较低级别存储层的别名放在worker中较高级别，因此默认情况下，在任何worker上SSD都不能在MEM之前。
+tachyon.worker.tieredstore.level0.dirs.path:
+  顶层存储层在存储目录中的路径。注意对于MacoS该值应为`/Volumes/`。
+tachyon.worker.tieredstore.level0.dirs.quota:
+  顶层存储层容量。
+tachyon.worker.tieredstore.level0.reserved.ratio:
+  在顶层存储层中预留空间的比例（取值为0到1之间）。
+tachyon.worker.tieredstore.reserver.enabled:
+  是否启用层次化存储空间预留服务。
+tachyon.worker.tieredstore.reserver.interval.ms:
+  空间预留服务运行的时间间隔（单位：毫秒），该服务为每个存储层预留一定比例的空间。
+tachyon.worker.web.bind.host:
+  Tachyon worker web服务绑定的主机名，参考See <a href="#configure-multihomed-networks">多宿主网络</a>
+tachyon.worker.web.hostname:
+  Tachyon worker web UI绑定的主机名。
+tachyon.worker.web.port:
+  Tachyon worker web UI运行的端口号。
+tachyon.worker.keytab.file:
+  Tachyon worker的Kerberos密钥对文件。
+tachyon.worker.principal:
+  Tachyon worker的Kerberos主体。

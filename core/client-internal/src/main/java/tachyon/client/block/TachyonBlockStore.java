@@ -31,12 +31,11 @@ import tachyon.client.ClientContext;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.BlockInfo;
-import tachyon.thrift.BlockLocation;
-import tachyon.thrift.WorkerInfo;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.NetAddress;
+import tachyon.wire.BlockInfo;
+import tachyon.wire.BlockLocation;
+import tachyon.wire.WorkerInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
@@ -96,11 +95,8 @@ public final class TachyonBlockStore {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
       for (WorkerInfo workerInfo : masterClient.getWorkerInfoList()) {
-        NetAddress address = new NetAddress(workerInfo.getAddress().getHost(),
-            workerInfo.getAddress().getRpcPort(), workerInfo.getAddress().getDataPort(),
-            workerInfo.getAddress().getWebPort());
-        infoList.add(
-            new BlockWorkerInfo(address, workerInfo.getCapacityBytes(), workerInfo.getUsedBytes()));
+        infoList.add(new BlockWorkerInfo(workerInfo.getAddress(), workerInfo.getCapacityBytes(),
+            workerInfo.getUsedBytes()));
       }
       return infoList;
     } finally {
@@ -168,7 +164,7 @@ public final class TachyonBlockStore {
    *         streaming fashion
    * @throws IOException if the block cannot be written
    */
-  public BufferedBlockOutStream getOutStream(long blockId, long blockSize, NetAddress address)
+  public BufferedBlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address)
       throws IOException {
     if (blockSize == -1) {
       BlockMasterClient blockMasterClient = mContext.acquireMasterClient();

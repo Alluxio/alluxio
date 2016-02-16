@@ -203,13 +203,18 @@
       ]
     }
   },
-  "SET_STATE":{
+  "SET_ATTRIBUTE":{
     "mSequenceNumber":1945,
-    "mType":"SET_STATE",
+    "mType":"SET_ATTRIBUTE",
     "mParameters":{
       "id":1,
       "operationTimeMs":1409349750338,
-      "pinned":true
+      "pinned":true,
+      "ttl":-1,
+      "persisted":true,
+      "owner":"user1",
+      "group":"group1",
+      "permission":511,
     }
   }
 }

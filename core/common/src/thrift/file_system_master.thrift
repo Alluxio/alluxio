@@ -51,22 +51,20 @@ struct FileSystemCommand {
 struct PersistCommandOptions {
   1: list<PersistFile> persistFiles
 }
+
 struct PersistFile {
   1: i64 fileId
   2: list<i64> blockIds
-}
-
-struct SetAclTOptions {
-  1: optional string owner
-  2: optional string group
-  3: optional i32 permission
-  4: optional bool recursive
 }
 
 struct SetAttributeTOptions {
   1: optional bool pinned
   2: optional i64 ttl
   3: optional bool persisted
+  4: optional string owner
+  5: optional string group
+  6: optional i16 permission
+  7: optional bool recursive
 }
 
 union FileSystemCommandOptions {
@@ -176,17 +174,11 @@ service FileSystemMasterClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Sets the acl of a path.
-   */
-  void setAcl( /** the path of a file or directory */ 1: string path,
-       /** the method options */ 2: SetAclTOptions options)
-    throws (1: exception.TachyonTException e)
-
-  /**
    * Sets file or directory attributes.
    */
   void setAttribute( /** the path of the file or directory */ 1: string path,
        /** the method options */ 2: SetAttributeTOptions options)
+    throws (1: exception.TachyonTException e)
 
   /**
    * Schedules async persistence.

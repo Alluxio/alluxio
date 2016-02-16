@@ -32,13 +32,7 @@ interact with data stored in Tachyon. If you want to directly write an applicati
 Tachyon, simply add the `tachyon-client` dependency to your program. For example, if the
 application is built using Maven:
 
-```xml
-<dependency>
-  <groupId>org.tachyon-project</groupId>
-  <artifactId>tachyon-client</artifactId>
-  ...
-</dependency>
-```
+{% include Getting-Started/config-application.md %}
 
 A special set of applications leveraging Tachyon are computation frameworks. Transitioning these
 frameworks to use Tachyon is almost effortless, especially if the framework is already integrated

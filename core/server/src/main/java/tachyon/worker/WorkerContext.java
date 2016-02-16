@@ -18,6 +18,7 @@ package tachyon.worker;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import tachyon.conf.TachyonConf;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * A {@link WorkerContext} object stores {@link TachyonConf}.
@@ -38,7 +39,7 @@ public final class WorkerContext {
   private static WorkerSource sWorkerSource = new WorkerSource();
 
   /** Net address of this worker. */
-  private static NetAddress sNetAddress;
+  private static WorkerNetAddress sNetAddress;
 
   /**
    * Returns the one and only static {@link TachyonConf} object which is shared among all classes
@@ -61,18 +62,18 @@ public final class WorkerContext {
   }
 
   /**
-   * @return {@link NetAddress} object of this worker
+   * @return {@link WorkerNetAddress} object of this worker
    */
-  public static NetAddress getNetAddress() {
+  public static WorkerNetAddress getNetAddress() {
     return sNetAddress;
   }
 
   /**
-   * Sets {@link NetAddress} object of this worker.
+   * Sets {@link WorkerNetAddress} object of this worker.
    *
-   * @param netAddress {@link NetAddress} object of this worker
+   * @param netAddress {@link WorkerNetAddress} object of this worker
    */
-  public static void setWorkerNetAddress(NetAddress netAddress) {
+  public static void setWorkerNetAddress(WorkerNetAddress netAddress) {
     sNetAddress = netAddress;
   }
 
