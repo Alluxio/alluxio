@@ -43,6 +43,7 @@ import javax.ws.rs.core.Response;
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 // TODO(jiri): Figure out why Jersey complains if this is changed to "/lineage".
+// TODO(jiri): Investigate auto-generation of REST API documentation.
 public final class LineageMasterClientRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final Response INTERNAL_SERVER_ERROR =
