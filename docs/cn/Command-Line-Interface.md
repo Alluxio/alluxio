@@ -7,7 +7,7 @@ priority: 0
 
 Alluxio命令行接口为用户提供了基本的文件系统操作，可以使用以下语法调用命令行功能：
 
-{% include Command-Line-Interface/alluxio-tfs.md %}
+{% include Command-Line-Interface/alluxio-fs.md %}
 
 tfs命令中的所有路径都应该以以下开头：
 

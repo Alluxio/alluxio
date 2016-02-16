@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio tfs rm /data/2014*
+$ ./bin/alluxio fs rm /data/2014*
 ```

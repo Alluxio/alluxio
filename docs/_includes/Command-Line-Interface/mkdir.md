@@ -1,5 +1,5 @@
 ```bash
-$ ./bin/alluxio tfs mkdir /users
-$ ./bin/alluxio tfs mkdir /users/Alice
-$ ./bin/alluxio tfs mkdir /users/Bob
+$ ./bin/alluxio fs mkdir /users
+$ ./bin/alluxio fs mkdir /users/Alice
+$ ./bin/alluxio fs mkdir /users/Bob
 ```
