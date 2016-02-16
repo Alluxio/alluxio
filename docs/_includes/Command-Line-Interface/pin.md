@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio tfs pin /data/today
+$ ./bin/alluxio fs pin /data/today
 ```

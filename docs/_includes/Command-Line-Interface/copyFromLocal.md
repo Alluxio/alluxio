@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio tfs copyFromLocal /local/data /input
+$ ./bin/alluxio fs copyFromLocal /local/data /input
 ```
