@@ -99,7 +99,7 @@ public final class LineageMasterClientRestServiceHandler {
     CommandLineJob job = new CommandLineJob(command, new JobConf(outputFile));
     try {
       return Response.ok(mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job)).build();
-    } catch (AlluxioException|IOException e) {
+    } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return INTERNAL_SERVER_ERROR;
     }
