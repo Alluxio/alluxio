@@ -13,7 +13,7 @@
  * the License.
  */
 
-package alluxio.client.keyvalue.hadoop;
+package alluxio.hadoop.mapreduce;
 
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;

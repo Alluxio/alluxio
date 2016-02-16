@@ -13,7 +13,7 @@
  * the License.
  */
 
-package alluxio.client.keyvalue.hadoop;
+package alluxio.hadoop.mapreduce;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
@@ -27,7 +27,6 @@ import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;

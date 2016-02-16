@@ -13,7 +13,7 @@
  * the License.
  */
 
-package alluxio.client.keyvalue.hadoop;
+package alluxio.hadoop.mapreduce;
 
 import alluxio.AlluxioURI;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
