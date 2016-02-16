@@ -2,6 +2,9 @@ tachyon.integration.master.resource.cpu:
   CPU resource in terms of number of cores required to run a Tachyon master.
 tachyon.integration.master.resource.mem:
   Memory resource required to run a Tachyon master.
+tachyon.integration.mesos.constraints:
+  The expression used by Tachyon framework to filter offers with user specify rules,
+  support AND(&), OR(|) and NOT(!) operators, e.g. (rack:r1 & zone:west) | level:10
 tachyon.integration.mesos.executor.dependency.path:
   The URL from which Mesos executor can download Tachyon dependencies.
 tachyon.integration.mesos.jre.path:
