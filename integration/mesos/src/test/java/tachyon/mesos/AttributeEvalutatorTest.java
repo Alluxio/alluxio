@@ -53,6 +53,17 @@ public class AttributeEvalutatorTest {
   }
 
   @Test
+  public void matchNotAttributesTest() throws Exception {
+    assertTrue("Should match attribute here", this.evaluator.matchAttributes("!colo:spark"));
+  }
+
+  @Test
+  public void matchComplexAttributesTest() throws Exception {
+    assertTrue("Should match attribute here", this.evaluator.matchAttributes("!colo:spark & type:server"));
+    assertFalse("Should match attribute here", this.evaluator.matchAttributes("!colo:sparkonly & type:server"));
+  }
+
+  @Test
   public void PriorityTest() throws Exception {
     assertFalse("Should not match attribute here", this.evaluator.matchAttributes("network:calico & colo:sparkonly | type:vm"));
     assertTrue("Should match attribute here", this.evaluator.matchAttributes("network:calico & colo:sparkonly | type:server"));
