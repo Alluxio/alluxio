@@ -21,7 +21,7 @@ TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 
 HOSTLIST=$(cat ${TACHYON_CONF_DIR}/workers | sed  "s/#.*$//;/^$/d")
 
-for worker in `cat "$HOSTLIST" | sed  "s/#.*$//;/^$/d"`; do
+for worker in $(echo ${HOSTLIST}); do
   echo "Connecting to $worker as $USER..."
   if [ -n "${TACHYON_SSH_FOREGROUND}" ]; then
     ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -t $worker $LAUNCHER $"${@// /\\ }" 2>&1
