@@ -15,8 +15,8 @@
 
 package alluxio.examples.keyvalue.hadoop;
 
-import alluxio.client.keyvalue.hadoop.KeyValueInputFormat;
-import alluxio.client.keyvalue.hadoop.KeyValueOutputFormat;
+import alluxio.hadoop.mapreduce.KeyValueInputFormat;
+import alluxio.hadoop.mapreduce.KeyValueOutputFormat;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
