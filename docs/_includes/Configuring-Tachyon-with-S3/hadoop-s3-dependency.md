@@ -1,0 +1,13 @@
+```xml
+<dependency>
+  <groupId>org.tachyonproject</groupId>
+  <artifactId>tachyon-client</artifactId>
+  <version>{{site.TACHYON_RELEASED_VERSION}}</version>
+  <exclusions>
+    <exclusion>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-s3</artifactId>
+    </exclusion>
+  </exclusions>
+</dependency>
+```

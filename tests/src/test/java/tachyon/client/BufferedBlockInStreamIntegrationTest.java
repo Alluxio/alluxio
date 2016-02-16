@@ -24,7 +24,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
@@ -38,27 +37,45 @@ import tachyon.util.io.PathUtils;
 /**
  * Integration tests for {@link tachyon.client.block.BlockInStream}.
  */
-public class BufferedBlockInStreamIntegrationTest {
+public final class BufferedBlockInStreamIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(Constants.GB, Constants.KB, Constants.GB);
-  private static FileSystem sTfs;
+      new LocalTachyonClusterResource();
+  private static FileSystem sFileSystem;
   private static TachyonConf sTachyonConf;
   private static CreateFileOptions sWriteBoth;
   private static CreateFileOptions sWriteTachyon;
   private static CreateFileOptions sWriteUnderStore;
+  private static String sTestPath;
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sTfs = sLocalTachyonClusterResource.get().getClient();
+    sFileSystem = sLocalTachyonClusterResource.get().getClient();
     sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
     sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(sTachyonConf);
     sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sTachyonConf);
     sWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(sTachyonConf);
+    sTestPath = PathUtils.uniqPath();
+
+    // Create files of varying size and write type to later read from
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+      for (CreateFileOptions op : getOptionSet()) {
+        TachyonURI path = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
+        FileSystemTestUtils.createByteFile(sFileSystem, path, op, k);
+      }
+    }
+  }
+
+  private static List<CreateFileOptions> getOptionSet() {
+    List<CreateFileOptions> ret = new ArrayList<CreateFileOptions>(3);
+    ret.add(sWriteBoth);
+    ret.add(sWriteTachyon);
+    ret.add(sWriteUnderStore);
+    return ret;
   }
 
   /**
@@ -66,14 +83,11 @@ public class BufferedBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest1() throws IOException, TachyonException {
-    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI path = new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode());
-        TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
-
+        TachyonURI path = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
         for (int i = 0; i < 2; i ++) {
-          FileInStream is = sTfs.openFile(path, TachyonFSTestUtils.toOpenFileOptions(op));
+          FileInStream is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
           byte[] ret = new byte[k];
           int value = is.read();
           int cnt = 0;
@@ -96,19 +110,17 @@ public class BufferedBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest2() throws IOException, TachyonException {
-    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI path = new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode());
-        TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
+        TachyonURI path = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
-        FileInStream is = sTfs.openFile(path, TachyonFSTestUtils.toOpenFileOptions(op));
+        FileInStream is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
         byte[] ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
 
-        is = sTfs.openFile(path, TachyonFSTestUtils.toOpenFileOptions(op));
+        is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
@@ -122,20 +134,18 @@ public class BufferedBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest3() throws IOException, TachyonException {
-    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI path = new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode());
-        TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
+        TachyonURI path = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
-        FileInStream is = sTfs.openFile(path, TachyonFSTestUtils.toOpenFileOptions(op));
+        FileInStream is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
 
         byte[] ret = new byte[k / 2];
         Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k / 2, ret));
         is.close();
 
-        is = sTfs.openFile(path, TachyonFSTestUtils.toOpenFileOptions(op));
+        is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret, 0, k));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
@@ -149,19 +159,17 @@ public class BufferedBlockInStreamIntegrationTest {
    */
   @Test
   public void skipTest() throws IOException, TachyonException {
-    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
-        TachyonURI path = new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode());
-        TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
+        TachyonURI path = new TachyonURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
-        FileInStream is = sTfs.openFile(path, TachyonFSTestUtils.toOpenFileOptions(op));
+        FileInStream is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
 
         Assert.assertEquals(k / 2, is.skip(k / 2));
         Assert.assertEquals(k / 2, is.read());
         is.close();
 
-        is = sTfs.openFile(path, TachyonFSTestUtils.toOpenFileOptions(op));
+        is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
         int t = k / 3;
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(t, is.read());
@@ -170,13 +178,5 @@ public class BufferedBlockInStreamIntegrationTest {
         is.close();
       }
     }
-  }
-
-  private List<CreateFileOptions> getOptionSet() {
-    List<CreateFileOptions> ret = new ArrayList<CreateFileOptions>(3);
-    ret.add(sWriteBoth);
-    ret.add(sWriteTachyon);
-    ret.add(sWriteUnderStore);
-    return ret;
   }
 }

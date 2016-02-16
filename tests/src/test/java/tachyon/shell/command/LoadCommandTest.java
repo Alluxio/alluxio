@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.client.file.URIStatus;
 import tachyon.exception.TachyonException;
@@ -33,32 +33,33 @@ import tachyon.shell.AbstractTfsShellTest;
 public class LoadCommandTest extends AbstractTfsShellTest {
   @Test
   public void loadDirTest() throws IOException, TachyonException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.THROUGH, 10);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileB", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.THROUGH, 10);
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, "/testRoot/testFileB", WriteType.MUST_CACHE, 10);
     TachyonURI uriA = new TachyonURI("/testRoot/testFileA");
     TachyonURI uriB = new TachyonURI("/testRoot/testFileB");
 
-    URIStatus statusA = mTfs.getStatus(uriA);
-    URIStatus statusB = mTfs.getStatus(uriB);
+    URIStatus statusA = mFileSystem.getStatus(uriA);
+    URIStatus statusB = mFileSystem.getStatus(uriB);
     Assert.assertFalse(statusA.getInMemoryPercentage() == 100);
     Assert.assertTrue(statusB.getInMemoryPercentage() == 100);
     // Testing loading of a directory
     mFsShell.run("load", "/testRoot");
-    statusA = mTfs.getStatus(uriA);
-    statusB = mTfs.getStatus(uriB);
+    statusA = mFileSystem.getStatus(uriA);
+    statusB = mFileSystem.getStatus(uriB);
     Assert.assertTrue(statusA.getInMemoryPercentage() == 100);
     Assert.assertTrue(statusB.getInMemoryPercentage() == 100);
   }
 
   @Test
   public void loadFileTest() throws IOException, TachyonException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.THROUGH, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.THROUGH, 10);
     TachyonURI uri = new TachyonURI("/testFile");
-    URIStatus status = mTfs.getStatus(uri);
+    URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertFalse(status.getInMemoryPercentage() == 100);
     // Testing loading of a single file
     mFsShell.run("load", "/testFile");
-    status = mTfs.getStatus(uri);
+    status = mFileSystem.getStatus(uri);
     Assert.assertTrue(status.getInMemoryPercentage() == 100);
   }
 }

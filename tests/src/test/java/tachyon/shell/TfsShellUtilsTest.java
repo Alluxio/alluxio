@@ -31,7 +31,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
@@ -45,16 +45,15 @@ import tachyon.master.LocalTachyonCluster;
  * covered in {@link TfsShellUtils#getFilePath(String, TachyonConf)}. Hence only getFilePathTest is
  * specified.
  */
-public class TfsShellUtilsTest {
-  private static final int SIZE_BYTES = Constants.MB * 10;
+public final class TfsShellUtilsTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(SIZE_BYTES, 1000, Constants.MB);
-  private FileSystem mTfs = null;
+      new LocalTachyonClusterResource();
+  private FileSystem mFileSystem = null;
 
   @Before
   public final void before() throws Exception {
-    mTfs = mLocalTachyonClusterResource.get().getClient();
+    mFileSystem = mLocalTachyonClusterResource.get().getClient();
   }
 
   @Test
@@ -74,10 +73,10 @@ public class TfsShellUtilsTest {
   }
 
   public String resetTachyonFileHierarchy() throws IOException, TachyonException {
-    return resetTachyonFileHierarchy(mTfs);
+    return resetTachyonFileHierarchy(mFileSystem);
   }
 
-  public static String resetTachyonFileHierarchy(FileSystem tfs)
+  public static String resetTachyonFileHierarchy(FileSystem fs)
       throws IOException, TachyonException {
     /**
      * Generate such local structure /testWildCards
@@ -88,17 +87,17 @@ public class TfsShellUtilsTest {
      *                                        └── foobar3
      *                                └── foobar4
      */
-    if (tfs.exists(new TachyonURI("/testWildCards"))) {
-      tfs.delete(new TachyonURI("/testWildCards"));
+    if (fs.exists(new TachyonURI("/testWildCards"))) {
+      fs.delete(new TachyonURI("/testWildCards"));
     }
-    tfs.createDirectory(new TachyonURI("/testWildCards"));
-    tfs.createDirectory(new TachyonURI("/testWildCards/foo"));
-    tfs.createDirectory(new TachyonURI("/testWildCards/bar"));
+    fs.createDirectory(new TachyonURI("/testWildCards"));
+    fs.createDirectory(new TachyonURI("/testWildCards/foo"));
+    fs.createDirectory(new TachyonURI("/testWildCards/bar"));
 
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar1", WriteType.MUST_CACHE, 10);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar2", WriteType.MUST_CACHE, 20);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/bar/foobar3", WriteType.MUST_CACHE, 30);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foobar4", WriteType.MUST_CACHE, 40);
+    FileSystemTestUtils.createByteFile(fs, "/testWildCards/foo/foobar1", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(fs, "/testWildCards/foo/foobar2", WriteType.MUST_CACHE, 20);
+    FileSystemTestUtils.createByteFile(fs, "/testWildCards/bar/foobar3", WriteType.MUST_CACHE, 30);
+    FileSystemTestUtils.createByteFile(fs, "/testWildCards/foobar4", WriteType.MUST_CACHE, 40);
     return "/testWildCards";
   }
 
@@ -133,7 +132,7 @@ public class TfsShellUtilsTest {
   public List<String> getPaths(String path, FsType fsType) throws IOException, TException {
     List<String> ret = null;
     if (fsType == FsType.TFS) {
-      List<TachyonURI> tPaths = TfsShellUtils.getTachyonURIs(mTfs, new TachyonURI(path));
+      List<TachyonURI> tPaths = TfsShellUtils.getTachyonURIs(mFileSystem, new TachyonURI(path));
       ret = new ArrayList<String>(tPaths.size());
       for (TachyonURI tPath : tPaths) {
         ret.add(tPath.getPath());

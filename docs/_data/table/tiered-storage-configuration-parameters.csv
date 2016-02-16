@@ -1,0 +1,10 @@
+parameter,defaultValue
+tachyon.worker.tieredstore.levels,1
+tachyon.worker.tieredstore.level{x}.alias,MEM<div>(for tachyon.worker.tieredstore.</div><div>level0.alias)</div>
+tachyon.worker.tieredstore.level{x}.dirs.path,/mnt/ramdisk<div>(for tachyon.worker.tieredstore.</div><div>level0.dirs.path)</div>
+tachyon.worker.tieredstore.level{x}.dirs.quota,128MB<div>(for tachyon.worker.tieredstore.</div><div>level0.dirs.quota)</div>
+tachyon.worker.tieredstore.level{x}.reserved.ratio,0.1
+tachyon.worker.tieredstore.reserver.enabled,false
+tachyon.worker.tieredstore.reserver.interval.ms,1000
+tachyon.worker.allocator.class,<div>tachyon.worker.block.allocator.</div><div>MaxFreeAllocator</div>
+tachyon.worker.evictor.class,<div>tachyon.worker.block.evictor.</div><div>LRUEvictor</div>

@@ -1,0 +1,37 @@
+tachyon.user.block.master.client.threads:
+  数据块master client与数据块master通信使用的线程数目。
+tachyon.user.block.worker.client.threads:
+  数据块worker client池从本地数据块worker处读取时使用的线程数目。
+tachyon.user.block.remote.read.buffer.size.bytes:
+  从远程Tachyon worker读取数据时的缓冲区大小。
+tachyon.user.block.remote.reader.class:
+  选择运行client使用的网络栈，目前只支持`tachyon.client.netty.NettyRemoteBlockReader`（使用netty远程读取数据）。
+tachyon.user.block.remote.writer.class:
+  选择运行写数据块的client使用的网络栈。
+tachyon.user.block.size.bytes.default:
+  Tachyon文件的默认大小。
+tachyon.user.failed.space.request.limits:
+  从文件系统请求空间的尝试次数。
+tachyon.user.file.buffer.bytes:
+  在文件系统中进行读写操作时使用的缓冲区大小。
+tachyon.user.file.master.client.threads:
+  文件master client与文件master通信时使用的线程数目。
+tachyon.user.file.waitcompleted.poll.ms:
+  当使用waitCompleted机制时，查询文件完成状态的时间间隔。
+tachyon.user.file.write.location.policy.class:
+  选择worker进行写文件数据块时的默认定位机制。
+tachyon.user.file.readtype.default:
+  创建Tachyon文件时的默认读类型。可选值为`CACHE_PROMOTE` (如果数据已经在Tachyon存储内，将其移动到最高存储层，如果数据需要从底层存储进行读取，将其写到本地Tachyon的最高存储层)、`CACHE` (如果数据需要从底层存储进行读取，将其写到本地Tachyon的最高存储层), `NO_CACHE` (数据不与Tachyon交互，如果是从Tachyon中进行读取，将不会发生数据块迁移或者剔除)。
+tachyon.user.file.writetype.default:
+  创建Tachyon文件时的默认写类型。可选值为`MUST_CACHE` (数据仅仅存储在Tachyon中，并且必须存储在其中),
+  `CACHE_THROUGH` (尽量缓冲数据，同时同步写入到底层文件系统), `THROUGH` (不缓冲数据，同步写入到底层文件系统)。
+tachyon.user.heartbeat.interval.ms:
+  Tachyon worker的心跳时间间隔（单位：毫秒）。
+tachyon.user.lineage.enabled:
+  是否启用lineage。
+tachyon.user.lineage.master.client.threads:
+  lineage master client与lineage master通信所使用的线程数目。
+tachyon.user.network.netty.timeout.ms:
+  Netty client（用于数据块的读写操作）等待数据服务端回复的最长时间（单位：毫秒）。
+tachyon.user.network.netty.worker.threads:
+  远程数据块wrker client从远程数据块worker读取数据使用的线程数目。

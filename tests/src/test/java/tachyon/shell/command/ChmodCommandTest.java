@@ -19,30 +19,45 @@ import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.exception.TachyonException;
-import tachyon.security.LoginUser;
 import tachyon.shell.AbstractTfsShellTest;
 
 /**
  * Tests for chmod command.
  */
 public class ChmodCommandTest extends AbstractTfsShellTest {
-
   @Test
   public void chmodTest() throws IOException, TachyonException {
-    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    clearLoginUser();
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chmod", "777", "/testFile");
-    int permission = mTfs.getStatus(new TachyonURI("/testFile")).getPermission();
+    int permission = mFileSystem.getStatus(new TachyonURI("/testFile")).getPermission();
     Assert.assertEquals((short) 0777, permission);
     mFsShell.run("chmod", "755", "/testFile");
-    permission = mTfs.getStatus(new TachyonURI("/testFile")).getPermission();
+    permission = mFileSystem.getStatus(new TachyonURI("/testFile")).getPermission();
     Assert.assertEquals((short) 0755, permission);
   }
 
+  /**
+   * Test -R option for chmod recursively.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void chmodRecursivelyTest() throws IOException, TachyonException {
+    clearLoginUser();
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile", WriteType.MUST_CACHE, 10);
+    mFsShell.run("chmod", "-R", "777", "/testDir");
+    int permission = mFileSystem.getStatus(new TachyonURI("/testDir")).getPermission();
+    Assert.assertEquals((short) 0777, permission);
+    permission = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getPermission();
+    Assert.assertEquals((short) 0777, permission);
+    mFsShell.run("chmod", "-R", "755", "/testDir");
+    permission = mFileSystem.getStatus(new TachyonURI("/testDir/testFile")).getPermission();
+    Assert.assertEquals((short) 0755, permission);
+  }
 }

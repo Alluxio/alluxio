@@ -20,7 +20,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.shell.AbstractTfsShellTest;
 
@@ -32,17 +32,17 @@ public class UnsetTtlTest extends AbstractTfsShellTest {
   public void unsetTtlTest() throws Exception {
     String filePath = "/testFile";
     TachyonURI uri = new TachyonURI("/testFile");
-    TachyonFSTestUtils.createByteFile(mTfs, filePath, WriteType.MUST_CACHE, 1);
-    Assert.assertEquals(Constants.NO_TTL, mTfs.getStatus(uri).getTtl());
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
+    Assert.assertEquals(Constants.NO_TTL, mFileSystem.getStatus(uri).getTtl());
 
     // unsetTTL on a file originally with no TTL will leave the TTL unchanged.
     Assert.assertEquals(0, mFsShell.run("unsetTtl", filePath));
-    Assert.assertEquals(Constants.NO_TTL, mTfs.getStatus(uri).getTtl());
+    Assert.assertEquals(Constants.NO_TTL, mFileSystem.getStatus(uri).getTtl());
 
     long ttl = 1000L;
     Assert.assertEquals(0, mFsShell.run("setTtl", filePath, String.valueOf(ttl)));
-    Assert.assertEquals(ttl, mTfs.getStatus(uri).getTtl());
+    Assert.assertEquals(ttl, mFileSystem.getStatus(uri).getTtl());
     Assert.assertEquals(0, mFsShell.run("unsetTtl", filePath));
-    Assert.assertEquals(Constants.NO_TTL, mTfs.getStatus(uri).getTtl());
+    Assert.assertEquals(Constants.NO_TTL, mFileSystem.getStatus(uri).getTtl());
   }
 }

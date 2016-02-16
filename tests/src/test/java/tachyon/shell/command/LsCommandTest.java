@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.client.file.URIStatus;
 import tachyon.exception.TachyonException;
@@ -42,16 +42,17 @@ public class LsCommandTest extends AbstractTfsShellTest {
 
     URIStatus[] files = new URIStatus[4];
     String testUser = "test_user_ls";
-    cleanAndLogin(testUser);
+    clearAndLogin(testUser);
 
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
-    files[0] = mTfs.getStatus(new TachyonURI("/testRoot/testFileA"));
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE,
-        20);
-    files[1] = mTfs.getStatus(new TachyonURI("/testRoot/testDir"));
-    files[2] = mTfs.getStatus(new TachyonURI("/testRoot/testDir/testFileB"));
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileC", WriteType.THROUGH, 30);
-    files[3] = mTfs.getStatus(new TachyonURI("/testRoot/testFileC"));
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    files[0] = mFileSystem.getStatus(new TachyonURI("/testRoot/testFileA"));
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
+        WriteType.MUST_CACHE, 20);
+    files[1] = mFileSystem.getStatus(new TachyonURI("/testRoot/testDir"));
+    files[2] = mFileSystem.getStatus(new TachyonURI("/testRoot/testDir/testFileB"));
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WriteType.THROUGH, 30);
+    files[3] = mFileSystem.getStatus(new TachyonURI("/testRoot/testFileC"));
     mFsShell.run("ls", "/testRoot");
     String expected = "";
     expected +=
@@ -72,9 +73,9 @@ public class LsCommandTest extends AbstractTfsShellTest {
     MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
     String testUser = "test_user_lsWildcard";
-    cleanAndLogin(testUser);
+    clearAndLogin(testUser);
 
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
 
     String expect = "";
     expect += getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30, testUser, testUser);

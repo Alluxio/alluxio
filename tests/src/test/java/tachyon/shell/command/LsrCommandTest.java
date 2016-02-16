@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.client.file.URIStatus;
 import tachyon.exception.TachyonException;
@@ -41,18 +41,20 @@ public class LsrCommandTest extends AbstractTfsShellTest {
 
     URIStatus[] files = new URIStatus[4];
     String testUser = "test_user_lsr";
-    cleanAndLogin(testUser);
+    clearAndLogin(testUser);
 
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
-    files[0] = mTfs.getStatus(new TachyonURI("/testRoot/testFileA"));
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE,
-        20);
-    files[1] = mTfs.getStatus(new TachyonURI("/testRoot/testDir"));
-    files[2] = mTfs.getStatus(new TachyonURI("/testRoot/testDir/testFileB"));
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileC", WriteType.THROUGH, 30);
-    files[3] = mTfs.getStatus(new TachyonURI("/testRoot/testFileC"));
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    files[0] = mFileSystem.getStatus(new TachyonURI("/testRoot/testFileA"));
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
+        WriteType.MUST_CACHE, 20);
+    files[1] = mFileSystem.getStatus(new TachyonURI("/testRoot/testDir"));
+    files[2] = mFileSystem.getStatus(new TachyonURI("/testRoot/testDir/testFileB"));
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WriteType.THROUGH, 30);
+    files[3] = mFileSystem.getStatus(new TachyonURI("/testRoot/testFileC"));
     mFsShell.run("lsr", "/testRoot");
     String expected = "";
+    expected += "WARNING: lsr is deprecated. Please use ls -R instead.\n";
     expected +=
         getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10, "In Memory",
             testUser, testUser, files[0].getPermission(), files[0].isFolder());

@@ -20,6 +20,8 @@ import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
@@ -42,10 +44,10 @@ public final class LoadCommand extends WithWildCardPathCommand {
    * Constructs a new instance to load a file or directory in Tachyon space.
    *
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public LoadCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public LoadCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -54,7 +56,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path) throws IOException {
+  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
     load(path);
   }
 
@@ -66,9 +68,9 @@ public final class LoadCommand extends WithWildCardPathCommand {
    */
   private void load(TachyonURI filePath) throws IOException {
     try {
-      URIStatus status = mTfs.getStatus(filePath);
+      URIStatus status = mFileSystem.getStatus(filePath);
       if (status.isFolder()) {
-        List<URIStatus> statuses = mTfs.listStatus(filePath);
+        List<URIStatus> statuses = mFileSystem.listStatus(filePath);
         for (URIStatus uriStatus : statuses) {
           TachyonURI newPath = new TachyonURI(uriStatus.getPath());
           load(newPath);
@@ -81,7 +83,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
         Closer closer = Closer.create();
         try {
           OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
-          FileInStream in = closer.register(mTfs.openFile(filePath, options));
+          FileInStream in = closer.register(mFileSystem.openFile(filePath, options));
           byte[] buf = new byte[8 * Constants.MB];
           while (in.read(buf) != -1) {
           }

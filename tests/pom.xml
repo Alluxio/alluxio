@@ -7,7 +7,7 @@
   </parent>
   <artifactId>tachyon-tests</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Integration Tests</name>
+  <name>Tachyon Tests</name>
   <description>Integration tests for Tachyon</description>
 
   <properties>
@@ -24,10 +24,6 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -48,38 +44,31 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <!-- To suppress javassist/BlockDoesNotExistException in MasterFaultToleranceTest -->
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-module-junit4</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-servers</artifactId>
+      <artifactId>tachyon-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-core-server</artifactId>
       <type>test-jar</type>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-common</artifactId>
+      <artifactId>tachyon-keyvalue-client-internal</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-client</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-servers</artifactId>
+      <artifactId>tachyon-keyvalue-server</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -205,8 +194,8 @@
                 <ufs>tachyon.underfs.s3.S3UnderStorageCluster</ufs>
                 <!-- Change "myAccessKey" to your access key for this test -->
                 <fs.s3n.awsAccessKeyId>myAccessKey</fs.s3n.awsAccessKeyId>
-                <!-- Change "mySecreteKey" to your secrete key for this test -->
-                <fs.s3n.awsSecretAccessKey>mySecreteKey</fs.s3n.awsSecretAccessKey>
+                <!-- Change "mySecretKey" to your secret key for this test -->
+                <fs.s3n.awsSecretAccessKey>mySecretKey</fs.s3n.awsSecretAccessKey>
                 <!-- Change "s3n://my-bucket/tachyon-test" to the name of your
                      S3 bucket for this test -->
                 <s3Bucket>s3n://my-bucket/tachyon-test</s3Bucket>

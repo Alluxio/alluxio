@@ -1,0 +1,10 @@
+```xml
+<property>
+  <name>fs.tachyon.impl</name>
+  <value>tachyon.hadoop.TFS</value>
+</property>
+<property>
+  <name>fs.tachyon-ft.impl</name>
+  <value>tachyon.hadoop.TFSFT</value>
+</property>
+```
