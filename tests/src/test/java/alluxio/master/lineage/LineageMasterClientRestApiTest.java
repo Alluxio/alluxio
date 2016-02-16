@@ -46,7 +46,7 @@ import java.util.Random;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({LineageMaster.class})
 public class LineageMasterClientRestApiTest {
-  private static final Map<String, String> NO_PARAMS = Maps.<String, String>newHashMap();
+  private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
   private static LineageMaster sLineageMaster;
 
   @Rule

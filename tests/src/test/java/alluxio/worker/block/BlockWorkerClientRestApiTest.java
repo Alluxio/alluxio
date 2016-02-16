@@ -19,6 +19,7 @@ import alluxio.LocalAlluxioClusterResource;
 import alluxio.Constants;
 import alluxio.rest.TestCase;
 import alluxio.rest.TestCaseFactory;
+import alluxio.util.CommonUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.LockBlockResultTest;
 import alluxio.worker.AlluxioWorker;
@@ -51,7 +52,7 @@ import javax.ws.rs.core.Response;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioWorker.class, BlockReader.class, BlockWorker.class, BlockWriter.class})
 public class BlockWorkerClientRestApiTest {
-  private static final Map<String, String> NO_PARAMS = Maps.<String, String>newHashMap();
+  private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
   private static BlockWorker sBlockWorker;
 
   @Rule
@@ -170,12 +171,8 @@ public class BlockWorkerClientRestApiTest {
     params.put("length", "-1");
 
     Random random = new Random();
-    String buffer = "";
-    int bufferLength = random.nextInt(64);
-    for (int i = 0; i < bufferLength; i++) {
-      buffer += random.nextInt(96) + 32; // generates a random alphanumeric symbol
-    }
-    ByteBuffer byteBuffer = ByteBuffer.wrap(buffer.getBytes());
+    byte[] bytes = CommonUtils.randomBytes(random.nextInt(64));
+    ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
 
     BlockReader blockReader = PowerMockito.mock(BlockReader.class);
     Mockito.doReturn(byteBuffer).when(blockReader).read(Mockito.anyLong(), Mockito.anyLong());
@@ -194,7 +191,6 @@ public class BlockWorkerClientRestApiTest {
         Response.Status.OK.getStatusCode());
     Assert.assertEquals(new String(byteBuffer.array()), testCase.getResponse(connection));
 
-    // Verify invocations.
     Mockito.verify(sBlockWorker)
         .readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
   }
@@ -206,12 +202,7 @@ public class BlockWorkerClientRestApiTest {
     params.put("sessionId", "1");
     params.put("initialBytes", "1");
 
-    Random random = new Random();
-    String blockLocation = "";
-    int blockLocationLength = random.nextInt(10);
-    for (int i = 0; i < blockLocationLength; i++) {
-      blockLocation += random.nextInt(96) + 32; // generates a random alphanumeric symbol
-    }
+    String blockLocation = CommonUtils.randomString(10);
     Mockito.doReturn(blockLocation).when(sBlockWorker)
         .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString(), Mockito.anyLong());
 
@@ -259,21 +250,16 @@ public class BlockWorkerClientRestApiTest {
     Map<String, String> params = Maps.newHashMap();
     params.put("blockId", "1");
     params.put("sessionId", "1");
-    params.put("offset", "1");
+    params.put("offset", "0");
     params.put("length", "-1");
 
     Random random = new Random();
-    String buffer = "";
-    int bufferLength = random.nextInt(64);
-    for (int i = 0; i < bufferLength; i++) {
-      buffer += random.nextInt(96) + 32; // generates a random alphanumeric symbol
-    }
+    byte[] bytes = CommonUtils.randomBytes(random.nextInt(64));
 
     BlockWriter blockWriter = PowerMockito.mock(BlockWriter.class);
     Mockito.doReturn(blockWriter).when(sBlockWorker)
         .getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong());
 
-    // Create the test case.
     TestCase testCase = TestCaseFactory
         .newWorkerTestCase(BlockWorkerClientRestServiceHandler.WRITE_BLOCK, params, "POST", "",
             mResource);
@@ -283,13 +269,12 @@ public class BlockWorkerClientRestApiTest {
     connection.setRequestMethod(testCase.getMethod());
     connection.setDoOutput(true);
     connection.connect();
-    connection.getOutputStream().write(buffer.getBytes());
+    connection.getOutputStream().write(bytes);
     Assert.assertEquals(testCase.getSuffix(), Response.Status.OK.getStatusCode(),
         connection.getResponseCode());
     Assert.assertEquals("", testCase.getResponse(connection));
 
-    // Verify invocations.
     Mockito.verify(sBlockWorker).getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong());
-    Mockito.verify(blockWriter).append(ByteBuffer.wrap(buffer.getBytes()));
+    Mockito.verify(blockWriter).append(ByteBuffer.wrap(bytes));
   }
 }

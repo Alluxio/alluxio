@@ -80,18 +80,29 @@ public final class CommonUtils {
     return src.toArray(ret);
   }
 
-
   /**
    * Generates a random alphanumeric string of the given length.
    *
-   * @param length
+   * @param length the length
    * @return a random alphanumeric string
    */
-  public static String randomString(long length) {
+  public static String randomString(int length) {
     String result = "";
     for (int i = 0; i < length; i++) {
       result += sRandom.nextInt(96) + 32; // generates a random alphanumeric symbol
     }
+    return result;
+  }
+
+  /**
+   * Generates a random byte array of the given length.
+   *
+   * @param length the length
+   * @return a random byte array
+   */
+  public static byte[] randomBytes(int length) {
+    byte[] result = new byte[length];
+    sRandom.nextBytes(result);
     return result;
   }
 
