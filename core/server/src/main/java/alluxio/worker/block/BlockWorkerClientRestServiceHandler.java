@@ -47,6 +47,7 @@ import javax.ws.rs.core.Response;
  */
 @Path("/")
 // TODO(jiri): Figure out why Jersey complains if this is changed to "/block".
+// TODO(jiri): Investigate auto-generation of REST API documentation.
 public final class BlockWorkerClientRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final Response INTERNAL_SERVER_ERROR =
@@ -208,6 +209,7 @@ public final class BlockWorkerClientRestServiceHandler {
   public Response readBlock(@QueryParam("sessionId") long sessionId,
       @QueryParam("blockId") long blockId, @QueryParam("lockId") long lockId,
       @QueryParam("offset") long offset, @QueryParam("length") long length) {
+    // TODO(jiri): Wrap this logic in a block worker function; requires refactoring.
     Preconditions.checkState(offset >= 0, "invalid offset: %s", offset);
     Preconditions.checkState(length >= -1, "invalid length (except for -1): %s", length);
 
@@ -314,6 +316,7 @@ public final class BlockWorkerClientRestServiceHandler {
   public Response writeBlock(@QueryParam("sessionId") long sessionId,
       @QueryParam("blockId") long blockId, @QueryParam("offset") long offset,
       @QueryParam("length") long length, byte[] data) {
+    // TODO(jiri): Wrap this logic in a block worker function; requires refactoring.
     Preconditions.checkState(offset >= 0, "invalid offset: %s", offset);
     Preconditions.checkState(length >= -1, "invalid length (except for -1): %s", length);
 
