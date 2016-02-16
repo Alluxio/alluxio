@@ -19,6 +19,9 @@ import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.master.AlluxioMaster;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -33,6 +36,10 @@ import javax.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 // TODO(jiri): Figure out why Jersey complains if this is changed to "/block".
 public final class BlockMasterClientRestServiceHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Response INTERNAL_SERVER_ERROR =
+      Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+
   public static final String SERVICE_NAME = "block/service_name";
   public static final String SERVICE_VERSION = "block/service_version";
   public static final String GET_BLOCK_INFO = "block/block_info";
@@ -43,12 +50,7 @@ public final class BlockMasterClientRestServiceHandler {
   private BlockMaster mBlockMaster = AlluxioMaster.get().getBlockMaster();
 
   /**
-   * Returns the service name.
-   *
-   * Method: GET
-   * Response: {@code string}
-   *
-   * @return the response object
+   * @return the service name
    */
   @GET
   @Path(SERVICE_NAME)
@@ -58,12 +60,7 @@ public final class BlockMasterClientRestServiceHandler {
   }
 
   /**
-   * Returns the service version.
-   *
-   * Method: GET
-   * Response: {@code int}
-   *
-   * @return the response object
+   * @return the service version
    */
   @GET
   @Path(SERVICE_VERSION)
@@ -73,7 +70,7 @@ public final class BlockMasterClientRestServiceHandler {
 
   /**
    * @param blockId the block id
-   * @return the response object
+   * @return the block descriptor for the given id
    */
   @GET
   @Path(GET_BLOCK_INFO)
@@ -81,12 +78,13 @@ public final class BlockMasterClientRestServiceHandler {
     try {
       return Response.ok(mBlockMaster.getBlockInfo(blockId)).build();
     } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
-   * @return the response object
+   * @return the total capacity (in bytes)
    */
   @GET
   @Path(GET_CAPACITY_BYTES)
@@ -95,7 +93,7 @@ public final class BlockMasterClientRestServiceHandler {
   }
 
   /**
-   * @return the response object
+   * @return the used capacity (in bytes)
    */
   @GET
   @Path(GET_USED_BYTES)
@@ -104,7 +102,7 @@ public final class BlockMasterClientRestServiceHandler {
   }
 
   /**
-   * @return the response object
+   * @return a list of worker descriptors for all workers
    */
   @GET
   @Path(GET_WORKER_INFO_LIST)
