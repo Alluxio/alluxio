@@ -13,7 +13,16 @@
  * the License.
  */
 
-package alluxio.client.keyvalue.hadoop;
+package alluxio.hadoop.mapreduce;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
+
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.RecordReader;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
@@ -22,48 +31,59 @@ import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapred.RecordReader;
-
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
- * Implements {@link RecordReader}, each record is a key-value pair stored in a partition of the
+ * Implements {@link RecordReader} that breaks the input from a key-value store data into records
+ * and input records to the Mapper. Each record is a key-value pair stored in a partition of the
  * {@link KeyValueSystem}.
  */
 @ThreadSafe
-final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWritable> {
+final class KeyValueRecordReader extends RecordReader<BytesWritable, BytesWritable> {
   /** The partition reader for reading the key-value pairs. */
-  private final KeyValuePartitionReader mReader;
+  private KeyValuePartitionReader mReader;
   /** The iterator for iterating through all key-value pairs contained in the partition. */
-  private final KeyValueIterator mKeyValuePairIterator;
-  /** Accumulated bytes of key-value pairs read so far. */
-  private int mKeyValuePairsBytesRead;
+  private KeyValueIterator mKeyValuePairIterator;
   /** Number of key-value pairs visited by the iterator. */
   private int mNumVisitedKeyValuePairs;
   /** Number of key-value pairs. */
-  private final int mNumKeyValuePairs;
+  private int mNumKeyValuePairs;
+  /** Current key. */
+  private BytesWritable mCurrentKey;
+  /** Current value. */
+  private BytesWritable mCurrentValue;
 
   /**
    * Creates a {@link KeyValueRecordReader} for generating key-value pairs of a partition.
-   *
-   * @param split the split for a block
-   * @throws IOException if non-Alluxio error occurs
-   * @throws AlluxioException if Alluxio error occurs
    */
-  public KeyValueRecordReader(KeyValueInputSplit split) throws IOException, AlluxioException {
-    mReader = KeyValuePartitionReader.Factory.create(split.getPartitionId());
-    mKeyValuePairIterator = mReader.iterator();
-    mKeyValuePairsBytesRead = 0;
-    mNumVisitedKeyValuePairs = 0;
-    mNumKeyValuePairs = mReader.size();
+  public KeyValueRecordReader() {}
+
+  @Override
+  public void initialize(InputSplit split, TaskAttemptContext context)
+      throws IOException, InterruptedException {
+    try {
+      mReader =
+          KeyValuePartitionReader.Factory.create(((KeyValueInputSplit) split).getPartitionId());
+      mKeyValuePairIterator = mReader.iterator();
+      mNumVisitedKeyValuePairs = 0;
+      mNumKeyValuePairs = mReader.size();
+      mCurrentKey = new BytesWritable();
+      mCurrentValue = new BytesWritable();
+    } catch (AlluxioException e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
-  public synchronized boolean next(BytesWritable keyWritable, BytesWritable valueWritable)
-      throws IOException {
+  public synchronized BytesWritable getCurrentKey() {
+    return mCurrentKey;
+  }
+
+  @Override
+  public synchronized BytesWritable getCurrentValue() {
+    return mCurrentValue;
+  }
+
+  @Override
+  public synchronized boolean nextKeyValue() throws IOException {
     if (!mKeyValuePairIterator.hasNext()) {
       return false;
     }
@@ -77,32 +97,10 @@ final class KeyValueRecordReader implements RecordReader<BytesWritable, BytesWri
 
     // TODO(cc): Implement a ByteBufferInputStream which is backed by a ByteBuffer so we could
     // benefit from zero-copy.
-    keyWritable.set(new BytesWritable(BufferUtils.newByteArrayFromByteBuffer(pair.getKey())));
-    valueWritable.set(new BytesWritable(BufferUtils.newByteArrayFromByteBuffer(pair.getValue())));
-
-    mKeyValuePairsBytesRead += keyWritable.getLength() + valueWritable.getLength();
+    mCurrentKey.set(new BytesWritable(BufferUtils.newByteArrayFromByteBuffer(pair.getKey())));
+    mCurrentValue.set(new BytesWritable(BufferUtils.newByteArrayFromByteBuffer(pair.getValue())));
     mNumVisitedKeyValuePairs++;
     return true;
-  }
-
-  @Override
-  public BytesWritable createKey() {
-    return new BytesWritable();
-  }
-
-  @Override
-  public BytesWritable createValue() {
-    return new BytesWritable();
-  }
-
-  /**
-   * {@inheritDoc}.
-   * <p>
-   * @return total bytes of key-value pairs read so far, as an approximation for all read bytes
-   */
-  @Override
-  public synchronized long getPos() throws IOException {
-    return mKeyValuePairsBytesRead;
   }
 
   @Override

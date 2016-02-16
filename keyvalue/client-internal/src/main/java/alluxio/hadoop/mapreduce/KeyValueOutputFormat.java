@@ -13,22 +13,21 @@
  * the License.
  */
 
-package alluxio.client.keyvalue.hadoop;
+package alluxio.hadoop.mapreduce;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
 
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapred.FileOutputCommitter;
-import org.apache.hadoop.mapred.FileOutputFormat;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.OutputFormat;
-import org.apache.hadoop.mapred.RecordWriter;
-import org.apache.hadoop.mapred.TaskAttemptID;
-import org.apache.hadoop.util.Progressable;
+import org.apache.hadoop.mapreduce.JobContext;
+import org.apache.hadoop.mapreduce.OutputCommitter;
+import org.apache.hadoop.mapreduce.OutputFormat;
+import org.apache.hadoop.mapreduce.RecordWriter;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
 
@@ -40,34 +39,37 @@ import javax.annotation.concurrent.ThreadSafe;
  * <p>
  * There are different key-value stores under the output directory configured via MapReduce property
  * {@code mapreduce.output.fileoutputformat.outputdir} for different tasks. The stores are merged
- * into one key-value store under the MapReduce output directory by {@link KeyValueOutputCommitter}.
- *
- * TODO(cc): Consider key distributions in each Reducer.
+ * into one key-value store under the MapReduce output directory by {@link
+ * KeyValueOutputCommitter}.
  */
+// TODO(cc): Consider key distributions in each Reducer.
 @PublicApi
 @ThreadSafe
 public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, BytesWritable> {
+  private OutputCommitter mCommitter;
+
   /**
-   * @param conf MapReduce job configuration
+   * @param taskContext MapReduce task context
    * @return the task's temporary output path ${mapred.out.dir}/_temporary/_${taskid}
    */
-  public static AlluxioURI getTaskOutputURI(JobConf conf) {
-    return getJobOutputURI(conf).join(FileOutputCommitter.TEMP_DIR_NAME)
-        .join("_" + TaskAttemptID.forName(conf.get("mapred.task.id")).toString());
+  public static AlluxioURI getTaskOutputURI(TaskAttemptContext taskContext) {
+    int taskId = taskContext.getTaskAttemptID().getTaskID().getId();
+    return getJobOutputURI(taskContext).join(KeyValueOutputCommitter.getPendingDirName())
+        .join("_" + TaskAttemptID.forName(String.valueOf(taskId)));
   }
 
   /**
-   * @param conf MapReduce job configuration
+   * @param jobContext MapReduce job configuration
    * @return the job's output path
    */
-  public static AlluxioURI getJobOutputURI(JobConf conf) {
-    return new AlluxioURI(FileOutputFormat.getOutputPath(conf).toString());
+  public static AlluxioURI getJobOutputURI(JobContext jobContext) {
+    return new AlluxioURI(FileOutputFormat.getOutputPath(jobContext).toString());
   }
 
   @Override
-  public RecordWriter<BytesWritable, BytesWritable> getRecordWriter(FileSystem ignored,
-      JobConf conf, String name, Progressable progress) throws IOException {
-    return new KeyValueRecordWriter(getTaskOutputURI(conf).join(name), progress);
+  public RecordWriter<BytesWritable, BytesWritable> getRecordWriter(
+      TaskAttemptContext taskAttemptContext) throws IOException {
+    return new KeyValueRecordWriter(getTaskOutputURI(taskAttemptContext));
   }
 
   /**
@@ -77,17 +79,25 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
    * is thrown, otherwise, an empty key-value store is created at the output path.
    * <p>
    * NOTE: This method is called immediately when job is submitted, so that modifications to the
-   * {@link JobConf} are reflected in the whole job.
+   * {@link JobContext} are reflected in the whole job.
    */
   @Override
-  public void checkOutputSpecs(FileSystem ignored, JobConf conf) throws IOException {
-    super.checkOutputSpecs(ignored, conf);
-    conf.setOutputCommitter(KeyValueOutputCommitter.class);
+  public void checkOutputSpecs(JobContext jobContext) throws IOException {
+    super.checkOutputSpecs(jobContext);
     try {
-      KeyValueSystem.Factory.create().createStore(KeyValueOutputFormat.getJobOutputURI(conf))
+      KeyValueSystem.Factory.create().createStore(KeyValueOutputFormat.getJobOutputURI(jobContext))
           .close();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
+  }
+
+  @Override
+  public OutputCommitter getOutputCommitter(TaskAttemptContext taskContext) throws IOException {
+    if (mCommitter == null) {
+      mCommitter =
+          new KeyValueOutputCommitter(FileOutputFormat.getOutputPath(taskContext), taskContext);
+    }
+    return mCommitter;
   }
 }
