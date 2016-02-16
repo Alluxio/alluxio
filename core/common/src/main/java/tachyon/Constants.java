@@ -180,6 +180,8 @@ public final class Constants {
       "tachyon.integration.mesos.role";
   public static final String INTEGRATION_MESOS_SECRET =
       "tachyon.integration.mesos.secret";
+  public static final String INTEGRATION_MESOS_SCHEDULER_CONSTRAINTS =
+      "tachyon.integration.mesos.constraints";
   public static final String INTEGRATION_MESOS_TACHYON_MASTER_NAME =
       "tachyon.integration.mesos.master.name";
   public static final String INTEGRATION_MESOS_TACHYON_WORKER_NAME =

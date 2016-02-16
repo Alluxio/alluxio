@@ -107,6 +107,10 @@ public class TachyonFramework {
       long workerMem = sConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
 
       for (Protos.Offer offer : offers) {
+        if (!meetsConstraints(offer.getAttributesList())) {
+          continue;
+        }
+
         Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
         double offerCpu = 0;
         double offerMem = 0;
@@ -245,6 +249,12 @@ public class TachyonFramework {
     public void slaveLost(SchedulerDriver driver, Protos.SlaveID slaveId) {
       // TODO(jiri): Handle lost Mesos slaves.
       System.out.println("Executor " + slaveId.getValue() + " was lost.");
+    }
+
+
+    private boolean meetsConstraints(List<Protos.Attribute> attributes) {
+      AttributeEvaluator evaluator = new AttributeEvaluator(attributes);
+      return evaluator.matchAttributes(sConf.get(Constants.INTEGRATION_MESOS_SCHEDULER_CONSTRAINTS));
     }
 
     @Override
