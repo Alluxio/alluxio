@@ -40,6 +40,7 @@ public final class CloneStoreMapReduce {
   public static class CloneStoreMapper
       extends Mapper<BytesWritable, BytesWritable, BytesWritable, BytesWritable> {
 
+    @Override
     public void map(BytesWritable key, BytesWritable value, Context context)
         throws IOException, InterruptedException {
       context.write(key, value);
@@ -52,6 +53,7 @@ public final class CloneStoreMapReduce {
   public static class CloneStoreReducer
       extends Reducer<BytesWritable, BytesWritable, BytesWritable, BytesWritable> {
 
+    @Override
     public void reduce(BytesWritable key, Iterable<BytesWritable> values, Context context)
         throws IOException, InterruptedException {
       for (BytesWritable value : values) {
@@ -85,7 +87,7 @@ public final class CloneStoreMapReduce {
     job.setInputFormatClass(KeyValueInputFormat.class);
     job.setOutputFormatClass(KeyValueOutputFormat.class);
 
-    FileInputFormat.addInputPath(job, new Path(args[0]));
+    FileInputFormat.setInputPaths(job, new Path(args[0]));
     FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
     System.exit(job.waitForCompletion(true) ? 0 : 1);
