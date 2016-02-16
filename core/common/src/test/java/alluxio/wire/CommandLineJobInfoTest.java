@@ -15,6 +15,8 @@
 
 package alluxio.wire;
 
+import alluxio.util.CommonUtils;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -49,9 +51,7 @@ public class CommandLineJobInfoTest {
     CommandLineJobInfo result = new CommandLineJobInfo();
     Random random = new Random();
 
-    byte[] bytes = new byte[5];
-    random.nextBytes(bytes);
-    String command = new String(bytes);
+    String command = CommonUtils.randomString(random.nextInt(10));
     JobConfInfo jobConfInfo = JobConfInfoTest.createRandom();
 
     result.setCommand(command);

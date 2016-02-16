@@ -15,6 +15,8 @@
 
 package alluxio.wire;
 
+import alluxio.util.CommonUtils;
+
 import com.google.common.collect.Lists;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
@@ -56,28 +58,25 @@ public class LineageInfoTest {
     Random random = new Random();
 
     long id = random.nextLong();
-    byte[] bytes = new byte[5];
     List<String> inputFiles = Lists.newArrayList();
-    long numInputFiles = random.nextInt(10) + 1;
+    long numInputFiles = random.nextInt(10);
     for (int i = 0; i < numInputFiles; i++) {
-      random.nextBytes(bytes);
-      inputFiles.add(new String(bytes));
+      inputFiles.add(CommonUtils.randomString(random.nextInt(10)));
     }
     List<String> outputFiles = Lists.newArrayList();
-    long numOutputFiles = random.nextInt(10) + 1;
+    long numOutputFiles = random.nextInt(10);
     for (int i = 0; i < numOutputFiles; i++) {
-      random.nextBytes(bytes);
-      outputFiles.add(new String(bytes));
+      outputFiles.add(CommonUtils.randomString(random.nextInt(10)));
     }
     CommandLineJobInfo job = CommandLineJobInfoTest.createRandom();
     long creationTimeMs = random.nextLong();
     List<Long> parents = Lists.newArrayList();
-    long numParents = random.nextInt(10) + 1;
+    long numParents = random.nextInt(10);
     for (int i = 0; i < numParents; i++) {
       parents.add(random.nextLong());
     }
     List<Long> children = Lists.newArrayList();
-    long numChildren = random.nextInt(10) + 1;
+    long numChildren = random.nextInt(10);
     for (int i = 0; i < numChildren; i++) {
       children.add(random.nextLong());
     }

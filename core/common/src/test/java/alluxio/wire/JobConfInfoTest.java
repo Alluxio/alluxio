@@ -15,6 +15,8 @@
 
 package alluxio.wire;
 
+import alluxio.util.CommonUtils;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -48,9 +50,7 @@ public class JobConfInfoTest {
     JobConfInfo result = new JobConfInfo();
     Random random = new Random();
 
-    byte[] bytes = new byte[5];
-    random.nextBytes(bytes);
-    String outputFile = new String(bytes);
+    String outputFile = CommonUtils.randomString(random.nextInt(10));
 
     result.setOutputFile(outputFile);
 

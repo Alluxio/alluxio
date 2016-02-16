@@ -15,6 +15,8 @@
 
 package alluxio.wire;
 
+import alluxio.util.CommonUtils;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,11 +53,7 @@ public class WorkerNetAddressTest {
     WorkerNetAddress result = new WorkerNetAddress();
     Random random = new Random();
 
-    String host = "";
-    int hostLength = random.nextInt(10);
-    for (int i = 0; i < hostLength; i++) {
-      host += random.nextInt(96) + 32; // generates a random alphanumeric symbol
-    }
+    String host = CommonUtils.randomString(random.nextInt(10));
     int rpcPort = random.nextInt();
     int dataPort = random.nextInt();
     int webPort = random.nextInt();
