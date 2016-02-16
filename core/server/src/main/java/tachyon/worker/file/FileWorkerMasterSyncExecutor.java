@@ -34,6 +34,7 @@ import tachyon.thrift.CommandType;
 import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.PersistFile;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockMasterSync;
 
@@ -53,14 +54,12 @@ import tachyon.worker.block.BlockMasterSync;
 final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static final int DEFAULT_FILE_PERSISTER_POOL_SIZE = 10;
   /** Logic for managing async file persistence */
   private final FileDataManager mFileDataManager;
   /** Client for communicating to file system master */
   private final FileSystemMasterClient mMasterClient;
   /** The thread pool to persist file */
-  private final ExecutorService mPersistFileService = Executors.newFixedThreadPool(
-      DEFAULT_FILE_PERSISTER_POOL_SIZE, ThreadFactoryUtils.build("persist-file-service-%d", true));
+  private final ExecutorService mPersistFileService;
 
   /**
    * Creates a new instance of {@link FileWorkerMasterSyncExecutor}.
@@ -72,6 +71,9 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
       FileSystemMasterClient masterClient) {
     mFileDataManager = Preconditions.checkNotNull(fileDataManager);
     mMasterClient = Preconditions.checkNotNull(masterClient);
+    mPersistFileService = Executors.newFixedThreadPool(
+        WorkerContext.getConf().getInt(Constants.WORKER_FILE_PERSIST_POOL_SIZE),
+        ThreadFactoryUtils.build("persist-file-service-%d", true));
   }
 
   @Override
@@ -108,6 +110,14 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
             .getPersistFiles()) {
       long fileId = persistFile.getFileId();
       if (mFileDataManager.needPersistence(fileId)) {
+        // lock all the blocks of the file to prevent eviction
+        try {
+          mFileDataManager.lockBlocks(fileId, persistFile.getBlockIds());
+        } catch (IOException e) {
+          LOG.error("Failed to lock the blocks for file {}", fileId, e);
+        }
+
+        // enqueue the persist request
         mPersistFileService
             .execute(new FilePersister(mFileDataManager, fileId, persistFile.getBlockIds()));
       }

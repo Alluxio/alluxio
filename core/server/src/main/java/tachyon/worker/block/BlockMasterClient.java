@@ -35,7 +35,7 @@ import tachyon.thrift.BlockMasterWorkerService;
 import tachyon.thrift.Command;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
-import tachyon.thrift.WorkerNetAddress;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * A wrapper for the thrift client to interact with the block master, used by tachyon worker.
@@ -114,7 +114,8 @@ public final class BlockMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
-        return mClient.getWorkerId(address);
+        return mClient.getWorkerId(new tachyon.thrift.WorkerNetAddress(address.getHost(),
+            address.getRpcPort(), address.getDataPort(), address.getWebPort()));
       }
     });
   }

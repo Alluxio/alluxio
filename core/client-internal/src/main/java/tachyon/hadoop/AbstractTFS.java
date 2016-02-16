@@ -48,7 +48,7 @@ import tachyon.client.file.URIStatus;
 import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.DeleteOptions;
-import tachyon.client.file.options.SetAclOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
@@ -56,9 +56,9 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
+import tachyon.wire.FileBlockInfo;
+import tachyon.wire.WorkerNetAddress;
 
 /**
  * Base class for Apache Hadoop based Tachyon {@link org.apache.hadoop.fs.FileSystem}. This class
@@ -270,7 +270,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
         ArrayList<String> hosts = new ArrayList<String>();
         List<WorkerNetAddress> addrs = Lists.newArrayList();
         // add the existing in-memory block locations first
-        for (tachyon.thrift.BlockLocation location : info.getBlockInfo().getLocations()) {
+        for (tachyon.wire.BlockLocation location : info.getBlockInfo().getLocations()) {
           addrs.add(location.getWorkerAddress());
         }
         // then add under file system location
@@ -341,7 +341,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     LOG.info("setOwner({},{},{}) HDFS Path: {} Tachyon Path: {}{}", path, username, groupname,
         hdfsPath, mTachyonHeader, tPath);
     try {
-      SetAclOptions options = SetAclOptions.defaults();
+      SetAttributeOptions options = SetAttributeOptions.defaults();
       boolean ownerOrGroupChanged = false;
       if (username != null && !username.isEmpty()) {
         options.setOwner(username).setRecursive(false);
@@ -352,7 +352,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
         ownerOrGroupChanged = true;
       }
       if (ownerOrGroupChanged) {
-        mFileSystem.setAcl(tPath, options);
+        mFileSystem.setAttribute(tPath, options);
       }
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -372,9 +372,9 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     LOG.info("setPermission({},{}) HDFS Path: {} Tachyon Path: {}{}", path, permission.toString(),
         hdfsPath, mTachyonHeader, tPath);
     try {
-      SetAclOptions options =
-          SetAclOptions.defaults().setPermission(permission.toShort()).setRecursive(false);
-      mFileSystem.setAcl(tPath, options);
+      SetAttributeOptions options =
+          SetAttributeOptions.defaults().setPermission(permission.toShort()).setRecursive(false);
+      mFileSystem.setAttribute(tPath, options);
     } catch (TachyonException e) {
       throw new IOException(e);
     }

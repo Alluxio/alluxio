@@ -37,11 +37,12 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.wire.FileInfo;
 import tachyon.worker.block.BlockWorker;
 import tachyon.worker.block.io.BlockReader;
 
@@ -92,6 +93,7 @@ public final class FileDataManagerTest {
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
 
+    manager.lockBlocks(fileId, blockIds);
     manager.persistFile(fileId, blockIds);
 
     // verify file persisted
@@ -126,6 +128,40 @@ public final class FileDataManagerTest {
     manager.clearPersistedFiles(poppedList);
     persistedFiles = (Set<Long>) Whitebox.getInternalState(manager, "mPersistedFiles");
     Assert.assertEquals(Sets.newHashSet(2L), persistedFiles);
+  }
+
+  /**
+   * Tests the blocks are unlocked correctly when exception is encountered in
+   * {@link FileDataManager#lockBlocks(long, List)}.
+   *
+   * @throws Exception when an exception occurs
+   */
+  @Test
+  public void lockBlocksErrorHandlingTest() throws Exception {
+    long fileId = 1;
+    List<Long> blockIds = Lists.newArrayList(1L, 2L, 3L);
+
+    // mock block data manager
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    FileInfo fileInfo = new FileInfo();
+    fileInfo.setPath("test");
+    Mockito.when(blockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, 1L)).thenReturn(1L);
+    Mockito.when(blockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, 2L)).thenReturn(2L);
+    Mockito.when(blockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, 3L))
+        .thenThrow(new BlockDoesNotExistException("block 3 does not exist"));
+    FileDataManager manager = new FileDataManager(blockWorker);
+    try {
+      manager.lockBlocks(fileId, blockIds);
+      Assert.fail("the lock should fail");
+    } catch (IOException e) {
+      Assert.assertEquals(
+          "failed to lock all blocks of file 1\n"
+              + "tachyon.exception.BlockDoesNotExistException: block 3 does not exist\n",
+          e.getMessage());
+      // verify the locks are all unlocked
+      Mockito.verify(blockWorker).unlockBlock(1L);
+      Mockito.verify(blockWorker).unlockBlock(2L);
+    }
   }
 
   /**
@@ -164,6 +200,7 @@ public final class FileDataManagerTest {
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
 
+    manager.lockBlocks(fileId, blockIds);
     try {
       manager.persistFile(fileId, blockIds);
       Assert.fail("the persist should fail");

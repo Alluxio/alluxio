@@ -33,6 +33,7 @@ import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.TachyonTException;
+import tachyon.wire.ThriftUtils;
 
 /**
  * This class is a Thrift handler for file system master RPCs invoked by a Tachyon worker.
@@ -60,7 +61,7 @@ public final class FileSystemMasterWorkerServiceHandler
   @Override
   public FileInfo getFileInfo(long fileId) throws TachyonTException {
     try {
-      return mFileSystemMaster.getFileInfo(fileId);
+      return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(fileId));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }

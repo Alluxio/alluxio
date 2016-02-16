@@ -25,7 +25,7 @@ import org.apache.commons.cli.CommandLine;
 import tachyon.client.file.FileSystem;
 import tachyon.client.lineage.TachyonLineage;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.LineageInfo;
+import tachyon.wire.LineageInfo;
 
 /**
  * Lists all the lineages.

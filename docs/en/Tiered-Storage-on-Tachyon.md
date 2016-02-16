@@ -65,19 +65,11 @@ blocks of pinned files to move blocks to the top tier.
 
 An example of how to pin a file:
 
-```java
-TachyonFile file = TachyonFileSystem.open("/myFile");
-SetStateOptions pinOpt = new SetStateOptions.Builder(ClientContext.getConf()).setPinned(true);
-TachyonFileSystem.setState(file, pinOpt);
-```
+{% include Tiered-Storage-on-Tachyon/pin-file.md %}
 
 Similarly, the file can be unpinned through:
 
-```java
-TachyonFile file = TachyonFileSystem.open("/myFile");
-SetStateOptions pinOpt = new SetStateOptions.Builder(ClientContext.getConf()).setPinned(false);
-TachyonFileSystem.setState(file, pinOpt);
-```
+{% include Tiered-Storage-on-Tachyon/unpin-file.md %}
 
 Since blocks of pinned files are no longer candidates for eviction, clients should make sure to
 unpin files when appropriate.
@@ -149,24 +141,12 @@ Tiered storage can be enabled in Tachyon using
 [configuration parameters](Configuration-Settings.html). By default, Tachyon only enables a single,
 memory tier. To specify additional tiers for Tachyon, use the following configuration parameters:
 
-    tachyon.worker.tieredstore.levels
-    tachyon.worker.tieredstore.level{x}.alias
-    tachyon.worker.tieredstore.level{x}.dirs.quota
-    tachyon.worker.tieredstore.level{x}.dirs.path
-    tachyon.worker.tieredstore.level{x}.reserved.ratio
+{% include Tiered-Storage-on-Tachyon/configuration-parameters.md %}
 
 For example, if you wanted to configure Tachyon to have two tiers -- memory and hard disk drive --
 you could use a configuration similar to:
 
-    tachyon.worker.tieredstore.levels=2
-    tachyon.worker.tieredstore.level0.alias=MEM
-    tachyon.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
-    tachyon.worker.tieredstore.level0.dirs.quota=100GB
-    tachyon.worker.tieredstore.level0.reserved.ratio=0.2
-    tachyon.worker.tieredstore.level1.alias=HDD
-    tachyon.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3
-    tachyon.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
-    tachyon.worker.tieredstore.level1.reserved.ratio=0.1
+{% include Tiered-Storage-on-Tachyon/two-tiers.md %}
 
 Here is the explanation of the example configuration:
 
@@ -193,8 +173,7 @@ by using multiple paths for `tachyon.worker.tieredstore.level{x}.dirs.path`.
 Additionally, the specific evictor and allocator strategies can be configured. Those configuration
 parameters are:
 
-    tachyon.worker.allocator.class=tachyon.worker.block.allocator.MaxFreeAllocator
-    tachyon.worker.evictor.class=tachyon.worker.block.evictor.LRUEvictor
+{% include Tiered-Storage-on-Tachyon/evictor-allocator.md %}
 
 Space reserver can be configured to be enabled or disabled through:
 
@@ -206,81 +185,11 @@ These are the configuration parameters for tiered storage.
 
 <table class="table table-striped">
 <tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
+{% for item in site.data.table.tiered-storage-configuration-parameters %}
 <tr>
-  <td>tachyon.worker.tieredstore.levels</td>
-  <td>1</td>
-  <td>
-  The maximum number of storage tiers in Tachyon. Currently, Tachyon supports 1, 2, or 3 tiers.
-  </td>
+<td>{{ item.parameter }}</td>
+<td>{{ item.defaultValue }}</td>
+<td>{{ site.data.table.en.tiered-storage-configuration-parameters.[item.parameter] }}</td>
 </tr>
-<tr>
-  <td>tachyon.worker.tieredstore.level{x}.alias</td>
-  <td>MEM
-  <div>(for tachyon.worker.tieredstore.</div>
-  <div>level0.alias)</div></td>
-  <td>
-  The alias of each storage tier, where x represents storage tier number (top tier is 0). Currently,
-  there are 3 aliases, MEM, SSD, and HDD.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.worker.tieredstore.level{x}.dirs.path</td>
-  <td>/mnt/ramdisk
-  <div>(for tachyon.worker.tieredstore.</div>
-  <div>level0.dirs.path)</div></td>
-  <td>
-  The paths of storage directories in storage tier x, delimited by comma. x represents the storage
-  tier number (top tier is 0). It is suggested to have one storage directory per hardware device for
-  the SSD and HDD tiers.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.worker.tieredstore.level{x}.dirs.quota</td>
-  <td>128MB
-  <div>(for tachyon.worker.tieredstore.</div>
-  <div>level0.dirs.quota)</div></td>
-  <td>
-  The quotas for all storage directories in storage tier x, delimited by comma. x represents the
-  storage tier number (starting from 0). For a particular storage tier, if the list of quotas is
-  shorter than the list of directories of that tier, then the quotas for the remaining directories
-  will just use the last-defined quota. Quota definitions use these suffixes: KB, MB, GB, TB, PB.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.worker.tieredstore.level{x}.reserved.ratio</td>
-  <td>0.1</td>
-  <td>
-  Value is between 0 and 1, it sets the portion of space reserved on storage tier x. If the space is
-  unavailable, the space reserver will evict blocks until the reserved space is available again.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.worker.tieredstore.reserver.enabled</td>
-  <td>false</td>
-  <td>
-  Flag for enabling the space reserver service.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.worker.tieredstore.reserver.interval.ms</td>
-  <td>1000</td>
-  <td>
-  Interval for the space reserver to check if enough space is reserved in all tiers.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.worker.allocator.class</td>
-  <td><div>tachyon.worker.block.allocator.</div><div>MaxFreeAllocator</div></td>
-  <td>
-  The class name of the allocation strategy to use for new blocks in Tachyon.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.worker.evictor.class</td>
-  <td><div>tachyon.worker.block.evictor.</div>
-  <div>LRUEvictor</div></td>
-  <td>
-  The class name of the block eviction strategy to use when a storage layer runs out of space.
-  </td>
-</tr>
+{% endfor %}
 </table>

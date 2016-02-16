@@ -29,9 +29,7 @@ title: Java Setup
     installed. Move the .tar.gz archive binary to the current directory.
 3.  Unpack the tarball and install the JDK.
 
-```bash
-$ tar zxvf jdk-7u<version>-linux-x64.tar.gz
-```
+{% include Java-Setup/install-jdk-linux.md %}
 
 4.  The Java Development Kit files are installed in a directory called `jdk1.7.0_` in the current
 directory. Delete the .tar.gz file if you want to save disk space.

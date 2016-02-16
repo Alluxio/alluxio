@@ -98,7 +98,7 @@ public class AuthenticationUtilsTest {
 
   /**
    * In SIMPLE mode, the TTransport mechanism is PLAIN. When server authenticate the connected
-   * client user, it use {@link tachyon.security.authentication.SimpleAuthenticationProviderImpl}.
+   * client user, it use {@link SimpleAuthenticationProvider}.
    *
    * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
    *                   transport fails
