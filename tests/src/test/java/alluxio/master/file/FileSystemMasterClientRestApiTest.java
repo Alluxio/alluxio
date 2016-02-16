@@ -23,6 +23,7 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.rest.TestCaseFactory;
+import alluxio.util.CommonUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileBlockInfoTest;
 import alluxio.wire.FileInfo;
@@ -50,7 +51,7 @@ import java.util.Random;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMaster.class})
 public class FileSystemMasterClientRestApiTest {
-  private static final Map<String, String> NO_PARAMS = Maps.<String, String>newHashMap();
+  private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
   private static FileSystemMaster sFileSystemMaster;
 
   @Rule
@@ -178,11 +179,7 @@ public class FileSystemMasterClientRestApiTest {
   @Test
   public void getUfsAddress() throws Exception {
     Random random = new Random();
-    String ufsAddress = "";
-    int ufsAddressLength = random.nextInt(10);
-    for (int i = 0; i < ufsAddressLength; i++) {
-      ufsAddress += random.nextInt(96) + 32; // generates a random alphanumeric symbol
-    }
+    String ufsAddress = CommonUtils.randomString(10);
     Mockito.doReturn(ufsAddress).when(sFileSystemMaster).getUfsAddress();
 
     TestCaseFactory

@@ -46,7 +46,7 @@ import java.util.Random;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMaster.class)
 public class BlockMasterClientRestApiTest {
-  private static final Map<String, String> NO_PARAMS = Maps.<String, String>newHashMap();
+  private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
   private static BlockMaster sBlockMaster;
 
   @Rule

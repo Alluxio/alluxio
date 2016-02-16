@@ -92,16 +92,18 @@ public class TestCase {
   }
 
   public String getResponse(HttpURLConnection connection) throws Exception {
-    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-    StringBuffer response = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
+    BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+    char[] buffer = new char[1024];
+    int len;
 
-    String inputLine;
-    while ((inputLine = in.readLine()) != null) {
-      response.append(inputLine);
+    while ((len = br.read(buffer)) > 0) {
+      sb.append(buffer, 0, len);
+
     }
-    in.close();
+    br.close();
 
-    return response.toString();
+    return sb.toString();
   }
 
   /**
