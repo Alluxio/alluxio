@@ -54,8 +54,8 @@ public class BlockInfoTest {
     long blockId = random.nextLong();
     long length = random.nextLong();
     List<BlockLocation> locations = Lists.newArrayList();
-    long numElements = random.nextInt(10) + 1;
-    for (int i = 0; i < numElements; i++) {
+    long numLocations = random.nextInt(10);
+    for (int i = 0; i < numLocations; i++) {
       locations.add(BlockLocationTest.createRandom());
     }
 
