@@ -20,6 +20,7 @@ TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
 HOSTLIST=$(cat ${TACHYON_CONF_DIR}/workers | sed  "s/#.*$//;/^$/d")
+TACHYON_TASK_LOG="$(echo ${BIN} | sed 's/bin$//g')"logs/task.log
 
 for worker in $(echo ${HOSTLIST}); do
   echo "Connecting to $worker as $USER..."
