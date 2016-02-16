@@ -71,7 +71,7 @@ Alluxio launches job recomputation to restore the lost files.
 * **[Web UI](Web-Interface.html) & [Command Line](Command-Line-Interface.html)** Users can browse
 the file system easily through the web UI. Under debug mode, administrators can view detailed
 information of each file, including locations, checkpoint path, etc. Users can also use
-``./bin/alluxio tfs`` to interact with Alluxio, e.g. copy data in and out of the file system.
+``./bin/alluxio fs`` to interact with Alluxio, e.g. copy data in and out of the file system.
 
 # Getting Started
 

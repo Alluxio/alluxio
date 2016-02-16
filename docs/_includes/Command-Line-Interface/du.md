@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio tfs du /\\*
+$ ./bin/alluxio fs du /\\*
 ```

@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio tfs chgrpr alluxio-group-new /input/directory1
+$ ./bin/alluxio fs chgrpr alluxio-group-new /input/directory1
 ```
