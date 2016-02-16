@@ -36,14 +36,13 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * An {@link OutputFormat} implementation to let MapReduce job write to a key-value store under the
  * MapReduce output directory.
- * <p/>
+ * <p>
  * There are different key-value stores under the output directory configured via MapReduce property
  * {@code mapreduce.output.fileoutputformat.outputdir} for different tasks. The stores are merged
  * into one key-value store under the MapReduce output directory by {@link
  * KeyValueOutputCommitter}.
- * <p/>
- * TODO(cc): Consider key distributions in each Reducer.
  */
+// TODO(cc): Consider key distributions in each Reducer.
 @PublicApi
 @ThreadSafe
 public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, BytesWritable> {
@@ -75,10 +74,10 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
 
   /**
    * {@inheritDoc}
-   * <p/>
+   * <p>
    * {@link KeyValueOutputCommitter} is forced to be used. If the output path exists, an exception
    * is thrown, otherwise, an empty key-value store is created at the output path.
-   * <p/>
+   * <p>
    * NOTE: This method is called immediately when job is submitted, so that modifications to the
    * {@link JobContext} are reflected in the whole job.
    */
