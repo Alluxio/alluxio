@@ -13,19 +13,21 @@
  * the License.
  */
 
-package alluxio;
+package alluxio.rest;
+
+import alluxio.LocalAlluxioClusterResource;
 
 import java.util.Map;
 
 /**
- * Factory for creating instances of {@link RestApiTestCase}.
+ * Factory for creating instances of {@link TestCase}.
  */
-public class RestApiTestCaseFactory {
+public class TestCaseFactory {
   public static final String MASTER_SERVICE = "master";
   public static final String WORKER_SERVICE = "worker";
 
   /**
-   * Creates a new instance of {@link RestApiTestCaseFactory} for the master service.
+   * Creates a new instance of {@link TestCase} for the master service.
    *
    * @param suffix the suffix to use
    * @param parameters the parameters to use
@@ -34,14 +36,14 @@ public class RestApiTestCaseFactory {
    * @param resource the local Alluxio cluster resource
    * @return a REST API test case
    */
-  public static RestApiTestCase newMasterTestCase(String suffix, Map<String, String> parameters,
+  public static TestCase newMasterTestCase(String suffix, Map<String, String> parameters,
       String method, Object expectedResult, LocalAlluxioClusterResource resource) {
-    return new RestApiTestCase(suffix, parameters, method, expectedResult, MASTER_SERVICE,
+    return new TestCase(suffix, parameters, method, expectedResult, MASTER_SERVICE,
         resource);
   }
 
   /**
-   * Creates a new instance of {@link RestApiTestCaseFactory} for the worker service.
+   * Creates a new instance of {@link TestCase} for the worker service.
    *
    * @param suffix the suffix to use
    * @param parameters the parameters to use
@@ -50,9 +52,9 @@ public class RestApiTestCaseFactory {
    * @param resource the local Alluxio cluster resource
    * @return a REST API test case
    */
-  public static RestApiTestCase newWorkerTestCase(String suffix, Map<String, String> parameters,
+  public static TestCase newWorkerTestCase(String suffix, Map<String, String> parameters,
       String method, Object expectedResult, LocalAlluxioClusterResource resource) {
-    return new RestApiTestCase(suffix, parameters, method, expectedResult, WORKER_SERVICE,
+    return new TestCase(suffix, parameters, method, expectedResult, WORKER_SERVICE,
         resource);
   }
 }

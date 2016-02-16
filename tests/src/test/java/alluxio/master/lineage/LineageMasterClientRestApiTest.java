@@ -16,11 +16,11 @@
 package alluxio.master.lineage;
 
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.RestApiTestCaseFactory;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.job.Job;
 import alluxio.master.AlluxioMaster;
+import alluxio.rest.TestCaseFactory;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.LineageInfoTest;
 
@@ -62,14 +62,14 @@ public class LineageMasterClientRestApiTest {
 
   @Test
   public void serviceNameTest() throws Exception {
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newMasterTestCase(LineageMasterClientRestServiceHandler.SERVICE_NAME, NO_PARAMS,
         "GET", Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME, mResource).run();
   }
 
   @Test
   public void serviceVersionTest() throws Exception {
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newMasterTestCase(LineageMasterClientRestServiceHandler.SERVICE_VERSION, NO_PARAMS,
         "GET", Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION, mResource).run();
   }
@@ -88,7 +88,7 @@ public class LineageMasterClientRestApiTest {
         .createLineage(Mockito.<List<AlluxioURI>>any(), Mockito.<List<AlluxioURI>>any(),
             Mockito.<Job>any());
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newMasterTestCase(LineageMasterClientRestServiceHandler.CREATE_LINEAGE, params, "POST",
         result, mResource).run();
 
@@ -108,7 +108,7 @@ public class LineageMasterClientRestApiTest {
     Mockito.doReturn(result).when(sLineageMaster)
         .deleteLineage(Mockito.anyLong(), Mockito.anyBoolean());
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newMasterTestCase(LineageMasterClientRestServiceHandler.DELETE_LINEAGE, params, "POST",
         result, mResource).run();
 
@@ -125,7 +125,7 @@ public class LineageMasterClientRestApiTest {
     }
     Mockito.doReturn(lineageInfos).when(sLineageMaster).getLineageInfoList();
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newMasterTestCase(LineageMasterClientRestServiceHandler.GET_LINEAGE_INFO_LIST, NO_PARAMS,
             "GET", lineageInfos, mResource).run();
 
@@ -144,7 +144,7 @@ public class LineageMasterClientRestApiTest {
     Mockito.doReturn(result).when(sLineageMaster)
         .reinitializeFile(Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong());
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newMasterTestCase(LineageMasterClientRestServiceHandler.REINITIALIZE_FILE, params, "POST",
             result, mResource).run();
 
@@ -157,7 +157,7 @@ public class LineageMasterClientRestApiTest {
     Map<String, String> params = Maps.newHashMap();
     params.put("path", "test");
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newMasterTestCase(LineageMasterClientRestServiceHandler.REPORT_LOST_FILE, params,
         "POST", "", mResource).run();
 

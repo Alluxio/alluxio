@@ -16,9 +16,9 @@
 package alluxio.worker.block;
 
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.RestApiTestCase;
-import alluxio.RestApiTestCaseFactory;
 import alluxio.Constants;
+import alluxio.rest.TestCase;
+import alluxio.rest.TestCaseFactory;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.LockBlockResultTest;
 import alluxio.worker.AlluxioWorker;
@@ -67,14 +67,14 @@ public class BlockWorkerClientRestApiTest {
 
   @Test
   public void serviceNameTest() throws Exception {
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newWorkerTestCase(BlockWorkerClientRestServiceHandler.SERVICE_NAME, NO_PARAMS, "GET",
-        Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME, mResource).run();
+            Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME, mResource).run();
   }
 
   @Test
   public void serviceVersionTest() throws Exception {
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newWorkerTestCase(BlockWorkerClientRestServiceHandler.SERVICE_VERSION, NO_PARAMS, "GET",
         Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION, mResource).run();
   }
@@ -84,7 +84,7 @@ public class BlockWorkerClientRestApiTest {
     Map<String, String> params = Maps.newHashMap();
     params.put("blockId", "1");
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newWorkerTestCase(BlockWorkerClientRestServiceHandler.ACCESS_BLOCK, params, "POST",
         "", mResource).run();
 
@@ -96,7 +96,7 @@ public class BlockWorkerClientRestApiTest {
     Map<String, String> params = Maps.newHashMap();
     params.put("fileId", "1");
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newWorkerTestCase(BlockWorkerClientRestServiceHandler.ASYNC_CHECKPOINT, params, "POST",
         "false", mResource).run();
   }
@@ -107,7 +107,7 @@ public class BlockWorkerClientRestApiTest {
     params.put("blockId", "1");
     params.put("sessionId", "1");
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newWorkerTestCase(BlockWorkerClientRestServiceHandler.CACHE_BLOCK, params, "POST",
         "", mResource).run();
 
@@ -120,7 +120,7 @@ public class BlockWorkerClientRestApiTest {
     params.put("blockId", "1");
     params.put("sessionId", "1");
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newWorkerTestCase(BlockWorkerClientRestServiceHandler.CANCEL_BLOCK, params, "POST",
         "", mResource).run();
 
@@ -139,7 +139,7 @@ public class BlockWorkerClientRestApiTest {
     Mockito.doReturn(lockBlockResult.getBlockPath()).when(sBlockWorker)
         .readBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newWorkerTestCase(BlockWorkerClientRestServiceHandler.LOCK_BLOCK, params, "POST",
         lockBlockResult, mResource).run();
 
@@ -152,7 +152,7 @@ public class BlockWorkerClientRestApiTest {
     Map<String, String> params = Maps.newHashMap();
     params.put("blockId", "1");
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newWorkerTestCase(BlockWorkerClientRestServiceHandler.PROMOTE_BLOCK, params,
         "POST", "", mResource).run();
 
@@ -183,7 +183,7 @@ public class BlockWorkerClientRestApiTest {
     Mockito.doReturn(blockReader).when(sBlockWorker)
         .readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
 
-    RestApiTestCase testCase = RestApiTestCaseFactory
+    TestCase testCase = TestCaseFactory
         .newWorkerTestCase(BlockWorkerClientRestServiceHandler.READ_BLOCK, params, "GET",
             byteBuffer, mResource);
 
@@ -215,7 +215,7 @@ public class BlockWorkerClientRestApiTest {
     Mockito.doReturn(blockLocation).when(sBlockWorker)
         .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString(), Mockito.anyLong());
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newWorkerTestCase(BlockWorkerClientRestServiceHandler.REQUEST_BLOCK_LOCATION, params,
             "POST", blockLocation, mResource).run();
 
@@ -232,7 +232,7 @@ public class BlockWorkerClientRestApiTest {
     params.put("sessionId", "1");
     params.put("requestBytes", "1");
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newWorkerTestCase(BlockWorkerClientRestServiceHandler.REQUEST_SPACE, params, "POST", "",
         mResource).run();
 
@@ -246,7 +246,7 @@ public class BlockWorkerClientRestApiTest {
     params.put("blockId", "1");
     params.put("sessionId", "1");
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newWorkerTestCase(BlockWorkerClientRestServiceHandler.UNLOCK_BLOCK, params, "POST", "",
         mResource).run();
 
@@ -274,7 +274,7 @@ public class BlockWorkerClientRestApiTest {
         .getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong());
 
     // Create the test case.
-    RestApiTestCase testCase = RestApiTestCaseFactory
+    TestCase testCase = TestCaseFactory
         .newWorkerTestCase(BlockWorkerClientRestServiceHandler.WRITE_BLOCK, params, "POST", "",
             mResource);
 

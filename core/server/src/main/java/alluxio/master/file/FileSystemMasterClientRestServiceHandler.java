@@ -126,7 +126,7 @@ public final class FileSystemMasterClientRestServiceHandler {
               .setPersisted(persisted).setRecursive(recursive).build();
       mFileSystemMaster.mkdir(new AlluxioURI(path), options);
       return Response.ok().build();
-    } catch (AlluxioException|IOException e) {
+    } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return INTERNAL_SERVER_ERROR;
     }
@@ -244,7 +244,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("recursive") boolean recursive) {
     try {
       return Response.ok(mFileSystemMaster.loadMetadata(new AlluxioURI(path), recursive)).build();
-    } catch (AlluxioException|IOException e) {
+    } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return INTERNAL_SERVER_ERROR;
     }
@@ -261,7 +261,7 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       mFileSystemMaster.mount(new AlluxioURI(path), new AlluxioURI(ufsPath));
       return Response.ok().build();
-    } catch (AlluxioException|IOException e) {
+    } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return INTERNAL_SERVER_ERROR;
     }
@@ -279,7 +279,7 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       mFileSystemMaster.deleteFile(new AlluxioURI(path), recursive);
       return Response.ok().build();
-    } catch (AlluxioException|IOException e) {
+    } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return INTERNAL_SERVER_ERROR;
     }
@@ -297,7 +297,7 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath));
       return Response.ok().build();
-    } catch (AlluxioException|IOException e) {
+    } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return INTERNAL_SERVER_ERROR;
     }
@@ -377,7 +377,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   public Response unmount(@QueryParam("path") String path) {
     try {
       return Response.ok(mFileSystemMaster.unmount(new AlluxioURI(path))).build();
-    } catch (AlluxioException|IOException e) {
+    } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return INTERNAL_SERVER_ERROR;
     }

@@ -36,7 +36,6 @@ import java.nio.ByteBuffer;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -131,7 +130,7 @@ public final class BlockWorkerClientRestServiceHandler {
     try {
       mBlockWorker.commitBlock(sessionId, blockId);
       return Response.ok().build();
-    } catch (AlluxioException|IOException e) {
+    } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return INTERNAL_SERVER_ERROR;
     }
@@ -150,7 +149,7 @@ public final class BlockWorkerClientRestServiceHandler {
     try {
       mBlockWorker.abortBlock(sessionId, blockId);
       return Response.ok().build();
-    } catch (AlluxioException|IOException e) {
+    } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return INTERNAL_SERVER_ERROR;
     }
@@ -189,7 +188,7 @@ public final class BlockWorkerClientRestServiceHandler {
       mBlockWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId,
           mStorageTierAssoc.getAlias(0));
       return Response.ok().build();
-    } catch (AlluxioException|IOException e) {
+    } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return INTERNAL_SERVER_ERROR;
     }
@@ -225,7 +224,7 @@ public final class BlockWorkerClientRestServiceHandler {
       ByteBuffer buffer = reader.read(offset, readLength);
       mBlockWorker.accessBlock(sessionId, blockId);
       return Response.ok(buffer.array()).build();
-    } catch (AlluxioException|IOException e) {
+    } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return INTERNAL_SERVER_ERROR;
     } finally {
@@ -255,7 +254,7 @@ public final class BlockWorkerClientRestServiceHandler {
       return Response
           .ok(mBlockWorker.createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(0),
               initialBytes)).build();
-    } catch (AlluxioException|IOException e) {
+    } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return INTERNAL_SERVER_ERROR;
     }
@@ -275,7 +274,7 @@ public final class BlockWorkerClientRestServiceHandler {
     try {
       mBlockWorker.requestSpace(sessionId, blockId, requestBytes);
       return Response.ok().build();
-    } catch (AlluxioException|IOException e) {
+    } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return INTERNAL_SERVER_ERROR;
     }
@@ -333,7 +332,7 @@ public final class BlockWorkerClientRestServiceHandler {
       writer = mBlockWorker.getTempBlockWriterRemote(sessionId, blockId);
       writer.append(buffer);
       return Response.ok().build();
-    } catch (AlluxioException|IOException e) {
+    } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return INTERNAL_SERVER_ERROR;
     } finally {

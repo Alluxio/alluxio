@@ -16,9 +16,9 @@
 package alluxio.master.block;
 
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.RestApiTestCaseFactory;
 import alluxio.Constants;
 import alluxio.master.AlluxioMaster;
+import alluxio.rest.TestCaseFactory;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockInfoTest;
 import alluxio.wire.WorkerInfo;
@@ -62,14 +62,14 @@ public class BlockMasterClientRestApiTest {
 
   @Test
   public void serviceNameTest() throws Exception {
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newMasterTestCase(BlockMasterClientRestServiceHandler.SERVICE_NAME, NO_PARAMS, "GET",
         Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME, mResource).run();
   }
 
   @Test
   public void serviceVersionTest() throws Exception {
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newMasterTestCase(BlockMasterClientRestServiceHandler.SERVICE_VERSION, NO_PARAMS, "GET",
         Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION, mResource).run();
   }
@@ -82,7 +82,7 @@ public class BlockMasterClientRestApiTest {
     BlockInfo blockInfo = BlockInfoTest.createRandom();
     Mockito.doReturn(blockInfo).when(sBlockMaster).getBlockInfo(Mockito.anyLong());
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newMasterTestCase(BlockMasterClientRestServiceHandler.GET_BLOCK_INFO, params, "GET",
         blockInfo, mResource).run();
 
@@ -95,7 +95,7 @@ public class BlockMasterClientRestApiTest {
     long capacityBytes = random.nextLong();
     Mockito.doReturn(capacityBytes).when(sBlockMaster).getCapacityBytes();
 
-    RestApiTestCaseFactory.newMasterTestCase(BlockMasterClientRestServiceHandler.GET_CAPACITY_BYTES,
+    TestCaseFactory.newMasterTestCase(BlockMasterClientRestServiceHandler.GET_CAPACITY_BYTES,
         NO_PARAMS, "GET", capacityBytes, mResource).run();
 
     Mockito.verify(sBlockMaster).getCapacityBytes();
@@ -107,7 +107,7 @@ public class BlockMasterClientRestApiTest {
     long usedBytes = random.nextLong();
     Mockito.doReturn(usedBytes).when(sBlockMaster).getUsedBytes();
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newMasterTestCase(BlockMasterClientRestServiceHandler.GET_USED_BYTES, NO_PARAMS, "GET",
         usedBytes, mResource).run();
 
@@ -124,7 +124,7 @@ public class BlockMasterClientRestApiTest {
     }
     Mockito.doReturn(workerInfos).when(sBlockMaster).getWorkerInfoList();
 
-    RestApiTestCaseFactory
+    TestCaseFactory
         .newMasterTestCase(BlockMasterClientRestServiceHandler.GET_WORKER_INFO_LIST, NO_PARAMS,
         "GET", workerInfos, mResource).run();
 
