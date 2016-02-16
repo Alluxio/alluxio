@@ -15,7 +15,7 @@ get_env () {
   . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
   TACHYON_MASTER_PORT=${TACHYON_MASTER_PORT:-19998}
-  TACHYON_FUSE_JAR=${BIN}/../integration/fuse/target/tachyon-fuse-${VERSION}-jar-with-dependencies.jar
+  TACHYON_FUSE_JAR=${BIN}/../integration/fuse/target/tachyon-integration-fuse-${VERSION}-jar-with-dependencies.jar
   FUSE_MAX_WRITE=131072
 }
 

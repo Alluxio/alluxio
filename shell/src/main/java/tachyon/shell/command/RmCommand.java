@@ -19,8 +19,12 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
+import tachyon.client.file.options.DeleteOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
@@ -32,10 +36,10 @@ public final class RmCommand extends WithWildCardPathCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public RmCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public RmCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -44,16 +48,29 @@ public final class RmCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(TachyonURI path) throws IOException {
+  protected int getNumOfArgs() {
+    return 1;
+  }
+
+  @Override
+  protected Options getOptions() {
+    return new Options().addOption(RECURSIVE_OPTION);
+  }
+
+  @Override
+  void runCommand(TachyonURI path, CommandLine cl) throws IOException {
     // TODO(calvin): Remove explicit state checking.
     try {
-      if (!mTfs.exists(path)) {
+      boolean recursive = cl.hasOption("R");
+      if (!mFileSystem.exists(path)) {
         throw new IOException("Path " + path + " does not exist");
       }
-      if (mTfs.getStatus(path).isFolder()) {
-        throw new IOException("rm: cannot remove a directory, please try rmr <path>");
+      if (!recursive && mFileSystem.getStatus(path).isFolder()) {
+        throw new IOException("rm: cannot remove a directory, please try rm -R <path>");
       }
-      mTfs.delete(path);
+
+      DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
+      mFileSystem.delete(path, options);
       System.out.println(path + " has been removed");
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -62,11 +79,11 @@ public final class RmCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "rm <path>";
+    return "rm [-R] <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Removes the specified file.";
+    return "Removes the specified file. Specify -R to remove file or directory recursively.";
   }
 }

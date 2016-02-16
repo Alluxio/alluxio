@@ -1,0 +1,7 @@
+parameter,defaultvalue
+tachyon.master.lineage.checkpoint.interval.ms,300000
+tachyon.master.lineage.checkpoint.class,tachyon.master.lineage.checkpoint  .CheckpointLatestPlanner
+tachyon.master.lineage.recompute.interval.ms,300000
+tachyon.master.lineage.recompute.log.path,${tachyon.home}/logs/recompute.log
+tachyon.user.lineage.enabled,false
+

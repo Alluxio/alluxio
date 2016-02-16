@@ -19,6 +19,8 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
@@ -34,10 +36,10 @@ public final class SetTtlCommand extends AbstractTfsShellCommand {
 
   /**
    * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
+   * @param fs the filesystem of Tachyon
    */
-  public SetTtlCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public SetTtlCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -51,11 +53,12 @@ public final class SetTtlCommand extends AbstractTfsShellCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     long ttlMs = Long.parseLong(args[1]);
     Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
     TachyonURI path = new TachyonURI(args[0]);
-    CommandUtils.setTtl(mTfs, path, ttlMs);
+    CommandUtils.setTtl(mFileSystem, path, ttlMs);
     System.out.println("TTL of file '" + path + "' was successfully set to " + ttlMs
         + " milliseconds.");
   }

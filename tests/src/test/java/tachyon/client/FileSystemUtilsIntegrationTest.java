@@ -32,6 +32,7 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.FileSystemUtils;
 import tachyon.client.file.options.CreateFileOptions;
+import tachyon.client.util.ClientTestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.util.CommonUtils;
@@ -45,17 +46,17 @@ public class FileSystemUtilsIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.MB,
+      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
           Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
   private static CreateFileOptions sWriteBoth;
-  private static FileSystem sTfs = null;
+  private static FileSystem sFileSystem = null;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sTfs = sLocalTachyonClusterResource.get().getClient();
+    sFileSystem = sLocalTachyonClusterResource.get().getClient();
     TachyonConf conf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
     sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(conf);
   }
@@ -71,15 +72,15 @@ public class FileSystemUtilsIntegrationTest {
       public void run() {
         FileOutStream os = null;
         try {
-          os = sTfs.createFile(uri, sWriteBoth);
-          boolean completed = sTfs.getStatus(uri).isCompleted();
+          os = sFileSystem.createFile(uri, sWriteBoth);
+          boolean completed = sFileSystem.getStatus(uri).isCompleted();
           Assert.assertFalse(completed);
           for (int i = 0; i < numWrites; i++) {
             os.write(42);
             CommonUtils.sleepMs(200);
           }
           os.close();
-          completed = sTfs.getStatus(uri).isCompleted();
+          completed = sFileSystem.getStatus(uri).isCompleted();
           Assert.assertTrue(completed);
         } catch (Exception e) {
           Assert.fail(e.getMessage());
@@ -91,9 +92,9 @@ public class FileSystemUtilsIntegrationTest {
       @Override
       public void run() {
         try {
-          boolean completed = FileSystemUtils.waitCompleted(sTfs, uri);
+          boolean completed = FileSystemUtils.waitCompleted(sFileSystem, uri);
           Assert.assertTrue(completed);
-          completed = sTfs.getStatus(uri).isCompleted();
+          completed = sFileSystem.getStatus(uri).isCompleted();
           Assert.assertTrue(completed);
         } catch (Exception e) {
           e.printStackTrace();
@@ -123,8 +124,8 @@ public class FileSystemUtilsIntegrationTest {
       public void run() {
         FileOutStream os = null;
         try {
-          os = sTfs.createFile(uri, sWriteBoth);
-          boolean completed = sTfs.getStatus(uri).isCompleted();
+          os = sFileSystem.createFile(uri, sWriteBoth);
+          boolean completed = sFileSystem.getStatus(uri).isCompleted();
           Assert.assertFalse(completed);
           // four writes that will take > 600ms due to the sleeps
           for (int i = 0; i < numWrites; i++) {
@@ -132,7 +133,7 @@ public class FileSystemUtilsIntegrationTest {
             CommonUtils.sleepMs(200);
           }
           os.close();
-          completed = sTfs.getStatus(uri).isCompleted();
+          completed = sFileSystem.getStatus(uri).isCompleted();
           Assert.assertTrue(completed);
         } catch (Exception e) {
           Assert.fail(e.getMessage());
@@ -144,17 +145,19 @@ public class FileSystemUtilsIntegrationTest {
       @Override
       public void run() {
         try {
-          final TachyonConf conf = ClientContext.getConf();
           // set the slow default polling period to a more sensible value, in order
           // to speed up the tests artificial waiting times
-          conf.set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
-          // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
-          boolean completed = FileSystemUtils.waitCompleted(sTfs, uri, 300,
-              TimeUnit.MILLISECONDS);
-          Assert.assertFalse(completed);
-          completed = sTfs.getStatus(uri).isCompleted();
-          Assert.assertFalse(completed);
-          ClientContext.reset();
+          ClientContext.getConf().set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
+          try {
+            // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
+            boolean completed = FileSystemUtils.waitCompleted(sFileSystem, uri, 300,
+                TimeUnit.MILLISECONDS);
+            Assert.assertFalse(completed);
+            completed = sFileSystem.getStatus(uri).isCompleted();
+            Assert.assertFalse(completed);
+          } finally {
+            ClientTestUtils.resetClientContext();
+          }
         } catch (Exception e) {
           e.printStackTrace();
           Assert.fail(e.getMessage());

@@ -34,7 +34,7 @@ TACHYON_TARFILE="tachyon.tar.gz"
 rm -rf $TACHYON_TARFILE
 tar -C $TACHYON_HOME -zcf $TACHYON_TARFILE \
   assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar libexec \
-  servers/src/main/webapp \
+  core/server/src/main/webapp \
   bin conf integration/bin/common.sh integration/bin/tachyon-master-yarn.sh \
   integration/bin/tachyon-worker-yarn.sh \
   integration/bin/tachyon-application-master.sh \
@@ -45,8 +45,8 @@ echo "Uploading files to HDFS to distribute tachyon runtime"
 
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${TACHYON_TARFILE} ${HDFS_PATH}/$TACHYON_TARFILE
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${JAR_LOCAL} ${HDFS_PATH}/tachyon.jar
-${HADOOP_HOME}/bin/hadoop fs -put -f ./tachyon-yarn-setup.sh ${HDFS_PATH}/tachyon-yarn-setup.sh
-${HADOOP_HOME}/bin/hadoop fs -put -f ./tachyon-application-master.sh ${HDFS_PATH}/tachyon-application-master.sh
+${HADOOP_HOME}/bin/hadoop fs -put -f ${SCRIPT_DIR}/tachyon-yarn-setup.sh ${HDFS_PATH}/tachyon-yarn-setup.sh
+${HADOOP_HOME}/bin/hadoop fs -put -f ${SCRIPT_DIR}/tachyon-application-master.sh ${HDFS_PATH}/tachyon-application-master.sh
 
 echo "Starting YARN client to launch Tachyon on YARN"
 

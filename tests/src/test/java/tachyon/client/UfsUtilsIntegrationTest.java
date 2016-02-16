@@ -38,7 +38,7 @@ import tachyon.util.io.PathUtils;
 public class UfsUtilsIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(10000, 1000, 128);
+      new LocalTachyonClusterResource();
   private FileSystem mFileSystem = null;
   private String mUfsRoot = null;
   private UnderFileSystem mUfs = null;
@@ -78,11 +78,11 @@ public class UfsUtilsIntegrationTest {
 
     List<String> paths;
     for (String exclusion : exclusions) {
-      paths = TachyonFSTestUtils.listFiles(mFileSystem, exclusion);
+      paths = FileSystemTestUtils.listFiles(mFileSystem, exclusion);
       Assert.assertEquals(0, paths.size());
     }
     for (String inclusion : inclusions) {
-      paths = TachyonFSTestUtils.listFiles(mFileSystem, inclusion);
+      paths = FileSystemTestUtils.listFiles(mFileSystem, inclusion);
       Assert.assertNotEquals(0, paths.size());
     }
   }

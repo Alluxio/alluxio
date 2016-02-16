@@ -49,11 +49,11 @@ public class JournalShutdownIntegrationTest {
     private int mSuccessNum = 0;
 
     private final int mOpType; // 0: create file
-    private final FileSystem mTfs;
+    private final FileSystem mFileSystem;
 
-    public ClientThread(int opType, FileSystem tfs) {
+    public ClientThread(int opType, FileSystem fs) {
       mOpType = opType;
-      mTfs = tfs;
+      mFileSystem = fs;
     }
 
     public int getSuccessNum() {
@@ -72,13 +72,14 @@ public class JournalShutdownIntegrationTest {
         while (true) {
           if (mOpType == 0) {
             try {
-              mTfs.createFile(new TachyonURI(TEST_FILE_DIR + mSuccessNum)).close();
+              mFileSystem.createFile(new TachyonURI(TEST_FILE_DIR + mSuccessNum)).close();
             } catch (IOException e) {
               break;
             }
           } else if (mOpType == 1) {
             // TODO(gene): Add this back when there is new RawTable client API.
-            // if (mTfs.createRawTable(new TachyonURI(TEST_TABLE_DIR + mSuccessNum), 1) == -1) {
+            // if (mFileSystem.createRawTable(new TachyonURI(TEST_TABLE_DIR + mSuccessNum), 1) ==
+            // -1) {
             // break;
             // }
           }
@@ -148,7 +149,7 @@ public class JournalShutdownIntegrationTest {
   private LocalTachyonCluster setupSingleMasterCluster()
       throws IOException, ConnectionFailedException {
     // Setup and start the local tachyon cluster.
-    LocalTachyonCluster cluster = new LocalTachyonCluster(100, 100, TEST_BLOCK_SIZE);
+    LocalTachyonCluster cluster = new LocalTachyonCluster(100, TEST_BLOCK_SIZE);
     cluster.start();
     mMasterTachyonConf = cluster.getMasterTachyonConf();
     mCreateFileThread = new ClientThread(0, cluster.getClient());

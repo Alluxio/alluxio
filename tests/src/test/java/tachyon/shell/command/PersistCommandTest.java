@@ -23,7 +23,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
@@ -37,8 +37,9 @@ public class PersistCommandTest extends AbstractTfsShellTest {
   @Test
   public void persistTest() throws IOException, TachyonException {
     String testFilePath = "/testPersist/testFile";
-    TachyonFSTestUtils.createByteFile(mTfs, testFilePath, WriteType.MUST_CACHE, 10);
-    Assert.assertFalse(mTfs.getStatus(new TachyonURI("/testPersist/testFile")).isPersisted());
+    FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WriteType.MUST_CACHE, 10);
+    Assert
+        .assertFalse(mFileSystem.getStatus(new TachyonURI("/testPersist/testFile")).isPersisted());
 
     int ret = mFsShell.run("persist", testFilePath);
     Assert.assertEquals(0, ret);
@@ -50,19 +51,19 @@ public class PersistCommandTest extends AbstractTfsShellTest {
   public void persistDirectoryTest() throws IOException, TachyonException {
     // Set the default write type to MUST_CACHE, so that directories are not persisted by default
     ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
-    Assert.assertFalse(mTfs.getStatus(new TachyonURI("/testWildCards")).isPersisted());
+    TfsShellUtilsTest.resetTachyonFileHierarchy(mFileSystem);
+    Assert.assertFalse(mFileSystem.getStatus(new TachyonURI("/testWildCards")).isPersisted());
     Assert
-        .assertFalse(mTfs.getStatus(new TachyonURI("/testWildCards/foo")).isPersisted());
+        .assertFalse(mFileSystem.getStatus(new TachyonURI("/testWildCards/foo")).isPersisted());
     Assert
-        .assertFalse(mTfs.getStatus(new TachyonURI("/testWildCards/bar")).isPersisted());
+        .assertFalse(mFileSystem.getStatus(new TachyonURI("/testWildCards/bar")).isPersisted());
     int ret = mFsShell.run("persist", "/testWildCards");
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(mTfs.getStatus(new TachyonURI("/testWildCards")).isPersisted());
+    Assert.assertTrue(mFileSystem.getStatus(new TachyonURI("/testWildCards")).isPersisted());
     Assert
-        .assertTrue(mTfs.getStatus(new TachyonURI("/testWildCards/foo")).isPersisted());
+        .assertTrue(mFileSystem.getStatus(new TachyonURI("/testWildCards/foo")).isPersisted());
     Assert
-        .assertTrue(mTfs.getStatus(new TachyonURI("/testWildCards/bar")).isPersisted());
+        .assertTrue(mFileSystem.getStatus(new TachyonURI("/testWildCards/bar")).isPersisted());
     checkFilePersisted(new TachyonURI("/testWildCards/foo/foobar1"), 10);
     checkFilePersisted(new TachyonURI("/testWildCards/foo/foobar2"), 20);
     checkFilePersisted(new TachyonURI("/testWildCards/bar/foobar3"), 30);
@@ -83,8 +84,9 @@ public class PersistCommandTest extends AbstractTfsShellTest {
   public void persistTwiceTest() throws IOException, TachyonException {
     // Persisting an already-persisted file is okay
     String testFilePath = "/testPersist/testFile";
-    TachyonFSTestUtils.createByteFile(mTfs, testFilePath, WriteType.MUST_CACHE, 10);
-    Assert.assertFalse(mTfs.getStatus(new TachyonURI("/testPersist/testFile")).isPersisted());
+    FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WriteType.MUST_CACHE, 10);
+    Assert
+        .assertFalse(mFileSystem.getStatus(new TachyonURI("/testPersist/testFile")).isPersisted());
     int ret = mFsShell.run("persist", testFilePath);
     Assert.assertEquals(0, ret);
     ret = mFsShell.run("persist", testFilePath);

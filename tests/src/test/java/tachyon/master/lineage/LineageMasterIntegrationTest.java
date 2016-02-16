@@ -52,8 +52,8 @@ import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
 import tachyon.master.file.meta.PersistenceState;
-import tachyon.thrift.LineageInfo;
 import tachyon.util.CommonUtils;
+import tachyon.wire.LineageInfo;
 
 /**
  * Integration tests for the lineage module.
@@ -69,7 +69,7 @@ public final class LineageMasterIntegrationTest {
 
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource = new LocalTachyonClusterResource(
-      WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES,
+      WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES,
       Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
       Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER,
       Constants.USER_LINEAGE_ENABLED, "true",
@@ -128,9 +128,8 @@ public final class LineageMasterIntegrationTest {
       CreateFileOptions options =
           CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
               .setBlockSizeBytes(BLOCK_SIZE_BYTES);
-      LineageFileSystem tfs =
-          (LineageFileSystem) mLocalTachyonClusterResource.get().getClient();
-      FileOutStream outputStream = tfs.createFile(new TachyonURI(OUT_FILE), options);
+      LineageFileSystem fs = (LineageFileSystem) mLocalTachyonClusterResource.get().getClient();
+      FileOutStream outputStream = fs.createFile(new TachyonURI(OUT_FILE), options);
       outputStream.write(1);
       outputStream.close();
 

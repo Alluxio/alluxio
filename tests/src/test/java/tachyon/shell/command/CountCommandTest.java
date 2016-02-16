@@ -20,7 +20,7 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.FileSystemTestUtils;
 import tachyon.client.WriteType;
 import tachyon.exception.ExceptionMessage;
 import tachyon.shell.AbstractTfsShellTest;
@@ -39,10 +39,12 @@ public class CountCommandTest extends AbstractTfsShellTest {
 
   @Test
   public void countTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
-    TachyonFSTestUtils
-        .createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileB", WriteType.MUST_CACHE, 30);
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
+        WriteType.MUST_CACHE, 20);
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, "/testRoot/testFileB", WriteType.MUST_CACHE, 30);
     mFsShell.run("count", "/testRoot");
     String expected = "";
     String format = "%-25s%-25s%-15s\n";

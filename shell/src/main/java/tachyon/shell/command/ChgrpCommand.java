@@ -19,24 +19,29 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileSystem;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 
 /**
  * Changes the group of a file or directory specified by args.
  */
 @ThreadSafe
-public final class ChgrpCommand extends AbstractAclCommand {
+public final class ChgrpCommand extends AbstractTfsShellCommand {
 
   /**
    * Creates a new instance of {@link ChgrpCommand}.
    *
    * @param conf a Tachyon configuration
-   * @param tfs a Tachyon file system handle
+   * @param fs a Tachyon file system handle
    */
-  public ChgrpCommand(TachyonConf conf, FileSystem tfs) {
-    super(conf, tfs);
+  public ChgrpCommand(TachyonConf conf, FileSystem fs) {
+    super(conf, fs);
   }
 
   @Override
@@ -50,19 +55,47 @@ public final class ChgrpCommand extends AbstractAclCommand {
   }
 
   @Override
-  public void run(String... args) throws IOException {
+  protected Options getOptions() {
+    return new Options().addOption(RECURSIVE_OPTION);
+  }
+
+  /**
+   * Changes the group for the directory or file with the path specified in args.
+   *
+   * @param path The {@link TachyonURI} path as the input of the command
+   * @param group The group to be updated to the file or directory
+   * @param recursive Whether change the group recursively
+   * @throws IOException
+   */
+  private void chgrp(TachyonURI path, String group, boolean recursive) throws IOException {
+    try {
+      SetAttributeOptions options = SetAttributeOptions.defaults()
+          .setGroup(group).setRecursive(recursive);
+      mFileSystem.setAttribute(path, options);
+      System.out.println("Changed group of " + path + " to " + group);
+    } catch (TachyonException e) {
+      throw new IOException("Failed to changed group of " + path + " to " + group + " : "
+          + e.getMessage());
+    }
+  }
+
+  @Override
+  public void run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
     String group = args[0];
     TachyonURI path = new TachyonURI(args[1]);
-    chgrp(path, group, false);
+
+    chgrp(path, group, cl.hasOption("R"));
   }
 
   @Override
   public String getUsage() {
-    return "chgrp <group> <path>";
+    return "chgrp [-R] <group> <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Changes the group of a file or directory specified by args.";
+    return "Changes the group of a file or directory specified by args."
+        + " Specify -R to change the group recursively.";
   }
 }
