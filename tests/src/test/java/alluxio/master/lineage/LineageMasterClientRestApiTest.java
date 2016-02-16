@@ -15,7 +15,8 @@
 
 package alluxio.master.lineage;
 
-import alluxio.AbstractRestApiTest;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.RestApiTestCaseFactory;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.job.Job;
@@ -25,6 +26,8 @@ import alluxio.wire.LineageInfoTest;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -37,81 +40,127 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+/**
+ * Test cases for {@link LineageMasterClientRestServiceHandler}.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({LineageMaster.class})
-public class LineageMasterClientRestApiTest extends AbstractRestApiTest {
-  @Override
-  @Test
-  public void endpointsTest() throws Exception {
-    // Create test input values.
-    Map<String, String> createLineageParams = Maps.newHashMap();
-    createLineageParams.put("inputFiles", "test");
-    createLineageParams.put("outputFiles", "test");
-    createLineageParams.put("job.command", "test");
-    createLineageParams.put("job.command.conf.outputFile", "test");
-    Map<String, String> deleteLineageParams = Maps.newHashMap();
-    deleteLineageParams.put("lineageId", "1");
-    deleteLineageParams.put("cascade", "false");
-    Map<String, String> reinitializeFileParams = Maps.newHashMap();
-    reinitializeFileParams.put("path", "test");
-    reinitializeFileParams.put("blockSizeBytes", "1");
-    reinitializeFileParams.put("ttl", "1");
-    Map<String, String> reportLostFileParams = Maps.newHashMap();
-    reportLostFileParams.put("path", "test");
+public class LineageMasterClientRestApiTest {
+  private static final Map<String, String> NO_PARAMS = Maps.<String, String>newHashMap();
+  private static LineageMaster sLineageMaster;
 
-    // Generate random return values.
+  @Rule
+  private LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
+
+  @BeforeClass
+  public static void beforeClass() {
+    sLineageMaster = PowerMockito.mock(LineageMaster.class);
+    AlluxioMaster alluxioMaster = PowerMockito.mock(AlluxioMaster.class);
+    Mockito.doReturn(sLineageMaster).when(alluxioMaster).getLineageMaster();
+    Whitebox.setInternalState(AlluxioMaster.class, "sAlluxioMaster", alluxioMaster);
+  }
+
+  @Test
+  public void serviceNameTest() throws Exception {
+    RestApiTestCaseFactory
+        .newMasterTestCase(LineageMasterClientRestServiceHandler.SERVICE_NAME, NO_PARAMS,
+        "GET", Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME, mResource).run();
+  }
+
+  @Test
+  public void serviceVersionTest() throws Exception {
+    RestApiTestCaseFactory
+        .newMasterTestCase(LineageMasterClientRestServiceHandler.SERVICE_VERSION, NO_PARAMS,
+        "GET", Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION, mResource).run();
+  }
+
+  @Test
+  public void createLineageTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("inputFiles", "test");
+    params.put("outputFiles", "test");
+    params.put("job.command", "test");
+    params.put("job.command.conf.outputFile", "test");
+
     Random random = new Random();
-    long createLineageResult = random.nextLong();
-    boolean deleteLineageResult = random.nextBoolean();
+    long result = random.nextLong();
+    Mockito.doReturn(result).when(sLineageMaster)
+        .createLineage(Mockito.<List<AlluxioURI>>any(), Mockito.<List<AlluxioURI>>any(),
+            Mockito.<Job>any());
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(LineageMasterClientRestServiceHandler.CREATE_LINEAGE, params, "POST",
+        result, mResource).run();
+
+    Mockito.verify(sLineageMaster)
+        .createLineage(Mockito.<List<AlluxioURI>>any(), Mockito.<List<AlluxioURI>>any(),
+            Mockito.<Job>any());
+  }
+
+  @Test
+  public void deleteLineageTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("lineageId", "1");
+    params.put("cascade", "false");
+
+    Random random = new Random();
+    boolean result = random.nextBoolean();
+    Mockito.doReturn(result).when(sLineageMaster)
+        .deleteLineage(Mockito.anyLong(), Mockito.anyBoolean());
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(LineageMasterClientRestServiceHandler.DELETE_LINEAGE, params, "POST",
+        result, mResource).run();
+
+    Mockito.verify(sLineageMaster).deleteLineage(Mockito.anyLong(), Mockito.anyBoolean());
+  }
+
+  @Test
+  public void getLineageInfoListTest() throws Exception {
+    Random random = new Random();
     List<LineageInfo> lineageInfos = Lists.newArrayList();
     long numLineageInfos = random.nextInt(10);
     for (int i = 0; i < numLineageInfos; i++) {
       lineageInfos.add(LineageInfoTest.createRandom());
     }
-    long reinitializeFileResult = random.nextLong();
+    Mockito.doReturn(lineageInfos).when(sLineageMaster).getLineageInfoList();
 
-    // Set up mocks.
-    LineageMaster lineageMaster = PowerMockito.mock(LineageMaster.class);
-    Mockito.doReturn(createLineageResult).when(lineageMaster)
-        .createLineage(Mockito.<List<AlluxioURI>>any(), Mockito.<List<AlluxioURI>>any(),
-            Mockito.<Job>any());
-    Mockito.doReturn(deleteLineageResult).when(lineageMaster)
-        .deleteLineage(Mockito.anyLong(), Mockito.anyBoolean());
-    Mockito.doReturn(lineageInfos).when(lineageMaster).getLineageInfoList();
-    Mockito.doReturn(reinitializeFileResult).when(lineageMaster)
+    RestApiTestCaseFactory
+        .newMasterTestCase(LineageMasterClientRestServiceHandler.GET_LINEAGE_INFO_LIST, NO_PARAMS,
+            "GET", lineageInfos, mResource).run();
+
+    Mockito.verify(sLineageMaster).getLineageInfoList();
+  }
+
+  @Test
+  public void reinitializeFileTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+    params.put("blockSizeBytes", "1");
+    params.put("ttl", "1");
+
+    Random random = new Random();
+    long result = random.nextLong();
+    Mockito.doReturn(result).when(sLineageMaster)
         .reinitializeFile(Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong());
-    AlluxioMaster alluxioMaster = PowerMockito.mock(AlluxioMaster.class);
-    Mockito.when(alluxioMaster.getLineageMaster()).thenReturn(lineageMaster);
-    Whitebox.setInternalState(AlluxioMaster.class, "sAlluxioMaster", alluxioMaster);
 
-    // Create test cases.
-    List<TestCase> testCases = Lists.newArrayList();
-    testCases.add(new MasterTestCase(LineageMasterClientRestServiceHandler.SERVICE_NAME,
-        Maps.<String, String>newHashMap(), "GET", Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME));
-    testCases.add(new MasterTestCase(LineageMasterClientRestServiceHandler.SERVICE_VERSION,
-        Maps.<String, String>newHashMap(), "GET", Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION));
-    testCases.add(new MasterTestCase(LineageMasterClientRestServiceHandler.CREATE_LINEAGE,
-        createLineageParams, "POST", createLineageResult));
-    testCases.add(new MasterTestCase(LineageMasterClientRestServiceHandler.DELETE_LINEAGE,
-        deleteLineageParams, "POST", deleteLineageResult));
-    testCases.add(new MasterTestCase(LineageMasterClientRestServiceHandler.GET_LINEAGE_INFO_LIST,
-        Maps.<String, String>newHashMap(), "GET", lineageInfos));
-    testCases.add(new MasterTestCase(LineageMasterClientRestServiceHandler.REINITIALIZE_FILE,
-        reinitializeFileParams, "POST", reinitializeFileResult));
-    testCases.add(new MasterTestCase(LineageMasterClientRestServiceHandler.REPORT_LOST_FILE,
-        reportLostFileParams, "POST", ""));
+    RestApiTestCaseFactory
+        .newMasterTestCase(LineageMasterClientRestServiceHandler.REINITIALIZE_FILE, params, "POST",
+            result, mResource).run();
 
-    // Execute test cases.
-    run(testCases);
-
-    // Verify invocations.
-    Mockito.verify(lineageMaster)
-        .createLineage(Mockito.<List<AlluxioURI>>any(), Mockito.<List<AlluxioURI>>any(),
-            Mockito.<Job>any());
-    Mockito.verify(lineageMaster).deleteLineage(Mockito.anyLong(), Mockito.anyBoolean());
-    Mockito.verify(lineageMaster).getLineageInfoList();
-    Mockito.verify(lineageMaster)
+    Mockito.verify(sLineageMaster)
         .reinitializeFile(Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong());
-    Mockito.verify(lineageMaster).reportLostFile(Mockito.anyString());
+  }
+
+  @Test
+  public void reportLostFileTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(LineageMasterClientRestServiceHandler.REPORT_LOST_FILE, params,
+        "POST", "", mResource).run();
+
+    Mockito.verify(sLineageMaster).reportLostFile(Mockito.anyString());
   }
 }

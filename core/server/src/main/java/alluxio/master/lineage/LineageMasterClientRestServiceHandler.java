@@ -23,6 +23,8 @@ import alluxio.job.JobConf;
 import alluxio.master.AlluxioMaster;
 
 import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -42,6 +44,10 @@ import javax.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 // TODO(jiri): Figure out why Jersey complains if this is changed to "/lineage".
 public final class LineageMasterClientRestServiceHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Response INTERNAL_SERVER_ERROR =
+      Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+
   public static final String SERVICE_NAME = "lineage/service_name";
   public static final String SERVICE_VERSION = "lineage/service_version";
   public static final String CREATE_LINEAGE = "lineage/create_lineage";
@@ -53,7 +59,7 @@ public final class LineageMasterClientRestServiceHandler {
   private LineageMaster mLineageMaster = AlluxioMaster.get().getLineageMaster();
 
   /**
-   * @return the response object
+   * @return the service name
    */
   @GET
   @Path(SERVICE_NAME)
@@ -62,7 +68,7 @@ public final class LineageMasterClientRestServiceHandler {
   }
 
   /**
-   * @return the response object
+   * @return the service version
    */
   @GET
   @Path(SERVICE_VERSION)
@@ -75,7 +81,7 @@ public final class LineageMasterClientRestServiceHandler {
    * @param outputFiles a colon-separated list of the lineage output files
    * @param command the job command
    * @param outputFile the job output file
-   * @return the response object
+   * @return the id of the created lineage
    */
   @POST
   @Path(CREATE_LINEAGE)
@@ -93,17 +99,16 @@ public final class LineageMasterClientRestServiceHandler {
     CommandLineJob job = new CommandLineJob(command, new JobConf(outputFile));
     try {
       return Response.ok(mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job)).build();
-    } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
-    } catch (IOException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    } catch (AlluxioException|IOException e) {
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
    * @param lineageId the lineage id
    * @param cascade whether to delete lineage recursively
-   * @return the response object
+   * @return true if the lineage is deleted, false otherwise
    */
   @POST
   @Path(DELETE_LINEAGE)
@@ -112,12 +117,13 @@ public final class LineageMasterClientRestServiceHandler {
     try {
       return Response.ok(mLineageMaster.deleteLineage(lineageId, cascade)).build();
     } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
-   * @return the response object
+   * @return a list of lineage descriptors for all lineages
    */
   @GET
   @Path(GET_LINEAGE_INFO_LIST)
@@ -125,7 +131,8 @@ public final class LineageMasterClientRestServiceHandler {
     try {
       return Response.ok(mLineageMaster.getLineageInfoList()).build();
     } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
@@ -133,7 +140,7 @@ public final class LineageMasterClientRestServiceHandler {
    * @param path the file path
    * @param blockSizeBytes the file block size (in bytes)
    * @param ttl the file time-to-live (in seconds)
-   * @return the response object
+   * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    */
   @POST
   @Path(REINITIALIZE_FILE)
@@ -142,13 +149,14 @@ public final class LineageMasterClientRestServiceHandler {
     try {
       return Response.ok(mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl)).build();
     } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
    * @param path the file path
-   * @return the response object
+   * @return N/A
    */
   @POST
   @Path(REPORT_LOST_FILE)
@@ -157,7 +165,8 @@ public final class LineageMasterClientRestServiceHandler {
       mLineageMaster.reportLostFile(path);
       return Response.ok().build();
     } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 }

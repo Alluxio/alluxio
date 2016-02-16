@@ -24,6 +24,9 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 import javax.ws.rs.GET;
@@ -42,6 +45,10 @@ import javax.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 // TODO(jiri): Figure out why Jersey complains if this is changed to "/file".
 public final class FileSystemMasterClientRestServiceHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Response INTERNAL_SERVER_ERROR =
+      Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+
   public static final String SERVICE_NAME = "file/service_name";
   public static final String SERVICE_VERSION = "file/service_version";
   public static final String COMPLETE_FILE = "file/complete_file";
@@ -64,7 +71,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   private FileSystemMaster mFileSystemMaster = AlluxioMaster.get().getFileSystemMaster();
 
   /**
-   * @return the response object
+   * @return the service name
    */
   @GET
   @Path(SERVICE_NAME)
@@ -73,7 +80,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
-   * @return the response object
+   * @return the service version
    */
   @GET
   @Path(SERVICE_VERSION)
@@ -84,7 +91,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   /**
    * @param path the file path
    * @param ufsLength the length of the file in under file system
-   * @return the response object
+   * @return N/A
    */
   @POST
   @Path(COMPLETE_FILE)
@@ -96,7 +103,8 @@ public final class FileSystemMasterClientRestServiceHandler {
       mFileSystemMaster.completeFile(new AlluxioURI(path), options);
       return Response.ok().build();
     } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
@@ -105,7 +113,7 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param persisted whether directory should be persisted
    * @param recursive whether parent directories should be created if they do not already exist
    * @param allowExists whether the operation should succeed even if the directory already exists
-   * @return the response object
+   * @return N/A
    */
   @POST
   @Path(CREATE_DIRECTORY)
@@ -118,16 +126,15 @@ public final class FileSystemMasterClientRestServiceHandler {
               .setPersisted(persisted).setRecursive(recursive).build();
       mFileSystemMaster.mkdir(new AlluxioURI(path), options);
       return Response.ok().build();
-    } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
-    } catch (IOException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    } catch (AlluxioException|IOException e) {
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
    * @param path the file path
-   * @return the response object
+   * @return a list of file block descriptors for the given path
    */
   @GET
   @Path(GET_FILE_BLOCK_INFO_LIST)
@@ -135,13 +142,14 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       return Response.ok(mFileSystemMaster.getFileBlockInfoList(new AlluxioURI(path))).build();
     } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
    * @param path the file path
-   * @return the response object
+   * @return a new block id for the given path
    */
   @POST
   @Path(GET_NEW_BLOCK_ID_FOR_FILE)
@@ -149,12 +157,13 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       return Response.ok(mFileSystemMaster.getNewBlockIdForFile(new AlluxioURI(path))).build();
     } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
   /**
    * @param path the file path
-   * @return the response object
+   * @return the file descriptor for the given path
    */
   @GET
   @Path(GET_STATUS)
@@ -162,13 +171,14 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       return Response.ok(mFileSystemMaster.getFileInfo(new AlluxioURI(path))).build();
     } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
    * @param fileId the file id
-   * @return the response path
+   * @return the file descriptor for the given file id
    */
   @GET
   @Path(GET_STATUS_INTERNAL)
@@ -176,12 +186,13 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       return Response.ok(mFileSystemMaster.getFileInfo(fileId)).build();
     } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
-   * @return the response object
+   * @return the UFS address
    */
   @GET
   @Path(GET_UFS_ADDRESS)
@@ -192,7 +203,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   /**
    * @param path the path
    * @param recursive whether the path should be freed recursively
-   * @return the response object
+   * @return N/A
    */
   @POST
   @Path(FREE)
@@ -202,13 +213,14 @@ public final class FileSystemMasterClientRestServiceHandler {
       mFileSystemMaster.free(new AlluxioURI(path), recursive);
       return Response.ok().build();
     } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
    * @param path the file path
-   * @return the response object
+   * @return a list of file descriptors for the contents of the given path
    */
   @GET
   @Path(LIST_STATUS)
@@ -216,14 +228,15 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       return Response.ok(mFileSystemMaster.getFileInfoList(new AlluxioURI(path))).build();
     } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
    * @param path the alluxio path to load metadata for
    * @param recursive whether metadata should be loaded recursively
-   * @return the response object
+   * @return the file id for the loaded path
    */
   @POST
   @Path(LOAD_METADATA)
@@ -231,17 +244,16 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("recursive") boolean recursive) {
     try {
       return Response.ok(mFileSystemMaster.loadMetadata(new AlluxioURI(path), recursive)).build();
-    } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
-    } catch (IOException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    } catch (AlluxioException|IOException e) {
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
    * @param path the alluxio mount point
    * @param ufsPath the UFS path to mount
-   * @return the response object
+   * @return N/A
    */
   @POST
   @Path(MOUNT)
@@ -249,17 +261,16 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       mFileSystemMaster.mount(new AlluxioURI(path), new AlluxioURI(ufsPath));
       return Response.ok().build();
-    } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
-    } catch (IOException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    } catch (AlluxioException|IOException e) {
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
    * @param path the path to remove
    * @param recursive whether to remove paths recursively
-   * @return the response object
+   * @return N/A
    */
   @POST
   @Path(REMOVE)
@@ -268,17 +279,16 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       mFileSystemMaster.deleteFile(new AlluxioURI(path), recursive);
       return Response.ok().build();
-    } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
-    } catch (IOException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    } catch (AlluxioException|IOException e) {
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
    * @param srcPath the source path
    * @param dstPath the destination path
-   * @return the response object
+   * @return N/A
    */
   @POST
   @Path(RENAME)
@@ -287,16 +297,15 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath));
       return Response.ok().build();
-    } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
-    } catch (IOException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    } catch (AlluxioException|IOException e) {
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
    * @param path the file path
-   * @return the response object
+   * @return the id of the worker that persistence is scheduled on
    */
   @POST
   @Path(SCHEDULE_ASYNC_PERSIST)
@@ -304,7 +313,8 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       return Response.ok(mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path))).build();
     } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
@@ -317,40 +327,59 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param group the file group
    * @param permission the file permission bits
    * @param recursive whether the attribute should be set recursively
-   * @return the response object
+   * @return N/A
    */
   @PUT
   @Path(SET_ATTRIBUTE)
   public Response setAttribute(@QueryParam("path") String path,
-      @QueryParam("pinned") boolean pinned, @QueryParam("ttl") long ttl,
-      @QueryParam("persisted") boolean persisted, @QueryParam("owner") String owner,
-      @QueryParam("group") String group, @QueryParam("permission") int permission,
-      @QueryParam("recursive") boolean recursive) {
+      @QueryParam("pinned") Boolean pinned, @QueryParam("ttl") Long ttl,
+      @QueryParam("persisted") Boolean persisted, @QueryParam("owner") String owner,
+      @QueryParam("group") String group, @QueryParam("permission") Short permission,
+      @QueryParam("recursive") Boolean recursive) {
     // TODO(jiri): Only set options that have been set.
-    SetAttributeOptions setAttributeOptions =
-        new SetAttributeOptions.Builder().setPinned(pinned).setTtl(ttl)
-            .setPersisted(persisted).build();
+    SetAttributeOptions.Builder builder = new SetAttributeOptions.Builder();
+    if (pinned != null) {
+      builder.setPinned(pinned);
+    }
+    if (ttl != null) {
+      builder.setTtl(ttl);
+    }
+    if (persisted != null) {
+      builder.setPersisted(persisted);
+    }
+    if (owner != null) {
+      builder.setOwner(owner);
+    }
+    if (group != null) {
+      builder.setGroup(group);
+    }
+    if (permission != null) {
+      builder.setPermission(permission);
+    }
+    if (recursive != null) {
+      builder.setRecursive(recursive);
+    }
     try {
-      mFileSystemMaster.setAttribute(new AlluxioURI(path), setAttributeOptions);
+      mFileSystemMaster.setAttribute(new AlluxioURI(path), builder.build());
       return Response.ok().build();
     } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 
   /**
    * @param path the file path
-   * @return the response object
+   * @return N/A
    */
   @POST
   @Path(UNMOUNT)
   public Response unmount(@QueryParam("path") String path) {
     try {
       return Response.ok(mFileSystemMaster.unmount(new AlluxioURI(path))).build();
-    } catch (AlluxioException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
-    } catch (IOException e) {
-      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    } catch (AlluxioException|IOException e) {
+      LOG.warn(e.getMessage());
+      return INTERNAL_SERVER_ERROR;
     }
   }
 }

@@ -110,7 +110,6 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
     </dependency>
-
     <!-- Test Dependencies -->
     <dependency>
       <groupId>commons-httpclient</groupId>

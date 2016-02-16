@@ -15,7 +15,8 @@
 
 package alluxio.master.file;
 
-import alluxio.AbstractRestApiTest;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.RestApiTestCaseFactory;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.master.AlluxioMaster;
@@ -29,6 +30,8 @@ import alluxio.wire.FileInfoTest;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -41,175 +44,297 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+/**
+ * Test cases for {@link FileSystemMasterClientRestServiceHandler}.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMaster.class})
-public class FileSystemMasterClientRestApiTest extends AbstractRestApiTest {
+public class FileSystemMasterClientRestApiTest {
+  private static final Map<String, String> NO_PARAMS = Maps.<String, String>newHashMap();
+  private static FileSystemMaster sFileSystemMaster;
 
-  @Override
+  @Rule
+  private LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
+
+  @BeforeClass
+  public static void beforeClass() {
+    sFileSystemMaster = PowerMockito.mock(FileSystemMaster.class);
+    AlluxioMaster alluxioMaster = PowerMockito.mock(AlluxioMaster.class);
+    Mockito.doReturn(sFileSystemMaster).when(alluxioMaster).getFileSystemMaster();
+    Whitebox.setInternalState(AlluxioMaster.class, "sAlluxioMaster", alluxioMaster);
+  }
+
   @Test
-  public void endpointsTest() throws Exception {
-    // Create test input values.
-    Map<String, String> completeFileParams = Maps.newHashMap();
-    completeFileParams.put("path", "test");
-    completeFileParams.put("ufsLength", "1");
-    Map<String, String> createDirectoryParams = Maps.newHashMap();
-    createDirectoryParams.put("path", "test");
-    createDirectoryParams.put("persisted", "false");
-    createDirectoryParams.put("recursive", "false");
-    createDirectoryParams.put("allowExists", "false");
-    Map<String, String> getFileBlockInfoListParams = Maps.newHashMap();
-    getFileBlockInfoListParams.put("path", "test");
-    Map<String, String> getNewBlockIdForFileParams = Maps.newHashMap();
-    getNewBlockIdForFileParams.put("path", "test");
-    Map<String, String> getStatusParams = Maps.newHashMap();
-    getStatusParams.put("path", "test");
-    Map<String, String> getStatusInternalParams = Maps.newHashMap();
-    getStatusInternalParams.put("fileId", "1");
-    Map<String, String> freeParams = Maps.newHashMap();
-    freeParams.put("path", "test");
-    freeParams.put("recursive", "false");
-    Map<String, String> listStatusParams = Maps.newHashMap();
-    listStatusParams.put("path", "test");
-    Map<String, String> loadMetadataParams = Maps.newHashMap();
-    loadMetadataParams.put("path", "test");
-    loadMetadataParams.put("recursive", "false");
-    Map<String, String> mountParams = Maps.newHashMap();
-    mountParams.put("path", "test");
-    mountParams.put("ufsPath", "test");
-    Map<String, String> removeParams = Maps.newHashMap();
-    removeParams.put("path", "test");
-    removeParams.put("recursive", "false");
-    Map<String, String> renameParams = Maps.newHashMap();
-    renameParams.put("srcPath", "test");
-    renameParams.put("dstPath", "test");
-    Map<String, String> scheduleAsyncPersistParams = Maps.newHashMap();
-    scheduleAsyncPersistParams.put("path", "test");
-    Map<String, String> setAttributeParams = Maps.newHashMap();
-    setAttributeParams.put("path", "test");
-    setAttributeParams.put("pinned", "false");
-    setAttributeParams.put("ttl", "0");
-    setAttributeParams.put("persisted", "false");
-    setAttributeParams.put("owner", "test");
-    setAttributeParams.put("group", "test");
-    setAttributeParams.put("permission", "644");
-    setAttributeParams.put("recursive", "false");
-    Map<String, String> unmountParams = Maps.newHashMap();
-    unmountParams.put("path", "test");
+  public void serviceNameTest() throws Exception {
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.SERVICE_NAME, NO_PARAMS,
+        "GET", Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME, mResource).run();
+  }
 
-    // Generate random return values.
+  @Test
+  public void serviceVersionTest() throws Exception {
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.SERVICE_VERSION, NO_PARAMS,
+        "GET", Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION, mResource).run();
+  }
+
+  @Test
+  public void completeFileTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+    params.put("ufsLength", "1");
+
+    RestApiTestCaseFactory.newMasterTestCase(FileSystemMasterClientRestServiceHandler.COMPLETE_FILE,
+        params, "POST", "", mResource).run();
+
+    Mockito.verify(sFileSystemMaster)
+        .completeFile(Mockito.<AlluxioURI>any(), Mockito.<CompleteFileOptions>any());
+  }
+
+  @Test
+  public void createDirectoryTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+    params.put("persisted", "false");
+    params.put("recursive", "false");
+    params.put("allowExists", "false");
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.CREATE_DIRECTORY, params,
+        "POST", "", mResource).run();
+
+    Mockito.verify(sFileSystemMaster)
+        .mkdir(Mockito.<AlluxioURI>any(), Mockito.<CreateDirectoryOptions>any());
+  }
+
+  @Test
+  public void getFileBlockInfoListTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+
+
     Random random = new Random();
     List<FileBlockInfo> fileBlockInfos = Lists.newArrayList();
     int numFileBlockInfos = random.nextInt(10);
     for (int i = 0; i < numFileBlockInfos; i++) {
       fileBlockInfos.add(FileBlockInfoTest.createRandom());
     }
-    List<FileInfo> fileInfos = Lists.newArrayList();
-    int numFileInfos = random.nextInt(10);
-    for (int i = 0; i < numFileInfos; i++) {
-      fileInfos.add(FileInfoTest.createRandom());
-    }
+    Mockito.doReturn(fileBlockInfos).when(sFileSystemMaster)
+        .getFileBlockInfoList(Mockito.<AlluxioURI>any());
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.GET_FILE_BLOCK_INFO_LIST,
+            params, "GET", fileBlockInfos, mResource).run();
+
+    Mockito.verify(sFileSystemMaster).getFileBlockInfoList(Mockito.<AlluxioURI>any());
+  }
+
+  @Test
+  public void getNewBlockIdForFileTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+
+    Random random = new Random();
     long newBlockId = random.nextLong();
+    Mockito.doReturn(newBlockId).when(sFileSystemMaster)
+        .getNewBlockIdForFile(Mockito.<AlluxioURI>any());
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.GET_NEW_BLOCK_ID_FOR_FILE,
+            params, "POST", newBlockId, mResource).run();
+
+    Mockito.verify(sFileSystemMaster).getNewBlockIdForFile(Mockito.<AlluxioURI>any());
+  }
+
+  @Test
+  public void getStatusTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+
     FileInfo fileInfo = FileInfoTest.createRandom();
-    long loadMetadataResult = random.nextLong();
-    long scheduleAsyncPersistResult = random.nextLong();
+    Mockito.doReturn(fileInfo).when(sFileSystemMaster).getFileInfo(Mockito.<AlluxioURI>any());
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.GET_STATUS, params,
+        "GET", fileInfo, mResource).run();
+
+    Mockito.verify(sFileSystemMaster).getFileInfo(Mockito.<AlluxioURI>any());
+  }
+
+  @Test
+  public void getStatusInternalTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("fileId", "1");
+
+    FileInfo fileInfo = FileInfoTest.createRandom();
+    Mockito.doReturn(fileInfo).when(sFileSystemMaster).getFileInfo(Mockito.anyLong());
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.GET_STATUS_INTERNAL, params,
+        "GET", fileInfo, mResource).run();
+
+    Mockito.verify(sFileSystemMaster).getFileInfo(Mockito.anyLong());
+  }
+
+
+  @Test
+  public void getUfsAddress() throws Exception {
+    Random random = new Random();
     String ufsAddress = "";
     int ufsAddressLength = random.nextInt(10);
     for (int i = 0; i < ufsAddressLength; i++) {
       ufsAddress += random.nextInt(96) + 32; // generates a random alphanumeric symbol
     }
-    boolean unmountResult = random.nextBoolean();
+    Mockito.doReturn(ufsAddress).when(sFileSystemMaster).getUfsAddress();
 
-    // Set up mocks.
-    FileSystemMaster fileSystemMaster = PowerMockito.mock(FileSystemMaster.class);
-    Mockito.doReturn(fileBlockInfos).when(fileSystemMaster)
-        .getFileBlockInfoList(Mockito.<AlluxioURI>any());
-    Mockito.doReturn(fileInfo).when(fileSystemMaster).getFileInfo(Mockito.<AlluxioURI>any());
-    Mockito.doReturn(fileInfo).when(fileSystemMaster).getFileInfo(Mockito.anyLong());
-    Mockito.doReturn(fileInfos).when(fileSystemMaster).getFileInfoList(Mockito.<AlluxioURI>any());
-    Mockito.doReturn(newBlockId).when(fileSystemMaster)
-        .getNewBlockIdForFile(Mockito.<AlluxioURI>any());
-    Mockito.doReturn(ufsAddress).when(fileSystemMaster).getUfsAddress();
-    Mockito.doReturn(loadMetadataResult).when(fileSystemMaster)
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.GET_UFS_ADDRESS, NO_PARAMS,
+            "GET", ufsAddress, mResource).run();
+
+    Mockito.verify(sFileSystemMaster).getUfsAddress();
+  }
+
+  @Test
+  public void freeTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+    params.put("recursive", "false");
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.FREE, params, "POST", "",
+        mResource).run();
+
+    Mockito.verify(sFileSystemMaster).free(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
+  }
+
+  @Test
+  public void listStatusTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+
+    Random random = new Random();
+    List<FileInfo> fileInfos = Lists.newArrayList();
+    int numFileInfos = random.nextInt(10);
+    for (int i = 0; i < numFileInfos; i++) {
+      fileInfos.add(FileInfoTest.createRandom());
+    }
+    Mockito.doReturn(fileInfos).when(sFileSystemMaster).getFileInfoList(Mockito.<AlluxioURI>any());
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.LIST_STATUS, params, "GET",
+        fileInfos, mResource).run();
+
+    Mockito.verify(sFileSystemMaster).getFileInfoList(Mockito.<AlluxioURI>any());
+  }
+
+  @Test
+  public void loadMetadataTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+    params.put("recursive", "false");
+
+    Random random = new Random();
+    long loadMetadataResult = random.nextLong();
+    Mockito.doReturn(loadMetadataResult).when(sFileSystemMaster)
         .loadMetadata(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
-    Mockito.doReturn(scheduleAsyncPersistResult).when(fileSystemMaster)
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.LOAD_METADATA, params,
+        "POST", loadMetadataResult, mResource).run();
+
+    Mockito.verify(sFileSystemMaster).loadMetadata(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
+  }
+
+  @Test
+  public void mountTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+    params.put("ufsPath", "test");
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.MOUNT, params, "POST", "",
+        mResource).run();
+
+    Mockito.verify(sFileSystemMaster).mount(Mockito.<AlluxioURI>any(), Mockito.<AlluxioURI>any());
+  }
+
+  @Test
+  public void removeTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+    params.put("recursive", "false");
+
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.REMOVE, params, "POST", "",
+        mResource).run();
+
+    Mockito.verify(sFileSystemMaster).deleteFile(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
+  }
+
+  @Test
+  public void renameTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("srcPath", "test");
+    params.put("dstPath", "test");
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.RENAME, params, "POST", "",
+        mResource).run();
+
+    Mockito.verify(sFileSystemMaster).rename(Mockito.<AlluxioURI>any(), Mockito.<AlluxioURI>any());
+  }
+
+  @Test
+  public void scheduleAsyncPersistTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+
+    Random random = new Random();
+    long scheduleAsyncPersistResult = random.nextLong();
+    Mockito.doReturn(scheduleAsyncPersistResult).when(sFileSystemMaster)
         .scheduleAsyncPersistence(Mockito.<AlluxioURI>any());
-    Mockito.doReturn(unmountResult).when(fileSystemMaster).unmount(Mockito.<AlluxioURI>any());
-    AlluxioMaster alluxioMaster = PowerMockito.mock(AlluxioMaster.class);
-    Mockito.when(alluxioMaster.getFileSystemMaster()).thenReturn(fileSystemMaster);
-    Whitebox.setInternalState(AlluxioMaster.class, "sAlluxioMaster", alluxioMaster);
 
-    // Create test cases.
-    List<TestCase> testCases = Lists.newArrayList();
-    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.SERVICE_NAME,
-        Maps.<String, String>newHashMap(), "GET",
-        Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME));
-    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.SERVICE_VERSION,
-        Maps.<String, String>newHashMap(), "GET",
-        Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION));
-    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.COMPLETE_FILE,
-        completeFileParams, "POST", ""));
-    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.CREATE_DIRECTORY,
-        createDirectoryParams, "POST", ""));
-    testCases.add(
-        new MasterTestCase(FileSystemMasterClientRestServiceHandler.GET_FILE_BLOCK_INFO_LIST,
-            getFileBlockInfoListParams, "GET", fileBlockInfos));
-    testCases.add(
-        new MasterTestCase(FileSystemMasterClientRestServiceHandler.GET_NEW_BLOCK_ID_FOR_FILE,
-            getNewBlockIdForFileParams, "POST", newBlockId));
-    testCases.add(
-        new MasterTestCase(FileSystemMasterClientRestServiceHandler.GET_STATUS, getStatusParams,
-            "GET", fileInfo));
-    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.GET_STATUS_INTERNAL,
-        getStatusInternalParams, "GET", fileInfo));
-    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.GET_UFS_ADDRESS,
-        Maps.<String, String>newHashMap(), "GET", ufsAddress));
-    testCases.add(
-        new MasterTestCase(FileSystemMasterClientRestServiceHandler.FREE, freeParams, "POST", ""));
-    testCases.add(
-        new MasterTestCase(FileSystemMasterClientRestServiceHandler.LIST_STATUS, listStatusParams,
-            "GET", fileInfos));
-    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.LOAD_METADATA,
-        loadMetadataParams, "POST", loadMetadataResult));
-    testCases.add(
-        new MasterTestCase(FileSystemMasterClientRestServiceHandler.MOUNT, mountParams, "POST",
-            ""));
-    testCases.add(
-        new MasterTestCase(FileSystemMasterClientRestServiceHandler.REMOVE, removeParams, "POST",
-            ""));
-    testCases.add(
-        new MasterTestCase(FileSystemMasterClientRestServiceHandler.RENAME, renameParams, "POST",
-            ""));
-    testCases.add(
-        new MasterTestCase(FileSystemMasterClientRestServiceHandler.SCHEDULE_ASYNC_PERSIST,
-            scheduleAsyncPersistParams, "POST", scheduleAsyncPersistResult));
-    testCases.add(new MasterTestCase(FileSystemMasterClientRestServiceHandler.SET_ATTRIBUTE,
-        setAttributeParams, "PUT", ""));
-    testCases.add(
-        new MasterTestCase(FileSystemMasterClientRestServiceHandler.UNMOUNT, unmountParams, "POST",
-            unmountResult));
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.SCHEDULE_ASYNC_PERSIST, params,
+            "POST", scheduleAsyncPersistResult, mResource).run();
 
-    // Execute test cases.
-    run(testCases);
+    Mockito.verify(sFileSystemMaster).scheduleAsyncPersistence(Mockito.<AlluxioURI>any());
+  }
 
-    // Verify invocations.
-    Mockito.verify(fileSystemMaster)
-        .completeFile(Mockito.<AlluxioURI>any(), Mockito.<CompleteFileOptions>any());
-    Mockito.verify(fileSystemMaster).deleteFile(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
-    Mockito.verify(fileSystemMaster).getFileBlockInfoList(Mockito.<AlluxioURI>any());
-    Mockito.verify(fileSystemMaster).getFileInfo(Mockito.<AlluxioURI>any());
-    Mockito.verify(fileSystemMaster).getFileInfo(Mockito.anyLong());
-    Mockito.verify(fileSystemMaster).getFileInfoList(Mockito.<AlluxioURI>any());
-    Mockito.verify(fileSystemMaster).getNewBlockIdForFile(Mockito.<AlluxioURI>any());
-    Mockito.verify(fileSystemMaster).getUfsAddress();
-    Mockito.verify(fileSystemMaster).free(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
-    Mockito.verify(fileSystemMaster).loadMetadata(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
-    Mockito.verify(fileSystemMaster)
-        .mkdir(Mockito.<AlluxioURI>any(), Mockito.<CreateDirectoryOptions>any());
-    Mockito.verify(fileSystemMaster).mount(Mockito.<AlluxioURI>any(), Mockito.<AlluxioURI>any());
-    Mockito.verify(fileSystemMaster).rename(Mockito.<AlluxioURI>any(), Mockito.<AlluxioURI>any());
-    Mockito.verify(fileSystemMaster).scheduleAsyncPersistence(Mockito.<AlluxioURI>any());
-    Mockito.verify(fileSystemMaster)
+  @Test
+  public void setAttributeTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+    params.put("pinned", "false");
+    params.put("ttl", "0");
+    params.put("persisted", "false");
+    params.put("owner", "test");
+    params.put("group", "test");
+    params.put("permission", "644");
+    params.put("recursive", "false");
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.SET_ATTRIBUTE, params, "PUT",
+        "", mResource).run();
+
+    Mockito.verify(sFileSystemMaster)
         .setAttribute(Mockito.<AlluxioURI>any(), Mockito.<SetAttributeOptions>any());
-    Mockito.verify(fileSystemMaster).unmount(Mockito.<AlluxioURI>any());
+  }
+
+  @Test
+  public void unmountTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+
+    Random random = new Random();
+    boolean unmountResult = random.nextBoolean();
+    Mockito.doReturn(unmountResult).when(sFileSystemMaster).unmount(Mockito.<AlluxioURI>any());
+
+    RestApiTestCaseFactory
+        .newMasterTestCase(FileSystemMasterClientRestServiceHandler.UNMOUNT, params, "POST",
+        unmountResult, mResource).run();
+
+    Mockito.verify(sFileSystemMaster).unmount(Mockito.<AlluxioURI>any());
   }
 }

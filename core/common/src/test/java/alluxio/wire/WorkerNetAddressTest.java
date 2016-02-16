@@ -51,9 +51,11 @@ public class WorkerNetAddressTest {
     WorkerNetAddress result = new WorkerNetAddress();
     Random random = new Random();
 
-    byte[] bytes = new byte[5];
-    random.nextBytes(bytes);
-    String host = new String(bytes);
+    String host = "";
+    int hostLength = random.nextInt(10);
+    for (int i = 0; i < hostLength; i++) {
+      host += random.nextInt(96) + 32; // generates a random alphanumeric symbol
+    }
     int rpcPort = random.nextInt();
     int dataPort = random.nextInt();
     int webPort = random.nextInt();
