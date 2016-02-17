@@ -15,21 +15,21 @@
 
 package alluxio.hadoop.mapreduce;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValuePartitionReader;
 import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
+
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.RecordReader;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Implements {@link RecordReader} that breaks the input from a key-value store data into records
@@ -54,7 +54,8 @@ final class KeyValueRecordReader extends RecordReader<BytesWritable, BytesWritab
   /**
    * Creates a {@link KeyValueRecordReader} for generating key-value pairs of a partition.
    */
-  public KeyValueRecordReader() {}
+  public KeyValueRecordReader() {
+  }
 
   @Override
   public void initialize(InputSplit split, TaskAttemptContext context)
