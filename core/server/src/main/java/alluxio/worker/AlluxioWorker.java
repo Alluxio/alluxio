@@ -66,13 +66,13 @@ public final class AlluxioWorker {
    */
   public static void main(String[] args) {
     checkArgs(args);
-    sAlluxioWorker = new AlluxioWorker();
+    AlluxioWorker worker = get();
     try {
-      sAlluxioWorker.start();
+      worker.start();
     } catch (Exception e) {
       LOG.error("Uncaught exception while running worker, stopping it and exiting.", e);
       try {
-        sAlluxioWorker.stop();
+        worker.stop();
       } catch (Exception ex) {
         // continue to exit
         LOG.error("Uncaught exception while stopping worker, simply exiting.", ex);
@@ -86,7 +86,10 @@ public final class AlluxioWorker {
    *
    * @return Alluxio master handle
    */
-  public static AlluxioWorker get() {
+  public static synchronized AlluxioWorker get() {
+    if (sAlluxioWorker == null) {
+      sAlluxioWorker = new AlluxioWorker();
+    }
     return sAlluxioWorker;
   }
 

@@ -76,8 +76,8 @@ public class AlluxioMaster {
     }
 
     try {
-      sAlluxioMaster = Factory.create();
-      sAlluxioMaster.start();
+      AlluxioMaster master = get();
+      master.start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating Master", e);
       System.exit(-1);
@@ -89,7 +89,10 @@ public class AlluxioMaster {
    *
    * @return Alluxio master handle
    */
-  public static AlluxioMaster get() {
+  public static synchronized AlluxioMaster get() {
+    if (sAlluxioMaster == null) {
+      sAlluxioMaster = Factory.create();
+    }
     return sAlluxioMaster;
   }
 
