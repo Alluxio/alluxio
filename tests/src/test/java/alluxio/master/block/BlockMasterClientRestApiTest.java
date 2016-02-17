@@ -64,7 +64,6 @@ public class BlockMasterClientRestApiTest {
     return BlockMasterClientRestServiceHandler.SERVICE_PREFIX + "/" + suffix;
   }
 
-
   @Test
   public void serviceNameTest() throws Exception {
     TestCaseFactory

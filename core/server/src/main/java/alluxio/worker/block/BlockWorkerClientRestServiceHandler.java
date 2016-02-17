@@ -226,7 +226,9 @@ public final class BlockWorkerClientRestServiceHandler {
       long readLength = (length == -1) ? fileLength - offset : length;
       ByteBuffer buffer = reader.read(offset, readLength);
       mBlockWorker.accessBlock(sessionId, blockId);
-      return Response.ok(buffer.array()).build();
+      byte[] bytes = new byte[(int) length];
+      buffer.get(bytes);
+      return Response.ok(bytes).build();
     } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
       return Response.serverError().entity(e.getMessage()).build();
