@@ -15,6 +15,8 @@
 
 package alluxio.wire;
 
+import alluxio.util.CommonUtils;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -57,9 +59,7 @@ public class WorkerInfoTest {
     long id = random.nextLong();
     WorkerNetAddress address = WorkerNetAddressTest.createRandom();
     int lastContactSec = random.nextInt();
-    byte[] bytes = new byte[5];
-    random.nextBytes(bytes);
-    String state = new String(bytes);
+    String state = CommonUtils.randomString(random.nextInt(10));
     long capacityBytes = random.nextLong();
     long usedBytes = random.nextLong();
     long startTimeMs = random.nextLong();

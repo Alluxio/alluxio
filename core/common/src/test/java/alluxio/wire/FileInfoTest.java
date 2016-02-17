@@ -15,6 +15,8 @@
 
 package alluxio.wire;
 
+import alluxio.util.CommonUtils;
+
 import com.google.common.collect.Lists;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
@@ -69,13 +71,9 @@ public class FileInfoTest {
     Random random = new Random();
 
     long fileId = random.nextLong();
-    byte[] bytes = new byte[5];
-    random.nextBytes(bytes);
-    String name = new String(bytes);
-    random.nextBytes(bytes);
-    String path = new String(bytes);
-    random.nextBytes(bytes);
-    String ufsPath = new String(bytes);
+    String name = CommonUtils.randomString(random.nextInt(10));
+    String path = CommonUtils.randomString(random.nextInt(10));
+    String ufsPath = CommonUtils.randomString(random.nextInt(10));
     long length = random.nextLong();
     long blockSizeBytes = random.nextLong();
     long creationTimeMs = random.nextLong();
@@ -85,20 +83,17 @@ public class FileInfoTest {
     boolean cacheable = random.nextBoolean();
     boolean persisted = random.nextBoolean();
     List<Long> blockIds = Lists.newArrayList();
-    long numElements = random.nextInt(10) + 1;
-    for (int i = 0; i < numElements; i++) {
+    long numBlockIds = random.nextInt(10);
+    for (int i = 0; i < numBlockIds; i++) {
       blockIds.add(random.nextLong());
     }
     int inMemoryPercentage = random.nextInt();
     long lastModificationTimeMs = random.nextLong();
     long ttl = random.nextLong();
-    random.nextBytes(bytes);
-    String userName = new String(bytes);
-    random.nextBytes(bytes);
-    String groupName = new String(bytes);
+    String userName = CommonUtils.randomString(random.nextInt(10));
+    String groupName = CommonUtils.randomString(random.nextInt(10));
     int permission = random.nextInt();
-    random.nextBytes(bytes);
-    String persistenceState = new String(bytes);
+    String persistenceState = CommonUtils.randomString(random.nextInt(10));
 
     result.setFileId(fileId);
     result.setName(name);
