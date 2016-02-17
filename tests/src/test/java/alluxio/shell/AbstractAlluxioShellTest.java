@@ -29,7 +29,6 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.security.LoginUserTestUtils;
-import alluxio.security.authentication.AuthType;
 import alluxio.shell.command.CommandUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.BufferUtils;
@@ -57,9 +56,7 @@ public abstract class AbstractAlluxioShellTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(SIZE_BYTES, Constants.MB,
-          Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE),
-          Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+          Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE));
   protected LocalAlluxioCluster mLocalAlluxioCluster = null;
   protected FileSystem mFileSystem = null;
   protected AlluxioShell mFsShell = null;
@@ -189,6 +186,14 @@ public abstract class AbstractAlluxioShellTest {
       AlluxioException {
     return String.format(Constants.LS_FORMAT,
         FormatUtils.formatPermission((short) permission, isDir), testUser, testGroup,
+        FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTime), fileType,
+        path);
+  }
+
+  protected String getLsNoAclResultStr(String path, long createTime, int size, String fileType,
+      boolean isDir) throws IOException,
+      AlluxioException {
+    return String.format(Constants.LS_FORMAT_NO_ACL,
         FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTime), fileType,
         path);
   }
