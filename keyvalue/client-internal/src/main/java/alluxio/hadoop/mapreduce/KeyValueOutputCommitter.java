@@ -50,6 +50,13 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
 
   private static final KeyValueSystem KEY_VALUE_SYSTEM = KeyValueSystem.Factory.create();
 
+  /**
+   * Constructor.
+   *
+   * @param outputPath the job's output path, or null if the output committer is a noop
+   * @param taskContext the task's context
+   * @throws IOException if the construction fails
+   */
   public KeyValueOutputCommitter(Path outputPath, TaskAttemptContext taskContext)
       throws IOException {
     super(outputPath, taskContext);
