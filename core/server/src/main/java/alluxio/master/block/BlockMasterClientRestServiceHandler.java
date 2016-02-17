@@ -22,6 +22,7 @@ import alluxio.master.AlluxioMaster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -32,21 +33,22 @@ import javax.ws.rs.core.Response;
 /**
  * This class is a REST handler for block master requests.
  */
-@Path("/")
+@NotThreadSafe
+@Path(BlockMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
-// TODO(jiri): Figure out why Jersey complains if this is changed to "/block".
 // TODO(jiri): Investigate auto-generation of REST API documentation.
 public final class BlockMasterClientRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  public static final String SERVICE_NAME = "block/service_name";
-  public static final String SERVICE_VERSION = "block/service_version";
-  public static final String GET_BLOCK_INFO = "block/block_info";
-  public static final String GET_CAPACITY_BYTES = "block/capacity_bytes";
-  public static final String GET_USED_BYTES = "block/used_bytes";
-  public static final String GET_WORKER_INFO_LIST = "block/worker_info_list";
+  public static final String SERVICE_PREFIX = "block";
+  public static final String SERVICE_NAME = "service_name";
+  public static final String SERVICE_VERSION = "service_version";
+  public static final String GET_BLOCK_INFO = "block_info";
+  public static final String GET_CAPACITY_BYTES = "capacity_bytes";
+  public static final String GET_USED_BYTES = "used_bytes";
+  public static final String GET_WORKER_INFO_LIST = "worker_info_list";
 
-  private BlockMaster mBlockMaster = AlluxioMaster.get().getBlockMaster();
+  private final BlockMaster mBlockMaster = AlluxioMaster.get().getBlockMaster();
 
   /**
    * @return the service name
@@ -55,7 +57,6 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(SERVICE_NAME)
   public Response getServiceName() {
     return Response.ok(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME).build();
-
   }
 
   /**

@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -41,33 +42,34 @@ import javax.ws.rs.core.Response;
 /**
  * This class is a REST handler for file system master requests.
  */
-@Path("/")
+@NotThreadSafe
+@Path(FileSystemMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
-// TODO(jiri): Figure out why Jersey complains if this is changed to "/file".
 // TODO(jiri): Investigate auto-generation of REST API documentation.
 public final class FileSystemMasterClientRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  public static final String SERVICE_NAME = "file/service_name";
-  public static final String SERVICE_VERSION = "file/service_version";
-  public static final String COMPLETE_FILE = "file/complete_file";
-  public static final String CREATE_DIRECTORY = "file/create_directory";
-  public static final String GET_FILE_BLOCK_INFO_LIST = "file/file_block_info_list";
-  public static final String GET_NEW_BLOCK_ID_FOR_FILE = "file/new_block_id_for_file";
-  public static final String GET_STATUS = "file/status";
-  public static final String GET_STATUS_INTERNAL = "file/status_internal";
-  public static final String GET_UFS_ADDRESS = "file/ufs_address";
-  public static final String FREE = "file/free";
-  public static final String LIST_STATUS = "file/list_status";
-  public static final String LOAD_METADATA = "file/load_metadata";
-  public static final String MOUNT = "file/mount";
-  public static final String REMOVE = "file/remove";
-  public static final String RENAME = "file/rename";
-  public static final String SCHEDULE_ASYNC_PERSIST = "file/schedule_async_persist";
-  public static final String SET_ATTRIBUTE = "file/set_attribute";
-  public static final String UNMOUNT = "file/unmount";
+  public static final String SERVICE_PREFIX = "file";
+  public static final String SERVICE_NAME = "service_name";
+  public static final String SERVICE_VERSION = "service_version";
+  public static final String COMPLETE_FILE = "complete_file";
+  public static final String CREATE_DIRECTORY = "create_directory";
+  public static final String GET_FILE_BLOCK_INFO_LIST = "file_block_info_list";
+  public static final String GET_NEW_BLOCK_ID_FOR_FILE = "new_block_id_for_file";
+  public static final String GET_STATUS = "status";
+  public static final String GET_STATUS_INTERNAL = "status_internal";
+  public static final String GET_UFS_ADDRESS = "ufs_address";
+  public static final String FREE = "free";
+  public static final String LIST_STATUS = "list_status";
+  public static final String LOAD_METADATA = "load_metadata";
+  public static final String MOUNT = "mount";
+  public static final String REMOVE = "remove";
+  public static final String RENAME = "rename";
+  public static final String SCHEDULE_ASYNC_PERSIST = "schedule_async_persist";
+  public static final String SET_ATTRIBUTE = "set_attribute";
+  public static final String UNMOUNT = "unmount";
 
-  private FileSystemMaster mFileSystemMaster = AlluxioMaster.get().getFileSystemMaster();
+  private final FileSystemMaster mFileSystemMaster = AlluxioMaster.get().getFileSystemMaster();
 
   /**
    * @return the service name

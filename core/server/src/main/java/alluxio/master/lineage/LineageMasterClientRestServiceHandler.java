@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -40,22 +41,23 @@ import javax.ws.rs.core.Response;
 /**
  * This class is a REST handler for lineage master requests.
  */
-@Path("/")
+@NotThreadSafe
+@Path(LineageMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
-// TODO(jiri): Figure out why Jersey complains if this is changed to "/lineage".
 // TODO(jiri): Investigate auto-generation of REST API documentation.
 public final class LineageMasterClientRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  public static final String SERVICE_NAME = "lineage/service_name";
-  public static final String SERVICE_VERSION = "lineage/service_version";
-  public static final String CREATE_LINEAGE = "lineage/create_lineage";
-  public static final String DELETE_LINEAGE = "lineage/delete_lineage";
-  public static final String GET_LINEAGE_INFO_LIST = "lineage/lineage_info_list";
-  public static final String REINITIALIZE_FILE = "lineage/reinitialize_file";
-  public static final String REPORT_LOST_FILE = "lineage/report_lost_file";
+  public static final String SERVICE_PREFIX = "lineage";
+  public static final String SERVICE_NAME = "service_name";
+  public static final String SERVICE_VERSION = "service_version";
+  public static final String CREATE_LINEAGE = "create_lineage";
+  public static final String DELETE_LINEAGE = "delete_lineage";
+  public static final String GET_LINEAGE_INFO_LIST = "lineage_info_list";
+  public static final String REINITIALIZE_FILE = "reinitialize_file";
+  public static final String REPORT_LOST_FILE = "report_lost_file";
 
-  private LineageMaster mLineageMaster = AlluxioMaster.get().getLineageMaster();
+  private final LineageMaster mLineageMaster = AlluxioMaster.get().getLineageMaster();
 
   /**
    * @return the service name
