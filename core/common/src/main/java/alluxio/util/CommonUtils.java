@@ -40,8 +40,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class CommonUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  private static Random sRandom = new Random();
+  private static final Random RANDOM = new Random();
 
   /**
    * @return current time in milliseconds
@@ -89,7 +88,7 @@ public final class CommonUtils {
   public static String randomString(int length) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < length; i++) {
-      sb.append((char) (sRandom.nextInt(96) + 32)); // generates a random printable character
+      sb.append((char) (RANDOM.nextInt(96) + 32)); // generates a random printable character
     }
     return sb.toString();
   }
@@ -102,7 +101,7 @@ public final class CommonUtils {
    */
   public static byte[] randomBytes(int length) {
     byte[] result = new byte[length];
-    sRandom.nextBytes(result);
+    RANDOM.nextBytes(result);
     return result;
   }
 
