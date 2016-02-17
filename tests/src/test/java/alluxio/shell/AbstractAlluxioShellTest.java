@@ -190,9 +190,14 @@ public abstract class AbstractAlluxioShellTest {
         path);
   }
 
-  protected String getLsNoAclResultStr(String path, long createTime, int size, String fileType,
-      boolean isDir) throws IOException,
-      AlluxioException {
+  protected String getLsNoAclResultStr(AlluxioURI tUri, int size, String fileType)
+      throws IOException, AlluxioException {
+    URIStatus status = mFileSystem.getStatus(tUri);
+    return getLsNoAclResultStr(tUri.getPath(), status.getCreationTimeMs(), size, fileType);
+  }
+
+  protected String getLsNoAclResultStr(String path, long createTime, int size, String fileType)
+      throws IOException, AlluxioException {
     return String.format(Constants.LS_FORMAT_NO_ACL,
         FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTime), fileType,
         path);
