@@ -14,6 +14,7 @@ or let us know by email (project.tachyon@gmail.com) or
 * [Alibaba](http://www.alibaba.com/)
 * [Atigeo](http://atigeo.com/)
 * [Baidu](http://www.baidu.com/)
+* [Barclays](http://www.barclays.co.uk/)
 * [Huawei](http://www.huawei.com/)
 * [IBM Research](http://www.research.ibm.com/)
 * [Intel](http://www.intel.com/)
