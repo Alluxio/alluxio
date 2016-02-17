@@ -46,8 +46,6 @@ import javax.ws.rs.core.Response;
 // TODO(jiri): Investigate auto-generation of REST API documentation.
 public final class LineageMasterClientRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final Response INTERNAL_SERVER_ERROR =
-      Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
 
   public static final String SERVICE_NAME = "lineage/service_name";
   public static final String SERVICE_VERSION = "lineage/service_version";
@@ -102,7 +100,7 @@ public final class LineageMasterClientRestServiceHandler {
       return Response.ok(mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job)).build();
     } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 
@@ -119,7 +117,7 @@ public final class LineageMasterClientRestServiceHandler {
       return Response.ok(mLineageMaster.deleteLineage(lineageId, cascade)).build();
     } catch (AlluxioException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 
@@ -133,7 +131,7 @@ public final class LineageMasterClientRestServiceHandler {
       return Response.ok(mLineageMaster.getLineageInfoList()).build();
     } catch (AlluxioException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 
@@ -151,13 +149,13 @@ public final class LineageMasterClientRestServiceHandler {
       return Response.ok(mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl)).build();
     } catch (AlluxioException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 
   /**
    * @param path the file path
-   * @return N/A
+   * @return status 200 on success
    */
   @POST
   @Path(REPORT_LOST_FILE)
@@ -167,7 +165,7 @@ public final class LineageMasterClientRestServiceHandler {
       return Response.ok().build();
     } catch (AlluxioException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 }

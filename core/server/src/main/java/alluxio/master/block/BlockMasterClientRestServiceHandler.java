@@ -38,8 +38,6 @@ import javax.ws.rs.core.Response;
 // TODO(jiri): Investigate auto-generation of REST API documentation.
 public final class BlockMasterClientRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final Response INTERNAL_SERVER_ERROR =
-      Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
 
   public static final String SERVICE_NAME = "block/service_name";
   public static final String SERVICE_VERSION = "block/service_version";
@@ -80,7 +78,7 @@ public final class BlockMasterClientRestServiceHandler {
       return Response.ok(mBlockMaster.getBlockInfo(blockId)).build();
     } catch (AlluxioException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 

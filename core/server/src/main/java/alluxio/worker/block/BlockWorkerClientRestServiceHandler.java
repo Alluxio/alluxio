@@ -92,7 +92,7 @@ public final class BlockWorkerClientRestServiceHandler {
 
   /**
    * @param blockId the block id
-   * @return N/A
+   * @return status 200 on success
    */
   @POST
   @Path(ACCESS_BLOCK)
@@ -103,13 +103,13 @@ public final class BlockWorkerClientRestServiceHandler {
       return Response.ok().build();
     } catch (AlluxioException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 
   /**
    * @param fileId the file id
-   * @return false
+   * @return whether the operation succeeded
    */
   @POST
   @Path(ASYNC_CHECKPOINT)
@@ -121,7 +121,7 @@ public final class BlockWorkerClientRestServiceHandler {
   /**
    * @param sessionId the session id
    * @param blockId the block id
-   * @return N/A
+   * @return status 200 on success
    */
   @POST
   @Path(CACHE_BLOCK)
@@ -133,14 +133,14 @@ public final class BlockWorkerClientRestServiceHandler {
       return Response.ok().build();
     } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 
   /**
    * @param sessionId the session id
    * @param blockId the block id
-   * @return N/A
+   * @return status 200 on success
    */
   @POST
   @Path(CANCEL_BLOCK)
@@ -152,7 +152,7 @@ public final class BlockWorkerClientRestServiceHandler {
       return Response.ok().build();
     } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 
@@ -173,13 +173,13 @@ public final class BlockWorkerClientRestServiceHandler {
               mBlockWorker.readBlock(sessionId, blockId, lockId))).build();
     } catch (AlluxioException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 
   /**
    * @param blockId the block id
-   * @return N/A
+   * @return status 200 on success
    */
   @POST
   @Path(PROMOTE_BLOCK)
@@ -191,7 +191,7 @@ public final class BlockWorkerClientRestServiceHandler {
       return Response.ok().build();
     } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 
@@ -228,7 +228,7 @@ public final class BlockWorkerClientRestServiceHandler {
       return Response.ok(buffer.array()).build();
     } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     } finally {
       try {
         if (reader != null) {
@@ -258,7 +258,7 @@ public final class BlockWorkerClientRestServiceHandler {
               initialBytes)).build();
     } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 
@@ -266,7 +266,7 @@ public final class BlockWorkerClientRestServiceHandler {
    * @param sessionId the session id
    * @param blockId the block id
    * @param requestBytes the additional number of bytes to allocate
-   * @return N/A
+   * @return status 200 on success
    */
   @POST
   @Path(REQUEST_SPACE)
@@ -278,14 +278,14 @@ public final class BlockWorkerClientRestServiceHandler {
       return Response.ok().build();
     } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 
   /**
    * @param sessionId the session id
    * @param blockId the block id
-   * @return N/A
+   * @return status 200 on success
    */
   @POST
   @Path(UNLOCK_BLOCK)
@@ -297,7 +297,7 @@ public final class BlockWorkerClientRestServiceHandler {
       return Response.ok().build();
     } catch (AlluxioException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 
@@ -307,7 +307,7 @@ public final class BlockWorkerClientRestServiceHandler {
    * @param offset the offset to start the read at
    * @param length the number of bytes to read (the value -1 means read until EOF)
    * @param data the data to write
-   * @return N/A
+   * @return status 200 on success
    */
   @POST
   @Path(WRITE_BLOCK)
@@ -337,7 +337,7 @@ public final class BlockWorkerClientRestServiceHandler {
       return Response.ok().build();
     } catch (AlluxioException | IOException e) {
       LOG.warn(e.getMessage());
-      return INTERNAL_SERVER_ERROR;
+      return Response.serverError().entity(e.getMessage()).build();
     } finally {
       try {
         if (writer != null) {

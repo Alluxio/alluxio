@@ -40,7 +40,7 @@ public class TestCase {
   private LocalAlluxioClusterResource mResource;
 
   /**
-   * Creates a new instance of {@link TestCaseFactory}.
+   * Creates a new instance of {@link TestCase}.
    *
    * @param suffix the suffix to use
    * @param parameters the parameters to use
