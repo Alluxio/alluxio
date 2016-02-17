@@ -32,7 +32,7 @@ import javax.ws.rs.core.Response;
  * Represents a REST API test case.
  */
 public class TestCase {
-  private String mSuffix;
+  private String mEndpoint;
   private Map<String, String> mParameters;
   private String mMethod;
   private Object mExpectedResult;
@@ -42,16 +42,16 @@ public class TestCase {
   /**
    * Creates a new instance of {@link TestCase}.
    *
-   * @param suffix the suffix to use
+   * @param endpoint the endpoint to use
    * @param parameters the parameters to use
    * @param method the method to use
    * @param expectedResult the expected result to use
    * @param service the service to use
    * @param resource the local Alluxio cluster resource
    */
-  protected TestCase(String suffix, Map<String, String> parameters, String method,
+  protected TestCase(String endpoint, Map<String, String> parameters, String method,
       Object expectedResult, String service, LocalAlluxioClusterResource resource) {
-    mSuffix = suffix;
+    mEndpoint = endpoint;
     mParameters = parameters;
     mMethod = method;
     mExpectedResult = expectedResult;
@@ -60,10 +60,10 @@ public class TestCase {
   }
 
   /**
-   * @return the suffix
+   * @return the endpoint
    */
-  public String getSuffix() {
-    return mSuffix;
+  public String getEndpoint() {
+    return mEndpoint;
   }
 
   /**
@@ -88,7 +88,8 @@ public class TestCase {
       hostname = mResource.get().getWorkerAddress().getHost();
       port = mResource.get().getWorkerAddress().getWebPort();
     }
-    return new URL("http://" + hostname + ":" + port + "/v1/api/" + mSuffix + "?" + sb.toString());
+    return new URL(
+        "http://" + hostname + ":" + port + "/v1/api/" + mEndpoint + "?" + sb.toString());
   }
 
   public String getResponse(HttpURLConnection connection) throws Exception {
@@ -115,10 +116,10 @@ public class TestCase {
     HttpURLConnection connection = (HttpURLConnection) createURL().openConnection();
     connection.setRequestMethod(mMethod);
     connection.connect();
-    Assert.assertEquals(mSuffix, Response.Status.OK.getStatusCode(), connection.getResponseCode());
+    Assert.assertEquals(mEndpoint, Response.Status.OK.getStatusCode(), connection.getResponseCode());
     ObjectMapper mapper = new ObjectMapper();
     String expected = mapper.writeValueAsString(mExpectedResult);
     expected = expected.replaceAll("^\"|\"$", ""); // needed to handle string return values
-    Assert.assertEquals(mSuffix, expected, getResponse(connection));
+    Assert.assertEquals(mEndpoint, expected, getResponse(connection));
   }
 }

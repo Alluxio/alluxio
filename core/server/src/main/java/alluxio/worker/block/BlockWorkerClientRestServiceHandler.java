@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -45,30 +46,30 @@ import javax.ws.rs.core.Response;
 /**
  * This class is a REST handler for block worker requests.
  */
-@Path("/")
-// TODO(jiri): Figure out why Jersey complains if this is changed to "/block".
+@NotThreadSafe
+@Path(BlockWorkerClientRestServiceHandler.SERVICE_PREFIX)
 // TODO(jiri): Investigate auto-generation of REST API documentation.
 public final class BlockWorkerClientRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final Response INTERNAL_SERVER_ERROR =
-      Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
 
-  public static final String SERVICE_NAME = "block/service_name";
-  public static final String SERVICE_VERSION = "block/service_version";
-  public static final String ACCESS_BLOCK = "block/access_block";
-  public static final String ASYNC_CHECKPOINT = "block/async_checkpoint";
-  public static final String CACHE_BLOCK = "block/cache_block";
-  public static final String CANCEL_BLOCK = "block/cancel_block";
-  public static final String LOCK_BLOCK = "block/lock_block";
-  public static final String PROMOTE_BLOCK = "block/promote_block";
-  public static final String READ_BLOCK = "block/read_block";
-  public static final String REQUEST_BLOCK_LOCATION = "block/request_block_location";
-  public static final String REQUEST_SPACE = "block/request_space";
-  public static final String UNLOCK_BLOCK = "block/unlock_block";
-  public static final String WRITE_BLOCK = "block/write_block";
+  public static final String SERVICE_PREFIX = "block";
+  public static final String SERVICE_NAME = "service_name";
+  public static final String SERVICE_VERSION = "service_version";
+  public static final String ACCESS_BLOCK = "access_block";
+  public static final String ASYNC_CHECKPOINT = "async_checkpoint";
+  public static final String CACHE_BLOCK = "cache_block";
+  public static final String CANCEL_BLOCK = "cancel_block";
+  public static final String LOCK_BLOCK = "lock_block";
+  public static final String PROMOTE_BLOCK = "promote_block";
+  public static final String READ_BLOCK = "read_block";
+  public static final String REQUEST_BLOCK_LOCATION = "request_block_location";
+  public static final String REQUEST_SPACE = "request_space";
+  public static final String UNLOCK_BLOCK = "unlock_block";
+  public static final String WRITE_BLOCK = "write_block";
 
-  private BlockWorker mBlockWorker = AlluxioWorker.get().getBlockWorker();
-  private StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
+  private final BlockWorker mBlockWorker = AlluxioWorker.get().getBlockWorker();
+  private final StorageTierAssoc mStorageTierAssoc =
+      new WorkerStorageTierAssoc(WorkerContext.getConf());
 
   /**
    * @return the service name

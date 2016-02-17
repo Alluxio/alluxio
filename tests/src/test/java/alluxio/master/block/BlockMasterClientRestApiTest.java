@@ -60,18 +60,23 @@ public class BlockMasterClientRestApiTest {
     Whitebox.setInternalState(AlluxioMaster.class, "sAlluxioMaster", alluxioMaster);
   }
 
+  private String getEndpoint(String suffix) {
+    return BlockMasterClientRestServiceHandler.SERVICE_PREFIX + "/" + suffix;
+  }
+
+
   @Test
   public void serviceNameTest() throws Exception {
     TestCaseFactory
-        .newMasterTestCase(BlockMasterClientRestServiceHandler.SERVICE_NAME, NO_PARAMS, "GET",
-        Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME, mResource).run();
+        .newMasterTestCase(getEndpoint(BlockMasterClientRestServiceHandler.SERVICE_NAME), NO_PARAMS,
+            "GET", Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME, mResource).run();
   }
 
   @Test
   public void serviceVersionTest() throws Exception {
     TestCaseFactory
-        .newMasterTestCase(BlockMasterClientRestServiceHandler.SERVICE_VERSION, NO_PARAMS, "GET",
-        Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION, mResource).run();
+        .newMasterTestCase(getEndpoint(BlockMasterClientRestServiceHandler.SERVICE_VERSION),
+            NO_PARAMS, "GET", Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION, mResource).run();
   }
 
   @Test
@@ -83,8 +88,8 @@ public class BlockMasterClientRestApiTest {
     Mockito.doReturn(blockInfo).when(sBlockMaster).getBlockInfo(Mockito.anyLong());
 
     TestCaseFactory
-        .newMasterTestCase(BlockMasterClientRestServiceHandler.GET_BLOCK_INFO, params, "GET",
-        blockInfo, mResource).run();
+        .newMasterTestCase(getEndpoint(BlockMasterClientRestServiceHandler.GET_BLOCK_INFO), params,
+            "GET", blockInfo, mResource).run();
 
     Mockito.verify(sBlockMaster).getBlockInfo(Mockito.anyLong());
   }
@@ -95,8 +100,9 @@ public class BlockMasterClientRestApiTest {
     long capacityBytes = random.nextLong();
     Mockito.doReturn(capacityBytes).when(sBlockMaster).getCapacityBytes();
 
-    TestCaseFactory.newMasterTestCase(BlockMasterClientRestServiceHandler.GET_CAPACITY_BYTES,
-        NO_PARAMS, "GET", capacityBytes, mResource).run();
+    TestCaseFactory
+        .newMasterTestCase(getEndpoint(BlockMasterClientRestServiceHandler.GET_CAPACITY_BYTES),
+            NO_PARAMS, "GET", capacityBytes, mResource).run();
 
     Mockito.verify(sBlockMaster).getCapacityBytes();
   }
@@ -108,8 +114,8 @@ public class BlockMasterClientRestApiTest {
     Mockito.doReturn(usedBytes).when(sBlockMaster).getUsedBytes();
 
     TestCaseFactory
-        .newMasterTestCase(BlockMasterClientRestServiceHandler.GET_USED_BYTES, NO_PARAMS, "GET",
-        usedBytes, mResource).run();
+        .newMasterTestCase(getEndpoint(BlockMasterClientRestServiceHandler.GET_USED_BYTES),
+            NO_PARAMS, "GET", usedBytes, mResource).run();
 
     Mockito.verify(sBlockMaster).getUsedBytes();
   }
@@ -125,8 +131,8 @@ public class BlockMasterClientRestApiTest {
     Mockito.doReturn(workerInfos).when(sBlockMaster).getWorkerInfoList();
 
     TestCaseFactory
-        .newMasterTestCase(BlockMasterClientRestServiceHandler.GET_WORKER_INFO_LIST, NO_PARAMS,
-        "GET", workerInfos, mResource).run();
+        .newMasterTestCase(getEndpoint(BlockMasterClientRestServiceHandler.GET_WORKER_INFO_LIST),
+            NO_PARAMS, "GET", workerInfos, mResource).run();
 
     Mockito.verify(sBlockMaster).getWorkerInfoList();
   }
