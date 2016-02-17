@@ -172,7 +172,7 @@ public final class CreateFileOptions {
   }
 
   /**
-   * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
+   * @return the TTL (time to live) value; it identifies duration (in milliseconds) the created file
    * should be kept around before it is automatically deleted
    */
   public long getTtl() {

@@ -153,7 +153,7 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param persisted whether directory should be persisted
    * @param recursive whether parent directories should be created if they do not already exist
    * @param blockSizeBytes the target block size in bytes
-   * @param ttl the time-to-live (in seconds)
+   * @param ttl the time-to-live (in milliseconds)
    * @return status 200 on success
    */
   @POST
