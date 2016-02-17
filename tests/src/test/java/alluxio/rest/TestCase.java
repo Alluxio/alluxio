@@ -116,7 +116,8 @@ public class TestCase {
     HttpURLConnection connection = (HttpURLConnection) createURL().openConnection();
     connection.setRequestMethod(mMethod);
     connection.connect();
-    Assert.assertEquals(mEndpoint, Response.Status.OK.getStatusCode(), connection.getResponseCode());
+    Assert
+        .assertEquals(mEndpoint, Response.Status.OK.getStatusCode(), connection.getResponseCode());
     ObjectMapper mapper = new ObjectMapper();
     String expected = mapper.writeValueAsString(mExpectedResult);
     expected = expected.replaceAll("^\"|\"$", ""); // needed to handle string return values

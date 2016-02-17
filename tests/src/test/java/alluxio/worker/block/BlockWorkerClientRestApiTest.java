@@ -70,7 +70,6 @@ public class BlockWorkerClientRestApiTest {
     return BlockWorkerClientRestServiceHandler.SERVICE_PREFIX + "/" + suffix;
   }
 
-
   @Test
   public void serviceNameTest() throws Exception {
     TestCaseFactory
