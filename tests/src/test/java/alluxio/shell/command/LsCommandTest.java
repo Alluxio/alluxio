@@ -101,6 +101,9 @@ public class LsCommandTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(expected, mOutput.toString());
   }
 
+  /**
+   * Tests ls command when security is enabled.
+   */
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
@@ -124,6 +127,9 @@ public class LsCommandTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(expected, mOutput.toString());
   }
 
+  /**
+   * Tests ls command with wildcard when security is not enabled.
+   */
   @Test
   public void lsWildcardNoAclTest() throws IOException, AlluxioException {
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
@@ -150,6 +156,9 @@ public class LsCommandTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(expect, mOutput.toString());
   }
 
+  /**
+   * Tests ls command with wildcard when security is enabled.
+   */
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
@@ -176,6 +185,9 @@ public class LsCommandTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(expect, mOutput.toString());
   }
 
+  /**
+   * Tests lsr command with wildcard when security is not enabled.
+   */
   @Test
   public void lsrNoAclTest() throws IOException, AlluxioException {
     URIStatus[] files = createFiles();
@@ -193,6 +205,9 @@ public class LsCommandTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(expected, mOutput.toString());
   }
 
+  /**
+   * Tests lsr command with wildcard when security is enabled.
+   */
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
