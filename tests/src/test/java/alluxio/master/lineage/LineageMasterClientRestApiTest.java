@@ -83,8 +83,8 @@ public class LineageMasterClientRestApiTest {
     Map<String, String> params = Maps.newHashMap();
     params.put("inputFiles", "test");
     params.put("outputFiles", "test");
-    params.put("job.command", "test");
-    params.put("job.command.conf.outputFile", "test");
+    params.put("command", "test");
+    params.put("commandOutputFile", "test");
 
     Random random = new Random();
     long result = random.nextLong();

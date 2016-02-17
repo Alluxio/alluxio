@@ -19,6 +19,7 @@ import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.master.AlluxioMaster;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,10 +75,11 @@ public final class BlockMasterClientRestServiceHandler {
    */
   @GET
   @Path(GET_BLOCK_INFO)
-  public Response getBlockInfo(@QueryParam("blockId") long blockId) {
+  public Response getBlockInfo(@QueryParam("blockId") Long blockId) {
     try {
+      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
       return Response.ok(mBlockMaster.getBlockInfo(blockId)).build();
-    } catch (AlluxioException e) {
+    } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return Response.serverError().entity(e.getMessage()).build();
     }

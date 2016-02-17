@@ -249,7 +249,7 @@ public class BlockWorkerClientRestApiTest {
   }
 
   @Test
-  public void writeTest() throws Exception {
+  public void writeBlockTest() throws Exception {
     Map<String, String> params = Maps.newHashMap();
     params.put("blockId", "1");
     params.put("sessionId", "1");

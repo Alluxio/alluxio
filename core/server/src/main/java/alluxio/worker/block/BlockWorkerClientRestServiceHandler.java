@@ -98,11 +98,12 @@ public final class BlockWorkerClientRestServiceHandler {
   @POST
   @Path(ACCESS_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response accessBlock(@QueryParam("blockId") long blockId) {
+  public Response accessBlock(@QueryParam("blockId") Long blockId) {
     try {
+      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
       mBlockWorker.accessBlock(Sessions.ACCESS_BLOCK_SESSION_ID, blockId);
       return Response.ok().build();
-    } catch (AlluxioException e) {
+    } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return Response.serverError().entity(e.getMessage()).build();
     }
@@ -115,8 +116,14 @@ public final class BlockWorkerClientRestServiceHandler {
   @POST
   @Path(ASYNC_CHECKPOINT)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response asyncCheckpoint(@QueryParam("fileId") long fileId) {
-    return Response.ok(false).build();
+  public Response asyncCheckpoint(@QueryParam("fileId") Long fileId) {
+    try {
+      Preconditions.checkNotNull(fileId, "required 'fileId' parameter is missing");
+      return Response.ok(false).build();
+    } catch (NullPointerException e) {
+      LOG.warn(e.getMessage());
+      return Response.serverError().entity(e.getMessage()).build();
+    }
   }
 
   /**
@@ -127,12 +134,14 @@ public final class BlockWorkerClientRestServiceHandler {
   @POST
   @Path(CACHE_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response cacheBlock(@QueryParam("sessionId") long sessionId,
-      @QueryParam("blockId") long blockId) {
+  public Response cacheBlock(@QueryParam("sessionId") Long sessionId,
+      @QueryParam("blockId") Long blockId) {
     try {
+      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
+      Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
       mBlockWorker.commitBlock(sessionId, blockId);
       return Response.ok().build();
-    } catch (AlluxioException | IOException e) {
+    } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return Response.serverError().entity(e.getMessage()).build();
     }
@@ -146,12 +155,14 @@ public final class BlockWorkerClientRestServiceHandler {
   @POST
   @Path(CANCEL_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response cancelBlock(@QueryParam("sessionId") long sessionId,
-      @QueryParam("blockId") long blockId) {
+  public Response cancelBlock(@QueryParam("sessionId") Long sessionId,
+      @QueryParam("blockId") Long blockId) {
     try {
+      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
+      Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
       mBlockWorker.abortBlock(sessionId, blockId);
       return Response.ok().build();
-    } catch (AlluxioException | IOException e) {
+    } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return Response.serverError().entity(e.getMessage()).build();
     }
@@ -165,14 +176,16 @@ public final class BlockWorkerClientRestServiceHandler {
   @POST
   @Path(LOCK_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response lockBlock(@QueryParam("sessionId") long sessionId,
-      @QueryParam("blockId") long blockId) {
+  public Response lockBlock(@QueryParam("sessionId") Long sessionId,
+      @QueryParam("blockId") Long blockId) {
     try {
+      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
+      Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
       long lockId = mBlockWorker.lockBlock(sessionId, blockId);
       return Response.ok(
           new LockBlockResult().setLockId(lockId).setBlockPath(
               mBlockWorker.readBlock(sessionId, blockId, lockId))).build();
-    } catch (AlluxioException e) {
+    } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return Response.serverError().entity(e.getMessage()).build();
     }
@@ -185,12 +198,13 @@ public final class BlockWorkerClientRestServiceHandler {
   @POST
   @Path(PROMOTE_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response promoteBlock(@QueryParam("blockId") long blockId) {
+  public Response promoteBlock(@QueryParam("blockId") Long blockId) {
     try {
+      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
       mBlockWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId,
           mStorageTierAssoc.getAlias(0));
       return Response.ok().build();
-    } catch (AlluxioException | IOException e) {
+    } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return Response.serverError().entity(e.getMessage()).build();
     }
@@ -207,44 +221,45 @@ public final class BlockWorkerClientRestServiceHandler {
   @GET
   @Path(READ_BLOCK)
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
-  public Response readBlock(@QueryParam("sessionId") long sessionId,
-      @QueryParam("blockId") long blockId, @QueryParam("lockId") long lockId,
-      @QueryParam("offset") long offset, @QueryParam("length") long length) {
-    // TODO(jiri): Wrap this logic in a block worker function; requires refactoring.
-    Preconditions.checkState(offset >= 0, "invalid offset: %s", offset);
-    Preconditions.checkState(length >= -1, "invalid length (except for -1): %s", length);
-
-    BlockReader reader = null;
+  public Response readBlock(@QueryParam("sessionId") Long sessionId,
+      @QueryParam("blockId") Long blockId, @QueryParam("lockId") Long lockId,
+      @QueryParam("offset") Long offset, @QueryParam("length") Long length) {
     try {
-      reader = mBlockWorker.readBlockRemote(sessionId, blockId, lockId);
-      long fileLength = reader.getLength();
-      Preconditions
-          .checkArgument(offset <= fileLength, "offset %s is larger than file length %s", offset,
-              fileLength);
-      Preconditions.checkArgument(length == -1 || offset + length <= fileLength,
-          "offset %s plus length %s is larger than file length %s", offset, length, fileLength);
-      long readLength = (length == -1) ? fileLength - offset : length;
-      ByteBuffer buffer = reader.read(offset, readLength);
-      mBlockWorker.accessBlock(sessionId, blockId);
-      if (buffer.hasArray()) {
-        return Response.ok(buffer.array()).build();
-      }
-      // We need to copy the bytes because the buffer byte array cannot be access directly.
-      byte[] bytes = new byte[(int) readLength];
-      buffer.get(bytes);
-      return Response.ok(bytes).build();
-    } catch (AlluxioException | IOException e) {
-      LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
-    } finally {
+      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
+      Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
+      Preconditions.checkNotNull(lockId, "required 'lockId' parameter is missing");
+      Preconditions.checkNotNull(offset, "required 'offset' parameter is missing");
+      Preconditions.checkNotNull(length, "required 'length' parameter is missing");
+      Preconditions.checkState(offset >= 0, "invalid offset: %s", offset);
+      Preconditions.checkState(length >= -1, "invalid length (except for -1): %s", length);
+      // TODO(jiri): Wrap this logic in a block worker function; requires refactoring.
+      BlockReader reader = null;
       try {
+        reader = mBlockWorker.readBlockRemote(sessionId, blockId, lockId);
+        long fileLength = reader.getLength();
+        Preconditions
+            .checkArgument(offset <= fileLength, "offset %s is larger than file length %s", offset,
+                fileLength);
+        Preconditions.checkArgument(length == -1 || offset + length <= fileLength,
+            "offset %s plus length %s is larger than file length %s", offset, length, fileLength);
+        long readLength = (length == -1) ? fileLength - offset : length;
+        ByteBuffer buffer = reader.read(offset, readLength);
+        mBlockWorker.accessBlock(sessionId, blockId);
+        if (buffer.hasArray()) {
+          return Response.ok(buffer.array()).build();
+        }
+        // We need to copy the bytes because the buffer byte array cannot be accessed directly.
+        byte[] bytes = new byte[(int) readLength];
+        buffer.get(bytes);
+        return Response.ok(bytes).build();
+      } finally {
         if (reader != null) {
           reader.close();
         }
-      } catch (IOException e) {
-        LOG.warn(e.getMessage());
-        // TODO(jiri): Decide how to handle this.
       }
+    } catch (AlluxioException | IOException | IllegalStateException | NullPointerException e) {
+      LOG.warn(e.getMessage());
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 
@@ -257,13 +272,15 @@ public final class BlockWorkerClientRestServiceHandler {
   @POST
   @Path(REQUEST_BLOCK_LOCATION)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response requestBlockLocation(@QueryParam("sessionId") long sessionId,
-      @QueryParam("blockId") long blockId, @QueryParam("initialBytes") long initialBytes) {
+  public Response requestBlockLocation(@QueryParam("sessionId") Long sessionId,
+      @QueryParam("blockId") Long blockId, @QueryParam("initialBytes") Long initialBytes) {
     try {
-      return Response
-          .ok(mBlockWorker.createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(0),
-              initialBytes)).build();
-    } catch (AlluxioException | IOException e) {
+      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
+      Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
+      Preconditions.checkNotNull(initialBytes, "required 'initialBytes' parameter is missing");
+      return Response.ok(mBlockWorker
+          .createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(0), initialBytes)).build();
+    } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return Response.serverError().entity(e.getMessage()).build();
     }
@@ -278,12 +295,15 @@ public final class BlockWorkerClientRestServiceHandler {
   @POST
   @Path(REQUEST_SPACE)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response requestSpace(@QueryParam("sessionId") long sessionId,
-      @QueryParam("blockId") long blockId, @QueryParam("requestBytes") long requestBytes) {
+  public Response requestSpace(@QueryParam("sessionId") Long sessionId,
+      @QueryParam("blockId") Long blockId, @QueryParam("requestBytes") Long requestBytes) {
     try {
+      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
+      Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
+      Preconditions.checkNotNull(requestBytes, "required 'requestBytes' parameter is missing");
       mBlockWorker.requestSpace(sessionId, blockId, requestBytes);
       return Response.ok().build();
-    } catch (AlluxioException | IOException e) {
+    } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return Response.serverError().entity(e.getMessage()).build();
     }
@@ -297,12 +317,14 @@ public final class BlockWorkerClientRestServiceHandler {
   @POST
   @Path(UNLOCK_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response unlockBlock(@QueryParam("sessionId") long sessionId,
-      @QueryParam("blockId") long blockId) {
+  public Response unlockBlock(@QueryParam("sessionId") Long sessionId,
+      @QueryParam("blockId") Long blockId) {
     try {
+      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
+      Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
       mBlockWorker.unlockBlock(sessionId, blockId);
       return Response.ok().build();
-    } catch (AlluxioException e) {
+    } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return Response.serverError().entity(e.getMessage()).build();
     }
@@ -320,40 +342,40 @@ public final class BlockWorkerClientRestServiceHandler {
   @Path(WRITE_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-  public Response writeBlock(@QueryParam("sessionId") long sessionId,
-      @QueryParam("blockId") long blockId, @QueryParam("offset") long offset,
-      @QueryParam("length") long length, byte[] data) {
-    // TODO(jiri): Wrap this logic in a block worker function; requires refactoring.
-    Preconditions.checkState(offset >= 0, "invalid offset: %s", offset);
-    Preconditions.checkState(length >= -1, "invalid length (except for -1): %s", length);
-
-    BlockWriter writer = null;
+  public Response writeBlock(@QueryParam("sessionId") Long sessionId,
+      @QueryParam("blockId") Long blockId, @QueryParam("offset") Long offset,
+      @QueryParam("length") Long length, byte[] data) {
     try {
-      ByteBuffer buffer = ByteBuffer.wrap(data);
-      if (offset == 0) {
-        // This is the first write to the block, so create the temp block file. The file will only
-        // be created if the first write starts at offset 0. This allocates enough space for the
-        // write.
-        mBlockWorker.createBlockRemote(sessionId, blockId, mStorageTierAssoc.getAlias(0), length);
-      } else {
-        // Allocate enough space in the existing temporary block for the write.
-        mBlockWorker.requestSpace(sessionId, blockId, length);
-      }
-      writer = mBlockWorker.getTempBlockWriterRemote(sessionId, blockId);
-      writer.append(buffer);
-      return Response.ok().build();
-    } catch (AlluxioException | IOException e) {
-      LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
-    } finally {
+      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
+      Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
+      Preconditions.checkNotNull(offset, "required 'offset' parameter is missing");
+      Preconditions.checkNotNull(length, "required 'length' parameter is missing");
+      Preconditions.checkState(offset >= 0, "invalid offset: %s", offset);
+      Preconditions.checkState(length >= -1, "invalid length (except for -1): %s", length);
+      // TODO(jiri): Wrap this logic in a block worker function; requires refactoring.
+      BlockWriter writer = null;
       try {
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        if (offset == 0) {
+          // This is the first write to the block, so create the temp block file. The file will only
+          // be created if the first write starts at offset 0. This allocates enough space for the
+          // write.
+          mBlockWorker.createBlockRemote(sessionId, blockId, mStorageTierAssoc.getAlias(0), length);
+        } else {
+          // Allocate enough space in the existing temporary block for the write.
+          mBlockWorker.requestSpace(sessionId, blockId, length);
+        }
+        writer = mBlockWorker.getTempBlockWriterRemote(sessionId, blockId);
+        writer.append(buffer);
+        return Response.ok().build();
+      } finally {
         if (writer != null) {
           writer.close();
         }
-      } catch (IOException e) {
-        LOG.warn(e.getMessage());
-        // TODO(jiri): Decide how to handle this.
       }
+    } catch (AlluxioException | IOException | IllegalStateException | NullPointerException e) {
+      LOG.warn(e.getMessage());
+      return Response.serverError().entity(e.getMessage()).build();
     }
   }
 }
