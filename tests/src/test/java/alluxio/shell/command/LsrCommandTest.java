@@ -17,6 +17,7 @@ package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.URIStatus;
@@ -35,6 +36,11 @@ import java.io.IOException;
  */
 public class LsrCommandTest extends AbstractAlluxioShellTest {
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+          Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          Constants.SECURITY_GROUP_MAPPING,
+          "alluxio.security.group.provider.IdentityUserGroupsMapping"})
   public void lsrTest() throws IOException, AlluxioException {
     MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
