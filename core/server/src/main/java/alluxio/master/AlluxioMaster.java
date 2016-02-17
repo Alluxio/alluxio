@@ -62,6 +62,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public class AlluxioMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private static AlluxioMaster sAlluxioMaster = null;
+
   /**
    * Starts the Alluxio master server via {@code java -cp <ALLUXIO-VERSION> alluxio.Master}.
    *
@@ -74,11 +76,24 @@ public class AlluxioMaster {
     }
 
     try {
-      Factory.create().start();
+      AlluxioMaster master = get();
+      master.start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating Master", e);
       System.exit(-1);
     }
+  }
+
+  /**
+   * Returns a handle to the Alluxio master instance.
+   *
+   * @return Alluxio master handle
+   */
+  public static synchronized AlluxioMaster get() {
+    if (sAlluxioMaster == null) {
+      sAlluxioMaster = Factory.create();
+    }
+    return sAlluxioMaster;
   }
 
   /** Maximum number of threads to serve the rpc server. */
@@ -302,17 +317,24 @@ public class AlluxioMaster {
   }
 
   /**
-   * @return internal {@link FileSystemMaster}, for unit test only
+   * @return internal {@link BlockMaster}
+   */
+  public BlockMaster getBlockMaster() {
+    return mBlockMaster;
+  }
+
+  /**
+   * @return internal {@link FileSystemMaster}
    */
   public FileSystemMaster getFileSystemMaster() {
     return mFileSystemMaster;
   }
 
   /**
-   * @return internal {@link BlockMaster}, for unit test only
+   * @return internal {@link LineageMaster}
    */
-  public BlockMaster getBlockMaster() {
-    return mBlockMaster;
+  public LineageMaster getLineageMaster() {
+    return mLineageMaster;
   }
 
   /**

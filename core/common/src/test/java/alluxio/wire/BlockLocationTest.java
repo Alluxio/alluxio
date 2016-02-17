@@ -15,6 +15,8 @@
 
 package alluxio.wire;
 
+import alluxio.util.CommonUtils;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -53,9 +55,7 @@ public class BlockLocationTest {
 
     long workerId = random.nextLong();
     WorkerNetAddress workerAddress = WorkerNetAddressTest.createRandom();
-    byte[] bytes = new byte[5];
-    random.nextBytes(bytes);
-    String tierAlias = new String(bytes);
+    String tierAlias = CommonUtils.randomString(random.nextInt(10));
 
     result.setWorkerId(workerId);
     result.setWorkerAddress(workerAddress);
