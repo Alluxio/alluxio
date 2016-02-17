@@ -16,7 +16,6 @@
 package alluxio.shell;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.ClientContext;
@@ -82,7 +81,7 @@ public abstract class AbstractAlluxioShellTest {
     clearLoginUser();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();
-    mFsShell = new AlluxioShell(new Configuration());
+    mFsShell = new AlluxioShell(ClientContext.getConf());
     mOutput = new ByteArrayOutputStream();
     mNewOutput = new PrintStream(mOutput);
     mOldOutput = System.out;
@@ -188,7 +187,7 @@ public abstract class AbstractAlluxioShellTest {
   protected String getLsResultStr(String path, long createTime, int size, String fileType,
       String testUser, String testGroup, int permission, boolean isDir) throws IOException,
       AlluxioException {
-    return String.format(Constants.COMMAND_FORMAT_LS,
+    return String.format(Constants.LS_FORMAT,
         FormatUtils.formatPermission((short) permission, isDir), testUser, testGroup,
         FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTime), fileType,
         path);
