@@ -174,35 +174,6 @@ public abstract class AbstractAlluxioShellTest {
     return (mFileSystem.getStatus(new AlluxioURI(path)).getInMemoryPercentage() == 100);
   }
 
-  protected String getLsResultStr(AlluxioURI tUri, int size, String testUser, String testGroup)
-      throws IOException, AlluxioException {
-    URIStatus status = mFileSystem.getStatus(tUri);
-    return getLsResultStr(tUri.getPath(), status.getCreationTimeMs(), size, "In Memory",
-        testUser, testGroup, status.getPermission(), status.isFolder());
-  }
-
-  protected String getLsResultStr(String path, long createTime, int size, String fileType,
-      String testUser, String testGroup, int permission, boolean isDir) throws IOException,
-      AlluxioException {
-    return String.format(Constants.LS_FORMAT,
-        FormatUtils.formatPermission((short) permission, isDir), testUser, testGroup,
-        FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTime), fileType,
-        path);
-  }
-
-  protected String getLsNoAclResultStr(AlluxioURI tUri, int size, String fileType)
-      throws IOException, AlluxioException {
-    URIStatus status = mFileSystem.getStatus(tUri);
-    return getLsNoAclResultStr(tUri.getPath(), status.getCreationTimeMs(), size, fileType);
-  }
-
-  protected String getLsNoAclResultStr(String path, long createTime, int size, String fileType)
-      throws IOException, AlluxioException {
-    return String.format(Constants.LS_FORMAT_NO_ACL,
-        FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTime), fileType,
-        path);
-  }
-
   protected boolean fileExist(AlluxioURI path) {
     try {
       return mFileSystem.exists(path);
