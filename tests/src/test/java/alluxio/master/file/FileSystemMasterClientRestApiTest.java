@@ -314,7 +314,7 @@ public class FileSystemMasterClientRestApiTest {
 
     TestCaseFactory
         .newMasterTestCase(getEndpoint(FileSystemMasterClientRestServiceHandler.SET_ATTRIBUTE),
-            params, "PUT", "", mResource).run();
+            params, "POST", "", mResource).run();
 
     Mockito.verify(sFileSystemMaster)
         .setAttribute(Mockito.<AlluxioURI>any(), Mockito.<SetAttributeOptions>any());

@@ -32,7 +32,6 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -330,14 +329,13 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param recursive whether the attribute should be set recursively
    * @return status 200 on success
    */
-  @PUT
+  @POST
   @Path(SET_ATTRIBUTE)
   public Response setAttribute(@QueryParam("path") String path,
       @QueryParam("pinned") Boolean pinned, @QueryParam("ttl") Long ttl,
       @QueryParam("persisted") Boolean persisted, @QueryParam("owner") String owner,
       @QueryParam("group") String group, @QueryParam("permission") Short permission,
       @QueryParam("recursive") Boolean recursive) {
-    // TODO(jiri): Only set options that have been set.
     SetAttributeOptions.Builder builder = new SetAttributeOptions.Builder();
     if (pinned != null) {
       builder.setPinned(pinned);
