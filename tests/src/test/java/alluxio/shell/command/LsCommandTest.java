@@ -24,6 +24,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
+import alluxio.util.FormatUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,8 +35,40 @@ import java.io.IOException;
  * Tests for ls command.
  */
 public class LsCommandTest extends AbstractAlluxioShellTest {
+  // Helper function to format ls result.
+  private String getLsResultStr(AlluxioURI uri, int size, String testUser, String testGroup)
+      throws IOException, AlluxioException {
+    URIStatus status = mFileSystem.getStatus(uri);
+    return getLsResultStr(uri.getPath(), status.getCreationTimeMs(), size,
+        LsCommand.STATE_FILE_IN_MEMORY, testUser, testGroup, status.getPermission(),
+        status.isFolder());
+  }
 
-  /** Helper function to create a set of files in the file system */
+  // Helper function to format ls result.
+  private String getLsResultStr(String path, long createTime, int size, String fileType,
+      String testUser, String testGroup, int permission, boolean isDir)
+      throws IOException, AlluxioException {
+    return String
+        .format(Constants.LS_FORMAT, FormatUtils.formatPermission((short) permission, isDir),
+            testUser, testGroup, FormatUtils.getSizeFromBytes(size),
+            CommandUtils.convertMsToDate(createTime), fileType, path);
+  }
+
+  // Helper function to format ls result without acl enabled.
+  private String getLsNoAclResultStr(AlluxioURI uri, int size, String fileType)
+      throws IOException, AlluxioException {
+    URIStatus status = mFileSystem.getStatus(uri);
+    return getLsNoAclResultStr(uri.getPath(), status.getCreationTimeMs(), size, fileType);
+  }
+
+  // Helper function to format ls result without acl enabled.
+  private String getLsNoAclResultStr(String path, long createTime, int size, String fileType)
+      throws IOException, AlluxioException {
+    return String.format(Constants.LS_FORMAT_NO_ACL, FormatUtils.getSizeFromBytes(size),
+        CommandUtils.convertMsToDate(createTime), fileType, path);
+  }
+
+  // Helper function to create a set of files in the file system
   private URIStatus[] createFiles() throws IOException, AlluxioException {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
