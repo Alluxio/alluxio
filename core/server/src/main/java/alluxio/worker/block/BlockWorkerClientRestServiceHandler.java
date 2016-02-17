@@ -226,7 +226,11 @@ public final class BlockWorkerClientRestServiceHandler {
       long readLength = (length == -1) ? fileLength - offset : length;
       ByteBuffer buffer = reader.read(offset, readLength);
       mBlockWorker.accessBlock(sessionId, blockId);
-      byte[] bytes = new byte[(int) length];
+      if (buffer.hasArray()) {
+        return Response.ok(buffer.array()).build();
+      }
+      // We need to copy the bytes because the buffer byte array cannot be access directly.
+      byte[] bytes = new byte[(int) readLength];
       buffer.get(bytes);
       return Response.ok(bytes).build();
     } catch (AlluxioException | IOException e) {

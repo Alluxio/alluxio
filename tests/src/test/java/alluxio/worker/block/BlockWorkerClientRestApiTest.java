@@ -171,7 +171,7 @@ public class BlockWorkerClientRestApiTest {
     params.put("blockId", "1");
     params.put("sessionId", "1");
     params.put("lockId", "1");
-    params.put("offset", "1");
+    params.put("offset", "0");
     params.put("length", "-1");
 
     Random random = new Random();
@@ -180,7 +180,7 @@ public class BlockWorkerClientRestApiTest {
 
     BlockReader blockReader = PowerMockito.mock(BlockReader.class);
     Mockito.doReturn(byteBuffer).when(blockReader).read(Mockito.anyLong(), Mockito.anyLong());
-    Mockito.doReturn((long) 1).when(blockReader).getLength();
+    Mockito.doReturn((long) bytes.length).when(blockReader).getLength();
     Mockito.doReturn(blockReader).when(sBlockWorker)
         .readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
 
