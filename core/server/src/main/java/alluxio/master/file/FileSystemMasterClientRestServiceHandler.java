@@ -22,6 +22,7 @@ import alluxio.master.AlluxioMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 
 import com.google.common.base.Preconditions;
@@ -54,12 +55,13 @@ public final class FileSystemMasterClientRestServiceHandler {
   public static final String SERVICE_VERSION = "service_version";
   public static final String COMPLETE_FILE = "complete_file";
   public static final String CREATE_DIRECTORY = "create_directory";
+  public static final String CREATE_FILE = "create_file";
+  public static final String FREE = "free";
   public static final String GET_FILE_BLOCK_INFO_LIST = "file_block_info_list";
   public static final String GET_NEW_BLOCK_ID_FOR_FILE = "new_block_id_for_file";
   public static final String GET_STATUS = "status";
   public static final String GET_STATUS_INTERNAL = "status_internal";
   public static final String GET_UFS_ADDRESS = "ufs_address";
-  public static final String FREE = "free";
   public static final String LIST_STATUS = "list_status";
   public static final String LOAD_METADATA = "load_metadata";
   public static final String MOUNT = "mount";
@@ -139,6 +141,42 @@ public final class FileSystemMasterClientRestServiceHandler {
         options.setAllowExists(allowExists);
       }
       mFileSystemMaster.mkdir(new AlluxioURI(path), options.build());
+      return Response.ok().build();
+    } catch (AlluxioException | IOException | NullPointerException e) {
+      LOG.warn(e.getMessage());
+      return Response.serverError().entity(e.getMessage()).build();
+    }
+  }
+
+  /**
+   * @param path the file path
+   * @param persisted whether directory should be persisted
+   * @param recursive whether parent directories should be created if they do not already exist
+   * @param blockSizeBytes the target block size in bytes
+   * @param ttl the time-to-live (in seconds)
+   * @return status 200 on success
+   */
+  @POST
+  @Path(CREATE_FILE)
+  public Response createFile(@QueryParam("path") String path,
+      @QueryParam("persisted") Boolean persisted, @QueryParam("recursive") Boolean recursive,
+      @QueryParam("blockSizeBytes") Long blockSizeBytes, @QueryParam("ttl") Long ttl) {
+    try {
+      Preconditions.checkNotNull(path, "required 'path' parameter is missing");
+      CreateFileOptions.Builder options = new CreateFileOptions.Builder(MasterContext.getConf());
+      if (persisted != null) {
+        options.setPersisted(persisted);
+      }
+      if (recursive != null) {
+        options.setRecursive(recursive);
+      }
+      if (blockSizeBytes != null) {
+        options.setBlockSizeBytes(blockSizeBytes);
+      }
+      if (ttl != null) {
+        options.setTtl(ttl);
+      }
+      mFileSystemMaster.create(new AlluxioURI(path), options.build());
       return Response.ok().build();
     } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
