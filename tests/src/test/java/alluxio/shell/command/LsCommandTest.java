@@ -34,79 +34,93 @@ import java.io.IOException;
  * Tests for ls command.
  */
 public class LsCommandTest extends AbstractAlluxioShellTest {
-  private static final String TEST_USER = "test_user_ls";
+
+  /** Helper function to create a set of files in the file system */
+  private URIStatus[] createFiles() throws IOException, AlluxioException {
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WriteType.THROUGH, 30);
+
+    URIStatus[] files = new URIStatus[4];
+    files[0] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
+    files[1] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir"));
+    files[2] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"));
+    files[3] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileC"));
+    return files;
+  }
 
   /**
-   * Tests running ls command when security is not enabled.
+   * Tests ls command when security is not enabled.
    */
   @Test
   public void lsNoAclTest() throws IOException, AlluxioException {
-    URIStatus[] files = new URIStatus[4];
-    FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
-    files[0] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-        WriteType.MUST_CACHE, 20);
-    files[1] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir"));
-    files[2] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"));
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WriteType.THROUGH, 30);
-    files[3] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileC"));
+    URIStatus[] files = createFiles();
     mFsShell.run("ls", "/testRoot");
     String expected = "";
-    expected +=
-        getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
-            LsCommand.STATE_FILE_IN_MEMORY, files[0].isFolder());
-    expected +=
-        getLsNoAclResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 0,
-            LsCommand.STATE_FOLDER, files[1].isFolder());
-    expected +=
-        getLsNoAclResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
-            LsCommand.STATE_FILE_NOT_IN_MEMORY, files[3].isFolder());
+    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
+        LsCommand.STATE_FILE_IN_MEMORY);
+    expected += getLsNoAclResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 0,
+        LsCommand.STATE_FOLDER);
+    expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
+        LsCommand.STATE_FILE_NOT_IN_MEMORY);
     Assert.assertEquals(expected, mOutput.toString());
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-          Constants.SECURITY_GROUP_MAPPING,
+          Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE", Constants.SECURITY_GROUP_MAPPING,
           "alluxio.security.group.provider.IdentityUserGroupsMapping"})
   public void lsTest() throws IOException, AlluxioException {
-    URIStatus[] files = new URIStatus[4];
     String testUser = "test_user_ls";
     clearAndLogin(testUser);
-
-    FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
-    files[0] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-        WriteType.MUST_CACHE, 20);
-    files[1] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir"));
-    files[2] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"));
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WriteType.THROUGH, 30);
-    files[3] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileC"));
+    URIStatus[] files = createFiles();
     mFsShell.run("ls", "/testRoot");
     String expected = "";
+    expected += getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
+        LsCommand.STATE_FILE_IN_MEMORY, testUser, testUser, files[0].getPermission(),
+        files[0].isFolder());
     expected +=
-        getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
-            LsCommand.STATE_FILE_IN_MEMORY, testUser, testUser, files[0].getPermission(),
-            files[0].isFolder());
-    expected +=
-        getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 0,
-            LsCommand.STATE_FOLDER, testUser,
-            testUser, files[1].getPermission(), files[1].isFolder());
-    expected +=
-        getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
-            LsCommand.STATE_FILE_NOT_IN_MEMORY, testUser, testUser, files[3].getPermission(),
-            files[3].isFolder());
+        getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 0, LsCommand.STATE_FOLDER,
+            testUser, testUser, files[1].getPermission(), files[1].isFolder());
+    expected += getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
+        LsCommand.STATE_FILE_NOT_IN_MEMORY, testUser, testUser, files[3].getPermission(),
+        files[3].isFolder());
     Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  @Test
+  public void lsWildcardNoAclTest() throws IOException, AlluxioException {
+    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+
+    String expect = "";
+    expect += getLsNoAclResultStr(new AlluxioURI("/testWildCards/bar/foobar3"), 30,
+        LsCommand.STATE_FILE_IN_MEMORY);
+    expect += getLsNoAclResultStr(new AlluxioURI("/testWildCards/foo/foobar1"), 10,
+        LsCommand.STATE_FILE_IN_MEMORY);
+    expect += getLsNoAclResultStr(new AlluxioURI("/testWildCards/foo/foobar2"), 20,
+        LsCommand.STATE_FILE_IN_MEMORY);
+    mFsShell.run("ls", "/testWildCards/*/foo*");
+    Assert.assertEquals(expect, mOutput.toString());
+
+    expect += getLsNoAclResultStr(new AlluxioURI("/testWildCards/bar/foobar3"), 30,
+        LsCommand.STATE_FILE_IN_MEMORY);
+    expect += getLsNoAclResultStr(new AlluxioURI("/testWildCards/foo/foobar1"), 10,
+        LsCommand.STATE_FILE_IN_MEMORY);
+    expect += getLsNoAclResultStr(new AlluxioURI("/testWildCards/foo/foobar2"), 20,
+        LsCommand.STATE_FILE_IN_MEMORY);
+    expect += getLsNoAclResultStr(new AlluxioURI("/testWildCards/foobar4"), 40,
+        LsCommand.STATE_FILE_IN_MEMORY);
+    mFsShell.run("ls", "/testWildCards/*");
+    Assert.assertEquals(expect, mOutput.toString());
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-          Constants.SECURITY_GROUP_MAPPING,
+          Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE", Constants.SECURITY_GROUP_MAPPING,
           "alluxio.security.group.provider.IdentityUserGroupsMapping"})
   public void lsWildcardTest() throws IOException, AlluxioException {
     String testUser = "test_user_lsWildcard";
