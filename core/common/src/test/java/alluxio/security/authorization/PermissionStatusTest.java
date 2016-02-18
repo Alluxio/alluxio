@@ -68,7 +68,7 @@ public final class PermissionStatusTest {
    */
   @Test
   public void applyUMaskTest() {
-    FileSystemPermission umaskPermission = new FileSystemPermission((short)0022);
+    FileSystemPermission umaskPermission = new FileSystemPermission((short) 0022);
     PermissionStatus permissionStatus =
         new PermissionStatus("user1", "group1", FileSystemPermission.getDefault());
     permissionStatus = permissionStatus.applyUMask(umaskPermission);

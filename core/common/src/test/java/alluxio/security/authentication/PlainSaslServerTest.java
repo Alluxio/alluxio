@@ -124,7 +124,7 @@ public class PlainSaslServerTest{
       AuthorizeCallback ac = null;
       for (Callback callback : callbacks) {
         if (callback instanceof AuthorizeCallback) {
-          ac = (AuthorizeCallback)callback;
+          ac = (AuthorizeCallback) callback;
         }
       }
       ac.setAuthorized(true);
@@ -137,7 +137,7 @@ public class PlainSaslServerTest{
       AuthorizeCallback ac = null;
       for (Callback callback : callbacks) {
         if (callback instanceof AuthorizeCallback) {
-          ac = (AuthorizeCallback)callback;
+          ac = (AuthorizeCallback) callback;
         }
       }
       ac.setAuthorized(false);
