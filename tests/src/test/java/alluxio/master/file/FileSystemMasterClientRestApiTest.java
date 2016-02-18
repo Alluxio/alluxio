@@ -21,6 +21,7 @@ import alluxio.Constants;
 import alluxio.master.AlluxioMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.rest.TestCaseFactory;
 import alluxio.util.CommonUtils;
@@ -111,6 +112,23 @@ public class FileSystemMasterClientRestApiTest {
 
     Mockito.verify(sFileSystemMaster)
         .mkdir(Mockito.<AlluxioURI>any(), Mockito.<CreateDirectoryOptions>any());
+  }
+
+  @Test
+  public void createFileTest() throws Exception {
+    Map<String, String> params = Maps.newHashMap();
+    params.put("path", "test");
+    params.put("persisted", "false");
+    params.put("recursive", "false");
+    params.put("blockSizeBytes", "1");
+    params.put("blockSizeBytes", "1");
+
+    TestCaseFactory
+        .newMasterTestCase(getEndpoint(FileSystemMasterClientRestServiceHandler.CREATE_FILE),
+            params, "POST", "", mResource).run();
+
+    Mockito.verify(sFileSystemMaster)
+        .create(Mockito.<AlluxioURI>any(), Mockito.<CreateFileOptions>any());
   }
 
   @Test
