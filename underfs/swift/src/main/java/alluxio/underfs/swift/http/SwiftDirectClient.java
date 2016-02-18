@@ -61,7 +61,7 @@ public class SwiftDirectClient {
         httpCon.setDoInput(true);
         httpCon.setRequestProperty("Connection", "close");
         httpCon.setReadTimeout(HTTP_READ_TIMEOUT);
-        httpCon.setRequestProperty("Transfer-Encoding","chunked");
+        httpCon.setRequestProperty("Transfer-Encoding", "chunked");
         httpCon.setDoOutput(true);
         httpCon.setChunkedStreamingMode(HTTP_CHUNK_STREAMING);
         httpCon.connect();

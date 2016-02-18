@@ -185,7 +185,7 @@ public final class KeyValueSystemIntegrationTest {
     keyValuePairs.add(pairs);
 
     pairs = Lists.newArrayList();
-    storeUris.add(createStoreOfMultiplePartitions(3,pairs));
+    storeUris.add(createStoreOfMultiplePartitions(3, pairs));
     keyValuePairs.add(pairs);
 
     int numStoreUri = storeUris.size();
