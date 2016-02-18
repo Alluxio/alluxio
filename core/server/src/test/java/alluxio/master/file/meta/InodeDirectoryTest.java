@@ -240,7 +240,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
     InodeDirectory inode2 = createInodeDirectory();
     Assert.assertEquals(AbstractInodeTest.TEST_USER_NAME, inode2.getUserName());
     Assert.assertEquals(AbstractInodeTest.TEST_GROUP_NAME, inode2.getGroupName());
-    Assert.assertEquals((short)0755, inode2.getPermission());
+    Assert.assertEquals((short) 0755, inode2.getPermission());
   }
 
   /**
