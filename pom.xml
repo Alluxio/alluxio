@@ -645,6 +645,16 @@
       </build>
     </profile>
 
+    <!-- default build profile -->
+    <profile>
+      <id>default</id>
+     </profile>
+
+    <!-- build profile for Apache Spark -->
+    <profile>
+      <id>spark</id>
+    </profile>
+
     <!-- profile that activates alluxio fuse for java8 or newer -->
     <profile>
       <id>buildFuse</id>
