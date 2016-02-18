@@ -6,21 +6,21 @@ group: Under Store
 priority: 3
 ---
 
-Alluxio supports secure HDFS as Under FileSystem, with [Kerberos](http://web.mit.edu/kerberos/)
-authentication. This guide
+This guide
 describes how to configure Alluxio with secure [HDFS](https://hadoop.apache
 .org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide
 .html)
-as the under storage system.
+as the under storage system. Alluxio supports secure HDFS as Under FileSystem, with [Kerberos]
+(http://web.mit.edu/kerberos/) authentication.
 
 Note: Kerberos authentication with secure HDFS is not Alluxio internal authentication via Kerberos.
 
 # Initial Setup
 
-To run a Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
+To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
 machines. You can either
 [compile the binaries from Alluxio source code](Building-Alluxio-Master-Branch.html), or
-[download the precompiled binaries directly](Running-Alluxio-Locally.html).
+[download the precompiled binaries directly](http://alluxio-project.org/downloads/).
 
 Note that, by default, Alluxio binaries are built to work with Hadoop HDFS version `2.2.0`. To use
 another Hadoop version, one needs to recompile Alluxio binaries from source code with the correct
@@ -33,24 +33,24 @@ of Alluxio source code.
 
 {% include Configuring-Alluxio-with-HDFS/mvn-package.md %}
 
-* Alternatively, you can also pass the correct Hadoop version in command line when compiling with
-maven. For example, if you want Alluxio to work with Hadoop HDFS `2.6.0`:
+* Alternatively, you can also pass the correct Hadoop version to the command line when compiling
+with maven. For example, if you want Alluxio to work with Hadoop HDFS `2.6.0`:
 
 {% include Configuring-Alluxio-with-HDFS/mvn-Dhadoop-package.md %}
 
 If everything succeeds, you should see
 `alluxio-assemblies-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` created in the
-`assembly/target` directory and this is the jar file you can use to run both Alluxio Master and Worker.
+`assembly/target` directory. This is the jar file you can use to run both Alluxio Master and Worker.
 
 # Configuring Alluxio
 
-To run Alluxio binary, we must setup configuration files. Create your configuration file from the
-template:
+To run the Alluxio binary, we must setup configuration files. Create your configuration file from
+ the template:
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
 Then edit `alluxio-env.sh` file to set the under storage address to the HDFS namenode address
-(e.g., `hdfs://localhost:9000` if you are running the HDFS namenode locally with default port).
+(e.g., `hdfs://localhost:9000` if you are running the HDFS namenode locally with the default port).
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
