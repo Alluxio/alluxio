@@ -6,7 +6,8 @@ group: Under Store
 priority: 3
 ---
 
-Alluxio supports secure HDFS as Under FileSystem, with Kerberos authentication. This guide
+Alluxio supports secure HDFS as Under FileSystem, with [Kerberos](http://web.mit.edu/kerberos/)
+authentication. This guide
 describes how to configure Alluxio with secure [HDFS](https://hadoop.apache
 .org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide
 .html)
@@ -54,7 +55,7 @@ Then edit `alluxio-env.sh` file to set the under storage address to the HDFS nam
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
 Copy secure HDFS conf xml files (`core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, `yarn-site.xml`) to
-${ALLUXIO_HOME}/conf
+`${ALLUXIO_HOME}/conf/`
 
 Set the following Alluxio properties:
 
