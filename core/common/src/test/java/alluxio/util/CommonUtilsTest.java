@@ -192,7 +192,7 @@ public class CommonUtilsTest {
     List<String> userGroups = new ArrayList<String>();
     userGroups.add(userGroup1);
     userGroups.add(userGroup2);
-    setupShellMocks(userName,userGroups);
+    setupShellMocks(userName, userGroups);
 
     List<String> groups = CommonUtils.getUnixGroups(userName);
 

@@ -341,7 +341,7 @@ public class ConfigurationTest {
     mCustomPropsConfiguration = new Configuration(mProperties);
     Assert.assertEquals(Integer.MAX_VALUE,
             (int) mCustomPropsConfiguration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
-    mCustomPropsConfiguration.set(Constants.USER_FILE_BUFFER_BYTES,"1GB");
+    mCustomPropsConfiguration.set(Constants.USER_FILE_BUFFER_BYTES, "1GB");
     Assert.assertEquals(1073741824,
             (int) mCustomPropsConfiguration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
   }
