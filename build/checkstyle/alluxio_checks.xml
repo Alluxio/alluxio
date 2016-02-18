@@ -253,7 +253,7 @@
 
     <!-- Checks that there is whitespace after various tokens. -->
     <module name="WhitespaceAfter">
-      <property name="tokens" value="COMMA"/>
+      <property name="tokens" value="COMMA, SEMI"/>
     </module>
   </module>
 
