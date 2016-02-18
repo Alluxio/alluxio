@@ -1,4 +1,4 @@
-﻿---
+---
 layout: global
 title: 本地运行Tachyon
 nickname: 本地机器上运行Tachyon

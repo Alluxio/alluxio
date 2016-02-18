@@ -10,6 +10,7 @@ group: Dev Resources
 * [Alibaba](http://www.alibaba.com/)
 * [Atigeo](http://atigeo.com/)
 * [Baidu](http://www.baidu.com/)
+* [Barclays](http://www.barclays.co.uk/)
 * [Huawei](http://www.huawei.com/)
 * [IBM Research](http://www.research.ibm.com/)
 * [Intel](http://www.intel.com/)
