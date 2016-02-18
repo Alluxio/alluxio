@@ -250,6 +250,11 @@
       <property name="tokens" value="BNOT, DEC, DOT, INC, LNOT, UNARY_MINUS, UNARY_PLUS"/>
       <property name="severity" value="error"/>
     </module>
+
+    <!-- Checks that there is whitespace after various tokens. -->
+    <module name="WhitespaceAfter">
+      <property name="tokens" value="COMMA"/>
+    </module>
   </module>
 
   <!-- always use Unix-style line separators -->
