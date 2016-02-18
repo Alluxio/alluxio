@@ -89,7 +89,7 @@ public class FileSystemMasterIntegrationTest {
         // verify the user permission for file
         FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
         Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
-        Assert.assertEquals(0644, (short)fileInfo.getPermission());
+        Assert.assertEquals(0644, (short) fileInfo.getPermission());
       } else {
         mFsMaster.mkdir(path, CreateDirectoryOptions.defaults());
         Assert.assertNotNull(mFsMaster.getFileId(path));
@@ -323,7 +323,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
     Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
-    Assert.assertEquals(0644, (short)fileInfo.getPermission());
+    Assert.assertEquals(0644, (short) fileInfo.getPermission());
   }
 
   private FileSystemMaster createFileSystemMasterFromJournal() throws IOException {
