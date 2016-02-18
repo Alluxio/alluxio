@@ -124,7 +124,7 @@ public class TachyonFramework {
           }
         }
 
-        System.out.println("Received offer " + offer.getId().getValue() + " with cpus: " + offerCpu
+        System.out.println("Received offer " + offer.getHostname() + " with cpus: " + offerCpu
             + " and mem: " + offerMem + "MB.");
 
         Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
@@ -251,10 +251,10 @@ public class TachyonFramework {
       System.out.println("Executor " + slaveId.getValue() + " was lost.");
     }
 
-
     private boolean meetsConstraints(List<Protos.Attribute> attributes) {
       AttributeEvaluator evaluator = new AttributeEvaluator(attributes);
-      return evaluator.matchAttributes(sConf.get(Constants.INTEGRATION_MESOS_SCHEDULER_CONSTRAINTS));
+      return evaluator.matchAttributes(sConf.get(Constants
+              .INTEGRATION_MESOS_SCHEDULER_CONSTRAINTS));
     }
 
     @Override

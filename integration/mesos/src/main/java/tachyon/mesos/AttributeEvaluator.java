@@ -1,6 +1,19 @@
-package tachyon.mesos;
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 
-import org.apache.mesos.Protos;
+package tachyon.mesos;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -12,9 +25,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.mesos.Protos;
+
+/**
+ * Boolean expression evaluator for Mesos slave attributes
+ */
 public class AttributeEvaluator {
 
-  private Map<String, String> attrsMap = new HashMap<String, String>();
+  private Map<String, String> mAttrsMap = new HashMap<String, String>();
 
   private void setAttributes(List<Protos.Attribute> attributes) {
     if (attributes == null || attributes.isEmpty()) {
@@ -24,14 +42,21 @@ public class AttributeEvaluator {
     for (Protos.Attribute attr : attributes) {
       // Mesos attribute : text ":" ( scalar | range | text )
       // now only support text attributes.
-      attrsMap.put(attr.getName(), attr.getText().getValue());
+      mAttrsMap.put(attr.getName(), attr.getText().getValue());
     }
   }
 
+  /**
+   * @param attributes Mesos slave attributes
+   */
   public AttributeEvaluator(List<Protos.Attribute> attributes) {
     setAttributes(attributes);
   }
 
+  /**
+   * @param constraints Mesos slave attributes
+   * @return return True if matched constraints
+   */
   public boolean matchAttributes(String constraints) {
     Lexer lexer = new Lexer(constraints);
     Parser parser = new Parser(lexer);
@@ -39,10 +64,13 @@ public class AttributeEvaluator {
     return expression.interpret();
   }
 
+  /**
+   * Constraints Lexer
+   */
   private class Lexer {
-    private StreamTokenizer input;
+    private StreamTokenizer mInput;
 
-    private int symbol = NONE;
+    private int mSymbol = NONE;
     public static final int EOL = -3;
     public static final int EOF = -2;
     public static final int INVALID = -1;
@@ -59,23 +87,26 @@ public class AttributeEvaluator {
     public static final int LEFT = 6;
     public static final int RIGHT = 7;
 
+    /**
+     * @param constraints schedule constraints
+     */
     public Lexer(String constraints) {
       Reader r = buildReader(constraints);
-      input = new StreamTokenizer(r);
+      mInput = new StreamTokenizer(r);
       resetSyntax();
     }
 
     private void resetSyntax() {
-      input.resetSyntax();
-      input.wordChars('0', 'z');
-      input.whitespaceChars('\u0000', ' ');
-      input.whitespaceChars('\n', '\t');
+      mInput.resetSyntax();
+      mInput.wordChars('0', 'z');
+      mInput.whitespaceChars('\u0000', ' ');
+      mInput.whitespaceChars('\n', '\t');
 
-      input.ordinaryChar('(');
-      input.ordinaryChar(')');
-      input.ordinaryChar('&');
-      input.ordinaryChar('|');
-      input.ordinaryChar('!');
+      mInput.ordinaryChar('(');
+      mInput.ordinaryChar(')');
+      mInput.ordinaryChar('&');
+      mInput.ordinaryChar('|');
+      mInput.ordinaryChar('!');
     }
 
     private Reader buildReader(String arg) {
@@ -96,105 +127,108 @@ public class AttributeEvaluator {
       String attr = kv[0];
       String text = kv[1];
 
-      return text.equals(attrsMap.get(attr));
+      return text.equals(mAttrsMap.get(attr));
     }
 
     public int nextSymbol() {
       try {
-        switch (input.nextToken()) {
+        switch (mInput.nextToken()) {
           case StreamTokenizer.TT_EOL:
-            symbol = EOL;
+            mSymbol = EOL;
             break;
           case StreamTokenizer.TT_EOF:
-            symbol = EOF;
+            mSymbol = EOF;
             break;
           case StreamTokenizer.TT_WORD:
-            if (matchAttributes(input.sval)) {
-              symbol = TRUE;
+            if (matchAttributes(mInput.sval)) {
+              mSymbol = TRUE;
             } else {
-              symbol = FALSE;
+              mSymbol = FALSE;
             }
             break;
           case '(':
-            symbol = LEFT;
+            mSymbol = LEFT;
             break;
           case ')':
-            symbol = RIGHT;
+            mSymbol = RIGHT;
             break;
           case '&':
-            symbol = AND;
+            mSymbol = AND;
             break;
           case '|':
-            symbol = OR;
+            mSymbol = OR;
             break;
           case '!':
-            symbol = NOT;
+            mSymbol = NOT;
             break;
           default:
-            symbol = INVALID;
+            mSymbol = INVALID;
         }
       } catch (IOException e) {
-        symbol = EOF;
+        mSymbol = EOF;
       }
-      return symbol;
+      return mSymbol;
     }
   }
 
+  /**
+   * Constraints Parser
+   */
   private class Parser {
-    private Lexer lexer;
-    private int symbol;
-    private AttributeExpression root;
+    private Lexer mLexer;
+    private int mSymbol;
+    private AttributeExpression mRoot;
 
-    private final True t = new True();
-    private final False f = new False();
+    private final True mT = new True();
+    private final False mF = new False();
 
     public Parser(Lexer lexer) {
-      this.lexer = lexer;
+      mLexer = lexer;
     }
 
     public AttributeExpression build() {
       expression();
-      return root;
+      return mRoot;
     }
 
     private void expression() {
       term();
-      while (symbol == Lexer.OR) {
+      while (mSymbol == Lexer.OR) {
         Or or = new Or();
-        or.setLeft(root);
+        or.setLeft(mRoot);
         term();
-        or.setRight(root);
-        root = or;
+        or.setRight(mRoot);
+        mRoot = or;
       }
     }
 
     private void term() {
       factor();
-      while (symbol == Lexer.AND) {
+      while (mSymbol == Lexer.AND) {
         And and = new And();
-        and.setLeft(root);
+        and.setLeft(mRoot);
         factor();
-        and.setRight(root);
-        root = and;
+        and.setRight(mRoot);
+        mRoot = and;
       }
     }
 
     private void factor() {
-      symbol = lexer.nextSymbol();
-      if (symbol == Lexer.TRUE) {
-        root = t;
-        symbol = lexer.nextSymbol();
-      } else if (symbol == Lexer.FALSE) {
-        root = f;
-        symbol = lexer.nextSymbol();
-      } else if (symbol == Lexer.NOT) {
+      mSymbol = mLexer.nextSymbol();
+      if (mSymbol == Lexer.TRUE) {
+        mRoot = mT;
+        mSymbol = mLexer.nextSymbol();
+      } else if (mSymbol == Lexer.FALSE) {
+        mRoot = mF;
+        mSymbol = mLexer.nextSymbol();
+      } else if (mSymbol == Lexer.NOT) {
         Not not = new Not();
         factor();
-        not.setChild(root);
-        root = not;
-      } else if (symbol == Lexer.LEFT) {
+        not.setChild(mRoot);
+        mRoot = not;
+      } else if (mSymbol == Lexer.LEFT) {
         expression();
-        symbol = lexer.nextSymbol();
+        mSymbol = mLexer.nextSymbol();
       } else {
         throw new RuntimeException("Expression Malformed");
       }
@@ -206,27 +240,28 @@ public class AttributeEvaluator {
   }
 
   private abstract class NonTerminal implements AttributeExpression {
-    protected AttributeExpression left, right;
+    protected AttributeExpression mLeft;
+    protected AttributeExpression mRight;
 
     public void setLeft(AttributeExpression left) {
-      this.left = left;
+      mLeft = left;
     }
 
     public void setRight(AttributeExpression right) {
-      this.right = right;
+      mRight = right;
     }
   }
 
   private abstract class Terminal implements AttributeExpression {
-    protected boolean value;
+    protected boolean mValue;
 
     public Terminal(boolean value) {
-      this.value = value;
+      mValue = value;
     }
 
     @Override
     public String toString() {
-      return String.format("%s", value);
+      return String.format("%s", mValue);
     }
   }
 
@@ -234,12 +269,12 @@ public class AttributeEvaluator {
 
     @Override
     public boolean interpret() {
-      return left.interpret() && right.interpret();
+      return mLeft.interpret() && mRight.interpret();
     }
 
     @Override
     public String toString() {
-      return String.format("(%s & %s)", left, right);
+      return String.format("(%s & %s)", mLeft, mRight);
     }
   }
 
@@ -247,12 +282,12 @@ public class AttributeEvaluator {
 
     @Override
     public boolean interpret() {
-      return left.interpret() || right.interpret();
+      return mLeft.interpret() || mRight.interpret();
     }
 
     @Override
     public String toString() {
-      return String.format("(%s | %s)", left, right);
+      return String.format("(%s | %s)", mLeft, mRight);
     }
   }
 
@@ -268,12 +303,12 @@ public class AttributeEvaluator {
 
     @Override
     public boolean interpret() {
-      return !left.interpret();
+      return !mLeft.interpret();
     }
 
     @Override
     public String toString() {
-      return String.format("!%s", left);
+      return String.format("!%s", mLeft);
     }
   }
 
@@ -282,8 +317,9 @@ public class AttributeEvaluator {
       super(false);
     }
 
+    @Override
     public boolean interpret() {
-      return value;
+      return mValue;
     }
   }
 
@@ -292,8 +328,9 @@ public class AttributeEvaluator {
       super(true);
     }
 
+    @Override
     public boolean interpret() {
-      return value;
+      return mValue;
     }
   }
 }
