@@ -266,7 +266,7 @@ public class JournalCrashTest {
     int rounds = 0;
     while (System.currentTimeMillis() - startTimeMs < sTotalTimeMs) {
       rounds++;
-      long aliveTimeMs = (long)(Math.random() * sMaxAliveTimeMs) + 100;
+      long aliveTimeMs = (long) (Math.random() * sMaxAliveTimeMs) + 100;
       LOG.info("Round {}: Planning Master Alive Time {}ms.", rounds, aliveTimeMs);
 
       System.out.println("Round " + rounds + " : Launch Clients...");
