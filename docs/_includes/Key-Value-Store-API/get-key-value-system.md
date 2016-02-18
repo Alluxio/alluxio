@@ -1,3 +1,3 @@
 ```java
-KeyValueSystem kvs = KeyValueSystem.Factory().get();
+KeyValueSystem kvs = KeyValueSystem.Factory().create();
 ```

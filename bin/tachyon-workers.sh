@@ -19,18 +19,20 @@ DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
 TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
-HOSTLIST=$TACHYON_CONF_DIR/workers
+HOSTLIST=$(cat ${TACHYON_CONF_DIR}/workers | sed  "s/#.*$//;/^$/d")
+TACHYON_TASK_LOG="$(echo ${BIN} | sed 's/bin$//g')"logs/task.log
 
-for worker in `cat "$HOSTLIST" | sed  "s/#.*$//;/^$/d"`; do
-  echo "Connecting to $worker as $USER..."
-  if [ -n "${TACHYON_SSH_FOREGROUND}" ]; then
-    ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -t $worker $LAUNCHER $"${@// /\\ }" 2>&1
-  else
-    ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -t $worker $LAUNCHER $"${@// /\\ }" 2>&1 &
-  fi
-  if [ "$TACHYON_WORKER_SLEEP" != "" ]; then
-    sleep $TACHYON_WORKER_SLEEP
-  fi
+if [ "${3}" == "tachyon.worker.TachyonWorker" ]; then
+  WORKER_ACTION_TYPE="WORKERS"
+else
+  WORKER_ACTION_TYPE="MASTER"
+fi
+
+for worker in $(echo ${HOSTLIST}); do
+  echo "$(date +"%F %H:%M:%S,$(date +"%s%N" | cut -c 11- | cut -c 1-3)") INFO ${WORKER_ACTION_TYPE}  Connecting to $worker as $USER..." >> ${TACHYON_TASK_LOG}
+  nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -t ${worker} $LAUNCHER $"${@// /\\ }" >> ${TACHYON_TASK_LOG} 2>&1&
 done
 
+echo "Waiting for ${WORKER_ACTION_TYPE} tasks to finish..."
 wait
+echo "All ${WORKER_ACTION_TYPE} tasks finished, please analyze the log at ${TACHYON_TASK_LOG}."
