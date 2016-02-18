@@ -57,7 +57,7 @@ public final class InodeTreeTest {
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
   private static final PermissionStatus TEST_PERMISSION_STATUS =
-      new PermissionStatus("user1", "", (short)0755);
+      new PermissionStatus("user1", "", (short) 0755);
   private static CreatePathOptions sFileOptions;
   private static CreatePathOptions sDirectoryOptions;
   private static CreatePathOptions sNestedFileOptions;
@@ -146,7 +146,7 @@ public final class InodeTreeTest {
     Assert.assertTrue(test.isDirectory());
     Assert.assertEquals("user1", test.getUserName());
     Assert.assertTrue(test.getGroupName().isEmpty());
-    Assert.assertEquals((short)0755, test.getPermission());
+    Assert.assertEquals((short) 0755, test.getPermission());
 
     // create nested directory
     mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
@@ -156,7 +156,7 @@ public final class InodeTreeTest {
     Assert.assertTrue(test.isDirectory());
     Assert.assertEquals("user1", test.getUserName());
     Assert.assertTrue(test.getGroupName().isEmpty());
-    Assert.assertEquals((short)0755, test.getPermission());
+    Assert.assertEquals((short) 0755, test.getPermission());
   }
 
   /**
@@ -217,7 +217,7 @@ public final class InodeTreeTest {
     Assert.assertTrue(nestedFile.isFile());
     Assert.assertEquals("user1", nestedFile.getUserName());
     Assert.assertTrue(nestedFile.getGroupName().isEmpty());
-    Assert.assertEquals((short)0644, nestedFile.getPermission());
+    Assert.assertEquals((short) 0644, nestedFile.getPermission());
   }
 
   /**

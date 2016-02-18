@@ -90,7 +90,7 @@ public abstract class AbstractJournalFormatterTest {
   protected static final String TEST_JOB_COMMAND = "Command";
   protected static final String TEST_JOB_OUTPUT_PATH = "/test/path";
   protected static final PermissionStatus TEST_PERMISSION_STATUS =
-      new PermissionStatus("user1", "group1", (short)0777);
+      new PermissionStatus("user1", "group1", (short) 0777);
   protected static final String TEST_PERSISTED_STATE = "PERSISTED";
   protected static final String TEST_KEY1 = "test_key1";
   protected static final String TEST_KEY2 = "test_key2";
