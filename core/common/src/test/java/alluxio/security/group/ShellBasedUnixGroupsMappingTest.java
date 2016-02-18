@@ -55,7 +55,7 @@ public final class ShellBasedUnixGroupsMappingTest {
     List<String> userGroups = new ArrayList<String>();
     userGroups.add(userGroup1);
     userGroups.add(userGroup2);
-    setupShellMocks(userName,userGroups);
+    setupShellMocks(userName, userGroups);
 
     GroupMappingService groups = new ShellBasedUnixGroupsMapping();
 
