@@ -16,6 +16,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
@@ -219,8 +220,9 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     Map<String, Long> capacityBytesOnTiers = storeMeta.getCapacityBytesOnTiers();
     Map<String, Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
     List<UIUsageOnTier> usageOnTiers = Lists.newArrayList();
-    for (String tier : capacityBytesOnTiers.keySet()) {
-      long capacity = capacityBytesOnTiers.get(tier);
+    for (Entry<String, Long> entry : capacityBytesOnTiers.entrySet()) {
+      String tier = entry.getKey();
+      long capacity = entry.getValue();
       Long nullableUsed = usedBytesOnTiers.get(tier);
       long used = nullableUsed == null ? 0 : nullableUsed;
 
