@@ -86,7 +86,6 @@
                 <includes>
                   <include>org.alluxio.alluxio:alluxio-keyvalue-common</include>
                   <include>org.alluxio.alluxio:alluxio-keyvalue-client-internal</include>
-                  <include>org.apache.thrift:libthrift</include>
                 </includes>
               </artifactSet>
               <relocations>
