@@ -340,6 +340,7 @@
           <configuration>
             <argLine>-Djava.net.preferIPv4Stack=true -Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
+            <useSystemClassLoader>false</useSystemClassLoader>
           </configuration>
         </plugin>
         <plugin>
