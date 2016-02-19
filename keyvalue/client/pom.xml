@@ -36,15 +36,16 @@
   </dependencies>
 
   <profiles>
-    <!-- Profile used to build alluxio client jar used for Apache Spark. This will be activated by using -Pspark-->
-    <!-- in the maven command line. -->
+    <!-- Profile used to build alluxio keyvalue client jar used for Apache Spark. This will be activated by using -->
+    <!-- -Pspark in the maven command line. -->
     <profile>
       <id>spark</id>
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
-      <!-- The dependencies are the same as the default dependencies, except that curator-client, curator-framework, -->
-      <!-- curator-recipies and hadoop-client are in scope provided, as they are provided by Apache Spark runtime. -->
+       <!-- The dependencies of Spark profile are the basically the same as the default dependencies, except that -->
+       <!-- curator-client, curator-framework, curator-recipies and hadoop-client will be in scope provided as they -->
+       <!-- will be provided by Apache Spark runtime. -->
       <dependencies>
         <dependency>
           <groupId>org.apache.curator</groupId>
