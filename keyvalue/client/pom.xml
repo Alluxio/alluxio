@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.alluxio.alluxio</groupId>
@@ -24,14 +25,9 @@
     <!-- Other Alluxio dependencies -->
     <dependency>
       <groupId>org.alluxio.alluxio</groupId>
-      <artifactId>alluxio-keyvalue-common</artifactId>
+      <artifactId>alluxio-core-client</artifactId>
       <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.alluxio.alluxio</groupId>
-          <artifactId>alluxio-core-common</artifactId>
-        </exclusion>
-      </exclusions>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.alluxio.alluxio</groupId>
@@ -105,11 +101,11 @@
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
               </transformers>
               <filters>
                 <filter>
-                  <artifact>*:* </artifact>
+                  <artifact>*:*</artifact>
                   <excludes>
                     <exclude>LICENSE</exclude>
                     <exclude>META-INF/LICENSE</exclude>
