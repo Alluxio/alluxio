@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.alluxio.alluxio</groupId>
@@ -21,71 +22,10 @@
   </properties>
 
   <dependencies>
-    <!-- Compile dependencies copied from alluxio-core-common, except libthrift -->
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.4</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.4</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-framework</artifactId>
-      <version>${apache.curator.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-client</artifactId>
-      <version>${apache.curator.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-recipes</artifactId>
-      <version>${apache.curator.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.jboss.netty</groupId>
-          <artifactId>netty</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-
-    <!-- Dependencies copied from alluxio-core-client-internal, not included in alluxio-core-common
-     -->
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client</artifactId>
-    </dependency>
-
     <!-- Other Alluxio dependencies -->
     <dependency>
       <groupId>org.alluxio.alluxio</groupId>
-      <artifactId>alluxio-core-client-internal</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
-      <artifactId>alluxio-core-common</artifactId>
+      <artifactId>alluxio-core-client</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -93,57 +33,46 @@
       <artifactId>alluxio-keyvalue-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
-      <artifactId>alluxio-underfs-hdfs</artifactId>
-      <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.alluxio.alluxio</groupId>
-          <artifactId>alluxio-core-common</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <!-- module alluxio-underfs-glusterfs depends on
-         hadoop library of 2.3.0, which may have problem when using with
-         hadoop 2.4 and later. Please check instructions in
-         http://alluxio.org/documentation/Configuring-Alluxio-with-GlusterFS.html
-         for how to use glusterfs with Alluxio. -->
-    <!-- <dependency> -->
-    <!--   <groupId>org.alluxio.alluxio</groupId> -->
-    <!--   <artifactId>alluxio-underfs-glusterfs</artifactId> -->
-    <!--   <version>${project.version}</version> -->
-    <!--   <exclusions> -->
-    <!--     <exclusion> -->
-    <!--       <groupId>org.alluxio.alluxio</groupId> -->
-    <!--       <artifactId>alluxio-core-common</artifactId> -->
-    <!--     </exclusion> -->
-    <!--   </exclusions> -->
-    <!-- </dependency> -->
-    <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
-      <artifactId>alluxio-underfs-s3</artifactId>
-      <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.alluxio.alluxio</groupId>
-          <artifactId>alluxio-core-common</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
-      <artifactId>alluxio-underfs-local</artifactId>
-      <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.alluxio.alluxio</groupId>
-          <artifactId>alluxio-core-common</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
   </dependencies>
+
+  <profiles>
+    <!-- Profile used to build alluxio keyvalue client jar used for Apache Spark. This will be activated by using -->
+    <!-- -Pspark in the maven command line. -->
+    <profile>
+      <id>spark</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+       <!-- The dependencies of Spark profile are the basically the same as the default dependencies, except that -->
+       <!-- curator-client, curator-framework, curator-recipies and hadoop-client will be in scope provided as they -->
+       <!-- will be provided by Apache Spark runtime. -->
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-framework</artifactId>
+          <version>${apache.curator.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-client</artifactId>
+          <version>${apache.curator.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-recipes</artifactId>
+          <version>${apache.curator.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
   <build>
     <plugins>
@@ -179,10 +108,8 @@
             <configuration>
               <artifactSet>
                 <includes>
-                  <include>org.alluxio.alluxio:alluxio-core-common</include>
-                  <include>org.alluxio.alluxio:alluxio-core-client-internal</include>
+                  <include>org.alluxio.alluxio:alluxio-keyvalue-common</include>
                   <include>org.alluxio.alluxio:alluxio-keyvalue-client-internal</include>
-                  <include>org.apache.thrift:libthrift</include>
                 </includes>
               </artifactSet>
               <relocations>
@@ -202,11 +129,11 @@
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
               </transformers>
               <filters>
                 <filter>
-                  <artifact>*:* </artifact>
+                  <artifact>*:*</artifact>
                   <excludes>
                     <exclude>LICENSE</exclude>
                     <exclude>META-INF/LICENSE</exclude>
