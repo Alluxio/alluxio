@@ -252,9 +252,7 @@
     </module>
 
     <!-- Checks that there is whitespace after various tokens. -->
-    <module name="WhitespaceAfter">
-      <property name="tokens" value="COMMA"/>
-    </module>
+    <module name="WhitespaceAfter"/>
   </module>
 
   <!-- always use Unix-style line separators -->
