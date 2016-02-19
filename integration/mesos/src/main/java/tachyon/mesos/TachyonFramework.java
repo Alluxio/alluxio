@@ -208,6 +208,31 @@ public class TachyonFramework {
         System.out.println("Launching task " + taskId.getValue() + " using offer "
             + offer.getId().getValue());
 
+        Protos.Resource.Builder portsBuilder = Protos.Resource.newBuilder()
+            .setName(Constants.MESOS_RESOURCE_PORTS)
+            .setType(Protos.Value.Type.RANGES);
+
+        if (executorBuilder.getSource().equals("worker")) {
+          portsBuilder.setRanges(Protos.Value.Ranges.newBuilder()
+              .addRange(Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.WORKER_RPC_PORT))
+                  .setEnd(sConf.getLong(Constants.WORKER_RPC_PORT)))
+              .addRange((Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.WORKER_DATA_PORT))
+                  .setEnd(sConf.getLong(Constants.WORKER_DATA_PORT))))
+              .addRange((Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.WORKER_WEB_PORT))
+                  .setEnd(sConf.getLong(Constants.WORKER_WEB_PORT)))));
+        } else {
+          portsBuilder.setRanges(Protos.Value.Ranges.newBuilder()
+              .addRange(Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.MASTER_WEB_PORT))
+                  .setEnd(sConf.getLong(Constants.MASTER_WEB_PORT)))
+              .addRange((Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.MASTER_RPC_PORT))
+                  .setEnd(sConf.getLong(Constants.MASTER_RPC_PORT)))));
+        }
+
         Protos.TaskInfo task =
             Protos.TaskInfo
                 .newBuilder()
@@ -222,6 +247,7 @@ public class TachyonFramework {
                     Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_MEM)
                         .setType(Protos.Value.Type.SCALAR)
                         .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetMem)))
+                .addResources(portsBuilder)
                 .setExecutor(executorBuilder).build();
 
         launch.addTaskInfos(Protos.TaskInfo.newBuilder(task));
