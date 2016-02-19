@@ -42,6 +42,7 @@ public abstract class Inode implements JournalEntryRepresentable {
     private PersistenceState mPersistenceState;
     private PermissionStatus mPermissionStatus;
     private boolean mPinned;
+    private boolean mMountPoint;
 
     /**
      * Creates a new builder for {@link Inode}.
@@ -55,6 +56,7 @@ public abstract class Inode implements JournalEntryRepresentable {
       mParentId = InodeTree.NO_PARENT;
       mPersistenceState = PersistenceState.NOT_PERSISTED;
       mPinned = false;
+      mMountPoint = false;
       mPermissionStatus = null;
     }
 
@@ -82,6 +84,15 @@ public abstract class Inode implements JournalEntryRepresentable {
      */
     public T setLastModificationTimeMs(long lastModificationTimeMs) {
       mLastModificationTimeMs = lastModificationTimeMs;
+      return getThis();
+    }
+
+    /**
+     * @param mountPoint the mount point flag value to use
+     * @return the builder
+     */
+    public T setMountPoint(boolean mountPoint) {
+      mMountPoint = mountPoint;
       return getThis();
     }
 
@@ -122,7 +133,7 @@ public abstract class Inode implements JournalEntryRepresentable {
     }
 
     /**
-     * @param pinned the pinned flag to use
+     * @param pinned the pinned flag value to use
      * @return the builder
      */
     public T setPinned(boolean pinned) {
@@ -173,6 +184,7 @@ public abstract class Inode implements JournalEntryRepresentable {
   private boolean mPinned;
 
   private PersistenceState mPersistenceState;
+  private boolean mMountPoint;
 
   protected Inode(Builder<?> builder) {
     mCreationTimeMs = builder.mCreationTimeMs;
@@ -185,6 +197,7 @@ public abstract class Inode implements JournalEntryRepresentable {
     mPersistenceState = builder.mPersistenceState;
     mParentId = builder.mParentId;
     mPinned = builder.mPinned;
+    mMountPoint = builder.mMountPoint;
     if (builder.mPermissionStatus != null) {
       mUserName = builder.mPermissionStatus.getUserName();
       mGroupName = builder.mPermissionStatus.getGroupName();
@@ -281,6 +294,13 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
+   * @return true if the inode is a mount point, false otherwise
+   */
+  public synchronized boolean isMountPoint() {
+    return mMountPoint;
+  }
+
+  /**
    * @return true if the inode is pinned, false otherwise
    */
   public synchronized boolean isPinned() {
@@ -310,6 +330,15 @@ public abstract class Inode implements JournalEntryRepresentable {
    */
   public synchronized void setLastModificationTimeMs(long lastModificationTimeMs) {
     mLastModificationTimeMs = lastModificationTimeMs;
+  }
+
+  /**
+   * Sets the mount point flag of the inode.
+   *
+   * @param mountPoint the mount point flag value to use
+   */
+  public synchronized void setMountPoint(boolean mountPoint) {
+    mMountPoint = mountPoint;
   }
 
   /**
@@ -397,9 +426,15 @@ public abstract class Inode implements JournalEntryRepresentable {
         .append(", NAME:").append(mName)
         .append(", PARENT_ID:").append(mParentId)
         .append(", CREATION_TIME_MS:").append(mCreationTimeMs)
-        .append(", PINNED:").append(mPinned).append("DELETED:")
-        .append(mDeleted).append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs)
-        .append(", USER_NAME:").append(mUserName).append(", GROUP_NAME:").append(mGroupName)
-        .append(", PERMISSION:").append(")").toString();
+        .append(", PINNED:").append(mPinned)
+        .append(", DELETED:").append(mDeleted)
+        .append(", DIRECTORY:").append(mDirectory)
+        .append(", PERSISTENCE STATE:").append(mPersistenceState)
+        .append(", MOUNT POINT:").append(mMountPoint)
+        .append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs)
+        .append(", USER_NAME:").append(mUserName)
+        .append(", GROUP_NAME:").append(mGroupName)
+        .append(", PERMISSION:")
+        .append(")").toString();
   }
 }
