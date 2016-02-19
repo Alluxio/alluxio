@@ -325,6 +325,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
                 .setId(mDirectoryIdGenerator.getNewDirectoryId())
                 .setParentId(currentInodeDirectory.getId())
                 .setPermissionStatus(options.getPermissionStatus())
+                .setMountPoint(options.isMountPoint())
                 .build();
         if (options.isPersisted()) {
           toPersistDirectories.add(lastInode);

@@ -34,6 +34,7 @@ public final class CreateDirectoryOptions {
     private long mOperationTimeMs;
     private boolean mPersisted;
     private boolean mRecursive;
+    private boolean mMountPoint;
 
     /**
      * Creates a new builder for {@link CreateDirectoryOptions}.
@@ -44,6 +45,7 @@ public final class CreateDirectoryOptions {
       mOperationTimeMs = System.currentTimeMillis();
       mPersisted = false;
       mRecursive = false;
+      mMountPoint = false;
     }
 
     /**
@@ -57,6 +59,16 @@ public final class CreateDirectoryOptions {
     }
 
     /**
+     * @param mountPoint the mount point flag to use; it specifies whether the object to create is
+     *        a mount point
+     * @return the builder
+     */
+    public Builder setMountPoint(boolean mountPoint) {
+      mMountPoint = mountPoint;
+      return this;
+    }
+
+    /**
      * @param operationTimeMs the operation time to use
      * @return the builder
      */
@@ -66,7 +78,7 @@ public final class CreateDirectoryOptions {
     }
 
     /**
-     * @param persisted the persisted flag to use; it specifies whether the object to created is
+     * @param persisted the persisted flag to use; it specifies whether the object to create is
      *        persisted in UFS
      * @return the builder
      */
@@ -106,12 +118,14 @@ public final class CreateDirectoryOptions {
   private long mOperationTimeMs;
   private boolean mPersisted;
   private boolean mRecursive;
+  private boolean mMountPoint;
 
   private CreateDirectoryOptions(CreateDirectoryOptions.Builder builder) {
     mAllowExists = builder.mAllowExists;
     mOperationTimeMs = builder.mOperationTimeMs;
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
+    mMountPoint = builder.mMountPoint;
   }
 
   /**
@@ -124,6 +138,7 @@ public final class CreateDirectoryOptions {
     mOperationTimeMs = System.currentTimeMillis();
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
+    mMountPoint = false;
   }
 
   /**
@@ -139,6 +154,13 @@ public final class CreateDirectoryOptions {
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
+  }
+
+  /**
+   * @return the mount point flag; it specifies whether the object to create is a mount point
+   */
+  public boolean isMountPoint() {
+    return mMountPoint;
   }
 
   /**

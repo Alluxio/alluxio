@@ -194,6 +194,13 @@ public class URIStatus {
     return mInfo.isPinned();
   }
 
+  /**
+   * @return whether the entity referenced by this uri is a mount point
+   */
+  public boolean isMountPoint() {
+    return mInfo.isMountPoint();
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
