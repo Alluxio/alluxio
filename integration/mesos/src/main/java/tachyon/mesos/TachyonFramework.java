@@ -132,6 +132,7 @@ public class TachyonFramework {
               .setName("Tachyon Master Executor")
               .setSource("master")
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("master"))
+              .addAllResources(getExecutorResources())
               .setCommand(
                   Protos.CommandInfo
                       .newBuilder()
@@ -165,6 +166,7 @@ public class TachyonFramework {
               .setName("Tachyon Worker Executor")
               .setSource("worker")
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("worker"))
+              .addAllResources(getExecutorResources())
               .setCommand(
                   Protos.CommandInfo
                       .newBuilder()
@@ -273,6 +275,17 @@ public class TachyonFramework {
         default:
           break;
       }
+    }
+
+    private List<Protos.Resource> getExecutorResources() {
+      List<Protos.Resource> resources = new ArrayList<Protos.Resource>(2);
+      resources.add(Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_CPUS)
+              .setType(Protos.Value.Type.SCALAR)
+              .setScalar(Protos.Value.Scalar.newBuilder().setValue(0.1d)).build());
+      resources.add(Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_MEM)
+              .setType(Protos.Value.Type.SCALAR)
+              .setScalar(Protos.Value.Scalar.newBuilder().setValue(32.0d)).build());
+      return resources;
     }
   }
 
