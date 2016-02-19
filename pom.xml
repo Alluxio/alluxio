@@ -1,11 +1,14 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
-  <description>Parent POM of Alluxio project: a Reliable Memory Centric Distributed Storage System</description>
+  <description>Parent POM of Alluxio project: a Reliable Memory Centric Distributed Storage System
+  </description>
   <url>http://alluxio.org/</url>
   <licenses>
     <license>
@@ -16,7 +19,8 @@
   </licenses>
   <scm>
     <connection>scm:git:git@github.com:AlluxioOpenFoundation/alluxio.git</connection>
-    <developerConnection>scm:git:git@github.com:AlluxioOpenFoundation/alluxio.git</developerConnection>
+    <developerConnection>scm:git:git@github.com:AlluxioOpenFoundation/alluxio.git
+    </developerConnection>
     <url>scm:git:git@github.com:AlluxioOpenFoundation/alluxio.git</url>
     <tag>HEAD</tag>
   </scm>
@@ -324,7 +328,9 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.14</version>
           <configuration>
-            <argLine>-Djava.net.preferIPv4Stack=true -Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
+            <argLine>-Djava.net.preferIPv4Stack=true -Djava.security.krb5.realm=
+              -Djava.security.krb5.kdc=
+            </argLine>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
           </configuration>
         </plugin>
@@ -577,16 +583,44 @@
     </profile>
 
     <profile>
-      <id>hdfs1Test</id>
+      <id>hadoop-1</id>
       <properties>
         <hadoop.version>1.0.4</hadoop.version>
       </properties>
     </profile>
 
     <profile>
-      <id>hdfs2Test</id>
+      <id>hadoop-2.2</id>
+      <properties>
+        <hadoop.version>2.2.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.3</id>
+      <properties>
+        <hadoop.version>2.3.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.4</id>
+      <properties>
+        <hadoop.version>2.4.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.6</id>
       <properties>
         <hadoop.version>2.6.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.7</id>
+      <properties>
+        <hadoop.version>2.7.0</hadoop.version>
       </properties>
     </profile>
 
@@ -622,33 +656,33 @@
       <id>compileJsp</id>
       <build>
         <pluginManagement>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.sling</groupId>
-            <artifactId>maven-jspc-plugin</artifactId>
-            <version>2.0.8</version>
-            <executions>
-              <execution>
-                <phase>prepare-package</phase>
-                <id>compile-jsp</id>
-                <goals>
-                  <goal>jspc</goal>
-                </goals>
-                <configuration>
-                  <sourceDirectory>src/main/webapp</sourceDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.sling</groupId>
+              <artifactId>maven-jspc-plugin</artifactId>
+              <version>2.0.8</version>
+              <executions>
+                <execution>
+                  <phase>prepare-package</phase>
+                  <id>compile-jsp</id>
+                  <goals>
+                    <goal>jspc</goal>
+                  </goals>
+                  <configuration>
+                    <sourceDirectory>src/main/webapp</sourceDirectory>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </pluginManagement>
       </build>
     </profile>
 
     <!-- default build profile -->
     <profile>
       <id>default</id>
-     </profile>
+    </profile>
 
     <!-- build profile for Apache Spark -->
     <profile>
@@ -657,7 +691,7 @@
 
     <!-- profile that activates alluxio fuse for java8 or newer -->
     <profile>
-      <id>buildFuse</id>
+      <id>fuse</id>
       <activation>
         <jdk>[1.8,)</jdk> <!-- 1.8 or newer -->
       </activation>
