@@ -60,17 +60,17 @@ public final class FileSystemPermissionTest {
    */
   @Test
   public void fromShortTest() {
-    FileSystemPermission permission = new FileSystemPermission((short)0777);
+    FileSystemPermission permission = new FileSystemPermission((short) 0777);
     Assert.assertEquals(FileSystemAction.ALL, permission.getUserAction());
     Assert.assertEquals(FileSystemAction.ALL, permission.getGroupAction());
     Assert.assertEquals(FileSystemAction.ALL, permission.getOtherAction());
 
-    permission = new FileSystemPermission((short)0644);
+    permission = new FileSystemPermission((short) 0644);
     Assert.assertEquals(FileSystemAction.READ_WRITE, permission.getUserAction());
     Assert.assertEquals(FileSystemAction.READ, permission.getGroupAction());
     Assert.assertEquals(FileSystemAction.READ, permission.getOtherAction());
 
-    permission = new FileSystemPermission((short)0755);
+    permission = new FileSystemPermission((short) 0755);
     Assert.assertEquals(FileSystemAction.ALL, permission.getUserAction());
     Assert.assertEquals(FileSystemAction.READ_EXECUTE, permission.getGroupAction());
     Assert.assertEquals(FileSystemAction.READ_EXECUTE, permission.getOtherAction());
@@ -105,9 +105,9 @@ public final class FileSystemPermissionTest {
    */
   @Test
   public void equalsTest() {
-    FileSystemPermission allPermission = new FileSystemPermission((short)0777);
+    FileSystemPermission allPermission = new FileSystemPermission((short) 0777);
     Assert.assertTrue(allPermission.equals(FileSystemPermission.getDefault()));
-    FileSystemPermission nonePermission = new FileSystemPermission((short)0000);
+    FileSystemPermission nonePermission = new FileSystemPermission((short) 0000);
     Assert.assertTrue(nonePermission.equals(FileSystemPermission.getNoneFsPermission()));
     Assert.assertFalse(allPermission.equals(nonePermission));
   }
@@ -117,10 +117,10 @@ public final class FileSystemPermissionTest {
    */
   @Test
   public void toStringTest() {
-    Assert.assertEquals("rwxrwxrwx", new FileSystemPermission((short)0777).toString());
-    Assert.assertEquals("rw-r-----", new FileSystemPermission((short)0640).toString());
-    Assert.assertEquals("rw-------", new FileSystemPermission((short)0600).toString());
-    Assert.assertEquals("---------", new FileSystemPermission((short)0000).toString());
+    Assert.assertEquals("rwxrwxrwx", new FileSystemPermission((short) 0777).toString());
+    Assert.assertEquals("rw-r-----", new FileSystemPermission((short) 0640).toString());
+    Assert.assertEquals("rw-------", new FileSystemPermission((short) 0600).toString());
+    Assert.assertEquals("---------", new FileSystemPermission((short) 0000).toString());
   }
 
   /**

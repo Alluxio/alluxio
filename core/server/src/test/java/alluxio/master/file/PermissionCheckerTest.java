@@ -84,13 +84,13 @@ public class PermissionCheckerTest {
   private static final String TEST_WEIRD_FILE_URI = "/testWeirdFile";
 
   private static final PermissionStatus TEST_PERMISSION_STATUS_SUPER =
-      new PermissionStatus(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroups(), (short)0755);
+      new PermissionStatus(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroups(), (short) 0755);
   private static final PermissionStatus TEST_PERMISSION_STATUS_1 =
-      new PermissionStatus(TEST_USER_1.getUser(), TEST_USER_1.getGroups(), (short)0755);
+      new PermissionStatus(TEST_USER_1.getUser(), TEST_USER_1.getGroups(), (short) 0755);
   private static final PermissionStatus TEST_PERMISSION_STATUS_2 =
-      new PermissionStatus(TEST_USER_2.getUser(), TEST_USER_2.getGroups(), (short)0755);
+      new PermissionStatus(TEST_USER_2.getUser(), TEST_USER_2.getGroups(), (short) 0755);
   private static final PermissionStatus TEST_PERMISSION_STATUS_WEIRD =
-      new PermissionStatus(TEST_USER_1.getUser(), TEST_USER_1.getGroups(), (short)0157);
+      new PermissionStatus(TEST_USER_1.getUser(), TEST_USER_1.getGroups(), (short) 0157);
 
   private static final CreatePathOptions FILE_OPTIONS =
       new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
