@@ -675,11 +675,6 @@
       </build>
     </profile>
 
-    <!-- default build profile -->
-    <profile>
-      <id>default</id>
-    </profile>
-
     <!-- build profile for Apache Spark -->
     <profile>
       <id>spark</id>
