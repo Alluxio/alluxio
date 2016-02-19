@@ -28,7 +28,7 @@ what it can and cannot do for you.
 
 # Building
 
-alluxio-fuse is only built with Alluxio when the `buildFuse` maven profile is active. This
+alluxio-fuse is only built with Alluxio when the `fuse` maven profile is active. This
 profile will be automatically activated by maven when it is detected that you are building
 Alluxio with a JDK version 8 or newer.
 
