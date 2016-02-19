@@ -27,7 +27,6 @@
       <groupId>org.alluxio.alluxio</groupId>
       <artifactId>alluxio-core-client</artifactId>
       <version>${project.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.alluxio.alluxio</groupId>
@@ -45,6 +44,23 @@
       </exclusions>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <!-- Profile used by default to build alluxio keyvalue client jar. This will be activated by default -->
+    <!-- It changes dependency on alluxio-core-client to be provided so the shade plugin will exclude it and -->
+    <!-- all its transitive dependencies. -->
+    <profile>
+      <id>shadeProfile</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.alluxio.alluxio</groupId>
+          <artifactId>alluxio-core-client</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
   <build>
     <plugins>
