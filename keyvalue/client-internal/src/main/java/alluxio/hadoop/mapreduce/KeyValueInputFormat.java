@@ -13,7 +13,7 @@
  * the License.
  */
 
-package alluxio.client.keyvalue.hadoop;
+package alluxio.hadoop.mapreduce;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
@@ -25,12 +25,13 @@ import alluxio.thrift.PartitionInfo;
 
 import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.FileInputFormat;
-import org.apache.hadoop.mapred.InputFormat;
-import org.apache.hadoop.mapred.InputSplit;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.RecordReader;
+import org.apache.hadoop.mapreduce.InputFormat;
+import org.apache.hadoop.mapreduce.JobContext;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
 import java.io.IOException;
 import java.util.List;
@@ -46,23 +47,22 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @PublicApi
 @ThreadSafe
-public final class KeyValueInputFormat implements InputFormat {
+public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesWritable> {
   private final KeyValueMasterClient mKeyValueMasterClient =
       new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
 
   /**
-   * Returns each partition as a {@link KeyValueInputSplit}.
+   * Returns a list of {@link KeyValueInputSplit} where each split is one key-value partition.
    *
-   * @param conf MapReduce job configuration
-   * @param numSplits number of splits, ignored because it is determined by number of partitions
+   * @param jobContext MapReduce job configuration
    * @return list of {@link InputSplit}s, each split is a partition
    * @throws IOException if information about the partition cannot be retrieved
    */
   @Override
-  public InputSplit[] getSplits(JobConf conf, int numSplits) throws IOException {
+  public List<InputSplit> getSplits(JobContext jobContext) throws IOException {
     // The paths are MapReduce program's inputs specified in
     // {@code mapreduce.input.fileinputformat.inputdir}, each path should be a key-value store.
-    Path[] paths = FileInputFormat.getInputPaths(conf);
+    Path[] paths = FileInputFormat.getInputPaths(jobContext);
     List<InputSplit> splits = Lists.newArrayList();
     try {
       for (Path path : paths) {
@@ -75,21 +75,12 @@ public final class KeyValueInputFormat implements InputFormat {
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
-    InputSplit[] ret = new InputSplit[splits.size()];
-    return splits.toArray(ret);
+    return splits;
   }
 
   @Override
-  public RecordReader getRecordReader(InputSplit inputSplit, JobConf jobConf, Reporter reporter)
-      throws IOException {
-    if (inputSplit instanceof KeyValueInputSplit) {
-      try {
-        return new KeyValueRecordReader((KeyValueInputSplit) inputSplit);
-      } catch (AlluxioException e) {
-        throw new IOException(e);
-      }
-    } else {
-      throw new IOException("Expected InputSplit to be instance of KeyValueInputSplit.");
-    }
+  public RecordReader<BytesWritable, BytesWritable> createRecordReader(InputSplit inputSplit,
+      TaskAttemptContext taskContext) throws IOException {
+    return new KeyValueRecordReader();
   }
 }

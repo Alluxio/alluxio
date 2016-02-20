@@ -1,3 +1,0 @@
-```bash
-$ ./bin/alluxio tfs
-```

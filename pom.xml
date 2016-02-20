@@ -1,6 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.alluxio.alluxio</groupId>
+  <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
@@ -10,14 +12,14 @@
   <licenses>
     <license>
       <name>Apache License</name>
-      <url>https://github.com/AlluxioOpenFoundation/alluxio/blob/master/LICENSE</url>
+      <url>https://github.com/alluxio/alluxio/blob/master/LICENSE</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git@github.com:AlluxioOpenFoundation/alluxio.git</connection>
-    <developerConnection>scm:git:git@github.com:AlluxioOpenFoundation/alluxio.git</developerConnection>
-    <url>scm:git:git@github.com:AlluxioOpenFoundation/alluxio.git</url>
+    <connection>scm:git:git@github.com:alluxio/alluxio.git</connection>
+    <developerConnection>scm:git:git@github.com:alluxio/alluxio.git</developerConnection>
+    <url>scm:git:git@github.com:alluxio/alluxio.git</url>
     <tag>HEAD</tag>
   </scm>
   <developers>
@@ -578,16 +580,44 @@
     </profile>
 
     <profile>
-      <id>hdfs1Test</id>
+      <id>hadoop-1</id>
       <properties>
         <hadoop.version>1.0.4</hadoop.version>
       </properties>
     </profile>
 
     <profile>
-      <id>hdfs2Test</id>
+      <id>hadoop-2.2</id>
+      <properties>
+        <hadoop.version>2.2.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.3</id>
+      <properties>
+        <hadoop.version>2.3.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.4</id>
+      <properties>
+        <hadoop.version>2.4.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.6</id>
       <properties>
         <hadoop.version>2.6.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.7</id>
+      <properties>
+        <hadoop.version>2.7.0</hadoop.version>
       </properties>
     </profile>
 
@@ -623,32 +653,37 @@
       <id>compileJsp</id>
       <build>
         <pluginManagement>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.sling</groupId>
-            <artifactId>maven-jspc-plugin</artifactId>
-            <version>2.0.8</version>
-            <executions>
-              <execution>
-                <phase>prepare-package</phase>
-                <id>compile-jsp</id>
-                <goals>
-                  <goal>jspc</goal>
-                </goals>
-                <configuration>
-                  <sourceDirectory>src/main/webapp</sourceDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.sling</groupId>
+              <artifactId>maven-jspc-plugin</artifactId>
+              <version>2.0.8</version>
+              <executions>
+                <execution>
+                  <phase>prepare-package</phase>
+                  <id>compile-jsp</id>
+                  <goals>
+                    <goal>jspc</goal>
+                  </goals>
+                  <configuration>
+                    <sourceDirectory>src/main/webapp</sourceDirectory>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </pluginManagement>
       </build>
+    </profile>
+
+    <!-- build profile for Apache Spark -->
+    <profile>
+      <id>spark</id>
     </profile>
 
     <!-- profile that activates alluxio fuse for java8 or newer -->
     <profile>
-      <id>buildFuse</id>
+      <id>fuse</id>
       <activation>
         <jdk>[1.8,)</jdk> <!-- 1.8 or newer -->
       </activation>

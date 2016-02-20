@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio tfs unmount /s3/data
+$ ./bin/alluxio fs unmount /s3/data
 ```
