@@ -2,11 +2,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.alluxio.alluxio</groupId>
+    <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core</artifactId>
     <version>1.0.0-SNAPSHOT</version>
   </parent>
-  <groupId>org.alluxio.alluxio</groupId>
+  <groupId>org.alluxio</groupId>
   <artifactId>alluxio-core-client</artifactId>
   <packaging>jar</packaging>
   <name>Alluxio Core - Client Distribution</name>
@@ -83,22 +83,22 @@
 
     <!-- Other Alluxio dependencies -->
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-hdfs</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
-          <groupId>org.alluxio.alluxio</groupId>
+          <groupId>org.alluxio</groupId>
           <artifactId>alluxio-core-common</artifactId>
         </exclusion>
       </exclusions>
@@ -109,34 +109,34 @@
          http://alluxio.org/documentation/Configuring-Alluxio-with-GlusterFS.html
          for how to use glusterfs with Alluxio. -->
     <!-- <dependency> -->
-    <!--   <groupId>org.alluxio.alluxio</groupId> -->
+    <!--   <groupId>org.alluxio</groupId> -->
     <!--   <artifactId>alluxio-underfs-glusterfs</artifactId> -->
     <!--   <version>${project.version}</version> -->
     <!--   <exclusions> -->
     <!--     <exclusion> -->
-    <!--       <groupId>org.alluxio.alluxio</groupId> -->
+    <!--       <groupId>org.alluxio</groupId> -->
     <!--       <artifactId>alluxio-core-common</artifactId> -->
     <!--     </exclusion> -->
     <!--   </exclusions> -->
     <!-- </dependency> -->
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-s3</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
-          <groupId>org.alluxio.alluxio</groupId>
+          <groupId>org.alluxio</groupId>
           <artifactId>alluxio-core-common</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-local</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
-          <groupId>org.alluxio.alluxio</groupId>
+          <groupId>org.alluxio</groupId>
           <artifactId>alluxio-core-common</artifactId>
         </exclusion>
       </exclusions>
@@ -215,8 +215,8 @@
             <configuration>
               <artifactSet>
                 <includes>
-                  <include>org.alluxio.alluxio:alluxio-core-common</include>
-                  <include>org.alluxio.alluxio:alluxio-core-client-internal</include>
+                  <include>org.alluxio:alluxio-core-common</include>
+                  <include>org.alluxio:alluxio-core-client-internal</include>
                   <include>org.apache.thrift:libthrift</include>
                 </includes>
               </artifactSet>
