@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>alluxio-integration</artifactId>
-    <groupId>org.alluxio.alluxio</groupId>
+    <groupId>org.alluxio</groupId>
     <version>1.0.0-SNAPSHOT</version>
   </parent>
   <name>Alluxio Integration - YARN</name>
@@ -22,22 +22,22 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-local</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-hdfs</artifactId>
       <version>${project.version}</version>
     </dependency>

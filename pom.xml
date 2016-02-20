@@ -2,7 +2,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.alluxio.alluxio</groupId>
+  <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
@@ -12,14 +12,14 @@
   <licenses>
     <license>
       <name>Apache License</name>
-      <url>https://github.com/AlluxioOpenFoundation/alluxio/blob/master/LICENSE</url>
+      <url>https://github.com/alluxio/alluxio/blob/master/LICENSE</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git@github.com:AlluxioOpenFoundation/alluxio.git</connection>
-    <developerConnection>scm:git:git@github.com:AlluxioOpenFoundation/alluxio.git</developerConnection>
-    <url>scm:git:git@github.com:AlluxioOpenFoundation/alluxio.git</url>
+    <connection>scm:git:git@github.com:alluxio/alluxio.git</connection>
+    <developerConnection>scm:git:git@github.com:alluxio/alluxio.git</developerConnection>
+    <url>scm:git:git@github.com:alluxio/alluxio.git</url>
     <tag>HEAD</tag>
   </scm>
   <developers>

@@ -2,11 +2,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.alluxio.alluxio</groupId>
+    <groupId>org.alluxio</groupId>
     <artifactId>alluxio-keyvalue</artifactId>
     <version>1.0.0-SNAPSHOT</version>
   </parent>
-  <groupId>org.alluxio.alluxio</groupId>
+  <groupId>org.alluxio</groupId>
   <artifactId>alluxio-keyvalue-client</artifactId>
   <packaging>jar</packaging>
   <name>Alluxio Key Value - Client Distribution</name>
@@ -24,12 +24,12 @@
   <dependencies>
     <!-- Other Alluxio dependencies -->
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-keyvalue-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -108,8 +108,8 @@
             <configuration>
               <artifactSet>
                 <includes>
-                  <include>org.alluxio.alluxio:alluxio-keyvalue-common</include>
-                  <include>org.alluxio.alluxio:alluxio-keyvalue-client-internal</include>
+                  <include>org.alluxio:alluxio-keyvalue-common</include>
+                  <include>org.alluxio:alluxio-keyvalue-client-internal</include>
                 </includes>
               </artifactSet>
               <relocations>
