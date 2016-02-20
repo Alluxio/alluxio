@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio tfs getUsedBytes
+$ ./bin/alluxio fs getUsedBytes
 ```

@@ -153,7 +153,7 @@ $ ./bin/alluxio-start.sh local
 You can add a sample file to Alluxio to run wordcount on. From your Alluxio directory:
 
 ```bash
-$ ./bin/alluxio tfs copyFromLocal LICENSE /wordcount/input.txt
+$ ./bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
 ```
 
 This command will copy the `LICENSE` file into the Alluxio namespace with the path
@@ -169,8 +169,8 @@ After this job completes, the result of the wordcount will be in the `/wordcount
 in Alluxio. You can see the resulting files by running:
 
 ```bash
-$ ./bin/alluxio tfs ls /wordcount/output
-$ ./bin/alluxio tfs cat /wordcount/output/part-r-00000
+$ ./bin/alluxio fs ls /wordcount/output
+$ ./bin/alluxio fs cat /wordcount/output/part-r-00000
 ```
 
 You can also see the file in the under storage system HDFS name node web UI. The local HDFS cluster

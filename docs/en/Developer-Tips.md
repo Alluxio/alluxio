@@ -73,8 +73,8 @@ the syntax of each command.
   <code>ALLUXIO_MASTER_HOSTNAME</code>, if the config file doesn't exist.</td>
 </tr>
 <tr>
-  <td>tfs</td>
-  <td>[tfs-commands]</td>
+  <td>fs</td>
+  <td>[fs-commands]</td>
   <td>Interact with Alluxio in command line style for basic file system operations.
   See <a href="Command-Line-Interface.html">Command Line</a> for more information.</td>
 </tr>
@@ -153,5 +153,5 @@ the syntax of each command.
 In addition, these commands have different prerequisites. The prerequisite for the `format`,
 `formatWorker`, `journalCrashTest`, `readJournal`, `version` and `validateConf` commands is that you
 have already built Alluxio (see [Build Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
-about how to build Alluxio manually). Further, the prerequisite for the `tfs`, `loadufs`, `runTest`
+about how to build Alluxio manually). Further, the prerequisite for the `fs`, `loadufs`, `runTest`
 and `runTests` commands is that you have a running Alluxio system.

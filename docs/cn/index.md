@@ -59,7 +59,7 @@ InputStream和OutputStream的接口和对内存映射I/O的高效支持。我们
 
 * **[网页UI](Web-Interface.html) & [命令行](Command-Line-Interface.html)** 用户可以通过网页UI浏览文件
 系统。在调试模式下，管理员可以查看每一个文件的详细信息，包括存放位置，检查点路径等等。用户也可以通
-过``./bin/alluxio tfs``与Alluxio交互，例如：将数据从文件系统拷入拷出。
+过``./bin/alluxio fs``与Alluxio交互，例如：将数据从文件系统拷入拷出。
 
 # 快速入门
 

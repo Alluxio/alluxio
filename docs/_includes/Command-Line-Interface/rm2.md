@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio tfs rm /tmp/unused-file
+$ ./bin/alluxio fs rm /tmp/unused-file
 ```

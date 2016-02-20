@@ -22,6 +22,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.util.FormatUtils;
+import alluxio.util.SecurityUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -38,6 +39,42 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class LsCommand extends WithWildCardPathCommand {
+  public static final String STATE_FOLDER = "";
+  public static final String STATE_FILE_IN_MEMORY = "In Memory";
+  public static final String STATE_FILE_NOT_IN_MEMORY = "Not In Memory";
+
+  /**
+   * Formats the ls result string.
+   *
+   * @param acl whether security is enabled
+   * @param isFolder whether this path is a file or a folder
+   * @param permission permission string
+   * @param userName user name
+   * @param groupName group name
+   * @param size size of the file in bytes
+   * @param createTimeMs the epoch time in ms when the path is created
+   * @param inMemory whether the file is in memory
+   * @param path path of the file or folder
+   * @return the formatted string according to acl and isFolder
+   */
+  public static String formatLsString(boolean acl, boolean isFolder, String permission,
+      String userName, String groupName, long size, long createTimeMs, boolean inMemory,
+      String path) {
+    String memoryState;
+    if (isFolder) {
+      memoryState = STATE_FOLDER;
+    } else {
+      memoryState = inMemory ? STATE_FILE_IN_MEMORY : STATE_FILE_NOT_IN_MEMORY;
+    }
+    if (acl) {
+      return String.format(Constants.LS_FORMAT, permission, userName, groupName,
+          FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTimeMs),
+          memoryState, path);
+    } else {
+      return String.format(Constants.LS_FORMAT_NO_ACL, FormatUtils.getSizeFromBytes(size),
+          CommandUtils.convertMsToDate(createTimeMs), memoryState, path);
+    }
+  }
 
   /**
    * Constructs a new instance to display information for all directories and files directly under
@@ -75,19 +112,11 @@ public final class LsCommand extends WithWildCardPathCommand {
   private void ls(AlluxioURI path, boolean recursive) throws IOException {
     List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path);
     for (URIStatus status : statuses) {
-      String inMemory = "";
-      if (!status.isFolder()) {
-        if (100 == status.getInMemoryPercentage()) {
-          inMemory = "In Memory";
-        } else {
-          inMemory = "Not In Memory";
-        }
-      }
-      System.out.format(Constants.COMMAND_FORMAT_LS,
-          FormatUtils.formatPermission((short) status.getPermission(), status.isFolder()),
-          status.getUserName(), status.getGroupName(),
-          FormatUtils.getSizeFromBytes(status.getLength()),
-          CommandUtils.convertMsToDate(status.getCreationTimeMs()), inMemory, status.getPath());
+      System.out.format(
+          formatLsString(SecurityUtils.isSecurityEnabled(mConfiguration), status.isFolder(),
+              FormatUtils.formatPermission((short) status.getPermission(), status.isFolder()),
+              status.getUserName(), status.getGroupName(), status.getLength(),
+              status.getCreationTimeMs(), 100 == status.getInMemoryPercentage(), status.getPath()));
       if (recursive && status.isFolder()) {
         ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true);
       }
