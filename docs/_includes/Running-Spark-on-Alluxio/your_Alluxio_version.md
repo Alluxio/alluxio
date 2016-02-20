@@ -1,6 +1,6 @@
 ```xml
 <dependency>
-  <groupId>org.alluxio.alluxio</groupId>
+  <groupId>org.alluxio</groupId>
   <artifactId>alluxio-core-client</artifactId>
   <version>your_alluxio_version</version>
   ...
