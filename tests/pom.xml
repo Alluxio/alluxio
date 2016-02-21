@@ -69,6 +69,9 @@
         <exclusion>
           <groupId>com.sun.jersey</groupId>
           <artifactId>jersey-server</artifactId>
+        <exclusion>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>jsp-2.1</artifactId>
         </exclusion>
         <exclusion>
           <groupId>tomcat</groupId>
