@@ -21,93 +21,74 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.Scanner;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
+import tachyon.LocalTachyonClusterResource;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
- * Test the web server is up when Tachyon starts.
- *
- * <p>
+ * Tests the web server is up when Tachyon starts.
  */
 public class WebServerIntegrationTest {
-  private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonConf mMasterTachyonConf = null;
-  private TachyonConf mWorkerTachyonConf = null;
+  private TachyonConf mMasterTachyonConf;
+  private TachyonConf mWorkerTachyonConf;
 
-  private boolean verifyWebService(HttpURLConnection webService) throws IOException {
-    if (null == webService) {
-      return false;
-    }
-
-    Scanner pageScanner = new Scanner(webService.getInputStream());
-    boolean verified = false;
-
-    while (pageScanner.hasNextLine()) {
-      String line = pageScanner.nextLine();
-      if (line.equals("<title>Tachyon</title>")) {
-        verified = true;
-        break;
-      }
-    }
-    pageScanner.close();
-    return verified;
-  }
-
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-  }
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource();
 
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000);
-    mLocalTachyonCluster.start();
-    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
+    LocalTachyonCluster localTachyonCluster = mLocalTachyonClusterResource.get();
+    mMasterTachyonConf = localTachyonCluster.getMasterTachyonConf();
+    mWorkerTachyonConf = localTachyonCluster.getWorkerTachyonConf();
   }
 
-  @Test
-  public void serverUpTest() throws Exception, IOException, TachyonException {
-    try {
-      InetSocketAddress masterWebAddr =
-          NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, mMasterTachyonConf);
-      HttpURLConnection masterWebService = (HttpURLConnection) new URL(
-          "http://" + masterWebAddr.getAddress().getHostAddress() + ":"
-          + masterWebAddr.getPort() + "/home").openConnection();
-      Assert.assertNotNull(masterWebService);
-      masterWebService.connect();
-      Assert.assertEquals(200, masterWebService.getResponseCode());
-      if (!verifyWebService(masterWebService)) {
-        Assert.fail("Master web server was started but not successfully verified.");
-      }
-      masterWebService.disconnect();
-    } catch (IOException e) {
-      Assert.fail("Master web server was not successfully started.");
-    }
+  private void verifyWebService(ServiceType serviceType, TachyonConf conf) throws IOException {
+    InetSocketAddress webAddr =
+        NetworkAddressUtils.getConnectAddress(serviceType, conf);
+    HttpURLConnection webService = (HttpURLConnection) new URL(
+        "http://" + webAddr.getAddress().getHostAddress() + ":"
+        + webAddr.getPort() + "/home").openConnection();
+    webService.connect();
+    Assert.assertEquals(200, webService.getResponseCode());
+
+    Scanner pageScanner = null;
+    boolean verified = false;
 
     try {
-      InetSocketAddress workerWebAddr =
-          NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_WEB, mWorkerTachyonConf);
-      HttpURLConnection workerWebService = (HttpURLConnection) new URL(
-          "http://" + workerWebAddr.getAddress().getHostAddress() + ":"
-          + workerWebAddr.getPort() + "/home").openConnection();
-      Assert.assertNotNull(workerWebService);
-      workerWebService.connect();
-      Assert.assertEquals(200, workerWebService.getResponseCode());
-      if (!verifyWebService(workerWebService)) {
-        Assert.fail("Worker web server was started but not successfully verified.");
+      pageScanner = new Scanner(webService.getInputStream());
+
+      while (pageScanner.hasNextLine()) {
+        String line = pageScanner.nextLine();
+        if (line.equals("<title>Tachyon</title>")) {
+          verified = true;
+          break;
+        }
       }
-      workerWebService.disconnect();
-    } catch (IOException e) {
-      Assert.fail("Worker web server was not successfully started.");
+    } finally {
+      if (pageScanner != null) {
+        pageScanner.close();
+      }
+      webService.disconnect();
     }
+
+    Assert.assertTrue(String.format("%s was started but not successfully verified.",
+        serviceType.getServiceName()), verified);
+  }
+
+  /**
+   * Tests whether the master and worker web homepage is up.
+   */
+  @Test
+  public void serverUpTest() throws Exception {
+    verifyWebService(ServiceType.MASTER_WEB, mMasterTachyonConf);
+    verifyWebService(ServiceType.WORKER_WEB, mWorkerTachyonConf);
   }
 }
