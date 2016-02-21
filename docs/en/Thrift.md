@@ -66,7 +66,7 @@ directory `/opt/local`):
 {% include Thrift/build-Thrift-port.md %}
 
 You may change CXXFLAGS. Here we include `/usr/include/4.2.1` for `std::tr1` on Mavericks and
-`/opt/local/lib` for libraries installed by port. Without the `-I`, the installation may fail with 
+`/opt/local/lib` for libraries installed by port. Without the `-I`, the installation may fail with
 `tr1/functional not found`. Without the `-L`, the installation may fail during linking.
 
 # Linux
@@ -114,13 +114,13 @@ Download and install Apache Thrift source:
 
 # Generate Java files from Thrift
 
-Tachyon defines a its RPC services using the thrift file located in in:
+Alluxio defines a its RPC services using the thrift file located in in:
 
-    ./common/src/thrift/tachyon.thrift
+    ./common/src/thrift/alluxio.thrift
 
 and generates Java files from it into:
 
-    ./common/src/main/java/tachyon/thrift/
+    ./common/src/main/java/alluxio/thrift/
 
 To regenerate the java files if the thrift file is modified, you can run:
 

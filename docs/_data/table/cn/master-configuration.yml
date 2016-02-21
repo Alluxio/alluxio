@@ -1,56 +1,56 @@
-tachyon.master.bind.host:
-  Tachyon master绑定的主机名。参考<a href="#configure-multihomed-networks">多宿主网络</a>
-tachyon.master.heartbeat.interval.ms:
-  Tachyon master心跳间隔（单位：毫秒）。
-tachyon.master.hostname:
-  Tachyon master主机名。
-tachyon.master.format.file_prefix:
+alluxio.master.bind.host:
+  Alluxio master绑定的主机名。参考<a href="#configure-multihomed-networks">多宿主网络</a>
+alluxio.master.heartbeat.interval.ms:
+  Alluxio master心跳间隔（单位：毫秒）。
+alluxio.master.hostname:
+  Alluxio master主机名。
+alluxio.master.format.file_prefix:
   当journal被格式化时，在joural文件夹下生成的文件的文件名前缀。当判断journal是否被格式化时master会查找文件名以该前缀开头的文件。
-tachyon.master.journal.folder:
+alluxio.master.journal.folder:
   存储master journal日志的路径。
-tachyon.master.journal.formatter.class:
+alluxio.master.journal.formatter.class:
   序列化journal的类。
-tachyon.master.journal.log.size.bytes.max:
+alluxio.master.journal.log.size.bytes.max:
   如果一个日志文件大小超过该值，会产生下一个文件。
-tachyon.master.journal.tailer.&#8203;shutdown.quiet.wait.time.ms:
+alluxio.master.journal.tailer.&#8203;shutdown.quiet.wait.time.ms:
   在备用master停止监听线程之前，在该配置项指定的时间（单位：毫秒）内不应对leader master的journal作任何更新。
-tachyon.master.journal.tailer.sleep.time.ms:
+alluxio.master.journal.tailer.sleep.time.ms:
   指定当备用master无法检测到leader master journal的更新时，其睡眠时间（单位：毫秒）。
-tachyon.master.lineage.checkpoint.interval.ms:
-  Tachyon checkpoint机制的时间间隔（单位：毫秒）。
-tachyon.master.lineage.checkpoint.class:
+alluxio.master.lineage.checkpoint.interval.ms:
+  Alluxio checkpoint机制的时间间隔（单位：毫秒）。
+alluxio.master.lineage.checkpoint.class:
   用于生成lineage文件的checkpoint策略的类名，默认的策略是将最新的完整的lineage作为检查点，即所有输出文件都完成了的lineage。
-tachyon.master.lineage.recompute.interval.ms:
-  Tachyon执行重新计算任务的时间间隔（单位：毫秒），executor根据lineage扫描到所有丢失的文件，然后重新执行对应的计算任务。
-tachyon.master.lineage.recompute.log.path:
+alluxio.master.lineage.recompute.interval.ms:
+  Alluxio执行重新计算任务的时间间隔（单位：毫秒），executor根据lineage扫描到所有丢失的文件，然后重新执行对应的计算任务。
+alluxio.master.lineage.recompute.log.path:
   执行重新计算任务时将日志的标准输出重定向到该配置项指定的路径。
-tachyon.master.port:
-  Tachyon master的运行端口。
-tachyon.master.retry:
+alluxio.master.port:
+  Alluxio master的运行端口。
+alluxio.master.retry:
   client尝试与master相连的最大重试次数。
-tachyon.master.ttlchecker.interval.ms:
+alluxio.master.ttlchecker.interval.ms:
   清除过期ttl值的文件任务的时间间隔（单位：毫秒）。
-tachyon.master.web.bind.host:
-  Tachyon master web UI绑定的主机名。参考<a href="#configure-multihomed-networks">多宿主网络</a>
-tachyon.master.web.hostname:
-  提供Tachyon Master web UI的主机名。
-tachyon.master.web.port:
-  Tachyon web UI运行端口。
-tachyon.master.whitelist:
-  以该配置中的前缀开头的路径是可缓存的，这些前缀用分号隔开。Tachyon在第一次读这些文件时会尝试缓存这些可缓存的文件。
-tachyon.master.worker.threads.max:
+alluxio.master.web.bind.host:
+  Alluxio master web UI绑定的主机名。参考<a href="#configure-multihomed-networks">多宿主网络</a>
+alluxio.master.web.hostname:
+  提供Alluxio Master web UI的主机名。
+alluxio.master.web.port:
+  Alluxio web UI运行端口。
+alluxio.master.whitelist:
+  以该配置中的前缀开头的路径是可缓存的，这些前缀用分号隔开。Alluxio在第一次读这些文件时会尝试缓存这些可缓存的文件。
+alluxio.master.worker.threads.max:
   与master相连的最大worker数目。
-tachyon.master.worker.timeout.ms:
+alluxio.master.worker.timeout.ms:
   master与worker之间响应的最大超时时间（单位：毫秒），超过该时间表明该worker失效。
-tachyon.master.tieredstore.global.levels:
+alluxio.master.tieredstore.global.levels:
   系统中存储层的总数目。
-tachyon.master.tieredstore.global.level0.alias:
+alluxio.master.tieredstore.global.level0.alias:
   整个系统中最高存储层的名称。
-tachyon.master.tieredstore.global.level1.alias:
+alluxio.master.tieredstore.global.level1.alias:
   整个系统中第二存储层的名称。
-tachyon.master.tieredstore.global.level2.alias:
+alluxio.master.tieredstore.global.level2.alias:
   整个系统中第三存储层的名称。
-tachyon.master.keytab.file:
-  Tachyon master的Kerberos密钥表文件。
-tachyon.master.principal:
-  Tachyon master的Kerberos主体。
+alluxio.master.keytab.file:
+  Alluxio master的Kerberos密钥表文件。
+alluxio.master.principal:
+  Alluxio master的Kerberos主体。

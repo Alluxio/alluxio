@@ -1,13 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.tachyonproject</groupId>
-    <artifactId>tachyon-underfs</artifactId>
-    <version>0.9.0-SNAPSHOT</version>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-underfs</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
   </parent>
-  <artifactId>tachyon-underfs-glusterfs</artifactId>
-  <name>Tachyon Under File System - Gluster FS</name>
-  <description>Tachyon Under File System implementation which adds Gluster FS as a Under File System</description>
+  <artifactId>alluxio-underfs-glusterfs</artifactId>
+  <name>Alluxio Under File System - Gluster FS</name>
+  <description>Alluxio Under File System implementation which adds Gluster FS as a Under File System</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -32,13 +32,13 @@
       <version>${glusterfs-hadoop.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-common</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-hdfs</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-hdfs</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

@@ -1,3 +1,0 @@
-```bash
-$ ssh TachyonWorker1
-```

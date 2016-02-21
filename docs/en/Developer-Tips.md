@@ -8,11 +8,11 @@ group: Resources
 * Table of Contents
 {:toc}
 
-This page is a collection of tips and howtos geared towards developers of Tachyon.
+This page is a collection of tips and howtos geared towards developers of Alluxio.
 
 ### Change a Thrift RPC definition
 
-Tachyon uses thrift for RPC communication between clients and servers. The `.thrift`
+Alluxio uses thrift for RPC communication between clients and servers. The `.thrift`
 files defined in `common/src/thrift/` are used to auto-generate Java code for calling the
 RPCs on clients and implementing the RPCs on servers. To change a Thrift definition, you
 must first [install the Thrift compiler](https://thrift.apache.org/docs/install/).
@@ -26,7 +26,7 @@ Then to regenerate the Java code, run
 
 ### Change a Protocol Buffer Message
 
-Tachyon uses protocol buffers to read and write journal messages. The `.proto` files
+Alluxio uses protocol buffers to read and write journal messages. The `.proto` files
 defined in `servers/src/proto/journal/` are used to auto-generate Java definitions for
 the protocol buffer messages. To change one of these messages, first read about
 [updating a message type](https://developers.google.com/protocol-buffers/docs/proto#updating)
@@ -40,9 +40,9 @@ Then to regenerate the Java code, run
 
 {% include Developer-Tips/protoGen.md %}
 
-### Full list of the commands in bin/tachyon
+### Full list of the commands in bin/alluxio
 
-Most commands in `bin/tachyon` are for developers. The following table explains the description and
+Most commands in `bin/alluxio` are for developers. The following table explains the description and
 the syntax of each command.
 
 <table class="table table-striped">
@@ -59,6 +59,6 @@ the syntax of each command.
 
 In addition, these commands have different prerequisites. The prerequisite for the `format`,
 `formatWorker`, `journalCrashTest`, `readJournal`, `version` and `validateConf` commands is that you
-have already built Tachyon (see [Build Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
-about how to build Tachyon manually). Further, the prerequisite for the `tfs`, `loadufs`, `runTest`
-and `runTests` commands is that you have a running Tachyon system.
+have already built Alluxio (see [Build Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
+about how to build Alluxio manually). Further, the prerequisite for the `fs`, `loadufs`, `runTest`
+and `runTests` commands is that you have a running Alluxio system.

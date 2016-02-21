@@ -56,10 +56,10 @@ class ZookeeperVersion
   end
 end
 
-# parse tachyon_version.yml
-class TachyonVersion
+# parse alluxio_version.yml
+class AlluxioVersion
   def initialize(yaml_path)
-    puts 'parsing tachyon_version.yml'
+    puts 'parsing alluxio_version.yml'
     @yml = YAML.load_file(yaml_path)
 
     @type = @yml['Type']
@@ -67,14 +67,14 @@ class TachyonVersion
     @version = ''
     case @type
     when "Local"
-      puts 'using local tachyon dir'
+      puts 'using local alluxio dir'
     when "Github"
       @repo = @yml['Github']['Repo']
       @version = @yml['Github']['Version']
       puts "using github #{@repo}, version #{@version}"
     when "Release"
       @version = @yml['Release']['Version']
-      puts "using tachyon version #{@version}"
+      puts "using alluxio version #{@version}"
     else
       puts "Unknown VersionType"
       exit(1)
@@ -246,10 +246,10 @@ class HadoopVersion
     return @spark_profile
   end
 
-  def tachyon_dist(tachyon_version)
-    # compute the tachyon distribution string
+  def alluxio_dist(alluxio_version)
+    # compute the alluxio distribution string
     errmsg = "ERROR: hadoop #{@type}-#{@version} does not have a " \
-             "corresponding tachyon distribution"
+             "corresponding alluxio distribution"
     if @type == 'apache'
       if @version.start_with?('1')
         # It's the release distribution, so no suffix
@@ -276,9 +276,9 @@ class HadoopVersion
       exit(1)
     end
     if suffix.empty?
-      return "tachyon-#{tachyon_version}-bin.tar.gz"
+      return "alluxio-#{alluxio_version}-bin.tar.gz"
     else
-      return "tachyon-#{tachyon_version}-#{suffix}-bin.tar.gz"
+      return "alluxio-#{alluxio_version}-#{suffix}-bin.tar.gz"
     end
   end
 end
@@ -322,9 +322,9 @@ class S3Version
     return @bucket
   end
 
-  def tachyon_dist(tachyon_version)
+  def alluxio_dist(alluxio_version)
     # The base version should work for S3
-    return "tachyon-#{tachyon_version}-bin.tar.gz"
+    return "alluxio-#{alluxio_version}-bin.tar.gz"
   end
 end
 
@@ -376,15 +376,15 @@ class UfsVersion
     return @s3
   end
 
-  def tachyon_dist(tachyon_version)
+  def alluxio_dist(alluxio_version)
     case @yml['Type']
     when 'hadoop1', 'hadoop2'
-      return @hadoop.tachyon_dist(tachyon_version)
+      return @hadoop.alluxio_dist(alluxio_version)
     when 's3'
-      return @s3.tachyon_dist(tachyon_version)
+      return @s3.alluxio_dist(alluxio_version)
     when 'glusterfs'
     # The base version should work for glusterfs
-      return "tachyon-#{tachyon_version}-bin.tar.gz"
+      return "alluxio-#{alluxio_version}-bin.tar.gz"
     else
       puts 'unsupported ufs'
       exit(1)
