@@ -1,9 +1,0 @@
-    tachyon.worker.tieredstore.levels=2
-    tachyon.worker.tieredstore.level0.alias=MEM
-    tachyon.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
-    tachyon.worker.tieredstore.level0.dirs.quota=100GB
-    tachyon.worker.tieredstore.level0.reserved.ratio=0.2
-    tachyon.worker.tieredstore.level1.alias=HDD
-    tachyon.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3
-    tachyon.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
-    tachyon.worker.tieredstore.level1.reserved.ratio=0.1

@@ -1,0 +1,354 @@
+#!/usr/bin/env bash
+
+LAUNCHER=
+# If debugging is enabled propagate that through to sub-shells
+if [[ $- == *x* ]]; then
+  LAUNCHER="bash -x"
+fi
+BIN=$(cd "$( dirname "$0" )"; pwd)
+
+function printUsage {
+  echo "Usage: alluxio COMMAND "
+  echo "where COMMAND is one of:"
+  echo -e "  format [-s]   \t Format Alluxio (if -s specified, only format if underfs is local and doesn't already exist)"
+  echo -e "  formatWorker  \t Format Alluxio worker storage"
+  echo -e "  bootstrap-conf\t Generate a config file if one doesn't exist"
+  echo -e "  fs            \t Command line input for generic filesystem user client."
+  echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
+  echo -e "  runClass      \t Run a Alluxio class with main method."
+  echo -e "  runTest       \t Run a end-to-end test on a Alluxio cluster."
+  echo -e "  runKVTest     \t Run a test of key-value store operations."
+  echo -e "  runTests      \t Run all end-to-end tests on a Alluxio cluster."
+  echo -e "  runJournalCrashTest\t Test the Master Journal System in a crash scenario. Try 'alluxio runJournalCrashTest -help' for more help."
+  echo -e "                  \t NOTE: This command will stop the existing server and creates a new one!"
+  echo -e "  readJournal   \t Read a Alluxio journal file from stdin and write a human-readable version of it to stdout."
+  echo -e "  killAll <WORD>\t Kill processes containing the WORD."
+  echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
+  echo -e "  clearCache    \t Clear OS buffer cache of the machine."
+  echo -e "  thriftGen     \t Generate all thrift code."
+  echo -e "  protoGen      \t Generate all protocol buffer code."
+  echo -e "  version       \t Print Alluxio version and exit."
+  echo -e "  validateConf  \t Validate Alluxio conf and exit."
+  echo "Commands print help when invoked without parameters."
+}
+
+if [[ $# == 0 ]]; then
+  printUsage
+  exit 1
+fi
+
+COMMAND=$1
+shift
+
+function bootstrapConf {
+  if [[ $# -ne 1 ]]; then
+    echo "Usage: $0 bootstrap-conf ALLUXIO_MASTER_HOSTNAME"
+    exit 1
+  fi
+
+  ALLUXIO_CONF_DIR=${BIN}/../conf
+  if [[ ! -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
+    if [[ `uname -a` == Darwin* ]]; then
+      # osx sed wants an argument to -i, use .bootstrap.bk
+      ALLUXIO_SED="sed -i .bootstrap.bk"
+      TOTAL_MEM=`sysctl hw.memsize | cut -d ' ' -f2`
+      TOTAL_MEM=$[TOTAL_MEM / 1024]
+      TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
+    else
+      ALLUXIO_SED="sed -i"
+      TOTAL_MEM=`awk '/MemTotal/{print $2}' /proc/meminfo`
+      TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
+    fi
+
+    # Create a default config that can be overridden later
+    cp ${ALLUXIO_CONF_DIR}/alluxio-env.sh.template ${ALLUXIO_CONF_DIR}/alluxio-env.sh
+    ${ALLUXIO_SED} "s/ALLUXIO_MASTER_ADDRESS=localhost/ALLUXIO_MASTER_ADDRESS=$1/" ${ALLUXIO_CONF_DIR}/alluxio-env.sh
+    ${ALLUXIO_SED} "s/ALLUXIO_WORKER_MEMORY_SIZE=1GB/ALLUXIO_WORKER_MEMORY_SIZE=${TOTAL_MEM}KB/" ${ALLUXIO_CONF_DIR}/alluxio-env.sh
+  fi
+}
+
+# bootstrap creates alluxio-env.sh
+if [[ "${COMMAND}" == "bootstrap-conf" ]]; then
+  bootstrapConf "$@"
+  exit 0
+fi
+
+DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
+ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+. ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
+
+function runTest {
+  Usage="Usage: alluxio runTest <Basic|BasicNonByteBuffer> <CACHE_PROMOTE|CACHE|NO_CACHE> <MUST_CACHE|CACHE_THROUGH|THROUGH|ASYNC_THROUGH>"
+
+  if [[ $# -ne 3 ]]; then
+    echo ${Usage}
+    exit 1
+  fi
+
+  MASTER_ADDRESS=${ALLUXIO_MASTER_ADDRESS}
+  if [[ -z ${ALLUXIO_MASTER_ADDRESS} ]]; then
+    MASTER_ADDRESS=localhost
+  fi
+
+  local file="/default_tests_files"
+  local class=""
+  case "$1" in
+    Basic)
+      file+="/BasicFile_$2_$3"
+      class="alluxio.examples.BasicOperations"
+      ;;
+    BasicNonByteBuffer)
+      file+="/BasicNonByteBuffer_$2_$3"
+      class="alluxio.examples.BasicNonByteBufferOperations"
+      ;;
+    *)
+      echo "Unknown test: $1 with type $2 $3" 1>&2
+      echo "${Usage}"
+      exit 1
+      ;;
+  esac
+  ${LAUNCHER} ${BIN}/alluxio fs rm -R ${file}
+  ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${class} alluxio://${MASTER_ADDRESS}:19998 ${file} $2 $3
+
+  # If test process received a signal abort early
+  # Exit Codes for signals terminating a JVM are 128 + signal
+  RET=$?
+  if [[ ${RET} -gt 128 ]]; then
+    echo "Test process was terminated due to signal"
+    exit ${RET}
+  fi
+  return ${RET}
+}
+
+function runClass {
+  if [[ $# -lt 1 ]]; then
+    echo "runClass <class name> <main method parameters>"
+    exit
+  fi
+
+  MASTER_ADDRESS=${ALLUXIO_MASTER_ADDRESS}
+  if [[ -z ${ALLUXIO_MASTER_ADDRESS} ]]; then
+    MASTER_ADDRESS=localhost
+  fi
+
+  local class="$1"
+  shift
+
+  ${JAVA} -cp ${CLASSPATH} -Dalluxio.home=${ALLUXIO_HOME} -Dalluxio.master.hostname=${MASTER_ADDRESS} ${ALLUXIO_JAVA_OPTS} ${class} $@
+  RET=$?
+
+  # If test process received a signal abort early
+  # Exit Codes for signals terminating a JVM are 128 + signal
+  if [[ ${RET} -gt 128 ]]; then
+    echo "Process was terminated due to signal"
+    exit ${RET}
+  fi
+  return ${RET}
+}
+
+function runJournalCrashTest {
+  runClass alluxio.examples.JournalCrashTest $@
+}
+
+function readJournal {
+  local class="alluxio.master.journal.JournalTool"
+
+  ${JAVA} -cp ${CLASSPATH} -Dalluxio.home=${ALLUXIO_HOME} -Dalluxio.master.hostname=${MASTER_ADDRESS} -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR} -Dalluxio.logger.type=USER_LOGGER ${ALLUXIO_JAVA_OPTS} ${class} $@
+  RET=$?
+  return ${RET}
+}
+
+function runKVTest {
+  runClass alluxio.examples.keyvalue.KeyValueStoreOperations /default_tests_files/KeyValueStoreOperations
+}
+
+function killAll {
+  if [[ $# -ne 1 ]]; then
+    echo "Usage: alluxio killAll <WORD>"
+    exit
+  fi
+
+  keyword=$1
+  count=0
+  for pid in `ps -Aww -o pid,command | grep -i "[j]ava" | grep ${keyword} | awk '{print $1}'`; do
+    kill -15 ${pid} > /dev/null 2>&1
+    local cnt=30
+    while kill -0 ${pid} > /dev/null 2>&1; do
+      if [[ ${cnt} -gt 1 ]]; then
+        # still not dead, wait
+        cnt=`expr ${cnt} - 1`
+        sleep 1
+      else
+        # waited long enough, kill the process
+        echo "Process did not complete after 30 seconds, killing."
+        kill -9 ${pid} 2> /dev/null
+      fi
+    done
+    count=`expr ${count} + 1`
+  done
+  echo "Killed ${count} processes on `hostname`"
+}
+
+function copyDir {
+  if [[ $# -ne 1 ]] ; then
+    echo "Usage: alluxio copyDir <path>"
+    exit 1
+  fi
+
+  WORKERS=`cat ${ALLUXIO_CONF_DIR}/workers | grep -v '^#'`
+
+  DIR=`readlink -f "$1"`
+  DIR=`echo ${DIR}|sed 's@/$@@'`
+  DEST=`dirname ${DIR}`
+
+  SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=5"
+
+  echo "RSYNC'ing ${DIR} to workers..."
+  for worker in ${WORKERS}; do
+      echo ${worker}
+      rsync -e "ssh ${SSH_OPTS}" -az ${DIR} ${worker}:${DEST} & sleep 0.05
+  done
+  wait
+}
+
+PARAMETER=""
+
+case ${COMMAND} in
+"format")
+  if [[ $# -eq 1 ]]; then
+    if [[ $1 == "-s" ]]; then
+      if [[ -e ${ALLUXIO_UNDERFS_ADDRESS} ]]; then
+        # if ufs is local filesystem and already exists
+        exit 0
+      else
+        declare -a schemes=(hdfs s3 s3n glusterfs swift oss)
+        for scheme in ${schemes[@]}; do
+          if [[ ${ALLUXIO_UNDERFS_ADDRESS} == ${scheme}://* ]]; then
+            # if ufs is not local filesystem, don't format
+            exit 0
+          fi
+        done
+
+        shift # remove -s param
+      fi
+    else
+      echo "{Usage} $0 format [-s]"
+      exit 2
+    fi
+  elif [[ $# -gt 1 ]]; then
+    echo "${Usage} $0 format [-s]"
+    exit 2
+  fi
+
+  if [[ -z ${ALLUXIO_MASTER_ADDRESS} ]] ; then
+    ALLUXIO_MASTER_ADDRESS=localhost
+  fi
+
+  ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio formatWorker
+
+  echo "Formatting Alluxio Master @ ${ALLUXIO_MASTER_ADDRESS}"
+  CLASS=alluxio.Format
+  PARAMETER=master
+;;
+"formatWorker")
+  echo "Formatting Alluxio Worker @ `hostname -f`"
+  CLASS=alluxio.Format
+  PARAMETER=worker
+;;
+"fs")
+  CLASS=alluxio.shell.AlluxioShell
+;;
+"loadufs")
+  CLASS=alluxio.client.UfsUtils
+;;
+"runClass")
+  runClass $@
+  exit $?
+;;
+"runTest")
+  runTest $@
+  exit $?
+;;
+"runKVTest")
+  runKVTest $@
+  exit $?
+;;
+"runTests")
+  declare -a writeTypes=(MUST_CACHE CACHE_THROUGH THROUGH ASYNC_THROUGH)
+  declare -a readTypes=(CACHE_PROMOTE CACHE NO_CACHE)
+
+  failed=0
+  for readType in ${readTypes[@]}; do
+    for writeType in ${writeTypes[@]}; do
+      for example in Basic BasicNonByteBuffer; do
+        echo ${LAUNCHER} ${BIN}/alluxio runTest ${example} ${readType} ${writeType}
+        ${LAUNCHER} ${BIN}/alluxio runTest ${example} ${readType} ${writeType}
+        st=$?
+
+        # If test process received a signal abort early
+        # Exit Codes for signals terminating a JVM are 128 + signal
+        if [[ ${st} -gt 128 ]]; then
+          # Received some kind of signal
+          echo "Test process was terminated due to signal"
+          exit ${st}
+        fi
+        failed=$(( $failed + $st ))
+      done
+    done
+  done
+
+  if [[ ${failed} -gt 0 ]]; then
+    echo "Number of failed tests: ${failed}" 1>&2
+  fi
+  exit ${failed}
+;;
+"runJournalCrashTest")
+  runJournalCrashTest $@
+  exit $?
+;;
+"readJournal")
+  readJournal $@
+  exit $?
+;;
+"killAll")
+  killAll $@
+  exit 0
+;;
+"copyDir")
+  copyDir $@
+  exit 0
+;;
+"thriftGen")
+  declare -a thriftSrcPaths=("${BIN}/../core/common/src" "${BIN}/../keyvalue/common/src")
+  for thriftSrcPath in ${thriftSrcPaths[@]}; do
+    rm -rf "${thriftSrcPath}/main/java/alluxio/thrift"
+    for srcFile in $(ls "${thriftSrcPath}/thrift"); do
+      thrift -I "${BIN}/../core/common/src/thrift" --gen java:private-members -out "${thriftSrcPath}/main/java/." "${thriftSrcPath}/thrift/${srcFile}"
+    done
+  done
+  exit 0
+;;
+"protoGen")
+  rm -rf ${BIN}/../core/server/src/main/java/alluxio/proto
+  for src_file in $(find ${BIN}/../core/server/src/proto -type f); do
+    protoc --java_out=${BIN}/../core/server/src/main/java --proto_path=`dirname ${src_file}` ${src_file}
+  done
+  exit 0
+;;
+"clearCache")
+  sync; echo 3 > /proc/sys/vm/drop_caches ;
+  exit 0
+;;
+"version")
+  CLASS=alluxio.Version
+;;
+"validateConf")
+  CLASS=alluxio.ValidateConf
+;;
+*)
+  printUsage
+  exit 1
+;;
+esac
+
+${JAVA} -cp ${CLASSPATH} -Dalluxio.home=${ALLUXIO_HOME} -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR} -Dalluxio.master.hostname=${ALLUXIO_MASTER_ADDRESS} -Dalluxio.logger.type=USER_LOGGER ${ALLUXIO_JAVA_OPTS} ${CLASS} ${PARAMETER} $@

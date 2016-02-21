@@ -1,0 +1,15 @@
+- hosts: AlluxioMaster
+  tasks:
+    - include: roles/zookeeper/tasks/main.yml
+      when: alluxio_masters > 1
+
+- hosts: AlluxioMaster*
+  tasks:
+    - name: set master address to own hostname
+      shell: sed -i "s/export ALLUXIO_MASTER_ADDRESS=.*/export ALLUXIO_MASTER_ADDRESS=$(hostname -A | cut -d' ' -f1)/g" /alluxio/conf/alluxio-env.sh
+
+    - include: roles/alluxio/tasks/start_master.yml
+
+- hosts: all
+  tasks:
+    - include: roles/alluxio/tasks/start_worker.yml
