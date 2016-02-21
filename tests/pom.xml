@@ -88,7 +88,7 @@
         <exclusion>
           <groupId>javax.servlet.jsp</groupId>
           <artifactId>jsp-api</artifactId>
-        </exclusion>           
+        </exclusion>
       </exclusions>
 
     </dependency>
