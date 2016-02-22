@@ -1,7 +1,7 @@
 alluxio.integration.master.resource.cpu:
-  CPU resource in terms of number of cores required to run a Alluxio master.
+  CPU resource in terms of number of cores required to run an Alluxio master.
 alluxio.integration.master.resource.mem:
-  Memory resource required to run a Alluxio master.
+  Memory resource required to run an Alluxio master.
 alluxio.integration.mesos.executor.dependency.path:
   The URL from which Mesos executor can download Alluxio dependencies.
 alluxio.integration.mesos.jre.path:
@@ -25,7 +25,7 @@ alluxio.integration.mesos.worker.name:
 alluxio.integration.yarn.max.workers.per.host:
   The maximum number of Alluxio workers which may be allocated to a single host.
 alluxio.integration.worker.resource.cpu:
-  CPU resource in terms of number of cores required to run a Alluxio worker.
+  CPU resource in terms of number of cores required to run an Alluxio worker.
 alluxio.integration.worker.resource.mem:
-  Memory resource required to run a Alluxio worker. This memory does not include the memory
+  Memory resource required to run an Alluxio worker. This memory does not include the memory
   configured for tiered storage.
