@@ -29,16 +29,10 @@ Currently, [Amazon S3](Configuring-Alluxio-with-S3.html),
 
 Alluxio provides a [file system interface](File-System-API.html) to applications to let them
 interact with data stored in Alluxio. If you want to directly write an application on top of
-Alluxio, simply add the `alluxio-core-client` dependency to your program. For example, if the
+Alluxio, simply add the `alluxio-client` dependency to your program. For example, if the
 application is built using Maven:
 
-```xml
-<dependency>
-  <groupId>org.alluxio-project</groupId>
-  <artifactId>alluxio-core-client</artifactId>
-  ...
-</dependency>
-```
+{% include Getting-Started/config-application.md %}
 
 A special set of applications leveraging Alluxio are computation frameworks. Transitioning these
 frameworks to use Alluxio is almost effortless, especially if the framework is already integrated
@@ -75,11 +69,10 @@ Beyond providing significant performance gains simply through accelerating data 
 Alluxio also provides following advanced features.
 
 * [Tiered storage](Tiered-Storage-on-Alluxio.html) provides additional resources for Alluxio to
-manage (such as SSD or HHD), allowing for data sets that cannot fit into memory to still take 
+manage (such as SSD or HHD), allowing for data sets that cannot fit into memory to still take
 advantage of the Alluxio architecture.
 * [Unified and Transparent Namespace](Unified-and-Transparent-Namespace.html) provides the ability
 for users to manage data from existing storage systems and easily handle deployments where not all
 systems are Alluxio-aware.
 * [Lineage](Lineage-API.html) provides an alternative to costly disk replication for fault tolerance
 and data durability, greatly improving write performance.
-

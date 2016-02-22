@@ -1,0 +1,9 @@
+    alluxio.worker.tieredstore.levels=2
+    alluxio.worker.tieredstore.level0.alias=MEM
+    alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
+    alluxio.worker.tieredstore.level0.dirs.quota=100GB
+    alluxio.worker.tieredstore.level0.reserved.ratio=0.2
+    alluxio.worker.tieredstore.level1.alias=HDD
+    alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3
+    alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
+    alluxio.worker.tieredstore.level1.reserved.ratio=0.1
