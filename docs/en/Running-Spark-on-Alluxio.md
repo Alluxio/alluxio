@@ -13,35 +13,14 @@ data to those systems.
 
 ## Compatibility
 
-If the versions of Spark and Alluxio form one of the the following pairs, they will work together
-out-of-the-box.
+Alluxio should work together with Spark 1.2 or later out-of-the-box.
 
-<table class="table table-striped">
-<tr><th>Spark Version</th><th>Alluxio Version</th></tr>
-{% for item in site.data.table.versions-of-Spark-and-Alluxio %}
-<tr>
-  <td>{{item.Spark-Version}}</td>
-  <td>{{item.Alluxio-Version}}</td>
-</tr>
-{% endfor %}
-</table>
-
-If the version of Spark is not supported by your Alluxio installation by default (e.g., you are
-trying out the latest Alluxio release with some older Spark installation), one can recompile Spark
-by updating the correct version of alluxio-core-client in Spark dependency. To do that, edit
-`spark/core/pom.xml` and change the dependency version of `alluxio-core-client` to
-`your_alluxio_version`:
-
-{% include Running-Spark-on-Alluxio/your_Alluxio_version.md %}
 
 ## Prerequisites
 
-* Make sure your Spark installation is compatible with Alluxio installation. Check
-[Compatibility](#compatibility) session for more instructions.
 * Alluxio cluster has been set up in accordance to these guides for either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
-* If Spark version is earlier than `1.0.0`, please add the following line to
-`spark/conf/spark-env.sh`.
+* Add the following line to `spark/conf/spark-env.sh`.
 
 {% include Running-Spark-on-Alluxio/earlier-spark-version-bash.md %}
 
@@ -49,7 +28,6 @@ by updating the correct version of alluxio-core-client in Spark dependency. To d
 with the following content:
 
 {% include Running-Spark-on-Alluxio/Hadoop-1.x-configuration.md %}
-
 
 * If you are running alluxio in fault tolerant mode with zookeeper and the Hadoop cluster is a 1.x,
 add the following additionally entry to the previously created `spark/conf/core-site.xml`:
@@ -78,31 +56,6 @@ output file `bar` which doubles each line in the file `foo`.
 When running Alluxio with fault tolerant mode, you can point to any Alluxio master:
 
 {% include Running-Spark-on-Alluxio/any-Alluxio-master.md %}
-
-## Persist Spark RDDs into Alluxio
-
-This feature requires Spark 1.0 or later and Alluxio 0.4.1 or later.  Please refer to
-[Spark guide](http://spark.apache.org/docs/latest/programming-guide.html#rdd-persistence) for
-more details about RDD persistence.
-
-To persist Spark RDDs, your Spark programs need to have two parameters set:
-`spark.externalBlockStore.url` and `spark.externalBlockStore.baseDir`.
-
-* `spark.externalBlockStore.url` is the URL of the Alluxio Filesystem in the AlluxioStore. By
-default, its value is `alluxio://localhost:19998`.
-* `spark.externalBlockStore.baseDir` is the base directory in the Alluxio Filesystem to store the
-RDDs. It can be a comma-separated list of multiple directories in Alluxio. By default, its value is
-`java.io.tmpdir`.
-
-To persist an RDD into Alluxio, you need to pass the `StorageLevel.OFF_HEAP` parameter. The
-following is an example with Spark shell:
-
-{% include Running-Spark-on-Alluxio/off-heap-Spark-shell.md %}
-
-Check the `spark.externalBlockStore.baseDir` using Alluxio's web UI (the default URI is
-[http://localhost:19999](http://localhost:19999)), when the Spark application is running. You should
-see a number of files there; they are the persisted RDD blocks. Currently, the files will be cleaned
-up when the Spark application finishes.
 
 ## Data Locality
 
