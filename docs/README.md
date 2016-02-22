@@ -38,7 +38,7 @@ $ mvn javadoc:javadoc
 $ mvn javadoc:aggregate
 ```
 
-Then go do `docs` directory and use jekyll to build the HTML documentation.
+Then go to `docs` directory and use jekyll to build the HTML documentation.
 
 ```bash
 $ cd docs
