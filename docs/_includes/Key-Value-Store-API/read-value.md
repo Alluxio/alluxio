@@ -1,5 +1,5 @@
 ```java
-KeyValueStoreReader reader = kvs.openStore(new TachyonURI("alluxio://path/kvstore/"));
+KeyValueStoreReader reader = kvs.openStore(new AlluxioURI("alluxio://path/kvstore/"));
 // Return "foo"
 reader.get("100"); 
 // Return null as no value associated with "300"
