@@ -8,9 +8,9 @@ priority: 0
 Alluxio's command line interface provides users with basic file system operations. You can invoke
 the command line utility using:
 
-{% include Command-Line-Interface/alluxio-tfs.md %}
+{% include Command-Line-Interface/alluxio-fs.md %}
 
-All "path" variables in tfs commands should start with
+All "path" variables in fs commands should start with
 
 {% include Command-Line-Interface/alluxio-path.md %}
 

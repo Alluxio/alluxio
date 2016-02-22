@@ -10,7 +10,7 @@ This project uses [jnr-fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on J
   (2.8.3 has been reported to also work - with some warnings)
 
 ## Building
-The alluxio-integration-fuse module is automatically built with Alluxio when the `buildFuse` maven 
+The alluxio-integration-fuse module is automatically built with Alluxio when the `fuse` maven
 profile is active. This profile is automatically activated when maven detects a JDK 8 or newer.
 
 For compatibility, binary Alluxio distributions may ship without alluxio-fuse support. Please,

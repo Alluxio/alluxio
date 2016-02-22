@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio tfs getCapacityBytes
+$ ./bin/alluxio fs getCapacityBytes
 ```

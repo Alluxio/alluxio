@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.alluxio.alluxio</groupId>
+    <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
   </parent>
@@ -64,36 +64,36 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-keyvalue-client-internal</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-keyvalue-server</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-local</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-minicluster</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-shell</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
@@ -101,14 +101,14 @@
 
     <!-- Other projects' test-jars -->
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
@@ -118,35 +118,10 @@
 
   <profiles>
     <profile>
-      <id>hdfs1Test</id>
+      <id>hdfsTest</id>
       <dependencies>
         <dependency>
-          <groupId>org.alluxio.alluxio</groupId>
-          <artifactId>alluxio-underfs-hdfs</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemPropertyVariables>
-                <ufs>alluxio.underfs.hdfs.LocalMiniDFSCluster</ufs>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>hdfs2Test</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.alluxio.alluxio</groupId>
+          <groupId>org.alluxio</groupId>
           <artifactId>alluxio-underfs-hdfs</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
@@ -171,7 +146,7 @@
       <id>glusterfsTest</id>
       <dependencies>
         <dependency>
-          <groupId>org.alluxio.alluxio</groupId>
+          <groupId>org.alluxio</groupId>
           <artifactId>alluxio-underfs-glusterfs</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
@@ -202,7 +177,7 @@
       <id>s3Test</id>
       <dependencies>
         <dependency>
-          <groupId>org.alluxio.alluxio</groupId>
+          <groupId>org.alluxio</groupId>
           <artifactId>alluxio-underfs-s3</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
@@ -234,7 +209,7 @@
       <id>ossTest</id>
       <dependencies>
         <dependency>
-          <groupId>org.alluxio.alluxio</groupId>
+          <groupId>org.alluxio</groupId>
           <artifactId>alluxio-underfs-oss</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
@@ -273,7 +248,7 @@
       <id>swiftTest</id>
       <dependencies>
         <dependency>
-          <groupId>org.alluxio.alluxio</groupId>
+          <groupId>org.alluxio</groupId>
           <artifactId>alluxio-underfs-swift</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
