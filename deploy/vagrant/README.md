@@ -13,7 +13,7 @@ instances.
 
 #### Why Use Vagrant?
 
-Setting up a Alluxio cluster correctly with under filesystem and computation frameworks is a tedious huge undertaking. It requires not only expertise on both Alluxio and the related systems, but also expertise on the target deployment platform.
+Setting up an Alluxio cluster correctly with under filesystem and computation frameworks is a tedious huge undertaking. It requires not only expertise on both Alluxio and the related systems, but also expertise on the target deployment platform.
 
 Vagrant makes it possible to predefine how to install and configure software on a "machine" which can be an aws instance, a virtualbox vm, a docker container or an openstack instance. Then with the same workflow, you can create the same environment on all these platforms.
 
@@ -29,7 +29,7 @@ Ansible is a language and toolset to define how to provision (install software, 
 
 #### Why Use Ansible?
 
-When setting up a Alluxio cluster, we need the ability to manipulate target machines in parallel, say, install java on all nodes. Ansible satisfies this requirement. It's supported by Vagrant and has simple syntax, so we adopt it as the provisioning tool.
+When setting up an Alluxio cluster, we need the ability to manipulate target machines in parallel, say, install java on all nodes. Ansible satisfies this requirement. It's supported by Vagrant and has simple syntax, so we adopt it as the provisioning tool.
 
 ## Extension
 

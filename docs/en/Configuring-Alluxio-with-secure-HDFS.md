@@ -21,7 +21,7 @@ Note: Kerberos authentication with secure HDFS is not Alluxio internal authentic
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
 machines. You can either
 [compile the binaries from Alluxio source code](Building-Alluxio-Master-Branch.html), or
-[download the precompiled binaries directly](http://alluxio-project.org/downloads/).
+[download the precompiled binaries directly](http://alluxio.org/downloads/).
 
 Note that, by default, Alluxio binaries are built to work with Hadoop HDFS version `2.2.0`. To use
 another Hadoop version, one needs to recompile Alluxio binaries from source code with the correct

@@ -1,5 +1,5 @@
 ```java
-TachyonLineage tl = TachyonLineage.get();
+AlluxioLineage tl = AlluxioLineage.get();
 DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(true);
 tl.deleteLineage(lineageId, options);
 ```

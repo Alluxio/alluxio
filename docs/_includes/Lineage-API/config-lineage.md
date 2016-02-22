@@ -4,14 +4,14 @@ update it there as well.
 -->
 
 ```java
-TachyonLineage tl = TachyonLineage.get();
+AlluxioLineage tl = AlluxioLineage.get();
 // input file paths
-TachyonURI input1 = new TachyonURI("/inputFile1");
-TachyonURI input2 = new TachyonURI("/inputFile2");
-List<TachyonURI> inputFiles = Lists.newArrayList(input1, input2);
+AlluxioURI input1 = new AlluxioURI("/inputFile1");
+AlluxioURI input2 = new AlluxioURI("/inputFile2");
+List<AlluxioURI> inputFiles = Lists.newArrayList(input1, input2);
 // output file paths
-TachyonURI output = new TachyonURI("/outputFile");
-List<TachyonURI> outputFiles = Lists.newArrayList(output);
+AlluxioURI output = new AlluxioURI("/outputFile");
+List<AlluxioURI> outputFiles = Lists.newArrayList(output);
 // command-line job
 JobConf conf = new JobConf("/tmp/recompute.log");
 CommandLineJob job = new CommandLineJob("my-spark-job.sh", conf);

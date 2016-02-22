@@ -29,7 +29,7 @@ Alluxio provides a Java like API for managing and accessing lineage information.
 
 ### Getting a Lineage Client
 
-To obtain a Alluxio Lineage Client in Java code, use:
+To obtain an Alluxio Lineage Client in Java code, use:
 
 {% include Lineage-API/get-lineage-client.md %}
 

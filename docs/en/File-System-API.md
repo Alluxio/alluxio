@@ -23,7 +23,7 @@ resources are specified through a `AlluxioURI` which represents the path to the 
 
 ### Getting a Filesystem Client
 
-To obtain a Alluxio filesystem client in Java code, use:
+To obtain an Alluxio filesystem client in Java code, use:
 
 {% include File-System-API/get-fileSystem.md %}
 

@@ -29,7 +29,7 @@ Currently, [Amazon S3](Configuring-Alluxio-with-S3.html),
 
 Alluxio provides a [file system interface](File-System-API.html) to applications to let them
 interact with data stored in Alluxio. If you want to directly write an application on top of
-Alluxio, simply add the `alluxio-client` dependency to your program. For example, if the
+Alluxio, simply add the `alluxio-core-client` dependency to your program. For example, if the
 application is built using Maven:
 
 {% include Getting-Started/config-application.md %}
