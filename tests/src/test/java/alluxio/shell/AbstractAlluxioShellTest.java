@@ -24,13 +24,10 @@ import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.security.LoginUserTestUtils;
-import alluxio.shell.command.CommandUtils;
-import alluxio.util.FormatUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
