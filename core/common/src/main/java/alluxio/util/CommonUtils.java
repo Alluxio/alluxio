@@ -69,6 +69,26 @@ public final class CommonUtils {
   }
 
   /**
+   * Converts varargs of objects to a string.
+   *
+   * @param separator separator string
+   * @param args variable arguments
+   * @param <T> type of the objects
+   * @return concatenation of the string representation returned by Object#toString
+   *         of the individual objects
+   */
+  public static <T> String argsToString(String separator, T... args) {
+    StringBuilder sb = new StringBuilder();
+    for (T s : args) {
+      if (sb.length() != 0) {
+        sb.append(separator);
+      }
+      sb.append(s);
+    }
+    return sb.toString();
+  }
+
+  /**
    * Parses {@code ArrayList<String>} into {@code String[]}.
    *
    * @param src is the ArrayList of strings
