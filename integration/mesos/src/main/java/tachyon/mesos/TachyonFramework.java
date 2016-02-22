@@ -124,8 +124,7 @@ public class TachyonFramework {
             + " and mem: " + offerMem + "MB.");
 
         Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
-        double targetCpu;
-        double targetMem;
+        List<Protos.Resource> resources;
         if (!mMasterLaunched && offerCpu >= masterCpu && offerMem >= masterMem
             && mMasterCount < sConf.getInt(Constants.INTEGRATION_MESOS_TACHYON_MASTER_NODE_COUNT)) {
           executorBuilder
@@ -151,8 +150,8 @@ public class TachyonFramework {
                                       .setValue(sConf.get(Constants.UNDERFS_ADDRESS))
                                       .build())
                               .build()));
-          targetCpu = masterCpu;
-          targetMem = masterMem;
+          // pre-build resource list here, then use it to build Protos.Task later.
+          resources = getMasterRequiredResources(masterCpu, masterMem);
           mMasterHostname = offer.getHostname();
           mTaskName = sConf.get(Constants.INTEGRATION_MESOS_TACHYON_MASTER_NAME);
           mMasterCount ++;
@@ -192,8 +191,8 @@ public class TachyonFramework {
                                       .setValue(sConf.get(Constants.UNDERFS_ADDRESS))
                                       .build())
                               .build()));
-          targetCpu = workerCpu;
-          targetMem = workerMem;
+          // pre-build resource list here, then use it to build Protos.Task later.
+          resources = getWorkerRequiredResources(workerCpu, workerMem);
           mWorkers.add(offer.getHostname());
           mTaskName = sConf.get(Constants.INTEGRATION_MESOS_TACHYON_WORKER_NAME);
         } else {
@@ -208,46 +207,13 @@ public class TachyonFramework {
         System.out.println("Launching task " + taskId.getValue() + " using offer "
             + offer.getId().getValue());
 
-        Protos.Resource.Builder portsBuilder = Protos.Resource.newBuilder()
-            .setName(Constants.MESOS_RESOURCE_PORTS)
-            .setType(Protos.Value.Type.RANGES);
-
-        if (executorBuilder.getSource().equals("worker")) {
-          portsBuilder.setRanges(Protos.Value.Ranges.newBuilder()
-              .addRange(Protos.Value.Range.newBuilder()
-                  .setBegin(sConf.getLong(Constants.WORKER_RPC_PORT))
-                  .setEnd(sConf.getLong(Constants.WORKER_RPC_PORT)))
-              .addRange((Protos.Value.Range.newBuilder()
-                  .setBegin(sConf.getLong(Constants.WORKER_DATA_PORT))
-                  .setEnd(sConf.getLong(Constants.WORKER_DATA_PORT))))
-              .addRange((Protos.Value.Range.newBuilder()
-                  .setBegin(sConf.getLong(Constants.WORKER_WEB_PORT))
-                  .setEnd(sConf.getLong(Constants.WORKER_WEB_PORT)))));
-        } else {
-          portsBuilder.setRanges(Protos.Value.Ranges.newBuilder()
-              .addRange(Protos.Value.Range.newBuilder()
-                  .setBegin(sConf.getLong(Constants.MASTER_WEB_PORT))
-                  .setEnd(sConf.getLong(Constants.MASTER_WEB_PORT)))
-              .addRange((Protos.Value.Range.newBuilder()
-                  .setBegin(sConf.getLong(Constants.MASTER_RPC_PORT))
-                  .setEnd(sConf.getLong(Constants.MASTER_RPC_PORT)))));
-        }
-
         Protos.TaskInfo task =
             Protos.TaskInfo
                 .newBuilder()
                 .setName(mTaskName)
                 .setTaskId(taskId)
                 .setSlaveId(offer.getSlaveId())
-                .addResources(
-                    Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_CPUS)
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetCpu)))
-                .addResources(
-                    Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_MEM)
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetMem)))
-                .addResources(portsBuilder)
+                .addAllResources(resources)
                 .setExecutor(executorBuilder).build();
 
         launch.addTaskInfos(Protos.TaskInfo.newBuilder(task));
@@ -265,6 +231,57 @@ public class TachyonFramework {
         Protos.Filters filters = Protos.Filters.newBuilder().setRefuseSeconds(1).build();
         driver.acceptOffers(offerIds, operations, filters);
       }
+    }
+
+    private List<Protos.Resource> getMasterRequiredResources(long masterCpus, long masterMem) {
+      List<Protos.Resource> resources = getCoreRequiredResouces(masterCpus, masterMem);
+      // Set master rcp port, web ui port, data port as range resources for this task.
+      // By default, it would require 19998, 19999 ports for master process.
+      resources.add(Protos.Resource.newBuilder()
+          .setName(Constants.MESOS_RESOURCE_PORTS)
+          .setType(Protos.Value.Type.RANGES)
+          .setRanges(Protos.Value.Ranges.newBuilder()
+              .addRange(Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.MASTER_WEB_PORT))
+                  .setEnd(sConf.getLong(Constants.MASTER_WEB_PORT)))
+              .addRange((Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.MASTER_RPC_PORT))
+                  .setEnd(sConf.getLong(Constants.MASTER_RPC_PORT))))).build());
+      return resources;
+    }
+
+    private List<Protos.Resource> getWorkerRequiredResources(long workerCpus, long workerMem) {
+      List<Protos.Resource> resources = getCoreRequiredResouces(workerCpus, workerMem);
+      // Set worker rcp port, web ui port, data port as range resources for this task.
+      // By default, it would require 29998, 29999, 30000 ports for worker process.
+      resources.add(Protos.Resource.newBuilder()
+          .setName(Constants.MESOS_RESOURCE_PORTS)
+          .setType(Protos.Value.Type.RANGES)
+          .setRanges(Protos.Value.Ranges.newBuilder()
+              .addRange(Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.WORKER_RPC_PORT))
+                  .setEnd(sConf.getLong(Constants.WORKER_RPC_PORT)))
+              .addRange(Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.WORKER_DATA_PORT))
+                  .setEnd(sConf.getLong(Constants.WORKER_DATA_PORT)))
+              .addRange((Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.WORKER_WEB_PORT))
+                  .setEnd(sConf.getLong(Constants.WORKER_WEB_PORT))))).build());
+      return resources;
+    }
+
+    private List<Protos.Resource> getCoreRequiredResouces(long cpus, long mem) {
+      // Build cpu/mem resource for task.
+      List<Protos.Resource> resources = new ArrayList<Protos.Resource>();
+      resources.add(Protos.Resource.newBuilder()
+          .setName(Constants.MESOS_RESOURCE_CPUS)
+          .setType(Protos.Value.Type.SCALAR)
+          .setScalar(Protos.Value.Scalar.newBuilder().setValue(cpus)).build());
+      resources.add(Protos.Resource.newBuilder()
+          .setName(Constants.MESOS_RESOURCE_MEM)
+          .setType(Protos.Value.Type.SCALAR)
+          .setScalar(Protos.Value.Scalar.newBuilder().setValue(mem)).build());
+      return resources;
     }
 
     @Override
