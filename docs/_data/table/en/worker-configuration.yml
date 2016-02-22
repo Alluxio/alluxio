@@ -67,7 +67,7 @@ alluxio.worker.session.timeout.ms:
   Timeout (in milliseconds) between worker and client connection indicating a lost session
   connection.
 alluxio.worker.tieredstore.block.locks:
-  Total number of block locks for a Alluxio block worker. Larger value leads to finer locking
+  Total number of block locks for an Alluxio block worker. Larger value leads to finer locking
   granularity, but uses more space.
 alluxio.worker.tieredstore.levels:
   The number of storage tiers on the worker

@@ -23,8 +23,8 @@ Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以�
 [Fedora发行版](https://fedoraproject.org/wiki/SIGs/bigdata/packaging)的一部分
 
 [Github ](https://github.com/alluxio/alluxio/) |
-[ 版 本  ](http://alluxio-project.org/releases/) |
-[ 下 载  ](http://alluxio-project.org/downloads/) |
+[ 版 本  ](http://alluxio.org/releases/) |
+[ 下 载  ](http://alluxio.org/downloads/) |
 [ 用户文档  ](Getting-Started.html) |
 [ 开发者文档  ](Contributing-to-Alluxio.html) |
 [ Meetup 小组  ](https://www.meetup.com/Alluxio/) |
@@ -68,6 +68,6 @@ InputStream和OutputStream的接口和对内存映射I/O的高效支持。我们
 
 # 下载
 
-你可以从[Alluxio下载页面](http://alluxio-project.org/downloads)获取已发布版本。每个版本都是由已编译二进
+你可以从[Alluxio下载页面](http://alluxio.org/downloads)获取已发布版本。每个版本都是由已编译二进
 制文件组成，与各种Hadoop版本兼容。如果你想从源码编译生成Alluxio，请前往
 [从Master分支构建Alluxio](Building-Alluxio-Master-Branch.html).

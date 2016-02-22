@@ -93,7 +93,7 @@ please refer to [MvnRepository](http://mvnrepository.com/).
 
 ## Configuring Distributed Applications
 
-If you are using a Alluxio client that is running separately from the Alluxio Master and Workers (in
+If you are using an Alluxio client that is running separately from the Alluxio Master and Workers (in
 a separate JVM), then you need to make sure that your AWS credentials are provided to the
 application JVM processes as well. The easiest way to do this is to add them as command line options
 when starting your client JVM process. For example:
@@ -106,7 +106,7 @@ After everything is configured, you can start up Alluxio locally to see that eve
 
 {% include Common-Commands/start-alluxio.md %}
 
-This should start a Alluxio master and a Alluxio worker. You can see the master UI at
+This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Next, you can run a simple example program:

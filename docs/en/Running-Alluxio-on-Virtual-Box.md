@@ -47,7 +47,7 @@ under `deploy/vagrant`:
 
 {% include Running-Alluxio-on-Virtual-Box/launch-cluster.md %}
 
-Each node of the cluster runs a Alluxio worker, and the `AlluxioMaster` runs a Alluxio master.
+Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs an Alluxio master.
 
 # Access the cluster
 

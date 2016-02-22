@@ -4,8 +4,8 @@ format:
 formatWorker:
   Format Tachyon Worker storage on this local node.
 bootstrap-conf:
-  Generate the bootstrap config file <code>tachyon-env.sh</code> with the specified 
-  <code>TACHYON_MASTER_HOSTNAME</code>, if the config file doesn't exist.
+  Generate the bootstrap config file <code>alluxio-env.sh</code> with the specified
+  <code>ALLUXIO_MASTER_HOSTNAME</code>, if the config file doesn't exist.
 tfs:
   Interact with Tachyon in command line style for basic file system operations.
   See <a href="Command-Line-Interface.html">Command Line</a> for more information.
@@ -21,11 +21,11 @@ runTests:
   Run all end-to-end tests on a Tachyon cluster. That is, execute the <code>runTest</code> command
   with all the possible args.
 journalCrashTest:
-  Test the Master Journal System in a crash scenario. Try <code>tachyon journalCrashTest -help</code>
+  Test the Master Journal System in a crash scenario. Try <code>alluxio journalCrashTest -help</code>
   to see the meanings of each argument in detail, or you can run it without args by default.
 readJournal:
   Read a Tachyon journal file from stdin and write a human-readable version of it to stdout. You
-  can run this on the journal file as <code>tachyon readJournal < journal/FileSystemMaster/log.out</code>.
+  can run this on the journal file as <code>alluxio readJournal < journal/FileSystemMaster/log.out</code>.
 killAll:
   Kill processes whose pid or command contains the <code>WORD</code> specified by the user.
 copyDir:

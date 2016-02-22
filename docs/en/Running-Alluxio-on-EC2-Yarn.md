@@ -42,7 +42,7 @@ in `deploy/vagrant` run:
 
 # Launch a Cluster
 
-To run a Alluxio cluster on EC2, first sign up for an Amazon EC2 account
+To run an Alluxio cluster on EC2, first sign up for an Amazon EC2 account
 on the [Amazon Web Services site](http://aws.amazon.com/).
 
 Then create [access keys](https://aws.amazon.com/developers/access-keys/) and set shell environment
@@ -133,7 +133,7 @@ scripts and binaries to launch masters and workers. With our EC2 setup, this pat
 2. The total number of Alluxio workers to start.
 3. A HDFS path to distribute the binaries for Alluxio ApplicationMaster.
 
-For example, here we launch a Alluxio cluster with 3 worker nodes, where an HDFS temp directory is
+For example, here we launch an Alluxio cluster with 3 worker nodes, where an HDFS temp directory is
 `hdfs://AlluxioMaster:9000/tmp/` and each YARN container can access Alluxio in `/alluxio`
 
 {% include Running-Alluxio-on-EC2-Yarn/three-arguments.md %}
@@ -152,7 +152,7 @@ From the output, we know the application ID to run Alluxio is
 
 NOTE: currently Alluxio YARN framework does not guarantee to start the Alluxio master on the
 AlluxioMaster machine; use the YARN Web UI to read the logs of this YARN application. The log
-of this application records which machine is used to launch a Alluxio master container like:
+of this application records which machine is used to launch an Alluxio master container like:
 
 {% include Running-Alluxio-on-EC2-Yarn/log-Alluxio-master.md %}
 

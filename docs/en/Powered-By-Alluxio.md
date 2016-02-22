@@ -1,14 +1,14 @@
 ---
 layout: global
-title: Powered By Tachyon
+title: Powered By Alluxio
 group: Resources
 ---
 
 There are many companies and organizations that use Alluxio. Here is a list of some of the Alluxio
 users. If your organization is using Alluxio, please feel free to 
-[add yourself to this list](https://github.com/amplab/tachyon/blob/master/docs/en/Powered-By-Alluxio.md)
+[add yourself to this list](https://github.com/amplab/alluxio/blob/master/docs/en/Powered-By-Alluxio.md)
 or let us know by email (project.alluxio@gmail.com) or
-[survey](http://alluxio-project.org/resources/survey-users/).
+[survey](http://alluxio.org/resources/survey-users/).
 
 * [Adatao](http://adatao.com/)
 * [Alibaba](http://www.alibaba.com/)

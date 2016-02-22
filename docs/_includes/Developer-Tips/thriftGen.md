@@ -1,3 +1,3 @@
 ```bash
-$ bin/tachyon thriftGen
+$ bin/alluxio thriftGen
 ```

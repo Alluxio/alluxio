@@ -1,5 +1,5 @@
 <%@ page import="java.util.*" %>
-<%@ page import="tachyon.web.*" %>
+<%@ page import="alluxio.web.*" %>
 
 <div class="row-fluid">
   <div class="accordion span14" id="accordion4">
