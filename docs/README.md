@@ -48,7 +48,7 @@ This will create a directory called `_site` containing `index.html` as well as t
 HTML files compiled from markdown files.
 
 In addition to generating the site as HTML from the markdown files, jekyll can serve the site via
-a webserver. To build and run a webserver, use the command `jekyll serve` and then visit the site 
+a web server. To build and run a web server, use the command `jekyll serve` and then visit the site 
 at [http://localhost:4000](http://localhost:4000).
 
 ## Multi-lauguage Support
