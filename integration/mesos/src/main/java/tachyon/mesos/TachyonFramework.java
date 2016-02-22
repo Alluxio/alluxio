@@ -55,6 +55,7 @@ public class TachyonFramework {
     private String mTaskName = "";
     private int mMasterTaskId;
     private Set<String> mWorkers = new HashSet<String>();
+    private OfferUtils mOfferUtils = new OfferUtils();
     int mLaunchedTasks = 0;
     int mMasterCount = 0;
 
@@ -126,7 +127,8 @@ public class TachyonFramework {
         Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
         List<Protos.Resource> resources;
         if (!mMasterLaunched && offerCpu >= masterCpu && offerMem >= masterMem
-            && mMasterCount < sConf.getInt(Constants.INTEGRATION_MESOS_TACHYON_MASTER_NODE_COUNT)) {
+            && mMasterCount < sConf.getInt(Constants.INTEGRATION_MESOS_TACHYON_MASTER_NODE_COUNT)
+            && mOfferUtils.hasAvailableMasterPorts(offer)) {
           executorBuilder
               .setName("Tachyon Master Executor")
               .setSource("master")
@@ -158,7 +160,8 @@ public class TachyonFramework {
           mMasterTaskId = mLaunchedTasks;
 
         } else if (mMasterLaunched && !mWorkers.contains(offer.getHostname())
-            && offerCpu >= workerCpu && offerMem >= workerMem) {
+            && offerCpu >= workerCpu && offerMem >= workerMem
+            && mOfferUtils.hasAvailableWorkerPorts(offer)) {
           final String memSize = FormatUtils.getSizeFromBytes((long) workerMem * Constants.MB);
           executorBuilder
               .setName("Tachyon Worker Executor")
