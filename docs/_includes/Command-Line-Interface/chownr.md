@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio tfs chownr alluxio-user /input/directory1
+$ ./bin/alluxio fs chownr alluxio-user /input/directory1
 ```

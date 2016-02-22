@@ -16,7 +16,6 @@
 package alluxio.shell;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.ClientContext;
@@ -25,14 +24,10 @@ import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.security.LoginUserTestUtils;
-import alluxio.security.authentication.AuthType;
-import alluxio.shell.command.CommandUtils;
-import alluxio.util.FormatUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
@@ -58,9 +53,7 @@ public abstract class AbstractAlluxioShellTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(SIZE_BYTES, Constants.MB,
-          Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE),
-          Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+          Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE));
   protected LocalAlluxioCluster mLocalAlluxioCluster = null;
   protected FileSystem mFileSystem = null;
   protected AlluxioShell mFsShell = null;
@@ -82,7 +75,7 @@ public abstract class AbstractAlluxioShellTest {
     clearLoginUser();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();
-    mFsShell = new AlluxioShell(new Configuration());
+    mFsShell = new AlluxioShell(ClientContext.getConf());
     mOutput = new ByteArrayOutputStream();
     mNewOutput = new PrintStream(mOutput);
     mOldOutput = System.out;
@@ -176,22 +169,6 @@ public abstract class AbstractAlluxioShellTest {
 
   protected boolean isInMemoryTest(String path) throws IOException, AlluxioException {
     return (mFileSystem.getStatus(new AlluxioURI(path)).getInMemoryPercentage() == 100);
-  }
-
-  protected String getLsResultStr(AlluxioURI tUri, int size, String testUser, String testGroup)
-      throws IOException, AlluxioException {
-    URIStatus status = mFileSystem.getStatus(tUri);
-    return getLsResultStr(tUri.getPath(), status.getCreationTimeMs(), size, "In Memory",
-        testUser, testGroup, status.getPermission(), status.isFolder());
-  }
-
-  protected String getLsResultStr(String path, long createTime, int size, String fileType,
-      String testUser, String testGroup, int permission, boolean isDir) throws IOException,
-      AlluxioException {
-    return String.format(Constants.COMMAND_FORMAT_LS,
-        FormatUtils.formatPermission((short) permission, isDir), testUser, testGroup,
-        FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTime), fileType,
-        path);
   }
 
   protected boolean fileExist(AlluxioURI path) {

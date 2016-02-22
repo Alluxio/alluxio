@@ -13,7 +13,7 @@
  * the License.
  */
 
-package alluxio.client.keyvalue.hadoop;
+package alluxio.hadoop.mapreduce;
 
 import alluxio.AlluxioURI;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
@@ -21,36 +21,33 @@ import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
 
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapred.RecordWriter;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.util.Progressable;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.hadoop.mapreduce.RecordWriter;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
 import java.io.IOException;
 import java.util.Arrays;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A {@link RecordWriter} to write key-value pairs into a temporary key-value store.
  */
 @ThreadSafe
-class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable> {
+final class KeyValueRecordWriter extends RecordWriter<BytesWritable, BytesWritable> {
   private final KeyValueStoreWriter mWriter;
-  private final Progressable mProgress;
 
   /**
    * Constructs a new {@link KeyValueRecordWriter}.
    *
    * @param storeUri the URI for the temporary key-value store to be created by this record writer
-   * @param progress the object to be used for reporting progress
    * @throws IOException when instance creation fails
    */
-  public KeyValueRecordWriter(AlluxioURI storeUri, Progressable progress) throws IOException {
+  public KeyValueRecordWriter(AlluxioURI storeUri) throws IOException {
     try {
       mWriter = KeyValueSystem.Factory.create().createStore(storeUri);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
-    mProgress = progress;
   }
 
   @Override
@@ -61,14 +58,13 @@ class KeyValueRecordWriter implements RecordWriter<BytesWritable, BytesWritable>
       mWriter.put(Arrays.copyOf(key.getBytes(), key.getLength()),
           Arrays.copyOf(value.getBytes(), value.getLength()));
       // Sends a progress to the job manager to inform it that the task is still running.
-      mProgress.progress();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
   }
 
   @Override
-  public synchronized void close(Reporter reporter) throws IOException {
+  public synchronized void close(TaskAttemptContext context) throws IOException {
     // Completes the new store.
     mWriter.close();
   }

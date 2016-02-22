@@ -21,7 +21,7 @@ The master branch is in version 0.9.0-SNAPSHOT:
 #### Apache Maven
 ```xml
 <dependency>
-  <groupId>org.alluxio.alluxio</groupId>
+  <groupId>org.alluxio</groupId>
   <artifactId>alluxio-core-client</artifactId>
   <version>1.0.0</version>
 </dependency>
@@ -30,19 +30,19 @@ The master branch is in version 0.9.0-SNAPSHOT:
 #### Gradle
 
 ```groovy
-compile 'org.alluxio.alluxio:alluxio-core-client:1.0.0'
+compile 'org.alluxio:alluxio-core-client:1.0.0'
 ```
 
 #### Apache Ant
 ```xml
-<dependency org="org.alluxio.alluxio" name="alluxio" rev="1.0.0">
+<dependency org="org.alluxio" name="alluxio" rev="1.0.0">
   <artifact name="alluxio-core-client" type="jar" />
 </dependency>
 ```
 
 #### SBT
 ```
-libraryDependencies += "org.alluxio.alluxio" % "alluxio-core-client" % "1.0.0"
+libraryDependencies += "org.alluxio" % "alluxio-core-client" % "1.0.0"
 ```
 
 ## Contributing to Alluxio
