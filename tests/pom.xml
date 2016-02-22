@@ -108,7 +108,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.alluxio.alluxio</groupId>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
