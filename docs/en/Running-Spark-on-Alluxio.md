@@ -13,7 +13,7 @@ data to those systems.
 
 ## Compatibility
 
-Alluxio should work together with Spark 1.2 or later out-of-the-box.
+Alluxio works together with Spark 1.1 or later out-of-the-box.
 
 
 ## Prerequisites

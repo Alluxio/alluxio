@@ -10,7 +10,7 @@ priority: 0
 
 ## 兼容性
 
-Alluxio直接兼容Spark 1.2或更新版本而无需修改.
+Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 
 ## 前期准备
 
