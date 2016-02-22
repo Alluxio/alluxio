@@ -42,7 +42,7 @@ in `deploy/vagrant` run:
 
 # Launch a Cluster
 
-To run a Alluxio cluster on EC2, first sign up for an Amazon EC2 account
+To run an Alluxio cluster on EC2, first sign up for an Amazon EC2 account
 on the [Amazon Web Services site](http://aws.amazon.com/).
 
 Then create [access keys](https://aws.amazon.com/developers/access-keys/)and set shell environment
@@ -70,7 +70,7 @@ In the configuration file `deploy/vagrant/conf/mesos.yml`, set the value of `Typ
 `Github` or `Release` dependening on whether you would like to build Mesos from a GitHub branch or a
 release.
 
-Now you can launch the Mesos cluster and Alluxio Mesos Framework which in turn launches a Alluxio
+Now you can launch the Mesos cluster and Alluxio Mesos Framework which in turn launches an Alluxio
 cluster with Hadoop version 2.4.1 as under filesystem in us-east-1b by running the script under
 `deploy/vagrant`:
 

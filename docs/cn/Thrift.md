@@ -105,13 +105,13 @@ Debian Lenny用户需要一些来自backports的包：
 
 # 利用Thrift生成Java文件
 
-Tachyon利用thrift文件定义了其RPC服务，该文件位于：
+Alluxio利用thrift文件定义了其RPC服务，该文件位于：
 
-    ./common/src/thrift/tachyon.thrift
+    ./common/src/thrift/alluxio.thrift
 
 并利用thrift文件生成相应的Java文件，该Java文件位于：
 
-    ./common/src/main/java/tachyon/thrift/
+    ./common/src/main/java/alluxio/thrift/
 
 如果thrift文件被修改了，要重新生成Java文件，你可以运行：
 
