@@ -278,10 +278,18 @@ public class TachyonFramework {
     }
 
     private List<Protos.Resource> getExecutorResources() {
+      // JIRA: https://issues.apache.org/jira/browse/MESOS-1807
+      // From Mesos 0.22.0, Executors must to be set the resources that must be greater
+      // than MIN_CPUS(0.01)/MIN_MEM(32mb).
       List<Protos.Resource> resources = new ArrayList<Protos.Resource>(2);
+      // Both cpus/mem are "scalar" type, which means it only accept double value.
+      // Set resource name is "cpus", type is scalar and the value is 0.1 to tell Mesos
+      // this executor would allocate 0.1 cpu for itself.
       resources.add(Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_CPUS)
               .setType(Protos.Value.Type.SCALAR)
               .setScalar(Protos.Value.Scalar.newBuilder().setValue(0.1d)).build());
+      // Set resource name is "mem", type is scalar and the value is 32.0mb to tell Mesos
+      // this executor would allocate 32.0mb mem for itself.
       resources.add(Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_MEM)
               .setType(Protos.Value.Type.SCALAR)
               .setScalar(Protos.Value.Scalar.newBuilder().setValue(32.0d)).build());
