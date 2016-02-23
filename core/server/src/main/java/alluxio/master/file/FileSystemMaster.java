@@ -1085,7 +1085,7 @@ public final class FileSystemMaster extends AbstractMaster {
             .setRecursive(options.isRecursive())
             .setOperationTimeMs(options.getOperationTimeMs())
             .setPermissionStatus(PermissionStatus.get(MasterContext.getConf(), true))
-            .setMountPoint(options.isMountPoint())
+            .setMountPoint(mMountTable.isMountPoint(path))
             .build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
 
@@ -1491,7 +1491,7 @@ public final class FileSystemMaster extends AbstractMaster {
         completeFile(path, completeOptions);
         return fileId;
       } else {
-        return loadMetadataDirectory(path, recursive, false);
+        return loadMetadataDirectory(path, recursive);
       }
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));
@@ -1505,18 +1505,17 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param path the path for which metadata should be loaded
    * @param recursive whether parent directories should be created if they do not already exist
-   * @param mountPoint whether the directory to load metadata for is a mount point
    * @return the file id of the loaded directory
    * @throws FileAlreadyExistsException if the object to be loaded already exists
    * @throws InvalidPathException if invalid path is encountered
    * @throws IOException if an I/O error occurs   *
    * @throws AccessControlException if permission checking fails
    */
-  private long loadMetadataDirectory(AlluxioURI path, boolean recursive, boolean mountPoint)
+  private long loadMetadataDirectory(AlluxioURI path, boolean recursive)
       throws IOException, FileAlreadyExistsException, InvalidPathException, AccessControlException {
     CreateDirectoryOptions options =
         new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(recursive)
-            .setMountPoint(mountPoint).setPersisted(true).build();
+            .setPersisted(true).build();
     InodeTree.CreatePathResult result = mkdir(path, options);
     List<Inode> inodes = null;
     if (result.getCreated().size() > 0) {
@@ -1551,7 +1550,7 @@ public final class FileSystemMaster extends AbstractMaster {
       boolean loadMetadataSuceeded = false;
       try {
         // This will create the directory at alluxioPath
-        loadMetadataDirectory(alluxioPath, false, true);
+        loadMetadataDirectory(alluxioPath, false);
         loadMetadataSuceeded = true;
       } finally {
         if (!loadMetadataSuceeded) {

@@ -434,7 +434,7 @@ public abstract class Inode implements JournalEntryRepresentable {
         .append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs)
         .append(", USER_NAME:").append(mUserName)
         .append(", GROUP_NAME:").append(mGroupName)
-        .append(", PERMISSION:")
+        .append(", PERMISSION:").append(mPermission)
         .append(")").toString();
   }
 }
