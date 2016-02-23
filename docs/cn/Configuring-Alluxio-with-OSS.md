@@ -6,17 +6,17 @@ group: Under Store
 priority: 4
 ---
 
-该向导介绍如何配置Alluxio从而使用[Aliyun OSS](http://www.aliyun.com/product/oss/?lang=en)作为底层文件系统。对象存储服务（OSS）是阿里云提供的一个大容量、安全、高可靠性的云存储服务。
+该指南介绍如何配置Alluxio以使用[Aliyun OSS](http://www.aliyun.com/product/oss/?lang=en)作为底层文件系统。对象存储服务（OSS）是阿里云提供的一个大容量、安全、高可靠性的云存储服务。
 
 ## 初始步骤
 
-要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制文件。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
+要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-然后，由template文件创建配置文件：
+然后，如果你还没有配置文件，可以由template文件创建配置文件：
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
-另外，为了在OSS上使用Alluxio，需要创建一个bucket（或者使用一个已有的bucket）。还要注意在该bucket里使用的目录，可以在该bucket中新建一个目录，或者使用一个存在的目录。在该向导中，OSS bucket的名称为OSS_BUCKET，在该bucket里的目录名称为OSS_DIRECTORY。另外，要使用OSS服务，还需提供一个oss 端点，该端点指定了你的bucket在哪个范围，本向导中的端点名为OSS_ENDPOINT。要了解更多指定范围的端点的具体内容，可以参考[这里](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/domain-region)，要了解更多OSS Bucket的信息，请参考[这里](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/function&bucket)
+另外，为了在OSS上使用Alluxio，需要创建一个bucket（或者使用一个已有的bucket）。还要注意在该bucket里使用的目录，可以在该bucket中新建一个目录，或者使用一个存在的目录。在该指南中，OSS bucket的名称为OSS_BUCKET，在该bucket里的目录名称为OSS_DIRECTORY。另外，要使用OSS服务，还需提供一个oss 端点，该端点指定了你的bucket在哪个范围，本向导中的端点名为OSS_ENDPOINT。要了解更多指定范围的端点的具体内容，可以参考[这里](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/domain-region)，要了解更多OSS Bucket的信息，请参考[这里](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/function&bucket)
 
 ## 配置Alluxio
 
@@ -38,13 +38,13 @@ priority: 4
 
 ## 配置分布式应用
 
-如果你使用的Alluxio client并非运行在Alluxio Master或者Worker上（在其他JVM上），那需要确保为该JVM提供了Aliyun证书，最简单的方法是在启动client JVM时添加如下选项：
+如果你使用的Alluxio Client并非运行在Alluxio Master或者Worker上（在其他JVM上），那需要确保为该JVM提供了Aliyun证书，最简单的方法是在启动client JVM时添加如下选项：
 
 {% include Configuring-Alluxio-with-OSS/java-bash.md %}
 
 ## 使用OSS在本地运行Alluxio
 
-配置完成后，你可以在本地启动Alluxio，观察是否正确运行：
+配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
 {% include Common-Commands/start-alluxio.md %}
 
