@@ -25,9 +25,8 @@ Now, you can start Alluxio:
 
 {% include Running-Alluxio-on-a-Cluster/start-Alluxio.md %}
 
-To verify that Alluxio is running, you can visit
-[http://alluxio.master.hostname:19999](http://alluxio.master.hostname:19999), check the log in the
-direcotry `alluxio/logs`, or run a sample program:
+To verify that Alluxio is running, you can visit `http://<alluxio_master_hostname>:19999`, check the
+log in the direcotry `alluxio/logs`, or run a sample program:
 
 {% include Running-Alluxio-on-a-Cluster/run-tests.md %}
 

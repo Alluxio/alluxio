@@ -7,7 +7,7 @@ priority: 4
 ---
 
 Alluxio with Fault Tolerance can be deployed on Amazon EC2 using the
-[Vagrant scripts](https://github.com/amplab/alluxio/tree/master/deploy/vagrant) that come with
+[Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with
 Alluxio. The scripts let you create, configure, and destroy clusters that come automatically
 configured with Apache HDFS.
 
@@ -43,7 +43,7 @@ in `deploy/vagrant` run:
 
 # Launch a Cluster
 
-To run a Alluxio cluster on EC2, first sign up for an Amazon EC2 account
+To run an Alluxio cluster on EC2, first sign up for an Amazon EC2 account
 on the [Amazon Web Services site](http://aws.amazon.com/).
 
 Then create [access keys](https://aws.amazon.com/developers/access-keys/)
@@ -71,11 +71,11 @@ number of AlluxioMasters you want. In fault tolerant mode, value of `Masters` sh
 By default, the Vagrant script creates a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
 named *alluxio-vagrant-test* at
-[Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
+[Region(**us-east-1**) and Availability Zone(**us-east-1b**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
 The security group will be set up automatically in the region with all inbound/outbound network
 traffic opened. You can change the *security group*, *region* and *availability zone* in `ec2.yml`.
 
-Now you can launch the Alluxio cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running
+Now you can launch the Alluxio cluster with Hadoop2.4.1 as under filesystem in us-east-1b by running
 the script under `deploy/vagrant`:
 
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/launch-cluster.md %}
@@ -83,7 +83,7 @@ the script under `deploy/vagrant`:
 Note that the `<number of machines>` above should be larger than or equal to `Masters` set in
 `deploy/vagrant/conf/alluxio.yml`.
 
-Each node of the cluster has a Alluxio worker and each master node has a Alluxio master. The leader
+Each node of the cluster has an Alluxio worker and each master node has an Alluxio master. The leader
 is in one of the master nodes.
 
 # Access the cluster

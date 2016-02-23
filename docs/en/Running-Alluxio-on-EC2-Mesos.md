@@ -7,7 +7,7 @@ priority: 4
 ---
 
 Alluxio can be deployed on Amazon EC2 using Apache Mesos, which is in turn deployed on EC2 using the
-[Vagrant scripts](https://github.com/amplab/alluxio/tree/master/deploy/vagrant) that come with
+[Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with
 Alluxio. The scripts let you create, configure, and destroy clusters that come automatically
 configured with HDFS.
 
@@ -42,7 +42,7 @@ in `deploy/vagrant` run:
 
 # Launch a Cluster
 
-To run a Alluxio cluster on EC2, first sign up for an Amazon EC2 account
+To run an Alluxio cluster on EC2, first sign up for an Amazon EC2 account
 on the [Amazon Web Services site](http://aws.amazon.com/).
 
 Then create [access keys](https://aws.amazon.com/developers/access-keys/)and set shell environment
@@ -62,7 +62,7 @@ name and `Key_Path` to the path to the pem key.
 By default, the Vagrant script creates a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
 named *alluxio-vagrant-test* at
-[Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
+[Region(**us-east-1**) and Availability Zone(**us-east-1b**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
 The security group will be set up automatically in the region with all inbound/outbound network
 traffic opened. You can change the security group, region and availability zone in `ec2.yml`.
 
@@ -70,8 +70,8 @@ In the configuration file `deploy/vagrant/conf/mesos.yml`, set the value of `Typ
 `Github` or `Release` dependening on whether you would like to build Mesos from a GitHub branch or a
 release.
 
-Now you can launch the Mesos cluster and Alluxio Mesos Framework which in turn launches a Alluxio
-cluster with Hadoop version 2.4.1 as under filesystem in us-east-1a by running the script under
+Now you can launch the Mesos cluster and Alluxio Mesos Framework which in turn launches an Alluxio
+cluster with Hadoop version 2.4.1 as under filesystem in us-east-1b by running the script under
 `deploy/vagrant`:
 
 {% include Running-Alluxio-on-EC2-Mesos/launch-cluster.md %}

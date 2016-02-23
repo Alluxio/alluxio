@@ -28,3 +28,7 @@ screenshot_workers:
   ../img/screenshot_workers.png
 stack:
   ../img/stack.png
+screenshot_masterMetrics:
+  ../img/screenshot_masterMetrics.png
+screenshot_workerMetrics:
+  ../img/screenshot_workerMetrics.png

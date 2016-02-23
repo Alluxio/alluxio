@@ -1,0 +1,18 @@
+alluxio.worker.tieredstore.levels:
+  The maximum number of storage tiers in Tachyon. Currently, Tachyon supports 1, 2, or 3 tiers.
+alluxio.worker.tieredstore.level{x}.alias:
+  The alias of each storage tier, where x represents storage tier number (top tier is 0). Currently, there are 3 aliases, MEM, SSD, and HDD.
+alluxio.worker.tieredstore.level{x}.dirs.path:
+  The paths of storage directories in storage tier x, delimited by comma. x represents the storage tier number (top tier is 0). It is suggested to have one storage directory per hardware device for the SSD and HDD tiers.
+alluxio.worker.tieredstore.level{x}.dirs.quota:
+  The quotas for all storage directories in storage tier x, delimited by comma. x represents the storage tier number (starting from 0). For a particular storage tier, if the list of quotas is shorter than the list of directories of that tier, then the quotas for the remaining directories will just use the last-defined quota. Quota definitions use these suffixes&#58; KB, MB, GB, TB, PB.
+alluxio.worker.tieredstore.level{x}.reserved.ratio:
+  Value is between 0 and 1, it sets the portion of space reserved on storage tier x. If the space is unavailable, the space reserver will evict blocks until the reserved space is available again.
+alluxio.worker.tieredstore.reserver.enabled:
+  Flag for enabling the space reserver service.
+alluxio.worker.tieredstore.reserver.interval.ms:
+  Interval for the space reserver to check if enough space is reserved in all tiers.
+alluxio.worker.allocator.class:
+  The class name of the allocation strategy to use for new blocks in Tachyon.
+alluxio.worker.evictor.class:
+  The class name of the block eviction strategy to use when a storage layer runs out of space.
