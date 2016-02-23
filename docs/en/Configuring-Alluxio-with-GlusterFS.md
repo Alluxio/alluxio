@@ -33,7 +33,7 @@ After everything is configured, you can start up Alluxio locally to see that eve
 
 {% include Common-Commands/start-alluxio.md %}
 
-This should start a Alluxio master and a Alluxio worker. You can see the master UI at
+This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Next, you can run a simple example program:

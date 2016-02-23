@@ -12,9 +12,9 @@ priority: 1
 # Where Alluxio Fits
 
 Because of Alluxio's memory centric design and being the central point of access, Alluxio holds a
-unique place in the big data ecosystem, residing between traditional storage (e.g ., Amazon S3,
-Apache HDFS and OpenStack Swift, etc.) and computation frameworks and applications (e.g., Spark,
-Hadoop MapReduce).  For user applications and computation frameworks, Alluxio is the underlayer that
+unique place in the big data ecosystem, residing between traditional storage such as Amazon S3,
+Apache HDFS or OpenStack Swift and computation frameworks and applications such as Apache Spark or
+Hadoop MapReduce. For user applications and computation frameworks, Alluxio is the underlayer that
 manages data access and fast storage, facilitating data sharing and locality between jobs,
 regardless of whether they are running with the same computation engine. As a result, Alluxio can
 bring an order of magnitude speed up for those big data applications while providing a  common
@@ -27,7 +27,7 @@ number of varied data sources.
 
 ![Stack]({{site.data.img.stack}})
 
-# Alluxio's Components
+# Alluxio Components
 
 Alluxio's design uses a single master and multiple workers. At a very high level, Alluxio can be
 divided into three components, the [master](#master), [workers](#worker), and [clients](#client).
@@ -39,12 +39,12 @@ client portion of Alluxio.
 ### Master
 
 Alluxio may be deployed in one of two master modes, [single master](Running-Alluxio-Locally.html) or
-[multiple masters (one primary plus standbys)](Running-Alluxio-Fault-Tolerant-on-EC2.html). The
-master  is primarily responsible for managing the global metadata of the system, for example, the
-file system  tree. Clients may interact with the master to read or modify this metadata. In
-addition, all workers periodically heartbeat to the master to maintain their participation in the
-cluster. The master does not initiate communication with other components; it only interacts with
-other components by responding to requests.
+[fault tolerant mode](Running-Alluxio-Fault-Tolerant-on-EC2.html). The master is primarily
+responsible for managing the global metadata of the system, for example, the file system tree.
+Clients may interact with the master to read or modify this metadata. In addition, all workers
+periodically heartbeat to the master to maintain their participation in the cluster. The master does
+not initiate communication with other components; it only interacts with other components by
+responding to requests.
 
 ### Worker
 

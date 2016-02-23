@@ -37,8 +37,8 @@ support, so you will need to build your own Alluxio if you want to use alluxio-f
 deployment.
 
 The best way to do so is to either clone the Alluxio [GitHub
-repository](https://github.com/amplab/alluxio) and choose your favourite branch from git, or to
-grab a [source distribution](https://github.com/amplab/alluxio/releases) directly. Please, refer to
+repository](https://github.com/alluxio/alluxio) and choose your favourite branch from git, or to
+grab a [source distribution](https://github.com/alluxio/alluxio/releases) directly. Please, refer to
 [this page](Building-Alluxio-Master-Branch.html))
 for building instructions.
 
@@ -112,7 +112,7 @@ Note that, in either cases, the `mode` parameter is currently ignored by Alluxio
 ## `read(int fd, void* buf, size_t count)`
 (see also `man 2 read`)
 
-A read system call will only succeed when `fd` refers to a Alluxio file that has been previously
+A read system call will only succeed when `fd` refers to an Alluxio file that has been previously
 opened with the `O_RDONLY` flags.
 
 ## `lseek(int fd, off_t off, int whence)`
@@ -124,7 +124,7 @@ Seeking is supported only on files open for reading, i.e., on files that have be
 ## `write(int fd, const void* buf, size_t count)`
 (see also `man 2 write`)
 
-A write system call will only succeed when `fd` refers to a Alluxio file that has been previously
+A write system call will only succeed when `fd` refers to an Alluxio file that has been previously
 opened  with the `O_WRONLY` flag.
 
 # Performance considerations
