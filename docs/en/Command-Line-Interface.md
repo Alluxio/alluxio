@@ -71,22 +71,18 @@ authorization with Posix file permission. Group is an authorizable entity in Pos
 model. The file owner or super-user can execute this command to change the group of the file or
 directory.
 
+Adding -R option also changes the group of child file and child directory recursively.
+
 For example, `chgrp` can be used as a quick way to change the group of file:
 
 {% include Command-Line-Interface/chgrp.md %}
-
-## chgrpr
-The `chgrpr` command is similar to `chgrp`, but it also recursively changes the group of child file
-and directory in Alluxio.
-
-For example, `chgrpr` can be used as a quick way to recursively change the group of directory:
-
-{% include Command-Line-Interface/chgrpr.md %}
 
 ## chmod
 The `chmod` command changes the permission of file or directory in Alluxio. Currently octal mode
 is supported: the numerical format accepts three octal digits which refer to permissions for the
 file owner, the group and other users. Here is number-permission mapping table:
+
+Adding -R option also changes the permission of child file and child directory recursively.
 
 <table class="table table-striped">
   <tr><th>Number</th><th>Permission</th><th>rwx</th></tr>
@@ -103,29 +99,15 @@ For example, `chmod` can be used as a quick way to change the permission of file
 
 {% include Command-Line-Interface/chmod.md %}
 
-## chmodr
-The `chmodr` command is similar to `chmod`, but it also changes the permission of child file and
-child directory in Alluxio.
-
-For example, `chmodr` can be used as a quick way to recursively change the permission of directory:
-
-{% include Command-Line-Interface/chmodr.md %}
-
 ## chown
 The `chown` command changes the owner of the file or directory in Alluxio. For obvious security
 reasons, the ownership of a file can only be altered by a super-user.
 
+Adding -R option also changes the owner of child file and child directory recursively.
+
 For example, `chown` can be used as a quick way to change the owner of file:
 
 {% include Command-Line-Interface/chown.md %}
-
-## chownr
-The `chownr` command is similar to `chown`, but it also changes the owner of child file and child
-directory in Alluxio.
-
-For example, `chownr` can be used as a quick way to recursively change the owner of directory:
-
-{% include Command-Line-Interface/chownr.md %}
 
 ## copyFromLocal
 The `copyFromLocal` command copies the contents of a file in your local file system into Alluxio.
@@ -241,18 +223,12 @@ The `ls` command lists all the immediate children in a directory and displays th
 modification time, and in memory status of the files. Using `ls` on a file will only display the
 information for that specific file.
 
+Adding -R option also recursively lists child directories, displaying the entire subtree starting
+from the input path.
+
 For example, `ls` can be used to browse the file system.
 
 {% include Command-Line-Interface/ls.md %}
-
-## lsr
-The `lsr` command is similar to `ls`, but it also recursively lists child directories, displaying
-the entire subtree starting from the input path. As with `ls`, using `lsr` on a file will only
-display information for that specific file.
-
-For example, `lsr` can be used to browse the file system.
-
-{% include Command-Line-Interface/lsr.md %}
 
 ## mkdir
 The `mkdir` command creates a new directory in Alluxio space. It is recursive and will create any
@@ -319,17 +295,11 @@ The `rm` command removes a file from Alluxio space and the under storage system.
 unavailable immediately after this command returns, but the actual data may be deleted a while
 later.
 
+Add -R option will delete all contents of the directory and then the directory itself.
+
 For example, `rm` can be used to remove temporary files which are no longer needed.
 
 {% include Command-Line-Interface/rm2.md %}
-
-## rmr
-The `rmr` command is similar to `rm`, but can also take a directory as an argument. `Rmr` will
-delete all contents of the directory and then the directory itself.
-
-For example, `rmr` can be used to clean up entire subtrees in the Alluxio.
-
-{% include Command-Line-Interface/rmr.md %}
 
 ## setTtl
 The `setTtl` command sets the time-to-live of a file, in milliseconds. The file will automatically
