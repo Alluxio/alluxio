@@ -205,11 +205,7 @@ public final class InodeDirectory extends Inode {
 
   @Override
   public synchronized String toString() {
-    StringBuilder sb = new StringBuilder("InodeDirectory(");
-    return sb.append(super.toString())
-        .append(", MOUNT POINT:").append(mMountPoint)
-        .append(", ").append(getChildren())
-        .append(")").toString();
+    return toStringHelper().add("mountPoint", mMountPoint).add("children", mChildren).toString();
   }
 
   /**
