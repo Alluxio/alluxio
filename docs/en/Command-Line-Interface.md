@@ -71,7 +71,7 @@ authorization with Posix file permission. Group is an authorizable entity in Pos
 model. The file owner or super-user can execute this command to change the group of the file or
 directory.
 
-Adding -R option also changes the group of child file and child directory recursively.
+Adding `-R` option also changes the group of child file and child directory recursively.
 
 For example, `chgrp` can be used as a quick way to change the group of file:
 
@@ -82,7 +82,7 @@ The `chmod` command changes the permission of file or directory in Alluxio. Curr
 is supported: the numerical format accepts three octal digits which refer to permissions for the
 file owner, the group and other users. Here is number-permission mapping table:
 
-Adding -R option also changes the permission of child file and child directory recursively.
+Adding `-R` option also changes the permission of child file and child directory recursively.
 
 <table class="table table-striped">
   <tr><th>Number</th><th>Permission</th><th>rwx</th></tr>
@@ -103,7 +103,7 @@ For example, `chmod` can be used as a quick way to change the permission of file
 The `chown` command changes the owner of the file or directory in Alluxio. For obvious security
 reasons, the ownership of a file can only be altered by a super-user.
 
-Adding -R option also changes the owner of child file and child directory recursively.
+Adding `-R` option also changes the owner of child file and child directory recursively.
 
 For example, `chown` can be used as a quick way to change the owner of file:
 
@@ -223,7 +223,7 @@ The `ls` command lists all the immediate children in a directory and displays th
 modification time, and in memory status of the files. Using `ls` on a file will only display the
 information for that specific file.
 
-Adding -R option also recursively lists child directories, displaying the entire subtree starting
+Adding `-R` option also recursively lists child directories, displaying the entire subtree starting
 from the input path.
 
 For example, `ls` can be used to browse the file system.
@@ -295,7 +295,7 @@ The `rm` command removes a file from Alluxio space and the under storage system.
 unavailable immediately after this command returns, but the actual data may be deleted a while
 later.
 
-Add -R option will delete all contents of the directory and then the directory itself.
+Add `-R` option will delete all contents of the directory and then the directory itself.
 
 For example, `rm` can be used to remove temporary files which are no longer needed.
 
