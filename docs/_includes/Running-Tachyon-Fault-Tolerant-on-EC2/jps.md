@@ -1,3 +1,0 @@
-```bash
-$ jps | grep TachyonMaster
-```

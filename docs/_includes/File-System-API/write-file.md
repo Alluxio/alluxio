@@ -1,6 +1,6 @@
 ```java
 FileSystem fs = FileSystem.Factory.get();
-TachyonURI path = new TachyonURI("/myFile");
+AlluxioURI path = new AlluxioURI("/myFile");
 // Create a file and get its output stream
 FileOutStream out = fs.createFile(path);
 // Write data

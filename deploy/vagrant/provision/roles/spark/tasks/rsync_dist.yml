@@ -4,7 +4,7 @@
 - name: make sure /spark exists
   script: mkdir.sh
 
-- name: rsync spark runtime from TachyonMaster
-  shell: rsync -avz TachyonMaster:/spark/* /spark
+- name: rsync spark runtime from AlluxioMaster
+  shell: rsync -avz AlluxioMaster:/spark/* /spark
 
 # vim :set filetype=ansible.yaml:

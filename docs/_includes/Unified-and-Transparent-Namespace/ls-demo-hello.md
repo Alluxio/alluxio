@@ -1,4 +1,4 @@
 ```bash
-$ ${TACHYON_HOME}/bin/tachyon tfs ls /demo/hello
+$ ${ALLUXIO_HOME}/bin/alluxio fs ls /demo/hello
 ... # should contain /demo/hello
 ```

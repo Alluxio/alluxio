@@ -4,8 +4,8 @@ python <<EOF
 import re
 
 PATTERN = r'''<exclusion>
-\s*<groupId>org\.tachyonproject</groupId>
-\s*<artifactId>tachyon-underfs-s3</artifactId>
+\s*<groupId>org\.alluxio\.alluxio</groupId>
+\s*<artifactId>alluxio-underfs-s3</artifactId>
 \s*</exclusion>'''
 POM = '/spark/core/pom.xml'
 

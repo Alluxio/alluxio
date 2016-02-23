@@ -1,8 +1,0 @@
-- name: start tachyon mesos framework
-  command: /tachyon/integration/bin/tachyon-mesos.sh TachyonMaster:50050
-  environment:
-    TACHYON_UNDERFS_ADDRESS: "hdfs://TachyonMaster:9000/"
-  async: 10
-  poll: 0
-
-# vim :set filetype=ansible.yaml:

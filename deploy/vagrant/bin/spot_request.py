@@ -4,8 +4,8 @@
 """
 Submit or Cancel spot instance requests.
 
-When submit, the process will block until the request is fulfilled 
-or the process is killed by user(like CTRL + C), 
+When submit, the process will block until the request is fulfilled
+or the process is killed by user(like CTRL + C),
 if the process is killed, the requests will be automatically canceled.
 """
 
@@ -84,11 +84,11 @@ def request_id_to_tag(requests, masters):
     for i, rid in enumerate([r.id for r in requests]):
         # TODO(cc): This naming convention for host may need changes
         if i == 0:
-            host = 'TachyonMaster'
+            host = 'AlluxioMaster'
         elif i < masters:
-            host = 'TachyonMaster{}'.format(i + 1)
+            host = 'AlluxioMaster{}'.format(i + 1)
         else:
-            host = 'TachyonWorker{}'.format(i - masters + 1)
+            host = 'AlluxioWorker{}'.format(i - masters + 1)
         ret[rid] = add_tag(host)
     return ret
 
@@ -170,13 +170,13 @@ def mock_vagrant_info(instance_id_to_tag_ip):
 
 
 def is_ssh_ready(host):
-    s = subprocess.Popen(['ssh', 
-        '-o', 'StrictHostKeyChecking=no', 
+    s = subprocess.Popen(['ssh',
+        '-o', 'StrictHostKeyChecking=no',
         '-o', 'UserKnownHostsFile=/dev/null',
         '-o', 'ConnectTimeout=30',
         '-i', os.path.expanduser(get_ec2_conf()['Key_Path']),
         '%s@%s' % ('ec2-user', host),
-        'true'], 
+        'true'],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
     s.communicate()
@@ -186,14 +186,14 @@ def is_ssh_ready(host):
 def wait_for_ssh(hosts):
     while len(hosts):
         hosts = [h for h in hosts if not is_ssh_ready(h)]
-            
+
 
 def parse():
     parser = argparse.ArgumentParser()
     grp = parser.add_mutually_exclusive_group(required=True)
     grp.add_argument('-s', '--submit', action='store_true')
     grp.add_argument('-c', '--cancel', action='store_true')
-    parser.add_argument('--masters', type=int, default=1, help='number of Tachyon masters')
+    parser.add_argument('--masters', type=int, default=1, help='number of Alluxio masters')
     return parser.parse_args()
 
 

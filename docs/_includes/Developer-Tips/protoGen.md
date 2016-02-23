@@ -1,3 +1,3 @@
 ```bash
-$ bin/tachyon protoGen
+$ bin/alluxio protoGen
 ```

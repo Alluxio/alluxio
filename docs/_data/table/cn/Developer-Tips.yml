@@ -3,8 +3,8 @@ format:
 formatWorker:
   格式化Tachyon Worker的本地存储。
 bootstrap-conf:
-  如果引导程序配置文件<code>tachyon-env.sh</code>不存在，利用<code>TACHYON_MASTER_HOSTNAME</code>生成。
-tfs:
+  如果引导程序配置文件<code>alluxio-env.sh</code>不存在，利用<code>ALLUXIO_MASTER_HOSTNAME</code>生成。
+fs:
   在命令行中与Tachyon进行交互，从而完成基本的文件系统操作。详情见<a href="Command-Line-Interface.html">Command Line</a>。
 loadufs:
   将<code>UfsPath</code>下的文件加载到给定的<code>TachyonPath</code>中。<code>ExcludePathPrefixes</code>可以是一组用“;”隔开的前缀。<code>ExcludePathPrefixes</code>中每个前缀下的路径都不会被加载。
@@ -13,9 +13,9 @@ runTest:
 runTests:
   在一个Tachyon集群上运行所有端到端的测试。该命令等同于运行包含所有参数的<code>runTest</code>命令。
 journalCrashTest:
-  在崩溃的情形下测试Master日志系统。可以执行<code>tachyon journalCrashTest -help</code>来获取每个参数的详细信息，或者你可以不带任何参数默认执行。
+  在崩溃的情形下测试Master日志系统。可以执行<code>alluxio journalCrashTest -help</code>来获取每个参数的详细信息，或者你可以不带任何参数默认执行。
 readJournal:
-  从标准输入读取一个Tachyon的日志文件，并且以将其以文字形式写到标准输出上。你可以对一个日志文件执行类似于<code>tachyon readJournal < journal/FileSystemMaster/log.out</code>的命令。
+  从标准输入读取一个Tachyon的日志文件，并且以将其以文字形式写到标准输出上。你可以对一个日志文件执行类似于<code>alluxio readJournal < journal/FileSystemMaster/log.out</code>的命令。
 killAll:
   杀死pid或命令中包含<code>WORD</code>的进程，<code>WORD</code>由用户指定。
 copyDir:

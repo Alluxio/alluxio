@@ -1,8 +1,8 @@
 command,args
 format,[-s]
 formatWorker,None
-bootstrap-conf,&lt;TACHYON_MASTER_HOSTNAME&gt;
-tfs,[tfs-commands]
+bootstrap-conf,&lt;ALLUXIO_MASTER_HOSTNAME&gt;
+fs,[fs-commands]
 loadufs,&lt;TachyonPath&gt; &lt;UfsPath&gt; [ExcludePathPrefixes]
 runTest,&lt;Example&gt; &lt;ReadType&gt; &lt;WriteType&gt;
 runTests,None

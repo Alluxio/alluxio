@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs ls /users/alice/
+$ ./bin/alluxio fs ls /users/alice/
 ```
