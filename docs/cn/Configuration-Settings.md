@@ -17,18 +17,18 @@ Alluxio有两种类型的配置参数：
 
 Alluxio启动时会加载默认（也可以指定）配置属性文件从而设置配置属性。
 
-1. Alluxio的配置属性默认值在`alluxio-default.properties`文件中，该文件在Alluxio源代码或者二进制包里都能找到，不建议初学者修改该文件。
+1. Alluxio的配置属性默认值在`alluxio-default.properties`文件中，该文件在Alluxio源代码或者二进制包里都能找到，不建议初学者直接修改该文件。
 
 2. 每个部署点以及应用客户端都能够通过`alluxio-site.properties`文件将默认属性值覆盖掉，注意该文件必须在Alluxio Java VM的**classpath**中，最简单的方法是将该属性文件放在`$ALLUXIO_HOME/conf`目录中。
 
 所有Alluxio配置属性都属于以下五类之一：
-[一般配置项](#common-configuration)（由Master和Worker共享），
+[共有配置项](#common-configuration)（由Master和Worker共享），
 [Master配置项](#master-configuration)，[Worker配置项](#worker-configuration)，
 [用户配置项](#user-configuration)以及[集群管理配置项](#cluster-management)（用于在诸如Mesos和YARN的集群管理器上运行Alluxio）。
 
-## 一般配置项 {#common-configuration}
+## 共有配置项 {#common-configuration}
 
-一般配置项包含了不同组件共享的常量。
+共有配置项包含了不同组件共享的常量。
 
 <table class="table table-striped">
 <tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
