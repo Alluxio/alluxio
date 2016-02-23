@@ -1,7 +1,7 @@
 Alluxio
 =======
 
-The master branch is in version 0.9.0-SNAPSHOT:
+The master branch is in version 1.1.0-SNAPSHOT:
 
 - [Alluxio Website](http://www.alluxio.org/) | [Alluxio Latest Release Document](http://www.alluxio.org/documentation/) | [Master Branch Document](http://alluxio.org/documentation/master/)
 - [Contribute to Alluxio](http://alluxio.org/documentation/Contributing-to-Alluxio.html) and
