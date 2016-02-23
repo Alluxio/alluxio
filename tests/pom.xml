@@ -1,14 +1,25 @@
+<!--
+  ~ The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+  ~ (the “License”). You may not use this work except in compliance with the License, which is
+  ~ available at www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+  ~ either express or implied, as more fully set forth in the License.
+  ~
+  ~ See the NOTICE file distributed with this work for information regarding copyright ownership.
+  -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.tachyonproject</groupId>
-    <artifactId>tachyon-parent</artifactId>
-    <version>0.9.0-SNAPSHOT</version>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
   </parent>
-  <artifactId>tachyon-tests</artifactId>
+  <artifactId>alluxio-tests</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Tests</name>
-  <description>Integration tests for Tachyon</description>
+  <name>Alluxio Tests</name>
+  <description>Integration tests for Alluxio</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -42,6 +53,21 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-minicluster</artifactId>
       <scope>test</scope>
+      <!-- Exclude the Jersey artifacts to prevent clashes with alluxio-core-server -->
+      <exclusions>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jersey-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jersey-json</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jersey-server</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -49,56 +75,65 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-common</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-server</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-keyvalue-client-internal</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-keyvalue-server</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-local</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-minicluster</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-shell</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Other projects' test-jars -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server</artifactId>
+      <version>${project.version}</version>
       <type>test-jar</type>
-      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-client-internal</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-server</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-local</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-minicluster</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-shell</artifactId>
-      <version>${project.version}</version>
+      <type>test-jar</type>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
   <profiles>
     <profile>
-      <id>hdfs1Test</id>
+      <id>hdfsTest</id>
       <dependencies>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-underfs-hdfs</artifactId>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-underfs-hdfs</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
@@ -110,32 +145,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <systemPropertyVariables>
-                <ufs>tachyon.underfs.hdfs.LocalMiniDFSCluster</ufs>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>hdfs2Test</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-underfs-hdfs</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemPropertyVariables>
-                <ufs>tachyon.underfs.hdfs.LocalMiniDFSCluster</ufs>
+                <ufs>alluxio.underfs.hdfs.LocalMiniDFSCluster</ufs>
               </systemPropertyVariables>
             </configuration>
           </plugin>
@@ -147,8 +157,8 @@
       <id>glusterfsTest</id>
       <dependencies>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-underfs-glusterfs</artifactId>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-underfs-glusterfs</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
@@ -166,7 +176,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <systemPropertyVariables>
-                <ufs>tachyon.underfs.glusterfs.GlusterFSCluster</ufs>
+                <ufs>alluxio.underfs.glusterfs.GlusterFSCluster</ufs>
               </systemPropertyVariables>
             </configuration>
           </plugin>
@@ -178,8 +188,8 @@
       <id>s3Test</id>
       <dependencies>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-underfs-s3</artifactId>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-underfs-s3</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
@@ -191,14 +201,14 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <systemPropertyVariables>
-                <ufs>tachyon.underfs.s3.S3UnderStorageCluster</ufs>
+                <ufs>alluxio.underfs.s3.S3UnderStorageCluster</ufs>
                 <!-- Change "myAccessKey" to your access key for this test -->
                 <fs.s3n.awsAccessKeyId>myAccessKey</fs.s3n.awsAccessKeyId>
                 <!-- Change "mySecretKey" to your secret key for this test -->
                 <fs.s3n.awsSecretAccessKey>mySecretKey</fs.s3n.awsSecretAccessKey>
-                <!-- Change "s3n://my-bucket/tachyon-test" to the name of your
+                <!-- Change "s3n://my-bucket/alluxio-test" to the name of your
                      S3 bucket for this test -->
-                <s3Bucket>s3n://my-bucket/tachyon-test</s3Bucket>
+                <s3Bucket>s3n://my-bucket/alluxio-test</s3Bucket>
               </systemPropertyVariables>
             </configuration>
           </plugin>
@@ -210,8 +220,8 @@
       <id>ossTest</id>
       <dependencies>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-underfs-oss</artifactId>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-underfs-oss</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
@@ -229,7 +239,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <systemPropertyVariables>
-                <ufs>tachyon.underfs.oss.OSSUnderStorageCluster</ufs>
+                <ufs>alluxio.underfs.oss.OSSUnderStorageCluster</ufs>
                 <!-- Change "yourAccessId" to your oss access id for this test -->
                 <fs.oss.accessKeyId>yourAccessId</fs.oss.accessKeyId>
                 <!-- Change "yourSecretKey" to your oss access secret key for this test -->
@@ -237,7 +247,7 @@
                 <!-- Change this endpoint for your oss service address for this test -->
                 <fs.oss.endpoint>http://oss-cn-hangzhou.aliyuncs.com</fs.oss.endpoint>
                 <!-- Change "your-bucket" to your oss bucket for this test -->
-                <ossBucket>oss://your-bucket/tachyon-test/</ossBucket>
+                <ossBucket>oss://your-bucket/alluxio-test/</ossBucket>
               </systemPropertyVariables>
             </configuration>
           </plugin>
@@ -249,8 +259,8 @@
       <id>swiftTest</id>
       <dependencies>
         <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-underfs-swift</artifactId>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-underfs-swift</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
@@ -263,7 +273,7 @@
             <configuration>
               <!--argLine>-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/dump</argLine-->
               <systemPropertyVariables>
-                <ufs>tachyon.underfs.swift.SwiftUnderStorageCluster</ufs>
+                <ufs>alluxio.underfs.swift.SwiftUnderStorageCluster</ufs>
                 <!-- Change "myAuthUrl" to point authentication URL -->
                 <authUrlKey>myAuthUrl</authUrlKey>
                 <!-- Change "myAuthMethod" to define authentication type -->

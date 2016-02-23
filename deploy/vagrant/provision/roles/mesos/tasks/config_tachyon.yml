@@ -1,4 +1,0 @@
-- name: configure tachyon-env.sh
-  script: config_tachyon.sh
-
-# vim :set filetype=ansible.yaml:

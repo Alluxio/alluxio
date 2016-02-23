@@ -1,12 +1,12 @@
 <%@ page import="java.util.*" %>
-<%@ page import="tachyon.web.*" %>
-<%@ page import="tachyon.web.*" %>
+<%@ page import="alluxio.web.*" %>
+<%@ page import="alluxio.web.*" %>
 
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="../css/bootstrap.min.css" rel="stylesheet" media="screen">
-  <link href="../css/tachyoncustom.min.css" rel="stylesheet">
+  <link href="../css/alluxiocustom.min.css" rel="stylesheet">
   <link href="../css/linearGraph.css" rel="stylesheet">
 </head>
 <title>Tachyon</title>
@@ -27,17 +27,17 @@
               <h4>Worker gauges</h4>
             </a>
           </div>
-          
+
           <div id="data3" class="accordion-body collapse in">
             <div class="accordion-inner">
               <table class="table table-hover table-condensed">
-                <thead>                  
-                  <th></th>                  
+                <thead>
+                  <th></th>
                   <th></th>
                 </thead>
                 <tbody>
-                  <tr>                    
-                    <th>Worker Capacity</th>                    
+                  <tr>
+                    <th>Worker Capacity</th>
                     <th>
                       <div class="progress custom-progress">
                         <div class="bar bar-success" style="width: <%= (Integer) request.getAttribute("workerCapacityFreePercentage") %>%;">
@@ -52,16 +52,16 @@
                         </div>
                       </div>
                     </th>
-                  </tr>                                    
+                  </tr>
                 </tbody>
               </table>
             </div>
           </div>
-          
+
         </div>
       </div>
-    </div>        
-    
+    </div>
+
     <div class="row-fluid">
         <jsp:include page="metrics-summary.jsp" />
     </div>

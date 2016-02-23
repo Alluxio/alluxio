@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs chmod 755 /input/file1
+$ ./bin/alluxio fs chmod 755 /input/file1
 ```
