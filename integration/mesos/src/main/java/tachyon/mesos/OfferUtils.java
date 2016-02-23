@@ -23,35 +23,39 @@ import tachyon.conf.TachyonConf;
 /**
  * Mesos framework offer utils
  */
-public class OfferUtils {
-  private TachyonConf mConf = new TachyonConf();
+public final class OfferUtils {
+  private static final TachyonConf sConf = new TachyonConf();
+
+  private OfferUtils() {
+
+  }
 
   /**
    * @param offer Resource offer from Mesos
    * @return Return true if the master port available in this offer
    */
-  public boolean hasAvailableMasterPorts(Protos.Offer offer) {
-    Protos.Value.Ranges ranges = this.getOfferedPorts(offer);
+  public static boolean hasAvailableMasterPorts(Protos.Offer offer) {
+    Protos.Value.Ranges ranges = getOfferedPorts(offer);
 
     return ranges != null
-        && hasAvailablePorts(mConf.getInt(Constants.MASTER_WEB_PORT), ranges)
-        && hasAvailablePorts(mConf.getInt(Constants.MASTER_RPC_PORT), ranges);
+        && hasAvailablePorts(sConf.getInt(Constants.MASTER_WEB_PORT), ranges)
+        && hasAvailablePorts(sConf.getInt(Constants.MASTER_RPC_PORT), ranges);
   }
 
   /**
    * @param offer Resource offer from Mesos
    * @return Return true if the worker port available in this offer
    */
-  public boolean hasAvailableWorkerPorts(Protos.Offer offer) {
-    Protos.Value.Ranges ranges = this.getOfferedPorts(offer);
+  public static boolean hasAvailableWorkerPorts(Protos.Offer offer) {
+    Protos.Value.Ranges ranges = getOfferedPorts(offer);
 
     return ranges != null
-        && hasAvailablePorts(mConf.getInt(Constants.WORKER_WEB_PORT), ranges)
-        && hasAvailablePorts(mConf.getInt(Constants.WORKER_RPC_PORT), ranges)
-        && hasAvailablePorts(mConf.getInt(Constants.WORKER_DATA_PORT), ranges);
+        && hasAvailablePorts(sConf.getInt(Constants.WORKER_WEB_PORT), ranges)
+        && hasAvailablePorts(sConf.getInt(Constants.WORKER_RPC_PORT), ranges)
+        && hasAvailablePorts(sConf.getInt(Constants.WORKER_DATA_PORT), ranges);
   }
 
-  private boolean hasAvailablePorts(int port, Protos.Value.Ranges ranges) {
+  private static boolean hasAvailablePorts(int port, Protos.Value.Ranges ranges) {
     for (Protos.Value.Range range : ranges.getRangeList()) {
       if (port >= range.getBegin() && port <= range.getEnd()) {
         return true;
@@ -64,7 +68,7 @@ public class OfferUtils {
    * @param offer Resource offer from Mesos
    * @return Ports ranges
    */
-  public Protos.Value.Ranges getOfferedPorts(Protos.Offer offer) {
+  public static Protos.Value.Ranges getOfferedPorts(Protos.Offer offer) {
     for (Protos.Resource resource : offer.getResourcesList()) {
       if (Constants.MESOS_RESOURCE_PORTS.equals(resource.getName())) {
         return resource.getRanges();
@@ -77,7 +81,7 @@ public class OfferUtils {
    * @param offer Resource offer from Mesos
    * @return offered cpus size
    */
-  public double getOfferedCpus(Protos.Offer offer) {
+  public static double getOfferedCpus(Protos.Offer offer) {
     for (Protos.Resource resource : offer.getResourcesList()) {
       if (Constants.MESOS_RESOURCE_CPUS.equals(resource.getName())) {
         return resource.getScalar().getValue();
@@ -90,7 +94,7 @@ public class OfferUtils {
    * @param offer Resource offer from Mesos
    * @return offered memory size
    */
-  public double getOfferedMem(Protos.Offer offer) {
+  public static double getOfferedMem(Protos.Offer offer) {
     for (Protos.Resource resource : offer.getResourcesList()) {
       if (Constants.MESOS_RESOURCE_MEM.equals(resource.getName())) {
         return resource.getScalar().getValue();
@@ -103,7 +107,7 @@ public class OfferUtils {
    * @param offer Resource offer from Mesos
    * @return offered disk size
    */
-  public double getOfferedDisk(Protos.Offer offer) {
+  public static double getOfferedDisk(Protos.Offer offer) {
     for (Protos.Resource resource : offer.getResourcesList()) {
       if (Constants.MESOS_RESOURCE_DISK.equals(resource.getName())) {
         return resource.getScalar().getValue();
