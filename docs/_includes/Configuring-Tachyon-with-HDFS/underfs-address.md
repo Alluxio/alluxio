@@ -1,3 +1,0 @@
-```bash
-export TACHYON_UNDERFS_ADDRESS=hdfs://NAMENODE:PORT
-```

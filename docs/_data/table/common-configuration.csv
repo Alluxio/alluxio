@@ -1,24 +1,24 @@
 propertyName,defaultValue
-tachyon.debug,false
-tachyon.home,/mnt/tachyon_default_home
-tachyon.logs.dir,${tachyon.home}/logs
-tachyon.keyvalue.enabled,false
-tachyon.keyvalue.partition.size.bytes.max,512MB
-tachyon.metrics.conf.file,${tachyon.home}/conf/metrics.properties
-tachyon.network.host.resolution.&#8203;timeout.ms,5000
-tachyon.test.mode,false
-tachyon.underfs.address,${tachyon.home}/underFSStorage
-tachyon.underfs.glusterfs.impl,org.apache.hadoop.fs.glusterfs.&#8203;GlusterFileSystem
-tachyon.underfs.glusterfs.mapred.&#8203;system.dir,glusterfs:///mapred/system
-tachyon.underfs.hdfs.configuration,${tachyon.home}/conf/core-site.xml
-tachyon.underfs.hdfs.impl,org.apache.hadoop.hdfs.&#8203;DistributedFileSystem
-tachyon.underfs.hdfs.prefixes,"hdfs://,glusterfs:///"
-tachyon.underfs.s3.proxy.host,No default
-tachyon.underfs.s3.proxy.https.only,true
-tachyon.underfs.s3.proxy.port,No default
-tachyon.web.resources,${tachyon.home}/core/server/src/main/webapp
-tachyon.web.threads,1
-tachyon.zookeeper.election.path,/election
-tachyon.zookeeper.enabled,false
-tachyon.zookeeper.leader.path,/leader
-tachyon.zookeeper.leader.inquiry.retry,10
+alluxio.debug,false
+alluxio.home,/mnt/alluxio_default_home
+alluxio.logs.dir,${alluxio.home}/logs
+alluxio.keyvalue.enabled,false
+alluxio.keyvalue.partition.size.bytes.max,512MB
+alluxio.metrics.conf.file,${alluxio.home}/conf/metrics.properties
+alluxio.network.host.resolution.&#8203;timeout.ms,5000
+alluxio.test.mode,false
+alluxio.underfs.address,${alluxio.home}/underFSStorage
+alluxio.underfs.glusterfs.impl,org.apache.hadoop.fs.glusterfs.&#8203;GlusterFileSystem
+alluxio.underfs.glusterfs.mapred.&#8203;system.dir,glusterfs:///mapred/system
+alluxio.underfs.hdfs.configuration,${alluxio.home}/conf/core-site.xml
+alluxio.underfs.hdfs.impl,org.apache.hadoop.hdfs.&#8203;DistributedFileSystem
+alluxio.underfs.hdfs.prefixes,"hdfs://,glusterfs:///"
+alluxio.underfs.s3.proxy.host,No default
+alluxio.underfs.s3.proxy.https.only,true
+alluxio.underfs.s3.proxy.port,No default
+alluxio.web.resources,${alluxio.home}/core/server/src/main/webapp
+alluxio.web.threads,1
+alluxio.zookeeper.election.path,/election
+alluxio.zookeeper.enabled,false
+alluxio.zookeeper.leader.path,/leader
+alluxio.zookeeper.leader.inquiry.retry,10

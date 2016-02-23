@@ -1,3 +1,3 @@
 ```java
-TachyonLineage tl = TachyonLineage.get();
+AlluxioLineage tl = AlluxioLineage.get();
 ```

@@ -1,3 +1,0 @@
-```bash
-$ vagrant ssh TachyonMaster
-```

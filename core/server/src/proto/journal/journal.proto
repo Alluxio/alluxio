@@ -1,14 +1,14 @@
 syntax = "proto2";
 
-package tachyon.proto.journal;
-option java_package = "tachyon.proto.journal";
+package alluxio.proto.journal;
+option java_package = "alluxio.proto.journal";
 
 import "block.proto";
 import "file.proto";
 import "key_value.proto";
 import "lineage.proto";
 
-// Wraps around all types of Tachyon journal messages.
+// Wraps around all types of Alluxio journal messages.
 // next available id: 28
 message JournalEntry {
   optional int64 sequence_number = 1;
