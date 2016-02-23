@@ -1,3 +1,14 @@
+<!--
+  ~ The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+  ~ (the “License”). You may not use this work except in compliance with the License, which is
+  ~ available at www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+  ~ either express or implied, as more fully set forth in the License.
+  ~
+  ~ See the NOTICE file distributed with this work for information regarding copyright ownership.
+  -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -26,14 +37,14 @@
     <developer>
       <id>haoyuan</id>
       <name>Haoyuan Li</name>
-      <email>haoyuan.li@gmail.com</email>
+      <email>haoyuan@alluxio.com</email>
       <url>http://www.cs.berkeley.edu/~haoyuan</url>
-      <organization>U.C. Berkeley Computer Science</organization>
-      <organizationUrl>http://www.cs.berkeley.edu/</organizationUrl>
+      <organization>Alluxio Open Foundation</organization>
+      <organizationUrl>http://alluxio.org/</organizationUrl>
     </developer>
   </developers>
   <issueManagement>
-    <system>github</system>
+    <system>jira</system>
     <url>https://alluxio.atlassian.net</url>
   </issueManagement>
 

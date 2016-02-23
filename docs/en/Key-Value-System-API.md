@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Key Value Store Client API
-nickname: Key Value Store API
+title: Key Value System Client API
+nickname: Key Value System API
 group: Features
 priority: 4
 ---
@@ -11,8 +11,8 @@ priority: 4
 
 # Overview
 In addition to [Filesystem API](File-System-API.html) which allows applications to read, write or
-manage files, Alluxio also serves key-value stores on top of Alluxio filesystem.
-Like files in Alluxio filesystem, the semantics of key-value stores is also write-once:
+manage files, Alluxio also serves key-value system on top of Alluxio filesystem.
+Like files in Alluxio filesystem, the semantics of key-value system are also write-once:
 
 * Users can create a key-value store and insert key-value pairs into the store. A store becomes
 immutable after it is complete.
@@ -23,11 +23,11 @@ Depending on the total size and block size specified by the user, a single key-v
 store may consist of one or multiple partitions, but the internal is managed by Alluxio and thus
 transparent to users.
 
-# Accessing Key-Value Store in Java Application
+# Accessing Key-Value System in Java Application
 
-### Getting a Key-Value Store Client
+### Getting a Key-Value System Client
 
-To obtain an Alluxio key-value store client in Java code, use:
+To obtain an Alluxio key-value system client in Java code, use:
 
 {% include Key-Value-Store-API/get-key-value-system.md %}
 
@@ -57,8 +57,8 @@ a reader to retrieve value by the key. For example:
 
 {% include Key-Value-Store-API/iterate-key-values.md %}
 
-# Accessing Key-Value Store in Hadoop MapReduce
-
+# Accessing Key-Value System in Hadoop MapReduce
+ 
 ## MapReduce InputFormat
 
 Alluxio provides an implementation of `InputFormat` for Hadoop MapReduce programs to access
@@ -68,18 +68,17 @@ a key-value store. It takes a key-value URI, and emits key-value pairs stored in
 
 
 ## MapReduce OutputFormat
-Similarly, Alluxio also provides an implementation of `OutputFormat` for Hadoop MapReduce programs
- to create a key-value store by taking a key-value URI, and saving key-value pairs to the
- KeyValueStore:
 
-{% include Key-Value-Store-API/set-output-format.md %}
+Similarly, Alluxio also provides implementations of `OutputFormat` and `OutputCommitter` for Hadoop
+ MapReduce programs to create a key-value store by taking a key-value URI, and saving key-value
+ pairs to the key-value store:
 
-# Configuration Parameters For Key-Value Stores
+ {% include Key-Value-Store-API/set-output-format.md %}
 
-Key-Value support in Alluxio is disabled by default, and it can be enabled in Alluxio by setting
-`alluxio.keyvalue.enabled` to true (see
-[configuration parameters](Configuration-Settings.html))
 
-These are the configuration parameters for Key-Value support.
+# Configuration Parameters For Key-Value System
+
+Key-Value support in Alluxio is disabled by default, and it can be enabled in Alluxio by setting 
+`alluxio.keyvalue.enabled` to true (see [configuration parameters](Configuration-Settings.html))
 
 {% include Key-Value-Store-API/key-value-configuration.md %}
