@@ -14,7 +14,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-keyvalue</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-keyvalue-client-internal</artifactId>
   <name>Alluxio Key Value - Client Implementation</name>
