@@ -19,12 +19,16 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.util.Map.Entry;
 import java.util.Scanner;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.Multimap;
 
 import tachyon.LocalTachyonClusterResource;
 import tachyon.conf.TachyonConf;
@@ -39,6 +43,14 @@ public class WebServerIntegrationTest {
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
 
+  // Web pages that will be verified.
+  private static final Multimap<ServiceType, String> PAGES =
+      new ImmutableListMultimap.Builder<ServiceType, String>()
+          .putAll(ServiceType.MASTER_WEB, "/home", "/browse", "/configuration", "/workers",
+              "/memory", "/browseLogs", "/metricsui")
+          .putAll(ServiceType.WORKER_WEB, "/home", "/blockInfo", "/browseLogs", "/metricsui")
+          .build();
+
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource();
@@ -50,13 +62,26 @@ public class WebServerIntegrationTest {
     mWorkerTachyonConf = localTachyonCluster.getWorkerTachyonConf();
   }
 
-  private void verifyWebService(ServiceType serviceType, TachyonConf conf) throws IOException {
+  private void verifyWebService(ServiceType serviceType, String path)
+      throws IOException {
+    TachyonConf conf =
+        serviceType == ServiceType.MASTER_WEB ? mMasterTachyonConf : mWorkerTachyonConf;
+
     InetSocketAddress webAddr =
         NetworkAddressUtils.getConnectAddress(serviceType, conf);
     HttpURLConnection webService = (HttpURLConnection) new URL(
         "http://" + webAddr.getAddress().getHostAddress() + ":"
-        + webAddr.getPort() + "/home").openConnection();
+        + webAddr.getPort() + path).openConnection();
     webService.connect();
+    if (webService.getResponseCode() == 500) {
+      System.out.println(path);
+      System.out.println(webAddr);
+      try {
+        Thread.sleep(1000000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
     Assert.assertEquals(200, webService.getResponseCode());
 
     Scanner pageScanner = null;
@@ -67,7 +92,7 @@ public class WebServerIntegrationTest {
 
       while (pageScanner.hasNextLine()) {
         String line = pageScanner.nextLine();
-        if (line.equals("<title>Tachyon</title>")) {
+        if (line.equals("<title>Tachyon</title>") || line.equals("<title>Workers</title>")) {
           verified = true;
           break;
         }
@@ -88,7 +113,8 @@ public class WebServerIntegrationTest {
    */
   @Test
   public void serverUpTest() throws Exception {
-    verifyWebService(ServiceType.MASTER_WEB, mMasterTachyonConf);
-    verifyWebService(ServiceType.WORKER_WEB, mWorkerTachyonConf);
+    for (Entry<ServiceType, String> entry : PAGES.entries()) {
+      verifyWebService(entry.getKey(), entry.getValue());
+    }
   }
 }
