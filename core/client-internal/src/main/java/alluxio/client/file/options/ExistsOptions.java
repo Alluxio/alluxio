@@ -13,6 +13,8 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -21,39 +23,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class ExistsOptions {
-  /** Whether or not to check the ufs if the path does not exist in Alluxio. */
-  private boolean mCheckUfs;
-
   /**
-   * @return the default {@link ExistsOptions} based on the client's configuration
+   * @return the default {@link ExistsOptions}
    */
   public static ExistsOptions defaults() {
     return new ExistsOptions();
   }
 
   private ExistsOptions() {
-    // TODO(calvin): Make this configurable
-    mCheckUfs = false;
-  }
-
-  /**
-   * @return whether we should check the under file system for the file if it is not found in
-   *         Alluxio space
-   */
-  public boolean isCheckUfs() {
-    return mCheckUfs;
-  }
-
-  /**
-   * Sets the checkUfs flag which determines if this operation should go to the ufs if the data
-   * is not found in Alluxio.
-   *
-   * @param checkUfs the check ufs flag to set
-   * @return the updated options object
-   */
-  public ExistsOptions setCheckUfs(boolean checkUfs) {
-    mCheckUfs = checkUfs;
-    return this;
+    // No options currently
   }
 
   /**
@@ -61,9 +39,6 @@ public final class ExistsOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("ExistsOptions(");
-    sb.append(super.toString()).append(", Check UFS: ").append(mCheckUfs);
-    sb.append(")");
-    return sb.toString();
+    return Objects.toStringHelper(this).toString();
   }
 }
