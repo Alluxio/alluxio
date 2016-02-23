@@ -6,13 +6,13 @@ group: Under Store
 priority: 1
 ---
 
-该向导介绍如何配置Alluxio从而使用[Swift](http://docs.openstack.org/developer/swift/)作为底层文件系统。
+该指南介绍如何配置Alluxio以使用[Swift](http://docs.openstack.org/developer/swift/)作为底层文件系统。
 
 # 初始步骤
 
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-然后，由template文件创建配置文件：
+然后，如果你还没有配置文件，可以由template文件创建配置文件：
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
@@ -40,7 +40,7 @@ priority: 1
  
 # 在本地Swift上运行Alluxio
 
-配置完成后，你可以在本地启动Alluxio，观察是否正确运行：
+配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
 {% include Common-Commands/start-alluxio.md %}
 
