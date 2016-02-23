@@ -11,6 +11,16 @@
 
 package alluxio.web;
 
+import alluxio.Constants;
+import alluxio.Version;
+import alluxio.collections.Pair;
+import alluxio.util.FormatUtils;
+import alluxio.worker.WorkerContext;
+import alluxio.worker.block.BlockStoreMeta;
+import alluxio.worker.block.BlockWorker;
+
+import com.google.common.collect.Lists;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -23,16 +33,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.google.common.collect.Lists;
-
-import alluxio.Constants;
-import alluxio.Version;
-import alluxio.collections.Pair;
-import alluxio.util.FormatUtils;
-import alluxio.worker.WorkerContext;
-import alluxio.worker.block.BlockStoreMeta;
-import alluxio.worker.block.BlockWorker;
 
 /**
  * Servlets that shows a worker's general information, including tiered storage details.
