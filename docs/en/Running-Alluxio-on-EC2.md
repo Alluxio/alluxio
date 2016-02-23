@@ -7,7 +7,7 @@ priority: 3
 ---
 
 Alluxio can be deployed on Amazon EC2 using the
-[Vagrant scripts](https://github.com/amplab/alluxio/tree/master/deploy/vagrant) that come with
+[Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with
 Alluxio. The scripts let you create, configure, and destroy clusters that come automatically
 configured with [Amazon S3](https://s3.amazonaws.com/).
 

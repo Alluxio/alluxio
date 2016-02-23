@@ -8,7 +8,7 @@ priority: 5
 
 Alluxio can be started and managed by Apache YARN. This guide demonstrates how to launch Alluxio
 with YARN on EC2 machines using the
-[Vagrant scripts](https://github.com/amplab/alluxio/tree/master/deploy/vagrant) that come with
+[Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with
 Alluxio.
 
 # Prerequisites
