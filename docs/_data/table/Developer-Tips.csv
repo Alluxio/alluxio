@@ -1,0 +1,18 @@
+command,args
+format,[-s]
+formatWorker,None
+bootstrap-conf,&lt;ALLUXIO_MASTER_HOSTNAME&gt;
+tfs,[tfs-commands]
+loadufs,&lt;TachyonPath&gt; &lt;UfsPath&gt; [ExcludePathPrefixes]
+runTest,&lt;Example&gt; &lt;ReadType&gt; &lt;WriteType&gt;
+runTests,None
+journalCrashTest,[-creates &lt;arg&gt;] [-deletes &lt;arg&gt;] [-renames &lt;arg&gt;] [-maxAlive &lt;arg&gt;] [-testDir &lt;arg&gt;] [-totalTime &lt;arg&gt;] [-help]
+readJournal,[-help] [-noTimeout]
+killAll,&lt;WORD&gt;
+copyDir,&lt;PATH&gt;
+clearCache,None
+thriftGen,None
+protoGen,None
+version,None
+validateConf,None
+

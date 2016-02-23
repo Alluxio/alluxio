@@ -129,8 +129,8 @@ For example, `chownr` can be used as a quick way to recursively change the owner
 
 ## copyFromLocal
 The `copyFromLocal` command copies the contents of a file in your local file system into Alluxio.
-If the node you run the command from has a Alluxio worker, the data will be available on that
-worker. Otherwise, the data will be placed in a random remote node running a Alluxio worker. If a
+If the node you run the command from has an Alluxio worker, the data will be available on that
+worker. Otherwise, the data will be placed in a random remote node running an Alluxio worker. If a
 directory is specified, the directory and all its contents will be uploaded recursively.
 
 For example, `copyFromLocal` can be used as a quick way to inject data into the system for
@@ -265,7 +265,7 @@ For example, `mkdir` can be used by an admin to set up the basic folder structur
 {% include Command-Line-Interface/mkdir.md %}
 
 ## mount
-The `mount` command links an under storage path to a Alluxio path, and files and folders created
+The `mount` command links an under storage path to an Alluxio path, and files and folders created
 in Alluxio space under the path will be backed by a corresponding file or folder in the under
 storage path. For more details, see [Unified Namespace](Unified-and-Transparent-Namespace.html).
 
@@ -297,7 +297,7 @@ containing useful data.
 ## pin
 The `pin` command marks a file or folder as pinned in Alluxio. This is a metadata operation and will
 not cause any data to be loaded into Alluxio. If a file is pinned, any blocks belonging to the file
-will never be evicted from a Alluxio worker. If there are too many pinned files, Alluxio workers may
+will never be evicted from an Alluxio worker. If there are too many pinned files, Alluxio workers may
 run low on storage space preventing other files from being cached.
 
 For example, `pin` can be used to manually ensure performance if the administrator understands the
@@ -359,7 +359,7 @@ directory.
 {% include Command-Line-Interface/touch.md %}
 
 ## unmount
-The `unmount` command disassociates a Alluxio path with an under storage directory. Alluxio metadata
+The `unmount` command disassociates an Alluxio path with an under storage directory. Alluxio metadata
 for the mount point will be removed along with any data blocks, but the under storage system will
 retain all metadata and data. See [Unified Namespace](Unified-and-Transparent-Namespace.html) for
 more dtails.

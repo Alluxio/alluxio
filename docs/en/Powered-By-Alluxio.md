@@ -8,17 +8,18 @@ There are many companies and organizations that use Alluxio. Here is a list of s
 users. If your organization is using Alluxio, please feel free to 
 [add yourself to this list](https://github.com/amplab/alluxio/blob/master/docs/en/Powered-By-Alluxio.md)
 or let us know by email (project.alluxio@gmail.com) or
-[survey](http://alluxio-project.org/resources/survey-users/).
+[survey](http://alluxio.org/resources/survey-users/).
 
 * [Adatao](http://adatao.com/)
 * [Alibaba](http://www.alibaba.com/)
 * [Atigeo](http://atigeo.com/)
 * [Baidu](http://www.baidu.com/)
+* [Barclays](http://www.barclays.co.uk/)
 * [Huawei](http://www.huawei.com/)
 * [IBM Research](http://www.research.ibm.com/)
 * [Intel](http://www.intel.com/)
 * [Neusoft](http://www.neusoft.com/)
-* [Alluxio Nexus](http://www.alluxionexus.com/)
+* [Alluxio](http://www.alluxio.com/)
 * [UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/)
 
 Here is a list that tracks external software projects that supplement Alluxio and add to its ecosystem.
@@ -31,4 +32,4 @@ Here is a list that tracks external software projects that supplement Alluxio an
 * [Apache Zeppelin](http://zeppelin-project.org/)
 * [GlusterFS](http://www.gluster.org/)
 * [Openstack Swift](http://docs.openstack.org/developer/swift/)
-* [Alluxio Service for Ambari](https://github.com/chuyqa/alluxio-ambari-service)
+* [Alluxio Service for Ambari](https://github.com/chuyqa/tachyon-ambari-service)

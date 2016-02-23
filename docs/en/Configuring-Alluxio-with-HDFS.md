@@ -12,7 +12,7 @@ as the under storage system.
 
 # Initial Setup
 
-To run a Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
+To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
 machines. You can either
 [compile the binaries from Alluxio source code](Building-Alluxio-Master-Branch.html), or
 [download the precompiled binaries directly](Running-Alluxio-Locally.html).

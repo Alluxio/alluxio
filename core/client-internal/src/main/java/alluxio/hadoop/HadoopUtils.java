@@ -158,7 +158,7 @@ public final class HadoopUtils {
    * System properties, and they're not already set.
    *
    * This function is duplicated from {@code alluxio.underfs.hdfs.HdfsUnderFileSystemUtils}, to
-   * prevent the module alluxio-client from depending on the module alluxio-underfs.
+   * prevent the module alluxio-core-client from depending on the module alluxio-underfs.
    *
    * TODO(hy): Remove duplication in the future.
    *
