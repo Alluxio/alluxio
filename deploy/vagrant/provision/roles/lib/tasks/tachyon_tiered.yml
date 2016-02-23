@@ -1,2 +1,0 @@
-- name: set 2nd level Tachyon tieredstore(SSD)
-  script: tachyon_tiered.sh

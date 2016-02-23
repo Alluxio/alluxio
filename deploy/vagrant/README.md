@@ -1,4 +1,4 @@
-This doc is for contributors on deploy module, for users, please go to the [online doc](http://tachyon-project.org/documentation/master/Deploy-Module.html).
+This doc is for contributors on deploy module, for users, please go to the [online doc](http://alluxio.org/documentation/master/Deploy-Module.html).
 
 ## Tools
 
@@ -13,7 +13,7 @@ instances.
 
 #### Why Use Vagrant?
 
-Setting up a Tachyon cluster correctly with under filesystem and computation frameworks is a tedious huge undertaking. It requires not only expertise on both Tachyon and the related systems, but also expertise on the target deployment platform.
+Setting up an Alluxio cluster correctly with under filesystem and computation frameworks is a tedious huge undertaking. It requires not only expertise on both Alluxio and the related systems, but also expertise on the target deployment platform.
 
 Vagrant makes it possible to predefine how to install and configure software on a "machine" which can be an aws instance, a virtualbox vm, a docker container or an openstack instance. Then with the same workflow, you can create the same environment on all these platforms.
 
@@ -29,11 +29,11 @@ Ansible is a language and toolset to define how to provision (install software, 
 
 #### Why Use Ansible?
 
-When setting up a Tachyon cluster, we need the ability to manipulate target machines in parallel, say, install java on all nodes. Ansible satisfies this requirement. It's supported by Vagrant and has simple syntax, so we adopt it as the provisioning tool.
+When setting up an Alluxio cluster, we need the ability to manipulate target machines in parallel, say, install java on all nodes. Ansible satisfies this requirement. It's supported by Vagrant and has simple syntax, so we adopt it as the provisioning tool.
 
 ## Extension
 
-You can extend deploy module by adding new under layer filesystems or new computation frameworks on top of Tachyon.
+You can extend deploy module by adding new under layer filesystems or new computation frameworks on top of Alluxio.
 
 It's enough for you to be able to write bash and know [what is ansible playbook](http://docs.ansible.com/playbooks.html). Then read `deploy/vagrant/provision` directory to make sure you understand existing code base.
 
@@ -47,8 +47,8 @@ it's easier for others to understand since most developers know bash.
 create new directory `roles/ufs_{filesystem_name}` with structure:
 
 	|-- files
-	|---- compile_tachyon.sh    # how to compile tachyon against this ufs
-	|---- config_tachyon.sh     # there are ufs related configurations in tachyon like TACHYON_UNDERFS_ADDRESS
+	|---- compile_alluxio.sh    # how to compile Alluxio against this ufs
+	|---- config_alluxio.sh     # there are ufs related configurations in Alluxio like ALLUXIO_UNDERFS_ADDRESS
 	|---- ...
 	|-- tasks
 	|---- download_release.yml  # how to download the binary release of this ufs to a specific directory
@@ -58,7 +58,7 @@ create new directory `roles/ufs_{filesystem_name}` with structure:
 
 Then compose the task ymls in playbook.yml, configurations should be in `conf/ufs.yml`.
 
-### Add new framework on top of Tachyon
+### Add new framework on top of Alluxio
 
 create new directory `roles/{framework_name}` with structure:
 
@@ -87,7 +87,7 @@ read existing roles/ufs_xxx and roles/spark, you'll understand the interface.
 
 If you need to write bash to implement the interfaces, put them under files/.
 
-If the implementation is related to ufs, put them under ufs_xxx/files, like `ufs_hadoop2/compile_tachyon.sh`, `ufs_hadoop2/compile_spark.sh`, etc.
+If the implementation is related to ufs, put them under ufs_xxx/files, like `ufs_hadoop2/compile_alluxio.sh`, `ufs_hadoop2/compile_spark.sh`, etc.
 
 Then include the bash scripts with ansible's `script` module in roles/xxx/tasks/*.yml.
 
@@ -104,4 +104,4 @@ will take care of relative path referencing for you.
 
 2. other paths in roles/xxx/tasks is relative to the current task yml file.
 
-	e.x. If `roles/tachyon/tasks/compile.yml` wants to include `roles/lib/tasks/maven.yml`, it should write `include: ../../lib/tasks/maven.yml`
+	e.x. If `roles/alluxio/tasks/compile.yml` wants to include `roles/lib/tasks/maven.yml`, it should write `include: ../../lib/tasks/maven.yml`

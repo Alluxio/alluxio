@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs unpin /data/yesterday/join-table
+$ ./bin/alluxio fs unpin /data/yesterday/join-table
 ```
