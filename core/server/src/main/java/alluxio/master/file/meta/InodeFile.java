@@ -164,7 +164,7 @@ public final class InodeFile extends Inode {
     ret.setBlockSizeBytes(getBlockSizeBytes());
     ret.setCreationTimeMs(getCreationTimeMs());
     ret.setCacheable(isCacheable());
-    ret.setFolder(false);
+    ret.setFolder(isDirectory());
     ret.setPinned(isPinned());
     ret.setCompleted(isCompleted());
     ret.setPersisted(isPersisted());
@@ -175,6 +175,7 @@ public final class InodeFile extends Inode {
     ret.setGroupName(getGroupName());
     ret.setPermission(getPermission());
     ret.setPersistenceState(getPersistenceState().toString());
+    ret.setMountPoint(isMountPoint());
     return ret;
   }
 
@@ -326,14 +327,15 @@ public final class InodeFile extends Inode {
   @Override
   public synchronized String toString() {
     StringBuilder sb = new StringBuilder("InodeFile(");
-    sb.append(super.toString()).append(", LENGTH: ").append(mLength);
-    sb.append(", Cacheable: ").append(mCacheable);
-    sb.append(", Completed: ").append(mCompleted);
-    sb.append(", Cacheable: ").append(mCacheable);
-    sb.append(", mBlocks: ").append(mBlocks);
-    sb.append(", mTtl: ").append(mTtl);
-    sb.append(")");
-    return sb.toString();
+    return sb.append(super.toString())
+        .append(", BLOCKS: ").append(mBlocks)
+        .append(", BLOCK CONTAINER ID: ").append(mBlockContainerId)
+        .append(", BLOCK SIZE: ").append(mBlockSizeBytes)
+        .append(", CACHEABLE: ").append(mCacheable)
+        .append(", COMPLETED: ").append(mCompleted)
+        .append(", LENGTH: ").append(mLength)
+        .append(", TTL: ").append(mTtl)
+        .append(")").toString();
   }
 
   /**

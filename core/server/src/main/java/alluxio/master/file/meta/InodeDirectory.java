@@ -106,7 +106,7 @@ public final class InodeDirectory extends Inode {
     ret.setBlockSizeBytes(0);
     ret.setCreationTimeMs(getCreationTimeMs());
     ret.setCompleted(true);
-    ret.setFolder(true);
+    ret.setFolder(isDirectory());
     ret.setPinned(isPinned());
     ret.setCacheable(false);
     ret.setPersisted(isPersisted());
@@ -116,6 +116,7 @@ public final class InodeDirectory extends Inode {
     ret.setGroupName(getGroupName());
     ret.setPermission(getPermission());
     ret.setPersistenceState(getPersistenceState().toString());
+    ret.setMountPoint(isMountPoint());
     return ret;
   }
 
@@ -183,8 +184,9 @@ public final class InodeDirectory extends Inode {
   @Override
   public synchronized String toString() {
     StringBuilder sb = new StringBuilder("InodeDirectory(");
-    sb.append(super.toString()).append(",").append(getChildren()).append(")");
-    return sb.toString();
+    return sb.append(super.toString())
+        .append(", ").append(getChildren())
+        .append(")").toString();
   }
 
   /**
