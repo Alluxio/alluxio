@@ -21,7 +21,7 @@ There are a few things that new contributors can do to familiarize themselves wi
 3.  Read [Configuration-Settings](Configuration-Settings.html) and [Command-Line Interface](Command-Line-Interface.html)
 
 4.  Read a
-    [Code Example](https://github.com/amplab/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
+    [Code Example](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
 
 5.  [Build Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
 

@@ -17,19 +17,19 @@ Apache Yarn.
 
 Alluxio is Hadoop compatible. This means that existing Spark and MapReduce programs can run on top
 of Alluxio without any code changes. The project is open source
-([Apache License 2.0](https://github.com/amplab/alluxio/blob/master/LICENSE)) and is deployed at
+([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE)) and is deployed at
 multiple companies. It is one of the fastest growing open source projects. With less than three
 years open source history, Alluxio has attracted more than
-[160 contributors](https://github.com/amplab/alluxio/graphs/contributors) from over 50 institutions,
+[160 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 50 institutions,
 including [Alibaba](http://www.alibaba.com), [Baidu](https://www.baidu.com),
 [CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com), [Intel](http://www.intel.com/),
-[Red Hat](https://www.redhat.com/), [Alluxio Nexus](http://www.alluxionexus.com/),
+[Red Hat](https://www.redhat.com/), [Alluxio](http://www.alluxio.com/),
 [UC Berkeley](https://amplab.cs.berkeley.edu/), and [Yahoo](https://www.yahoo.com/).
 The project is the storage layer of the Berkeley Data Analytics Stack
 ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
 
-[Github](https://github.com/amplab/alluxio/) |
+[Github](https://github.com/alluxio/alluxio/) |
 [Releases](http://alluxio.org/releases/) |
 [Downloads](http://alluxio.org/downloads/) |
 [User Document](Getting-Started.html) |
@@ -76,7 +76,7 @@ information of each file, including locations, checkpoint path, etc. Users can a
 # Getting Started
 
 To quickly get Alluxio up and running, take a look at our [Getting Started](Getting-Started.html)
-page which will go through how to deploy Alluxio and run some basic examples in a local enviornment.
+page which will go through how to deploy Alluxio and run some basic examples in a local environment.
 
 # Downloads
 

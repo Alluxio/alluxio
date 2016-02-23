@@ -45,4 +45,4 @@ Alluxio使用协议缓冲区来读写日志消息。`.proto`文件被定义在`s
 {% endfor %}
 </table>
 
-此外，这些命令的执行有不同的先决条件。`format`，`formatWorker`，`journalCrashTest`，`readJournal`，`version`和`validateConf`命令的先决条件是你已经构建了Alluxio（见[构建Alluxio主分支](Building-Alluxio-Master-Branch.html)其介绍了如何手动构建Alluxio)。而`tfs`，`loadufs`，`runTest`和`runTests`命令的先决条件是你已经运行了Alluxio系统。
+此外，这些命令的执行有不同的先决条件。`format`，`formatWorker`，`journalCrashTest`，`readJournal`，`version`和`validateConf`命令的先决条件是你已经构建了Alluxio（见[构建Alluxio主分支](Building-Alluxio-Master-Branch.html)其介绍了如何手动构建Alluxio)。而`fs`，`loadufs`，`runTest`和`runTests`命令的先决条件是你已经运行了Alluxio系统。

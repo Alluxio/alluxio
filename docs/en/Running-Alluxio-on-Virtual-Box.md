@@ -7,7 +7,7 @@ priority: 2
 ---
 
 Alluxio can be deployed on [VirtualBox](https://www.virtualbox.org/) on your local machine
-using the [Vagrant scripts](https://github.com/amplab/alluxio/tree/master/deploy/vagrant)
+using the [Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)
 that come with Alluxio. The scripts let you create, configure, and destroy clusters that come
 automatically configured with HDFS.
 

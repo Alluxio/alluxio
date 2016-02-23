@@ -6,7 +6,7 @@ group: User Guide
 priority: 4
 ---
 
-使用Alluxio自带的[Vagrant脚本](https://github.com/amplab/alluxio/tree/master/deploy/vagrant)可以通过
+使用Alluxio自带的[Vagrant脚本](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)可以通过
 Mesos将Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及销毁集群，该集群自动配置了HDFS相关项。
 
 # 前期准备

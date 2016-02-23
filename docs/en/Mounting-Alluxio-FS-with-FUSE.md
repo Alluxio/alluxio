@@ -37,8 +37,8 @@ support, so you will need to build your own Alluxio if you want to use alluxio-f
 deployment.
 
 The best way to do so is to either clone the Alluxio [GitHub
-repository](https://github.com/amplab/alluxio) and choose your favourite branch from git, or to
-grab a [source distribution](https://github.com/amplab/alluxio/releases) directly. Please, refer to
+repository](https://github.com/alluxio/alluxio) and choose your favourite branch from git, or to
+grab a [source distribution](https://github.com/alluxio/alluxio/releases) directly. Please, refer to
 [this page](Building-Alluxio-Master-Branch.html))
 for building instructions.
 
