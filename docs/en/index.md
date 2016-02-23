@@ -35,7 +35,7 @@ The project is the storage layer of the Berkeley Data Analytics Stack
 [User Document](Getting-Started.html) |
 [Developer Document](Contributing-to-Alluxio.html) |
 [Meetup Group](https://www.meetup.com/Alluxio/) |
-[JIRA](https://alluxio.atlassian.net/browse/ALLUXIO) |
+[JIRA](https://tachyon.atlassian.net/browse/ALLUXIO) |
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
 [Powered By](Powered-By-Alluxio.html)
 
