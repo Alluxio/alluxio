@@ -20,7 +20,7 @@ group: Resources
 
 3.  阅读[配置项设置](Configuration-Settings.html)以及[命令行接口](Command-Line-Interface.html)
 
-4.  阅读一段[代码示例](https://github.com/amplab/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
+4.  阅读一段[代码示例](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
 
 5.  [构建Alluxio主分支](Building-Alluxio-Master-Branch.html)
 

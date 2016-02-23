@@ -6,7 +6,7 @@ formatWorker:
 bootstrap-conf:
   Generate the bootstrap config file <code>alluxio-env.sh</code> with the specified
   <code>ALLUXIO_MASTER_HOSTNAME</code>, if the config file doesn't exist.
-tfs:
+fs:
   Interact with Tachyon in command line style for basic file system operations.
   See <a href="Command-Line-Interface.html">Command Line</a> for more information.
 loadufs:

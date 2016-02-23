@@ -4,7 +4,7 @@ formatWorker:
   格式化Tachyon Worker的本地存储。
 bootstrap-conf:
   如果引导程序配置文件<code>alluxio-env.sh</code>不存在，利用<code>ALLUXIO_MASTER_HOSTNAME</code>生成。
-tfs:
+fs:
   在命令行中与Tachyon进行交互，从而完成基本的文件系统操作。详情见<a href="Command-Line-Interface.html">Command Line</a>。
 loadufs:
   将<code>UfsPath</code>下的文件加载到给定的<code>TachyonPath</code>中。<code>ExcludePathPrefixes</code>可以是一组用“;”隔开的前缀。<code>ExcludePathPrefixes</code>中每个前缀下的路径都不会被加载。
