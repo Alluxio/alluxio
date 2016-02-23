@@ -175,7 +175,7 @@ public final class InodeFile extends Inode {
     ret.setGroupName(getGroupName());
     ret.setPermission(getPermission());
     ret.setPersistenceState(getPersistenceState().toString());
-    ret.setMountPoint(isMountPoint());
+    ret.setMountPoint(false);
     return ret;
   }
 
