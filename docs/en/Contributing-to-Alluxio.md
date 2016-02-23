@@ -21,7 +21,7 @@ There are a few things that new contributors can do to familiarize themselves wi
 3.  Read [Configuration-Settings](Configuration-Settings.html) and [Command-Line Interface](Command-Line-Interface.html)
 
 4.  Read a
-    [Code Example](https://github.com/amplab/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
+    [Code Example](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
 
 5.  [Build Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
 
@@ -168,20 +168,20 @@ to avoid import errors. You can do this by going to
 ### Presentations
 
 -   AMPCamp 6 (November, 2015)
-[SlideShare](http://www.slideshare.net/AlluxioNexus/alluxio-presentation-at-ampcamp-6-november-2015)
+[SlideShare](http://www.slideshare.net/TachyonNexus/tachyon-presentation-at-ampcamp-6-november-2015)
 -   Strata and Hadoop World 2015 (September, 2015)
-[SlideShare](http://www.slideshare.net/AlluxioNexus/alluxio-an-open-source-memorycentric-distributed-storage-system)
+[SlideShare](http://www.slideshare.net/TachyonNexus/tachyon-an-open-source-memorycentric-distributed-storage-system)
 -   Strata and Hadoop World 2014 (October, 2014)
-[pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Alluxio_2014-10-16-Strata.pdf)
-[pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Alluxio_2014-10-16-Strata.pptx)
+[pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pdf)
+[pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pptx)
 -   Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
 -   Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
 
 ### Readings
 
--   [Alluxio: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_alluxio.pdf)
+-   [Tachyon: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_tachyon.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *SOCC 2014*.
--   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_alluxio.pdf)
+-   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_tachyon.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *UC Berkeley EECS 2014*.
--   [Alluxio: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_alluxio.pdf)
+-   [Tachyon: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_tachyon.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Eric Baldeschwieler, Scott Shenker, Ion Stoica, *LADIS 2013*.

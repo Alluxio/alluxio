@@ -5,7 +5,7 @@ nickname: 在Virtual Box上运行Alluxio
 group: User Guide
 priority: 2
 ---
-通过Alluxio自带的[Vagrant脚本](https://github.com/amplab/alluxio/tree/master/deploy/vagrant)，你可以
+通过Alluxio自带的[Vagrant脚本](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)，你可以
 将Alluxio部署在本地机器上的[VirtualBox](https://www.virtualbox.org/)中。该脚本允许你创建，配置以及销毁
 集群，该集群自动配置了HDFS相关项。
 

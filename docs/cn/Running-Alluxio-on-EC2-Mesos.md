@@ -6,7 +6,7 @@ group: User Guide
 priority: 4
 ---
 
-使用Alluxio自带的[Vagrant脚本](https://github.com/amplab/alluxio/tree/master/deploy/vagrant)可以通过
+使用Alluxio自带的[Vagrant脚本](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)可以通过
 Mesos将Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及销毁集群，该集群自动配置了HDFS相关项。
 
 # 前期准备
@@ -54,7 +54,7 @@ Mesos将Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及�
 在`deploy/vagrant/conf/ec2.yml`配置文件中，将`Keypair`设置为你的keypair名，`Key_Path`设置成pem key路径。
 
 Vagrant脚本默认会在
-[该区域(**us-east-1**)和可用区域(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
+[该区域(**us-east-1**)和可用区域(**us-east-1b**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
 中创建一个名为*alluxio-vagrant-test*的
 [安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
 该安全组会在区域中自动建立，并且所有inbound及outbound网络流量都将打开。你可以在`ec2.yml`配置文件中设
@@ -63,7 +63,7 @@ Vagrant脚本默认会在
 在`deploy/vagrant/conf/mesos.yml`配置文件中，根据你需要从Github分支还是发布版本构建Mesos，将`Type`的值
 设置为`Github`或`Release`。
 
-现在你可以启动Mesos集群以及Alluxio Mesos框架，该框架自动在us-east-1a里以Hadoop 2.4.1为底层文件系统启动一
+现在你可以启动Mesos集群以及Alluxio Mesos框架，该框架自动在us-east-1b里以Hadoop 2.4.1为底层文件系统启动一
 个Alluxio集群。在`deploy/vagrant`运行以下命令：
 
 {% include Running-Alluxio-on-EC2-Mesos/launch-cluster.md %}

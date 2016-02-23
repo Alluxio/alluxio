@@ -8,7 +8,7 @@ priority: 1
 
 # 单机上独立运行Alluxio
 
-开始之前需要安装[Java](Java-Setup.html)(JDK 7或更高版本)。
+这部分的前提条件是你安装了[Java](Java-Setup.html)(JDK 7或更高版本)。
 
 下载Alluxio二进制发行版{{site.ALLUXIO_RELEASED_VERSION}}:
 
@@ -22,7 +22,7 @@ priority: 1
 
 * `conf/alluxio-env.sh`中的`ALLUXIO_UNDERFS_ADDRESS`设置成本地文件系统的临时目录：（例如，`export ALLUXIO_UNDERFS_ADDRESS=/tmp`）。
 
-* 远程登录服务打开，`ssh localhost`能成功。
+* 远程登录服务开启，`ssh localhost`能成功。
 
 接着，格式化Alluxio文件系统并启动。*注意：因为Alluxio需要创建
 [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt)，启动
@@ -36,7 +36,7 @@ Alluxio会要求用户输入root密码。如果不想重复输入root密码，�
 
 {% include Running-Alluxio-Locally/run-sample.md %}
 
-因为是首个样例程序，能够看到如下输出：
+对于首个样例程序，你应该能够看到如下输出：
 
 {% include Running-Alluxio-Locally/first-sample-output.md %}
 
@@ -48,6 +48,6 @@ Alluxio会要求用户输入root密码。如果不想重复输入root密码，�
 
 {% include Running-Alluxio-Locally/run-tests.md %}
 
-可以在任意时刻执行以下脚本停止Alluxio:
+可以在任意时刻执行以下命令以关闭Alluxio:
 
 {% include Running-Alluxio-Locally/Alluxio-stop.md %}
