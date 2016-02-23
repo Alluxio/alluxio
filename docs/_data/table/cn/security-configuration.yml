@@ -1,0 +1,22 @@
+alluxio.security.authentication.type:
+  安全认证模式。目前支持三种模式：NOSASL、SIMPLE和CUSTOM。
+  默认为NOSASL，即不启用安全认证功能。
+alluxio.security.authentication.socket.timeout.ms:
+  用户创建一个连接master的Thrift套接字的最大时长（以毫秒为单位）。
+alluxio.security.authentication.custom.provider.class:
+  当alluxio.security.authentication.type被设为CUSTOM时，实现安全认证功能的类。
+  该类必须实现'alluxio.security.authentication.AuthenticationProvider'接口。
+alluxio.security.login.username:
+  当alluxio.security.authentication.type被设为SIMPLE或CUSTOM时，用户应用使用此配置项
+  作为连接Alluxio的用户名。若未设置该项，则使用系统登录用户名。
+alluxio.security.authorization.permission.enabled:
+  是否启用文件权限访问控制功能。
+alluxio.security.authorization.permission.umask:
+  创建文件和目录时的文件权限掩码。初始化的创建权限为777，目录和文件之间相差111。
+  因此，当默认文件权限掩码为022时，新建目录的权限为755，新建文件的权限为644。
+alluxio.security.authorization.permission.supergroup:
+  Alluxio文件系统的超级用户组。所有该组下的用户拥有超级权限。
+alluxio.security.group.mapping.class:
+  提供“用户-用户组”映射服务的实现类。Master可以通过该服务得到指定用户所在组的组成员。
+  该类必须实现'alluxio.security.group.GroupMappingService'接口。
+  默认的实现类通过执行'groups'命令得到指定用户所在组的组成员。
