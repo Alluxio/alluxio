@@ -1,0 +1,44 @@
+format:
+  Format Tachyon Master and all Workers. The option [-s] indicates that the command should only
+  format when the underfs is local and doesn't already exist.
+formatWorker:
+  Format Tachyon Worker storage on this local node.
+bootstrap-conf:
+  Generate the bootstrap config file <code>alluxio-env.sh</code> with the specified
+  <code>ALLUXIO_MASTER_HOSTNAME</code>, if the config file doesn't exist.
+tfs:
+  Interact with Tachyon in command line style for basic file system operations.
+  See <a href="Command-Line-Interface.html">Command Line</a> for more information.
+loadufs:
+  Loads files under <code>UfsPath</code> to the given <code>TachyonPath</code>.
+  <code>ExcludePathPrefixes</code> can be a set of prefixes which are separated by ';'.
+  The paths with a prefix in <code>ExcludePathPrefixes</code> will not be loaded.
+runTest:
+  Run an end-to-end test on a Tachyon cluster. <code>Example</code> should be "Basic" or
+  "BasicNonByteBuffer". <code>ReadType</code> should be "CACHE_PROMOTE", "CACHE",
+  or "NO_CACHE". <code>WriteType</code> should be "MUST_CACHE", "CACHE_THROUGH" or "THROUGH".
+runTests:
+  Run all end-to-end tests on a Tachyon cluster. That is, execute the <code>runTest</code> command
+  with all the possible args.
+journalCrashTest:
+  Test the Master Journal System in a crash scenario. Try <code>alluxio journalCrashTest -help</code>
+  to see the meanings of each argument in detail, or you can run it without args by default.
+readJournal:
+  Read a Tachyon journal file from stdin and write a human-readable version of it to stdout. You
+  can run this on the journal file as <code>alluxio readJournal < journal/FileSystemMaster/log.out</code>.
+killAll:
+  Kill processes whose pid or command contains the <code>WORD</code> specified by the user.
+copyDir:
+  Copy the <code>PATH</code> to all worker nodes.
+clearCache:
+  Clear OS buffer cache of the machine. This command needs the root permission.
+thriftGen:
+  Generate all thrift code. See <a href="#change-a-thrift-rpc-definition">Change a Thrift RPC
+  definition</a>.
+protoGen:
+  Generate all protocol buffer code. See <a href="#change-a-protocol-buffer-message">Change a
+  Protocol Buffer Message</a>.
+version:
+  Print Tachyon version.
+validateConf:
+  Validate Tachyon conf.

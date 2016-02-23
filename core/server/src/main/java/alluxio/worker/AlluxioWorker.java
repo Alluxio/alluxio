@@ -164,7 +164,7 @@ public final class AlluxioWorker {
       // Setup web server
       mWebServer =
           new WorkerUIWebServer(ServiceType.WORKER_WEB, NetworkAddressUtils.getBindAddress(
-              ServiceType.WORKER_WEB, mConfiguration), mBlockWorker,
+              ServiceType.WORKER_WEB, mConfiguration), this, mBlockWorker,
               NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mConfiguration),
               mStartTimeMs, mConfiguration);
 
@@ -401,5 +401,12 @@ public final class AlluxioWorker {
       LOG.info("Usage: java AlluxioWorker");
       System.exit(-1);
     }
+  }
+
+  /**
+   * @return the master metric system reference
+   */
+  public MetricsSystem getWorkerMetricsSystem() {
+    return mWorkerMetricsSystem;
   }
 }

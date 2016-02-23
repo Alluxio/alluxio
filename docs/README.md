@@ -31,16 +31,17 @@ version of the documentation. To do this, you will need to have `Jekyll` install
 way to do this is via a Ruby Gem (see the [jekyll installation instructions]
 (http://jekyllrb.com/docs/installation/)).
 
-Before running `jekyll`, please run mvn to generate Java doc.
+Before running `jekyll`, please run mvn to generate Java doc under alluxio root directory.
 
 ```bash
 $ mvn javadoc:javadoc
 $ mvn javadoc:aggregate
 ```
 
-Then use jekyll to build the HTML documentation.
+Then go to `docs` directory and use jekyll to build the HTML documentation.
 
 ```bash
+$ cd docs
 $ jekyll build
 ```
 
@@ -48,7 +49,7 @@ This will create a directory called `_site` containing `index.html` as well as t
 HTML files compiled from markdown files.
 
 In addition to generating the site as HTML from the markdown files, jekyll can serve the site via
-a webserver. To build and run a webserver, use the command `jekyll serve` and then visit the site 
+a web server. To build and run a web server, use the command `jekyll serve` and then visit the site 
 at [http://localhost:4000](http://localhost:4000).
 
 ## Multi-lauguage Support

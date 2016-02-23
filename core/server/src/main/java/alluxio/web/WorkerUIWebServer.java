@@ -18,6 +18,7 @@ package alluxio.web;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.worker.AlluxioWorker;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
@@ -39,14 +40,15 @@ public final class WorkerUIWebServer extends UIWebServer {
    *
    * @param serviceType the service type
    * @param webAddress the service address
+   * @param alluxioWorker Alluxio worker
    * @param blockWorker block worker to manage blocks
    * @param workerAddress the worker address
    * @param startTimeMs start time milliseconds
    * @param conf Alluxio configuration
    */
   public WorkerUIWebServer(ServiceType serviceType, InetSocketAddress webAddress,
-      BlockWorker blockWorker, InetSocketAddress workerAddress, long startTimeMs,
-      Configuration conf) {
+      AlluxioWorker alluxioWorker, BlockWorker blockWorker, InetSocketAddress workerAddress,
+      long startTimeMs, Configuration conf) {
     super(serviceType, webAddress, conf);
     Preconditions.checkNotNull(blockWorker, "Block Worker cannot be null");
     Preconditions.checkNotNull(workerAddress, "Worker address cannot be null");
@@ -60,6 +62,8 @@ public final class WorkerUIWebServer extends UIWebServer {
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(false)),
         "/browseLogs");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet(conf)), "/header");
+    mWebAppContext.addServlet(new ServletHolder(new
+        WebInterfaceWorkerMetricsServlet(alluxioWorker.getWorkerMetricsSystem())), "/metricsui");
 
     // REST configuration
     mWebAppContext.setOverrideDescriptors(Arrays.asList(conf.get(Constants.WEB_RESOURCES)

@@ -112,7 +112,7 @@ Note that, in either cases, the `mode` parameter is currently ignored by Alluxio
 ## `read(int fd, void* buf, size_t count)`
 (see also `man 2 read`)
 
-A read system call will only succeed when `fd` refers to a Alluxio file that has been previously
+A read system call will only succeed when `fd` refers to an Alluxio file that has been previously
 opened with the `O_RDONLY` flags.
 
 ## `lseek(int fd, off_t off, int whence)`
@@ -124,7 +124,7 @@ Seeking is supported only on files open for reading, i.e., on files that have be
 ## `write(int fd, const void* buf, size_t count)`
 (see also `man 2 write`)
 
-A write system call will only succeed when `fd` refers to a Alluxio file that has been previously
+A write system call will only succeed when `fd` refers to an Alluxio file that has been previously
 opened  with the `O_WRONLY` flag.
 
 # Performance considerations

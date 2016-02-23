@@ -42,7 +42,7 @@ in `deploy/vagrant` run:
 
 # Launch a Cluster
 
-To run a Alluxio cluster on EC2, first sign up for an Amazon EC2 account
+To run an Alluxio cluster on EC2, first sign up for an Amazon EC2 account
 on the [Amazon Web Services site](http://aws.amazon.com/).
 
 If you are not familiar with Amazon EC2, you can read [this tutorial](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html) first.
@@ -92,7 +92,7 @@ the script under `deploy/vagrant`:
 
 {% include Running-Alluxio-on-EC2/launch-cluster.md %}
 
-Each node of the cluster runs a Alluxio worker, and the `AlluxioMaster` runs the Alluxio master.
+Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs the Alluxio master.
 
 # Access the cluster
 

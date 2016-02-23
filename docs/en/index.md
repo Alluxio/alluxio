@@ -30,8 +30,8 @@ The project is the storage layer of the Berkeley Data Analytics Stack
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
 
 [Github](https://github.com/amplab/alluxio/) |
-[Releases](http://alluxio-project.org/releases/) |
-[Downloads](http://alluxio-project.org/downloads/) |
+[Releases](http://alluxio.org/releases/) |
+[Downloads](http://alluxio.org/downloads/) |
 [User Document](Getting-Started.html) |
 [Developer Document](Contributing-to-Alluxio.html) |
 [Meetup Group](https://www.meetup.com/Alluxio/) |
@@ -81,7 +81,7 @@ page which will go through how to deploy Alluxio and run some basic examples in 
 # Downloads
 
 You can get the released versions of Alluxio from the
-[Project Downloads Page](http://alluxio-project.org/downloads). Each release comes with prebuilt
+[Project Downloads Page](http://alluxio.org/downloads). Each release comes with prebuilt
 binaries compatibile with various Hadoop versions. If you would like to build the project from the
 source code, check out the
 [Building From Master Branch Documentation](Building-Alluxio-Master-Branch.html).

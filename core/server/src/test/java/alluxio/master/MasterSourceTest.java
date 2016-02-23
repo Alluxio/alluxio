@@ -124,8 +124,8 @@ public final class MasterSourceTest {
   public void createFileTest() throws Exception {
     mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
 
-    Assert.assertEquals(1, mCounters.get("CreateFileOps").getCount());
-    Assert.assertEquals(1, mCounters.get("FilesCreated").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.CREATE_FILE_OPS).getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.FILES_CREATED).getCount());
 
     // trying to create a file that already exist
     try {
@@ -135,16 +135,16 @@ public final class MasterSourceTest {
       // do nothing
     }
 
-    Assert.assertEquals(2, mCounters.get("CreateFileOps").getCount());
-    Assert.assertEquals(1, mCounters.get("FilesCreated").getCount());
+    Assert.assertEquals(2, mCounters.get(MasterSource.CREATE_FILE_OPS).getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.FILES_CREATED).getCount());
 
     // create a nested path (i.e. 2 files and 2 directories will be created)
     mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
 
-    Assert.assertEquals(3, mCounters.get("CreateFileOps").getCount());
-    Assert.assertEquals(2, mCounters.get("FilesCreated").getCount());
-    Assert.assertEquals(0, mCounters.get("CreateDirectoryOps").getCount());
-    Assert.assertEquals(2, mCounters.get("DirectoriesCreated").getCount());
+    Assert.assertEquals(3, mCounters.get(MasterSource.CREATE_FILE_OPS).getCount());
+    Assert.assertEquals(2, mCounters.get(MasterSource.FILES_CREATED).getCount());
+    Assert.assertEquals(0, mCounters.get(MasterSource.CREATE_DIRECTORY_OPS).getCount());
+    Assert.assertEquals(2, mCounters.get(MasterSource.DIRECTORIES_CREATED).getCount());
   }
 
   /**
@@ -157,8 +157,8 @@ public final class MasterSourceTest {
   public void mkdirTest() throws Exception {
     mFileSystemMaster.mkdir(DIRECTORY_URI, CreateDirectoryOptions.defaults());
 
-    Assert.assertEquals(1, mCounters.get("CreateDirectoryOps").getCount());
-    Assert.assertEquals(1, mCounters.get("DirectoriesCreated").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.CREATE_DIRECTORY_OPS).getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.DIRECTORIES_CREATED).getCount());
 
     // trying to create a directory that already exist
     try {
@@ -168,8 +168,8 @@ public final class MasterSourceTest {
       // do nothing
     }
 
-    Assert.assertEquals(2, mCounters.get("CreateDirectoryOps").getCount());
-    Assert.assertEquals(1, mCounters.get("DirectoriesCreated").getCount());
+    Assert.assertEquals(2, mCounters.get(MasterSource.CREATE_DIRECTORY_OPS).getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.DIRECTORIES_CREATED).getCount());
   }
 
   /**
@@ -184,8 +184,8 @@ public final class MasterSourceTest {
 
     mFileSystemMaster.getFileInfo(fileId);
 
-    Assert.assertEquals(1, mCounters.get("GetFileInfoOps").getCount());
-    Assert.assertEquals(1, mCounters.get("FileInfosGot").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.GET_FILE_INFO_OPS).getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.FILE_INFOS_GOT).getCount());
 
     // trying to get non-existent file info
     try {
@@ -195,8 +195,8 @@ public final class MasterSourceTest {
       // do nothing
     }
 
-    Assert.assertEquals(2, mCounters.get("GetFileInfoOps").getCount());
-    Assert.assertEquals(1, mCounters.get("FileInfosGot").getCount());
+    Assert.assertEquals(2, mCounters.get(MasterSource.GET_FILE_INFO_OPS).getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.FILE_INFOS_GOT).getCount());
   }
 
   /**
@@ -214,8 +214,8 @@ public final class MasterSourceTest {
 
     mFileSystemMaster.getFileBlockInfoList(ROOT_FILE_URI);
 
-    Assert.assertEquals(1, mCounters.get("GetFileBlockInfoOps").getCount());
-    Assert.assertEquals(2, mCounters.get("FileBlockInfosGot").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.GET_FILE_BLOCK_INFO_OPS).getCount());
+    Assert.assertEquals(2, mCounters.get(MasterSource.FILE_BLOCK_INFOS_GOT).getCount());
 
     mFileSystemMaster.create(TEST_URI, sNestedFileOptions);
     writeBlockForFile(TEST_URI);
@@ -223,8 +223,8 @@ public final class MasterSourceTest {
 
     mFileSystemMaster.getFileBlockInfoList(TEST_URI);
 
-    Assert.assertEquals(2, mCounters.get("GetFileBlockInfoOps").getCount());
-    Assert.assertEquals(3, mCounters.get("FileBlockInfosGot").getCount());
+    Assert.assertEquals(2, mCounters.get(MasterSource.GET_FILE_BLOCK_INFO_OPS).getCount());
+    Assert.assertEquals(3, mCounters.get(MasterSource.FILE_BLOCK_INFOS_GOT).getCount());
 
     // trying to get block info list for a non-existent file
     try {
@@ -235,8 +235,8 @@ public final class MasterSourceTest {
           e.getMessage());
     }
 
-    Assert.assertEquals(3, mCounters.get("GetFileBlockInfoOps").getCount());
-    Assert.assertEquals(3, mCounters.get("FileBlockInfosGot").getCount());
+    Assert.assertEquals(3, mCounters.get(MasterSource.GET_FILE_BLOCK_INFO_OPS).getCount());
+    Assert.assertEquals(3, mCounters.get(MasterSource.FILE_BLOCK_INFOS_GOT).getCount());
   }
 
   /**
@@ -252,8 +252,8 @@ public final class MasterSourceTest {
 
     // mFileSystemMaster.completeFile(multipleBlocksfileId);
 
-    Assert.assertEquals(1, mCounters.get("CompleteFileOps").getCount());
-    Assert.assertEquals(1, mCounters.get("FilesCompleted").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.COMPLETE_FILE_OPS).getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.FILES_COMPLETED).getCount());
 
     // trying to complete a completed file
     try {
@@ -265,8 +265,8 @@ public final class MasterSourceTest {
 
     mFileSystemMaster.getFileBlockInfoList(ROOT_FILE_URI);
 
-    Assert.assertEquals(2, mCounters.get("CompleteFileOps").getCount());
-    Assert.assertEquals(1, mCounters.get("FilesCompleted").getCount());
+    Assert.assertEquals(2, mCounters.get(MasterSource.COMPLETE_FILE_OPS).getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.FILES_COMPLETED).getCount());
   }
 
   /**
@@ -280,16 +280,16 @@ public final class MasterSourceTest {
     // cannot delete root
     Assert.assertFalse(mFileSystemMaster.deleteFile(ROOT_URI, true));
 
-    Assert.assertEquals(1, mCounters.get("DeletePathOps").getCount());
-    Assert.assertEquals(0, mCounters.get("PathsDeleted").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.DELETE_PATH_OPS).getCount());
+    Assert.assertEquals(0, mCounters.get(MasterSource.PATHS_DELETED).getCount());
 
     // delete the file
     createCompleteFileWithSingleBlock(NESTED_FILE_URI);
 
     mFileSystemMaster.deleteFile(NESTED_FILE_URI, false);
 
-    Assert.assertEquals(2, mCounters.get("DeletePathOps").getCount());
-    Assert.assertEquals(1, mCounters.get("PathsDeleted").getCount());
+    Assert.assertEquals(2, mCounters.get(MasterSource.DELETE_PATH_OPS).getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.PATHS_DELETED).getCount());
   }
 
   /**
@@ -308,17 +308,17 @@ public final class MasterSourceTest {
   }
 
   /**
-   * Tests the {@code SetStateOps} counter when setting the state of a file.
+   * Tests the {@code SetAttributeOps} counter when setting the state of a file.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
-  public void setStateTest() throws Exception {
+  public void setAttributeTest() throws Exception {
     mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults());
 
-    Assert.assertEquals(1, mCounters.get("SetAttributeOps").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.SET_ATTRIBUTE_OPS).getCount());
   }
 
   /**
@@ -333,7 +333,7 @@ public final class MasterSourceTest {
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         new SetAttributeOptions.Builder().setPersisted(true).build());
 
-    Assert.assertEquals(1, mCounters.get("FilesPersisted").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.FILES_PERSISTED).getCount());
   }
 
   /**
@@ -353,14 +353,14 @@ public final class MasterSourceTest {
       // Expected
     }
 
-    Assert.assertEquals(1, mCounters.get("RenamePathOps").getCount());
-    Assert.assertEquals(0, mCounters.get("PathsRenamed").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.RENAME_PATH_OPS).getCount());
+    Assert.assertEquals(0, mCounters.get(MasterSource.PATHS_RENAMED).getCount());
 
     // move a nested file to a root file
     mFileSystemMaster.rename(NESTED_FILE_URI, TEST_URI);
 
-    Assert.assertEquals(2, mCounters.get("RenamePathOps").getCount());
-    Assert.assertEquals(1, mCounters.get("PathsRenamed").getCount());
+    Assert.assertEquals(2, mCounters.get(MasterSource.RENAME_PATH_OPS).getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.PATHS_RENAMED).getCount());
   }
 
   /**
@@ -377,15 +377,15 @@ public final class MasterSourceTest {
     // cannot free directory with recursive argument to false
     Assert.assertFalse(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), false));
 
-    Assert.assertEquals(1, mCounters.get("FreeFileOps").getCount());
-    Assert.assertEquals(0, mCounters.get("FilesFreed").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.FREE_FILE_OPS).getCount());
+    Assert.assertEquals(0, mCounters.get(MasterSource.FILES_FREED).getCount());
 
     // free the file
     Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI, false));
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
-    Assert.assertEquals(2, mCounters.get("FreeFileOps").getCount());
-    Assert.assertEquals(1, mCounters.get("FilesFreed").getCount());
+    Assert.assertEquals(2, mCounters.get(MasterSource.FREE_FILE_OPS).getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.FILES_FREED).getCount());
   }
 
   /**
@@ -412,13 +412,13 @@ public final class MasterSourceTest {
       // Expected, continue
     }
 
-    Assert.assertEquals(1, mCounters.get("PathsMounted").getCount());
-    Assert.assertEquals(2, mCounters.get("MountOps").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.PATHS_MOUNTED).getCount());
+    Assert.assertEquals(2, mCounters.get(MasterSource.MOUNT_OPS).getCount());
 
     mFileSystemMaster.unmount(TEST_URI);
 
-    Assert.assertEquals(1, mCounters.get("PathsUnmounted").getCount());
-    Assert.assertEquals(1, mCounters.get("UnmountOps").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.PATHS_UNMOUNTED).getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.UNMOUNT_OPS).getCount());
   }
 
   private void createCompleteFileWithSingleBlock(AlluxioURI path) throws Exception {

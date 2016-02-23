@@ -26,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The mock cluster for local file system.
  */
 @NotThreadSafe
-public class LocalFileSystemCluster extends UnderFileSystemCluster {
+public final class LocalFileSystemCluster extends UnderFileSystemCluster {
 
   /**
    * @param baseDir the base directory
