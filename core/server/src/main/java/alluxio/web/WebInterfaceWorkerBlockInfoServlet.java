@@ -11,25 +11,6 @@
 
 package alluxio.web;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.annotation.concurrent.ThreadSafe;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang3.tuple.ImmutablePair;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-
 import alluxio.AlluxioURI;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystem;
@@ -45,6 +26,25 @@ import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.meta.BlockMeta;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.annotation.concurrent.ThreadSafe;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Servlet that provides data for displaying block info of a worker.
