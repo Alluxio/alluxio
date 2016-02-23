@@ -326,16 +326,9 @@ public final class InodeFile extends Inode {
 
   @Override
   public synchronized String toString() {
-    StringBuilder sb = new StringBuilder("InodeFile(");
-    return sb.append(super.toString())
-        .append(", BLOCKS: ").append(mBlocks)
-        .append(", BLOCK CONTAINER ID: ").append(mBlockContainerId)
-        .append(", BLOCK SIZE: ").append(mBlockSizeBytes)
-        .append(", CACHEABLE: ").append(mCacheable)
-        .append(", COMPLETED: ").append(mCompleted)
-        .append(", LENGTH: ").append(mLength)
-        .append(", TTL: ").append(mTtl)
-        .append(")").toString();
+    return toStringHelper().add("blocks", mBlocks).add("blockContainerId", mBlockContainerId)
+        .add("blockSizeBytes", mBlockSizeBytes).add("cacheable", mCacheable)
+        .add("completed", mCompleted).add("length", mLength).add("ttl", mTtl).toString();
   }
 
   /**

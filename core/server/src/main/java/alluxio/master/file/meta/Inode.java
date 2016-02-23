@@ -15,6 +15,8 @@ import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.wire.FileInfo;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -386,21 +388,11 @@ public abstract class Inode implements JournalEntryRepresentable {
     mPermission = permission;
   }
 
-  @Override
-  public synchronized String toString() {
-    return new StringBuilder("Inode(")
-        .append("ID:").append(mId)
-        .append(", NAME:").append(mName)
-        .append(", PARENT_ID:").append(mParentId)
-        .append(", CREATION_TIME_MS:").append(mCreationTimeMs)
-        .append(", PINNED:").append(mPinned)
-        .append(", DELETED:").append(mDeleted)
-        .append(", DIRECTORY:").append(mDirectory)
-        .append(", PERSISTENCE STATE:").append(mPersistenceState)
-        .append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs)
-        .append(", USER_NAME:").append(mUserName)
-        .append(", GROUP_NAME:").append(mGroupName)
-        .append(", PERMISSION:").append(mPermission)
-        .append(")").toString();
+  protected synchronized Objects.ToStringHelper toStringHelper() {
+    return Objects.toStringHelper(this).add("id", mId).add("name", mName).add("parentId", mParentId)
+        .add("creationTimeMs", mCreationTimeMs).add("pinned", mPinned).add("deleted", mDeleted)
+        .add("directory", mDirectory).add("persistenceState", mPersistenceState)
+        .add("lastModificationTimeMs", mLastModificationTimeMs).add("userName", mUserName)
+        .add("groupName", mGroupName).add("permission", mPermission);
   }
 }
