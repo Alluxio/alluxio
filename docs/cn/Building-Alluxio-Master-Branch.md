@@ -8,19 +8,19 @@ group: Resources
 * 内容列表
 {:toc}
 
-该向导介绍如何从头编译Alluxio。
+该指南介绍如何从头编译Alluxio。
 
-开始之前你需已安装[Java 7 (or above)](Java-Setup.html)、[Maven](Maven.html)以及[Thrift 0.9.2](Thrift.html) (可选)。
+这部分内容的前提条件是你已安装[Java 7 (或以上)](Java-Setup.html)、[Maven](Maven.html)以及[Thrift 0.9.2](Thrift.html) (可选)。
 
 从Github上获取主分支并打包：
 
 {% include Building-Alluxio-Master-Branch/checkout.md %}
 
-若出现`java.lang.OutOfMemoryError: Java heap space`，执行：
+若出现`java.lang.OutOfMemoryError: Java heap space`，请执行：
 
 {% include Building-Alluxio-Master-Branch/OutOfMemoryError.md %}
 
-若需要构建一个特定的Alluxio版本，例如{{site.ALLUXIO_RELEASED_VERSION}}，先执行`cd alluxio`，接着执行`git checkout v{{site.ALLUXIO_RELEASED_VERSION}}`。
+若需要构建一个特定的版本Alluxio，例如{{site.ALLUXIO_RELEASED_VERSION}}，先执行`cd alluxio`，接着执行`git checkout v{{site.ALLUXIO_RELEASED_VERSION}}`。
 
 Maven构建环境将自动获取依赖，编译源码，运行单元测试，并进行打包。如果你是第一次构建该项目，下载依赖包可能需要一段时间，但以后的构建过程将会快很多。
 
@@ -60,11 +60,11 @@ Maven构建环境将自动获取依赖，编译源码，运行单元测试，并
 
 # 多种发行版支持
 
-要在不同hadoop发行版上构建Alluxio，只需修改`hadoop.version`：
+要针对不同hadoop发行版构建Alluxio，只需修改`hadoop.version`：
 
 ## Apache
 
-由于所有主版本都来自Apache，因此所有Apache发行版可以直接使用
+由于所有主要构建版本都来自Apache，因此所有Apache发行版可以直接使用
 
 {% include Building-Alluxio-Master-Branch/Apache.md %}
 
@@ -82,13 +82,13 @@ Maven构建环境将自动获取依赖，编译源码，运行单元测试，并
 
 ## Pivotal
 
-对于Pivotal发行版，使用该形式`$apacheRelease-gphd-$pivotalRelease`的版本号
+对于Pivotal发行版，使用`$apacheRelease-gphd-$pivotalRelease`形式的版本号
 
 {% include Building-Alluxio-Master-Branch/Pivotal.md %}
 
 ## Hortonworks
 
-对于Hortonworks发行版，使用该形式`$apacheRelease.$hortonRelease`的版本号
+对于Hortonworks发行版，使用`$apacheRelease.$hortonRelease`形式的版本号
 
 {% include Building-Alluxio-Master-Branch/Hortonworks.md %}
 
