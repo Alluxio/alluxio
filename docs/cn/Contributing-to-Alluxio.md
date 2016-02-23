@@ -8,7 +8,7 @@ group: Resources
 * Table of Contents
 {:toc}
 
-感谢您对alluxio的兴趣！我们对您贡献的任何的新特性或者修复都表示深深感激。
+感谢您对alluxio的兴趣！我们非常感谢任何的新特性或者修复的贡献。
 
 ### Alluxio初始任务
 
@@ -24,15 +24,15 @@ group: Resources
 
 5.  [构建Alluxio主分支](Building-Alluxio-Master-Branch.html)
 
-6.  Fork Alluxio Github仓库，并添加一两个单元测试或者javadoc文件，再提交一个pull request。也欢迎你处理我们的[JIRA](https://tachyon.atlassian.net/browse/ALLUXIO)中的issues。这里是专门为新的开发者准备的一些[任务](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)，每个新开发者最多只能做其中的两个任务，在这之后，尝试去做一些Beginner/Intermediate任务，或者在[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)里询问。可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行基本Github操作。
+6.  Fork Alluxio Github仓库，并添加一两个单元测试或者javadoc文件，再提交一个pull request。也欢迎你处理我们的[JIRA](https://tachyon.atlassian.net/browse/ALLUXIO)中的issues。这里是专门为新的开发者准备的一些[任务](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)。请每个新开发者最多只完成的两个New-Contributor任务。在这之后，尝试去做一些Beginner/Intermediate任务，或者在[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)里咨询。可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行基本Github操作。
 
 ### 提交代码
 
--   我们鼓励你每次尽可能提交小的、单一目的的pull request，因为要合并一个含有许多不相干的特性的大的更改十分困难。
+-   我们鼓励你每次尽可能提交小的、单一目的的补丁包，因为要合并一个含有许多不相干的特性的大的改动十分困难。
 
 -   我们会追踪[JIRA](https://tachyon.atlassian.net/)里的issues和features，如果你还没有帐号，请先进行注册。
 
--   打开[JIRA](https://tachyon.atlassian.net/)里的一个ticket，里面详细介绍了需要的修改和该修改的目的。
+-   设立[JIRA](https://tachyon.atlassian.net/)里的一个ticket，在里面详细介绍提议的修改和该修改的目的。
 
 -   将你的修改作为一个GitHub pull request进行提交，可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行这些操作。
 
@@ -60,7 +60,7 @@ group: Resources
 
 #### 测试
 
--   使用``mvn test``命令运行所有单元测试（会将本地文件系统作为底层文件系统，在HDFS模块中将HDFS 1.0.4作为底层文件系统），``mvn -Dhadoop.version=2.4.0 test``命令将HDFS 2.4.0作为HDFS模块中的底层文件系统
+-   使用``mvn test``命令运行所有单元测试（会将本地文件系统作为底层文件系统，在HDFS模块中将HDFS 1.0.4作为底层文件系统），``mvn -Dhadoop.version=2.4.0 test``命令将HDFS 2.4.0作为HDFS模块中的底层文件系统。
 
 -   要在特定的底层文件系统上运行测试，在对应的子模块目录下运行Maven命令，例如，要运行针对HDFS的测试，在``alluxio/underfs/hdfs``目录下运行``mvn test``。
 
@@ -72,21 +72,18 @@ group: Resources
 
 -   使用不同的Hadoop版本进行测试，运行``mvn -Dhadoop.version=2.2.0 clean test``。
 
--   要进行Hadoop文件系统的合同测试（是用hadoop 2.6.0），运行：`mvn -PcontractTest clean test`。
+-   要进行Hadoop文件系统的契约式设计测试（用hadoop 2.6.0），运行：`mvn -PcontractTest clean test`。
 
 #### 编码风格
 
--   请遵循已有代码的风格，我们使用[Google Java style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html)风格，但有以下不同：
+-   请遵循已有代码的风格。具体地，我们使用[Google Java style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html)风格，但有以下不同：
     -  每行最多**100**个字符
-    -  导入包应遵循[该顺序](../resources/importorder.png)，每组里面遵循**字母顺序**
-    -  使用`i ++`代替`i++`
-    -  使用`i + j`代替`i+j`
-    -  类和成员的修饰符，应按照Java语言规范推荐的顺序：**public protected private abstract static final transient volatile
-    synchronized native strictfp**，然后按照**字母顺序**
-    -  类成员变量要使用`m`前缀，例如`public static String sUnderFSAddress;`
+    -  第三方导入被整理到一起以使得IDE格式化起来更简单
+    -  类成员变量要使用`m`前缀，例如`private WorkerClient mWorkerClient;`
     -  静态成员变量要使用`s`前缀，例如`public static String sUnderFSAddress;`
-    -  在Java接口中不要对方法使用`public`或`abstract`修饰符，这是因为在接口中声明的方法隐式被认为是public和abstract (http://docs.oracle.com/javase/specs/jls/se7/html/jls-9.html#jls-9.4)
 -   你可以下载我们提供的[Eclipse formatter](../resources/alluxio-code-formatter-eclipse.xml)
+    -  为了让Eclipse能够正确地组织你的导入, 配置"组织导入"以看上去像
+       [这样](../resources/eclipse_imports.png)
     -  如果你使用IntelliJ IDEA:
        - 你可以使用我们提供的formatter，参考[Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)，或者在IntelliJ
        IDEA中使用[Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546)
@@ -96,7 +93,7 @@ group: Resources
 
 {% include Contributing-to-Alluxio/slf4j.md %}
 
--  为确保编码风格符合标准，你在提交pull request之前应该先运行[checkstyle](http://checkstyle.sourceforge.net)，保证没有警告：
+-  为验证编码风格符合标准，你在提交pull request之前应该先运行[checkstyle](http://checkstyle.sourceforge.net)，并且保证没有警告：
 
 {% include Contributing-to-Alluxio/checkstyle.md %}
 
@@ -119,7 +116,7 @@ group: Resources
 
 {% include Contributing-to-Alluxio/M2_REPO.md %}
 
-如果你使用的是IntelliJ IDEA，你可能需要修改Maven配置中的'developer'以防止导入错误，可以通过以下方式进行：
+如果你使用的是IntelliJ IDEA，你可能需要修改Maven profile配置中的'developer'以防止导入错误，可以通过以下方式进行：
 
     View > Tool Windows > Maven Projects
 
@@ -135,7 +132,7 @@ group: Resources
 -   Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
 -   Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
 
-### 延伸阅读
+### 拓展阅读
 
 -   [Tachyon: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_tachyon.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *SOCC 2014*.
