@@ -8,40 +8,40 @@ priority: 6
 * Table of Contents
 {:toc}
 
-Tachyon has a user-friendly web interface allowing users to watch and manage the system. The master
+Alluxio has a user-friendly web interface allowing users to watch and manage the system. The master
 and workers all serve their own web UI. The default port for the web interface is 19999 for the
 master and 30000 for the workers.
 
-# Tachyon Master Web Interface
+# Alluxio Master Web Interface
 
-The Tachyon master serves a web interface to help manage the system. The default port for the
-Tachyon master web interface is 19999, so the web interface can be viewed by visiting
-`http://<MASTER IP>:19999`. For instance, if you started Tachyon locally, the master web interface 
+The Alluxio master serves a web interface to help manage the system. The default port for the
+Alluxio master web interface is 19999, so the web interface can be viewed by visiting
+`http://<MASTER IP>:19999`. For instance, if you started Alluxio locally, the master web interface 
 can be viewed by visiting [localhost:19999](http://localhost:19999).
 
-The Tachyon master web interface contains several different pages, described below.
+The Alluxio master web interface contains several different pages, described below.
 
 ## Home Page
 
-The Tachyon master home page looks something like below:
+The Alluxio master home page looks something like below:
 
-![Tachyon Master Home Page]({{site.data.img.screenshot_overview}})
+![Alluxio Master Home Page]({{site.data.img.screenshot_overview}})
 
 The home page gives an overview of the system status. It includes the following sections:
 
-* **Tachyon Summary**
+* **Alluxio Summary**
 
-    Tachyon system level information
+    Alluxio system level information
 
 * **Cluster Usage Summary**
 
-    Tachyon storage information as well as under storage information. Tachyon storage utilization
+    Alluxio storage information as well as under storage information. Alluxio storage utilization
     can be near 100%, but under storage utilization should not approach 100%.
 
 * **Storage Usage Summary**
 
-    Tachyon tiered storage information which gives a break down of amount of space used per tier
-    across the Tachyon cluster.
+    Alluxio tiered storage information which gives a break down of amount of space used per tier
+    across the Alluxio cluster.
 
 ## Configuration Page
 
@@ -52,19 +52,19 @@ navigation bar on the top of the screen.
 
 The configuration page has two sections:
 
-* **Tachyon Configuration**
+* **Alluxio Configuration**
 
-    A map of all the Tachyon configuration properties and their set values.
+    A map of all the Alluxio configuration properties and their set values.
 
 * **White List**
 
-    Contains all the Tachyon path prefixes eligible to be stored in Tachyon. A request may still be
+    Contains all the Alluxio path prefixes eligible to be stored in Alluxio. A request may still be
     made to a file not prefixed by a path in the white list. Only whitelisted files will be stored
-    in Tachyon.
+    in Alluxio.
 
 ## Browse File System Page
 
-You can browse the Tachyon file system through the UI. When selecting the "Browse File System" tab
+You can browse the Alluxio file system through the UI. When selecting the "Browse File System" tab
 in the navigation bar, you will see something like this:
 
 ![browse]({{site.data.img.screenshot_browseFileSystem}})
@@ -84,15 +84,15 @@ whether the file is pinned or not, the file creation time, and the file modifica
 
 ## Workers Page
 
-The master also shows all known Tachyon workers in the system and shows them in the "Workers" tab.
+The master also shows all known Alluxio workers in the system and shows them in the "Workers" tab.
 
 ![workers]({{site.data.img.screenshot_workers}})
 
-The workers page gives an overview of all Tachyon worker nodes divided into two sections:
+The workers page gives an overview of all Alluxio worker nodes divided into two sections:
 
 * **Live Nodes**
 
-    A list of all the workers currently serving Tachyon requests. Clicking on the worker name will
+    A list of all the workers currently serving Alluxio requests. Clicking on the worker name will
     redirect to the worker's web UI.
 
 * **Dead Nodes**
@@ -120,16 +120,16 @@ This section shows all master metrics. It includes the following sections:
 
     Number of RPC invocations per operation.
 
-# Tachyon Workers Web Interface
+# Alluxio Workers Web Interface
 
-Each Tachyon worker also serves a web interface to show worker information. The default port for the
+Each Alluxio worker also serves a web interface to show worker information. The default port for the
 worker web interface is 30000 so the web interface can be viewed by visiting
-`http://<WORKER IP>:30000`. For instance, if you started Tachyon locally, the worker web interface
+`http://<WORKER IP>:30000`. For instance, if you started Alluxio locally, the worker web interface
 can  be viewed by visiting [localhost:30000](http://localhost:30000).
 
 ## Home Page
 
-The home page for the Tachyon worker web interface is similar to the home page for the Tachyon
+The home page for the Alluxio worker web interface is similar to the home page for the Alluxio
 master, but shows information specific to a single worker. Therefore, it has similar sections:
 **Worker Summary**, **Storage Usage Summary**, **Tiered Storage Details**.
 

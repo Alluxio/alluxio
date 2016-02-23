@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs free /unused/data
+$ ./bin/alluxio fs free /unused/data
 ```

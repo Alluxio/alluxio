@@ -1,6 +1,6 @@
 ```java
 FileSystem fs = FileSystem.Factory.get();
-TachyonURI path = new TachyonURI("/myFile");
+AlluxioURI path = new AlluxioURI("/myFile");
 // Open the file for reading and obtains a lock preventing deletion
 FileInStream in = fs.openFile(path);
 // Read data

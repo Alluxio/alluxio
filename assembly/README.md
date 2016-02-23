@@ -1,6 +1,6 @@
-# Tachyon Assembly
+# Alluxio Assembly
 
-This module is to unify the different tachyon modules into a release package;
+This module is to unify the different alluxio modules into a release package;
 typically a tarball.
 
 ## Building
@@ -9,8 +9,8 @@ The defaults are set up so that the following command will generate the tarball
 
     mvn package assembly:single
 
-This command will output the tar at `target/tachyon-$VERSION.tar.gz` along with
-a `target/tachyon-$VERSION` directory that has the same content as the tar.
+This command will output the tar at `target/alluxio-$VERSION.tar.gz` along with
+a `target/alluxio-$VERSION` directory that has the same content as the tar.
 
 ## Contents
 
@@ -24,4 +24,4 @@ should be included.
 ## Usage
 
 For more details on how to use the generated tar, go
-[to the docs](http://tachyon-project.org/documentation/Running-Tachyon-Locally.html).
+[to the docs](http://alluxio.org/documentation/Running-Alluxio-Locally.html).
