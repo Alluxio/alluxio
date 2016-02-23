@@ -1,5 +1,5 @@
 ```java
-AlluxioFile file = AlluxioFileSystem.open("/myFile");
-SetStateOptions pinOpt = new SetStateOptions.Builder(ClientContext.getConf()).setPinned(false);
-AlluxioFileSystem.setState(file, pinOpt);
+AlluxioURI uri = new AlluxioURI("/myFile");
+SetAttributeOptions pinOpt = SetAttributeOptions.defaults().setPinned(false);
+FileSystem.Factory.get().setAttribute(uri, pinOpt);
 ```
