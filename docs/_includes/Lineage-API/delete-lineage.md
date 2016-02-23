@@ -1,5 +1,5 @@
 ```java
-TachyonLineage tl = TachyonLineage.get();
+AlluxioLineage tl = AlluxioLineage.get();
 ...
 long lineageId = tl.createLineage(inputFiles, outputFiles, job);
 ...

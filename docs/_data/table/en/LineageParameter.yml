@@ -1,11 +1,11 @@
-tachyon.master.lineage.checkpoint.interval.ms:
+alluxio.master.lineage.checkpoint.interval.ms:
   The interval (in milliseconds) between Tachyon's checkpoint scheduling.
-tachyon.master.lineage.checkpoint.class:
+alluxio.master.lineage.checkpoint.class:
   The class name of the checkpoint strategy for lineage output files. The default strategy is to
   checkpoint the latest completed lineage, i.e. the lineage whose output files are completed.
-tachyon.master.lineage.recompute.interval.ms:
+alluxio.master.lineage.recompute.interval.ms:
   The interval (in milliseconds) between Tachyon's recompute execution. The executor scans all the lost files tracked by lineage, and re-executes the corresponding jobs every 5 minutes.
-tachyon.master.lineage.recompute.log.path:
+alluxio.master.lineage.recompute.log.path:
   The path to the log that the recompute executor redirects the job's stdout into.
-tachyon.user.lineage.enabled:
+alluxio.user.lineage.enabled:
   Flag to enable lineage feature.
