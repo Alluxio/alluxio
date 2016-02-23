@@ -10,12 +10,12 @@ else
 fi
 mkdir -p $EVENTLOG_DIR
 cat > /spark/conf/spark-defaults.conf <<EOF
-  spark.master spark://TachyonMaster:7077
+  spark.master spark://AlluxioMaster:7077
   spark.eventLog.enabled true
   spark.eventLog.dir $EVENTLOG_DIR
   spark.history.fs.logDirectory $EVENTLOG_DIR
   spark.serializer org.apache.spark.serializer.KryoSerializer
-  spark.tachyonStore.url tachyon://TachyonMaster:19998
+  spark.tachyonStore.url alluxio://AlluxioMaster:19998
   # externalBlockStore.url is needed in spark master branch
-  spark.externalBlockStore.url tachyon://TachyonMaster:19998
+  spark.externalBlockStore.url alluxio://AlluxioMaster:19998
 EOF

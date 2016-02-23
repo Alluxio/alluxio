@@ -1,0 +1,7 @@
+parameter,defaultValue
+alluxio.fuse.maxwrite.bytes,131072
+alluxio.fuse.debug.enabled,false
+alluxio.fuse.cachedpaths.max,500
+alluxio.fuse.mount.default,/mnt/alluxio
+alluxio.fuse.fs.root,/mnt
+alluxio.fuse.fs.name,alluxio-fuse

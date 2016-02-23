@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/tachyon tfs getUsedBytes
+$ ./bin/alluxio fs getUsedBytes
 ```
