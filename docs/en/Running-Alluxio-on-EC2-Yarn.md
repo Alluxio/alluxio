@@ -8,7 +8,7 @@ priority: 5
 
 Alluxio can be started and managed by Apache YARN. This guide demonstrates how to launch Alluxio
 with YARN on EC2 machines using the
-[Vagrant scripts](https://github.com/amplab/alluxio/tree/master/deploy/vagrant) that come with
+[Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with
 Alluxio.
 
 # Prerequisites
@@ -42,7 +42,7 @@ in `deploy/vagrant` run:
 
 # Launch a Cluster
 
-To run a Alluxio cluster on EC2, first sign up for an Amazon EC2 account
+To run an Alluxio cluster on EC2, first sign up for an Amazon EC2 account
 on the [Amazon Web Services site](http://aws.amazon.com/).
 
 Then create [access keys](https://aws.amazon.com/developers/access-keys/) and set shell environment
@@ -51,8 +51,8 @@ variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` by:
 {% include Running-Alluxio-on-EC2-Yarn/access-key.md %}
 
 Next generate your EC2
-[Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) in the region 
-you want to deploy to (**us-east-1** by default). Make sure to set the permissions of your private 
+[Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) in the region
+you want to deploy to (**us-east-1** by default). Make sure to set the permissions of your private
 key file so that only you can read it:
 
 {% include Running-Alluxio-on-EC2-Yarn/generate-key-pair.md %}
@@ -63,11 +63,13 @@ name and `Key_Path` to the path to the pem key.
 By default, the Vagrant script creates a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
 named *alluxio-vagrant-test* at
-[Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
+[Region(**us-east-1**) and Availability Zone(**us-east-1b**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
 The security group will be set up automatically in the region with all inbound/outbound network
 traffic opened. You can change the security group, region and availability zone in `ec2.yml`.
 
-Now you can launch the Alluxio cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running
+Finally, set the "Type" field in `deploy/vagrant/conf/ufs.yml` to `hadoop2`.
+
+Now you can launch the Alluxio cluster with Hadoop2.4.1 as under filesystem in us-east-1b by running
 the script under `deploy/vagrant`:
 
 {% include Running-Alluxio-on-EC2-Yarn/launch-Alluxio.md %}
@@ -107,9 +109,9 @@ installed in `/hadoop`.
 
 # Configure Alluxio integration with YARN
 
-On our EC2 machines, YARN has been installed as a part of Hadoop version 2.4.1. Notice that, by 
-default Alluxio binaries 
-built by vagrant script do not include this YARN integration. You should first stop the default 
+On our EC2 machines, YARN has been installed as a part of Hadoop version 2.4.1. Notice that, by
+default Alluxio binaries
+built by vagrant script do not include this YARN integration. You should first stop the default
 Alluxio service, re-compile Alluxio with profile "yarn" specified to have the YARN client and
 ApplicationMaster for Alluxio.
 
@@ -131,7 +133,7 @@ scripts and binaries to launch masters and workers. With our EC2 setup, this pat
 2. The total number of Alluxio workers to start.
 3. A HDFS path to distribute the binaries for Alluxio ApplicationMaster.
 
-For example, here we launch a Alluxio cluster with 3 worker nodes, where an HDFS temp directory is
+For example, here we launch an Alluxio cluster with 3 worker nodes, where an HDFS temp directory is
 `hdfs://AlluxioMaster:9000/tmp/` and each YARN container can access Alluxio in `/alluxio`
 
 {% include Running-Alluxio-on-EC2-Yarn/three-arguments.md %}
@@ -145,12 +147,12 @@ The output of the above script may produce output like the following:
 
 {% include Running-Alluxio-on-EC2-Yarn/script-output.md %}
 
-From the output, we know the application ID to run Alluxio is 
+From the output, we know the application ID to run Alluxio is
 **`application_1445469376652_0002`**. This application ID is needed to kill the application.
 
 NOTE: currently Alluxio YARN framework does not guarantee to start the Alluxio master on the
 AlluxioMaster machine; use the YARN Web UI to read the logs of this YARN application. The log
-of this application records which machine is used to launch a Alluxio master container like:
+of this application records which machine is used to launch an Alluxio master container like:
 
 {% include Running-Alluxio-on-EC2-Yarn/log-Alluxio-master.md %}
 

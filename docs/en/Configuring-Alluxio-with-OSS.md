@@ -10,7 +10,7 @@ This guide describes how to configure Alluxio with [Aliyun OSS](http://www.aliyu
 
 ## Initial Setup
 
-To run a Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these machines.You can either [compile the binaries from Alluxio source code](http://alluxio-project.org/documentation/master/Building-Alluxio-Master-Branch.html), or [download the precompiled binaries directly](http://alluxio-project.org/documentation/master/Running-Alluxio-Locally.html).
+To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these machines.You can either [compile the binaries from Alluxio source code](http://alluxio.org/documentation/master/Building-Alluxio-Master-Branch.html), or [download the precompiled binaries directly](http://alluxio.org/documentation/master/Running-Alluxio-Locally.html).
 
 Then if you haven't already done so, create your configuration file from the template:
 
@@ -38,17 +38,17 @@ After these changes, Alluxio should be configured to work with OSS as its under 
 
 ## Configuring Distributed Applications
 
-If you are using a Alluxio client that is running separately from the Alluxio Master and Workers (in a separate JVM), then you need to make sure that your Aliyun credentials are provided to the application JVM processes as well. The easiest way to do this is to add them as command line options when starting your client JVM process. For example:
+If you are using an Alluxio client that is running separately from the Alluxio Master and Workers (in a separate JVM), then you need to make sure that your Aliyun credentials are provided to the application JVM processes as well. The easiest way to do this is to add them as command line options when starting your client JVM process. For example:
 
 {% include Configuring-Alluxio-with-OSS/java-bash.md %}
 
 ## Running Alluxio Locally with OSS
 
-After everythin is configured, you can start up Alluxio locally to see that everything works.
+After everything is configured, you can start up Alluxio locally to see that everything works.
 
 {% include Common-Commands/start-alluxio.md %}
     
-This should start a Alluxio master and a Alluxio worker. You can see the master UI at http://localhost:19999.
+This should start an Alluxio master and an Alluxio worker. You can see the master UI at http://localhost:19999.
 
 Next, you can run a simple example program:
 
