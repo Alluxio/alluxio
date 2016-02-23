@@ -42,7 +42,7 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-minicluster</artifactId>
       <scope>test</scope>
-      <!-- Exclude the Jersey artifacts to prevent clashes with tachyon-core-server -->
+      <!-- Exclude the Jersey artifacts to prevent clashes with alluxio-core-server -->
       <exclusions>
         <exclusion>
           <groupId>com.sun.jersey</groupId>
