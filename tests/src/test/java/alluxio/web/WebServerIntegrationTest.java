@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.web;
+package alluxio.web;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -30,18 +30,18 @@ import org.junit.Test;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimap;
 
-import tachyon.LocalTachyonClusterResource;
-import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
-import tachyon.util.network.NetworkAddressUtils;
-import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.Configuration;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.master.LocalAlluxioCluster;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 /**
- * Tests the web server is up when Tachyon starts.
+ * Tests the web server is up when Alluxio starts.
  */
 public class WebServerIntegrationTest {
-  private TachyonConf mMasterTachyonConf;
-  private TachyonConf mWorkerTachyonConf;
+  private Configuration mMasterConf;
+  private Configuration mWorkerConf;
 
   // Web pages that will be verified.
   private static final Multimap<ServiceType, String> PAGES =
@@ -52,20 +52,20 @@ public class WebServerIntegrationTest {
           .build();
 
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource();
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource();
 
   @Before
   public final void before() throws Exception {
-    LocalTachyonCluster localTachyonCluster = mLocalTachyonClusterResource.get();
-    mMasterTachyonConf = localTachyonCluster.getMasterTachyonConf();
-    mWorkerTachyonConf = localTachyonCluster.getWorkerTachyonConf();
+    LocalAlluxioCluster localAlluxioCluster = mLocalAlluxioClusterResource.get();
+    mMasterConf = localAlluxioCluster.getMasterConf();
+    mWorkerConf = localAlluxioCluster.getWorkerConf();
   }
 
   private void verifyWebService(ServiceType serviceType, String path)
       throws IOException {
-    TachyonConf conf =
-        serviceType == ServiceType.MASTER_WEB ? mMasterTachyonConf : mWorkerTachyonConf;
+    Configuration conf =
+        serviceType == ServiceType.MASTER_WEB ? mMasterConf : mWorkerConf;
 
     InetSocketAddress webAddr =
         NetworkAddressUtils.getConnectAddress(serviceType, conf);
@@ -73,15 +73,6 @@ public class WebServerIntegrationTest {
         "http://" + webAddr.getAddress().getHostAddress() + ":"
         + webAddr.getPort() + path).openConnection();
     webService.connect();
-    if (webService.getResponseCode() == 500) {
-      System.out.println(path);
-      System.out.println(webAddr);
-      try {
-        Thread.sleep(1000000);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-    }
     Assert.assertEquals(200, webService.getResponseCode());
 
     Scanner pageScanner = null;
