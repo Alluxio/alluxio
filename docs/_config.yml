@@ -6,7 +6,7 @@ kramdown:
 
 # These allow the documentation to be updated with new releases of Alluxio.
 ALLUXIO_RELEASED_VERSION: 1.0.0
-ALLUXIO_MASTER_VERSION_SHORT: 1.0.0
+ALLUXIO_MASTER_VERSION_SHORT: 1.1.0-SNAPSHOT
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:
