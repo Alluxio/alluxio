@@ -1,5 +1,5 @@
 ```bash
-$ git clone git://github.com/amplab/alluxio.git
+$ git clone git://github.com/alluxio/alluxio.git
 $ cd alluxio
 $ mvn install
 ```
