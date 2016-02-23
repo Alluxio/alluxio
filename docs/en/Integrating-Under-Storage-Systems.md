@@ -4,7 +4,7 @@ title: Integrating Under Storage Systems
 group: Resources
 ---
 
-Alluxio exposes a
+Alluxio exposes an
 [UnderFileSystem](https://github.com/alluxio/alluxio/blob/master/common/src/main/java/alluxio/underfs/UnderFileSystem.java)
 interface to enable any under storage to integrate with Alluxio. The current available under storage
 integrations can be found as submodules of the `underfs` module. To create a new module, the

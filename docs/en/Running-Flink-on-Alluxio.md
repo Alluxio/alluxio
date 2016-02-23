@@ -56,9 +56,7 @@ There are different ways to achieve that:
 - Specify the location of the jar file in the `HADOOP_CLASSPATH` environment variable (make sure its
 available on all cluster nodes as well). For example like this:
 
-```bash
-export HADOOP_CLASSPATH=/pathToAlluxio/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
-```
+{% include Running-Flink-on-Alluxio/hadoop-classpath.md %}
 
 # Using Alluxio with Flink
 
