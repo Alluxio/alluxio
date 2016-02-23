@@ -18,7 +18,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method option for unmounting a path.
+ * Method options for unmounting a path.
  */
 @PublicApi
 @NotThreadSafe

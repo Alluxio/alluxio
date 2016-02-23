@@ -14,10 +14,12 @@ package alluxio.client.file.options;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.CompleteFileTOptions;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The method option for completing a file.
+ * The method options for completing a file.
  */
 @PublicApi
 @NotThreadSafe
@@ -56,10 +58,7 @@ public final class CompleteFileOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("CompleteFileOptions(");
-    sb.append(super.toString()).append(", UFS Length: ").append(mUfsLength);
-    sb.append(")");
-    return sb.toString();
+    return Objects.toStringHelper(this).add("ufsLenght", mUfsLength).toString();
   }
 
   /**

@@ -13,12 +13,13 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 
+import com.google.common.base.Objects;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method option for renaming a file or a directory.
+ * Method options for renaming a file or a directory.
  */
 @PublicApi
 @NotThreadSafe
@@ -33,5 +34,13 @@ public final class RenameOptions {
 
   private RenameOptions() {
     // No options currently
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).toString();
   }
 }
