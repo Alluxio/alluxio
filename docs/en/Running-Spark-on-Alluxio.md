@@ -20,6 +20,11 @@ Alluxio works together with Spark 1.1 or later out-of-the-box.
 
 * Alluxio cluster has been set up in accordance to these guides for either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
+
+* Alluxio client will need to be compiled with the Spark specific profile.
+
+{% include Running-Spark-on-Alluxio/spark-profile-build.md %}
+
 * Add the following line to `spark/conf/spark-env.sh`.
 
 {% include Running-Spark-on-Alluxio/earlier-spark-version-bash.md %}
