@@ -23,9 +23,6 @@ public final class SessionInfoTest {
   private static final int MAX_LEN = 1000;
   private static final int DELTA = 50;
 
-  private static final String SESSIONINFOR_TOSTRING =
-      "SessionInfo( mSessionId: 99, mLastHeartbeatMs: ";
-
   private int mSessionTimeoutMs;
 
   /**
@@ -79,15 +76,5 @@ public final class SessionInfoTest {
   public void timeoutTest() {
     SessionInfo tSessionInfo = new SessionInfo(1, mSessionTimeoutMs);
     Assert.assertFalse(tSessionInfo.timeout());
-  }
-
-  /**
-   * Tests the {@link SessionInfo#toString()} method.
-   */
-  @Test
-  public void toStringTest() {
-    SessionInfo tSessionInfo = new SessionInfo(99, mSessionTimeoutMs);
-    Assert.assertEquals(SESSIONINFOR_TOSTRING,
-        tSessionInfo.toString().substring(0, SESSIONINFOR_TOSTRING.length()));
   }
 }
