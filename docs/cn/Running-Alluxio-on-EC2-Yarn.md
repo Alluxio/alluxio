@@ -6,7 +6,7 @@ group: User Guide
 priority: 5
 ---
 
-Alluxio可以由Apache YARN启动并管理。该向导介绍如何使用Alluxio自带的
+Alluxio可以由Apache YARN启动并管理。该指南介绍如何使用Alluxio自带的
 [Vagrant脚本](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)在EC2的机器上用YARN启
 动Alluxio。
 
@@ -152,13 +152,13 @@ Alluxio作业的状态和应用ID。
 
 {% include Running-Alluxio-on-EC2-Yarn/kill-application.md %}
 
-# 销毁集群
+# 撤销集群
 
 在启动EC2机器的本地机器`deploy/vagrant`目录下运行：
 
 {% include Running-Alluxio-on-EC2-Yarn/destroy.md %}
 
-销毁之前创建的集群。一次只能创建一个集群。当该命令成功执行后，EC2实例将终止运行。
+撤销之前创建的集群。一次只能创建一个集群。当该命令成功执行后，EC2实例将终止运行。
 
 # 故障排除
 
