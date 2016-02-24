@@ -9,7 +9,7 @@ priority: 1
 * Table of Contents
 {:toc}
 
-Tachyon提供了访问数据的文件系统接口。Tachyon上的文件提供了一次写入的语义：文件全部被写入之后就不会改变，而且文件在写操作完成之前不能进行读操作。Alluxio提供了两种不同的文件系统API，本地API和兼容Hadoop的API。本地API具有更好的性能，而兼容Hadoop的API使用户可以灵活利用Alluxio，但没必要修改用Hadoop API写的代码。
+Alluxio提供了访问数据的文件系统接口。Alluxio上的文件提供了一次写入的语义：文件全部被写入之后就不会改变，而且文件在写操作完成之前不能进行读操作。Alluxio提供了两种不同的文件系统API，本地API和兼容Hadoop的API。本地API具有更好的性能，而兼容Hadoop的API使用户可以灵活利用Alluxio，但没必要修改用Hadoop API写的代码。
 
 # 本地API
 
