@@ -10,7 +10,7 @@ title: Maven
 从Mac OS X Mavericks开始，Maven便被移除了，因此需要手动安装。
 
 1.  下载[Maven二进制文件](http://maven.apache.org/download.cgi)
-2.  将`apache-maven-<version.number>-bin.tar.gz`该压缩文件解压到你需安装`Maven <version.number>`的目录下，假定你选择的目录为`/System/Library/Apache-Maven`，一个名为`apache-maven-<version.number>`的子目录会自动创建。
+2.  将`apache-maven-<version.number>-bin.tar.gz`压缩文件解压到你需安装`Maven <version.number>`的目录下，假定你选择的目录为`/System/Library/Apache-Maven`，一个名为`apache-maven-<version.number>`的子目录会自动创建。
 3.  在命令行终端，添加`M2_HOME`环境变量，例如，`export M2_HOME=/System/Library/Apache-Maven/apache-maven-<version.number>`。
 4.  添加`M2`环境变量，例如，`export M2=$M2_HOME/bin`。
 5.  将`M2`添加到你的path路径中，例如，`export PATH=$M2:$PATH`。
@@ -22,7 +22,7 @@ title: Maven
 # Linux
 
 1.  下载[Maven二进制文件](http://maven.apache.org/download.cgi)
-2.  将`apache-maven-<version.number>-bin.tar.gz`该压缩文件解压到你需安装`Maven <version.number>`的目录下，假定你选择的目录为`/usr/local/apache-maven`，一个名为`apache-maven-<version.number>`的子目录会自动创建。
+2.  将`apache-maven-<version.number>-bin.tar.gz`压缩文件解压到你需安装`Maven <version.number>`的目录下，假定你选择的目录为`/usr/local/apache-maven`，一个名为`apache-maven-<version.number>`的子目录会自动创建。
 3.  在命令行终端，添加`M2_HOME`环境变量，例如，`export M2_HOME=/usr/local/apache-maven/apache-maven-<version.number>`。
 4.  添加`M2`环境变量，例如，`export M2=$M2_HOME/bin`。
 5.  将`M2`添加到你的path路径中，例如，`export PATH=$M2:$PATH`。
