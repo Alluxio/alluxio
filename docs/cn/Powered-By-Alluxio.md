@@ -17,6 +17,7 @@ group: Dev Resources
 * [Neusoft](http://www.neusoft.com/)
 * [Alluxio](http://www.alluxio.com/)
 * [UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/)
+* [Ultra Tendency](http://ultratendency.com/)
 
 以下是一些将Alluxio加入到自身的生态系统以增强功能的第三方软件项目。
 
