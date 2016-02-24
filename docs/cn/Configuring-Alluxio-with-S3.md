@@ -6,13 +6,13 @@ group: Under Store
 priority: 0
 ---
 
-该向导介绍如何配置Alluxio从而使用[Amazon S3](https://aws.amazon.com/s3/)作为底层文件系统。
+该指南介绍如何配置Alluxio从而使用[Amazon S3](https://aws.amazon.com/s3/)作为底层文件系统。
 
 # 初始步骤
 
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-然后，由template文件创建配置文件：
+然后，如果你还没有配置文件，由template文件创建配置文件：
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
@@ -65,13 +65,13 @@ Alluxio提供了一个本地客户端与S3交互，默认情况下，当S3被配
 
 ## 配置分布式应用
 
-如果你使用的Alluxio client并非运行在Alluxio Master或者Worker上（在其他JVM上），那需要确保为该JVM提供了AWS证书，最简单的方法是在启动client JVM时添加如下选项：
+如果你使用的Alluxio Client并非运行在Alluxio Master或者Worker上（在其他JVM上），那需要确保为该JVM提供了AWS证书，最简单的方法是在启动client JVM时添加如下选项：
 
 {% include Configuring-Alluxio-with-S3/java-bash.md %}
 
 # 使用S3在本地运行Alluxio
 
-配置完成后，你可以在本地启动Alluxio，观察是否正确运行：
+配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
 {% include Common-Commands/start-alluxio.md %}
 
