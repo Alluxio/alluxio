@@ -8,7 +8,7 @@ priority: 6
 * Table of Contents
 {:toc}
 
-Alluxio提供了用户友好的Web界面以便用户查看和管理。master和worker都拥有各自的Web UI。master Web界面的默认
+Alluxio提供了用户友好的Web界面以便用户查看和管理。master和worker都拥有各自的Web UI页面。master Web界面的默认
 端口是19999，worker的端口是30000。
 
 # Alluxio Master Web界面
@@ -79,9 +79,9 @@ master也显示了系统中所有已知的Alluxio worker。点击"Workers"选项
 
 workers页面将所有Alluxio worker节点分为两类显示：
 
-* **活动节点**
+* **存活节点**
 
-    所有当前可以处理Alluxio请求的节点列表。点击worker名将重定向到worker的web UI。
+    所有当前可以处理Alluxio请求的节点列表。点击worker名将重定向到worker的web UI页面。
 
 * **失效节点**
 
