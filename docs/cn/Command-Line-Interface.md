@@ -62,17 +62,11 @@ fs命令中的所有“路径”都应该以以下开头：
 
 `chgrp`命令可以改变Alluxio中的文件或文件夹的所属组，Alluxio支持POSIX标准的文件权限，组在POSIX文件权限模型中是一个授权实体，文件所有者或者超级用户可以执行这条命令从而改变一个文件或文件夹的所属组。
 
+加上`-R`选项可以递归的改变文件夹中子文件和子文件夹的所属组。
+
 使用举例：使用`chgrp`命令能够快速修改一个文件的所属组：
 
 {% include Command-Line-Interface/chgrp.md %}
-
-## chgrpr
-
-`chgrpr`命令与`chgrp`命令类似，区别在于它递归作用于文件夹的子文件和子文件夹。
-
-使用举例：使用`chgrpr`命令可以快速递归地修改一个文件夹的所属组。
-
-{% include Command-Line-Interface/chgrpr.md %}
 
 ## chmod
 
@@ -89,32 +83,21 @@ fs命令中的所有“路径”都应该以以下开头：
   {% endfor %}
 </table>
 
+加上`-R`选项可以递归的改变文件夹中子文件和子文件夹的权限。
+
 使用举例：使用`chmod`命令可以快速修改一个文件的权限：
 
 {% include Command-Line-Interface/chmod.md %}
-
-## chmodr
-
-`chmodr`命令类似于`chmod`命令，区别在于它递归地作用于Alluxio文件夹下的子文件和子文件夹。
-
-使用举例：使用`chmodr`命令可以快速递归修改一个文件夹的权限：
-
-{% include Command-Line-Interface/chmodr.md %}
 
 ## chown
 
 `chown`命令用于修改Alluxio中文件或文件夹的所有者，出于安全方面的考虑，只有超级用户能够更改一个文件的所有者。
 
+加上`-R`选项可以递归的改变文件夹中子文件和子文件夹的所有者。
+
 使用举例：使用`chown`命令可以快速修改一个文件的所有者。
 
 {% include Command-Line-Interface/chown.md %}
-
-## chownr
-`chownr`命令类似于`chown`命令，区别在于它递归地修改文件夹下子文件和子文件见的所有者。
-
-使用举例：使用`chownr`命令可以快速递归修改一个文件夹的所有者：
-
-{% include Command-Line-Interface/chownr.md %}
 
 ## copyFromLocal
 
@@ -208,16 +191,11 @@ fs命令中的所有“路径”都应该以以下开头：
 
 `ls`命令列出一个文件夹下的所有子文件和子文件夹及文件大小、上次修改时间以及文件的内存状态。对一个文件使用`ls`命令仅仅会显示该文件的信息。
 
+加上`-R`选项可以递归的列出输入路径下的所有子文件和子文件夹，并列出从输入路径开始的所有子树。
+
 使用举例：使用`ls`命令可以浏览文件系统。
 
 {% include Command-Line-Interface/ls.md %}
-
-## lsr
-`lsr`命令与`ls`命令类似，区别在于它递归作用于子文件夹，显示出输入路径下的所有文件树。和`ls`一样，对一个文件使用`lsr`命令也只会显示该文件的信息。
-
-使用举例：使用`lsr`命令可以浏览文件系统。
-
-{% include Command-Line-Interface/lsr.md %}
 
 ## mkdir
 
@@ -271,17 +249,11 @@ fs命令中的所有“路径”都应该以以下开头：
 
 `rm`命令将一个文件从Alluxio以及底层文件系统中删除。该命令返回后该文件便立即不可获取，但实际的数据要过一段时间才被真正删除。
 
+加上`-R`选项可以递归的删除文件夹中所有内容后再删除文件夹自身。
+
 使用举例：使用`rm`命令可以删除掉不再需要的临时文件。
 
 {% include Command-Line-Interface/rm2.md %}
-
-## rmr
-
-`rmr`命令和`rm`命令类似，区别在于它的参数可以是一个文件夹，`rmr`命令可以将一个文件夹及其子文件和子文件夹递归删除。
-
-使用举例：使用`rmr`命令可以删除Alluxio中的一个完整的子文件夹树。
-
-{% include Command-Line-Interface/rmr.md %}
 
 ## setTtl
 
