@@ -13,6 +13,7 @@ package alluxio.master.block;
 
 import alluxio.collections.IndexedSet;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.BlockInfoException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.block.meta.MasterBlockInfo;
@@ -34,6 +35,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.powermock.reflect.Whitebox;
 
@@ -61,6 +63,10 @@ public class BlockMasterTest {
   /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
+
+  /** The exception expected to be thrown. */
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   /**
    * Sets up the dependencies before a test runs.
@@ -166,7 +172,7 @@ public class BlockMasterTest {
   }
 
   /**
-   * Tests the {@link BlockMaster#removeBlocks(List)} method.
+   * Tests the {@link BlockMaster#removeBlocks(List, boolean)} method.
    *
    * @throws Exception if registering a worker fails
    */
@@ -186,7 +192,13 @@ public class BlockMasterTest {
     mMaster.commitBlock(worker2, 1L, "MEM", 1L, 1L);
     mMaster.commitBlock(worker2, 2L, "MEM", 2L, 1L);
     mMaster.commitBlock(worker2, 3L, "MEM", 3L, 1L);
-    mMaster.removeBlocks(workerBlocks);
+    mMaster.removeBlocks(workerBlocks, false /* deleteBlocksMetadata */);
+    Assert.assertEquals(1L, mMaster.getBlockInfo(1L).getBlockId());
+
+    // Test removeBlocks with deleteBlocksMetadata
+    mMaster.removeBlocks(workerBlocks, true /* deleteBlocksMetadata */);
+    mThrown.expect(BlockInfoException.class);
+    mMaster.getBlockInfo(1L);
   }
 
   /**

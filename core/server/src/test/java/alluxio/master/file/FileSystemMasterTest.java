@@ -14,6 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -164,7 +165,9 @@ public final class FileSystemMasterTest {
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     Assert.assertTrue(
         mFileSystemMaster.deleteFile(NESTED_FILE_URI, false));
-    Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+
+    mThrown.expect(BlockInfoException.class);
+    mBlockMaster.getBlockInfo(blockId).getLocations().size();
 
     // verify the file is deleted
     Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
