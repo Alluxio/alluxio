@@ -124,57 +124,13 @@ See [Security](Security.html) for more information about security features.
 
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
-<tr>
-  <td>alluxio.security.authentication.type</td>
-  <td>NOSASL</td>
-  <td>The authentication mode. Currently three modes are supported: NOSASL, SIMPLE,
-  CUSTOM. The default value NOSASL indicates that authentication is not enabled.</td>
-</tr>
-<tr>
-  <td>alluxio.security.authentication.socket.timeout.ms</td>
-  <td>60000</td>
-  <td>The maximum amount of time (in milliseconds) for a user to create a Thrift socket which
-  will connect to the master.</td>
-</tr>
-<tr>
-  <td>alluxio.security.authentication.custom.provider.class</td>
-  <td></td>
-  <td>The class to provide customized authentication implementation, when
-  alluxio.security.authentication.type is set to CUSTOM. It must implement the
-  interface 'alluxio.security.authentication.AuthenticationProvider'.</td>
-</tr>
-<tr>
-  <td>alluxio.security.login.username</td>
-  <td></td>
-  <td>When alluxio.security.authentication.type is set to SIMPLE or CUSTOM, user application uses
-  this property to indicate the user requesting Alluxio service. If it is not set explicitly,
-  the OS login user will be used.</td>
-</tr>
-<tr>
-  <td>alluxio.security.authorization.permission.enabled</td>
-  <td>false</td>
-  <td>Whether to enable access control based on file permission.</td>
-</tr>
-<tr>
-  <td>alluxio.security.authorization.permission.umask</td>
-  <td>022</td>
-  <td>The umask of creating file and directory. The initial creation permission is 777, and
-  the difference between directory and file is 111. So for default umask value 022,
-  the created directory has permission 755 and file has permission 644.</td>
-</tr>
-<tr>
-  <td>alluxio.security.authorization.permission.supergroup</td>
-  <td>supergroup</td>
-  <td>The super group of Alluxio file system. All users in this group have super permission.</td>
-</tr>
-<tr>
-  <td>alluxio.security.group.mapping.class</td>
-  <td>alluxio.security.group.provider.&#8203;ShellBasedUnixGroupsMapping</td>
-  <td>The class to provide user-to-groups mapping service. Master could get the various group
-  memberships of a given user.  It must implement the interface
-  'alluxio.security.group.GroupMappingService'. The default implementation execute the 'groups'
-  shell command to fetch the group memberships of a given user.</td>
-</tr>
+{% for item in site.data.table.security-configuration %}
+  <tr>
+    <td>{{ item.propertyName }}</td>
+    <td>{{ item.defaultValue }}</td>
+    <td>{{ site.data.table.en.security-configuration.[item.propertyName] }}</td>
+  </tr>
+{% endfor %}
 </table>
 
 ## Configure multihomed networks

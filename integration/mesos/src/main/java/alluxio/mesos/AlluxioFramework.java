@@ -127,6 +127,7 @@ public class AlluxioFramework {
               .setName("Alluxio Master Executor")
               .setSource("master")
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("master"))
+              .addAllResources(getExecutorResources())
               .setCommand(
                   Protos.CommandInfo
                       .newBuilder()
@@ -135,7 +136,7 @@ public class AlluxioFramework {
                               + sConf.get(Constants.INTEGRATION_MESOS_JRE_PATH)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
                               + PathUtils.concatPath("alluxio", "integration", "bin",
-                                  "alluxio-master-mesos.sh"))
+                              "alluxio-master-mesos.sh"))
                       .addAllUris(getExecutorDependencyURIList())
                       .setEnvironment(
                           Protos.Environment
@@ -161,6 +162,7 @@ public class AlluxioFramework {
               .setName("Alluxio Worker Executor")
               .setSource("worker")
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("worker"))
+              .addAllResources(getExecutorResources())
               .setCommand(
                   Protos.CommandInfo
                       .newBuilder()
@@ -169,7 +171,7 @@ public class AlluxioFramework {
                               + sConf.get(Constants.INTEGRATION_MESOS_JRE_PATH)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
                               + PathUtils.concatPath("alluxio", "integration", "bin",
-                                  "alluxio-worker-mesos.sh"))
+                              "alluxio-worker-mesos.sh"))
                       .addAllUris(getExecutorDependencyURIList())
                       .setEnvironment(
                           Protos.Environment
@@ -315,6 +317,24 @@ public class AlluxioFramework {
       return resources;
     }
 
+    private List<Protos.Resource> getExecutorResources() {
+      // JIRA: https://issues.apache.org/jira/browse/MESOS-1807
+      // From Mesos 0.22.0, executors must set CPU resources to at least 0.01 and
+      // memory resources to at least 32MB.
+      List<Protos.Resource> resources = new ArrayList<Protos.Resource>(2);
+      // Both cpus/mem are "scalar" type, which means a double value should be used.
+      // The resource name is "cpus", type is scalar and the value is 0.1 to tell Mesos
+      // this executor would allocate 0.1 cpu for itself.
+      resources.add(Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_CPUS)
+          .setType(Protos.Value.Type.SCALAR)
+          .setScalar(Protos.Value.Scalar.newBuilder().setValue(0.1d)).build());
+      // The resource name is "mem", type is scalar and the value is 32.0MB to tell Mesos
+      // this executor would allocate 32.0MB mem for itself.
+      resources.add(Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_MEM)
+          .setType(Protos.Value.Type.SCALAR)
+          .setScalar(Protos.Value.Scalar.newBuilder().setValue(32.0d)).build());
+      return resources;
+    }
   }
 
   private static void usage() {

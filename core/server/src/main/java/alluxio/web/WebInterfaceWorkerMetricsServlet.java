@@ -41,7 +41,7 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
   /**
    * Creates a new instance of {@link WebInterfaceWorkerMetricsServlet}.
    *
-   * @param workerMetricsSystem Tachyon worker metrics system
+   * @param workerMetricsSystem Alluxio worker metrics system
    */
   public WebInterfaceWorkerMetricsServlet(MetricsSystem workerMetricsSystem) {
     super();

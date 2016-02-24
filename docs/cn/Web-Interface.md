@@ -8,7 +8,7 @@ priority: 6
 * Table of Contents
 {:toc}
 
-Alluxio提供了用户友好的Web界面以便用户查看和管理。master和worker都拥有各自的Web UI。master Web界面的默认
+Alluxio提供了用户友好的Web界面以便用户查看和管理。master和worker都拥有各自的Web UI页面。master Web界面的默认
 端口是19999，worker的端口是30000。
 
 # Alluxio Master Web界面
@@ -79,13 +79,33 @@ master也显示了系统中所有已知的Alluxio worker。点击"Workers"选项
 
 workers页面将所有Alluxio worker节点分为两类显示：
 
-* **活动节点**
+* **存活节点**
 
-    所有当前可以处理Alluxio请求的节点列表。点击worker名将重定向到worker的web UI。
+    所有当前可以处理Alluxio请求的节点列表。点击worker名将重定向到worker的web UI页面。
 
 * **失效节点**
 
     所有被master宣布失效的worker列表，通常是因为等待worker心跳超时，可能的原因包括worker系统重启或网络故障。
+
+## Master度量信息 
+
+点击导航栏中的“Metrics”选项卡即可浏览master的度量信息。
+
+![masterMetrics]({{site.data.img.screenshot_masterMetrics}})
+
+这一部分显示了master的所有度量信息，包括：
+
+* **Master整体指标**
+
+    集群的整体度量信息。
+
+* **逻辑操作**
+
+    执行的操作数量。
+
+* **RPC调用**
+
+    每个操作的RPC调用次数。
 
 # Alluxio Workers Web界面
 
@@ -102,3 +122,19 @@ Alluxio worker的主页和Alluxio master类似，但是显示的是单个worker�
 
 在块信息页面，可以看到worker上的文件，以及其他信息，如：文件大小和文件所在的存储层。当你点击文件时，可以看
 到文件的所有块信息。
+
+## Worker度量信息
+
+点击导航栏中的“Metrics”选项卡即可浏览worker的度量信息。
+
+![workerMetrics]({{site.data.img.screenshot_workerMetrics}})
+
+这一部分显示了worker的所有度量信息，包括：
+
+* **Worker整体指标**
+
+    Worker的整体度量信息。
+
+* **逻辑操作**
+
+    执行的操作数量。

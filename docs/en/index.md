@@ -21,10 +21,10 @@ of Alluxio without any code changes. The project is open source
 multiple companies. It is one of the fastest growing open source projects. With less than three
 years open source history, Alluxio has attracted more than
 [160 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 50 institutions,
-including [Alibaba](http://www.alibaba.com), [Baidu](https://www.baidu.com),
+including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/), [Baidu](https://www.baidu.com),
 [CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com), [Intel](http://www.intel.com/),
-[Red Hat](https://www.redhat.com/), [Alluxio](http://www.alluxio.com/),
-[UC Berkeley](https://amplab.cs.berkeley.edu/), and [Yahoo](https://www.yahoo.com/).
+[Red Hat](https://www.redhat.com/), [UC Berkeley](https://amplab.cs.berkeley.edu/),
+and [Yahoo](https://www.yahoo.com/).
 The project is the storage layer of the Berkeley Data Analytics Stack
 ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
@@ -35,7 +35,7 @@ The project is the storage layer of the Berkeley Data Analytics Stack
 [User Document](Getting-Started.html) |
 [Developer Document](Contributing-to-Alluxio.html) |
 [Meetup Group](https://www.meetup.com/Alluxio/) |
-[JIRA](https://alluxio.atlassian.net/browse/ALLUXIO) |
+[JIRA](https://tachyon.atlassian.net/browse/ALLUXIO) |
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
 [Powered By](Powered-By-Alluxio.html)
 
