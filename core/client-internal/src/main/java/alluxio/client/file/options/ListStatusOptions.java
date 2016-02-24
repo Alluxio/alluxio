@@ -14,7 +14,6 @@ package alluxio.client.file.options;
 import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -27,7 +26,6 @@ public final class ListStatusOptions {
   /**
    * @return the default {@link ListStatusOptions}
    */
-  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static ListStatusOptions defaults() {
     return new ListStatusOptions();
   }
