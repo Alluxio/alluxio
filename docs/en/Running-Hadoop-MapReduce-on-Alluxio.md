@@ -15,26 +15,16 @@ The prerequisite for this part is that you have [Java](Java-Setup.html). We also
 set up Alluxio and Hadoop in accordance to these guides [Local Mode](Running-Alluxio-Locally.html) or
 [Cluster Mode](Running-Alluxio-on-a-Cluster.html)
 
-## Using Hadoop 1.x
+## Configuring Hadoop
 
-If running a Hadoop 1.x cluster, ensure that the `core-site.xml` file in your Hadoop installation
-`conf` directory has the following properties added:
+You need to add the following three properties to `core-site.xml` file in your Hadoop installation
+`conf` directory:
 
-{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site-hadoop-1.x.md %}
+{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
 
 This will allow your MapReduce jobs to use Alluxio for their input and output files. If you are
 using HDFS as the under storage system for Alluxio, it may be necessary to add these properties to
 the `hdfs-site.xml` file as well.
-
-## Using Hadoop 2.x
-
-If you are using a Hadoop 2.x cluster, you need to configure `alluxio.hadoop.AlluxioFs` as Hadoop AbstractFileSystem. 
-The properties of Hadoop 1.x is optional. However, in some cases you may encounter the error:
-`java.io.IOException: No FileSystem for scheme: alluxio`. For instance, this may happen when Yarn 
-(as opposed to Hadoop) tries to access Alluxio files. If this error is encountered, add these 
-properties to your `core-site.xml` file, and restart Yarn.
-
-{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site-hadoop-2.x.md %}
 
 # Compiling the Alluxio Client
 
