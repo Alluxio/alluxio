@@ -171,7 +171,7 @@ public class DirectedAcyclicGraph<T> {
    * payloads to be in the DAG.
    *
    * @param payloads the set of input payloads
-   * @return the payloads after topogological sort
+   * @return the payloads after topological sort
    */
   public List<T> sortTopologically(Set<T> payloads) {
     List<T> result = Lists.newArrayList();
