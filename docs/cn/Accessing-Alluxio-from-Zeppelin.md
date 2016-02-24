@@ -1,8 +1,8 @@
 ---
 layout: global
 title: 通过Zeppelin访问Alluxio
-nickname: 通过Zeppelin访问Alluxio
-group: Under Store
+nickname: Apache Zeppelin
+group: Frameworks
 priority: 3
 ---
 
