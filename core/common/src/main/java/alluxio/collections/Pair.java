@@ -83,7 +83,6 @@ public final class Pair<T1, T2> {
 
   @Override
   public String toString() {
-    return new StringBuilder().append("Pair(").append(mFirst).append(",").append(mSecond)
-        .append(")").toString();
+    return "Pair(" + mFirst + "," + mSecond + ")";
   }
 }
