@@ -99,7 +99,14 @@ start_master() {
   fi
 
   echo "Starting master @ $MASTER_ADDRESS. Logging to $ALLUXIO_LOGS_DIR"
-  (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$ALLUXIO_HOME -Dalluxio.logs.dir=$ALLUXIO_LOGS_DIR -Dalluxio.logger.type="MASTER_LOGGER" -Dalluxio.accesslogger.type="MASTER_ACCESS_LOGGER" -Dlog4j.configuration=file:$ALLUXIO_CONF_DIR/log4j.properties $ALLUXIO_MASTER_JAVA_OPTS alluxio.master.AlluxioMaster > $ALLUXIO_LOGS_DIR/master.out 2>&1) &
+  (nohup $JAVA -cp $CLASSPATH \
+   -Dalluxio.home=$ALLUXIO_HOME \
+   -Dalluxio.logs.dir=$ALLUXIO_LOGS_DIR \
+   -Dalluxio.logger.type="MASTER_LOGGER" \
+   -Dalluxio.accesslogger.type="MASTER_ACCESS_LOGGER" \
+   -Dlog4j.configuration=file:$ALLUXIO_CONF_DIR/log4j.properties \
+   $ALLUXIO_MASTER_JAVA_OPTS \
+   alluxio.master.AlluxioMaster > $ALLUXIO_LOGS_DIR/master.out 2>&1) &
 }
 
 start_worker() {
@@ -114,7 +121,14 @@ start_worker() {
   fi
 
   echo "Starting worker @ `hostname -f`. Logging to $ALLUXIO_LOGS_DIR"
-  (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$ALLUXIO_HOME -Dalluxio.logs.dir=$ALLUXIO_LOGS_DIR -Dalluxio.logger.type="WORKER_LOGGER" -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" -Dlog4j.configuration=file:$ALLUXIO_CONF_DIR/log4j.properties $ALLUXIO_WORKER_JAVA_OPTS alluxio.worker.AlluxioWorker > $ALLUXIO_LOGS_DIR/worker.out 2>&1 ) &
+  (nohup $JAVA -cp $CLASSPATH \
+   -Dalluxio.home=$ALLUXIO_HOME \
+   -Dalluxio.logs.dir=$ALLUXIO_LOGS_DIR \
+   -Dalluxio.logger.type="WORKER_LOGGER" \
+   -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" \
+   -Dlog4j.configuration=file:$ALLUXIO_CONF_DIR/log4j.properties \
+   $ALLUXIO_WORKER_JAVA_OPTS \
+   alluxio.worker.AlluxioWorker > $ALLUXIO_LOGS_DIR/worker.out 2>&1 ) &
 }
 
 restart_worker() {
@@ -125,7 +139,16 @@ restart_worker() {
   RUN=`ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | cut -d" " -f7`
   if [[ $RUN -eq 0 ]] ; then
     echo "Restarting worker @ `hostname -f`. Logging to $ALLUXIO_LOGS_DIR"
-    (nohup $JAVA -cp $CLASSPATH -Dalluxio.home=$ALLUXIO_HOME -Dalluxio.logs.dir=$ALLUXIO_LOGS_DIR -Dalluxio.logger.type="WORKER_LOGGER" -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" -Dlog4j.configuration=file:$ALLUXIO_CONF_DIR/log4j.properties $ALLUXIO_WORKER_JAVA_OPTS alluxio.worker.AluxioWorker > $ALLUXIO_LOGS_DIR/worker.out 2>&1) &
+    (nohup $JAVA -cp $CLASSPATH \
+     -Dalluxio.home=$ALLUXIO_HOME \
+     -Dalluxio.logs \
+     .dir=$ALLUXIO_LOGS_DIR \
+     -Dalluxio.logger.type="WORKER_LOGGER" \
+     -Dalluxio.accesslogger \
+     .type="WORKER_ACCESS_LOGGER" \
+     -Dlog4j.configuration=file:$ALLUXIO_CONF_DIR/log4j.properties \
+     $ALLUXIO_WORKER_JAVA_OPTS \
+     alluxio.worker.AluxioWorker > $ALLUXIO_LOGS_DIR/worker.out 2>&1) &
   fi
 }
 
