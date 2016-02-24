@@ -6,13 +6,13 @@ group: Under Store
 priority: 3
 ---
 
-该向导介绍如何配置Alluxio从而使用安全认证模式下的[HDFS](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html)作为底层文件系统。Alluxio支持安全认证模式下的HDFS作为底层文件系统，通过[Kerberos]认证。
+该指南介绍如何配置Alluxio从而使用安全认证模式下的[HDFS](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html)作为底层文件系统。Alluxio支持安全认证模式下的HDFS作为底层文件系统，通过[Kerberos](http://web.mit.edu/kerberos/)认证。
 
 注：在HDFS安全认证模式下的Kerberos认证不是Alluxio通过Kerberos进行内部的认证
 
 # 初始步骤
 
-要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制文件。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
+要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 注意，在默认情况下，预编译的Alluxio二进制包适用于HDFS `2.2.0`，若使用其他版本的Hadoop，需要从Alluxio源代码重新编译，且编译时应照以下方法中的一种设置Hadoop版本号。假定Alluxio源代码的根目录为`${ALLUXIO_HOME}`。
 
