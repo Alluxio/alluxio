@@ -30,7 +30,7 @@
 /docs/api/
 /docs/serve/
 /journal/
-/logs/
+/logs/*.log
 /underFSStorage/
 dependency-reduced-pom.xml
 target/
