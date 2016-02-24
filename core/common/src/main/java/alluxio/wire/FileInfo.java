@@ -45,6 +45,7 @@ public final class FileInfo {
   private String mGroupName = "";
   private int mPermission;
   private String mPersistenceState = "";
+  private boolean mMountPoint;
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -77,6 +78,7 @@ public final class FileInfo {
     mGroupName = fileInfo.getGroupName();
     mPermission = fileInfo.getPermission();
     mPersistenceState = fileInfo.getPersistenceState();
+    mMountPoint = fileInfo.isMountPoint();
   }
 
   /**
@@ -217,6 +219,13 @@ public final class FileInfo {
    */
   public String getPersistenceState() {
     return mPersistenceState;
+  }
+
+  /**
+   * @return whether the file is a mount point
+   */
+  public boolean isMountPoint() {
+    return mMountPoint;
   }
 
   /**
@@ -407,13 +416,22 @@ public final class FileInfo {
   }
 
   /**
+   * @param mountPoint the mount point flag value to use
+   * @return the file descriptor
+   */
+  public FileInfo setMountPoint(boolean mountPoint) {
+    mMountPoint = mountPoint;
+    return this;
+  }
+
+  /**
    * @return thrift representation of the file descriptor
    */
   protected alluxio.thrift.FileInfo toThrift() {
     return new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mUserName, mGroupName, mPermission,
-        mPersistenceState);
+        mPersistenceState, mMountPoint);
   }
 
   @Override
@@ -431,9 +449,10 @@ public final class FileInfo {
         && mCompleted == that.mCompleted && mFolder == that.mFolder && mPinned == that.mPinned
         && mCacheable == that.mCacheable && mPersisted == that.mPersisted
         && mBlockIds.equals(that.mBlockIds) && mInMemoryPercentage == that.mInMemoryPercentage
-        && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl
-        && mUserName.equals(that.mUserName) && mGroupName.equals(that.mGroupName)
-        && mPermission == that.mPermission && mPersistenceState.equals(that.mPersistenceState);
+        && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl && mUserName
+        .equals(that.mUserName) && mGroupName.equals(that.mGroupName)
+        && mPermission == that.mPermission && mPersistenceState.equals(that.mPersistenceState)
+        && mMountPoint == that.mMountPoint;
   }
 
   @Override
@@ -441,7 +460,7 @@ public final class FileInfo {
     return Objects.hashCode(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mUserName, mGroupName, mPermission,
-        mPersistenceState);
+        mPersistenceState, mMountPoint);
   }
 
   @Override
@@ -454,6 +473,6 @@ public final class FileInfo {
         .add("blockIds", mBlockIds).add("inMemoryPercentage", mInMemoryPercentage)
         .add("lastModificationTimesMs", mLastModificationTimeMs).add("ttl", mTtl)
         .add("userName", mUserName).add("groupName", mGroupName).add("permission", mPermission)
-        .add("persistanceState", mPersistenceState).toString();
+        .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint).toString();
   }
 }

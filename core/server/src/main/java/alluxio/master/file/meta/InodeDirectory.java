@@ -36,12 +36,15 @@ public final class InodeDirectory extends Inode {
    */
   public static class Builder extends Inode.Builder<InodeDirectory.Builder> {
 
+    private boolean mMountPoint;
+
     /**
      * Creates a new builder for {@link InodeDirectory}.
      */
     public Builder() {
       super();
       mDirectory = true;
+      mMountPoint = false;
     }
 
     /**
@@ -54,11 +57,22 @@ public final class InodeDirectory extends Inode {
       return new InodeDirectory(this);
     }
 
+    /**
+     * @param mountPoint the mount point flag value to use
+     * @return the builder
+     */
+    public Builder setMountPoint(boolean mountPoint) {
+      mMountPoint = mountPoint;
+      return this;
+    }
+
     @Override
     protected Builder getThis() {
       return this;
     }
   }
+
+  private boolean mMountPoint;
 
   private IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
     @Override
@@ -79,6 +93,7 @@ public final class InodeDirectory extends Inode {
 
   private InodeDirectory(InodeDirectory.Builder builder) {
     super(builder);
+    mMountPoint = builder.mMountPoint;
   }
 
   /**
@@ -106,7 +121,7 @@ public final class InodeDirectory extends Inode {
     ret.setBlockSizeBytes(0);
     ret.setCreationTimeMs(getCreationTimeMs());
     ret.setCompleted(true);
-    ret.setFolder(true);
+    ret.setFolder(isDirectory());
     ret.setPinned(isPinned());
     ret.setCacheable(false);
     ret.setPersisted(isPersisted());
@@ -116,6 +131,7 @@ public final class InodeDirectory extends Inode {
     ret.setGroupName(getGroupName());
     ret.setPermission(getPermission());
     ret.setPersistenceState(getPersistenceState().toString());
+    ret.setMountPoint(isMountPoint());
     return ret;
   }
 
@@ -161,6 +177,13 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
+   * @return true if the inode is a mount point, false otherwise
+   */
+  public synchronized boolean isMountPoint() {
+    return mMountPoint;
+  }
+
+  /**
    * Removes the given inode from the directory.
    *
    * @param child the Inode to remove
@@ -182,9 +205,7 @@ public final class InodeDirectory extends Inode {
 
   @Override
   public synchronized String toString() {
-    StringBuilder sb = new StringBuilder("InodeDirectory(");
-    sb.append(super.toString()).append(",").append(getChildren()).append(")");
-    return sb.toString();
+    return toStringHelper().add("mountPoint", mMountPoint).add("children", mChildren).toString();
   }
 
   /**
@@ -206,6 +227,7 @@ public final class InodeDirectory extends Inode {
             .setPinned(entry.getPinned())
             .setLastModificationTimeMs(entry.getLastModificationTimeMs())
             .setPermissionStatus(permissionStatus)
+            .setMountPoint(entry.getMountPoint())
             .build();
     return inode;
   }
@@ -223,6 +245,7 @@ public final class InodeDirectory extends Inode {
         .setUserName(getUserName())
         .setGroupName(getGroupName())
         .setPermission(getPermission())
+        .setMountPoint(isMountPoint())
         .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }
