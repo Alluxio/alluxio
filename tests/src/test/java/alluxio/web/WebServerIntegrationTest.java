@@ -1,26 +1,21 @@
 /*
- * Licensed to the University of California, Berkeley under one or more contributor license
- * agreements. See the NOTICE file distributed with this work for additional information regarding
- * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance with the License. You may obtain a
- * copy of the License at
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the “License”). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
 package alluxio.web;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.URL;
-import java.util.Map.Entry;
-import java.util.Scanner;
+import alluxio.Configuration;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.master.LocalAlluxioCluster;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -30,11 +25,12 @@ import org.junit.Test;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimap;
 
-import alluxio.Configuration;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.master.LocalAlluxioCluster;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.URL;
+import java.util.Map.Entry;
+import java.util.Scanner;
 
 /**
  * Tests the web server is up when Alluxio starts.
@@ -83,7 +79,7 @@ public class WebServerIntegrationTest {
 
       while (pageScanner.hasNextLine()) {
         String line = pageScanner.nextLine();
-        if (line.equals("<title>Tachyon</title>") || line.equals("<title>Workers</title>")) {
+        if (line.equals("<title>Alluxio</title>") || line.equals("<title>Workers</title>")) {
           verified = true;
           break;
         }
