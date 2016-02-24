@@ -69,9 +69,7 @@ public abstract class AlluxioException extends Exception {
     AlluxioExceptionType exceptionType = AlluxioExceptionType.valueOf(e.getType());
     Class<? extends AlluxioException> throwClass = exceptionType.getExceptionClass();
     try {
-      AlluxioException throwInstance =
-          throwClass.getConstructor(String.class).newInstance(e.getMessage());
-      return throwInstance;
+      return throwClass.getConstructor(String.class).newInstance(e.getMessage());
     } catch (ReflectiveOperationException reflectException) {
       String errorMessage = "Could not instantiate " + throwClass.getName() + " with a String-only "
           + "constructor: " + reflectException.getMessage();
