@@ -62,7 +62,7 @@ public final class CreateDirectoryOptions {
     }
 
     /**
-     * @param persisted the persisted flag to use; it specifies whether the object to created is
+     * @param persisted the persisted flag to use; it specifies whether the object to create is
      *        persisted in UFS
      * @return the builder
      */

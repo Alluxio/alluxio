@@ -35,7 +35,7 @@ message DeleteMountPointEntry {
   optional string alluxio_path = 1;
 }
 
-// next available id: 11
+// next available id: 12
 message InodeDirectoryEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -47,6 +47,7 @@ message InodeDirectoryEntry {
   optional string user_name = 8;
   optional string group_name = 9;
   optional int32 permission = 10;
+  optional bool mount_point = 11;
 }
 
 // next available id: 3

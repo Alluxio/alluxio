@@ -36,6 +36,7 @@ public final class CreatePathOptions {
     private boolean mRecursive;
     private long mTtl;
     private PermissionStatus mPermissionStatus;
+    private boolean mMountPoint;
 
     /**
      * Creates a new builder for {@link CreatePathOptions}.
@@ -58,6 +59,7 @@ public final class CreatePathOptions {
       mPersisted = false;
       mTtl = Constants.NO_TTL;
       mPermissionStatus = PermissionStatus.getDirDefault();
+      mMountPoint = false;
     }
 
     /**
@@ -90,6 +92,16 @@ public final class CreatePathOptions {
     }
 
     /**
+     * @param mountPoint the mount point flag to use; it specifies whether the object to create is
+     *        a mount point
+     * @return the builder
+     */
+    public Builder setMountPoint(boolean mountPoint) {
+      mMountPoint = mountPoint;
+      return this;
+    }
+
+    /**
      * @param operationTimeMs the operation time to use
      * @return the builder
      */
@@ -99,7 +111,7 @@ public final class CreatePathOptions {
     }
 
     /**
-     * @param persisted the persisted flag to use; it specifies whether the object to created is
+     * @param persisted the persisted flag to use; it specifies whether the object to create is
      *        persisted in UFS
      * @return the builder
      */
@@ -162,6 +174,7 @@ public final class CreatePathOptions {
   private final boolean mRecursive;
   private final long mTtl;
   private PermissionStatus mPermissionStatus;
+  private final boolean mMountPoint;
 
   private CreatePathOptions(CreatePathOptions.Builder builder) {
     mAllowExists = builder.mAllowExists;
@@ -172,6 +185,7 @@ public final class CreatePathOptions {
     mRecursive = builder.mRecursive;
     mTtl = builder.mTtl;
     mPermissionStatus = builder.mPermissionStatus;
+    mMountPoint = builder.mMountPoint;
   }
 
   /**
@@ -201,6 +215,13 @@ public final class CreatePathOptions {
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
+  }
+
+  /**
+   * @return the mount point flag; it specifies whether the object to create is a mount point
+   */
+  public boolean isMountPoint() {
+    return mMountPoint;
   }
 
   /**
