@@ -423,7 +423,7 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       mFileSystemMaster.setAttribute(new AlluxioURI(path), builder.build());
       return Response.ok().build();
-    } catch (AlluxioException | NullPointerException e) {
+    } catch (AlluxioException | IllegalArgumentException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return Response.serverError().entity(e.getMessage()).build();
     }
