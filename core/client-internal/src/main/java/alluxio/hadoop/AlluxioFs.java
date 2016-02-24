@@ -33,6 +33,10 @@ import java.net.URISyntaxException;
  * &lt;/property&gt;
  * </pre>
  */
+// TODO(pfxuan): DelegateToFileSystem is a private/unstable interface.
+// For long term solution, we need to rewrite AlluxioFs by extending Hadoop
+// AbstractFileSystem directly.
+// https://hadoop.apache.org/docs/current/api/org/apache/hadoop/fs/AbstractFileSystem.html
 public class AlluxioFs extends DelegateToFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
