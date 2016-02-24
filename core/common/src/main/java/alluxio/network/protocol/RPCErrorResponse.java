@@ -11,6 +11,7 @@
 
 package alluxio.network.protocol;
 
+import com.google.common.base.Objects;
 import com.google.common.primitives.Shorts;
 import io.netty.buffer.ByteBuf;
 
@@ -67,6 +68,6 @@ public final class RPCErrorResponse extends RPCResponse {
 
   @Override
   public String toString() {
-    return "RPCErrorResponse(" + mStatus + ")";
+    return Objects.toStringHelper(this).add("status", mStatus).toString();
   }
 }
