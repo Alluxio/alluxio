@@ -11,16 +11,16 @@
 
 package alluxio.mesos;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+
 import org.apache.mesos.Protos;
 
-import alluxio.Constants;
-import alluxio.Configuration;
-
 /**
- * Mesos framework offer utils
+ * Mesos framework offer utils.
  */
 public final class OfferUtils {
-  private static final Configuration sConf = new Configuration();
+  private static final Configuration CONF = new Configuration();
 
   private OfferUtils() {
 
@@ -34,8 +34,8 @@ public final class OfferUtils {
     Protos.Value.Ranges ranges = getOfferedPorts(offer);
 
     return ranges != null
-        && hasAvailablePorts(sConf.getInt(Constants.MASTER_WEB_PORT), ranges)
-        && hasAvailablePorts(sConf.getInt(Constants.MASTER_RPC_PORT), ranges);
+        && hasAvailablePorts(CONF.getInt(Constants.MASTER_WEB_PORT), ranges)
+        && hasAvailablePorts(CONF.getInt(Constants.MASTER_RPC_PORT), ranges);
   }
 
   /**
@@ -46,9 +46,9 @@ public final class OfferUtils {
     Protos.Value.Ranges ranges = getOfferedPorts(offer);
 
     return ranges != null
-        && hasAvailablePorts(sConf.getInt(Constants.WORKER_WEB_PORT), ranges)
-        && hasAvailablePorts(sConf.getInt(Constants.WORKER_RPC_PORT), ranges)
-        && hasAvailablePorts(sConf.getInt(Constants.WORKER_DATA_PORT), ranges);
+        && hasAvailablePorts(CONF.getInt(Constants.WORKER_WEB_PORT), ranges)
+        && hasAvailablePorts(CONF.getInt(Constants.WORKER_RPC_PORT), ranges)
+        && hasAvailablePorts(CONF.getInt(Constants.WORKER_DATA_PORT), ranges);
   }
 
   private static boolean hasAvailablePorts(int port, Protos.Value.Ranges ranges) {
