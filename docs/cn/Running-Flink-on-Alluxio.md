@@ -6,7 +6,7 @@ group: Frameworks
 priority: 2
 ---
 
-该向导介绍如何在Alluxio上运行[Apache Flink](http://flink.apache.org/),以便你在Flink中使用Alluxio的文件
+该指南介绍如何在Alluxio上运行[Apache Flink](http://flink.apache.org/),以便你在Flink中使用Alluxio的文件。
 
 # 前期准备
 
@@ -21,7 +21,7 @@ Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系�
 
 #### 在`core-site.xml`中设置属性
 
-如果年你安装Flink的同时安装了Hadoop，将如下属性加到`core-site.xml`配置文件：
+如果你安装Flink的同时安装了Hadoop，将如下属性加到`core-site.xml`配置文件：
 
 {% include Running-Flink-on-Alluxio/core-site-configuration.md %}
 

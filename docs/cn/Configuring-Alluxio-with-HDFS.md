@@ -6,11 +6,11 @@ group: Under Store
 priority: 3
 ---
 
-该向导介绍如何配置Alluxio从而使用[HDFS](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html)作为底层文件系统。
+该指南介绍如何配置Alluxio以使用[HDFS](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html)作为底层文件系统。
 
 # 初始步骤
 
-要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制文件。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
+要在一组机器上运行一个Alluxio集群，需要在每台机器上部署Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 注意，在默认情况下，预编译的Alluxio二进制包适用于HDFS `2.2.0`，若使用其他版本的Hadoop，需要从Alluxio源代码重新编译，且编译时应照以下方法中的一种设置Hadoop版本号。假定Alluxio源代码的根目录为`${ALLUXIO_HOME}`。
 
@@ -26,7 +26,7 @@ priority: 3
 
 # 配置Alluxio
 
-要运行二进制包，一定要先创建配置文件，从template文件创建一个配置文件：
+要运行Alluxio二进制包，一定要先创建配置文件，从template文件创建一个配置文件：
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
@@ -36,7 +36,7 @@ priority: 3
 
 # 使用HDFS在本地运行Alluxio
 
-配置完成后，你可以在本地启动Alluxio，观察是否正确运行：
+配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
 {% include Common-Commands/start-alluxio.md %}
 
