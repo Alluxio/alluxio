@@ -7,7 +7,7 @@ priority: 4
 ---
 
 使用Alluxio自带的[Vagrant脚本](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)可以将带
-容错机制的Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及销毁集群，该集群自动配置了HDFS相关项。
+容错机制的Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及撤销集群，该集群自动配置了HDFS相关项。
 
 # 前期准备
 
@@ -149,10 +149,10 @@ worker进程。
 
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/ssh-other-node.md %}
 
-# 销毁集群
+# 撤销集群
 
 在`deploy/vagrant`目录下运行：
 
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/destroy.md %}
 
-从而销毁之前创建的集群。一次只能创建一个集群。当该命令成功执行后，EC2实例将终止运行。
+从而撤销之前创建的集群。一次只能创建一个集群。当该命令成功执行后，EC2实例将终止运行。
