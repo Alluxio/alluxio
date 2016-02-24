@@ -87,6 +87,26 @@ workers页面将所有Alluxio worker节点分为两类显示：
 
     所有被master宣布失效的worker列表，通常是因为等待worker心跳超时，可能的原因包括worker系统重启或网络故障。
 
+## Master度量信息 
+
+点击导航栏中的“Metrics”选项卡即可浏览master的度量信息。
+
+![masterMetrics]({{site.data.img.screenshot_masterMetrics}})
+
+这一部分显示了master的所有度量信息，包括：
+
+* **Master整体指标**
+
+    集群的整体度量信息。
+
+* **逻辑操作**
+
+    执行的操作数量。
+
+* **RPC调用**
+
+    每个操作的RPC调用次数。
+
 # Alluxio Workers Web界面
 
 每个Alluxio worker也提供Web界面显示worker信息。worker Web界面的默认端口是30000，访问
@@ -102,3 +122,19 @@ Alluxio worker的主页和Alluxio master类似，但是显示的是单个worker�
 
 在块信息页面，可以看到worker上的文件，以及其他信息，如：文件大小和文件所在的存储层。当你点击文件时，可以看
 到文件的所有块信息。
+
+## Worker度量信息
+
+点击导航栏中的“Metrics”选项卡即可浏览worker的度量信息。
+
+![workerMetrics]({{site.data.img.screenshot_workerMetrics}})
+
+这一部分显示了worker的所有度量信息，包括：
+
+* **Worker整体指标**
+
+    Worker的整体度量信息。
+
+* **逻辑操作**
+
+    执行的操作数量。
