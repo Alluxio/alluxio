@@ -13,7 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -26,12 +26,19 @@ public final class UnmountOptions {
   /**
    * @return the default {@link UnmountOptions}
    */
-  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static UnmountOptions defaults() {
     return new UnmountOptions();
   }
 
   private UnmountOptions() {
     // No options currently
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).toString();
   }
 }

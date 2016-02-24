@@ -58,7 +58,7 @@ public final class CompleteFileOptions {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("ufsLenght", mUfsLength).toString();
+    return Objects.toStringHelper(this).add("ufsLength", mUfsLength).toString();
   }
 
   /**
