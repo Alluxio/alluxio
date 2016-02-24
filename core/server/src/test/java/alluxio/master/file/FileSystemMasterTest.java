@@ -167,7 +167,7 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.deleteFile(NESTED_FILE_URI, false));
 
     mThrown.expect(BlockInfoException.class);
-    mBlockMaster.getBlockInfo(blockId).getLocations().size();
+    mBlockMaster.getBlockInfo(blockId);
 
     // verify the file is deleted
     Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
