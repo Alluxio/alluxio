@@ -305,8 +305,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * Removes blocks from workers.
    *
    * @param blockIds a list of block ids to remove from Alluxio space
+   * @param deleteBlocksMetadata whether to delete blocks metadata in Master
    */
-  public void removeBlocks(List<Long> blockIds) {
+  public void removeBlocks(List<Long> blockIds, boolean deleteBlocksMetadata) {
     synchronized (mBlocks) {
       synchronized (mWorkers) {
         for (long blockId : blockIds) {
@@ -322,6 +323,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
             }
           }
           mLostBlocks.remove(blockId);
+          if (deleteBlocksMetadata) {
+            mBlocks.remove(blockId);
+          }
         }
       }
     }
