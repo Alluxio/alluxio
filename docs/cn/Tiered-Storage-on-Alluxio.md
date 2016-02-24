@@ -9,7 +9,7 @@ priority: 4
 * Table of Contents
 {:toc}
 
-Alluxio支持分层存储，以便Alluxio管理内存之外的其它存储类型。目前Alluxio支持这些存储类型(存储层)：
+Alluxio支持分层存储，以便管理内存之外的其它存储类型。目前Alluxio支持这些存储类型(存储层)：
 
 * MEM (内存)
 * SSD (固态硬盘)
