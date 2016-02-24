@@ -26,7 +26,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -111,7 +110,9 @@ public class CommonUtilsTest {
 
     for (TestCase testCase : testCases) {
       ArrayList<String> input = new ArrayList<String>();
-      Collections.addAll(input, testCase.mExpected);
+      for (String s : testCase.mExpected) {
+        input.add(s);
+      }
       String[] got = CommonUtils.toStringArray(input);
       Assert.assertEquals(testCase.mExpected.length, got.length);
       for (int k = 0; k < got.length; k++) {
