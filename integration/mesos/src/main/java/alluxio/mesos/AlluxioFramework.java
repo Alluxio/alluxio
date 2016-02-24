@@ -119,10 +119,10 @@ public class AlluxioFramework {
             + " and mem: " + offerMem + "MB.");
 
         Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
-        double targetCpu;
-        double targetMem;
+        List<Protos.Resource> resources;
         if (!mMasterLaunched && offerCpu >= masterCpu && offerMem >= masterMem
-            && mMasterCount < sConf.getInt(Constants.INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT)) {
+            && mMasterCount < sConf.getInt(Constants.INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT)
+            && OfferUtils.hasAvailableMasterPorts(offer)) {
           executorBuilder
               .setName("Alluxio Master Executor")
               .setSource("master")
@@ -147,15 +147,16 @@ public class AlluxioFramework {
                                       .setValue(sConf.get(Constants.UNDERFS_ADDRESS))
                                       .build())
                               .build()));
-          targetCpu = masterCpu;
-          targetMem = masterMem;
+          // pre-build resource list here, then use it to build Protos.Task later.
+          resources = getMasterRequiredResources(masterCpu, masterMem);
           mMasterHostname = offer.getHostname();
           mTaskName = sConf.get(Constants.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME);
           mMasterCount++;
           mMasterTaskId = mLaunchedTasks;
 
         } else if (mMasterLaunched && !mWorkers.contains(offer.getHostname())
-            && offerCpu >= workerCpu && offerMem >= workerMem) {
+            && offerCpu >= workerCpu && offerMem >= workerMem
+            && OfferUtils.hasAvailableWorkerPorts(offer)) {
           final String memSize = FormatUtils.getSizeFromBytes((long) workerMem * Constants.MB);
           executorBuilder
               .setName("Alluxio Worker Executor")
@@ -189,8 +190,8 @@ public class AlluxioFramework {
                                       .setValue(sConf.get(Constants.UNDERFS_ADDRESS))
                                       .build())
                               .build()));
-          targetCpu = workerCpu;
-          targetMem = workerMem;
+          // pre-build resource list here, then use it to build Protos.Task later.
+          resources = getWorkerRequiredResources(workerCpu, workerMem);
           mWorkers.add(offer.getHostname());
           mTaskName = sConf.get(Constants.INTEGRATION_MESOS_ALLUXIO_WORKER_NAME);
         } else {
@@ -211,14 +212,7 @@ public class AlluxioFramework {
                 .setName(mTaskName)
                 .setTaskId(taskId)
                 .setSlaveId(offer.getSlaveId())
-                .addResources(
-                    Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_CPUS)
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetCpu)))
-                .addResources(
-                    Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_MEM)
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetMem)))
+                .addAllResources(resources)
                 .setExecutor(executorBuilder).build();
 
         launch.addTaskInfos(Protos.TaskInfo.newBuilder(task));
@@ -270,6 +264,57 @@ public class AlluxioFramework {
         default:
           break;
       }
+    }
+
+    private List<Protos.Resource> getMasterRequiredResources(long masterCpus, long masterMem) {
+      List<Protos.Resource> resources = getCoreRequiredResouces(masterCpus, masterMem);
+      // Set master rcp port, web ui port, data port as range resources for this task.
+      // By default, it would require 19998, 19999 ports for master process.
+      resources.add(Protos.Resource.newBuilder()
+          .setName(Constants.MESOS_RESOURCE_PORTS)
+          .setType(Protos.Value.Type.RANGES)
+          .setRanges(Protos.Value.Ranges.newBuilder()
+              .addRange(Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.MASTER_WEB_PORT))
+                  .setEnd(sConf.getLong(Constants.MASTER_WEB_PORT)))
+              .addRange((Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.MASTER_RPC_PORT))
+                  .setEnd(sConf.getLong(Constants.MASTER_RPC_PORT))))).build());
+      return resources;
+    }
+
+    private List<Protos.Resource> getWorkerRequiredResources(long workerCpus, long workerMem) {
+      List<Protos.Resource> resources = getCoreRequiredResouces(workerCpus, workerMem);
+      // Set worker rcp port, web ui port, data port as range resources for this task.
+      // By default, it would require 29998, 29999, 30000 ports for worker process.
+      resources.add(Protos.Resource.newBuilder()
+          .setName(Constants.MESOS_RESOURCE_PORTS)
+          .setType(Protos.Value.Type.RANGES)
+          .setRanges(Protos.Value.Ranges.newBuilder()
+              .addRange(Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.WORKER_RPC_PORT))
+                  .setEnd(sConf.getLong(Constants.WORKER_RPC_PORT)))
+              .addRange(Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.WORKER_DATA_PORT))
+                  .setEnd(sConf.getLong(Constants.WORKER_DATA_PORT)))
+              .addRange((Protos.Value.Range.newBuilder()
+                  .setBegin(sConf.getLong(Constants.WORKER_WEB_PORT))
+                  .setEnd(sConf.getLong(Constants.WORKER_WEB_PORT))))).build());
+      return resources;
+    }
+
+    private List<Protos.Resource> getCoreRequiredResouces(long cpus, long mem) {
+      // Build cpu/mem resource for task.
+      List<Protos.Resource> resources = new ArrayList<Protos.Resource>();
+      resources.add(Protos.Resource.newBuilder()
+          .setName(Constants.MESOS_RESOURCE_CPUS)
+          .setType(Protos.Value.Type.SCALAR)
+          .setScalar(Protos.Value.Scalar.newBuilder().setValue(cpus)).build());
+      resources.add(Protos.Resource.newBuilder()
+          .setName(Constants.MESOS_RESOURCE_MEM)
+          .setType(Protos.Value.Type.SCALAR)
+          .setScalar(Protos.Value.Scalar.newBuilder().setValue(mem)).build());
+      return resources;
     }
 
     private List<Protos.Resource> getExecutorResources() {
