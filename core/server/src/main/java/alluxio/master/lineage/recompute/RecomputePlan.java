@@ -13,7 +13,7 @@ package alluxio.master.lineage.recompute;
 
 import alluxio.master.lineage.meta.Lineage;
 
-import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
@@ -57,6 +57,6 @@ public class RecomputePlan {
 
   @Override
   public String toString() {
-    return "toRecompute: " + Joiner.on(", ").join(mToRecompute);
+    return Objects.toStringHelper(this).add("toRecompute", mToRecompute).toString();
   }
 }
