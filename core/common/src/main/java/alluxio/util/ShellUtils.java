@@ -197,10 +197,7 @@ public final class ShellUtils {
 
     @Override
     public String toString() {
-      final StringBuilder sb = new StringBuilder("ExitCodeException ");
-      sb.append("exitCode=").append(mExitCode).append(": ");
-      sb.append(super.getMessage());
-      return sb.toString();
+      return "ExitCodeException " + "exitCode=" + mExitCode + ": " + super.getMessage();
     }
   }
 
