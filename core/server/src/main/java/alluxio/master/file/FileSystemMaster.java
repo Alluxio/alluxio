@@ -1081,6 +1081,7 @@ public final class FileSystemMaster extends AbstractMaster {
             .setRecursive(options.isRecursive())
             .setOperationTimeMs(options.getOperationTimeMs())
             .setPermissionStatus(PermissionStatus.get(MasterContext.getConf(), true))
+            .setMountPoint(mMountTable.isMountPoint(path))
             .build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
 
