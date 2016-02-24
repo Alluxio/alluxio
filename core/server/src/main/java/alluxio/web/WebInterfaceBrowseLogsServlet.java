@@ -129,11 +129,13 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
 
       List<UIFileInfo> fileInfos = new ArrayList<UIFileInfo>();
       File[] logFiles = logsDir.listFiles(LOG_FILE_FILTER);
-      for (File logFile : logFiles) {
-        String logFileName = logFile.getName();
-        fileInfos.add(new UIFileInfo(new UIFileInfo.LocalFileInfo(logFileName, logFileName,
-                logFile.length(), UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME,
-                logFile.lastModified(), logFile.isDirectory())));
+      if (logFiles != null) {
+        for (File logFile : logFiles) {
+          String logFileName = logFile.getName();
+          fileInfos.add(new UIFileInfo(new UIFileInfo.LocalFileInfo(logFileName, logFileName,
+                  logFile.length(), UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME,
+                  logFile.lastModified(), logFile.isDirectory())));
+        }
       }
       Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
       request.setAttribute("nTotalFile", fileInfos.size());

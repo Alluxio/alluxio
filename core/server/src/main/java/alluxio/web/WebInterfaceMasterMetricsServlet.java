@@ -43,7 +43,7 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
   /**
    * Creates a new instance of {@link WebInterfaceMasterMetricsServlet}.
    *
-   * @param masterMetricsSystem Tachyon master metric system
+   * @param masterMetricsSystem Alluxio master metric system
    */
   public WebInterfaceMasterMetricsServlet(MetricsSystem masterMetricsSystem) {
     super();

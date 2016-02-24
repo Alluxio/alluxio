@@ -9,7 +9,7 @@
   <link href="css/alluxiocustom.min.css" rel="stylesheet">
   <link href="css/linearGraph.css" rel="stylesheet">
 </head>
-<title>Tachyon</title>
+<title>Alluxio</title>
 <body>
 <jsp:include page="header-scripts.jsp" />
 <script src="js/d3.min.js" type="text/javascript"></script>
