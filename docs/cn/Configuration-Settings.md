@@ -17,18 +17,19 @@ Alluxio有两种类型的配置参数：
 
 Alluxio启动时会加载默认（也可以指定）配置属性文件从而设置配置属性。
 
-1. Alluxio的配置属性默认值在`alluxio-default.properties`文件中，该文件在Alluxio源代码或者二进制包里都能找到，不建议初学者修改该文件。
+1. Alluxio的配置属性默认值在`alluxio-default.properties`文件中，该文件在Alluxio源代码或者二进制包里都能找到，不建议初学者直接修改该文件。
 
 2. 每个部署点以及应用客户端都能够通过`alluxio-site.properties`文件将默认属性值覆盖掉，注意该文件必须在Alluxio Java VM的**classpath**中，最简单的方法是将该属性文件放在`$ALLUXIO_HOME/conf`目录中。
 
-所有Alluxio配置属性都属于以下五类之一：
-[一般配置项](#common-configuration)（由Master和Worker共享），
+所有Alluxio配置属性都属于以下六类之一：
+[共有配置项](#common-configuration)（由Master和Worker共享），
 [Master配置项](#master-configuration)，[Worker配置项](#worker-configuration)，
-[用户配置项](#user-configuration)以及[集群管理配置项](#cluster-management)（用于在诸如Mesos和YARN的集群管理器上运行Alluxio）。
+[用户配置项](#user-configuration)，[集群管理配置项](#cluster-management)（用于在诸如Mesos和YARN的集群管理器上运行Alluxio）
+以及[安全性配置项](#security-configuration)（由Master，Worker和用户共享）。
 
-## 一般配置项 {#common-configuration}
+## 共有配置项 {#common-configuration}
 
-一般配置项包含了不同组件共享的常量。
+共有配置项包含了不同组件共享的常量。
 
 <table class="table table-striped">
 <tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
@@ -98,6 +99,24 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
     <td>{{ site.data.table.cn.cluster-management.[item.propertyName] }}</td>
+  </tr>
+{% endfor %}
+</table>
+
+## 安全性配置项 {#security-configuration}
+
+安全性配置项指定了安全性相关的信息，如安全认证和文件权限。
+安全认证相关的配置同时适用于master、worker和用户。
+文件权限相关的配置只对master起作用。
+更多安全性相关的信息详见[安全性](Security.html)页面。
+
+<table class="table table-striped">
+<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
+{% for item in site.data.table.security-configuration %}
+  <tr>
+    <td>{{ item.propertyName }}</td>
+    <td>{{ item.defaultValue }}</td>
+    <td>{{ site.data.table.cn.security-configuration.[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
