@@ -293,12 +293,12 @@ public class FileInStreamTest {
   public void testPromote() throws IOException {
     Mockito.verify(mBlockStore, Mockito.times(0)).promote(0);
     mTestStream.read();
-    Mockito.verify(mBlockStore, Mockito.times(1)).promote(0);
+    Mockito.verify(mBlockStore).promote(0);
     mTestStream.read();
-    Mockito.verify(mBlockStore, Mockito.times(1)).promote(0);
+    Mockito.verify(mBlockStore).promote(0);
     Mockito.verify(mBlockStore, Mockito.times(0)).promote(1);
     mTestStream.read(new byte[(int) BLOCK_LENGTH]);
-    Mockito.verify(mBlockStore, Mockito.times(1)).promote(1);
+    Mockito.verify(mBlockStore).promote(1);
   }
 
   /**
@@ -339,9 +339,9 @@ public class FileInStreamTest {
     Mockito.when(stream.skip(BLOCK_LENGTH / 2)).thenReturn(BLOCK_LENGTH / 2);
 
     mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
-    Mockito.verify(ufs, Mockito.times(1)).open("testUfsPath");
-    Mockito.verify(stream, Mockito.times(1)).skip(100);
-    Mockito.verify(stream, Mockito.times(1)).skip(50);
+    Mockito.verify(ufs).open("testUfsPath");
+    Mockito.verify(stream).skip(100);
+    Mockito.verify(stream).skip(50);
   }
 
   /**
@@ -498,7 +498,7 @@ public class FileInStreamTest {
             ReadType.CACHE));
     mTestStream.skip(smallSize / 2);
     mTestStream.read(new byte[1]);
-    Mockito.verify(mBlockStore, Mockito.times(1)).getOutStream(Mockito.anyLong(),
+    Mockito.verify(mBlockStore).getOutStream(Mockito.anyLong(),
         Mockito.eq(smallSize), Mockito.any(WorkerNetAddress.class));
   }
 
