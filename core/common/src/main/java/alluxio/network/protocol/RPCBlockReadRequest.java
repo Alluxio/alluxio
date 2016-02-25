@@ -11,6 +11,7 @@
 
 package alluxio.network.protocol;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import io.netty.buffer.ByteBuf;
@@ -89,8 +90,8 @@ public final class RPCBlockReadRequest extends RPCRequest {
 
   @Override
   public String toString() {
-    return String.format("RPCBlockReadRequest(%s, %s, %s, %s, %s)",
-        mBlockId, mOffset, mLength, mLockId, mSessionId);
+    return Objects.toStringHelper(this).add("blockId", mBlockId).add("offset", mOffset)
+        .add("lenght", mLength).add("lockId", mLockId).add("sessionId", mSessionId).toString();
   }
 
   /**
