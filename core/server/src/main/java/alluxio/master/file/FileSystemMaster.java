@@ -853,8 +853,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
       if (delInode.isFile()) {
         // Remove corresponding blocks from workers and delete metadata in master.
-        mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds(),
-            true /* deleteBlocksMetadata */);
+        mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds(), true /* delete */);
       }
 
       mInodeTree.deleteInode(delInode, opTimeMs);
@@ -1354,8 +1353,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
         if (freeInode.isFile()) {
           // Remove corresponding blocks from workers.
-          mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(),
-              false /* deleteBlocksMetadata */);
+          mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
         }
       }
       MasterContext.getMasterSource().incFilesFreed(freeInodes.size());
