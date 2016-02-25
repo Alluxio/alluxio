@@ -16,6 +16,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.exception.PreconditionMessage;
 import alluxio.thrift.SetAttributeTOptions;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -254,14 +255,8 @@ public final class SetAttributeOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("SetStateOptions(");
-    sb.append(super.toString()).append(", Pinned: ").append(mPinned).append(", TTL: ").append(mTtl)
-        .append(", Persisted: ").append(mPersisted)
-        .append(", Owner: ").append(mOwner)
-        .append(", Group: ").append(mGroup)
-        .append(", Permission: ").append(mPermission)
-        .append(", Recursive: ").append(mRecursive);
-    sb.append(")");
-    return sb.toString();
+    return Objects.toStringHelper(this).add("pinned", mPinned).add("ttl", mTtl)
+        .add("persisted", mPersisted).add("owner", mOwner).add("group", mGroup)
+        .add("permission", mPermission).add("recursive", mRecursive).toString();
   }
 }

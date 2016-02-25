@@ -1,5 +1,5 @@
 alluxio.worker.tieredstore.levels:
-  Tachyon Worker多层存储中的最大存储级数。当前Tachyon支持1，2，3层。
+  Alluxio Worker多层存储中的最大存储级数。当前Alluxio支持1，2，3层。
 alluxio.worker.tieredstore.level{x}.alias:
   每个存储层的别名，x代表存储层序号(顶层为0)。当前有3个别名，MEM，SSD和HDD。
 alluxio.worker.tieredstore.level{x}.dirs.path:
@@ -13,6 +13,6 @@ alluxio.worker.tieredstore.reserver.enabled:
 alluxio.worker.tieredstore.reserver.interval.ms:
   空间预留器检查所有存储层是否预留足够空间的时间间隔。
 alluxio.worker.allocator.class:
-  Tachyon中新数据块分配策略的类名。
+  Alluxio中新数据块分配策略的类名。
 alluxio.worker.evictor.class:
   当存储层空间用尽时块回收策略的类名。

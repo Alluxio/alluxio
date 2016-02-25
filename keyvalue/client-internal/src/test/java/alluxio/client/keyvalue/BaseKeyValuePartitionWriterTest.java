@@ -118,6 +118,7 @@ public final class BaseKeyValuePartitionWriterTest {
     Assert.assertArrayEquals(VALUE2, reader.get(KEY2));
 
     Assert.assertNull(reader.get("NoSuchKey".getBytes()));
+    reader.close();
   }
 
   /**
