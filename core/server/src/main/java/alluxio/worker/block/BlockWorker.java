@@ -81,9 +81,6 @@ public final class BlockWorker extends AbstractWorker {
   /** Logic for handling RPC requests. */
   private final BlockWorkerClientServiceHandler mServiceHandler;
 
-  /** Server for data requests and responses. */
-  private final DataServer mDataServer;
-
   /** Client for all block master communication. */
   private final BlockMasterClient mBlockMasterClient;
 
@@ -148,13 +145,6 @@ public final class BlockWorker extends AbstractWorker {
 
     mFileSystemMasterClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
-
-    // Setup DataServer
-    mDataServer = DataServer.Factory.create(
-        NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mConf),
-        this, mConf);
-    // Reset data server port
-    mConf.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
     // Setup RPC ServerHandler
     mServiceHandler = new BlockWorkerClientServiceHandler(this);
@@ -240,8 +230,6 @@ public final class BlockWorker extends AbstractWorker {
    */
   @Override
   public void stop() throws IOException {
-    mDataServer.close();
-
     mSessionCleanerThread.stop();
     mBlockMasterClient.close();
     if (mSpaceReserver != null) {
@@ -250,13 +238,6 @@ public final class BlockWorker extends AbstractWorker {
     mFileSystemMasterClient.close();
     // Use shutdownNow because HeartbeatThreads never finish until they are interrupted
     getExecutorService().shutdownNow();
-
-    // TODO(binfan): investigate why we need to close dataserver again. There used to be a comment
-    // saying the reason to stop and close again is due to some issues in Thrift.
-    while (!mDataServer.isClosed()) {
-      mDataServer.close();
-      CommonUtils.sleepMs(100);
-    }
   }
 
   /**
