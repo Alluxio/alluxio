@@ -4,10 +4,11 @@ package alluxio.proto.journal;
 
 // Journal entry messages for the file master.
 
-// next available id: 3
+// next available id: 4
 message AddMountPointEntry {
   optional string alluxio_path = 1;
   optional string ufs_path = 2;
+  optional MountOptionsEntry options = 3;
 }
 
 // next available id: 2
@@ -80,6 +81,11 @@ message InodeFileEntry {
 message InodeLastModificationTimeEntry {
   optional int64 id = 1;
   optional int64 last_modification_time_ms = 2;
+}
+
+// next available id: 2
+message MountOptionsEntry {
+  optional bool readOnly = 1;
 }
 
 // next available id: 2

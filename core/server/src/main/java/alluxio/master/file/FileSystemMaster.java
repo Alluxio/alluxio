@@ -47,6 +47,7 @@ import alluxio.master.file.meta.options.CreatePathOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
@@ -1532,17 +1533,18 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param alluxioPath the Alluxio path to mount to
    * @param ufsPath the UFS path to mount
+   * @param options the mount options
    * @throws FileAlreadyExistsException if the path to be mounted already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
    * @throws AccessControlException if the permission check fails
    */
-  public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath)
+  public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incMountOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, alluxioPath, true);
-      mountInternal(alluxioPath, ufsPath);
+      mountInternal(alluxioPath, ufsPath, options);
       boolean loadMetadataSuceeded = false;
       try {
         // This will create the directory at alluxioPath
@@ -1556,7 +1558,7 @@ public final class FileSystemMaster extends AbstractMaster {
       }
       AddMountPointEntry addMountPoint =
           AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath.toString())
-              .setUfsPath(ufsPath.toString()).build();
+              .setUfsPath(ufsPath.toString()).setOptions(options.toProto()).build();
       writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
       flushJournal();
       MasterContext.getMasterSource().incPathsMounted(1);
@@ -1575,7 +1577,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
     AlluxioURI ufsURI = new AlluxioURI(entry.getUfsPath());
-    mountInternal(alluxioURI, ufsURI);
+    mountInternal(alluxioURI, ufsURI, new MountOptions(entry.getOptions()));
   }
 
   /**
@@ -1587,7 +1589,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O exception occurs
    */
-  void mountInternal(AlluxioURI alluxioPath, AlluxioURI ufsPath)
+  void mountInternal(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     // Check that the ufsPath exists and is a directory
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());

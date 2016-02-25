@@ -19,6 +19,7 @@ import alluxio.master.MasterContext;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 
 import com.google.common.base.Preconditions;
@@ -316,7 +317,9 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
       Preconditions.checkNotNull(ufsPath, "required 'ufsPath' parameter is missing");
-      mFileSystemMaster.mount(new AlluxioURI(path), new AlluxioURI(ufsPath));
+      // TODO(gpang): Update the rest API to get the mount options.
+      mFileSystemMaster
+          .mount(new AlluxioURI(path), new AlluxioURI(ufsPath), MountOptions.defaults());
       return Response.ok().build();
     } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
