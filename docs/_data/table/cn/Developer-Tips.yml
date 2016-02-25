@@ -1,21 +1,21 @@
 format:
-  格式化Tachyon的Master和所有Worker。选项[-s]表示这条命令只有在底层文件系统为本地的、且已经不存在的情况下才格式化。
+  格式化Alluxio的Master和所有Worker。选项[-s]表示这条命令只有在底层文件系统为本地的、且已经不存在的情况下才格式化。
 formatWorker:
-  格式化Tachyon Worker的本地存储。
+  格式化Alluxio Worker的本地存储。
 bootstrap-conf:
   如果引导程序配置文件<code>alluxio-env.sh</code>不存在，利用<code>ALLUXIO_MASTER_HOSTNAME</code>生成。
 fs:
-  在命令行中与Tachyon进行交互，从而完成基本的文件系统操作。详情见<a href="Command-Line-Interface.html">Command Line</a>。
+  在命令行中与Alluxio进行交互，从而完成基本的文件系统操作。详情见<a href="Command-Line-Interface.html">Command Line</a>。
 loadufs:
-  将<code>UfsPath</code>下的文件加载到给定的<code>TachyonPath</code>中。<code>ExcludePathPrefixes</code>可以是一组用“;”隔开的前缀。<code>ExcludePathPrefixes</code>中每个前缀下的路径都不会被加载。
+  将<code>UfsPath</code>下的文件加载到给定的<code>AlluxioPath</code>中。<code>ExcludePathPrefixes</code>可以是一组用“;”隔开的前缀。<code>ExcludePathPrefixes</code>中每个前缀下的路径都不会被加载。
 runTest:
-  在一个Tachyon集群上运行一个端到端的测试。<code>Example</code>为"Basic"或者"BasicNonByteBuffer"。<code>ReadType</code>为"CACHE_PROMOTE", "CACHE",或者"NO_CACHE"。<code>WriteType</code>为"MUST_CACHE", "CACHE_THROUGH"或"THROUGH"。
+  在一个Alluxio集群上运行一个端到端的测试。<code>Example</code>为"Basic"或者"BasicNonByteBuffer"。<code>ReadType</code>为"CACHE_PROMOTE", "CACHE",或者"NO_CACHE"。<code>WriteType</code>为"MUST_CACHE", "CACHE_THROUGH"或"THROUGH"。
 runTests:
-  在一个Tachyon集群上运行所有端到端的测试。该命令等同于运行包含所有参数的<code>runTest</code>命令。
+  在一个Alluxio集群上运行所有端到端的测试。该命令等同于运行包含所有参数的<code>runTest</code>命令。
 journalCrashTest:
   在崩溃的情形下测试Master日志系统。可以执行<code>alluxio journalCrashTest -help</code>来获取每个参数的详细信息，或者你可以不带任何参数默认执行。
 readJournal:
-  从标准输入读取一个Tachyon的日志文件，并且以将其以文字形式写到标准输出上。你可以对一个日志文件执行类似于<code>alluxio readJournal < journal/FileSystemMaster/log.out</code>的命令。
+  从标准输入读取一个Alluxio的日志文件，并且以将其以文字形式写到标准输出上。你可以对一个日志文件执行类似于<code>alluxio readJournal < journal/FileSystemMaster/log.out</code>的命令。
 killAll:
   杀死pid或命令中包含<code>WORD</code>的进程，<code>WORD</code>由用户指定。
 copyDir:
@@ -27,6 +27,6 @@ thriftGen:
 protoGen:
   生成所有协议缓冲区代码。详情见<a href="#change-a-protocol-buffer-message">Change a Protocol Buffer Message</a>。
 version:
-  打印Tachyon版本信息。
+  打印Alluxio版本信息。
 validateConf:
-  使Tachyon配置生效。
+  使Alluxio配置生效。

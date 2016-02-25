@@ -9,9 +9,9 @@ priority: 4
 * Table of Contents
 {:toc}
 
-Alluxio-FUSE是一个新的处于实验阶段的特性，该特性允许在一台Linux机器上的本地文件系统中挂载一个Alluxio分布式文件系统。通过使用该特性，标注的工具（例如`ls`、 `cat`以及`echo`）和传统的POSIX应用程序都能够访问Alluxio分布式文件系统中的数据。
+Alluxio-FUSE是一个新的处于实验阶段的特性，该特性允许在一台Linux机器上的本地文件系统中挂载一个Alluxio分布式文件系统。通过使用该特性，标注的工具（例如`ls`、 `cat`以及`echo`）和传统的POSIX应用程序都能够直接访问Alluxio分布式文件系统中的数据。
 
-由于Alluxio固有的属性，例如它的write-once/read-many-times文件数据模型，该挂载的文件系统并不完全符合POSIX标准，有一定的局限性。因此，在使用该特性之前，请先阅读本页面余下的内容，从而了解该特性的作用以及局限。
+由于Alluxio固有的属性，例如它的write-once/read-many-times文件数据模型，该挂载的文件系统并不完全符合POSIX标准，尚有一定的局限性。因此，在使用该特性之前，请先阅读本页面余下的内容，从而了解该特性的作用以及局限。
 
 # 安装依赖
 
@@ -52,7 +52,7 @@ Alluxio-FUSE是一个新的处于实验阶段的特性，该特性允许在一�
 
 ## 可选配置
 
-Alluxio-FUSE是基于标准的alluxio-core-client进行操作的。你也许想像使用其他应用的client一样，自定义该alluxio-core-client的行为。
+Alluxio-FUSE是基于标准的alluxio-core-client进行操作的。你也许希望像使用其他应用的client一样，自定义该alluxio-core-client的行为。
 
 一种方法是编辑`$ALLUXIO_HOME/bin/alluxio-fuse.sh`配置文件，将特定的配置项添加到`ALLUXIO_JAVA_OPTS`变量中。
 
@@ -98,13 +98,13 @@ Seek操作只支持用于读的文件，即在指定`O_RDONLY` flags方式下被
 
 # 性能考虑
 
-由于FUSE和JNR的配合使用，与直接使用alluxio-core-client相比，使用挂载文件系统的性能会相对较差。也就是说，如果你在乎的更多是性能而不是这个功能，那么不应当使用Alluxio-FUSE。
+由于FUSE和JNR的配合使用，与直接使用alluxio-core-client相比，使用挂载文件系统的性能会相对较差。也就是说，如果你在乎的更多是Alluxio整体的性能且非必须使用FUSE功能，那么建议不要使用Alluxio-FUSE。
 
 大多数性能问题的原因在于，每次进行`read`或`write`操作时，内存中都存在若干个副本，并且FUSE将写操作的最大粒度设置为128KB。其性能可以利用kernel 3.15引入的FUSE回写(write-backs)缓存策略从而得到大幅提高（但该特性目前尚不被libfuse 2.x用户空间库支持）。
 
 # Alluxio-FUSE配置参数
 
-以下是Alluxio-FUSE的配置参数。
+以下是Alluxio-FUSE相关的配置参数。
 
 <table class="table table-striped">
 <tr><th>参数</th><th>默认值</th><th>描述</th></tr>
