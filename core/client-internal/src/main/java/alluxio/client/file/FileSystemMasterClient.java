@@ -21,6 +21,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
+import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
@@ -303,15 +304,17 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    *
    * @param alluxioPath the Alluxio path
    * @param ufsPath the UFS path
+   * @param options mount options
    * @throws AlluxioException if an Alluxio error occurs
    * @throws IOException an I/O error occurs
    */
-  public synchronized void mount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath)
+  public synchronized void mount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath,
+      final MountOptions options)
       throws AlluxioException, IOException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
-        mClient.mount(alluxioPath.toString(), ufsPath.toString());
+        mClient.mount(alluxioPath.toString(), ufsPath.toString(), options.toThrift());
         return null;
       }
     });

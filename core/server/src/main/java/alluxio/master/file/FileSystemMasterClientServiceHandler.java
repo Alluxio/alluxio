@@ -27,6 +27,7 @@ import alluxio.thrift.CreateFileTOptions;
 import alluxio.thrift.FileBlockInfo;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.MountTOptions;
 import alluxio.thrift.SetAttributeTOptions;
 import alluxio.thrift.ThriftIOException;
 import alluxio.wire.ThriftUtils;
@@ -177,7 +178,7 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public void mount(String alluxioPath, String ufsPath)
+  public void mount(String alluxioPath, String ufsPath, MountTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
       mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath));

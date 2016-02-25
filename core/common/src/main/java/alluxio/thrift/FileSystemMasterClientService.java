@@ -136,8 +136,10 @@ public class FileSystemMasterClientService {
      * @param alluxioPath the path of alluxio mount point
      * 
      * @param ufsPath the path of the under file system
+     * 
+     * @param options the options for creating the mount point
      */
-    public void mount(String alluxioPath, String ufsPath) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void mount(String alluxioPath, String ufsPath, MountTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Deletes a file or a directory and returns whether the remove operation succeeded.
@@ -209,7 +211,7 @@ public class FileSystemMasterClientService {
 
     public void loadMetadata(String ufsPath, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void mount(String alluxioPath, String ufsPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void mount(String alluxioPath, String ufsPath, MountTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void remove(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -527,17 +529,18 @@ public class FileSystemMasterClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "loadMetadata failed: unknown result");
     }
 
-    public void mount(String alluxioPath, String ufsPath) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void mount(String alluxioPath, String ufsPath, MountTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
-      send_mount(alluxioPath, ufsPath);
+      send_mount(alluxioPath, ufsPath, options);
       recv_mount();
     }
 
-    public void send_mount(String alluxioPath, String ufsPath) throws org.apache.thrift.TException
+    public void send_mount(String alluxioPath, String ufsPath, MountTOptions options) throws org.apache.thrift.TException
     {
       mount_args args = new mount_args();
       args.setAlluxioPath(alluxioPath);
       args.setUfsPath(ufsPath);
+      args.setOptions(options);
       sendBase("mount", args);
     }
 
@@ -1060,9 +1063,9 @@ public class FileSystemMasterClientService {
       }
     }
 
-    public void mount(String alluxioPath, String ufsPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void mount(String alluxioPath, String ufsPath, MountTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      mount_call method_call = new mount_call(alluxioPath, ufsPath, resultHandler, this, ___protocolFactory, ___transport);
+      mount_call method_call = new mount_call(alluxioPath, ufsPath, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -1070,10 +1073,12 @@ public class FileSystemMasterClientService {
     public static class mount_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String alluxioPath;
       private String ufsPath;
-      public mount_call(String alluxioPath, String ufsPath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private MountTOptions options;
+      public mount_call(String alluxioPath, String ufsPath, MountTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.alluxioPath = alluxioPath;
         this.ufsPath = ufsPath;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -1081,6 +1086,7 @@ public class FileSystemMasterClientService {
         mount_args args = new mount_args();
         args.setAlluxioPath(alluxioPath);
         args.setUfsPath(ufsPath);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -1581,7 +1587,7 @@ public class FileSystemMasterClientService {
       public mount_result getResult(I iface, mount_args args) throws org.apache.thrift.TException {
         mount_result result = new mount_result();
         try {
-          iface.mount(args.alluxioPath, args.ufsPath);
+          iface.mount(args.alluxioPath, args.ufsPath, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
@@ -2439,7 +2445,7 @@ public class FileSystemMasterClientService {
       }
 
       public void start(I iface, mount_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.mount(args.alluxioPath, args.ufsPath,resultHandler);
+        iface.mount(args.alluxioPath, args.ufsPath, args.options,resultHandler);
       }
     }
 
@@ -12327,6 +12333,7 @@ public class FileSystemMasterClientService {
 
     private static final org.apache.thrift.protocol.TField ALLUXIO_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("alluxioPath", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField UFS_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsPath", org.apache.thrift.protocol.TType.STRING, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -12336,6 +12343,7 @@ public class FileSystemMasterClientService {
 
     private String alluxioPath; // required
     private String ufsPath; // required
+    private MountTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -12346,7 +12354,11 @@ public class FileSystemMasterClientService {
       /**
        * the path of the under file system
        */
-      UFS_PATH((short)2, "ufsPath");
+      UFS_PATH((short)2, "ufsPath"),
+      /**
+       * the options for creating the mount point
+       */
+      OPTIONS((short)3, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -12365,6 +12377,8 @@ public class FileSystemMasterClientService {
             return ALLUXIO_PATH;
           case 2: // UFS_PATH
             return UFS_PATH;
+          case 3: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -12412,6 +12426,8 @@ public class FileSystemMasterClientService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, MountTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(mount_args.class, metaDataMap);
     }
@@ -12421,11 +12437,13 @@ public class FileSystemMasterClientService {
 
     public mount_args(
       String alluxioPath,
-      String ufsPath)
+      String ufsPath,
+      MountTOptions options)
     {
       this();
       this.alluxioPath = alluxioPath;
       this.ufsPath = ufsPath;
+      this.options = options;
     }
 
     /**
@@ -12438,6 +12456,9 @@ public class FileSystemMasterClientService {
       if (other.isSetUfsPath()) {
         this.ufsPath = other.ufsPath;
       }
+      if (other.isSetOptions()) {
+        this.options = new MountTOptions(other.options);
+      }
     }
 
     public mount_args deepCopy() {
@@ -12448,6 +12469,7 @@ public class FileSystemMasterClientService {
     public void clear() {
       this.alluxioPath = null;
       this.ufsPath = null;
+      this.options = null;
     }
 
     /**
@@ -12510,6 +12532,36 @@ public class FileSystemMasterClientService {
       }
     }
 
+    /**
+     * the options for creating the mount point
+     */
+    public MountTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the options for creating the mount point
+     */
+    public mount_args setOptions(MountTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case ALLUXIO_PATH:
@@ -12528,6 +12580,14 @@ public class FileSystemMasterClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((MountTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -12538,6 +12598,9 @@ public class FileSystemMasterClientService {
 
       case UFS_PATH:
         return getUfsPath();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -12554,6 +12617,8 @@ public class FileSystemMasterClientService {
         return isSetAlluxioPath();
       case UFS_PATH:
         return isSetUfsPath();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -12589,6 +12654,15 @@ public class FileSystemMasterClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -12605,6 +12679,11 @@ public class FileSystemMasterClientService {
       list.add(present_ufsPath);
       if (present_ufsPath)
         list.add(ufsPath);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -12633,6 +12712,16 @@ public class FileSystemMasterClientService {
       }
       if (isSetUfsPath()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ufsPath, other.ufsPath);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -12672,6 +12761,14 @@ public class FileSystemMasterClientService {
         sb.append(this.ufsPath);
       }
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -12679,6 +12776,9 @@ public class FileSystemMasterClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -12731,6 +12831,15 @@ public class FileSystemMasterClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 3: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new MountTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -12754,6 +12863,11 @@ public class FileSystemMasterClientService {
         if (struct.ufsPath != null) {
           oprot.writeFieldBegin(UFS_PATH_FIELD_DESC);
           oprot.writeString(struct.ufsPath);
+          oprot.writeFieldEnd();
+        }
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -12780,19 +12894,25 @@ public class FileSystemMasterClientService {
         if (struct.isSetUfsPath()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetOptions()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetAlluxioPath()) {
           oprot.writeString(struct.alluxioPath);
         }
         if (struct.isSetUfsPath()) {
           oprot.writeString(struct.ufsPath);
         }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, mount_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.alluxioPath = iprot.readString();
           struct.setAlluxioPathIsSet(true);
@@ -12800,6 +12920,11 @@ public class FileSystemMasterClientService {
         if (incoming.get(1)) {
           struct.ufsPath = iprot.readString();
           struct.setUfsPathIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.options = new MountTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
