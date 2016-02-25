@@ -38,6 +38,6 @@ public class BlockWorkerClientHeartbeatExecutorTest {
 
     heartbeatExecutor.heartbeat();
 
-    Mockito.verify(mock, Mockito.times(1)).periodicHeartbeat();
+    Mockito.verify(mock).periodicHeartbeat();
   }
 }
