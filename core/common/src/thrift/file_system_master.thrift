@@ -20,6 +20,10 @@ struct CreateFileTOptions {
   4: optional i64 ttl
 }
 
+struct MountTOptions {
+  1: optional bool readOnly
+}
+
 struct FileInfo {
   1: i64 fileId
   2: string name
