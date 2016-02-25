@@ -323,6 +323,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
             }
           }
           if (delete) {
+            mLostBlocks.remove(blockId);
             mBlocks.remove(blockId);
           } else {
             mLostBlocks.add(blockId);
