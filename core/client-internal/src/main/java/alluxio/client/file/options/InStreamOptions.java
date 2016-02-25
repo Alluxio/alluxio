@@ -19,12 +19,13 @@ import alluxio.client.ReadType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.util.CommonUtils;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method option for reading a file.
+ * Method options for reading a file.
  */
 @PublicApi
 @NotThreadSafe
@@ -92,10 +93,7 @@ public final class InStreamOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("InStreamOptions(");
-    sb.append(super.toString()).append(", ReadType: ").append(mReadType.toString());
-    sb.append(", LocationPolicy: ").append(mLocationPolicy.toString());
-    sb.append(")");
-    return sb.toString();
+    return Objects.toStringHelper(this).add("readType", mReadType)
+        .add("locationPolicy", mLocationPolicy).toString();
   }
 }
