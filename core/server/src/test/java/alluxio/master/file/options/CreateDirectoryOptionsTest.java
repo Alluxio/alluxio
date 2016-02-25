@@ -11,8 +11,6 @@
 
 package alluxio.master.file.options;
 
-import alluxio.Configuration;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,30 +21,6 @@ import java.util.Random;
  */
 public class CreateDirectoryOptionsTest {
   /**
-   * Tests the {@link CreateDirectoryOptions.Builder}.
-   */
-  @Test
-  public void builderTest() {
-    Random random = new Random();
-    boolean allowExists = random.nextBoolean();
-    long operationTimeMs = random.nextLong();
-    boolean persisted = random.nextBoolean();
-    boolean recursive = random.nextBoolean();
-
-    CreateDirectoryOptions options = new CreateDirectoryOptions.Builder(new Configuration())
-        .setAllowExists(allowExists)
-        .setOperationTimeMs(operationTimeMs)
-        .setPersisted(persisted)
-        .setRecursive(recursive)
-        .build();
-
-    Assert.assertEquals(allowExists, options.isAllowExists());
-    Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
-    Assert.assertEquals(persisted, options.isPersisted());
-    Assert.assertEquals(recursive, options.isRecursive());
-  }
-
-  /**
    * Tests the {@link CreateDirectoryOptions#defaults()} method.
    */
   @Test
@@ -56,5 +30,25 @@ public class CreateDirectoryOptionsTest {
     Assert.assertFalse(options.isAllowExists());
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
+  }
+
+  /**
+   * Tests getting and setting fields.
+   */
+  @Test
+  public void fieldsTest() {
+    Random random = new Random();
+    boolean allowExists = random.nextBoolean();
+    long operationTimeMs = random.nextLong();
+    boolean persisted = random.nextBoolean();
+    boolean recursive = random.nextBoolean();
+
+    CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setAllowExists(allowExists)
+        .setOperationTimeMs(operationTimeMs).setPersisted(persisted).setRecursive(recursive);
+
+    Assert.assertEquals(allowExists, options.isAllowExists());
+    Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
+    Assert.assertEquals(persisted, options.isPersisted());
+    Assert.assertEquals(recursive, options.isRecursive());
   }
 }

@@ -14,6 +14,7 @@ package alluxio.master.file.meta.options;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.master.MasterContext;
+import alluxio.security.authorization.PermissionStatus;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,40 +25,6 @@ import java.util.Random;
  * Unit tests for {@link CreatePathOptions}.
  */
 public class CreatePathOptionsTest {
-
-  /**
-   * Tests the {@link alluxio.master.file.meta.options.CreatePathOptions.Builder}.
-   */
-  @Test
-  public void builderTest() {
-    Random random = new Random();
-    boolean allowExists = random.nextBoolean();
-    long blockSize = random.nextLong();
-    boolean directory = random.nextBoolean();
-    long operationTimeMs = random.nextLong();
-    boolean persisted = random.nextBoolean();
-    boolean recursive = random.nextBoolean();
-    long ttl = random.nextLong();
-
-    CreatePathOptions options = new CreatePathOptions.Builder(new Configuration())
-        .setAllowExists(allowExists)
-        .setBlockSizeBytes(blockSize)
-        .setDirectory(directory)
-        .setOperationTimeMs(operationTimeMs)
-        .setPersisted(persisted)
-        .setRecursive(recursive)
-        .setTtl(ttl)
-        .build();
-
-    Assert.assertEquals(allowExists, options.isAllowExists());
-    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
-    Assert.assertEquals(directory, options.isDirectory());
-    Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
-    Assert.assertEquals(persisted, options.isPersisted());
-    Assert.assertEquals(recursive, options.isRecursive());
-    Assert.assertEquals(ttl, options.getTtl());
-  }
-
   /**
    * Tests the {@link CreatePathOptions#defaults()} method.
    */
@@ -76,5 +43,43 @@ public class CreatePathOptionsTest {
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     MasterContext.reset();
+  }
+
+  /**
+   * Tests getting and setting fields.
+   */
+  @Test
+  public void fieldsTest() {
+    Random random = new Random();
+    boolean allowExists = random.nextBoolean();
+    long blockSize = random.nextLong();
+    boolean directory = random.nextBoolean();
+    boolean mountPoint = random.nextBoolean();
+    long operationTimeMs = random.nextLong();
+    PermissionStatus permissionStatus = PermissionStatus.getDirDefault();
+    boolean persisted = random.nextBoolean();
+    boolean recursive = random.nextBoolean();
+    long ttl = random.nextLong();
+
+    CreatePathOptions options = CreatePathOptions.defaults()
+        .setAllowExists(allowExists)
+        .setBlockSizeBytes(blockSize)
+        .setDirectory(directory)
+        .setMountPoint(mountPoint)
+        .setOperationTimeMs(operationTimeMs)
+        .setPersisted(persisted)
+        .setPermissionStatus(permissionStatus)
+        .setRecursive(recursive)
+        .setTtl(ttl);
+
+    Assert.assertEquals(allowExists, options.isAllowExists());
+    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
+    Assert.assertEquals(directory, options.isDirectory());
+    Assert.assertEquals(mountPoint, options.isMountPoint());
+    Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
+    Assert.assertEquals(permissionStatus, options.getPermissionStatus());
+    Assert.assertEquals(persisted, options.isPersisted());
+    Assert.assertEquals(recursive, options.isRecursive());
+    Assert.assertEquals(ttl, options.getTtl());
   }
 }

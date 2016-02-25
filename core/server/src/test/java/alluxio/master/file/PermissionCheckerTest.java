@@ -89,14 +89,14 @@ public class PermissionCheckerTest {
       new PermissionStatus(TEST_USER_1.getUser(), TEST_USER_1.getGroups(), (short) 0157);
 
   private static final CreatePathOptions FILE_OPTIONS =
-      new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-      .setPermissionStatus(TEST_PERMISSION_STATUS_2).build();
+      CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB)
+          .setPermissionStatus(TEST_PERMISSION_STATUS_2);
   private static final CreatePathOptions WEIRD_FILE_OPTIONS =
-      new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-          .setPermissionStatus(TEST_PERMISSION_STATUS_WEIRD).build();
+      CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB)
+          .setPermissionStatus(TEST_PERMISSION_STATUS_WEIRD);
   private static final CreatePathOptions NESTED_FILE_OPTIONS =
-      new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-      .setPermissionStatus(TEST_PERMISSION_STATUS_1).setRecursive(true).build();
+      CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB)
+          .setPermissionStatus(TEST_PERMISSION_STATUS_1).setRecursive(true);
 
   private static InodeTree sTree;
 

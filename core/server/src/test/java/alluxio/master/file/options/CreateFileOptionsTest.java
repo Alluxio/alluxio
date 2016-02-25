@@ -26,34 +26,6 @@ import java.util.Random;
 public class CreateFileOptionsTest {
 
   /**
-   * Tests the {@link CreateFileOptions.Builder}.
-   */
-  @Test
-  public void builderTest() {
-    Random random = new Random();
-    long blockSize = random.nextLong();
-    long operationTimeMs = random.nextLong();
-    boolean persisted = random.nextBoolean();
-    boolean recursive = random.nextBoolean();
-    long ttl = random.nextLong();
-
-    CreateFileOptions options =
-        new CreateFileOptions.Builder(new Configuration())
-            .setBlockSizeBytes(blockSize)
-            .setOperationTimeMs(operationTimeMs)
-            .setPersisted(persisted)
-            .setRecursive(recursive)
-            .setTtl(ttl)
-            .build();
-
-    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
-    Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
-    Assert.assertEquals(persisted, options.isPersisted());
-    Assert.assertEquals(recursive, options.isRecursive());
-    Assert.assertEquals(ttl, options.getTtl());
-  }
-
-  /**
    * Tests the {@link CreateFileOptions#defaults()} method.
    */
   @Test
@@ -69,5 +41,28 @@ public class CreateFileOptionsTest {
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     MasterContext.reset();
+  }
+
+  /**
+   * Tests getting and setting fields.
+   */
+  @Test
+  public void fieldsTest() {
+    Random random = new Random();
+    long blockSize = random.nextLong();
+    long operationTimeMs = random.nextLong();
+    boolean persisted = random.nextBoolean();
+    boolean recursive = random.nextBoolean();
+    long ttl = random.nextLong();
+
+    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(blockSize)
+        .setOperationTimeMs(operationTimeMs).setPersisted(persisted).setRecursive(recursive)
+        .setTtl(ttl);
+
+    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
+    Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
+    Assert.assertEquals(persisted, options.isPersisted());
+    Assert.assertEquals(recursive, options.isRecursive());
+    Assert.assertEquals(ttl, options.getTtl());
   }
 }

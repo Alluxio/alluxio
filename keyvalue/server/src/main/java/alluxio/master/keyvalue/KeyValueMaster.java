@@ -20,7 +20,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.journal.Journal;
@@ -242,8 +241,7 @@ public final class KeyValueMaster extends AbstractMaster {
       throws FileAlreadyExistsException, InvalidPathException, AccessControlException {
     try {
       // Create this dir
-      mFileSystemMaster.mkdir(path,
-          new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(true).build());
+      mFileSystemMaster.mkdir(path, CreateDirectoryOptions.defaults().setRecursive(true));
     } catch (IOException e) {
       // TODO(binfan): Investigate why mFileSystemMaster.mkdir throws IOException
       throw new InvalidPathException(

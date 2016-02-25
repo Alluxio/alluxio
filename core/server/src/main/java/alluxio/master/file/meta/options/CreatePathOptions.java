@@ -11,10 +11,11 @@
 
 package alluxio.master.file.meta.options;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.master.MasterContext;
 import alluxio.security.authorization.PermissionStatus;
+
+import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -24,168 +25,33 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class CreatePathOptions {
 
-  /**
-   * Builder for {@link CreatePathOptions}.
-   */
-  public static class Builder {
-    private boolean mAllowExists;
-    private long mBlockSizeBytes;
-    private boolean mDirectory;
-    private long mOperationTimeMs;
-    private boolean mPersisted;
-    private boolean mRecursive;
-    private long mTtl;
-    private PermissionStatus mPermissionStatus;
-    private boolean mMountPoint;
-
-    /**
-     * Creates a new builder for {@link CreatePathOptions}.
-     */
-    public Builder() {
-      this(MasterContext.getConf());
-    }
-
-    /**
-     * Creates a new builder for {@link CreatePathOptions}.
-     *
-     * @param conf an Alluxio configuration
-     */
-    public Builder(Configuration conf) {
-      mAllowExists = false;
-      mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
-      mDirectory = false;
-      mOperationTimeMs = System.currentTimeMillis();
-      mRecursive = false;
-      mPersisted = false;
-      mTtl = Constants.NO_TTL;
-      mPermissionStatus = PermissionStatus.getDirDefault();
-      mMountPoint = false;
-    }
-
-    /**
-     * @param allowExists the allowExists flag value to use; it specifies whether an exception
-     *        should be thrown if the object being made already exists.
-     * @return the builder
-     */
-    public Builder setAllowExists(boolean allowExists) {
-      mAllowExists = allowExists;
-      return this;
-    }
-
-    /**
-     * @param blockSizeBytes the block size to use
-     * @return the builder
-     */
-    public Builder setBlockSizeBytes(long blockSizeBytes) {
-      mBlockSizeBytes = blockSizeBytes;
-      return this;
-    }
-
-    /**
-     * @param directory the directory flag to use; it specifies whether the object to create is a
-     *        directory
-     * @return the builder
-     */
-    public Builder setDirectory(boolean directory) {
-      mDirectory = directory;
-      return this;
-    }
-
-    /**
-     * @param mountPoint the mount point flag to use; it specifies whether the object to create is
-     *        a mount point
-     * @return the builder
-     */
-    public Builder setMountPoint(boolean mountPoint) {
-      mMountPoint = mountPoint;
-      return this;
-    }
-
-    /**
-     * @param operationTimeMs the operation time to use
-     * @return the builder
-     */
-    public Builder setOperationTimeMs(long operationTimeMs) {
-      mOperationTimeMs = operationTimeMs;
-      return this;
-    }
-
-    /**
-     * @param persisted the persisted flag to use; it specifies whether the object to create is
-     *        persisted in UFS
-     * @return the builder
-     */
-    public Builder setPersisted(boolean persisted) {
-      mPersisted = persisted;
-      return this;
-    }
-
-    /**
-     * @param recursive the recursive flag value to use; it specifies whether parent directories
-     *        should be created if they do not already exist
-     * @return the builder
-     */
-    public Builder setRecursive(boolean recursive) {
-      mRecursive = recursive;
-      return this;
-    }
-
-    /**
-     * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-     *        created file should be kept around before it is automatically deleted
-     * @return the builder
-     */
-    public Builder setTtl(long ttl) {
-      mTtl = ttl;
-      return this;
-    }
-
-    /**
-     * @param permissionStatus the permission status to use
-     * @return the builder
-     */
-    public Builder setPermissionStatus(PermissionStatus permissionStatus) {
-      mPermissionStatus = permissionStatus;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link CreatePathOptions}.
-     *
-     * @return a {@code CreateOptions} instance
-     */
-    public CreatePathOptions build() {
-      return new CreatePathOptions(this);
-    }
-  }
+  private boolean mAllowExists;
+  private long mBlockSizeBytes;
+  private boolean mDirectory;
+  private long mOperationTimeMs;
+  private boolean mPersisted;
+  private boolean mRecursive;
+  private long mTtl;
+  private PermissionStatus mPermissionStatus;
+  private boolean mMountPoint;
 
   /**
    * @return the default {@link CreatePathOptions}
    */
   public static CreatePathOptions defaults() {
-    return new Builder(MasterContext.getConf()).build();
+    return new CreatePathOptions();
   }
 
-  private final boolean mAllowExists;
-  private final long mBlockSizeBytes;
-  private final boolean mDirectory;
-  private final long mOperationTimeMs;
-  private final boolean mPersisted;
-  private final boolean mRecursive;
-  private final long mTtl;
-  private PermissionStatus mPermissionStatus;
-  private final boolean mMountPoint;
-
-  private CreatePathOptions(CreatePathOptions.Builder builder) {
-    mAllowExists = builder.mAllowExists;
-    mBlockSizeBytes = builder.mBlockSizeBytes;
-    mDirectory = builder.mDirectory;
-    mOperationTimeMs = builder.mOperationTimeMs;
-    mPersisted = builder.mPersisted;
-    mRecursive = builder.mRecursive;
-    mTtl = builder.mTtl;
-    mPermissionStatus = builder.mPermissionStatus;
-    mMountPoint = builder.mMountPoint;
+  private CreatePathOptions() {
+    mAllowExists = false;
+    mBlockSizeBytes = MasterContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mDirectory = false;
+    mOperationTimeMs = System.currentTimeMillis();
+    mRecursive = false;
+    mPersisted = false;
+    mTtl = Constants.NO_TTL;
+    mPermissionStatus = PermissionStatus.getDirDefault();
+    mMountPoint = false;
   }
 
   /**
@@ -252,5 +118,104 @@ public final class CreatePathOptions {
    */
   public PermissionStatus getPermissionStatus() {
     return mPermissionStatus;
+  }
+
+  /**
+   * @param allowExists the allowExists flag value to use; it specifies whether an exception
+   *        should be thrown if the object being made already exists.
+   * @return the updated options object
+   */
+  public CreatePathOptions setAllowExists(boolean allowExists) {
+    mAllowExists = allowExists;
+    return this;
+  }
+
+  /**
+   * @param blockSizeBytes the block size to use
+   * @return the updated options object
+   */
+  public CreatePathOptions setBlockSizeBytes(long blockSizeBytes) {
+    mBlockSizeBytes = blockSizeBytes;
+    return this;
+  }
+
+  /**
+   * @param directory the directory flag to use; it specifies whether the object to create is a
+   *        directory
+   * @return the updated options object
+   */
+  public CreatePathOptions setDirectory(boolean directory) {
+    mDirectory = directory;
+    return this;
+  }
+
+  /**
+   * @param mountPoint the mount point flag to use; it specifies whether the object to create is
+   *        a mount point
+   * @return the updated options object
+   */
+  public CreatePathOptions setMountPoint(boolean mountPoint) {
+    mMountPoint = mountPoint;
+    return this;
+  }
+
+  /**
+   * @param operationTimeMs the operation time to use
+   * @return the updated options object
+   */
+  public CreatePathOptions setOperationTimeMs(long operationTimeMs) {
+    mOperationTimeMs = operationTimeMs;
+    return this;
+  }
+
+  /**
+   * @param persisted the persisted flag to use; it specifies whether the object to create is
+   *        persisted in UFS
+   * @return the updated options object
+   */
+  public CreatePathOptions setPersisted(boolean persisted) {
+    mPersisted = persisted;
+    return this;
+  }
+
+  /**
+   * @param recursive the recursive flag value to use; it specifies whether parent directories
+   *        should be created if they do not already exist
+   * @return the updated options object
+   */
+  public CreatePathOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
+    return this;
+  }
+
+  /**
+   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *        created file should be kept around before it is automatically deleted
+   * @return the updated options object
+   */
+  public CreatePathOptions setTtl(long ttl) {
+    mTtl = ttl;
+    return this;
+  }
+
+  /**
+   * @param permissionStatus the permission status to use
+   * @return the updated options object
+   */
+  public CreatePathOptions setPermissionStatus(PermissionStatus permissionStatus) {
+    mPermissionStatus = permissionStatus;
+    return this;
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("allowExists", mAllowExists)
+        .add("blockSizeBytes", mBlockSizeBytes).add("directory", mDirectory)
+        .add("mountPoint", mMountPoint).add("operationTimeMs", mOperationTimeMs)
+        .add("persisted", mPersisted).add("recursive", mRecursive).add("ttl", mTtl)
+        .add("permissionStatus", mPermissionStatus).toString();
   }
 }
