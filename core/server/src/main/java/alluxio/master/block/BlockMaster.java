@@ -322,11 +322,15 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
               worker.updateToRemovedBlock(true, blockId);
             }
           }
+          // Two cases here:
+          // 1) For delete: delete the block metadata.
+          // 2) For free: keep the block metadata. mLostBlocks will be changed in
+          // processWorkerRemovedBlocks
           if (delete) {
+            // Make sure blockId is removed from mLostBlocks when the block metadata is deleted.
+            // Otherwise blockId in mLostBlock can be dangling index if the metadata is gone.
             mLostBlocks.remove(blockId);
             mBlocks.remove(blockId);
-          } else {
-            mLostBlocks.add(blockId);
           }
         }
       }

@@ -194,7 +194,6 @@ public class BlockMasterTest {
     mMaster.commitBlock(worker2, 3L, "MEM", 3L, 1L);
     mMaster.removeBlocks(workerBlocks, false /* delete */);
     Assert.assertEquals(1L, mMaster.getBlockInfo(1L).getBlockId());
-    Assert.assertTrue(mMaster.getLostBlocks().contains(1L));
 
     // Test removeBlocks with delete
     mMaster.removeBlocks(workerBlocks, true /* delete */);
