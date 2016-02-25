@@ -76,7 +76,7 @@ public class ClientHandlerTest {
     mHandler.addListener(listener);
     mHandler.channelRead0(mContext, response);
 
-    Mockito.verify(listener, Mockito.times(1)).onResponseReceived(response);
+    Mockito.verify(listener).onResponseReceived(response);
   }
 
   /**
@@ -103,6 +103,6 @@ public class ClientHandlerTest {
   public void exceptionCaughtClosesContextTest() throws Exception {
     mHandler.exceptionCaught(mContext, new Throwable());
 
-    Mockito.verify(mContext, Mockito.times(1)).close();
+    Mockito.verify(mContext).close();
   }
 }
