@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.Version;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticationUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.UIWebServer;
@@ -97,6 +98,9 @@ public final class AlluxioWorker {
   /** The worker serving file system operations. */
   private FileSystemWorker mFileSystemWorker;
 
+  /** Server for data requests and responses. */
+  private DataServer mDataServer;
+
   /** A list of extra workers to launch based on service loader. */
   private List<Worker> mAdditionalWorkers;
 
@@ -170,6 +174,13 @@ public final class AlluxioWorker {
       // Reset worker RPC port based on assigned port number
       mConfiguration.set(Constants.WORKER_RPC_PORT, Integer.toString(mRPCPort));
       mThriftServer = createThriftServer();
+
+      // Setup Data server
+      mDataServer = DataServer.Factory.create(
+          NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mConfiguration),
+          mBlockWorker, mConfiguration);
+      // Reset data server port
+      mConfiguration.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
       mWorkerAddress =
           NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.WORKER_RPC,
@@ -317,7 +328,8 @@ public final class AlluxioWorker {
     mBlockWorker.stop();
   }
 
-  private void stopServing() {
+  private void stopServing() throws IOException {
+    mDataServer.close();
     mThriftServer.stop();
     mThriftServerSocket.close();
     mWorkerMetricsSystem.stop();
@@ -327,6 +339,13 @@ public final class AlluxioWorker {
       LOG.error("Failed to stop web server", e);
     }
     mWorkerMetricsSystem.stop();
+
+    // TODO(binfan): investigate why we need to close dataserver again. There used to be a comment
+    // saying the reason to stop and close again is due to some issues in Thrift.
+    while (!mDataServer.isClosed()) {
+      mDataServer.close();
+      CommonUtils.sleepMs(100);
+    }
   }
 
   private void registerServices(TMultiplexedProcessor processor, Map<String, TProcessor> services) {
