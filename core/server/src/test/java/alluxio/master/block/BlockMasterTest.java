@@ -192,13 +192,15 @@ public class BlockMasterTest {
     mMaster.commitBlock(worker2, 1L, "MEM", 1L, 1L);
     mMaster.commitBlock(worker2, 2L, "MEM", 2L, 1L);
     mMaster.commitBlock(worker2, 3L, "MEM", 3L, 1L);
-    mMaster.removeBlocks(workerBlocks, false /* deleteBlocksMetadata */);
+    mMaster.removeBlocks(workerBlocks, false /* delete */);
     Assert.assertEquals(1L, mMaster.getBlockInfo(1L).getBlockId());
+    Assert.assertTrue(mMaster.getLostBlocks().contains(1L));
 
-    // Test removeBlocks with deleteBlocksMetadata
-    mMaster.removeBlocks(workerBlocks, true /* deleteBlocksMetadata */);
+    // Test removeBlocks with delete
+    mMaster.removeBlocks(workerBlocks, true /* delete */);
     mThrown.expect(BlockInfoException.class);
     mMaster.getBlockInfo(1L);
+    Assert.assertFalse(mMaster.getLostBlocks().contains(1L));
   }
 
   /**
