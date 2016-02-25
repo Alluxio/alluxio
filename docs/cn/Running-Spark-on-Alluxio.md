@@ -15,6 +15,11 @@ Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 ## 前期准备
 
 * Alluxio集群根据向导搭建完成(可以是[本地模式](Running-Alluxio-Locally.html)或者[集群模式](Running-Alluxio-on-a-Cluster.html))。
+
+* Alluxio client需要在编译时指定Spark选项。在顶层`alluxio`目录中执行如下命令构建Alluxio:
+
+{% include Running-Spark-on-Alluxio/spark-profile-build.md %}
+
 * 请添加如下代码到`spark/conf/spark-env.sh`。
 
 {% include Running-Spark-on-Alluxio/earlier-spark-version-bash.md %}

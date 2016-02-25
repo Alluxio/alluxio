@@ -13,12 +13,12 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method option for mounting a path.
+ * Method options for mounting a path.
  */
 @PublicApi
 @NotThreadSafe
@@ -26,12 +26,19 @@ public final class MountOptions {
   /**
    * @return the default {@link MountOptions}
    */
-  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static MountOptions defaults() {
     return new MountOptions();
   }
 
   private MountOptions() {
     // No options currently
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).toString();
   }
 }

@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
  * Abstract class that provides a common method for parsing metrics data.
  */
 public abstract class WebInterfaceAbstractMetricsServlet extends HttpServlet {
+  private static final long serialVersionUID = -849266423481584779L;
 
   protected ObjectMapper mObjectMapper;
 

@@ -18,6 +18,8 @@ import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.thrift.CreateDirectoryTOptions;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -102,12 +104,8 @@ public final class CreateDirectoryOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("CreateDirectoryOptions(");
-    sb.append(super.toString()).append(", AllowExists: ").append(mAllowExists);
-    sb.append(", Recursive: ").append(mRecursive);
-    sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
-    sb.append(")");
-    return sb.toString();
+    return Objects.toStringHelper(this).add("allowExists", mAllowExists)
+        .add("recursive", mRecursive).add("underStorageType", mUnderStorageType).toString();
   }
 
   /**
