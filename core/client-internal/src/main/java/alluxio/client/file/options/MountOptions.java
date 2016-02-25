@@ -12,8 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
-
-import com.google.common.base.Objects;
+import alluxio.thrift.MountTOptions;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -23,6 +22,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class MountOptions {
+  private boolean mReadOnly;
+
   /**
    * @return the default {@link MountOptions}
    */
@@ -30,8 +31,31 @@ public final class MountOptions {
     return new MountOptions();
   }
 
+  /**
+   * Creates a new instance with default values.
+   */
   private MountOptions() {
-    // No options currently
+    mReadOnly = false;
+  }
+
+  /**
+   * @return the value of the readonly flag; if true, no write or create operations are allowed
+   *         under the mount point.
+   */
+  public boolean isReadOnly() {
+    return mReadOnly;
+  }
+
+  /**
+   * Sets the readonly flag.
+   *
+   * @param readOnly the readonly flag value to use; if true, no write or create operations are
+   *        allowed under the mount point.
+   * @return the updated options object
+   */
+  public MountOptions setReadOnly(boolean readOnly) {
+    mReadOnly = readOnly;
+    return this;
   }
 
   /**
@@ -39,6 +63,18 @@ public final class MountOptions {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).toString();
+    StringBuilder sb = new StringBuilder("MountOptions(");
+    sb.append(super.toString()).append(", Readonly: ").append(mReadOnly);
+    sb.append(")");
+    return sb.toString();
+  }
+
+  /**
+   * @return Thrift representation of the options
+   */
+  public MountTOptions toThrift() {
+    MountTOptions options = new MountTOptions();
+    options.setReadOnly(mReadOnly);
+    return options;
   }
 }
