@@ -42,6 +42,7 @@
       <artifactId>glusterfs-hadoop</artifactId>
       <version>${glusterfs-hadoop.version}</version>
 
+      <!-- Exclude the jsp/servlet related dependencies to avoid troubles in web test -->
       <exclusions>
         <exclusion>
           <groupId>org.mortbay.jetty</groupId>
