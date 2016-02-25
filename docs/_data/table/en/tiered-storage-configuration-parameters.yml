@@ -1,5 +1,5 @@
 alluxio.worker.tieredstore.levels:
-  The maximum number of storage tiers in Tachyon. Currently, Tachyon supports 1, 2, or 3 tiers.
+  The maximum number of storage tiers in Alluxio. Currently, Alluxio supports 1, 2, or 3 tiers.
 alluxio.worker.tieredstore.level{x}.alias:
   The alias of each storage tier, where x represents storage tier number (top tier is 0). Currently, there are 3 aliases, MEM, SSD, and HDD.
 alluxio.worker.tieredstore.level{x}.dirs.path:
@@ -13,6 +13,6 @@ alluxio.worker.tieredstore.reserver.enabled:
 alluxio.worker.tieredstore.reserver.interval.ms:
   Interval for the space reserver to check if enough space is reserved in all tiers.
 alluxio.worker.allocator.class:
-  The class name of the allocation strategy to use for new blocks in Tachyon.
+  The class name of the allocation strategy to use for new blocks in Alluxio.
 alluxio.worker.evictor.class:
   The class name of the block eviction strategy to use when a storage layer runs out of space.

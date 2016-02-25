@@ -18,7 +18,7 @@ Alluxio安全性目前有两个特性，该文档介绍它们的概念以及用�
 
 # 安全认证 {#Authentication}
 
-Alluxio通过Thrift RPC提供文件系统服务，客户端（代表一个用户）和服务端（例如master）应该通过认证建立连接以通信，若认证成功，则建立连接，若失败，则该连接不应当被建立，并且会向客户端抛出一个异常。
+Alluxio通过Thrift RPC提供文件系统服务，客户端（代表一个用户）和服务端（例如master）应该通过认证建立连接以通信，若认证成功，则建立连接；若失败，则该连接不应当被建立，并且会向客户端抛出一个异常。
 
 目前支持三种认证模式：NOSASL（默认模式）、SIMPLE以及CUSTOM。
 
@@ -40,7 +40,7 @@ Authorization Service)确认执行任务的用户的身份。
 ## NOSASL
 
 禁用安全认证，Alluxio文件系统行为和之前一致。
-SASL (Simple Authentication and Security Layer)是定义客户端和服务端应用之间安全认证的一个框架，该框架被Alluxio使用以实现安全认证，因此NOSASL表示禁用。
+SASL (Simple Authentication and Security Layer)是一个定义客户端和服务端应用之间安全认证的框架，该框架被Alluxio使用以实现安全认证，因此NOSASL表示禁用。
 
 ## SIMPLE
 
@@ -50,7 +50,7 @@ SASL (Simple Authentication and Security Layer)是定义客户端和服务端应
 
 ## CUSTOM
 
-启用安全认证。Alluxio文件系统能够知道访问用户的身份，并且通过定义好的`AuthenticationProvider`对该用户身份进行确认。
+启用安全认证。Alluxio文件系统能够知道访问用户的身份，并且通过已定义的`AuthenticationProvider`对该用户身份进行确认。
 
 该模式目前在实验阶段，只在测试中使用。
 

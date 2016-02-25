@@ -16,6 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
@@ -94,6 +95,7 @@ public class BlockWorkerTest {
     Configuration conf = WorkerContext.getConf();
     conf.set("alluxio.worker.tieredstore.level0.dirs.path",
         mFolder.newFolder().getAbsolutePath());
+    conf.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
     mBlockWorker = new BlockWorker();
 
     Whitebox.setInternalState(mBlockWorker, "mBlockMasterClient", mBlockMasterClient);

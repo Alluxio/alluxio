@@ -9,7 +9,7 @@ priority: 5
 * 内容列表
 {:toc}
 
-通过使用其透明命名机制以及挂载API，Alluxio支持在不同存储系统之间对数据的高效管理。
+通过使用其透明命名机制以及挂载API，Alluxio支持在不同存储系统之间对数据进行高效的管理。
 
 ## 透明命名机制
 
@@ -19,7 +19,7 @@ priority: 5
 
 当在Alluxio文件系统中创建对象时，可以选择这些对象是否要在底层存储系统中进行持久化。对于需要持久化的对象，
 Alluxio会保存底层文件系统存储这些对象的文件夹的路径。例如，一个用户在根目录下创建了一个`Users`目录，其中
-包含`Alice`和`Bob`两个子目录，底层文件系统（如HDFS或S3）也会保存相同的目录结构和命名。类似的，当用户在
+包含`Alice`和`Bob`两个子目录，底层文件系统（如HDFS或S3）也会保存相同的目录结构和命名。类似地，当用户在
 Alluxio文件系统中对一个持久化的对象进行重命名或者删除操作时，底层文件系统中对应的对象也会被执行相同的操作。
 
 另外，Alluxio能够搜索到底层文件系统中并非通过Alluxio创建的对象。例如，底层文件系统中包含一个`Data`文件夹，
@@ -33,7 +33,7 @@ Alluxio提供了一个挂载API，通过该API能够在Alluxio中访问多个数
 
 ![unified]({{site.data.img.screenshot_unified}})
 
-默认情况下，Alluxio文件系统是挂载到Alluxio配置中`alluxio.underfs.address`指定的目录，该目录代表Alluxio
+默认情况下，Alluxio文件系统挂载到Alluxio配置中`alluxio.underfs.address`指定的目录，该目录代表Alluxio
 的"primary storage"。另外，用户可以通过挂载API添加和删除数据源。
 
 {% include Unified-and-Transparent-Namespace/mounting-API.md %}
@@ -54,7 +54,7 @@ Alluxio提供了一个挂载API，通过该API能够在Alluxio中访问多个数
 
 {% include Unified-and-Transparent-Namespace/mount-demo.md %}
 
-验证对于不是通过alluxio创建的对象，当第一次访问它们时，其元数据被加载进入了Alluxio中：
+验证对于不是通过Alluxio创建的对象，当第一次访问它们时，其元数据被加载进入了Alluxio中：
 
 {% include Unified-and-Transparent-Namespace/ls-demo-hello.md %}
 

@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 结构概述
-nickname: 结构概述
+title: 架构概述
+nickname: 架构概述
 group: User Guide
 priority: 1
 ---
