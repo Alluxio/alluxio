@@ -22,6 +22,7 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.thrift.CreateFileTOptions;
 import alluxio.util.CommonUtils;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -45,9 +46,6 @@ public final class CreateFileOptions {
     return new CreateFileOptions();
   }
 
-  /**
-   * Creates a new instance with defaults from the configuration.
-   */
   private CreateFileOptions() {
     Configuration conf = ClientContext.getConf();
     mRecursive = true;
@@ -168,13 +166,8 @@ public final class CreateFileOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("CreateFileOptions(");
-    sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
-    sb.append(", TTL: ").append(mTtl);
-    sb.append(", Location Policy: ").append(mLocationPolicy);
-    sb.append(", WriteType: ").append(mWriteType.toString());
-    sb.append(")");
-    return sb.toString();
+    return Objects.toStringHelper(this).add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl)
+        .add("locationPolicy", mLocationPolicy).add("writeType", mWriteType).toString();
   }
 
   /**

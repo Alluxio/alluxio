@@ -19,6 +19,7 @@ import alluxio.client.ReadType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.util.CommonUtils;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -100,10 +101,7 @@ public final class OpenFileOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("OpenFileOptions(");
-    sb.append(super.toString()).append(", ReadType: ").append(mReadType.toString());
-    sb.append(", LocationPolicy: ").append(mLocationPolicy.toString());
-    sb.append(")");
-    return sb.toString();
+    return Objects.toStringHelper(this).add("locationPolicy", mLocationPolicy)
+        .add("readType", mReadType).toString();
   }
 }

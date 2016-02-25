@@ -13,10 +13,12 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method option for freeing space.
+ * Method options for freeing space.
  */
 @PublicApi
 @NotThreadSafe
@@ -59,9 +61,6 @@ public final class FreeOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("FreeOptions(");
-    sb.append(super.toString()).append(", Recursive: ").append(mRecursive);
-    sb.append(")");
-    return sb.toString();
+    return Objects.toStringHelper(this).add("recursive", mRecursive).toString();
   }
 }
