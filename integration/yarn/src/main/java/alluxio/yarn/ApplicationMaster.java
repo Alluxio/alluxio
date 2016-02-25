@@ -17,7 +17,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.yarn.YarnUtils.YarnContainerType;
+
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Lists;
@@ -44,6 +44,7 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import alluxio.yarn.YarnUtils.YarnContainerType;
 
 import java.io.File;
 import java.io.IOException;
