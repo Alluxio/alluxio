@@ -6,7 +6,7 @@ group: Frameworks
 priority: 0
 ---
 
-该向导描述了如何在Alluxio上运行[Apache Spark](http://spark-project.org/)并且使用HDFS作为Alluxio底层存储系统。Alluxio除HDFS之外也支持其它的底层存储系统，计算框架(如Spark)可以通过Alluxio从底层存储系统读写数据。
+该指南描述了如何在Alluxio上运行[Apache Spark](http://spark-project.org/)并且使用HDFS作为Alluxio底层存储系统。Alluxio除HDFS之外也支持其它的底层存储系统，计算框架(如Spark)可以通过Alluxio从底层存储系统读写数据。
 
 ## 兼容性
 
@@ -50,12 +50,12 @@ Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 
 {% include Running-Spark-on-Alluxio/any-Alluxio-master.md %}
 
-## 数据局部性
+## 数据本地化
 
-如果Spark任务的局部性应该是`NODE_LOCAL`而实际是`ANY`，可能是因为Alluxio和Spark使用了不同的网络地址表示，可能其中一个使用了主机名而另一个使用了IP地址。请参考 [this jira ticket](
+如果Spark任务的定位应该是`NODE_LOCAL`而实际是`ANY`，可能是因为Alluxio和Spark使用了不同的网络地址表示，可能其中一个使用了主机名而另一个使用了IP地址。请参考 [this jira ticket](
 https://issues.apache.org/jira/browse/SPARK-10149)获取更多细节（这里可以找到Spark社区的解决方案）。
 
-提示:Alluxio使用主机名来表示网络地址，只有0.7.1版本使用了IP地址。Spark 1.5.x版本与Alluxio0.7.1做法一致，都使用了IP地址来表示网络地址，数据局部性不加修改即可使用。但是从0.8.0往后，为了与HDFS一致，Alluxio使用主机名表示网络地址。用户启动Spark时想要获取数据局部性，可以用Spark提供的如下脚本显式指定主机名。以slave-hostname启动Spark Worker:
+提示:Alluxio使用主机名来表示网络地址，只有0.7.1版本使用了IP地址。Spark 1.5.x版本与Alluxio0.7.1做法一致，都使用了IP地址来表示网络地址，数据本地化不加修改即可使用。但是从0.8.0往后，为了与HDFS一致，Alluxio使用主机名表示网络地址。用户启动Spark时想要获取数据本地化，可以用Spark提供的如下脚本显式指定主机名。以slave-hostname启动Spark Worker:
 
 {% include Running-Spark-on-Alluxio/slave-hostname.md %}
 
@@ -63,11 +63,11 @@ https://issues.apache.org/jira/browse/SPARK-10149)获取更多细节（这里可
 
 {% include Running-Spark-on-Alluxio/slave-hostname-example.md %}
 
-也可以通过设置`$SPARK_HOME/conf/spark-env.sh`里的`SPARK_LOCAL_HOSTNAME`获取数据局部性。举例而言：
+也可以通过设置`$SPARK_HOME/conf/spark-env.sh`里的`SPARK_LOCAL_HOSTNAME`获取数据本地化。举例而言：
 
 {% include Running-Spark-on-Alluxio/spark-local-hostname-example.md %}
 
-用以上任何一种方法，Spark Worker的地址变为主机名并且局部性等级变为NODE_LOCAL，如下Spark WebUI所示：
+用以上任何一种方法，Spark Worker的地址变为主机名并且定位等级变为NODE_LOCAL，如下Spark WebUI所示：
 
 ![hostname]({{site.data.img.screenshot_datalocality_sparkwebui}})
 
