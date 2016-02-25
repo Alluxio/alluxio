@@ -139,6 +139,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   /**
    * A wrapper class of the usage info per tier for displaying in the UI.
    * This is mainly used to avoid using Map in jsp, which could cause problem with Java 8.
+   * See https://tachyon.atlassian.net/browse/ALLUXIO-22.
    */
   public static class UIUsageOnTier {
     private final String mTierAlias;
