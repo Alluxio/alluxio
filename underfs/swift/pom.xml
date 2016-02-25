@@ -43,6 +43,7 @@
       <artifactId>hadoop-openstack</artifactId>
       <version>${hadoop-openstack.version}</version>
 
+      <!-- Exclude the jsp/servlet related dependencies to avoid troubles in web test -->
       <exclusions>
         <exclusion>
           <groupId>org.mortbay.jetty</groupId>
