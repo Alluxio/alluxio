@@ -16,94 +16,15 @@ import alluxio.Constants;
 import alluxio.master.MasterContext;
 import alluxio.thrift.CreateFileTOptions;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method option for creating a file.
+ * Method options for creating a file.
  */
 @NotThreadSafe
 public final class CreateFileOptions {
-  /**
-   * Builder for {@link CreateFileOptions}.
-   */
-  public static class Builder {
-    private long mBlockSizeBytes;
-    private long mOperationTimeMs;
-    private boolean mPersisted;
-    private boolean mRecursive;
-    private long mTtl;
-
-    /**
-     * Creates a new builder for {@link CreateFileOptions}.
-     *
-     * @param conf an Alluxio configuration
-     */
-    public Builder(Configuration conf) {
-      mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
-      mOperationTimeMs = System.currentTimeMillis();
-      mPersisted = false;
-      mRecursive = false;
-      mTtl = Constants.NO_TTL;
-    }
-
-    /**
-     * @param blockSizeBytes the block size to use
-     * @return the builder
-     */
-    public Builder setBlockSizeBytes(long blockSizeBytes) {
-      mBlockSizeBytes = blockSizeBytes;
-      return this;
-    }
-
-    /**
-     * @param operationTimeMs the operation time to use
-     * @return the builder
-     */
-    public Builder setOperationTimeMs(long operationTimeMs) {
-      mOperationTimeMs = operationTimeMs;
-      return this;
-    }
-
-    /**
-     * @param persisted the persisted flag to use; it specifies whether the object to created is
-     *        persisted in UFS
-     * @return the builder
-     */
-    public Builder setPersisted(boolean persisted) {
-      mPersisted = persisted;
-      return this;
-    }
-
-    /**
-     * @param recursive the recursive flag value to use; it specifies whether parent directories
-     *        should be created if they do not already exist
-     * @return the builder
-     */
-    public Builder setRecursive(boolean recursive) {
-      mRecursive = recursive;
-      return this;
-    }
-
-    /**
-     * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-     *        created file should be kept around before it is automatically deleted
-     * @return the builder
-     */
-    public Builder setTtl(long ttl) {
-      mTtl = ttl;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link CreateFileOptions}.
-     *
-     * @return a {@link CreateFileOptions} instance
-     */
-    public CreateFileOptions build() {
-      return new CreateFileOptions(this);
-    }
-  }
-
   private long mBlockSizeBytes;
   private long mOperationTimeMs;
   private boolean mPersisted;
@@ -114,15 +35,7 @@ public final class CreateFileOptions {
    * @return the default {@link CreateFileOptions}
    */
   public static CreateFileOptions defaults() {
-    return new Builder(MasterContext.getConf()).build();
-  }
-
-  private CreateFileOptions(CreateFileOptions.Builder builder) {
-    mBlockSizeBytes = builder.mBlockSizeBytes;
-    mOperationTimeMs = builder.mOperationTimeMs;
-    mPersisted = builder.mPersisted;
-    mRecursive = builder.mRecursive;
-    mTtl = builder.mTtl;
+    return new CreateFileOptions();
   }
 
   /**
@@ -136,6 +49,15 @@ public final class CreateFileOptions {
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
     mTtl = options.getTtl();
+  }
+
+  private CreateFileOptions() {
+    Configuration conf = MasterContext.getConf();
+    mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mOperationTimeMs = System.currentTimeMillis();
+    mPersisted = false;
+    mRecursive = false;
+    mTtl = Constants.NO_TTL;
   }
 
   /**
@@ -161,7 +83,7 @@ public final class CreateFileOptions {
 
   /**
    * @return the recursive flag value; it specifies whether parent directories should be created if
-   * they do not already exist
+   *         they do not already exist
    */
   public boolean isRecursive() {
     return mRecursive;
@@ -169,9 +91,67 @@ public final class CreateFileOptions {
 
   /**
    * @return the TTL (time to live) value; it identifies duration (in milliseconds) the created file
-   * should be kept around before it is automatically deleted
+   *         should be kept around before it is automatically deleted
    */
   public long getTtl() {
     return mTtl;
+  }
+
+  /**
+   * @param blockSizeBytes the block size to use
+   * @return the updated options object
+   */
+  public CreateFileOptions setBlockSizeBytes(long blockSizeBytes) {
+    mBlockSizeBytes = blockSizeBytes;
+    return this;
+  }
+
+  /**
+   * @param operationTimeMs the operation time to use
+   * @return the updated options object
+   */
+  public CreateFileOptions setOperationTimeMs(long operationTimeMs) {
+    mOperationTimeMs = operationTimeMs;
+    return this;
+  }
+
+  /**
+   * @param persisted the persisted flag to use; it specifies whether the object to created is
+   *        persisted in UFS
+   * @return the updated options object
+   */
+  public CreateFileOptions setPersisted(boolean persisted) {
+    mPersisted = persisted;
+    return this;
+  }
+
+  /**
+   * @param recursive the recursive flag value to use; it specifies whether parent directories
+   *        should be created if they do not already exist
+   * @return the updated options object
+   */
+  public CreateFileOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
+    return this;
+  }
+
+  /**
+   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *        created file should be kept around before it is automatically deleted
+   * @return the updated options object
+   */
+  public CreateFileOptions setTtl(long ttl) {
+    mTtl = ttl;
+    return this;
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("blockSizeBytes", mBlockSizeBytes)
+        .add("operationTimeMs", mOperationTimeMs).add("persisted", mPersisted)
+        .add("recursive", mRecursive).add("ttl", mTtl).toString();
   }
 }

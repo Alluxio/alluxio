@@ -11,8 +11,6 @@
 
 package alluxio.master.file.options;
 
-import alluxio.Configuration;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,26 +20,6 @@ import java.util.Random;
  * Unit tests for {@link CompleteFileOptions}.
  */
 public class CompleteFileOptionsTest {
-
-  /**
-   * Tests the {@link alluxio.master.file.options.CompleteFileOptions.Builder}.
-   */
-  @Test
-  public void builderTest() {
-    Random random = new Random();
-    long ufsLength = random.nextLong();
-    long operationTimeMs = random.nextLong();
-
-    CompleteFileOptions options =
-        new CompleteFileOptions.Builder(new Configuration())
-            .setUfsLength(ufsLength)
-            .setOperationTimeMs(operationTimeMs)
-            .build();
-
-    Assert.assertEquals(ufsLength, options.getUfsLength());
-    Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
-  }
-
   /**
    * Tests the {@link CompleteFileOptions#defaults()} method.
    */
@@ -50,5 +28,21 @@ public class CompleteFileOptionsTest {
     CompleteFileOptions options = CompleteFileOptions.defaults();
 
     Assert.assertEquals(0, options.getUfsLength());
+  }
+
+  /**
+   * Tests getting and setting fields.
+   */
+  @Test
+  public void filedsTest() {
+    Random random = new Random();
+    long ufsLength = random.nextLong();
+    long operationTimeMs = random.nextLong();
+
+    CompleteFileOptions options =
+        CompleteFileOptions.defaults().setUfsLength(ufsLength).setOperationTimeMs(operationTimeMs);
+
+    Assert.assertEquals(ufsLength, options.getUfsLength());
+    Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
   }
 }
