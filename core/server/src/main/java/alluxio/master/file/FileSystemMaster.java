@@ -852,8 +852,8 @@ public final class FileSystemMaster extends AbstractMaster {
       }
 
       if (delInode.isFile()) {
-        // Remove corresponding blocks from workers.
-        mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds());
+        // Remove corresponding blocks from workers and delete metadata in master.
+        mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds(), true /* delete */);
       }
 
       mInodeTree.deleteInode(delInode, opTimeMs);
@@ -1353,7 +1353,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
         if (freeInode.isFile()) {
           // Remove corresponding blocks from workers.
-          mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds());
+          mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
         }
       }
       MasterContext.getMasterSource().incFilesFreed(freeInodes.size());
@@ -2213,8 +2213,7 @@ public final class FileSystemMaster extends AbstractMaster {
               inode.setPersistenceState(PersistenceState.LOST);
             }
           } catch (FileDoesNotExistException e) {
-            // TODO(calvin): Re-add this logic when we update the logic of freeing/removing blocks
-            // LOG.error("Exception trying to get inode from inode tree: {}", e.toString());
+            LOG.error("Exception trying to get inode from inode tree: {}", e.toString());
           }
         }
       }
