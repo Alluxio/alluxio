@@ -21,12 +21,13 @@ import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.util.CommonUtils;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method option for writing a file.
+ * Method options for writing a file.
  */
 @PublicApi
 @NotThreadSafe
@@ -144,12 +145,7 @@ public final class OutStreamOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("OutStreamOptions(");
-    sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
-    sb.append(", TTL: ").append(mTtl);
-    sb.append(", LocationPolicy: ").append(mLocationPolicy.toString());
-    sb.append(", WriteType: ").append(mWriteType.toString());
-    sb.append(")");
-    return sb.toString();
+    return Objects.toStringHelper(this).add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl)
+        .add("locationPolicy", mLocationPolicy).add("writeType", mWriteType).toString();
   }
 }
