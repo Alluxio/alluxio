@@ -13,7 +13,7 @@ Este guia descreve os passos para compilar o Alluxio do início.
 O pré-requisito para este guia é que você tenha [Java 7 (or above)](Java-Setup.html),
 [Maven](Maven.html) e [Thrift 0.9.2](Thrift.html) (Optional) instalados.
 
-Confira o Alluxio `master branch` a partir do Github e o empacote:
+Confira o Alluxio `master branch` a partir do Github e empacote-o:
 
 {% include Building-Alluxio-Master-Branch/checkout.md %}
 
@@ -33,11 +33,11 @@ Assim que o Alluxio estiver pronto, você pode iniciar este com:
 {% include Common-Commands/start-alluxio.md %}
 
 Para verificar se o Alluxio está rodando, você pode acessar [http://localhost:19999](http://localhost:19999)
-ou checar os `logs` dentro do diretório `alluxio/logs`. Você também pode executar um simples programa:
+ou checar os `logs` dentro do diretório `alluxio/logs`. Você também pode executar um simples programa de teste:
 
 {% include Common-Commands/runTests.md %}
 
-Você deve estar apto para ver os resultados similares aos seguintes:
+Você deverá estar apto para ver os resultados, semelhantes aos resultados seguintes:
 
 {% include Building-Alluxio-Master-Branch/test-result.md %}
 
@@ -51,7 +51,7 @@ Para rodar todas as unidades de testes:
 
 {% include Building-Alluxio-Master-Branch/unit-tests.md %}
 
-Para rodar todas as unidades de teste com um armazenamento inferior diferente do `filesystem`
+Para rodar todas as unidades de teste com um armazenamento inferior (`under storage`) diferente do `filesystem`
 local, execute:
 
 {% include Building-Alluxio-Master-Branch/under-storage.md %}
@@ -60,26 +60,26 @@ Atualmente, os valores suportados para `<under-storage-profile>` são:
 
 {% include Building-Alluxio-Master-Branch/supported-values.md %}
 
-Para ter a saída dos `logs` direcionadas para o STDOUT, adicione a instrução a seguir para 
+Para ter a saída dos `logs` direcionados para o STDOUT, adicione a instrução a seguir para 
 o commando `mvn`:
 
 {% include Building-Alluxio-Master-Branch/STDOUT.md %}
 
 # Suporte de Distribuições
 
-Para construir o Allexo sobre qualquer versão diferente do hadoop, você apenas precisa mudar o
+Para construir o Alluxio sobre qualquer versão diferente do `hadoop`, você apenas precisa mudar o
 `hadoop.version`.
 
 ## Apache
 
-Todas as construções principais são do Apache portanto todas as versão Apache podem ser utilizadas
+Todas as construções principais são do Apache portanto todas as versões Apache podem ser utilizadas
 diretamente:
 
 {% include Building-Alluxio-Master-Branch/Apache.md %}
 
 ## Cloudera
 
-Para construir sobre uma versão do Cloudera, apenas utilize a versão como `$apacheRelease-cdh$cdhRelease`:
+Para construir sobre uma versão do Cloudera, apenas mencione a versão como `$apacheRelease-cdh$cdhRelease`:
 
 {% include Building-Alluxio-Master-Branch/Cloudera.md %}
 
@@ -91,21 +91,20 @@ Para construir sobre uma versão MapR:
 
 ## Pivotal
 
-Para construir sobre uma versão Pivotal release, apenas utilize a versão como `$apacheRelease-gphd-$pivotalRelease`:
+Para construir sobre uma versão Pivotal release, apenas mencione a versão como `$apacheRelease-gphd-$pivotalRelease`:
 
 {% include Building-Alluxio-Master-Branch/Pivotal.md %}
 
 ## Hortonworks
 
-Para construir sobre uma versão Hortonworks, apenas utilize a versão como `$apacheRelease.$hortonRelease`:
+Para construir sobre uma versão Hortonworks, apenas mencione a versão como `$apacheRelease.$hortonRelease`:
 
 {% include Building-Alluxio-Master-Branch/Hortonworks.md %}
 
 # Configurações de Sistema
 
 Algumas vezes, você precisará tratar com pequenas configurações de sistemas para poder garantir que as
-unidades de teste passem localmente. Uma configuração comum que pode ser necessário é para configurar o
-`ulimit`.
+unidades de teste concluam Uma configuração comum que pode ser necessário é de configurar o `ulimit`.
 
 ## Mac
 
@@ -114,7 +113,7 @@ Para aumentar a quantidade de arquivos e processos permitidos, execute o passo a
 {% include Building-Alluxio-Master-Branch/increase-number.md %}
 
 Também é recomendado que exclua o clone local do Alluxio a partir da indexação do Spotlight. Caso
-contrário, o seu Mac pode travar constantemente tentando reindexar o `file system` durante as 
-unidades de teste. Para fazer isso, vá para `Preferências do Sistema > Spotlight > Privacidade`, clique no botão `+`, 
-navegue para o diretório que contém o seu clone do Alluxio e clique em `Escolher` para adicionar isso na 
-lista de exclusão.
+contrário, o seu Mac pode travar constantemente tentando re-indexar o `file system` durante as 
+unidades de teste. Para efetuar esta alteração, vá para `Preferências do Sistema > Spotlight > Privacidade`, 
+clique no botão `+`, navegue para o diretório que contém o seu clone do Alluxio e clique em `Escolher` para 
+adicionar isso na lista de exclusão.
