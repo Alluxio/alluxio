@@ -298,7 +298,8 @@ public final class FileSystemMaster extends AbstractMaster {
       mInodeTree.initializeRoot(PermissionStatus.get(MasterContext.getConf(), false));
       String defaultUFS = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
       try {
-        mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS));
+        mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
+            MountOptions.defaults());
       } catch (FileAlreadyExistsException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS);
       } catch (InvalidPathException e) {
@@ -1608,7 +1609,7 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     // This should check that we are not mounting a prefix of an existing mount, and that no
     // existing mount is a prefix of this mount.
-    mMountTable.add(alluxioPath, ufsPath);
+    mMountTable.add(alluxioPath, ufsPath, options);
   }
 
   /**
