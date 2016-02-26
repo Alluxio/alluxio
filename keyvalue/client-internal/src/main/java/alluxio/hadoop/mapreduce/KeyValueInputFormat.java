@@ -35,11 +35,11 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Implementation of {@link org.apache.hadoop.mapred.InputFormat} for MapReduce programs to access
+ * Implementation of {@code org.apache.hadoop.mapred.InputFormat} for MapReduce programs to access
  * {@link KeyValueSystem}.
  * <p>
  * It takes a {@link KeyValueSystem} URI, and emits key-value pairs stored in the KeyValueStore to
- * {@link org.apache.hadoop.mapred.Mapper}s.
+ * {@code org.apache.hadoop.mapred.Mapper}s.
  */
 @PublicApi
 @ThreadSafe
