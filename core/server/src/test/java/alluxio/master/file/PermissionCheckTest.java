@@ -20,8 +20,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
@@ -206,9 +205,9 @@ public class PermissionCheckTest {
     long fileId;
     if (recursive) {
       fileId = mFileSystemMaster
-          .create(new AlluxioURI(path), CreateFileOptions.defaults().setRecursive(true));
+          .create(new AlluxioURI(path), CreatePathOptions.defaults().setRecursive(true));
     } else {
-      fileId = mFileSystemMaster.create(new AlluxioURI(path), CreateFileOptions.defaults());
+      fileId = mFileSystemMaster.create(new AlluxioURI(path), CreatePathOptions.defaults());
     }
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
@@ -258,9 +257,9 @@ public class PermissionCheckTest {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
     if (recursive) {
       mFileSystemMaster
-          .mkdir(new AlluxioURI(path), CreateDirectoryOptions.defaults().setRecursive(true));
+          .mkdir(new AlluxioURI(path), CreatePathOptions.defaults().setRecursive(true));
     } else {
-      mFileSystemMaster.mkdir(new AlluxioURI(path), CreateDirectoryOptions.defaults());
+      mFileSystemMaster.mkdir(new AlluxioURI(path), CreatePathOptions.defaults());
     }
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(

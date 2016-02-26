@@ -9,13 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.meta.options;
+package alluxio.master.file.options;
 
 import alluxio.Constants;
 import alluxio.master.MasterContext;
 import alluxio.security.authorization.PermissionStatus;
+import alluxio.thrift.CreateDirectoryTOptions;
+import alluxio.thrift.CreateFileTOptions;
 
 import com.google.common.base.Objects;
+
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -24,34 +28,63 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class CreatePathOptions {
-
   private boolean mAllowExists;
   private long mBlockSizeBytes;
   private boolean mDirectory;
+  private boolean mMountPoint;
   private long mOperationTimeMs;
+  private PermissionStatus mPermissionStatus;
   private boolean mPersisted;
   private boolean mRecursive;
   private long mTtl;
-  private PermissionStatus mPermissionStatus;
-  private boolean mMountPoint;
 
   /**
    * @return the default {@link CreatePathOptions}
+   * @throws IOException if I/O error occurs
    */
-  public static CreatePathOptions defaults() {
+  public static CreatePathOptions defaults() throws IOException {
     return new CreatePathOptions();
   }
 
-  private CreatePathOptions() {
+  /**
+   * Creates a new instance of {@link CreatePathOptions} from {@link CreateDirectoryTOptions}.
+   *
+   * @param options the {@link CreateDirectoryTOptions} to use
+   * @throws IOException if an I/O error occurs
+   */
+  public CreatePathOptions(CreateDirectoryTOptions options) throws IOException {
+    this();
+    mAllowExists = options.isAllowExists();
+    mDirectory = true;
+    mPersisted = options.isPersisted();
+    mRecursive = options.isRecursive();
+  }
+
+  /**
+   * Creates a new instance of {@link CreatePathOptions} from {@link CreateFileTOptions}.
+   *
+   * @param options the {@link CreateFileTOptions} to use
+   * @throws IOException if an I/O error occurs
+   */
+  public CreatePathOptions(CreateFileTOptions options) throws IOException {
+    this();
+    mBlockSizeBytes = options.getBlockSizeBytes();
+    mDirectory = false;
+    mPersisted = options.isPersisted();
+    mRecursive = options.isRecursive();
+    mTtl = options.getTtl();
+  }
+
+  private CreatePathOptions() throws IOException {
     mAllowExists = false;
     mBlockSizeBytes = MasterContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mDirectory = false;
-    mOperationTimeMs = System.currentTimeMillis();
-    mRecursive = false;
-    mPersisted = false;
-    mTtl = Constants.NO_TTL;
-    mPermissionStatus = PermissionStatus.getDirDefault();
     mMountPoint = false;
+    mOperationTimeMs = System.currentTimeMillis();
+    mPermissionStatus = PermissionStatus.get(MasterContext.getConf(), true);
+    mPersisted = false;
+    mRecursive = false;
+    mTtl = Constants.NO_TTL;
   }
 
   /**
@@ -91,6 +124,13 @@ public final class CreatePathOptions {
   }
 
   /**
+   * @return the permission status
+   */
+  public PermissionStatus getPermissionStatus() {
+    return mPermissionStatus;
+  }
+
+  /**
    * @return the persisted flag; it specifies whether the object to create is persisted in UFS
    */
   public boolean isPersisted() {
@@ -111,13 +151,6 @@ public final class CreatePathOptions {
    */
   public long getTtl() {
     return mTtl;
-  }
-
-  /**
-   * @return the permission status
-   */
-  public PermissionStatus getPermissionStatus() {
-    return mPermissionStatus;
   }
 
   /**
@@ -169,6 +202,15 @@ public final class CreatePathOptions {
   }
 
   /**
+   * @param permissionStatus the permission status to use
+   * @return the updated options object
+   */
+  public CreatePathOptions setPermissionStatus(PermissionStatus permissionStatus) {
+    mPermissionStatus = permissionStatus;
+    return this;
+  }
+
+  /**
    * @param persisted the persisted flag to use; it specifies whether the object to create is
    *        persisted in UFS
    * @return the updated options object
@@ -195,15 +237,6 @@ public final class CreatePathOptions {
    */
   public CreatePathOptions setTtl(long ttl) {
     mTtl = ttl;
-    return this;
-  }
-
-  /**
-   * @param permissionStatus the permission status to use
-   * @return the updated options object
-   */
-  public CreatePathOptions setPermissionStatus(PermissionStatus permissionStatus) {
-    mPermissionStatus = permissionStatus;
     return this;
   }
 

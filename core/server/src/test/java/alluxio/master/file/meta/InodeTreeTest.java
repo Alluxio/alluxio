@@ -22,7 +22,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.PermissionChecker;
-import alluxio.master.file.meta.options.CreatePathOptions;
+import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.ReadWriteJournal;
@@ -96,7 +96,7 @@ public final class InodeTreeTest {
    * Sets up dependencies before a single test runs.
    */
   @BeforeClass
-  public static void beforeClass() {
+  public static void beforeClass() throws Exception {
     sFileOptions = CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB)
         .setPermissionStatus(TEST_PERMISSION_STATUS);
     sDirectoryOptions =

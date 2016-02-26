@@ -14,6 +14,8 @@ package alluxio.master.file.options;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.master.MasterContext;
+import alluxio.master.file.options.CreatePathOptions;
+import alluxio.security.authorization.PermissionStatus;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -21,22 +23,23 @@ import org.junit.Test;
 import java.util.Random;
 
 /**
- * Unit tests for {@link CreateFileOptions}.
+ * Unit tests for {@link CreatePathOptions}.
  */
-public class CreateFileOptionsTest {
-
+public class CreatePathOptionsTest {
   /**
-   * Tests the {@link CreateFileOptions#defaults()} method.
+   * Tests the {@link CreatePathOptions#defaults()} method.
    */
   @Test
-  public void defaultsTest() {
+  public void defaultsTest() throws Exception {
     Configuration conf = new Configuration();
     conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     MasterContext.reset(conf);
 
-    CreateFileOptions options = CreateFileOptions.defaults();
+    CreatePathOptions options = CreatePathOptions.defaults();
 
+    Assert.assertEquals(false, options.isAllowExists());
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
+    Assert.assertFalse(options.isDirectory());
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
@@ -47,20 +50,35 @@ public class CreateFileOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fieldsTest() throws Exception {
     Random random = new Random();
+    boolean allowExists = random.nextBoolean();
     long blockSize = random.nextLong();
+    boolean directory = random.nextBoolean();
+    boolean mountPoint = random.nextBoolean();
     long operationTimeMs = random.nextLong();
+    PermissionStatus permissionStatus = PermissionStatus.getDirDefault();
     boolean persisted = random.nextBoolean();
     boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
 
-    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(blockSize)
-        .setOperationTimeMs(operationTimeMs).setPersisted(persisted).setRecursive(recursive)
+    CreatePathOptions options = CreatePathOptions.defaults()
+        .setAllowExists(allowExists)
+        .setBlockSizeBytes(blockSize)
+        .setDirectory(directory)
+        .setMountPoint(mountPoint)
+        .setOperationTimeMs(operationTimeMs)
+        .setPersisted(persisted)
+        .setPermissionStatus(permissionStatus)
+        .setRecursive(recursive)
         .setTtl(ttl);
 
+    Assert.assertEquals(allowExists, options.isAllowExists());
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
+    Assert.assertEquals(directory, options.isDirectory());
+    Assert.assertEquals(mountPoint, options.isMountPoint());
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
+    Assert.assertEquals(permissionStatus, options.getPermissionStatus());
     Assert.assertEquals(persisted, options.isPersisted());
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTtl());
