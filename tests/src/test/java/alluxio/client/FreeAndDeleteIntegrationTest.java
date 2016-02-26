@@ -111,6 +111,7 @@ public final class FreeAndDeleteIntegrationTest {
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystem.getStatus(filePath);
 
+    // Execute the lost files detection.
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5,
         TimeUnit.SECONDS));
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_FILES_DETECTION);

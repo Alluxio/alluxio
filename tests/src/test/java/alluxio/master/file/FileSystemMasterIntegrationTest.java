@@ -145,8 +145,8 @@ public class FileSystemMasterIntegrationTest {
       if (depth < 1) {
         return;
       } else if (depth == 1 || (path.hashCode() % 10 == 0)) {
-        // Sometimes we want to try deleting a path when we're not all the way down, which is what
-        // the second condition is for
+        // Sometimes we want to try freeing a path when we're not all the way down, which is what
+        // the second condition is for.
         doFree(path);
       } else {
         if (concurrencyDepth > 0) {
@@ -201,7 +201,7 @@ public class FileSystemMasterIntegrationTest {
         return;
       } else if (depth == 1 || (path.hashCode() % 10 == 0)) {
         // Sometimes we want to try deleting a path when we're not all the way down, which is what
-        // the second condition is for
+        // the second condition is for.
         doDelete(path);
       } else {
         if (concurrencyDepth > 0) {
