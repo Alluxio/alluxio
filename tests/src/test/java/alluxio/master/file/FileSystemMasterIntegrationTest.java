@@ -119,6 +119,61 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
+  class ConcurrentFreer implements Callable<Void> {
+    private int mDepth;
+    private int mConcurrencyDepth;
+    private AlluxioURI mInitPath;
+
+    ConcurrentFreer(int depth, int concurrencyDepth, AlluxioURI initPath) {
+      mDepth = depth;
+      mConcurrencyDepth = concurrencyDepth;
+      mInitPath = initPath;
+    }
+
+    @Override
+    public Void call() throws Exception {
+      exec(mDepth, mConcurrencyDepth, mInitPath);
+      return null;
+    }
+
+    private void doFree(AlluxioURI path) throws Exception {
+      mFsMaster.free(path, true);
+      Assert.assertNotEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
+    }
+
+    public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
+      if (depth < 1) {
+        return;
+      } else if (depth == 1 || (path.hashCode() % 10 == 0)) {
+        // Sometimes we want to try deleting a path when we're not all the way down, which is what
+        // the second condition is for
+        doFree(path);
+      } else {
+        if (concurrencyDepth > 0) {
+          ExecutorService executor = Executors.newCachedThreadPool();
+          try {
+            ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+            for (int i = 0; i < FILES_PER_NODE; i++) {
+              Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
+                  path.join(Integer.toString(i))));
+              futures.add(executor.submit(call));
+            }
+            for (Future<Void> f : futures) {
+              f.get();
+            }
+          } finally {
+            executor.shutdown();
+          }
+        } else {
+          for (int i = 0; i < FILES_PER_NODE; i++) {
+            exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
+          }
+        }
+        doFree(path);
+      }
+    }
+  }
+
   class ConcurrentDeleter implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
@@ -365,6 +420,17 @@ public class FileSystemMasterIntegrationTest {
 
     Assert.assertEquals(0,
         mFsMaster.getFileInfoList(new AlluxioURI("/")).size());
+  }
+
+  @Test
+  public void concurrentFreeTest() throws Exception {
+    ConcurrentCreator concurrentCreator =
+        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+    concurrentCreator.call();
+
+    ConcurrentFreer concurrentFreer =
+        new ConcurrentFreer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+    concurrentFreer.call();
   }
 
   @Test
