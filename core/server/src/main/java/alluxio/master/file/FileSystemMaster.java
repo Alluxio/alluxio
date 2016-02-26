@@ -487,6 +487,7 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incCompleteFileOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, path, false);
+      // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeByPath(path);
       long fileId = inode.getId();
@@ -599,6 +600,7 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incCreateFileOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, path, true);
+      mMountTable.checkWritable(path);
       InodeTree.CreatePathResult createResult = createInternal(path, options);
       List<Inode> created = createResult.getCreated();
 
@@ -737,6 +739,7 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incDeletePathOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, path, true);
+      mMountTable.checkWritable(path);
       Inode inode = mInodeTree.getInodeByPath(path);
       long fileId = inode.getId();
       long opTimeMs = System.currentTimeMillis();
@@ -1076,6 +1079,7 @@ public final class FileSystemMaster extends AbstractMaster {
     synchronized (mInodeTree) {
       try {
         checkPermission(FileSystemAction.WRITE, path, true);
+        mMountTable.checkWritable(path);
         CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
             .setAllowExists(options.isAllowExists())
             .setDirectory(true)
@@ -1147,6 +1151,8 @@ public final class FileSystemMaster extends AbstractMaster {
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, srcPath, true);
       checkPermission(FileSystemAction.WRITE, dstPath, true);
+      mMountTable.checkWritable(srcPath);
+      mMountTable.checkWritable(dstPath);
       Inode srcInode = mInodeTree.getInodeByPath(srcPath);
       // Renaming path to itself is a no-op.
       if (srcPath.equals(dstPath)) {
@@ -1545,6 +1551,7 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incMountOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, alluxioPath, true);
+      mMountTable.checkWritable(alluxioPath);
       mountInternal(alluxioPath, ufsPath, options);
       boolean loadMetadataSuceeded = false;
       try {
