@@ -13,6 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
@@ -164,5 +165,22 @@ public final class MountTable {
           PathUtils.concatPath(ufsPath.getPath(), path.substring(mountPoint.length())));
     }
     return uri;
+  }
+
+  /**
+   * Checks to see if a write operation is allowed for the specified Alluxio path, by determining
+   * if it is under a readonly mount point.
+   *
+   * @param alluxioUri an Alluxio path URI
+   * @throws InvalidPathException if the Alluxio path is invalid
+   * @throws AccessControlException if the Alluxio path is under a readonly mount point
+   */
+  public synchronized void checkWritable(AlluxioURI alluxioUri)
+      throws InvalidPathException, AccessControlException {
+    String mountPoint = getMountPoint(alluxioUri);
+    MountInfo mountInfo = mMountTable.get(mountPoint);
+    if (mountInfo.getOptions().isReadOnly()) {
+      throw new AccessControlException(ExceptionMessage.MOUNT_READONLY, alluxioUri, mountPoint);
+    }
   }
 }
