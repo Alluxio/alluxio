@@ -600,7 +600,9 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incCreateFileOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, path, true);
-      mMountTable.checkWritable(path);
+      if (!options.isMetadataLoad()) {
+        mMountTable.checkWritable(path);
+      }
       InodeTree.CreatePathResult createResult = createInternal(path, options);
       List<Inode> created = createResult.getCreated();
 
@@ -1079,7 +1081,9 @@ public final class FileSystemMaster extends AbstractMaster {
     synchronized (mInodeTree) {
       try {
         checkPermission(FileSystemAction.WRITE, path, true);
-        mMountTable.checkWritable(path);
+        if (!options.isMetadataLoad()) {
+          mMountTable.checkWritable(path);
+        }
         CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
             .setAllowExists(options.isAllowExists())
             .setDirectory(true)
@@ -1487,6 +1491,7 @@ public final class FileSystemMaster extends AbstractMaster {
             .setBlockSizeBytes(ufsBlockSizeByte)
             .setRecursive(recursive)
             .setPersisted(true)
+            .setMetadataLoad(true)
             .build();
         long fileId = create(path, createFileOptions);
         CompleteFileOptions completeOptions =
@@ -1519,7 +1524,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws IOException, FileAlreadyExistsException, InvalidPathException, AccessControlException {
     CreateDirectoryOptions options =
         new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(recursive)
-            .setPersisted(true).build();
+            .setPersisted(true).setMetadataLoad(true).build();
     InodeTree.CreatePathResult result = mkdir(path, options);
     List<Inode> inodes = null;
     if (result.getCreated().size() > 0) {

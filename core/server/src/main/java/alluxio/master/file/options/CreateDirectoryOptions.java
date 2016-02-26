@@ -30,6 +30,7 @@ public final class CreateDirectoryOptions {
     private long mOperationTimeMs;
     private boolean mPersisted;
     private boolean mRecursive;
+    private boolean mMetadataLoad;
 
     /**
      * Creates a new builder for {@link CreateDirectoryOptions}.
@@ -40,6 +41,7 @@ public final class CreateDirectoryOptions {
       mOperationTimeMs = System.currentTimeMillis();
       mPersisted = false;
       mRecursive = false;
+      mMetadataLoad = false;
     }
 
     /**
@@ -82,6 +84,16 @@ public final class CreateDirectoryOptions {
     }
 
     /**
+     * @param metadataLoad the flag value to use; if true, the create directory is a result of a
+     *                     metadata load.
+     * @return the builder
+     */
+    public Builder setMetadataLoad(boolean metadataLoad) {
+      mMetadataLoad = metadataLoad;
+      return this;
+    }
+
+    /**
      * Builds a new instance of {@link CreateDirectoryOptions}.
      *
      * @return a {@link CreateDirectoryOptions} instance
@@ -102,12 +114,14 @@ public final class CreateDirectoryOptions {
   private long mOperationTimeMs;
   private boolean mPersisted;
   private boolean mRecursive;
+  private boolean mMetadataLoad;
 
   private CreateDirectoryOptions(CreateDirectoryOptions.Builder builder) {
     mAllowExists = builder.mAllowExists;
     mOperationTimeMs = builder.mOperationTimeMs;
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
+    mMetadataLoad = builder.mMetadataLoad;
   }
 
   /**
@@ -150,5 +164,12 @@ public final class CreateDirectoryOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @return the metadataLoad flag; if true, the create directory is a result of a metadata load
+   */
+  public boolean isMetadataLoad() {
+    return mMetadataLoad;
   }
 }
