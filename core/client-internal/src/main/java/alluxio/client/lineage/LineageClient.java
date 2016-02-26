@@ -56,7 +56,7 @@ interface LineageClient {
    * @return the information about lineages
    * @throws IOException if the master cannot list the lineage info
    */
-  public List<LineageInfo> getLineageInfoList(GetLineageInfoListOptions options) throws IOException;
+  List<LineageInfo> getLineageInfoList(GetLineageInfoListOptions options) throws IOException;
 
   /**
    * Deletes a lineage identified by a given id. If the delete is cascade, it will delete all the
@@ -72,6 +72,6 @@ interface LineageClient {
    * @throws LineageDoesNotExistException if the lineage does not exist
    * @throws AlluxioException if an unexpected alluxio error occurs
    */
-  public boolean deleteLineage(long lineageId, DeleteLineageOptions options)
+  boolean deleteLineage(long lineageId, DeleteLineageOptions options)
       throws IOException, LineageDoesNotExistException, LineageDeletionException, AlluxioException;
 }
