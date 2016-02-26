@@ -110,7 +110,7 @@ public class AlluxioShell implements Closeable {
   /**
    * Gets the replacement command for alias.
    *
-   * @param command name
+   * @param cmd name of the command
    * @return replacement command if cmd is an alias
    */
   private String[] getReplacementCmd(String cmd) {
