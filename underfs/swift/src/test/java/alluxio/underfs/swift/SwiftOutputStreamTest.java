@@ -15,7 +15,9 @@ import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -30,107 +32,121 @@ import java.net.HttpURLConnection;
 @RunWith(PowerMockRunner.class)
 public class SwiftOutputStreamTest {
 
-  private static OutputStream sOutputStreamMock;
-  private static HttpURLConnection sHttpConMock;
+  private OutputStream mOutputStreamMock;
+  private HttpURLConnection mHttpConMock;
+
+  /**
+   * The exception expected to be thrown.
+   */
+  @Rule
+  public final ExpectedException mThrown = ExpectedException.none();
 
   /**
    * Sets the properties and configuration before each test runs.
    *
-   * @throws Exception when the getOutputStream throws exception
+   * @throws Exception when the {@link HttpURLConnection#getOutputStream()} throws exception
    */
   @Before
   public void before() throws Exception {
-    sOutputStreamMock = PowerMockito.mock(OutputStream.class);
-    sHttpConMock = PowerMockito.mock(HttpURLConnection.class);
-    when(sHttpConMock.getOutputStream()).thenReturn(sOutputStreamMock);
+    mOutputStreamMock = PowerMockito.mock(OutputStream.class);
+    mHttpConMock = PowerMockito.mock(HttpURLConnection.class);
+    when(mHttpConMock.getOutputStream()).thenReturn(mOutputStreamMock);
   }
 
   /**
-   * Tests to ensure IOException is thrown if HttpURLConnection throws an IOException.
+   * Tests to ensure IOException is thrown if {@link HttpURLConnection#getOutputStream()} throws an
+   * IOException.
    *
    * @throws Exception when the IOException is not thrown
    */
-  @Test(expected = IOException.class)
-  public void testConstructor() throws Exception {
-    when(sHttpConMock.getOutputStream()).thenThrow(new IOException());
-    SwiftOutputStream stream = new SwiftOutputStream(sHttpConMock);
-  }
-
-  /**
-   * Tests to ensure write calls OutputStream.write().
-   *
-   * @throws Exception when write is not called
-   */
   @Test
-  public void testWrite() throws Exception {
-    SwiftOutputStream stream = new SwiftOutputStream(sHttpConMock);
-    stream.write(1);
-    verify(sOutputStreamMock).write(1);
+  public void testConstructor() throws Exception {
+    String errorMessage = "protocol doesn't support output";
+    when(mHttpConMock.getOutputStream()).thenThrow(new IOException(errorMessage));
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage(errorMessage);
+    new SwiftOutputStream(mHttpConMock);
   }
 
   /**
-   * Tests to ensure write calls OutputStream.write().
+   * Tests to ensure {@link SwiftOutputStream#write(int)} calls {@link OutputStream#write(int)}.
    *
-   * @throws Exception when write is not called
+   * @throws Exception when {@link OutputStream#write(int)} is not called
    */
   @Test
   public void testWrite1() throws Exception {
-    SwiftOutputStream stream = new SwiftOutputStream(sHttpConMock);
-    byte[] b = new byte[1];
-    stream.write(b, 1, 1);
-    verify(sOutputStreamMock).write(b, 1, 1);
+    SwiftOutputStream stream = new SwiftOutputStream(mHttpConMock);
+    stream.write(1);
+    verify(mOutputStreamMock).write(1);
   }
 
   /**
-   * Tests to ensure write calls OutputStream.write().
+   * Tests to ensure {@link SwiftOutputStream#write(byte[], int, int)} calls
+   * {@link OutputStream#write(byte[], int, int)} .
    *
-   * @throws Exception when write is not called
+   * @throws Exception when {@link OutputStream#write(byte[], int, int)} is not called
    */
   @Test
   public void testWrite2() throws Exception {
-    SwiftOutputStream stream = new SwiftOutputStream(sHttpConMock);
+    SwiftOutputStream stream = new SwiftOutputStream(mHttpConMock);
     byte[] b = new byte[1];
-    stream.write(b);
-    verify(sOutputStreamMock).write(b);
+    stream.write(b, 1, 1);
+    verify(mOutputStreamMock).write(b, 1, 1);
   }
 
   /**
-   * Tests to ensure getErrorStream() is called when 400 is returned.
+   * Tests to ensure {@link SwiftOutputStream#write(byte[])} calls
+   * {@link OutputStream#write(byte[])}.
    *
-   * @throws Exception when getErrorStream() and disconnect() are not called
+   * @throws Exception when {@link OutputStream#write(byte[])} is not called
+   */
+  @Test
+  public void testWrite3() throws Exception {
+    SwiftOutputStream stream = new SwiftOutputStream(mHttpConMock);
+    byte[] b = new byte[1];
+    stream.write(b);
+    verify(mOutputStreamMock).write(b);
+  }
+
+  /**
+   * Tests to ensure {@link HttpURLConnection#getErrorStream()} is called when 400 is returned.
+   *
+   * @throws Exception when {@link HttpURLConnection#getErrorStream()} and
+   *         {@link HttpURLConnection#disconnect()} are not called
    */
   @Test
   public void testCloseError() throws Exception {
-    when(sHttpConMock.getResponseCode()).thenReturn(400);
-    SwiftOutputStream stream = new SwiftOutputStream(sHttpConMock);
+    when(mHttpConMock.getResponseCode()).thenReturn(400);
+    SwiftOutputStream stream = new SwiftOutputStream(mHttpConMock);
     stream.close();
-    verify(sHttpConMock).getErrorStream();
-    verify(sHttpConMock).disconnect();
+    verify(mHttpConMock).getErrorStream();
+    verify(mHttpConMock).disconnect();
   }
 
   /**
-   * Tests to ensure getInputStream() is called when 200 is returned.
+   * Tests to ensure {@link HttpURLConnection#getInputStream()} is called when 200 is returned.
    *
-   * @throws Exception when getInputStream() and disconnect() are not called
+   * @throws Exception when {@link HttpURLConnection#getInputStream()} and
+   *         {@link HttpURLConnection#disconnect()} are not called
    */
   @Test
   public void testCloseSuccess() throws Exception {
-    when(sHttpConMock.getResponseCode()).thenReturn(200);
-    SwiftOutputStream stream = new SwiftOutputStream(sHttpConMock);
+    when(mHttpConMock.getResponseCode()).thenReturn(200);
+    SwiftOutputStream stream = new SwiftOutputStream(mHttpConMock);
     stream.close();
-    verify(sHttpConMock).getInputStream();
-    verify(sHttpConMock).disconnect();
+    verify(mHttpConMock).getInputStream();
+    verify(mHttpConMock).disconnect();
   }
 
   /**
-   * Tests to ensure flush calls OutputStream.flush().
+   * Tests to ensure {@link SwiftOutputStream#flush()} calls {@link OutputStream#flush()}.
    *
    * @throws Exception when flush is not called
    */
   @Test
   public void testFlush() throws Exception {
-    SwiftOutputStream stream = new SwiftOutputStream(sHttpConMock);
+    SwiftOutputStream stream = new SwiftOutputStream(mHttpConMock);
     stream.flush();
-    verify(sOutputStreamMock).flush();
+    verify(mOutputStreamMock).flush();
   }
 }
