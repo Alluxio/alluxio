@@ -157,9 +157,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
-   * Opens an {@link FSDataOutputStream} at the indicated Path with
-   * write-progress reporting. Same as
-   * {@link #create(Path, boolean, int, short, long, Progressable)}, except fails if parent
+   * Opens an {@link FSDataOutputStream} at the indicated Path with write-progress reporting.
+   * Same as {@link #create(Path, boolean, int, short, long, Progressable)}, except fails if parent
    * directory doesn't already exist.
    *
    * TODO(hy): We need to refactor this method after having a new internal API support (ALLUXIO-46).
@@ -173,7 +172,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param progress queryable progress
    * @throws IOException if 1) overwrite is not specified and the path already exists, 2) if the
    *         path is a folder, or 3) the parent directory does not exist
-   * @see {@link #setPermission(Path, FsPermission)}
+   * @see #setPermission(Path, FsPermission)
    * @deprecated API only for 0.20-append
    */
   @Override

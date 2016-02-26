@@ -13,6 +13,8 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -21,36 +23,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class GetStatusOptions {
-  /** Whether or not to check the ufs if the path does not exist in Alluxio. */
-  private boolean mCheckUfs;
-
   /**
-   * @return a default {@link GetStatusOptions} based on the client's configuration
+   * @return the default {@link GetStatusOptions}
    */
   public static GetStatusOptions defaults() {
     return new GetStatusOptions();
   }
 
   private GetStatusOptions() {
-    // TODO(calvin): Make this configurable
-    mCheckUfs = false;
-  }
-
-  /**
-   * @return whether we should sync the under file system for the file if it is not found in
-   *         Alluxio space
-   */
-  public boolean isCheckUfs() {
-    return mCheckUfs;
-  }
-
-  /**
-   * @param checkUfs the check ufs flag to set
-   * @return the updated options object
-   */
-  public GetStatusOptions setCheckUfs(boolean checkUfs) {
-    mCheckUfs = checkUfs;
-    return this;
+    // No options currently
   }
 
   /**
@@ -58,9 +39,6 @@ public final class GetStatusOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("GetStatus(");
-    sb.append(super.toString()).append(", Check UFS: ").append(mCheckUfs);
-    sb.append(")");
-    return sb.toString();
+    return Objects.toStringHelper(this).toString();
   }
 }

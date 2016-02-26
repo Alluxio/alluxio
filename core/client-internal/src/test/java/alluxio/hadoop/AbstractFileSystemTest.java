@@ -116,7 +116,7 @@ public class AbstractFileSystemTest {
    * @throws IOException when the file system cannot be retrieved
    */
   @Test
-  public void hadoopShouldLoadFaultTolerantFileSystemWhenConfiguredTest() throws IOException {
+  public void hadoopShouldLoadFaultTolerantFileSystemWhenConfiguredTest() throws Exception {
     final Configuration conf = new Configuration();
     if (isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
@@ -140,15 +140,10 @@ public class AbstractFileSystemTest {
 
   /**
    * Ensures that Hadoop loads the Alluxio file system when configured.
-   *
-   * @throws IOException when the file system cannot be retrieved
    */
   @Test
-  public void hadoopShouldLoadFileSystemWhenConfiguredTest() throws IOException {
-    final Configuration conf = new Configuration();
-    if (isHadoop1x()) {
-      conf.set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
-    }
+  public void hadoopShouldLoadFileSystemWhenConfiguredTest() throws Exception {
+    final Configuration conf = getConf();
 
     // when
     final URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
@@ -174,7 +169,7 @@ public class AbstractFileSystemTest {
   public void resetContextTest() throws Exception {
     // Create system with master at localhost:19998
     URI uri = URI.create(Constants.HEADER + "localhost:19998/");
-    Configuration conf = new Configuration();
+    Configuration conf = getConf();
     org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
     // Change to otherhost:410
@@ -198,6 +193,14 @@ public class AbstractFileSystemTest {
 
   private boolean isHadoop2x() {
     return getHadoopVersion().startsWith("2");
+  }
+
+  private Configuration getConf() throws Exception {
+    Configuration conf = new Configuration();
+    if (isHadoop1x()) {
+      conf.set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
+    }
+    return conf;
   }
 
   private void mockMasterClient() {
