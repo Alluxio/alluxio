@@ -14,7 +14,6 @@ package alluxio.master.file.options;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.master.MasterContext;
-import alluxio.master.file.options.CreatePathOptions;
 import alluxio.security.authorization.PermissionStatus;
 
 import org.junit.Assert;
@@ -23,11 +22,11 @@ import org.junit.Test;
 import java.util.Random;
 
 /**
- * Unit tests for {@link CreatePathOptions}.
+ * Unit tests for {@link CreateFileOptions}.
  */
-public class CreatePathOptionsTest {
+public class CreateFileOptionsTest {
   /**
-   * Tests the {@link CreatePathOptions#defaults()} method.
+   * Tests the {@link CreateFileOptions#defaults()} method.
    */
   @Test
   public void defaultsTest() throws Exception {
@@ -35,7 +34,7 @@ public class CreatePathOptionsTest {
     conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     MasterContext.reset(conf);
 
-    CreatePathOptions options = CreatePathOptions.defaults();
+    CreateFileOptions options = CreateFileOptions.defaults();
 
     Assert.assertEquals(false, options.isAllowExists());
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
@@ -54,7 +53,6 @@ public class CreatePathOptionsTest {
     Random random = new Random();
     boolean allowExists = random.nextBoolean();
     long blockSize = random.nextLong();
-    boolean directory = random.nextBoolean();
     boolean mountPoint = random.nextBoolean();
     long operationTimeMs = random.nextLong();
     PermissionStatus permissionStatus = PermissionStatus.getDirDefault();
@@ -62,10 +60,9 @@ public class CreatePathOptionsTest {
     boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
 
-    CreatePathOptions options = CreatePathOptions.defaults()
+    CreateFileOptions options = CreateFileOptions.defaults()
         .setAllowExists(allowExists)
         .setBlockSizeBytes(blockSize)
-        .setDirectory(directory)
         .setMountPoint(mountPoint)
         .setOperationTimeMs(operationTimeMs)
         .setPersisted(persisted)
@@ -75,7 +72,6 @@ public class CreatePathOptionsTest {
 
     Assert.assertEquals(allowExists, options.isAllowExists());
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
-    Assert.assertEquals(directory, options.isDirectory());
     Assert.assertEquals(mountPoint, options.isMountPoint());
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
     Assert.assertEquals(permissionStatus, options.getPermissionStatus());

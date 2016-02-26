@@ -22,7 +22,8 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreatePathOptions;
+import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
@@ -59,7 +60,7 @@ public final class MasterSourceTest {
   private static final AlluxioURI MOUNT_URI =
       new AlluxioURI("/tmp/mount-" + System.currentTimeMillis());
 
-  private static CreatePathOptions sNestedFileOptions;
+  private static CreateFileOptions sNestedFileOptions;
 
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
@@ -76,7 +77,7 @@ public final class MasterSourceTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     sNestedFileOptions =
-        CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
   }
 
   /**
@@ -155,14 +156,14 @@ public final class MasterSourceTest {
    */
   @Test
   public void mkdirTest() throws Exception {
-    mFileSystemMaster.mkdir(DIRECTORY_URI, CreatePathOptions.defaults());
+    mFileSystemMaster.mkdir(DIRECTORY_URI, CreateDirectoryOptions.defaults());
 
     Assert.assertEquals(1, mCounters.get(MasterSource.CREATE_DIRECTORY_OPS).getCount());
     Assert.assertEquals(1, mCounters.get(MasterSource.DIRECTORIES_CREATED).getCount());
 
     // trying to create a directory that already exist
     try {
-      mFileSystemMaster.mkdir(DIRECTORY_URI, CreatePathOptions.defaults());
+      mFileSystemMaster.mkdir(DIRECTORY_URI, CreateDirectoryOptions.defaults());
       Assert.fail("create a directory that already exist must throw an exception");
     } catch (FileAlreadyExistsException e) {
       // do nothing

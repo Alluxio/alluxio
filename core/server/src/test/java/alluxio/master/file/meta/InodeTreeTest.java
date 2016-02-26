@@ -22,6 +22,8 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.PermissionChecker;
+import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
@@ -54,10 +56,10 @@ public final class InodeTreeTest {
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
   private static final PermissionStatus TEST_PERMISSION_STATUS =
       new PermissionStatus("user1", "", (short) 0755);
-  private static CreatePathOptions sFileOptions;
-  private static CreatePathOptions sDirectoryOptions;
-  private static CreatePathOptions sNestedFileOptions;
-  private static CreatePathOptions sNestedDirectoryOptions;
+  private static CreateFileOptions sFileOptions;
+  private static CreateDirectoryOptions sDirectoryOptions;
+  private static CreateFileOptions sNestedFileOptions;
+  private static CreateDirectoryOptions sNestedDirectoryOptions;
   private InodeTree mTree;
 
   /** Rule to create a new temporary folder during each test. */
@@ -97,15 +99,15 @@ public final class InodeTreeTest {
    */
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sFileOptions = CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB)
+    sFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
         .setPermissionStatus(TEST_PERMISSION_STATUS);
     sDirectoryOptions =
-        CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB).setDirectory(true)
+        CreateDirectoryOptions.defaults().setBlockSizeBytes(Constants.KB)
             .setPermissionStatus(TEST_PERMISSION_STATUS);
-    sNestedFileOptions = CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB)
+    sNestedFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
         .setPermissionStatus(TEST_PERMISSION_STATUS).setRecursive(true);
-    sNestedDirectoryOptions = CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB)
-        .setPermissionStatus(TEST_PERMISSION_STATUS).setDirectory(true).setRecursive(true);
+    sNestedDirectoryOptions = CreateDirectoryOptions.defaults().setBlockSizeBytes(Constants.KB)
+        .setPermissionStatus(TEST_PERMISSION_STATUS).setRecursive(true);
   }
 
   /**
@@ -163,12 +165,12 @@ public final class InodeTreeTest {
     mTree.createPath(TEST_URI, sDirectoryOptions);
 
     // create again with allowExists true
-    mTree.createPath(TEST_URI, CreatePathOptions.defaults().setAllowExists(true));
+    mTree.createPath(TEST_URI, CreateDirectoryOptions.defaults().setAllowExists(true));
 
     // create again with allowExists false
     mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(TEST_URI));
-    mTree.createPath(TEST_URI, CreatePathOptions.defaults().setAllowExists(false));
+    mTree.createPath(TEST_URI, CreateDirectoryOptions.defaults().setAllowExists(false));
   }
 
   /**
@@ -252,8 +254,8 @@ public final class InodeTreeTest {
     }
 
     // create a file
-    CreatePathOptions options =
-        CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
+    CreateFileOptions options =
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
     createResult = mTree.createPath(NESTED_FILE_URI, options);
     modified = createResult.getModified();
     created = createResult.getCreated();
@@ -289,7 +291,7 @@ public final class InodeTreeTest {
     mThrown.expect(BlockInfoException.class);
     mThrown.expectMessage("Invalid block size 0");
 
-    CreatePathOptions options = CreatePathOptions.defaults().setBlockSizeBytes(0);
+    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(0);
     mTree.createPath(TEST_URI, options);
   }
 
@@ -303,7 +305,7 @@ public final class InodeTreeTest {
     mThrown.expect(BlockInfoException.class);
     mThrown.expectMessage("Invalid block size -1");
 
-    CreatePathOptions options = CreatePathOptions.defaults().setBlockSizeBytes(-1);
+    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(-1);
     mTree.createPath(TEST_URI, options);
   }
 

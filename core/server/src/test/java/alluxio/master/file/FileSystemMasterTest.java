@@ -27,6 +27,7 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketPrivateAccess;
 import alluxio.master.file.options.CompleteFileOptions;
+import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
@@ -67,7 +68,7 @@ public final class FileSystemMasterTest {
   private static final AlluxioURI ROOT_URI = new AlluxioURI("/");
   private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
-  private static CreatePathOptions sNestedFileOptions;
+  private static CreateFileOptions sNestedFileOptions;
   private static long sOldTtlIntervalMs;
 
   private BlockMaster mBlockMaster;
@@ -90,7 +91,7 @@ public final class FileSystemMasterTest {
   public static void beforeClass() throws Exception {
     MasterContext.reset(new Configuration());
     sNestedFileOptions =
-        CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
     sOldTtlIntervalMs = TtlBucket.getTtlIntervalMs();
     TtlBucketPrivateAccess.setTtlIntervalMs(TTLCHECKER_INTERVAL_MS);
   }
@@ -234,15 +235,15 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that an exception is in the
-   * {@link FileSystemMaster#create(AlluxioURI, CreatePathOptions)} with a TTL set in the
+   * {@link FileSystemMaster#create(AlluxioURI, CreateFileOptions)} with a TTL set in the
    * {@link CreatePathOptions} after the TTL check was done once.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void createFileWithTtlTest() throws Exception {
-    CreatePathOptions options =
-        CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(1);
+    CreateFileOptions options =
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(1);
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(fileInfo.getFileId(), fileId);
@@ -260,8 +261,8 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setTtlForFileWithNoTtlTest() throws Exception {
-    CreatePathOptions options =
-        CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
+    CreateFileOptions options =
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     executeTtlCheckOnce();
     // Since no valid TTL is set, the file should not be deleted.
@@ -282,8 +283,8 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setSmallerTtlForFileWithTtlTest() throws Exception {
-    CreatePathOptions options =
-        CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true)
+    CreateFileOptions options =
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true)
             .setTtl(Constants.HOUR_MS);
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     executeTtlCheckOnce();
@@ -304,8 +305,8 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setLargerTtlForFileWithTtlTest() throws Exception {
-    CreatePathOptions options =
-        CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
+    CreateFileOptions options =
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getFileId());
 
@@ -323,8 +324,8 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setNoTtlForFileWithTtlTest() throws Exception {
-    CreatePathOptions options =
-        CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
+    CreateFileOptions options =
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
@@ -454,7 +455,7 @@ public final class FileSystemMasterTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/nested/test"));
 
-    CreatePathOptions options = CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB);
+    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB);
     mFileSystemMaster.create(TEST_URI, options);
 
     // nested dir
