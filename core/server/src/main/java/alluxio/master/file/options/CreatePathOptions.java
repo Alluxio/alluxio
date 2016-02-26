@@ -14,8 +14,6 @@ package alluxio.master.file.options;
 import alluxio.Constants;
 import alluxio.master.MasterContext;
 import alluxio.security.authorization.PermissionStatus;
-import alluxio.thrift.CreateDirectoryTOptions;
-import alluxio.thrift.CreateFileTOptions;
 
 import com.google.common.base.Objects;
 
@@ -24,58 +22,22 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method option for creating a path.
+ * Method options for creating a path.
+ * @param <T> the type of the object to create
  */
 @NotThreadSafe
-public final class CreatePathOptions {
-  private boolean mAllowExists;
-  private long mBlockSizeBytes;
-  private boolean mDirectory;
-  private boolean mMountPoint;
-  private long mOperationTimeMs;
-  private PermissionStatus mPermissionStatus;
-  private boolean mPersisted;
-  private boolean mRecursive;
-  private long mTtl;
+public abstract class CreatePathOptions<T> {
+  protected boolean mAllowExists;
+  protected long mBlockSizeBytes;
+  protected boolean mDirectory;
+  protected boolean mMountPoint;
+  protected long mOperationTimeMs;
+  protected PermissionStatus mPermissionStatus;
+  protected boolean mPersisted;
+  protected boolean mRecursive;
+  protected long mTtl;
 
-  /**
-   * @return the default {@link CreatePathOptions}
-   * @throws IOException if I/O error occurs
-   */
-  public static CreatePathOptions defaults() throws IOException {
-    return new CreatePathOptions();
-  }
-
-  /**
-   * Creates a new instance of {@link CreatePathOptions} from {@link CreateDirectoryTOptions}.
-   *
-   * @param options the {@link CreateDirectoryTOptions} to use
-   * @throws IOException if an I/O error occurs
-   */
-  public CreatePathOptions(CreateDirectoryTOptions options) throws IOException {
-    this();
-    mAllowExists = options.isAllowExists();
-    mDirectory = true;
-    mPersisted = options.isPersisted();
-    mRecursive = options.isRecursive();
-  }
-
-  /**
-   * Creates a new instance of {@link CreatePathOptions} from {@link CreateFileTOptions}.
-   *
-   * @param options the {@link CreateFileTOptions} to use
-   * @throws IOException if an I/O error occurs
-   */
-  public CreatePathOptions(CreateFileTOptions options) throws IOException {
-    this();
-    mBlockSizeBytes = options.getBlockSizeBytes();
-    mDirectory = false;
-    mPersisted = options.isPersisted();
-    mRecursive = options.isRecursive();
-    mTtl = options.getTtl();
-  }
-
-  private CreatePathOptions() throws IOException {
+  protected CreatePathOptions() throws IOException {
     mAllowExists = false;
     mBlockSizeBytes = MasterContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mDirectory = false;
@@ -86,6 +48,8 @@ public final class CreatePathOptions {
     mRecursive = false;
     mTtl = Constants.NO_TTL;
   }
+
+  protected abstract T getThis();
 
   /**
    * @return the allowExists flag; it specifies whether an exception should be thrown if the object
@@ -158,28 +122,18 @@ public final class CreatePathOptions {
    *        should be thrown if the object being made already exists.
    * @return the updated options object
    */
-  public CreatePathOptions setAllowExists(boolean allowExists) {
+  public T setAllowExists(boolean allowExists) {
     mAllowExists = allowExists;
-    return this;
+    return getThis();
   }
 
   /**
    * @param blockSizeBytes the block size to use
    * @return the updated options object
    */
-  public CreatePathOptions setBlockSizeBytes(long blockSizeBytes) {
+  public T setBlockSizeBytes(long blockSizeBytes) {
     mBlockSizeBytes = blockSizeBytes;
-    return this;
-  }
-
-  /**
-   * @param directory the directory flag to use; it specifies whether the object to create is a
-   *        directory
-   * @return the updated options object
-   */
-  public CreatePathOptions setDirectory(boolean directory) {
-    mDirectory = directory;
-    return this;
+    return getThis();
   }
 
   /**
@@ -187,27 +141,27 @@ public final class CreatePathOptions {
    *        a mount point
    * @return the updated options object
    */
-  public CreatePathOptions setMountPoint(boolean mountPoint) {
+  public T setMountPoint(boolean mountPoint) {
     mMountPoint = mountPoint;
-    return this;
+    return getThis();
   }
 
   /**
    * @param operationTimeMs the operation time to use
    * @return the updated options object
    */
-  public CreatePathOptions setOperationTimeMs(long operationTimeMs) {
+  public T setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
-    return this;
+    return getThis();
   }
 
   /**
    * @param permissionStatus the permission status to use
    * @return the updated options object
    */
-  public CreatePathOptions setPermissionStatus(PermissionStatus permissionStatus) {
+  public T setPermissionStatus(PermissionStatus permissionStatus) {
     mPermissionStatus = permissionStatus;
-    return this;
+    return getThis();
   }
 
   /**
@@ -215,9 +169,9 @@ public final class CreatePathOptions {
    *        persisted in UFS
    * @return the updated options object
    */
-  public CreatePathOptions setPersisted(boolean persisted) {
+  public T setPersisted(boolean persisted) {
     mPersisted = persisted;
-    return this;
+    return getThis();
   }
 
   /**
@@ -225,9 +179,9 @@ public final class CreatePathOptions {
    *        should be created if they do not already exist
    * @return the updated options object
    */
-  public CreatePathOptions setRecursive(boolean recursive) {
+  public T setRecursive(boolean recursive) {
     mRecursive = recursive;
-    return this;
+    return getThis();
   }
 
   /**
@@ -235,9 +189,9 @@ public final class CreatePathOptions {
    *        created file should be kept around before it is automatically deleted
    * @return the updated options object
    */
-  public CreatePathOptions setTtl(long ttl) {
+  public T setTtl(long ttl) {
     mTtl = ttl;
-    return this;
+    return getThis();
   }
 
   /**

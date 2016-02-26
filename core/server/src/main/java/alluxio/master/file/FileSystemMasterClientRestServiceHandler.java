@@ -16,7 +16,8 @@ import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.master.AlluxioMaster;
 import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreatePathOptions;
+import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 
 import com.google.common.base.Preconditions;
@@ -122,7 +123,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("allowExists") Boolean allowExists) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      CreatePathOptions options = CreatePathOptions.defaults();
+      CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
       if (persisted != null) {
         options.setPersisted(persisted);
       }
@@ -155,7 +156,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("blockSizeBytes") Long blockSizeBytes, @QueryParam("ttl") Long ttl) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      CreatePathOptions options = CreatePathOptions.defaults();
+      CreateFileOptions options = CreateFileOptions.defaults();
       if (persisted != null) {
         options.setPersisted(persisted);
       }

@@ -23,7 +23,7 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.MountTable;
-import alluxio.master.file.options.CreatePathOptions;
+import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.security.authorization.FileSystemAction;
@@ -88,9 +88,9 @@ public class PermissionCheckerTest {
   private static final PermissionStatus TEST_PERMISSION_STATUS_WEIRD =
       new PermissionStatus(TEST_USER_1.getUser(), TEST_USER_1.getGroups(), (short) 0157);
 
-  private static CreatePathOptions sFileOptions;
-  private static CreatePathOptions sWeirdFileOptions;
-  private static CreatePathOptions sNestedFileOptions;
+  private static CreateFileOptions sFileOptions;
+  private static CreateFileOptions sWeirdFileOptions;
+  private static CreateFileOptions sNestedFileOptions;
 
   private static InodeTree sTree;
 
@@ -123,11 +123,11 @@ public class PermissionCheckerTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sFileOptions = CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB)
+    sFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
         .setPermissionStatus(TEST_PERMISSION_STATUS_2);
-    sWeirdFileOptions = CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB)
+    sWeirdFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
         .setPermissionStatus(TEST_PERMISSION_STATUS_WEIRD);
-    sNestedFileOptions = CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB)
+    sNestedFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
         .setPermissionStatus(TEST_PERMISSION_STATUS_1).setRecursive(true);
 
     // setup an InodeTree

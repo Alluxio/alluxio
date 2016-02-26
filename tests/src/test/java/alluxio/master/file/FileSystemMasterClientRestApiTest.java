@@ -16,7 +16,8 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.master.AlluxioMaster;
 import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreatePathOptions;
+import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.rest.TestCaseFactory;
 import alluxio.util.CommonUtils;
@@ -108,7 +109,7 @@ public class FileSystemMasterClientRestApiTest {
             params, "POST", "", mResource).run();
 
     Mockito.verify(sFileSystemMaster)
-        .mkdir(Mockito.<AlluxioURI>any(), Mockito.<CreatePathOptions>any());
+        .mkdir(Mockito.<AlluxioURI>any(), Mockito.<CreateDirectoryOptions>any());
   }
 
   @Test
@@ -125,7 +126,7 @@ public class FileSystemMasterClientRestApiTest {
             params, "POST", "", mResource).run();
 
     Mockito.verify(sFileSystemMaster)
-        .create(Mockito.<AlluxioURI>any(), Mockito.<CreatePathOptions>any());
+        .create(Mockito.<AlluxioURI>any(), Mockito.<CreateFileOptions>any());
   }
 
   @Test
