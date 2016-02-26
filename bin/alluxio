@@ -319,7 +319,7 @@ case ${COMMAND} in
   exit 0
 ;;
 "thriftGen")
-  declare -a thriftSrcPaths=($(find "${BIN}/.." -regex  ".*\.thrift" | awk -F/thrift/ '{print $(1)}' | sort |uniq))
+  declare -a thriftSrcPaths=($(find "${BIN}/.." -regex  ".*\.thrift" | awk -F/thrift/ '{print $(1)}' | sort | uniq))
   for thriftSrcPath in ${thriftSrcPaths[@]}; do
     rm -rf "${thriftSrcPath}/main/java/alluxio/thrift"
     for srcFile in $(ls "${thriftSrcPath}/thrift"); do
