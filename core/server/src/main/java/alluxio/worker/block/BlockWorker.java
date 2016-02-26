@@ -116,20 +116,6 @@ public final class BlockWorker extends AbstractWorker {
   }
 
   /**
-   * @return the worker data service bind host
-   */
-  public String getDataBindHost() {
-    return mDataServer.getBindHost();
-  }
-
-  /**
-   * @return the worker data service port
-   */
-  public int getDataLocalPort() {
-    return mDataServer.getPort();
-  }
-
-  /**
    * Creates a new instance of {@link BlockWorker}.
    *
    * @throws IOException for other exceptions

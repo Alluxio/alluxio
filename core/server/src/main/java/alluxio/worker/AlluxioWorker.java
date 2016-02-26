@@ -211,14 +211,14 @@ public final class AlluxioWorker {
    * @return the worker data service bind host (used by unit test only)
    */
   public String getDataBindHost() {
-    return mBlockWorker.getDataBindHost();
+    return mDataServer.getBindHost();
   }
 
   /**
    * @return the worker data service port (used by unit test only)
    */
   public int getDataLocalPort() {
-    return mBlockWorker.getDataLocalPort();
+    return mDataServer.getPort();
   }
 
   /**
