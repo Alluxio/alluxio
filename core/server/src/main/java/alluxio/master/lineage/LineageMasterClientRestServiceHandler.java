@@ -20,6 +20,7 @@ import alluxio.master.AlluxioMaster;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.qmino.miredot.annotations.ReturnType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,7 @@ import javax.ws.rs.core.Response;
 public final class LineageMasterClientRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  public static final String SERVICE_PREFIX = "lineage";
+  public static final String SERVICE_PREFIX = "master/lineage";
   public static final String SERVICE_NAME = "service_name";
   public static final String SERVICE_VERSION = "service_version";
   public static final String CREATE_LINEAGE = "create_lineage";
@@ -57,32 +58,38 @@ public final class LineageMasterClientRestServiceHandler {
   private final LineageMaster mLineageMaster = AlluxioMaster.get().getLineageMaster();
 
   /**
-   * @return the service name
+   * @summary get the service name
+   * @return the response object
    */
   @GET
   @Path(SERVICE_NAME)
+  @ReturnType("java.lang.String")
   public Response name() {
     return Response.ok(Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME).build();
   }
 
   /**
-   * @return the service version
+   * @summary get the service version
+   * @return the response object
    */
   @GET
   @Path(SERVICE_VERSION)
+  @ReturnType("java.lang.Long")
   public Response version() {
     return Response.ok(Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION).build();
   }
 
   /**
+   * @summary create a lineage
    * @param inputFiles a colon-separated list of the lineage input files
    * @param outputFiles a colon-separated list of the lineage output files
    * @param command the job command
    * @param outputFile the job output file
-   * @return the id of the created lineage
+   * @return the response object
    */
   @POST
   @Path(CREATE_LINEAGE)
+  @ReturnType("java.lang.Long")
   public Response createLineage(@QueryParam("inputFiles") String inputFiles,
       @QueryParam("outputFiles") String outputFiles, @QueryParam("command") String command,
       @QueryParam("commandOutputFile") String outputFile) {
@@ -108,12 +115,14 @@ public final class LineageMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary delete a lineage
    * @param lineageId the lineage id
    * @param cascade whether to delete lineage recursively
-   * @return true if the lineage is deleted, false otherwise
+   * @return the response object
    */
   @POST
   @Path(DELETE_LINEAGE)
+  @ReturnType("java.lang.Boolean")
   public Response deleteLineage(@QueryParam("lineageId") Long lineageId,
       @QueryParam("cascade") boolean cascade) {
     try {
@@ -126,10 +135,12 @@ public final class LineageMasterClientRestServiceHandler {
   }
 
   /**
-   * @return a list of lineage descriptors for all lineages
+   * @summary get the list of lineage descriptors
+   * @return the response object
    */
   @GET
   @Path(GET_LINEAGE_INFO_LIST)
+  @ReturnType("java.util.List<alluxio.wire.LineageInfo>")
   public Response getLineageInfoList() {
     try {
       return Response.ok(mLineageMaster.getLineageInfoList()).build();
@@ -140,13 +151,15 @@ public final class LineageMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary reinitialize a file
    * @param path the file path
    * @param blockSizeBytes the file block size (in bytes)
    * @param ttl the file time-to-live (in seconds)
-   * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
+   * @return the response object
    */
   @POST
   @Path(REINITIALIZE_FILE)
+  @ReturnType("java.lang.Long")
   public Response reinitializeFile(@QueryParam("path") String path,
       @QueryParam("blockSizeBytes") Long blockSizeBytes, @QueryParam("ttl") Long ttl) {
     try {
@@ -161,11 +174,13 @@ public final class LineageMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary report a lost file
    * @param path the file path
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(REPORT_LOST_FILE)
+  @ReturnType("java.lang.Void")
   public Response reportLostFile(@QueryParam("path") String path) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
