@@ -24,6 +24,13 @@ defaults:
       lang: cn
       languageName: 中文
       languagePriority: 1
+  -
+    scope:
+      path: pt
+    values:
+      lang: pt
+      languageName: Português
+      languagePriority: 2
 
 # Each language has a particular version of category names
 # When supporting a new language version, do not change the 'group' attribute in .md page files
@@ -32,15 +39,20 @@ categories:
   User Guide:
     en: User Guide
     cn: 用户指南
+    pt: Guias do Usuário
   Features:
     en: Features
     cn: 特性
+    pt: Funcionalidades
   Frameworks:
     en: Frameworks
     cn: 计算框架
+    pt: Estruturas
   Under Store:
     en: Under Store
     cn: 底层存储系统
+    pt: Armazenamento Inferior
   Resources:
     en: Resources
     cn: 开发者资源
+    pt: Recursos

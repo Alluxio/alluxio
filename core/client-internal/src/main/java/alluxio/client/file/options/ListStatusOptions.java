@@ -13,17 +13,16 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method option for listing the status.
+ * Method options for listing the status.
  */
 @PublicApi
 @NotThreadSafe
 public final class ListStatusOptions {
-  /** Whether or not to check the ufs if the path does not exist in Alluxio. */
-  private boolean mCheckUfs;
-
   /**
    * @return the default {@link ListStatusOptions}
    */
@@ -32,24 +31,7 @@ public final class ListStatusOptions {
   }
 
   private ListStatusOptions() {
-    mCheckUfs = true;
-  }
-
-  /**
-   * @return whether we should sync the under file system for the file if it is not found in
-   *         Alluxio space
-   */
-  public boolean isCheckUfs() {
-    return mCheckUfs;
-  }
-
-  /**
-   * @param checkUfs the check ufs flag to set
-   * @return the updated options object
-   */
-  public ListStatusOptions setCheckUfs(boolean checkUfs) {
-    mCheckUfs = checkUfs;
-    return this;
+    // No options currently
   }
 
   /**
@@ -57,9 +39,6 @@ public final class ListStatusOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("ListStatus(");
-    sb.append(super.toString()).append(", Check UFS: ").append(mCheckUfs);
-    sb.append(")");
-    return sb.toString();
+    return Objects.toStringHelper(this).toString();
   }
 }
