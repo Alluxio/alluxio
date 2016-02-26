@@ -22,8 +22,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
@@ -37,6 +36,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -59,8 +59,7 @@ public final class MasterSourceTest {
   private static final AlluxioURI MOUNT_URI =
       new AlluxioURI("/tmp/mount-" + System.currentTimeMillis());
 
-  private static CreateFileOptions sNestedFileOptions =
-      CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
+  private static CreatePathOptions sNestedFileOptions;
 
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
@@ -73,6 +72,12 @@ public final class MasterSourceTest {
   /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
+
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    sNestedFileOptions =
+        CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
+  }
 
   /**
    * Sets up the dependencies before a test runs.
@@ -150,14 +155,14 @@ public final class MasterSourceTest {
    */
   @Test
   public void mkdirTest() throws Exception {
-    mFileSystemMaster.mkdir(DIRECTORY_URI, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.mkdir(DIRECTORY_URI, CreatePathOptions.defaults());
 
     Assert.assertEquals(1, mCounters.get(MasterSource.CREATE_DIRECTORY_OPS).getCount());
     Assert.assertEquals(1, mCounters.get(MasterSource.DIRECTORIES_CREATED).getCount());
 
     // trying to create a directory that already exist
     try {
-      mFileSystemMaster.mkdir(DIRECTORY_URI, CreateDirectoryOptions.defaults());
+      mFileSystemMaster.mkdir(DIRECTORY_URI, CreatePathOptions.defaults());
       Assert.fail("create a directory that already exist must throw an exception");
     } catch (FileAlreadyExistsException e) {
       // do nothing
