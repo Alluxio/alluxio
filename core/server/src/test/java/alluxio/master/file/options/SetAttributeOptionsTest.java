@@ -11,8 +11,6 @@
 
 package alluxio.master.file.options;
 
-import alluxio.Configuration;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,27 +21,6 @@ import java.util.Random;
  */
 public class SetAttributeOptionsTest {
   /**
-   * Tests the {@link SetAttributeOptions.Builder}.
-   */
-  @Test
-  public void builderTest() {
-    Random random = new Random();
-    Boolean pinned = random.nextBoolean();
-    Long ttl = random.nextLong();
-    Boolean persisted = random.nextBoolean();
-
-    SetAttributeOptions options = new SetAttributeOptions.Builder(new Configuration())
-        .setPinned(pinned)
-        .setTtl(ttl)
-        .setPersisted(persisted)
-        .build();
-
-    Assert.assertEquals(pinned, options.getPinned());
-    Assert.assertEquals(ttl, options.getTtl());
-    Assert.assertEquals(persisted, options.getPersisted());
-  }
-
-  /**
    * Tests the {@link CreateDirectoryOptions#defaults()} method.
    */
   @Test
@@ -53,5 +30,25 @@ public class SetAttributeOptionsTest {
     Assert.assertNull(options.getPinned());
     Assert.assertNull(options.getTtl());
     Assert.assertNull(options.getPersisted());
+  }
+
+  /**
+   * Tests getting and setting fields.
+   */
+  @Test
+  public void fieldsTest() {
+    Random random = new Random();
+    Boolean pinned = random.nextBoolean();
+    Long ttl = random.nextLong();
+    Boolean persisted = random.nextBoolean();
+
+    SetAttributeOptions options = SetAttributeOptions.defaults()
+        .setPinned(pinned)
+        .setTtl(ttl)
+        .setPersisted(persisted);
+
+    Assert.assertEquals(pinned, options.getPinned());
+    Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertEquals(persisted, options.getPersisted());
   }
 }

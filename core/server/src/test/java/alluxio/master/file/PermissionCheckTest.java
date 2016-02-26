@@ -20,8 +20,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
@@ -205,10 +204,10 @@ public class PermissionCheckTest {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
     long fileId;
     if (recursive) {
-      fileId = mFileSystemMaster.create(new AlluxioURI(path),
-          new CreateFileOptions.Builder(MasterContext.getConf()).setRecursive(true).build());
+      fileId = mFileSystemMaster
+          .create(new AlluxioURI(path), CreatePathOptions.defaults().setRecursive(true));
     } else {
-      fileId = mFileSystemMaster.create(new AlluxioURI(path), CreateFileOptions.defaults());
+      fileId = mFileSystemMaster.create(new AlluxioURI(path), CreatePathOptions.defaults());
     }
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
@@ -257,10 +256,10 @@ public class PermissionCheckTest {
   private void verifyMkdir(TestUser user, String path, boolean recursive) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(user.getUser());
     if (recursive) {
-      mFileSystemMaster.mkdir(new AlluxioURI(path),
-          new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(true).build());
+      mFileSystemMaster
+          .mkdir(new AlluxioURI(path), CreatePathOptions.defaults().setRecursive(true));
     } else {
-      mFileSystemMaster.mkdir(new AlluxioURI(path), CreateDirectoryOptions.defaults());
+      mFileSystemMaster.mkdir(new AlluxioURI(path), CreatePathOptions.defaults());
     }
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
@@ -498,7 +497,7 @@ public class PermissionCheckTest {
     boolean recursive = true;
     long ttl = 11;
 
-    return new SetAttributeOptions.Builder().setPinned(recursive).setTtl(ttl).build();
+    return SetAttributeOptions.defaults().setPinned(recursive).setTtl(ttl);
   }
 
   private SetAttributeOptions verifySetState(
@@ -508,8 +507,8 @@ public class PermissionCheckTest {
     mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(new AlluxioURI(path));
-    return new SetAttributeOptions.Builder().setPinned(fileInfo.isPinned())
-        .setTtl(fileInfo.getTtl()).setPersisted(fileInfo.isPersisted()).build();
+    return SetAttributeOptions.defaults().setPinned(fileInfo.isPinned()).setTtl(fileInfo.getTtl())
+        .setPersisted(fileInfo.isPersisted());
   }
 
   @Test
@@ -546,8 +545,8 @@ public class PermissionCheckTest {
     long ufsLength = 12;
     long operationTimeMs = 21;
 
-    return new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(ufsLength)
-        .setOperationTimeMs(operationTimeMs).build();
+    return CompleteFileOptions.defaults().setUfsLength(ufsLength)
+        .setOperationTimeMs(operationTimeMs);
   }
 
   private void verifyCompleteFile(TestUser user, String path, CompleteFileOptions options)
@@ -727,8 +726,8 @@ public class PermissionCheckTest {
       short permission, boolean recursive) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(runUser.getUser());
     SetAttributeOptions options =
-        new SetAttributeOptions.Builder().setOwner(owner).setGroup(group)
-            .setPermission(permission).setRecursive(recursive).build();
+        SetAttributeOptions.defaults().setOwner(owner).setGroup(group).setPermission(permission)
+            .setRecursive(recursive);
     mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
     PlainSaslServer.AuthorizedClientUser.set(TEST_USER_ADMIN.getUser());

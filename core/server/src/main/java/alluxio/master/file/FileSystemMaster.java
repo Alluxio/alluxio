@@ -43,10 +43,8 @@ import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
-import alluxio.master.file.meta.options.CreatePathOptions;
+import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
@@ -591,10 +589,11 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if the creation fails
    * @throws AccessControlException if permission checking fails
    */
-  public long create(AlluxioURI path, CreateFileOptions options)
+  public long create(AlluxioURI path, CreatePathOptions options)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
           BlockInfoException, IOException {
     MasterContext.getMasterSource().incCreateFileOps(1);
+    options.setDirectory(false);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, path, true);
       InodeTree.CreatePathResult createResult = createInternal(path, options);
@@ -618,14 +617,9 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws BlockInfoException if invalid block information is encountered
    * @throws IOException if an I/O error occurs
    */
-  InodeTree.CreatePathResult createInternal(AlluxioURI path, CreateFileOptions options)
+  InodeTree.CreatePathResult createInternal(AlluxioURI path, CreatePathOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
-    CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
-        .setBlockSizeBytes(options.getBlockSizeBytes()).setDirectory(false)
-        .setOperationTimeMs(options.getOperationTimeMs()).setPersisted(options.isPersisted())
-        .setRecursive(options.isRecursive()).setTtl(options.getTtl())
-        .setPermissionStatus(PermissionStatus.get(MasterContext.getConf(), true)).build();
-    InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
+    InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, options);
     // If the create succeeded, the list of created inodes will not be empty.
     List<Inode> created = createResult.getCreated();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
@@ -1067,23 +1061,15 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if a non-Alluxio related exception occurs
    * @throws AccessControlException if permission checking fails
    */
-  public InodeTree.CreatePathResult mkdir(AlluxioURI path, CreateDirectoryOptions options)
+  public InodeTree.CreatePathResult mkdir(AlluxioURI path, CreatePathOptions options)
       throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException {
     LOG.debug("mkdir {} ", path);
     MasterContext.getMasterSource().incCreateDirectoriesOps(1);
+    options.setDirectory(true);
     synchronized (mInodeTree) {
       try {
         checkPermission(FileSystemAction.WRITE, path, true);
-        CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
-            .setAllowExists(options.isAllowExists())
-            .setDirectory(true)
-            .setPersisted(options.isPersisted())
-            .setRecursive(options.isRecursive())
-            .setOperationTimeMs(options.getOperationTimeMs())
-            .setPermissionStatus(PermissionStatus.get(MasterContext.getConf(), true))
-            .setMountPoint(mMountTable.isMountPoint(path))
-            .build();
-        InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
+        InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, options);
 
         LOG.debug("writing journal entry for mkdir {}", path);
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
@@ -1475,15 +1461,12 @@ public final class FileSystemMaster extends AbstractMaster {
         long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
         long ufsLength = ufs.getFileSize(ufsPath.toString());
         // Metadata loaded from UFS has no TTL set.
-        CreateFileOptions createFileOptions = new CreateFileOptions.Builder(MasterContext.getConf())
-            .setBlockSizeBytes(ufsBlockSizeByte)
-            .setRecursive(recursive)
-            .setPersisted(true)
-            .build();
-        long fileId = create(path, createFileOptions);
+        CreatePathOptions options =
+            CreatePathOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte).setRecursive(recursive)
+                .setPersisted(true);
+        long fileId = create(path, options);
         CompleteFileOptions completeOptions =
-            new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(ufsLength)
-                .build();
+            CompleteFileOptions.defaults().setUfsLength(ufsLength);
         completeFile(path, completeOptions);
         return fileId;
       } else {
@@ -1509,9 +1492,9 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private long loadMetadataDirectory(AlluxioURI path, boolean recursive)
       throws IOException, FileAlreadyExistsException, InvalidPathException, AccessControlException {
-    CreateDirectoryOptions options =
-        new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(recursive)
-            .setPersisted(true).build();
+    CreatePathOptions options =
+        CreatePathOptions.defaults().setMountPoint(mMountTable.isMountPoint(path))
+            .setPersisted(true).setRecursive(recursive);
     InodeTree.CreatePathResult result = mkdir(path, options);
     List<Inode> inodes = null;
     if (result.getCreated().size() > 0) {
@@ -1918,7 +1901,7 @@ public final class FileSystemMaster extends AbstractMaster {
   public synchronized FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     for (long fileId : persistedFiles) {
-      setAttribute(getPath(fileId), new SetAttributeOptions.Builder().setPersisted(true).build());
+      setAttribute(getPath(fileId), SetAttributeOptions.defaults().setPersisted(true));
     }
 
     // get the files for the given worker to checkpoint
@@ -1990,7 +1973,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the file does not exist
    */
   private void setAttributeFromEntry(SetAttributeEntry entry) throws FileDoesNotExistException {
-    SetAttributeOptions.Builder options = new SetAttributeOptions.Builder();
+    SetAttributeOptions options = SetAttributeOptions.defaults();
     if (entry.hasPinned()) {
       options.setPinned(entry.getPinned());
     }
@@ -2009,7 +1992,7 @@ public final class FileSystemMaster extends AbstractMaster {
     if (entry.hasPermission()) {
       options.setPermission((short) entry.getPermission());
     }
-    setAttributeInternal(entry.getId(), entry.getOpTimeMs(), options.build());
+    setAttributeInternal(entry.getId(), entry.getOpTimeMs(), options);
   }
 
   /**

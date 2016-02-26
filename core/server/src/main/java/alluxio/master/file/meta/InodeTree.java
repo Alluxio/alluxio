@@ -23,7 +23,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.master.MasterContext;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.PermissionChecker;
-import alluxio.master.file.meta.options.CreatePathOptions;
+import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.JournalCheckpointStreamable;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.JournalProtoUtils;

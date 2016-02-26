@@ -40,7 +40,7 @@ public final class CreateFileOptions {
   private WriteType mWriteType;
 
   /**
-   * @return the default {@link OutStreamOptions}
+   * @return the default {@link CreateFileOptions}
    */
   public static CreateFileOptions defaults() {
     return new CreateFileOptions();

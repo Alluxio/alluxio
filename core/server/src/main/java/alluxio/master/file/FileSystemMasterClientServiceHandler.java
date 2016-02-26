@@ -17,8 +17,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.CompleteFileTOptions;
@@ -75,7 +74,7 @@ public final class FileSystemMasterClientServiceHandler implements
   public void createDirectory(String path, CreateDirectoryTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mFileSystemMaster.mkdir(new AlluxioURI(path), new CreateDirectoryOptions(options));
+      mFileSystemMaster.mkdir(new AlluxioURI(path), new CreatePathOptions(options));
     } catch (AlluxioException e) {
       throw e.toAlluxioTException();
     } catch (IOException e) {
@@ -87,7 +86,7 @@ public final class FileSystemMasterClientServiceHandler implements
   public void createFile(String path, CreateFileTOptions options) throws AlluxioTException,
       ThriftIOException {
     try {
-      mFileSystemMaster.create(new AlluxioURI(path), new CreateFileOptions(options));
+      mFileSystemMaster.create(new AlluxioURI(path), new CreatePathOptions(options));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {

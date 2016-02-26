@@ -22,7 +22,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.PermissionChecker;
-import alluxio.master.file.meta.options.CreatePathOptions;
+import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.ReadWriteJournal;
@@ -96,20 +96,16 @@ public final class InodeTreeTest {
    * Sets up dependencies before a single test runs.
    */
   @BeforeClass
-  public static void beforeClass() {
-    sFileOptions =
-        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setPermissionStatus(TEST_PERMISSION_STATUS).build();
+  public static void beforeClass() throws Exception {
+    sFileOptions = CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB)
+        .setPermissionStatus(TEST_PERMISSION_STATUS);
     sDirectoryOptions =
-        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setDirectory(true).setPermissionStatus(TEST_PERMISSION_STATUS).build();
-    sNestedFileOptions =
-        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setPermissionStatus(TEST_PERMISSION_STATUS).setRecursive(true).build();
-    sNestedDirectoryOptions =
-        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setPermissionStatus(TEST_PERMISSION_STATUS).setDirectory(true).setRecursive(true)
-            .build();
+        CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB).setDirectory(true)
+            .setPermissionStatus(TEST_PERMISSION_STATUS);
+    sNestedFileOptions = CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB)
+        .setPermissionStatus(TEST_PERMISSION_STATUS).setRecursive(true);
+    sNestedDirectoryOptions = CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB)
+        .setPermissionStatus(TEST_PERMISSION_STATUS).setDirectory(true).setRecursive(true);
   }
 
   /**
@@ -167,12 +163,12 @@ public final class InodeTreeTest {
     mTree.createPath(TEST_URI, sDirectoryOptions);
 
     // create again with allowExists true
-    mTree.createPath(TEST_URI, new CreatePathOptions.Builder().setAllowExists(true).build());
+    mTree.createPath(TEST_URI, CreatePathOptions.defaults().setAllowExists(true));
 
     // create again with allowExists false
     mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(TEST_URI));
-    mTree.createPath(TEST_URI, new CreatePathOptions.Builder().setAllowExists(false).build());
+    mTree.createPath(TEST_URI, CreatePathOptions.defaults().setAllowExists(false));
   }
 
   /**
@@ -257,8 +253,7 @@ public final class InodeTreeTest {
 
     // create a file
     CreatePathOptions options =
-        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setRecursive(true).build();
+        CreatePathOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
     createResult = mTree.createPath(NESTED_FILE_URI, options);
     modified = createResult.getModified();
     created = createResult.getCreated();
@@ -294,8 +289,7 @@ public final class InodeTreeTest {
     mThrown.expect(BlockInfoException.class);
     mThrown.expectMessage("Invalid block size 0");
 
-    CreatePathOptions options =
-        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(0).build();
+    CreatePathOptions options = CreatePathOptions.defaults().setBlockSizeBytes(0);
     mTree.createPath(TEST_URI, options);
   }
 
@@ -309,8 +303,7 @@ public final class InodeTreeTest {
     mThrown.expect(BlockInfoException.class);
     mThrown.expectMessage("Invalid block size -1");
 
-    CreatePathOptions options =
-        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(-1).build();
+    CreatePathOptions options = CreatePathOptions.defaults().setBlockSizeBytes(-1);
     mTree.createPath(TEST_URI, options);
   }
 
