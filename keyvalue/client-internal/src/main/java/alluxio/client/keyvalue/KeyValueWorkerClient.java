@@ -34,8 +34,8 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Client for talking to a key-value worker server.
  *
- * Since {@link KeyValueWorkerClientService.Client} is not thread safe, this class has to guarantee
- * thread safety.
+ * Since {@link alluxio.thrift.KeyValueWorkerClientService.Client} is not thread safe, this class
+ * has to guarantee thread safety.
  */
 @ThreadSafe
 public final class KeyValueWorkerClient extends AbstractClient {

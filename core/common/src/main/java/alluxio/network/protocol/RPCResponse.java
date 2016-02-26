@@ -24,7 +24,8 @@ public abstract class RPCResponse extends RPCMessage {
 
   /**
    * The possible types of status for RPC responses. When modifying values,
-   * {@link #statusToMessage(Status)} must be updated for the appropriate status messages.
+   * {@link #statusToMessage(RPCResponse.Status)} must be updated for the appropriate status
+   * messages.
    */
   public enum Status {
     // Success.
@@ -39,9 +40,9 @@ public abstract class RPCResponse extends RPCMessage {
     WRITE_ERROR(102);
 
     private static final String DEFAULT_ERROR_STRING = "Unknown error.";
-    /** Mapping from short id to {@link alluxio.network.protocol.RPCResponse.Status}. */
+    /** Mapping from short id to {@link Status}. */
     private static final Map<Short, Status> SHORT_TO_STATUS_MAP = new HashMap<Short, Status>();
-    /** Mapping from {@link alluxio.network.protocol.RPCResponse.Status} to status message. */
+    /** Mapping from {@link Status} to status message. */
     private static final Map<Status, String> STATUS_TO_MESSAGE_MAP = new HashMap<Status, String>();
     static {
       // Populate the mappings.
@@ -80,10 +81,10 @@ public abstract class RPCResponse extends RPCMessage {
     }
 
     /**
-     * Returns the {@link alluxio.network.protocol.RPCResponse.Status} represented by the short.
+     * Returns the {@link Status} represented by the short.
      *
-     * @param id the short representing a {@link alluxio.network.protocol.RPCResponse.Status}
-     * @return the {@link alluxio.network.protocol.RPCResponse.Status} representing the given short
+     * @param id the short representing a {@link Status}
+     * @return the {@link Status} representing the given short
      */
     public static Status fromShort(short id) {
       Status status = SHORT_TO_STATUS_MAP.get(id);
@@ -94,13 +95,12 @@ public abstract class RPCResponse extends RPCMessage {
     }
 
     /**
-     * Returns the {@link String} message for a given
-     * {@link alluxio.network.protocol.RPCResponse.Status}.
+     * Returns the {@link String} message for a given {@link Status}.
      *
      * This method must be updated when a new Status is added.
      *
-     * @param status The {@link alluxio.network.protocol.RPCResponse.Status} to get the message for
-     * @return The String message for the status
+     * @param status the {@link Status} to get the message for
+     * @return the String message for the status
      */
     private static String statusToMessage(Status status) {
       switch (status) {
