@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -33,6 +34,9 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
@@ -47,6 +51,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public class BaseFileSystem implements FileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final FileSystemContext mContext;
 
   /**
@@ -72,6 +77,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.createDirectory(path, options);
+      LOG.info("Created directory " + path.getPath());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -89,6 +95,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.createFile(path, options);
+      LOG.info("Created file " + path.getPath());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -107,6 +114,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.delete(path, options);
+      LOG.info("Deleted file " + path.getName());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -222,6 +230,7 @@ public class BaseFileSystem implements FileSystem {
     try {
       // TODO(calvin): Make this fail on the master side
       masterClient.mount(src, dst);
+      LOG.info("Mount " + src.getPath() + " to " + dst.getPath());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -257,6 +266,7 @@ public class BaseFileSystem implements FileSystem {
     try {
       // TODO(calvin): Update this code on the master side.
       masterClient.rename(src, dst);
+      LOG.info("Renamed file " + src.getPath() + " to " + dst.getPath());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -290,6 +300,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.unmount(path);
+      LOG.info("Unmount " + path);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
