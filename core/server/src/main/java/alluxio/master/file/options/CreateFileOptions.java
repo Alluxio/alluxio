@@ -32,6 +32,7 @@ public final class CreateFileOptions {
     private boolean mPersisted;
     private boolean mRecursive;
     private long mTtl;
+    private boolean mMetadataLoad;
 
     /**
      * Creates a new builder for {@link CreateFileOptions}.
@@ -95,6 +96,16 @@ public final class CreateFileOptions {
     }
 
     /**
+     * @param metadataLoad the flag value to use; if true, the create file is a result of a
+     *                     metadata load.
+     * @return the builder
+     */
+    public Builder setMetadataLoad(boolean metadataLoad) {
+      mMetadataLoad = metadataLoad;
+      return this;
+    }
+
+    /**
      * Builds a new instance of {@link CreateFileOptions}.
      *
      * @return a {@link CreateFileOptions} instance
@@ -109,6 +120,7 @@ public final class CreateFileOptions {
   private boolean mPersisted;
   private boolean mRecursive;
   private long mTtl;
+  private boolean mMetadataLoad;
 
   /**
    * @return the default {@link CreateFileOptions}
@@ -123,6 +135,7 @@ public final class CreateFileOptions {
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
     mTtl = builder.mTtl;
+    mMetadataLoad = builder.mMetadataLoad;
   }
 
   /**
@@ -173,5 +186,12 @@ public final class CreateFileOptions {
    */
   public long getTtl() {
     return mTtl;
+  }
+
+  /**
+   * @return the metadataLoad flag; if true, the create is a result of a metadata load
+   */
+  public boolean isMetadataLoad() {
+    return mMetadataLoad;
   }
 }
