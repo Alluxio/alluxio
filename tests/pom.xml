@@ -27,6 +27,7 @@
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>
+    <surefire.useSystemClassLoader>false</surefire.useSystemClassLoader>
   </properties>
 
   <dependencies>
@@ -53,7 +54,9 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-minicluster</artifactId>
       <scope>test</scope>
+
       <!-- Exclude the Jersey artifacts to prevent clashes with alluxio-core-server -->
+      <!-- Exclude the jsp/servlet related dependencies to avoid troubles in web test -->
       <exclusions>
         <exclusion>
           <groupId>com.sun.jersey</groupId>
@@ -67,7 +70,28 @@
           <groupId>com.sun.jersey</groupId>
           <artifactId>jersey-server</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>jsp-2.1</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>tomcat</groupId>
+          <artifactId>jasper-runtime</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>tomcat</groupId>
+          <artifactId>jasper-compiler</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.servlet.jsp</groupId>
+          <artifactId>jsp-api</artifactId>
+        </exclusion>
       </exclusions>
+
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
