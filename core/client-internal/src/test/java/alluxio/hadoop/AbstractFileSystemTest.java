@@ -175,6 +175,9 @@ public class AbstractFileSystemTest {
     // Create system with master at localhost:19998
     URI uri = URI.create(Constants.HEADER + "localhost:19998/");
     Configuration conf = new Configuration();
+    if (isHadoop1x()) {
+      conf.set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
+    }
     org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
     // Change to otherhost:410
