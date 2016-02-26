@@ -190,6 +190,7 @@
           </execution>
         </executions>
         <configuration>
+          <!--- This following license only works for groupId org.alluxio and artifactId alluxio-core-server. -->
           <license>
             UHJvamVjdHxvcmcuYWxsdXhpby5hbGx1eGlvLWNvcmUtc2VydmVyfDIwMTctMDItMjV8dHJ1ZSNNQzBDRlFDUm1SMXpVb3dMOUkyNXZrcGtJOVlmOHY3M2tnSVVIa0NxSFgvdUlYZmd3SHdSa1hFYUFMRDQ3Q0E9
           </license>
