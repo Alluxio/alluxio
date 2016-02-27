@@ -80,8 +80,7 @@ public class ReadOnlyMountIntegrationTest {
     Configuration testConf = mLocalAlluxioClusterResource.getTestConf();
     CreateFileOptions writeBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(testConf);
 
-    String createPath = FILE_PATH + "_create";
-    AlluxioURI uri = new AlluxioURI(createPath);
+    AlluxioURI uri = new AlluxioURI(FILE_PATH + "_create");
     try {
       mFileSystem.createFile(uri, writeBoth).close();
       Assert.fail("createFile should not succeed under a readonly mount.");
@@ -90,8 +89,7 @@ public class ReadOnlyMountIntegrationTest {
           ExceptionMessage.MOUNT_READONLY.getMessage(uri, MOUNT_PATH));
     }
 
-    createPath = SUB_FILE_PATH + "_create";
-    uri = new AlluxioURI(createPath);
+    uri = new AlluxioURI(SUB_FILE_PATH + "_create");
     try {
       mFileSystem.createFile(uri, writeBoth).close();
       Assert.fail("createFile should not succeed under a readonly mount.");
