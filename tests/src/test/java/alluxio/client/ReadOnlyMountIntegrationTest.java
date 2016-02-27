@@ -58,13 +58,13 @@ public class ReadOnlyMountIntegrationTest {
 
     // Add a readonly mount point.
     mAlternateUfsRoot = createAlternateUfs();
-    String ufsMountDir = PathUtils.concatPath(mAlternateUfsRoot, "ufs", "mnt", "foo");
+    String ufsMountDir = PathUtils.concatPath(mAlternateUfsRoot, MOUNT_PATH);
     UnderFileSystemUtils.mkdirIfNotExists(ufsMountDir, testConf);
-    UnderFileSystemUtils.touch(PathUtils.concatPath(ufsMountDir, "file"), testConf);
+    UnderFileSystemUtils.touch(PathUtils.concatPath(mAlternateUfsRoot, FILE_PATH), testConf);
     UnderFileSystemUtils
-        .mkdirIfNotExists(PathUtils.concatPath(ufsMountDir, "sub", "dir"), testConf);
+        .mkdirIfNotExists(PathUtils.concatPath(mAlternateUfsRoot, SUB_DIR_PATH), testConf);
     UnderFileSystemUtils
-        .touch(PathUtils.concatPath(ufsMountDir, "sub", "dir", "subfile"), testConf);
+        .touch(PathUtils.concatPath(mAlternateUfsRoot, SUB_FILE_PATH), testConf);
     mFileSystem.createDirectory(new AlluxioURI("/mnt"));
     mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(ufsMountDir),
         MountOptions.defaults().setReadOnly(true));
