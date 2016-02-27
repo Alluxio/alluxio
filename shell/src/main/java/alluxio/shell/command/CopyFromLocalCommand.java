@@ -14,9 +14,12 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.client.ClientContext;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -148,7 +151,13 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
         Closer closer = Closer.create();
         FileOutStream os = null;
         try {
-          os = closer.register(mFileSystem.createFile(dstPath));
+          if (ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED)) {
+            CreateFileOptions options = CreateFileOptions.defaults();
+            options.setWriteType(WriteType.ASYNC_THROUGH);
+            os = closer.register(mFileSystem.createFile(dstPath, options));
+          } else {
+            os = closer.register(mFileSystem.createFile(dstPath));
+          }
           FileInputStream in = closer.register(new FileInputStream(src));
           FileChannel channel = closer.register(in.getChannel());
           ByteBuffer buf = ByteBuffer.allocate(8 * Constants.MB);
