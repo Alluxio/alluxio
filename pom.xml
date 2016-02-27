@@ -131,6 +131,11 @@
   </repositories>
 
   <pluginRepositories>
+    <pluginRepository>
+      <id>miredot</id>
+      <name>MireDot Releases</name>
+      <url>http://nexus.qmino.com/content/repositories/miredot</url>
+    </pluginRepository>
   </pluginRepositories>
 
   <properties>
@@ -153,6 +158,7 @@
     <slf4j.version>1.7.2</slf4j.version>
     <test.output.redirect>true</test.output.redirect>
     <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
+    <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
   </properties>
 
   <modules>
@@ -340,6 +346,7 @@
           <configuration>
             <argLine>-Djava.net.preferIPv4Stack=true -Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
+            <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
         </plugin>
         <plugin>
