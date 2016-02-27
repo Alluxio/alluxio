@@ -36,7 +36,6 @@ public class CreateFileOptionsTest {
 
     CreateFileOptions options = CreateFileOptions.defaults();
 
-    Assert.assertEquals(false, options.isAllowExists());
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertFalse(options.isDirectory());
     Assert.assertFalse(options.isPersisted());
@@ -51,7 +50,6 @@ public class CreateFileOptionsTest {
   @Test
   public void fieldsTest() throws Exception {
     Random random = new Random();
-    boolean allowExists = random.nextBoolean();
     long blockSize = random.nextLong();
     boolean mountPoint = random.nextBoolean();
     long operationTimeMs = random.nextLong();
@@ -61,7 +59,6 @@ public class CreateFileOptionsTest {
     long ttl = random.nextLong();
 
     CreateFileOptions options = CreateFileOptions.defaults()
-        .setAllowExists(allowExists)
         .setBlockSizeBytes(blockSize)
         .setMountPoint(mountPoint)
         .setOperationTimeMs(operationTimeMs)
@@ -70,7 +67,6 @@ public class CreateFileOptionsTest {
         .setRecursive(recursive)
         .setTtl(ttl);
 
-    Assert.assertEquals(allowExists, options.isAllowExists());
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(mountPoint, options.isMountPoint());
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());

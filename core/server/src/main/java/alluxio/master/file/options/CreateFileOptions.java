@@ -11,6 +11,8 @@
 
 package alluxio.master.file.options;
 
+import alluxio.Constants;
+import alluxio.master.MasterContext;
 import alluxio.thrift.CreateFileTOptions;
 
 import java.io.IOException;
@@ -22,6 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions> {
+  private long mBlockSizeBytes;
+  private long mTtl;
 
   /**
    * @return the default {@link CreateFileOptions}
@@ -46,13 +50,57 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mTtl = options.getTtl();
   }
 
+  private CreateFileOptions() throws IOException {
+    super();
+    mBlockSizeBytes = MasterContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mDirectory = false;
+    mTtl = Constants.NO_TTL;
+  }
+
+  /**
+   * @return the block size
+   */
+  public long getBlockSizeBytes() {
+    return mBlockSizeBytes;
+  }
+
+  /**
+   * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
+   *         should be kept around before it is automatically deleted
+   */
+  public long getTtl() {
+    return mTtl;
+  }
+
+  /**
+   * @param blockSizeBytes the block size to use
+   * @return the updated options object
+   */
+  public CreateFileOptions setBlockSizeBytes(long blockSizeBytes) {
+    mBlockSizeBytes = blockSizeBytes;
+    return this;
+  }
+
+  /**
+   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *        created file should be kept around before it is automatically deleted
+   * @return the updated options object
+   */
+  public CreateFileOptions setTtl(long ttl) {
+    mTtl = ttl;
+    return getThis();
+  }
+
   @Override
   protected CreateFileOptions getThis() {
     return this;
   }
 
-  private CreateFileOptions() throws IOException {
-    super();
-    mDirectory = false;
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    return toStringHelper().add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl).toString();
   }
 }

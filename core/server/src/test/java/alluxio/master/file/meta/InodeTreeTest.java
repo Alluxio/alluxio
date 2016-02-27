@@ -102,12 +102,12 @@ public final class InodeTreeTest {
     sFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
         .setPermissionStatus(TEST_PERMISSION_STATUS);
     sDirectoryOptions =
-        CreateDirectoryOptions.defaults().setBlockSizeBytes(Constants.KB)
-            .setPermissionStatus(TEST_PERMISSION_STATUS);
+        CreateDirectoryOptions.defaults().setPermissionStatus(TEST_PERMISSION_STATUS);
     sNestedFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
         .setPermissionStatus(TEST_PERMISSION_STATUS).setRecursive(true);
-    sNestedDirectoryOptions = CreateDirectoryOptions.defaults().setBlockSizeBytes(Constants.KB)
-        .setPermissionStatus(TEST_PERMISSION_STATUS).setRecursive(true);
+    sNestedDirectoryOptions =
+        CreateDirectoryOptions.defaults().setPermissionStatus(TEST_PERMISSION_STATUS)
+            .setRecursive(true);
   }
 
   /**
@@ -473,8 +473,8 @@ public final class InodeTreeTest {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Inode id 1 does not exist");
 
-    Inode testFile = new InodeFile.Builder().setName("testFile1").setId(1).setParentId(1)
-        .setPermissionStatus(TEST_PERMISSION_STATUS).build();
+    Inode testFile = new InodeFile(1).setName("testFile1").setParentId(1)
+        .setPermissionStatus(TEST_PERMISSION_STATUS);
     mTree.deleteInode(testFile);
   }
 
