@@ -26,7 +26,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class CreatePathOptions<T> {
-  protected boolean mDirectory;
   protected boolean mMountPoint;
   protected long mOperationTimeMs;
   protected PermissionStatus mPermissionStatus;
@@ -34,7 +33,6 @@ public abstract class CreatePathOptions<T> {
   protected boolean mRecursive;
 
   protected CreatePathOptions() throws IOException {
-    mDirectory = false;
     mMountPoint = false;
     mOperationTimeMs = System.currentTimeMillis();
     mPermissionStatus = PermissionStatus.get(MasterContext.getConf(), true);
@@ -43,13 +41,6 @@ public abstract class CreatePathOptions<T> {
   }
 
   protected abstract T getThis();
-
-  /**
-   * @return the directory flag; it specifies whether the object to create is a directory
-   */
-  public boolean isDirectory() {
-    return mDirectory;
-  }
 
   /**
    * @return the operation time
@@ -136,7 +127,7 @@ public abstract class CreatePathOptions<T> {
   }
 
   protected Objects.ToStringHelper toStringHelper() {
-    return Objects.toStringHelper(this).add("directory", mDirectory).add("mountPoint", mMountPoint)
+    return Objects.toStringHelper(this).add("mountPoint", mMountPoint)
         .add("operationTimeMs", mOperationTimeMs).add("persisted", mPersisted)
         .add("recursive", mRecursive).add("permissionStatus", mPermissionStatus);
   }

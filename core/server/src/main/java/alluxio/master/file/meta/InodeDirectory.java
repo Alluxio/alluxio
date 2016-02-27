@@ -52,7 +52,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   /**
    * Creates a new instance of {@link InodeDirectory}.
    *
-   * @param id the is to use
+   * @param id the id to use
    */
   public InodeDirectory(long id) {
     super(id);

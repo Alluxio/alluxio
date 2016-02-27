@@ -37,7 +37,6 @@ public class CreateFileOptionsTest {
     CreateFileOptions options = CreateFileOptions.defaults();
 
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
-    Assert.assertFalse(options.isDirectory());
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
