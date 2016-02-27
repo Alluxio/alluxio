@@ -227,7 +227,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       LOG.info("FileAlreadyExistsException: {}", path);
       throw new FileAlreadyExistsException(path.toString());
     }
-    if (!options.isDirectory()) {
+    if (options instanceof CreateFileOptions) {
       CreateFileOptions fileOptions = (CreateFileOptions) options;
       if (fileOptions.getBlockSizeBytes() < 1) {
         throw new BlockInfoException("Invalid block size " + fileOptions.getBlockSizeBytes());
@@ -303,18 +303,19 @@ public final class InodeTree implements JournalCheckpointStreamable {
     // FileAlreadyExistsException unless options.allowExists is true.
     Inode lastInode = currentInodeDirectory.getChild(name);
     if (lastInode != null) {
-      if (lastInode.isDirectory() && options.isDirectory() && !lastInode.isPersisted()
-          && options.isPersisted()) {
+      if (lastInode.isDirectory() && options instanceof CreateDirectoryOptions && !lastInode
+          .isPersisted() && options.isPersisted()) {
         // The final path component already exists and is not persisted, so it should be added
         // to the non-persisted Inodes of traversalResult.
         traversalResult.getNonPersisted().add(lastInode);
         toPersistDirectories.add(lastInode);
-      } else if (!(lastInode.isDirectory() && ((CreateDirectoryOptions) options).isAllowExists())) {
+      } else if (!(options instanceof CreateDirectoryOptions && ((CreateDirectoryOptions) options)
+          .isAllowExists())) {
         LOG.info(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
         throw new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
       }
     } else {
-      if (options.isDirectory()) {
+      if (options instanceof CreateDirectoryOptions) {
         CreateDirectoryOptions directoryOptions = (CreateDirectoryOptions) options;
         lastInode = new InodeDirectory(mDirectoryIdGenerator.getNewDirectoryId()).setName(name)
             .setParentId(currentInodeDirectory.getId())
@@ -323,7 +324,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
         if (directoryOptions.isPersisted()) {
           toPersistDirectories.add(lastInode);
         }
-      } else {
+      }
+      if (options instanceof CreateFileOptions) {
         CreateFileOptions fileOptions = (CreateFileOptions) options;
         lastInode = new InodeFile(mContainerIdGenerator.getNewContainerId())
             .setBlockSizeBytes(fileOptions.getBlockSizeBytes()).setTtl(fileOptions.getTtl())

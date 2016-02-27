@@ -37,7 +37,6 @@ public class CreateDirectoryOptionsTest {
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
 
     Assert.assertEquals(false, options.isAllowExists());
-    Assert.assertTrue(options.isDirectory());
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
     MasterContext.reset();

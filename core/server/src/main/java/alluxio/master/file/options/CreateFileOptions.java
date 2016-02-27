@@ -44,7 +44,6 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
   public CreateFileOptions(CreateFileTOptions options) throws IOException {
     super();
     mBlockSizeBytes = options.getBlockSizeBytes();
-    mDirectory = false;
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
     mTtl = options.getTtl();
@@ -53,7 +52,6 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
   private CreateFileOptions() throws IOException {
     super();
     mBlockSizeBytes = MasterContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    mDirectory = false;
     mTtl = Constants.NO_TTL;
   }
 

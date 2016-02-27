@@ -41,7 +41,6 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
   public CreateDirectoryOptions(CreateDirectoryTOptions options) throws IOException {
     super();
     mAllowExists = options.isAllowExists();
-    mDirectory = true;
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
   }
@@ -49,7 +48,6 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
   private CreateDirectoryOptions() throws IOException {
     super();
     mAllowExists = false;
-    mDirectory = true;
   }
 
   /**
