@@ -143,7 +143,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     try {
       if (!src.isDirectory()) {
         // If the dstPath is a directory, then it should be updated to be the path of the file where
-        // src will be copied to
+        // src will be copied to.
         if (mFileSystem.exists(dstPath) && mFileSystem.getStatus(dstPath).isFolder()) {
           dstPath = dstPath.join(src.getName());
         }
@@ -151,6 +151,8 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
         Closer closer = Closer.create();
         FileOutStream os = null;
         try {
+          // When 'alluxio.user.lineage.enabled=true', the created file should write asynchronously
+          // to the under fs.
           if (ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED)) {
             CreateFileOptions options = CreateFileOptions.defaults();
             options.setWriteType(WriteType.ASYNC_THROUGH);
@@ -167,7 +169,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
           }
         } catch (IOException e) {
           // Close the out stream and delete the file, so we don't have an incomplete file lying
-          // around
+          // around.
           if (os != null) {
             os.cancel();
             if (mFileSystem.exists(dstPath)) {
@@ -193,7 +195,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
         }
         if (errorMessages.size() != 0) {
           if (errorMessages.size() == fileList.length) {
-            // If no files were created, then delete the directory
+            // If no files were created, then delete the directory.
             if (mFileSystem.exists(dstPath)) {
               mFileSystem.delete(dstPath);
             }
