@@ -48,7 +48,11 @@ alluxio.master.whitelist:
   semi-colons. Alluxio will try to cache the cacheable file when it is read for the first
   time.
 alluxio.master.worker.threads.max:
-  The max number of workers that connect to master
+  The maximum number of incoming RPC requests to master that can be handled.
+  This value is used to configure maximum number of threads in Thrift thread pool with master.
+alluxio.master.worker.threads.min:
+  The minimum number of threads used to handle incoming RPC requests to master.
+  This value is used to configure minimum number of threads in Thrift thread pool with master.
 alluxio.master.worker.timeout.ms:
   Timeout (in milliseconds) between master and worker indicating a lost worker.
 alluxio.master.tieredstore.global.levels:
