@@ -23,6 +23,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.base.Preconditions;
+import com.qmino.miredot.annotations.ReturnType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +49,7 @@ import javax.ws.rs.core.Response;
 public final class BlockWorkerClientRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  public static final String SERVICE_PREFIX = "block";
+  public static final String SERVICE_PREFIX = "worker/block";
   public static final String SERVICE_NAME = "service_name";
   public static final String SERVICE_VERSION = "service_version";
   public static final String ACCESS_BLOCK = "access_block";
@@ -68,32 +69,38 @@ public final class BlockWorkerClientRestServiceHandler {
       new WorkerStorageTierAssoc(WorkerContext.getConf());
 
   /**
-   * @return the service name
+   * @summary get the service name
+   * @return the response object
    */
   @GET
   @Path(SERVICE_NAME)
   @Produces(MediaType.APPLICATION_JSON)
+  @ReturnType("java.lang.String")
   public Response name() {
     return Response.ok(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME).build();
   }
 
   /**
-   * @return the service version
+   * @summary get the service version
+   * @return the response object
    */
   @GET
   @Path(SERVICE_VERSION)
   @Produces(MediaType.APPLICATION_JSON)
+  @ReturnType("java.lang.Long")
   public Response version() {
     return Response.ok(Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION).build();
   }
 
   /**
+   * @summary access a block
    * @param blockId the block id
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(ACCESS_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
+  @ReturnType("java.lang.Void")
   public Response accessBlock(@QueryParam("blockId") Long blockId) {
     try {
       Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
@@ -106,12 +113,14 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
+   * @summary asynchronously persist a file
    * @param fileId the file id
-   * @return whether the operation succeeded
+   * @return the response object
    */
   @POST
   @Path(ASYNC_CHECKPOINT)
   @Produces(MediaType.APPLICATION_JSON)
+  @ReturnType("java.lang.Boolean")
   public Response asyncCheckpoint(@QueryParam("fileId") Long fileId) {
     try {
       Preconditions.checkNotNull(fileId, "required 'fileId' parameter is missing");
@@ -123,13 +132,15 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
+   * @summary cache a block
    * @param sessionId the session id
    * @param blockId the block id
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(CACHE_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
+  @ReturnType("java.lang.Void")
   public Response cacheBlock(@QueryParam("sessionId") Long sessionId,
       @QueryParam("blockId") Long blockId) {
     try {
@@ -144,13 +155,15 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
+   * @summary cancel a block
    * @param sessionId the session id
    * @param blockId the block id
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(CANCEL_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
+  @ReturnType("java.lang.Void")
   public Response cancelBlock(@QueryParam("sessionId") Long sessionId,
       @QueryParam("blockId") Long blockId) {
     try {
@@ -165,13 +178,15 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
+   * @summary lock a block
    * @param sessionId the session id
    * @param blockId the block id
-   * @return the lock block result
+   * @return the response object
    */
   @POST
   @Path(LOCK_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
+  @ReturnType("alluxio.wire.LockBlockResult")
   public Response lockBlock(@QueryParam("sessionId") Long sessionId,
       @QueryParam("blockId") Long blockId) {
     try {
@@ -188,12 +203,14 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
+   * @summary promote a block
    * @param blockId the block id
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(PROMOTE_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
+  @ReturnType("java.lang.Void")
   public Response promoteBlock(@QueryParam("blockId") Long blockId) {
     try {
       Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
@@ -207,16 +224,18 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
+   * @summary read a block
    * @param sessionId the session id
    * @param blockId the block id
    * @param lockId the lock id
    * @param offset the offset to start the read at
    * @param length the number of bytes to read (the value -1 means read until EOF)
-   * @return the requested bytes
+   * @return the response object
    */
   @GET
   @Path(READ_BLOCK)
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
+  @ReturnType("java.util.List<java.lang.Byte>")
   public Response readBlock(@QueryParam("sessionId") Long sessionId,
       @QueryParam("blockId") Long blockId, @QueryParam("lockId") Long lockId,
       @QueryParam("offset") Long offset, @QueryParam("length") Long length) {
@@ -260,14 +279,16 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
+   * @summary request a block location
    * @param sessionId the session id
    * @param blockId the block id
    * @param initialBytes the initial number of bytes to allocate
-   * @return a string representing the path to the local file
+   * @return the response object
    */
   @POST
   @Path(REQUEST_BLOCK_LOCATION)
   @Produces(MediaType.APPLICATION_JSON)
+  @ReturnType("java.lang.Long")
   public Response requestBlockLocation(@QueryParam("sessionId") Long sessionId,
       @QueryParam("blockId") Long blockId, @QueryParam("initialBytes") Long initialBytes) {
     try {
@@ -283,14 +304,16 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
+   * @summary request additional space for a block
    * @param sessionId the session id
    * @param blockId the block id
    * @param requestBytes the additional number of bytes to allocate
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(REQUEST_SPACE)
   @Produces(MediaType.APPLICATION_JSON)
+  @ReturnType("java.lang.Void")
   public Response requestSpace(@QueryParam("sessionId") Long sessionId,
       @QueryParam("blockId") Long blockId, @QueryParam("requestBytes") Long requestBytes) {
     try {
@@ -306,13 +329,15 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
+   * @summary unlock a block
    * @param sessionId the session id
    * @param blockId the block id
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(UNLOCK_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
+  @ReturnType("java.lang.Void")
   public Response unlockBlock(@QueryParam("sessionId") Long sessionId,
       @QueryParam("blockId") Long blockId) {
     try {
@@ -327,17 +352,19 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
+   * @summary write a block
    * @param sessionId the session id
    * @param blockId the block id
    * @param offset the offset to start the read at
    * @param length the number of bytes to read (the value -1 means read until EOF)
    * @param data the data to write
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(WRITE_BLOCK)
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+  @ReturnType("java.lang.Void")
   public Response writeBlock(@QueryParam("sessionId") Long sessionId,
       @QueryParam("blockId") Long blockId, @QueryParam("offset") Long offset,
       @QueryParam("length") Long length, byte[] data) {
