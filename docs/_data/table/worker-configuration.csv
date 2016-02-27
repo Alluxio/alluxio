@@ -4,7 +4,7 @@ alluxio.worker.bind.host,0.0.0.0
 alluxio.worker.block.heartbeat.interval.ms,1000
 alluxio.worker.block.heartbeat.timeout.ms,10000
 alluxio.worker.block.threads.max,2048
-alluxio.worker.block.threads.min,1
+alluxio.worker.block.threads.min,256
 alluxio.worker.data.bind.host,0.0.0.0
 alluxio.worker.data.folder,/alluxioworker/
 alluxio.worker.data.port,29999

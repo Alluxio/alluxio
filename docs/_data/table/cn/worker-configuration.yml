@@ -9,9 +9,9 @@ alluxio.worker.block.heartbeat.interval.ms:
 alluxio.worker.block.heartbeat.timeout.ms:
   worker心跳超时时间（单位：毫秒）。
 alluxio.worker.block.threads.max:
-  worker能处理的最大RPC请求数目，该值用于配置具有数据块worker的RPC Thrift服务器。
+  worker能处理的最大RPC并发请求数目，该值用于配置worker的Thrift线程池的最大线程数。
 alluxio.worker.block.threads.min:
-  worker能处理的最小RPC请求数目，该值用于配置具有数据块worker的RPC Thrift服务器。
+  worker用于处理RPC请求的最小线程数，该值用于配置worker的Thrift线程池的最小线程数。
 alluxio.worker.data.bind.host:
   运行Alluxio worker数据服务的主机名，参考<a href="#configure-multihomed-networks">多宿主网络</a>
 alluxio.worker.data.folder:
