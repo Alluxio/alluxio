@@ -22,6 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOptions> {
+  private boolean mAllowExists;
 
   /**
    * @return the default {@link CreateDirectoryOptions}
@@ -45,13 +46,40 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     mRecursive = options.isRecursive();
   }
 
+  private CreateDirectoryOptions() throws IOException {
+    super();
+    mAllowExists = false;
+    mDirectory = true;
+  }
+
+  /**
+   * @return the allowExists flag; it specifies whether an exception should be thrown if the object
+   *         being made already exists
+   */
+  public boolean isAllowExists() {
+    return mAllowExists;
+  }
+
+  /**
+   * @param allowExists the allowExists flag value to use; it specifies whether an exception
+   *        should be thrown if the object being made already exists.
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setAllowExists(boolean allowExists) {
+    mAllowExists = allowExists;
+    return this;
+  }
+
   @Override
   protected CreateDirectoryOptions getThis() {
     return this;
   }
 
-  private CreateDirectoryOptions() throws IOException {
-    super();
-    mDirectory = true;
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    return toStringHelper().add("allowExists", mAllowExists).toString();
   }
 }

@@ -11,7 +11,6 @@
 
 package alluxio.master.file.options;
 
-import alluxio.Constants;
 import alluxio.master.MasterContext;
 import alluxio.security.authorization.PermissionStatus;
 
@@ -27,44 +26,23 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class CreatePathOptions<T> {
-  protected boolean mAllowExists;
-  protected long mBlockSizeBytes;
   protected boolean mDirectory;
   protected boolean mMountPoint;
   protected long mOperationTimeMs;
   protected PermissionStatus mPermissionStatus;
   protected boolean mPersisted;
   protected boolean mRecursive;
-  protected long mTtl;
 
   protected CreatePathOptions() throws IOException {
-    mAllowExists = false;
-    mBlockSizeBytes = MasterContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mDirectory = false;
     mMountPoint = false;
     mOperationTimeMs = System.currentTimeMillis();
     mPermissionStatus = PermissionStatus.get(MasterContext.getConf(), true);
     mPersisted = false;
     mRecursive = false;
-    mTtl = Constants.NO_TTL;
   }
 
   protected abstract T getThis();
-
-  /**
-   * @return the allowExists flag; it specifies whether an exception should be thrown if the object
-   *         being made already exists
-   */
-  public boolean isAllowExists() {
-    return mAllowExists;
-  }
-
-  /**
-   * @return the block size
-   */
-  public long getBlockSizeBytes() {
-    return mBlockSizeBytes;
-  }
 
   /**
    * @return the directory flag; it specifies whether the object to create is a directory
@@ -107,33 +85,6 @@ public abstract class CreatePathOptions<T> {
    */
   public boolean isRecursive() {
     return mRecursive;
-  }
-
-  /**
-   * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
-   *         should be kept around before it is automatically deleted
-   */
-  public long getTtl() {
-    return mTtl;
-  }
-
-  /**
-   * @param allowExists the allowExists flag value to use; it specifies whether an exception
-   *        should be thrown if the object being made already exists.
-   * @return the updated options object
-   */
-  public T setAllowExists(boolean allowExists) {
-    mAllowExists = allowExists;
-    return getThis();
-  }
-
-  /**
-   * @param blockSizeBytes the block size to use
-   * @return the updated options object
-   */
-  public T setBlockSizeBytes(long blockSizeBytes) {
-    mBlockSizeBytes = blockSizeBytes;
-    return getThis();
   }
 
   /**
@@ -184,25 +135,9 @@ public abstract class CreatePathOptions<T> {
     return getThis();
   }
 
-  /**
-   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-   *        created file should be kept around before it is automatically deleted
-   * @return the updated options object
-   */
-  public T setTtl(long ttl) {
-    mTtl = ttl;
-    return getThis();
-  }
-
-  /**
-   * @return the name : value pairs for all the fields
-   */
-  @Override
-  public String toString() {
-    return Objects.toStringHelper(this).add("allowExists", mAllowExists)
-        .add("blockSizeBytes", mBlockSizeBytes).add("directory", mDirectory)
-        .add("mountPoint", mMountPoint).add("operationTimeMs", mOperationTimeMs)
-        .add("persisted", mPersisted).add("recursive", mRecursive).add("ttl", mTtl)
-        .add("permissionStatus", mPermissionStatus).toString();
+  protected Objects.ToStringHelper toStringHelper() {
+    return Objects.toStringHelper(this).add("directory", mDirectory).add("mountPoint", mMountPoint)
+        .add("operationTimeMs", mOperationTimeMs).add("persisted", mPersisted)
+        .add("recursive", mRecursive).add("permissionStatus", mPermissionStatus);
   }
 }

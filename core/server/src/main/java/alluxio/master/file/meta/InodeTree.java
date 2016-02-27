@@ -23,6 +23,8 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.master.MasterContext;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.PermissionChecker;
+import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.JournalCheckpointStreamable;
 import alluxio.master.journal.JournalOutputStream;
@@ -120,10 +122,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
    */
   public void initializeRoot(PermissionStatus rootPermissionStatus) {
     if (mRoot == null) {
-      mRoot =
-          new InodeDirectory.Builder().setName(ROOT_INODE_NAME)
-              .setId(mDirectoryIdGenerator.getNewDirectoryId())
-              .setPermissionStatus(rootPermissionStatus).setParentId(NO_PARENT).build();
+      mRoot = new InodeDirectory(mDirectoryIdGenerator.getNewDirectoryId()).setName(ROOT_INODE_NAME)
+          .setPermissionStatus(rootPermissionStatus).setParentId(NO_PARENT);
       mInodes.add(mRoot);
       mCachedInode = mRoot;
     }
@@ -227,8 +227,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
       LOG.info("FileAlreadyExistsException: {}", path);
       throw new FileAlreadyExistsException(path.toString());
     }
-    if (!options.isDirectory() && options.getBlockSizeBytes() < 1) {
-      throw new BlockInfoException("Invalid block size " + options.getBlockSizeBytes());
+    if (!options.isDirectory()) {
+      CreateFileOptions fileOptions = (CreateFileOptions) options;
+      if (fileOptions.getBlockSizeBytes() < 1) {
+        throw new BlockInfoException("Invalid block size " + fileOptions.getBlockSizeBytes());
+      }
     }
 
     LOG.debug("createPath {}", FormatUtils.parametersToString(path));
@@ -279,14 +282,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
     // Fill in the directories that were missing.
     for (int k = pathIndex; k < parentPath.length; k++) {
       Inode dir =
-          new InodeDirectory.Builder().setName(pathComponents[k])
-              .setId(mDirectoryIdGenerator.getNewDirectoryId())
-              .setParentId(currentInodeDirectory.getId())
-              .setPersistenceState(options.isPersisted() ? PersistenceState.PERSISTED
-                  : PersistenceState.NOT_PERSISTED)
-              .setCreationTimeMs(options.getOperationTimeMs())
-              .setPermissionStatus(options.getPermissionStatus())
-              .build();
+          new InodeDirectory(mDirectoryIdGenerator.getNewDirectoryId()).setName(pathComponents[k])
+              .setParentId(currentInodeDirectory.getId()).setPersistenceState(
+              options.isPersisted() ? PersistenceState.PERSISTED : PersistenceState.NOT_PERSISTED)
+              .setPermissionStatus(options.getPermissionStatus());
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
@@ -310,32 +309,28 @@ public final class InodeTree implements JournalCheckpointStreamable {
         // to the non-persisted Inodes of traversalResult.
         traversalResult.getNonPersisted().add(lastInode);
         toPersistDirectories.add(lastInode);
-      } else if (!(lastInode.isDirectory() && options.isAllowExists())) {
+      } else if (!(lastInode.isDirectory() && ((CreateDirectoryOptions) options).isAllowExists())) {
         LOG.info(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
         throw new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
       }
     } else {
       if (options.isDirectory()) {
-        lastInode =
-            new InodeDirectory.Builder().setName(name)
-                .setId(mDirectoryIdGenerator.getNewDirectoryId())
-                .setParentId(currentInodeDirectory.getId())
-                .setPermissionStatus(options.getPermissionStatus())
-                .setMountPoint(options.isMountPoint())
-                .build();
-        if (options.isPersisted()) {
+        CreateDirectoryOptions directoryOptions = (CreateDirectoryOptions) options;
+        lastInode = new InodeDirectory(mDirectoryIdGenerator.getNewDirectoryId()).setName(name)
+            .setParentId(currentInodeDirectory.getId())
+            .setPermissionStatus(directoryOptions.getPermissionStatus())
+            .setMountPoint(directoryOptions.isMountPoint());
+        if (directoryOptions.isPersisted()) {
           toPersistDirectories.add(lastInode);
         }
       } else {
-        lastInode =
-            new InodeFile.Builder().setBlockContainerId(mContainerIdGenerator.getNewContainerId())
-                .setBlockSizeBytes(options.getBlockSizeBytes()).setTtl(options.getTtl())
-                .setName(name).setParentId(currentInodeDirectory.getId())
-                .setPersistenceState(options.isPersisted() ? PersistenceState.PERSISTED
-                    : PersistenceState.NOT_PERSISTED)
-                .setCreationTimeMs(options.getOperationTimeMs())
-                .setPermissionStatus(options.getPermissionStatus())
-                .build();
+        CreateFileOptions fileOptions = (CreateFileOptions) options;
+        lastInode = new InodeFile(mContainerIdGenerator.getNewContainerId())
+            .setBlockSizeBytes(fileOptions.getBlockSizeBytes()).setTtl(fileOptions.getTtl())
+            .setName(name).setParentId(currentInodeDirectory.getId()).setPersistenceState(
+                fileOptions.isPersisted() ? PersistenceState.PERSISTED :
+                    PersistenceState.NOT_PERSISTED)
+            .setPermissionStatus(fileOptions.getPermissionStatus());
         if (currentInodeDirectory.isPinned()) {
           // Update set of pinned file ids.
           mPinnedInodeFileIds.add(lastInode.getId());
@@ -378,7 +373,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl)
       throws InvalidPathException {
     InodeFile file = (InodeFile) getInodeByPath(path);
-    file.setBlockSize(blockSizeBytes);
+    file.setBlockSizeBytes(blockSizeBytes);
     file.setTtl(ttl);
     return file.getId();
   }
