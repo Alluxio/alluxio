@@ -9,7 +9,7 @@ and bridges computation frameworks and underlying storage systems. Applications 
 with Alluxio to access data stored in any underlying storage systems. Additionally, Alluxio’s
 memory-centric architecture enables data access orders of magnitude faster than existing solutions.
 
-In the big data ecosystem, Alluxio lies between computation frameworks or jobs, such as Apache Spark,
+In big data ecosystem, Alluxio lies between computation frameworks or jobs, such as Apache Spark,
 Apache MapReduce, or Apache Flink, and various kinds of storage systems, such as Amazon S3, OpenStack
 Swift, GlusterFS, HDFS, Ceph, or OSS. Alluxio brings significant performance improvement to the stack;
 for example, [Baidu](https://www.baidu.com)
