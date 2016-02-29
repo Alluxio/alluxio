@@ -72,7 +72,7 @@ public class AlluxioMaster {
       System.exit(-1);
     }
 
-    // validate
+    // validate the conf
     if (!ValidateConf.validate()) {
       System.exit(-1);
     }

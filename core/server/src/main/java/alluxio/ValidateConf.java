@@ -49,6 +49,9 @@ public final class ValidateConf {
 
     // Alluxio version is a valid conf entry but not defined in alluxio.Constants
     validProperties.add("alluxio.version");
+    
+    // Alluxio accesslogger is defined in the start script, but not in alluxio.Constants
+    validProperties.add("alluxio.accesslogger.type");
 
     // There are three properties that are auto-generated in WorkerStorage based on corresponding
     // format strings defined in alluxio.Constants. Here we transform each format string to a regexp
