@@ -117,7 +117,7 @@ public final class MountTable {
   }
 
   /**
-   * Returns the mount point the given path is nested under.
+   * Returns the closest ancestor mount point the given path is nested under.
    *
    * @param uri an Alluxio path URI
    * @return mount point the given Alluxio path is nested under
