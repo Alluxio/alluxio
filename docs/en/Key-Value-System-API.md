@@ -73,7 +73,7 @@ Similarly, Alluxio also provides implementations of `OutputFormat` and `OutputCo
  MapReduce programs to create a key-value store by taking a key-value URI, and saving key-value
  pairs to the key-value store:
 
- {% include Key-Value-Store-API/set-output-format.md %}
+{% include Key-Value-Store-API/set-output-format.md %}
 
 
 # Configuration Parameters For Key-Value System
