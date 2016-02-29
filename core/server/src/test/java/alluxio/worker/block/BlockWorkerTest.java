@@ -19,7 +19,6 @@ import alluxio.Configuration;
 import alluxio.Sessions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.DataServer;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.meta.BlockMeta;
@@ -27,7 +26,6 @@ import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -104,16 +102,6 @@ public class BlockWorkerTest {
     Whitebox.setInternalState(mBlockWorker, "mSessions", mSessions);
   }
 
-  /**
-   * Stop the DataServer to clean up.
-   *
-   * @throws IOException if clean up fails
-   */
-  @After
-  public void after() throws IOException {
-    ((DataServer) Whitebox.getInternalState(mBlockWorker, "mDataServer")).close();
-    WorkerContext.reset();
-  }
   /**
    * Tests the {@link BlockWorker#abortBlock(long, long)} method.
    *

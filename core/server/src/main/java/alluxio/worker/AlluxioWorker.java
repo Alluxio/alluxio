@@ -47,7 +47,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Entry point for the Alluxio worker program. This class is responsible for initializing the
- * different workers that are configured to run.
+ * different workers that are configured to run. It also creates the data server which listens
+ * for all remote I/O requests for the workers.
  */
 @NotThreadSafe
 public final class AlluxioWorker {
