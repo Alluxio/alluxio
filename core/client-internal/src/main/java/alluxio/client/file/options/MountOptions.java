@@ -14,6 +14,8 @@ package alluxio.client.file.options;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.MountTOptions;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -63,10 +65,7 @@ public final class MountOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("MountOptions(");
-    sb.append(super.toString()).append(", Readonly: ").append(mReadOnly);
-    sb.append(")");
-    return sb.toString();
+    return Objects.toStringHelper(this).add("readonly", mReadOnly).toString();
   }
 
   /**
