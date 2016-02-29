@@ -14,6 +14,8 @@ package alluxio.master.file.meta.options;
 import alluxio.AlluxioURI;
 import alluxio.master.file.options.MountOptions;
 
+import com.google.common.base.Preconditions;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -31,7 +33,7 @@ public final class MountInfo {
    * @param options the mount options
    */
   public MountInfo(AlluxioURI ufsUri, MountOptions options) {
-    mUfsUri = ufsUri;
+    mUfsUri = Preconditions.checkNotNull(ufsUri);
     mOptions = options;
   }
 
