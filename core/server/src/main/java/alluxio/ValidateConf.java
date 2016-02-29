@@ -30,6 +30,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ValidateConf {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Validates the configurations.
+   * 
+   * @return true if the validation succeeds, false otherwise
+   */
   public static boolean validate() {
     Set<String> validProperties = new HashSet<String>();
     try {
@@ -49,7 +54,7 @@ public final class ValidateConf {
 
     // Alluxio version is a valid conf entry but not defined in alluxio.Constants
     validProperties.add("alluxio.version");
-    
+
     // Alluxio accesslogger is defined in the start script, but not in alluxio.Constants
     validProperties.add("alluxio.accesslogger.type");
 
