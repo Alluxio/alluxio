@@ -104,7 +104,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Reset the worker context.
+   * Resets the worker context.
    */
   @After
   public void after() {
