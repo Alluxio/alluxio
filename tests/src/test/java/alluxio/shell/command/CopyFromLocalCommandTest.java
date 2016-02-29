@@ -12,12 +12,15 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.shell.AlluxioShell;
 import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.io.BufferUtils;
 
@@ -25,8 +28,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
 /**
  * Tests for copyFromLocal command.
@@ -140,6 +145,34 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     // Make sure the original file is intact
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
+  }
+
+  @Test
+  public void copyFromLocalLineageEnabledTest() throws IOException, AlluxioException {
+    File testFile1 = generateFileContent("/srcFile1", BufferUtils.getIncreasingByteArray(10));
+    mFsShell.run("copyFromLocal", testFile1.getPath(), "/dstFile1");
+    AlluxioURI uri1 = new AlluxioURI("/dstFile1");
+    URIStatus uriStatus1 = mFileSystem.getStatus(uri1);
+    Assert.assertNotNull(uriStatus1);
+    Assert.assertTrue(uriStatus1.isPersisted());
+    mFsShell.close();
+
+    clearLoginUser();
+    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
+    mFileSystem = mLocalAlluxioCluster.getClient();
+    mFsShell = new AlluxioShell(ClientContext.getConf());
+    mOutput = new ByteArrayOutputStream();
+    mNewOutput = new PrintStream(mOutput);
+    mOldOutput = System.out;
+    System.setOut(mNewOutput);
+    Assert.assertNotNull(mLocalAlluxioCluster);
+    mFileSystem = mLocalAlluxioCluster.getClient();
+    File testFile2 = generateFileContent("/srcFile2", BufferUtils.getIncreasingByteArray(10));
+    mFsShell.run("copyFromLocal", testFile2.getPath(), "/dstFile2");
+    AlluxioURI uri2 = new AlluxioURI("/dstFile2");
+    URIStatus uriStatus2 = mFileSystem.getStatus(uri2);
+    Assert.assertNotNull(uriStatus2);
+    checkFilePersisted(uri2, 10);
   }
 
   @Test
