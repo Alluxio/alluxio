@@ -29,51 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Alluxio file system's directory representation in the file system master.
  */
 @ThreadSafe
-public final class InodeDirectory extends Inode {
-
-  /**
-   * Builder for {@link InodeDirectory}.
-   */
-  public static class Builder extends Inode.Builder<InodeDirectory.Builder> {
-
-    private boolean mMountPoint;
-
-    /**
-     * Creates a new builder for {@link InodeDirectory}.
-     */
-    public Builder() {
-      super();
-      mDirectory = true;
-      mMountPoint = false;
-    }
-
-    /**
-     * Builds a new instance of {@link InodeDirectory}.
-     *
-     * @return a {@link InodeDirectory} instance
-     */
-    @Override
-    public InodeDirectory build() {
-      return new InodeDirectory(this);
-    }
-
-    /**
-     * @param mountPoint the mount point flag value to use
-     * @return the builder
-     */
-    public Builder setMountPoint(boolean mountPoint) {
-      mMountPoint = mountPoint;
-      return this;
-    }
-
-    @Override
-    protected Builder getThis() {
-      return this;
-    }
-  }
-
-  private boolean mMountPoint;
-
+public final class InodeDirectory extends Inode<InodeDirectory> {
   private IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
     @Override
     public Object getFieldValue(Inode o) {
@@ -91,9 +47,27 @@ public final class InodeDirectory extends Inode {
   @SuppressWarnings("unchecked")
   private IndexedSet<Inode> mChildren = new IndexedSet<Inode>(mIdIndex, mNameIndex);
 
-  private InodeDirectory(InodeDirectory.Builder builder) {
-    super(builder);
-    mMountPoint = builder.mMountPoint;
+  private boolean mMountPoint;
+
+  /**
+   * Creates a new instance of {@link InodeDirectory}.
+   *
+   * @param id the id to use
+   */
+  public InodeDirectory(long id) {
+    super(id);
+    mDirectory = true;
+    mMountPoint = false;
+  }
+
+  private InodeDirectory(long id, long creationTimeMs) {
+    this(id);
+    mCreationTimeMs = creationTimeMs;
+  }
+
+  @Override
+  protected InodeDirectory getThis() {
+    return this;
   }
 
   /**
@@ -103,36 +77,6 @@ public final class InodeDirectory extends Inode {
    */
   public synchronized void addChild(Inode child) {
     mChildren.add(child);
-  }
-
-  /**
-   * Generates client file info for the folder.
-   *
-   * @param path the path of the folder in the filesystem
-   * @return the generated {@link FileInfo}
-   */
-  @Override
-  public synchronized FileInfo generateClientFileInfo(String path) {
-    FileInfo ret = new FileInfo();
-    ret.setFileId(getId());
-    ret.setName(getName());
-    ret.setPath(path);
-    ret.setLength(0);
-    ret.setBlockSizeBytes(0);
-    ret.setCreationTimeMs(getCreationTimeMs());
-    ret.setCompleted(true);
-    ret.setFolder(isDirectory());
-    ret.setPinned(isPinned());
-    ret.setCacheable(false);
-    ret.setPersisted(isPersisted());
-    ret.setLastModificationTimeMs(getLastModificationTimeMs());
-    ret.setTtl(Constants.NO_TTL);
-    ret.setUserName(getUserName());
-    ret.setGroupName(getGroupName());
-    ret.setPermission(getPermission());
-    ret.setPersistenceState(getPersistenceState().toString());
-    ret.setMountPoint(isMountPoint());
-    return ret;
   }
 
   /**
@@ -203,6 +147,45 @@ public final class InodeDirectory extends Inode {
     return mChildren.removeByField(mNameIndex, name);
   }
 
+  /**
+   * @param mountPoint the mount point flag value to use
+   * @return the updated object
+   */
+  public synchronized InodeDirectory setMountPoint(boolean mountPoint) {
+    mMountPoint = mountPoint;
+    return this;
+  }
+
+  /**
+   * Generates client file info for the folder.
+   *
+   * @param path the path of the folder in the filesystem
+   * @return the generated {@link FileInfo}
+   */
+  @Override
+  public synchronized FileInfo generateClientFileInfo(String path) {
+    FileInfo ret = new FileInfo();
+    ret.setFileId(getId());
+    ret.setName(getName());
+    ret.setPath(path);
+    ret.setLength(0);
+    ret.setBlockSizeBytes(0);
+    ret.setCreationTimeMs(getCreationTimeMs());
+    ret.setCompleted(true);
+    ret.setFolder(isDirectory());
+    ret.setPinned(isPinned());
+    ret.setCacheable(false);
+    ret.setPersisted(isPersisted());
+    ret.setLastModificationTimeMs(getLastModificationTimeMs());
+    ret.setTtl(Constants.NO_TTL);
+    ret.setUserName(getUserName());
+    ret.setGroupName(getGroupName());
+    ret.setPermission(getPermission());
+    ret.setPersistenceState(getPersistenceState().toString());
+    ret.setMountPoint(isMountPoint());
+    return ret;
+  }
+
   @Override
   public synchronized String toString() {
     return toStringHelper().add("mountPoint", mMountPoint).add("children", mChildren).toString();
@@ -218,17 +201,14 @@ public final class InodeDirectory extends Inode {
     PermissionStatus permissionStatus = new PermissionStatus(entry.getUserName(),
         entry.getGroupName(), (short) entry.getPermission());
     InodeDirectory inode =
-        new InodeDirectory.Builder()
+        new InodeDirectory(entry.getId(), entry.getCreationTimeMs())
             .setName(entry.getName())
-            .setId(entry.getId())
             .setParentId(entry.getParentId())
-            .setCreationTimeMs(entry.getCreationTimeMs())
             .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
             .setPinned(entry.getPinned())
             .setLastModificationTimeMs(entry.getLastModificationTimeMs())
             .setPermissionStatus(permissionStatus)
-            .setMountPoint(entry.getMountPoint())
-            .build();
+            .setMountPoint(entry.getMountPoint());
     return inode;
   }
 

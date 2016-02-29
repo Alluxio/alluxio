@@ -20,7 +20,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterContext;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.TtlBucketPrivateAccess;
@@ -209,9 +208,7 @@ public class FileSystemMasterIntegrationTest {
         AlluxioURI dstPath = mRootPath2.join(path);
         long fileId = mFsMaster.getFileId(srcPath);
         try {
-          CreateDirectoryOptions options =
-              new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(true)
-                  .build();
+          CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
           mFsMaster.mkdir(dstPath.getParent(), options);
         } catch (FileAlreadyExistsException e) {
           // This is an acceptable exception to get, since we don't know if the parent has been
@@ -421,8 +418,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void createFilePerfTest() throws Exception {
     for (int k = 0; k < 200; k++) {
-      CreateDirectoryOptions options =
-          new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
+      CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
       mFsMaster.mkdir(
           new AlluxioURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0"),
           options);
@@ -562,8 +558,7 @@ public class FileSystemMasterIntegrationTest {
   public void lastModificationTimeCreateFileTest() throws Exception {
     mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
-    CreateFileOptions options =
-        new CreateFileOptions.Builder(MasterContext.getConf()).setOperationTimeMs(opTimeMs).build();
+    CreateFileOptions options = CreateFileOptions.defaults().setOperationTimeMs(opTimeMs);
     mFsMaster.createInternal(new AlluxioURI("/testFolder/testFile"), options);
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
@@ -596,8 +591,7 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void listFilesTest() throws Exception {
-    CreateFileOptions options =
-        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(64).build();
+    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(64);
 
     HashSet<Long> ids = new HashSet<Long>();
     HashSet<Long> dirIds = new HashSet<Long>();
@@ -625,8 +619,7 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void lsTest() throws Exception {
-    CreateFileOptions options =
-        new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(64).build();
+    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(64);
 
     for (int i = 0; i < 10; i++) {
       mFsMaster.mkdir(new AlluxioURI("/i" + i), CreateDirectoryOptions.defaults());
@@ -673,10 +666,9 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void renameToDeeper() throws Exception {
-    CreateFileOptions createFileOptions =
-        new CreateFileOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
+    CreateFileOptions createFileOptions = CreateFileOptions.defaults().setRecursive(true);
     CreateDirectoryOptions createDirectoryOptions =
-        new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
+        CreateDirectoryOptions.defaults().setRecursive(true);
     mThrown.expect(InvalidPathException.class);
     mFsMaster.mkdir(new AlluxioURI("/testDir1/testDir2"), createDirectoryOptions);
     mFsMaster.create(new AlluxioURI("/testDir1/testDir2/testDir3/testFile3"), createFileOptions);
@@ -688,8 +680,7 @@ public class FileSystemMasterIntegrationTest {
   public void ttlCreateFileTest() throws Exception {
     mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 100;
-    CreateFileOptions options =
-        new CreateFileOptions.Builder(MasterContext.getConf()).setTtl(ttl).build();
+    CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
     mFsMaster.createInternal(new AlluxioURI("/testFolder/testFile"), options);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
@@ -700,8 +691,7 @@ public class FileSystemMasterIntegrationTest {
   public void ttlExpiredCreateFileTest() throws Exception {
     mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
-    CreateFileOptions options =
-        new CreateFileOptions.Builder(MasterContext.getConf()).setTtl(ttl).build();
+    CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
     long fileId = mFsMaster.create(new AlluxioURI("/testFolder/testFile1"), options);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
@@ -716,8 +706,7 @@ public class FileSystemMasterIntegrationTest {
   public void ttlRenameTest() throws Exception {
     mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
-    CreateFileOptions options =
-        new CreateFileOptions.Builder(MasterContext.getConf()).setTtl(ttl).build();
+    CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
     long fileId = mFsMaster.create(new AlluxioURI("/testFolder/testFile1"), options);
     mFsMaster.renameInternal(fileId, new AlluxioURI("/testFolder/testFile2"), true,
         TEST_CURRENT_TIME);
