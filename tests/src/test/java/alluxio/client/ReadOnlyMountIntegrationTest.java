@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
@@ -156,29 +155,6 @@ public class ReadOnlyMountIntegrationTest {
     fileUri = new AlluxioURI(SUB_FILE_PATH);
     mFileSystem.loadMetadata(fileUri, LoadMetadataOptions.defaults().setRecursive(true));
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
-  }
-
-  @Test
-  public void mkdirTest() throws IOException, AlluxioException {
-    CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
-
-    AlluxioURI createPath = new AlluxioURI(PathUtils.concatPath(FILE_PATH, "create"));
-    try {
-      mFileSystem.createDirectory(createPath, options);
-      Assert.fail("createDirectory should not succeed under a readonly mount.");
-    } catch (AccessControlException e) {
-      Assert.assertEquals(e.getMessage(),
-          ExceptionMessage.MOUNT_READONLY.getMessage(createPath, MOUNT_PATH));
-    }
-
-    createPath = new AlluxioURI(PathUtils.concatPath(SUB_FILE_PATH, "create"));
-    try {
-      mFileSystem.createDirectory(createPath, options);
-      Assert.fail("createDirectory should not succeed under a readonly mount.");
-    } catch (AccessControlException e) {
-      Assert.assertEquals(e.getMessage(),
-          ExceptionMessage.MOUNT_READONLY.getMessage(createPath, MOUNT_PATH));
-    }
   }
 
   @Test
