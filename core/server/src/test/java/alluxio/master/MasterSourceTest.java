@@ -37,6 +37,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -59,9 +60,7 @@ public final class MasterSourceTest {
   private static final AlluxioURI MOUNT_URI =
       new AlluxioURI("/tmp/mount-" + System.currentTimeMillis());
 
-  private static CreateFileOptions sNestedFileOptions =
-      new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-          .setRecursive(true).build();
+  private static CreateFileOptions sNestedFileOptions;
 
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
@@ -74,6 +73,12 @@ public final class MasterSourceTest {
   /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
+
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    sNestedFileOptions =
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
+  }
 
   /**
    * Sets up the dependencies before a test runs.
@@ -326,8 +331,8 @@ public final class MasterSourceTest {
   public void filePersistedTest() throws Exception {
     createCompleteFileWithSingleBlock(NESTED_FILE_URI);
 
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        new SetAttributeOptions.Builder().setPersisted(true).build());
+    mFileSystemMaster
+        .setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPersisted(true));
 
     Assert.assertEquals(1, mCounters.get(MasterSource.FILES_PERSISTED).getCount());
   }
@@ -421,8 +426,7 @@ public final class MasterSourceTest {
     mFileSystemMaster.create(path, sNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(path);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, "MEM", blockId, Constants.KB);
-    CompleteFileOptions options =
-        new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(Constants.KB).build();
+    CompleteFileOptions options = CompleteFileOptions.defaults().setUfsLength(Constants.KB);
     mFileSystemMaster.completeFile(path, options);
   }
 
@@ -433,8 +437,7 @@ public final class MasterSourceTest {
   }
 
   private void completeFile(AlluxioURI path) throws Exception {
-    CompleteFileOptions options =
-        new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(Constants.KB).build();
+    CompleteFileOptions options = CompleteFileOptions.defaults().setUfsLength(Constants.KB);
     mFileSystemMaster.completeFile(path, options);
   }
 }

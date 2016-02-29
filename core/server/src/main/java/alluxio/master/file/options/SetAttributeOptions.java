@@ -11,144 +11,31 @@
 
 package alluxio.master.file.options;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.master.MasterContext;
 import alluxio.thrift.SetAttributeTOptions;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method option for setting the attributes.
+ * Method options for setting the attributes.
  */
 @NotThreadSafe
 public class SetAttributeOptions {
-  /**
-   * Builder for {@link SetAttributeOptions}.
-   */
-  public static class Builder {
-    private Boolean mPinned;
-    private Long mTtl;
-    private Boolean mPersisted;
-    private String mOwner;
-    private String mGroup;
-    private Short mPermission;
-    private boolean mRecursive;
-    private long mOperationTimeMs;
-
-    /**
-     * Creates a new builder for {@link SetAttributeOptions}.
-     */
-    public Builder() {
-      this(MasterContext.getConf());
-    }
-
-    /**
-     * Creates a new builder for {@link SetAttributeOptions}.
-     *
-     * @param conf an Alluxio configuration
-     */
-    public Builder(Configuration conf) {
-      mPinned = null;
-      mTtl = null;
-      mPersisted = null;
-      mOwner = null;
-      mGroup = null;
-      mPermission = Constants.INVALID_PERMISSION;
-      mRecursive = false;
-      mOperationTimeMs = System.currentTimeMillis();
-    }
-
-    /**
-     * @param pinned the pinned flag value to use
-     * @return the builder
-     */
-    public Builder setPinned(boolean pinned) {
-      mPinned = pinned;
-      return this;
-    }
-
-    /**
-     * @param ttl the time-to-live (in seconds) to use
-     * @return the builder
-     */
-    public Builder setTtl(long ttl) {
-      mTtl = ttl;
-      return this;
-    }
-
-    /**
-     * @param persisted the persisted flag value to use
-     * @return the builder
-     */
-    public Builder setPersisted(boolean persisted) {
-      mPersisted = persisted;
-      return this;
-    }
-
-    /**
-     * @param owner the owner to use
-     * @return the builder
-     */
-    public Builder setOwner(String owner) {
-      mOwner = owner;
-      return this;
-    }
-
-    /**
-     * @param group the group to use
-     * @return the builder
-     */
-    public Builder setGroup(String group) {
-      mGroup = group;
-      return this;
-    }
-
-    /**
-     * @param permission the permission bits to use
-     * @return the builder
-     */
-    public Builder setPermission(short permission) {
-      mPermission = permission;
-      return this;
-    }
-
-    /**
-     * @param recursive whether owner / group / permission should be updated recursively
-     * @return the builder
-     */
-    public Builder setRecursive(boolean recursive) {
-      mRecursive = recursive;
-      return this;
-    }
-
-    /**
-     * @param operationTimeMs the operation time to use
-     * @return the builder
-     */
-    public Builder setOperationTimeMs(long operationTimeMs) {
-      mOperationTimeMs = operationTimeMs;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link SetAttributeOptions}.
-     *
-     * @return a {@link SetAttributeOptions} instance
-     */
-    public SetAttributeOptions build() {
-      return new SetAttributeOptions(this);
-    }
-  }
-
-  private final Boolean mPinned;
-  private final Long mTtl;
-  private final Boolean mPersisted;
-  private final String mOwner;
-  private final String mGroup;
-  private final Short mPermission;
-  private final boolean mRecursive;
+  private Boolean mPinned;
+  private Long mTtl;
+  private Boolean mPersisted;
+  private String mOwner;
+  private String mGroup;
+  private Short mPermission;
+  private boolean mRecursive;
   private long mOperationTimeMs;
+
+  /**
+   * @return the default {@link SetAttributeOptions}
+   */
+  public static SetAttributeOptions defaults() {
+    return new SetAttributeOptions();
+  }
 
   /**
    * Constructs a new method option for setting the attributes.
@@ -167,22 +54,15 @@ public class SetAttributeOptions {
     mOperationTimeMs = System.currentTimeMillis();
   }
 
-  /**
-   * @return the default {@link SetAttributeOptions}
-   */
-  public static SetAttributeOptions defaults() {
-    return new Builder(MasterContext.getConf()).build();
-  }
-
-  private SetAttributeOptions(Builder builder) {
-    mPinned = builder.mPinned;
-    mTtl = builder.mTtl;
-    mPersisted = builder.mPersisted;
-    mOwner = builder.mOwner;
-    mGroup = builder.mGroup;
-    mPermission = builder.mPermission;
-    mRecursive = builder.mRecursive;
-    mOperationTimeMs = builder.mOperationTimeMs;
+  private SetAttributeOptions() {
+    mPinned = null;
+    mTtl = null;
+    mPersisted = null;
+    mOwner = null;
+    mGroup = null;
+    mPermission = Constants.INVALID_PERMISSION;
+    mRecursive = false;
+    mOperationTimeMs = System.currentTimeMillis();
   }
 
   /**
@@ -239,5 +119,77 @@ public class SetAttributeOptions {
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
+  }
+
+  /**
+   * @param pinned the pinned flag value to use
+   * @return the updated options object
+   */
+  public SetAttributeOptions setPinned(boolean pinned) {
+    mPinned = pinned;
+    return this;
+  }
+
+  /**
+   * @param ttl the time-to-live (in seconds) to use
+   * @return the updated options object
+   */
+  public SetAttributeOptions setTtl(long ttl) {
+    mTtl = ttl;
+    return this;
+  }
+
+  /**
+   * @param persisted the persisted flag value to use
+   * @return the updated options object
+   */
+  public SetAttributeOptions setPersisted(boolean persisted) {
+    mPersisted = persisted;
+    return this;
+  }
+
+  /**
+   * @param owner the owner to use
+   * @return the updated options object
+   */
+  public SetAttributeOptions setOwner(String owner) {
+    mOwner = owner;
+    return this;
+  }
+
+  /**
+   * @param group the group to use
+   * @return the updated options object
+   */
+  public SetAttributeOptions setGroup(String group) {
+    mGroup = group;
+    return this;
+  }
+
+  /**
+   * @param permission the permission bits to use
+   * @return the updated options object
+   */
+  public SetAttributeOptions setPermission(short permission) {
+    mPermission = permission;
+    return this;
+  }
+
+  /**
+   * @param recursive whether owner / group / permission should be updated recursively
+   * @return the updated options object
+   */
+  public SetAttributeOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
+    return this;
+  }
+
+  /**
+   * @param operationTimeMs the operation time to use
+   * @return the updated options object
+   */
+  public SetAttributeOptions setOperationTimeMs(long operationTimeMs) {
+    mOperationTimeMs = operationTimeMs;
+    return this;
   }
 }
