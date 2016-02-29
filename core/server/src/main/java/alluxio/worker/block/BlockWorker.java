@@ -57,7 +57,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * This includes:
  *
- * Servers: {@link BlockWorkerClientServiceHandler} (RPC Server), BlockDataServer (Data Server)
+ * Servers: {@link BlockWorkerClientServiceHandler} (RPC Server)
  *
  * Periodic Threads: {@link BlockMasterSync} (Worker to Master continuous communication)
  *
