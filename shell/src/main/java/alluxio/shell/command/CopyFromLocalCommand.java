@@ -181,7 +181,14 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
           closer.close();
         }
       } else {
-        mFileSystem.createDirectory(dstPath);
+        try {
+          mFileSystem.createDirectory(dstPath);
+        } catch (FileAlreadyExistsException e) {
+          // it's fine if the directory already exists
+        } catch (AlluxioException e) {
+          throw new IOException(e.getMessage());
+        }
+
         List<String> errorMessages = Lists.newArrayList();
         String[] fileList = src.list();
         for (String file : fileList) {
