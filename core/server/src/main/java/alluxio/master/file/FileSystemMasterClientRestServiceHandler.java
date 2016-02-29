@@ -21,6 +21,7 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 
 import com.google.common.base.Preconditions;
+import com.qmino.miredot.annotations.ReturnType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,7 @@ import javax.ws.rs.core.Response;
 public final class FileSystemMasterClientRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  public static final String SERVICE_PREFIX = "file";
+  public static final String SERVICE_PREFIX = "master/file";
   public static final String SERVICE_NAME = "service_name";
   public static final String SERVICE_VERSION = "service_version";
   public static final String COMPLETE_FILE = "complete_file";
@@ -69,30 +70,36 @@ public final class FileSystemMasterClientRestServiceHandler {
   private final FileSystemMaster mFileSystemMaster = AlluxioMaster.get().getFileSystemMaster();
 
   /**
-   * @return the service name
+   * @summary get the service name
+   * @return the response object
    */
   @GET
   @Path(SERVICE_NAME)
+  @ReturnType("java.lang.String")
   public Response name() {
     return Response.ok(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME).build();
   }
 
   /**
-   * @return the service version
+   * @summary get the service version
+   * @return the response object
    */
   @GET
   @Path(SERVICE_VERSION)
+  @ReturnType("java.lang.Long")
   public Response version() {
     return Response.ok(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION).build();
   }
 
   /**
+   * @summary complete a file
    * @param path the file path
    * @param ufsLength the length of the file in under file system
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(COMPLETE_FILE)
+  @ReturnType("java.lang.Void")
   public Response completeFile(@QueryParam("path") String path,
       @QueryParam("ufsLength") Long ufsLength) {
     try {
@@ -110,14 +117,16 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary create a directory
    * @param path the file path
    * @param persisted whether directory should be persisted
    * @param recursive whether parent directories should be created if they do not already exist
    * @param allowExists whether the operation should succeed even if the directory already exists
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(CREATE_DIRECTORY)
+  @ReturnType("java.lang.Void")
   public Response createDirectory(@QueryParam("path") String path,
       @QueryParam("persisted") Boolean persisted, @QueryParam("recursive") Boolean recursive,
       @QueryParam("allowExists") Boolean allowExists) {
@@ -142,15 +151,17 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary create a file
    * @param path the file path
    * @param persisted whether directory should be persisted
    * @param recursive whether parent directories should be created if they do not already exist
    * @param blockSizeBytes the target block size in bytes
    * @param ttl the time-to-live (in milliseconds)
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(CREATE_FILE)
+  @ReturnType("java.lang.Void")
   public Response createFile(@QueryParam("path") String path,
       @QueryParam("persisted") Boolean persisted, @QueryParam("recursive") Boolean recursive,
       @QueryParam("blockSizeBytes") Long blockSizeBytes, @QueryParam("ttl") Long ttl) {
@@ -178,11 +189,13 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary get the list of file block descriptors for a file
    * @param path the file path
-   * @return a list of file block descriptors for the given path
+   * @return the response object
    */
   @GET
   @Path(GET_FILE_BLOCK_INFO_LIST)
+  @ReturnType("java.util.List<alluxio.wire.FileBlockInfo>")
   public Response getFileBlockInfoList(@QueryParam("path") String path) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
@@ -194,11 +207,13 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary get a new block id for a file
    * @param path the file path
-   * @return a new block id for the given path
+   * @return the response object
    */
   @POST
   @Path(GET_NEW_BLOCK_ID_FOR_FILE)
+  @ReturnType("java.lang.Long")
   public Response getNewBlockIdForFile(@QueryParam("path") String path) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
@@ -209,11 +224,13 @@ public final class FileSystemMasterClientRestServiceHandler {
     }
   }
   /**
+   * @summary get a file descriptor for a path
    * @param path the file path
-   * @return the file descriptor for the given path
+   * @return the response object
    */
   @GET
   @Path(GET_STATUS)
+  @ReturnType("alluxio.wire.FileInfo")
   public Response getStatus(@QueryParam("path") String path) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
@@ -225,11 +242,13 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary get a file descriptor for a file id
    * @param fileId the file id
-   * @return the file descriptor for the given file id
+   * @return the response object
    */
   @GET
   @Path(GET_STATUS_INTERNAL)
+  @ReturnType("alluxio.wire.FileInfo")
   public Response getStatusInternal(@QueryParam("fileId") Long fileId) {
     try {
       Preconditions.checkNotNull(fileId, "required 'fileId' parameter is missing");
@@ -241,21 +260,25 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary get the UFS address
    * @return the UFS address
    */
   @GET
   @Path(GET_UFS_ADDRESS)
+  @ReturnType("java.lang.String")
   public Response getUfsAddress() {
     return Response.ok(mFileSystemMaster.getUfsAddress()).build();
   }
 
   /**
+   * @summary free a path
    * @param path the path
    * @param recursive whether the path should be freed recursively
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(FREE)
+  @ReturnType("java.lang.Void")
   public Response free(@QueryParam("path") String path,
       @QueryParam("recursive") boolean recursive) {
     try {
@@ -269,11 +292,13 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary get the file descriptors for a path
    * @param path the file path
-   * @return a list of file descriptors for the contents of the given path
+   * @return the response object
    */
   @GET
   @Path(LIST_STATUS)
+  @ReturnType("java.util.List<alluxio.wire.FileInfo>")
   public Response listStatus(@QueryParam("path") String path) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
@@ -285,12 +310,14 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary load metadata for a path
    * @param path the alluxio path to load metadata for
    * @param recursive whether metadata should be loaded recursively
-   * @return the file id for the loaded path
+   * @return the response object
    */
   @POST
   @Path(LOAD_METADATA)
+  @ReturnType("java.lang.Long")
   public Response loadMetadata(@QueryParam("path") String path,
       @QueryParam("recursive") boolean recursive) {
     try {
@@ -303,12 +330,14 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary mount a UFS path
    * @param path the alluxio mount point
    * @param ufsPath the UFS path to mount
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(MOUNT)
+  @ReturnType("java.lang.Void")
   public Response mount(@QueryParam("path") String path, @QueryParam("ufsPath") String ufsPath) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
@@ -322,12 +351,14 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary remove a path
    * @param path the path to remove
    * @param recursive whether to remove paths recursively
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(REMOVE)
+  @ReturnType("java.lang.Void")
   public Response remove(@QueryParam("path") String path,
       @QueryParam("recursive") boolean recursive) {
     try {
@@ -341,12 +372,14 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary move a path
    * @param srcPath the source path
    * @param dstPath the destination path
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(RENAME)
+  @ReturnType("java.lang.Void")
   public Response rename(@QueryParam("srcPath") String srcPath,
       @QueryParam("dstPath") String dstPath) {
     try {
@@ -361,11 +394,13 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary schedule asynchronous persistence
    * @param path the file path
-   * @return the id of the worker that persistence is scheduled on
+   * @return the response object
    */
   @POST
   @Path(SCHEDULE_ASYNC_PERSIST)
+  @ReturnType("java.lang.Long")
   public Response scheduleAsyncPersist(@QueryParam("path") String path) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
@@ -377,6 +412,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary set an attribute
    * @param path the file path
    * @param pinned the pinned flag value to use
    * @param ttl the time-to-live (in seconds) to use
@@ -385,9 +421,10 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param group the file group
    * @param permission the file permission bits
    * @param recursive whether the attribute should be set recursively
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
+  @ReturnType("java.lang.Void")
   @Path(SET_ATTRIBUTE)
   public Response setAttribute(@QueryParam("path") String path,
       @QueryParam("pinned") Boolean pinned, @QueryParam("ttl") Long ttl,
@@ -427,11 +464,13 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary unmount a path
    * @param path the file path
-   * @return status 200 on success
+   * @return the response object
    */
   @POST
   @Path(UNMOUNT)
+  @ReturnType("java.lang.Boolean")
   public Response unmount(@QueryParam("path") String path) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");

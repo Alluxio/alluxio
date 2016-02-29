@@ -19,11 +19,14 @@ import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
 
+import com.google.common.collect.Lists;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
@@ -133,6 +136,52 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
   }
 
+  /**
+   * A wrapper class of the usage info per tier for displaying in the UI.
+   * This is mainly used to avoid using Map in jsp, which could cause problem with Java 8.
+   * See https://tachyon.atlassian.net/browse/ALLUXIO-22.
+   */
+  public static class UIUsageOnTier {
+    private final String mTierAlias;
+    private final long mCapacityBytes;
+    private final long mUsedBytes;
+
+    /**
+     * Creates a new instance of {@link UIUsageOnTier}.
+     *
+     * @param tierAlias tier alias
+     * @param capacityBytes capacity in bytes
+     * @param usedBytes used space in bytes
+     */
+    public UIUsageOnTier(String tierAlias, long capacityBytes, long usedBytes) {
+      mTierAlias = tierAlias;
+      mCapacityBytes = capacityBytes;
+      mUsedBytes = usedBytes;
+    }
+
+    /**
+     * @return the tier alias
+     */
+    public String getTierAlias() {
+      return mTierAlias;
+    }
+
+    /**
+     * @return capacity in bytes
+     */
+    public long getCapacityBytes() {
+      return mCapacityBytes;
+    }
+
+    /**
+     * @return used space in bytes
+     */
+    public long getUsedBytes() {
+      return mUsedBytes;
+    }
+
+  }
+
   private static final long serialVersionUID = 3735143768058466487L;
   private final transient BlockWorker mBlockWorker;
   private final UIWorkerInfo mUiWorkerInfo;
@@ -171,20 +220,24 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     long usedBytes = 0L;
     Map<String, Long> capacityBytesOnTiers = storeMeta.getCapacityBytesOnTiers();
     Map<String, Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
-    for (long capacity : capacityBytesOnTiers.values()) {
+    List<UIUsageOnTier> usageOnTiers = Lists.newArrayList();
+    for (Entry<String, Long> entry : capacityBytesOnTiers.entrySet()) {
+      String tier = entry.getKey();
+      long capacity = entry.getValue();
+      Long nullableUsed = usedBytesOnTiers.get(tier);
+      long used = nullableUsed == null ? 0 : nullableUsed;
+
       capacityBytes += capacity;
-    }
-    for (long used : usedBytesOnTiers.values()) {
       usedBytes += used;
+
+      usageOnTiers.add(new UIUsageOnTier(tier, capacity, used));
     }
 
     request.setAttribute("capacityBytes", FormatUtils.getSizeFromBytes(capacityBytes));
 
     request.setAttribute("usedBytes", FormatUtils.getSizeFromBytes(usedBytes));
 
-    request.setAttribute("capacityBytesOnTiers", capacityBytesOnTiers);
-
-    request.setAttribute("usedBytesOnTiers", usedBytesOnTiers);
+    request.setAttribute("usageOnTiers", usageOnTiers);
 
     List<UIStorageDir> storageDirs =
         new ArrayList<UIStorageDir>(storeMeta.getCapacityBytesOnDirs().size());
