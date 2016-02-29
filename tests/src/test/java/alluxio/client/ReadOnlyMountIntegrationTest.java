@@ -22,6 +22,7 @@ import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.UnderFileSystemUtils;
@@ -240,10 +241,26 @@ public class ReadOnlyMountIntegrationTest {
   @Test
   public void loadMetadataTest() throws IOException, AlluxioException {
     AlluxioURI fileUri = new AlluxioURI(FILE_PATH);
+    try {
+      mFileSystem.getStatus(fileUri);
+      Assert.fail("File should not exist before loading metadata.");
+    } catch (FileDoesNotExistException e) {
+      Assert
+          .assertEquals(e.getMessage(), ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(FILE_PATH));
+    }
     mFileSystem.loadMetadata(fileUri);
+    Assert.assertNotNull(mFileSystem.getStatus(fileUri));
 
     fileUri = new AlluxioURI(SUB_FILE_PATH);
+    try {
+      mFileSystem.getStatus(fileUri);
+      Assert.fail("File should not exist before loading metadata.");
+    } catch (FileDoesNotExistException e) {
+      Assert.assertEquals(e.getMessage(),
+          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(SUB_FILE_PATH));
+    }
     mFileSystem.loadMetadata(fileUri, LoadMetadataOptions.defaults().setRecursive(true));
+    Assert.assertNotNull(mFileSystem.getStatus(fileUri));
   }
 
   @Test
