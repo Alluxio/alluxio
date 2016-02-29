@@ -26,6 +26,7 @@ import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -100,6 +101,14 @@ public class BlockWorkerTest {
     Whitebox.setInternalState(mBlockWorker, "mHeartbeatReporter", mHeartbeatReporter);
     Whitebox.setInternalState(mBlockWorker, "mMetricsReporter", mMetricsReporter);
     Whitebox.setInternalState(mBlockWorker, "mSessions", mSessions);
+  }
+
+  /**
+   * Reset the worker context.
+   */
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   /**
