@@ -1,5 +1,5 @@
 <%@ page import="java.util.*" %>
-<%@ page import="tachyon.web.*" %>
+<%@ page import="alluxio.web.*" %>
 <%@ page import="static org.apache.commons.lang.StringEscapeUtils.escapeHtml" %>
 <%@ page import="static java.net.URLEncoder.encode" %>
 
@@ -33,7 +33,7 @@
             <th>Size</th>
             <th>Block Size</th>
             <th>In-Memory</th>
-            <% if (!((Boolean)request.getAttribute("viewLog"))) { %>
+            <% if ((Boolean)request.getAttribute("showPermissions")) { %>
               <th>Permission</th>
               <th>Owner</th>
               <th>Group</th>
@@ -118,7 +118,7 @@
                       <%= fileInfo.getInMemoryPercentage() %>%
                     <% } %>
                   </th>
-                  <% if (!((Boolean)request.getAttribute("viewLog"))) { %>
+                  <% if ((Boolean)request.getAttribute("showPermissions")) { %>
                     <th><%= fileInfo.getPermission() %></th>
                     <th><%= fileInfo.getUserName() %></th>
                     <th><%= fileInfo.getGroupName() %></th>

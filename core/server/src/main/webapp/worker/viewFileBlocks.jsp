@@ -1,14 +1,15 @@
-<%@ page import="java.util.*" %>
-<%@ page import="tachyon.web.*" %>
+<%@ page import="java.util.List" %>
+<%@ page import="alluxio.web.*" %>
+<%@ page import="org.apache.commons.lang3.tuple.*" %>
 <%@ page import="static org.apache.commons.lang.StringEscapeUtils.escapeHtml" %>
 
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
-<link href="css/tachyoncustom.min.css" rel="stylesheet">
+<link href="css/custom.min.css" rel="stylesheet">
 </head>
-<title>Tachyon</title>
+<title>Alluxio</title>
 <body>
   <script src="js/jquery-1.9.1.min.js" type="text/javascript"></script>
     <script src="js/bootstrap.min.js"></script>
@@ -86,11 +87,11 @@
               <th>Tier</th>
               <th>Size (Byte)</th>
             </tr>
-            <% for (Map.Entry<String, List<UIFileBlockInfo>> entry : ((Map<String, List<UIFileBlockInfo>>) request.getAttribute("fileBlocksOnTier")).entrySet()) { %>
-              <% for (UIFileBlockInfo masterBlockInfo : entry.getValue()) { %>
+            <% for (ImmutablePair<String, List<UIFileBlockInfo>> pair : (List<ImmutablePair<String, List<UIFileBlockInfo>>>) request.getAttribute("fileBlocksOnTier")) { %>
+              <% for (UIFileBlockInfo masterBlockInfo : pair.getRight()) { %>
                 <tr>
                   <td><%= masterBlockInfo.getID() %></td>
-                  <td><%= entry.getKey() %></td>
+                  <td><%= pair.getLeft() %></td>
                   <td><%= masterBlockInfo.getBlockLength() %></td>
                 </tr>
               <% } %>
