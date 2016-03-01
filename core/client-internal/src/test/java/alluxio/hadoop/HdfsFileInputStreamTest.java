@@ -122,4 +122,39 @@ public class HdfsFileInputStreamTest {
     mHdfsFileInputStream.read(b);
     verify(mHdfsFileInputStream).read(b);
   }
+
+  /**
+   * Test the {@link readFully(long, byte[])} method.
+   *
+   * @throws IOException Should throw IOException
+   */
+  @Test
+  public void readFullyTest() throws IOException {
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage(ExceptionMessage.NOT_SUPPORTED.getMessage());
+    byte[] b = new byte[20];
+    sRandom.nextBytes(b);
+    long position = sRandom.nextLong();
+    int offset = sRandom.nextInt();
+    int length = sRandom.nextInt();
+    mHdfsFileInputStream.readFully(position, b);
+    verify(mHdfsFileInputStream).readFully(position, b);
+
+    mHdfsFileInputStream.readFully(position, b, offset, length);
+    verify(mHdfsFileInputStream).readFully(position, b);
+  }
+
+  /**
+   * Test the {@link seekToNewSource(long)} method.
+   *
+   * @throws IOException Should throw IOException
+   */
+  @Test
+  public void seekToNewSourceTest() throws IOException {
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage(ExceptionMessage.NOT_SUPPORTED.getMessage());
+    long targetPos = sRandom.nextLong();
+    mHdfsFileInputStream.seekToNewSource(targetPos);
+    verify(mHdfsFileInputStream).seekToNewSource(targetPos);
+  }
 }
