@@ -11,165 +11,73 @@
 
 package alluxio.master.file.options;
 
-import alluxio.Configuration;
-import alluxio.master.MasterContext;
 import alluxio.thrift.CreateDirectoryTOptions;
+
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method option for creating a directory.
+ * Method options for creating a directory.
  */
 @NotThreadSafe
-public final class CreateDirectoryOptions {
-  /**
-   * Builder for {@link CreateDirectoryOptions}.
-   */
-  public static class Builder {
-    private boolean mAllowExists;
-    private long mOperationTimeMs;
-    private boolean mPersisted;
-    private boolean mRecursive;
-    private boolean mMetadataLoad;
-
-    /**
-     * Creates a new builder for {@link CreateDirectoryOptions}.
-     *
-     * @param conf an Alluxio configuration
-     */
-    public Builder(Configuration conf) {
-      mOperationTimeMs = System.currentTimeMillis();
-      mPersisted = false;
-      mRecursive = false;
-      mMetadataLoad = false;
-    }
-
-    /**
-     * @param allowExists the allowExists flag value to use; it specifies whether an exception
-     *        should be thrown if the directory being made already exists.
-     * @return the builder
-     */
-    public Builder setAllowExists(boolean allowExists) {
-      mAllowExists = allowExists;
-      return this;
-    }
-
-    /**
-     * @param operationTimeMs the operation time to use
-     * @return the builder
-     */
-    public Builder setOperationTimeMs(long operationTimeMs) {
-      mOperationTimeMs = operationTimeMs;
-      return this;
-    }
-
-    /**
-     * @param persisted the persisted flag to use; it specifies whether the object to create is
-     *        persisted in UFS
-     * @return the builder
-     */
-    public Builder setPersisted(boolean persisted) {
-      mPersisted = persisted;
-      return this;
-    }
-
-    /**
-     * @param recursive the recursive flag value to use; it specifies whether parent directories
-     *        should be created if they do not already exist
-     * @return the builder
-     */
-    public Builder setRecursive(boolean recursive) {
-      mRecursive = recursive;
-      return this;
-    }
-
-    /**
-     * @param metadataLoad the flag value to use; if true, the create directory is a result of a
-     *                     metadata load.
-     * @return the builder
-     */
-    public Builder setMetadataLoad(boolean metadataLoad) {
-      mMetadataLoad = metadataLoad;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link CreateDirectoryOptions}.
-     *
-     * @return a {@link CreateDirectoryOptions} instance
-     */
-    public CreateDirectoryOptions build() {
-      return new CreateDirectoryOptions(this);
-    }
-  }
+public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOptions> {
+  private boolean mAllowExists;
 
   /**
    * @return the default {@link CreateDirectoryOptions}
+   * @throws IOException if I/O error occurs
    */
-  public static CreateDirectoryOptions defaults() {
-    return new Builder(MasterContext.getConf()).build();
-  }
-
-  private boolean mAllowExists;
-  private long mOperationTimeMs;
-  private boolean mPersisted;
-  private boolean mRecursive;
-  private boolean mMetadataLoad;
-
-  private CreateDirectoryOptions(CreateDirectoryOptions.Builder builder) {
-    mAllowExists = builder.mAllowExists;
-    mOperationTimeMs = builder.mOperationTimeMs;
-    mPersisted = builder.mPersisted;
-    mRecursive = builder.mRecursive;
-    mMetadataLoad = builder.mMetadataLoad;
+  public static CreateDirectoryOptions defaults() throws IOException {
+    return new CreateDirectoryOptions();
   }
 
   /**
    * Creates a new instance of {@link CreateDirectoryOptions} from {@link CreateDirectoryTOptions}.
    *
-   * @param options Thrift options
+   * @param options the {@link CreateDirectoryTOptions} to use
+   * @throws IOException if an I/O error occurs
    */
-  public CreateDirectoryOptions(CreateDirectoryTOptions options) {
+  public CreateDirectoryOptions(CreateDirectoryTOptions options) throws IOException {
+    super();
     mAllowExists = options.isAllowExists();
-    mOperationTimeMs = System.currentTimeMillis();
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
   }
 
+  private CreateDirectoryOptions() throws IOException {
+    super();
+    mAllowExists = false;
+  }
+
   /**
-   * @return the allowExists flag; it specifies whether an exception should be thrown if the
-   *         directory being made already exists.
+   * @return the allowExists flag; it specifies whether an exception should be thrown if the object
+   *         being made already exists
    */
   public boolean isAllowExists() {
     return mAllowExists;
   }
 
   /**
-   * @return the operation time
+   * @param allowExists the allowExists flag value to use; it specifies whether an exception
+   *        should be thrown if the object being made already exists.
+   * @return the updated options object
    */
-  public long getOperationTimeMs() {
-    return mOperationTimeMs;
+  public CreateDirectoryOptions setAllowExists(boolean allowExists) {
+    mAllowExists = allowExists;
+    return this;
+  }
+
+  @Override
+  protected CreateDirectoryOptions getThis() {
+    return this;
   }
 
   /**
-   * @return the persisted flag; it specifies whether the object to create is persisted in UFS
+   * @return the name : value pairs for all the fields
    */
-  public boolean isPersisted() {
-    return mPersisted;
-  }
-
-  /**
-   * @return the recursive flag value; it specifies whether parent directories should be created if
-   *         they do not already exist
-   */
-  public boolean isRecursive() {
-    return mRecursive;
-  }
-
-  /**
-   * @return the metadataLoad flag; if true, the create directory is a result of a metadata load
-   */
-  public boolean isMetadataLoad() {
-    return mMetadataLoad;
+  @Override
+  public String toString() {
+    return toStringHelper().add("allowExists", mAllowExists).toString();
   }
 }

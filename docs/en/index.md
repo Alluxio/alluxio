@@ -4,12 +4,15 @@ title: Overview
 group: Home
 ---
 
-Alluxio is an open source memory-centric distributed storage system enabling reliable data sharing
-at memory-speed across cluster jobs, possibly written in different computation frameworks, such as
-Apache Spark, Apache MapReduce, and Apache Flink. In the big data ecosystem, Alluxio lies between
-computation frameworks or jobs, such as Apache Spark, Apache MapReduce, or Apache Flink, and various
-kinds of storage systems, such as Amazon S3, OpenStack Swift, GlusterFS, HDFS, Ceph, or OSS. Alluxio
-brings significant performance improvement to the stack; for example, [Baidu](https://www.baidu.com)
+Alluxio, the world’s first memory-centric virtual distributed storage system, unifies data access
+and bridges computation frameworks and underlying storage systems. Applications only need to connect
+with Alluxio to access data stored in any underlying storage systems. Additionally, Alluxio’s
+memory-centric architecture enables data access orders of magnitude faster than existing solutions.
+
+In big data ecosystem, Alluxio lies between computation frameworks or jobs, such as Apache Spark,
+Apache MapReduce, or Apache Flink, and various kinds of storage systems, such as Amazon S3, OpenStack
+Swift, GlusterFS, HDFS, Ceph, or OSS. Alluxio brings significant performance improvement to the stack;
+for example, [Baidu](https://www.baidu.com)
 uses Alluxio to improve their data analytics performance by 30 times. Beyond performance, Alluxio
 bridges new workloads with data stored in traditional storage systems. Users can run Alluxio using
 its standalone cluster mode, for example on Amazon EC2, or launch Alluxio with Apache Mesos or
