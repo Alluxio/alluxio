@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
-alluxio_version=`grep version /alluxio/pom.xml | \
-                 head -n1 | tr -d ' '          | \
-                 sed 's/<version>//g'          | \
-                 sed 's/<\/version>//g'`
+alluxio_version=$(sed -n -e "s/^.*<version>\(.*\)<\/version>.*$/\1/p" < /alluxio/pom.xml | head -1)
 
 grep "ALLUXIO_JAR" /alluxio/libexec/alluxio-config.sh | grep "alluxio-assemblies"
 
