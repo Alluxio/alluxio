@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 alluxio_version=`grep version /alluxio/pom.xml | \
-                 head -n1 | tr -d ' '          | \
+                 head -n2 | tr -d ' '          | \
+		 sed 1d			       | \
                  sed 's/<version>//g'          | \
                  sed 's/<\/version>//g'`
 
