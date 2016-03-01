@@ -170,9 +170,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
       if (startCluster) {
         mLocalAlluxioCluster.start(mTestConf);
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    } catch (ConnectionFailedException e) {
+    } catch (IOException | ConnectionFailedException e) {
       throw new RuntimeException(e);
     }
     return new Statement() {
