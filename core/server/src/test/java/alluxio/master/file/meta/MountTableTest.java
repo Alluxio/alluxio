@@ -16,7 +16,6 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterContext;
 import alluxio.master.file.options.MountOptions;
 
 import org.junit.Assert;
@@ -191,7 +190,7 @@ public class MountTableTest {
     mMountTable.add(alluxioUri, new AlluxioURI("hdfs://localhost:5678/foo"), options);
 
     try {
-      mMountTable.checkWritable(alluxioUri);
+      mMountTable.checkUnderWritableMountPoint(alluxioUri);
       Assert.fail("Readonly mount point should not be writable.");
     } catch (AccessControlException e) {
       // Exception expected
@@ -202,7 +201,7 @@ public class MountTableTest {
     try {
       String path = mountPath + "/sub/directory";
       alluxioUri = new AlluxioURI("alluxio://localhost:1234" + path);
-      mMountTable.checkWritable(alluxioUri);
+      mMountTable.checkUnderWritableMountPoint(alluxioUri);
       Assert.fail("Readonly mount point should not be writable.");
     } catch (AccessControlException e) {
       // Exception expected
@@ -224,7 +223,7 @@ public class MountTableTest {
         .add(alluxioUri, new AlluxioURI("hdfs://localhost:5678/foo"), MountOptions.defaults());
 
     try {
-      mMountTable.checkWritable(alluxioUri);
+      mMountTable.checkUnderWritableMountPoint(alluxioUri);
     } catch (AccessControlException e) {
       Assert.fail("Default mount point should be writable.");
     }
@@ -232,7 +231,7 @@ public class MountTableTest {
     try {
       String path = mountPath + "/sub/directory";
       alluxioUri = new AlluxioURI("alluxio://localhost:1234" + path);
-      mMountTable.checkWritable(alluxioUri);
+      mMountTable.checkUnderWritableMountPoint(alluxioUri);
     } catch (AccessControlException e) {
       Assert.fail("Default mount point should be writable.");
     }

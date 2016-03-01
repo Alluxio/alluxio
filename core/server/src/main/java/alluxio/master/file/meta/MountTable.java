@@ -175,7 +175,7 @@ public final class MountTable {
    * @throws InvalidPathException if the Alluxio path is invalid
    * @throws AccessControlException if the Alluxio path is under a readonly mount point
    */
-  public synchronized void checkWritable(AlluxioURI alluxioUri)
+  public synchronized void checkUnderWritableMountPoint(AlluxioURI alluxioUri)
       throws InvalidPathException, AccessControlException {
     String mountPoint = getMountPoint(alluxioUri);
     MountInfo mountInfo = mMountTable.get(mountPoint);

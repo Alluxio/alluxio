@@ -601,7 +601,7 @@ public final class FileSystemMaster extends AbstractMaster {
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, path, true);
       if (!options.isMetadataLoad()) {
-        mMountTable.checkWritable(path);
+        mMountTable.checkUnderWritableMountPoint(path);
       }
       InodeTree.CreatePathResult createResult = createInternal(path, options);
       List<Inode> created = createResult.getCreated();
@@ -736,7 +736,7 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incDeletePathOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, path, true);
-      mMountTable.checkWritable(path);
+      mMountTable.checkUnderWritableMountPoint(path);
       Inode inode = mInodeTree.getInodeByPath(path);
       long fileId = inode.getId();
       long opTimeMs = System.currentTimeMillis();
@@ -1077,7 +1077,7 @@ public final class FileSystemMaster extends AbstractMaster {
       try {
         checkPermission(FileSystemAction.WRITE, path, true);
         if (!options.isMetadataLoad()) {
-          mMountTable.checkWritable(path);
+          mMountTable.checkUnderWritableMountPoint(path);
         }
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, options);
 
@@ -1141,8 +1141,8 @@ public final class FileSystemMaster extends AbstractMaster {
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, srcPath, true);
       checkPermission(FileSystemAction.WRITE, dstPath, true);
-      mMountTable.checkWritable(srcPath);
-      mMountTable.checkWritable(dstPath);
+      mMountTable.checkUnderWritableMountPoint(srcPath);
+      mMountTable.checkUnderWritableMountPoint(dstPath);
       Inode srcInode = mInodeTree.getInodeByPath(srcPath);
       // Renaming path to itself is a no-op.
       if (srcPath.equals(dstPath)) {
@@ -1538,7 +1538,7 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incMountOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, alluxioPath, true);
-      mMountTable.checkWritable(alluxioPath);
+      mMountTable.checkUnderWritableMountPoint(alluxioPath);
       mountInternal(alluxioPath, ufsPath, options);
       boolean loadMetadataSuceeded = false;
       try {
