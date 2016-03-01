@@ -279,7 +279,7 @@ public final class UIFileInfo {
    * @return the percentage of the file stored in the given tier
    */
   public int getOnTierPercentage(String tierAlias) {
-    Long sizeOnTier = mSizeOnTier.containsKey(tierAlias) ? mSizeOnTier.get(tierAlias) : 0;
+    Long sizeOnTier = mSizeOnTier.containsKey(tierAlias) ? mSizeOnTier.get(tierAlias) : 0L;
     return (int) (100 * sizeOnTier / mSize);
   }
 
