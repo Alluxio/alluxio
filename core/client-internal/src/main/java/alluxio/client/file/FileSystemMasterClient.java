@@ -314,7 +314,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
-        mClient.mount(alluxioPath.toString(), ufsPath.toString(), options.toThrift());
+        mClient.mountPath(alluxioPath.toString(), ufsPath.toString(), options.toThrift());
         return null;
       }
     });
