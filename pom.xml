@@ -45,7 +45,7 @@
   </developers>
   <issueManagement>
     <system>jira</system>
-    <url>https://tachyon.atlassian.net</url>
+    <url>https://alluxio.atlassian.net</url>
   </issueManagement>
 
   <parent>
