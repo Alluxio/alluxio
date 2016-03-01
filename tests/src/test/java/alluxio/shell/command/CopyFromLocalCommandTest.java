@@ -120,7 +120,8 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void copyFromLocalOverwriteTest() throws Exception {
-    // This tests makes sure copyFromLocal will not overwrite an existing Alluxio file
+    // This tests makes sure the destination file won't persist to an underlying fs with default
+    // configure.
     final int LEN1 = 10;
     final int LEN2 = 20;
     File testFile1 = generateFileContent("/testFile1", BufferUtils.getIncreasingByteArray(LEN1));
@@ -146,6 +147,8 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void copyFromLocalLineageUnEnabledTest() throws IOException, AlluxioException {
+    // If alluxio.user.lineage.enabled set true, the destination file should persist synchronously
+    // to an underlying fs.
     File testFile = generateFileContent("/srcFile", BufferUtils.getIncreasingByteArray(10));
     mFsShell.run("copyFromLocal", testFile.getPath(), "/dstFile");
     AlluxioURI dstURI = new AlluxioURI("/dstFile");
