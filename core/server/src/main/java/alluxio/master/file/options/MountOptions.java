@@ -11,8 +11,6 @@
 
 package alluxio.master.file.options;
 
-import alluxio.Configuration;
-import alluxio.master.MasterContext;
 import alluxio.proto.journal.File.MountOptionsEntry;
 import alluxio.thrift.MountTOptions;
 
@@ -23,52 +21,17 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MountOptions {
-  /**
-   * Builder for {@link MountOptions}.
-   */
-  public static class Builder {
-    private boolean mReadOnly;
-
-    /**
-     * Creates a new builder for {@link MountOptions}.
-     *
-     * @param conf an Alluxio configuration
-     */
-    public Builder(Configuration conf) {
-      mReadOnly = false;
-    }
-
-    /**
-     * @param readOnly the readOnly flag value to use; if true, write or create operations will not
-     *                 be allowed under the mount point.
-     * @return the builder
-     */
-    public Builder setReadOnly(boolean readOnly) {
-      mReadOnly = readOnly;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link MountOptions}.
-     *
-     * @return a {@link MountOptions} instance
-     */
-    public MountOptions build() {
-      return new MountOptions(this);
-    }
-  }
-
-  /**
-   * @return the default {@link MountOptions}
-   */
-  public static MountOptions defaults() {
-    return new Builder(MasterContext.getConf()).build();
-  }
-
   private boolean mReadOnly;
 
-  private MountOptions(MountOptions.Builder builder) {
-    mReadOnly = builder.mReadOnly;
+  /**
+   * @return the default {@link CompleteFileOptions}
+   */
+  public static MountOptions defaults() {
+    return new MountOptions();
+  }
+
+  private MountOptions() {
+    mReadOnly = false;
   }
 
   /**
@@ -97,6 +60,16 @@ public final class MountOptions {
    */
   public boolean isReadOnly() {
     return mReadOnly;
+  }
+
+  /**
+   * @param readOnly the readOnly flag to use; if true, write or create operations will not be
+   *                 allowed under the mount point.
+   * @return the updated options object
+   */
+  public MountOptions setReadOnly(boolean readOnly) {
+    mReadOnly = readOnly;
+    return this;
   }
 
   /**
