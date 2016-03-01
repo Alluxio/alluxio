@@ -1,4 +1,4 @@
-<div class="navbar navbar-inverse">
+<div class="navbar">
   <div class="navbar-inner">
     <ul class="nav nav-pills" style="height:40px;font-size:14px;font-weight: bold;vertical-align: bottom;">
       <li><a href="http://alluxio.org/" target="_blank"><img style="height:25px;margin-top:-5px;" src="img/logo.png" alt="Alluxio Logo"/></a></li>
