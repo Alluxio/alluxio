@@ -119,6 +119,9 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
+  /*
+   * This class provides multiple concurrent threads to free all files in one directory.
+   */
   class ConcurrentFreer implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
@@ -173,7 +176,9 @@ public class FileSystemMasterIntegrationTest {
       }
     }
   }
-
+  /*
+   * This class provides multiple concurrent threads to delete all files in one directory.
+   */
   class ConcurrentDeleter implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
