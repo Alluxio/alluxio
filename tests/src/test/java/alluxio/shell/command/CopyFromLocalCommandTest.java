@@ -13,14 +13,13 @@ package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
+import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.AbstractAlluxioShellTest;
-import alluxio.shell.AlluxioShell;
 import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.io.BufferUtils;
 
@@ -30,8 +29,6 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.FileOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 
 /**
  * Tests for copyFromLocal command.
@@ -148,31 +145,24 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalLineageEnabledTest() throws IOException, AlluxioException {
-    File testFile1 = generateFileContent("/srcFile1", BufferUtils.getIncreasingByteArray(10));
-    mFsShell.run("copyFromLocal", testFile1.getPath(), "/dstFile1");
-    AlluxioURI uri1 = new AlluxioURI("/dstFile1");
-    URIStatus uriStatus1 = mFileSystem.getStatus(uri1);
-    Assert.assertNotNull(uriStatus1);
-    Assert.assertTrue(uriStatus1.isPersisted());
-    mFsShell.close();
+  public void copyFromLocalLineageUnEnabledTest() throws IOException, AlluxioException {
+    File testFile = generateFileContent("/srcFile", BufferUtils.getIncreasingByteArray(10));
+    mFsShell.run("copyFromLocal", testFile.getPath(), "/dstFile");
+    AlluxioURI dstURI = new AlluxioURI("/dstFile");
+    URIStatus uriStatus = mFileSystem.getStatus(dstURI);
+    Assert.assertNotNull(uriStatus);
+    Assert.assertFalse(uriStatus.isPersisted());
+  }
 
-    clearLoginUser();
-    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
-    mFileSystem = mLocalAlluxioCluster.getClient();
-    mFsShell = new AlluxioShell(ClientContext.getConf());
-    mOutput = new ByteArrayOutputStream();
-    mNewOutput = new PrintStream(mOutput);
-    mOldOutput = System.out;
-    System.setOut(mNewOutput);
-    Assert.assertNotNull(mLocalAlluxioCluster);
-    mFileSystem = mLocalAlluxioCluster.getClient();
-    File testFile2 = generateFileContent("/srcFile2", BufferUtils.getIncreasingByteArray(10));
-    mFsShell.run("copyFromLocal", testFile2.getPath(), "/dstFile2");
-    AlluxioURI uri2 = new AlluxioURI("/dstFile2");
-    URIStatus uriStatus2 = mFileSystem.getStatus(uri2);
-    Assert.assertNotNull(uriStatus2);
-    checkFilePersisted(uri2, 10);
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {Constants.USER_LINEAGE_ENABLED, "true"})
+  public void copyFromLocalLineageEnabledTest() throws IOException, AlluxioException {
+    File testFile = generateFileContent("/srcFile", BufferUtils.getIncreasingByteArray(10));
+    mFsShell.run("copyFromLocal", testFile.getPath(), "/dstFile");
+    AlluxioURI dstURI = new AlluxioURI("/dstFile");
+    URIStatus uriStatus = mFileSystem.getStatus(dstURI);
+    Assert.assertNotNull(uriStatus);
+    checkFilePersisted(dstURI, 10);
   }
 
   @Test
@@ -256,6 +246,47 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
         mFsShell.run("copyFromLocal", mLocalAlluxioCluster.getAlluxioHome()
             + "/testWildCards/*/foo*", "/testWildCards/foobar4");
     Assert.assertEquals(-1, ret);
+  }
+
+  @Test
+  public void copyFromLocalWildcardLineageUnEnabledTest() throws IOException, AlluxioException {
+    File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
+    File srcInnerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/innerDir");
+    srcOuterDir.mkdir();
+    srcInnerDir.mkdir();
+    generateFileContent("/outerDir/srcFile1", BufferUtils.getIncreasingByteArray(10));
+    generateFileContent("/outerDir/innerDir/srcFile2", BufferUtils.getIncreasingByteArray(10));
+    int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/*", "/dstDir");
+    Assert.assertEquals(0, ret);
+    AlluxioURI dstURI1 = new AlluxioURI("/dstDir/srcFile1");
+    AlluxioURI dstURI2 = new AlluxioURI("/dstDir/innerDir/srcFile2");
+    URIStatus uriStatus1 = mFileSystem.getStatus(dstURI1);
+    URIStatus uriStatus2 = mFileSystem.getStatus(dstURI2);
+    Assert.assertNotNull(uriStatus1);
+    Assert.assertNotNull(uriStatus2);
+    Assert.assertFalse(uriStatus1.isPersisted());
+    Assert.assertFalse(uriStatus2.isPersisted());
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {Constants.USER_LINEAGE_ENABLED, "true"})
+  public void copyFromLocalWildcardLineageEnabledTest() throws IOException, AlluxioException {
+    File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
+    File srcInnerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/innerDir");
+    srcOuterDir.mkdir();
+    srcInnerDir.mkdir();
+    generateFileContent("/outerDir/srcFile1", BufferUtils.getIncreasingByteArray(10));
+    generateFileContent("/outerDir/innerDir/srcFile2", BufferUtils.getIncreasingByteArray(10));
+    int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/*", "/dstDir");
+    Assert.assertEquals(0, ret);
+    AlluxioURI dstURI1 = new AlluxioURI("/dstDir/srcFile1");
+    AlluxioURI dstURI2 = new AlluxioURI("/dstDir/innerDir/srcFile2");
+    URIStatus uriStatus1 = mFileSystem.getStatus(dstURI1);
+    URIStatus uriStatus2 = mFileSystem.getStatus(dstURI2);
+    Assert.assertNotNull(uriStatus1);
+    Assert.assertNotNull(uriStatus2);
+    checkFilePersisted(dstURI1, 10);
+    checkFilePersisted(dstURI2, 10);
   }
 
   @Test
