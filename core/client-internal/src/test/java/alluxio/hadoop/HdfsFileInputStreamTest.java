@@ -135,11 +135,24 @@ public class HdfsFileInputStreamTest {
     byte[] b = new byte[20];
     sRandom.nextBytes(b);
     long position = sRandom.nextLong();
-    int offset = sRandom.nextInt();
-    int length = sRandom.nextInt();
     mHdfsFileInputStream.readFully(position, b);
     verify(mHdfsFileInputStream).readFully(position, b);
+  }
 
+  /**
+   * Test the {@link readFully(long, byte[], int, int)} method.
+   *
+   * @throws IOException Should throw IOException
+   */
+  @Test
+  public void readFullyTest2() throws IOException {
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage(ExceptionMessage.NOT_SUPPORTED.getMessage());
+    byte[] b = new byte[20];
+    sRandom.nextBytes(b);
+    long position = sRandom.nextLong();
+    int offset = sRandom.nextInt();
+    int length = sRandom.nextInt();
     mHdfsFileInputStream.readFully(position, b, offset, length);
     verify(mHdfsFileInputStream).readFully(position, b);
   }
