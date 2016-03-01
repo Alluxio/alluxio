@@ -38,7 +38,7 @@ The project is the storage layer of the Berkeley Data Analytics Stack
 [User Document](Getting-Started.html) |
 [Developer Document](Contributing-to-Alluxio.html) |
 [Meetup Group](https://www.meetup.com/Alluxio/) |
-[JIRA](https://tachyon.atlassian.net/browse/ALLUXIO) |
+[JIRA](https://alluxio.atlassian.net/browse/ALLUXIO) |
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
 [Powered By](Powered-By-Alluxio.html)
 
@@ -61,8 +61,8 @@ automatically be managed between the different tiers, keeping hot data in faster
 policies are easily pluggable, and a pin concept allows for direct user control.
 
 * **[Unified Namespace](Unified-and-Transparent-Namespace.html)** Alluxio enables effective
-data management across different storage systems through the mount feature. Furthermore, 
-transparent naming ensures that file names and directory hierarchy for objects created in Alluxio 
+data management across different storage systems through the mount feature. Furthermore,
+transparent naming ensures that file names and directory hierarchy for objects created in Alluxio
 is preserved when persisting these objects to the underlying storage system.
 
 * **[Lineage](Lineage-API.html)** Alluxio can achieve high throughput writes without compromising
