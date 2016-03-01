@@ -16,6 +16,7 @@ echo "Formatting Alluxio Worker"
 "${JAVA}" -cp "${CLASSPATH}" \
   ${ALLUXIO_WORKER_JAVA_OPTS} \
   -Dalluxio.home="${ALLUXIO_HOME}" \
+  -Dalluxio.logger.type="WORKER_LOGGER" \  
   -Dalluxio.logs.dir="${YARN_LOG_DIR}" \
   alluxio.Format WORKER > "${YARN_LOG_DIR}"/worker.out 2>&1
 
@@ -23,7 +24,6 @@ echo "Starting Alluxio Worker"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${ALLUXIO_WORKER_JAVA_OPTS} \
-  -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" \
   -Dalluxio.home="${ALLUXIO_HOME}" \
   -Dalluxio.logger.type="WORKER_LOGGER" \
   -Dalluxio.logs.dir="${YARN_LOG_DIR}" \
