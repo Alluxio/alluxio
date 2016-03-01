@@ -22,10 +22,12 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
-import alluxio.master.PrivateAccess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.worker.block.BlockWorker;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -81,6 +83,10 @@ public final class FreeAndDeleteIntegrationTest {
 
   @Test
   public void freeAndDeleteIntegrationTest() throws Exception {
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+        TimeUnit.SECONDS));
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5,
+        TimeUnit.SECONDS));
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileOutStream os = mFileSystem.createFile(filePath, mWriteBoth);
     os.write((byte) 0);
@@ -90,21 +96,39 @@ public final class FreeAndDeleteIntegrationTest {
     URIStatus status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
+    Long blockId = status.getBlockIds().get(0);
+    BlockMaster bm = alluxio.master.PrivateAccess.getBlockMaster(
+        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster());
+    BlockInfo blockInfo = bm.getBlockInfo(blockId);
+    Assert.assertEquals(2, blockInfo.getLength());
+    Assert.assertFalse(blockInfo.getLocations().isEmpty());
+
+    BlockWorker bw = alluxio.worker.PrivateAccess.getBlockWorker(
+        mLocalAlluxioClusterResource.get().getWorker());
+    Assert.assertTrue(bw.hasBlockMeta(blockId));
+    Assert.assertTrue(bm.getLostBlocks().isEmpty());
+
     mFileSystem.free(filePath);
-    // Execute the blocks free, which needs two heartbeats
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-        TimeUnit.SECONDS));
+    // Execute the blocks free, which needs two heartbeats. Make sure there is some time delay
+    // between two heartbeats to make sure worker got time to generate block removal reports.
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
         TimeUnit.SECONDS));
+    CommonUtils.sleepMs(50);
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
         TimeUnit.SECONDS));
 
     status = mFileSystem.getStatus(filePath);
-    Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
-    // Block metadata is still present after block freed.
+    // Verify block metadata in master is still present after block freed.
     Assert.assertEquals(1, status.getBlockIds().size());
+    blockInfo = bm.getBlockInfo(status.getBlockIds().get(0));
+    Assert.assertEquals(2, blockInfo.getLength());
+    // Verify the block has been removed from all workers.
+    Assert.assertTrue(blockInfo.getLocations().isEmpty());
+    Assert.assertFalse(bw.hasBlockMeta(blockId));
+    // Verify the removed block is added to LostBlocks list.
+    Assert.assertTrue(bm.getLostBlocks().contains(blockInfo.getBlockId()));
 
     mFileSystem.delete(filePath);
     // File is immediately gone after delete.
@@ -112,15 +136,11 @@ public final class FreeAndDeleteIntegrationTest {
     mFileSystem.getStatus(filePath);
 
     // Execute the lost files detection.
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5,
-        TimeUnit.SECONDS));
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5,
         TimeUnit.SECONDS));
 
     // Verify the blocks are not in mLostBlocks.
-    BlockMaster bm = PrivateAccess.getBlockMaster(mLocalAlluxioClusterResource.get().getMaster()
-        .getInternalMaster());
-    Assert.assertEquals(0, bm.getLostBlocks().size());
+    Assert.assertTrue(bm.getLostBlocks().isEmpty());
   }
 }
