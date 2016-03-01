@@ -48,7 +48,7 @@ public final class AuthenticationUtils {
     AuthType authType = conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     switch (authType) {
       case NOSASL:
-        return new TFramedTransport.Factory(conf.getInt(Constants.THRIFT_FRAME_SIZE_BYTES_MAX));
+        return new TFramedTransport.Factory((int) conf.getBytes(Constants.THRIFT_FRAME_SIZE_BYTES_MAX));
       case SIMPLE: // intended to fall through
       case CUSTOM:
         return PlainSaslUtils.getPlainServerTransportFactory(authType, conf);
@@ -81,7 +81,7 @@ public final class AuthenticationUtils {
         conf.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS));
     switch (authType) {
       case NOSASL:
-        return new TFramedTransport(tTransport, conf.getInt(Constants.THRIFT_FRAME_SIZE_BYTES_MAX));
+        return new TFramedTransport(tTransport, (int) conf.getBytes(Constants.THRIFT_FRAME_SIZE_BYTES_MAX));
       case SIMPLE: // intended to fall through
       case CUSTOM:
         String username = LoginUser.get(conf).getName();
