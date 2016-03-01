@@ -185,8 +185,7 @@ public class MountTableTest {
    */
   @Test
   public void readOnlyMountTest() throws Exception {
-    MountOptions options =
-        new MountOptions.Builder(MasterContext.getConf()).setReadOnly(true).build();
+    MountOptions options = MountOptions.defaults().setReadOnly(true);
     String mountPath = "/mnt/foo";
     AlluxioURI alluxioUri = new AlluxioURI("alluxio://localhost:1234" + mountPath);
     mMountTable.add(alluxioUri, new AlluxioURI("hdfs://localhost:5678/foo"), options);
