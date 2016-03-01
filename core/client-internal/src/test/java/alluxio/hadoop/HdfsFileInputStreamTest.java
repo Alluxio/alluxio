@@ -36,6 +36,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
+import java.util.Random;
 
 /**
  * Unit tests for {@link HdfsFileInputStream}.
@@ -48,6 +49,7 @@ public class HdfsFileInputStreamTest {
   public final ExpectedException mThrown = ExpectedException.none();
 
   private static final int BUFSIZE = 1024;
+  private static Random sRandom = new Random();
 
   private HdfsFileInputStream mHdfsFileInputStream;
   private AlluxioURI mAlluxioURI;
@@ -104,5 +106,20 @@ public class HdfsFileInputStreamTest {
     mThrown.expectMessage(ExceptionMessage.NOT_SUPPORTED.getMessage());
     mHdfsFileInputStream.available();
     verify(mHdfsFileInputStream).available();
+  }
+
+  /**
+   * Test the {@link read(byte[])} method.
+   *
+   * @throws IOException Should throw IOException
+   */
+  @Test
+  public void readTest() throws IOException {
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage(ExceptionMessage.NOT_SUPPORTED.getMessage());
+    byte[] b = new byte[20];
+    sRandom.nextBytes(b);
+    mHdfsFileInputStream.read(b);
+    verify(mHdfsFileInputStream).read(b);
   }
 }
