@@ -196,9 +196,9 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     int ret = mFsShell.run("copyFromLocal",
         mLocalAlluxioCluster.getAlluxioHome() + "/testWildCards/*/foo*", "/testDir");
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar1")));
-    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar2")));
-    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar3")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar1")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar2")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar3")));
   }
 
   @Test
@@ -210,10 +210,10 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
 
     mFsShell.run("ls", "/testDir");
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foo/foobar1")));
-    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foo/foobar2")));
-    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/bar/foobar3")));
-    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar4")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foo/foobar1")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foo/foobar2")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/bar/foobar3")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar4")));
   }
 
   @Test
@@ -232,9 +232,9 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
         mFsShell.run("copyFromLocal", mLocalAlluxioCluster.getAlluxioHome()
             + "/testWildCards/*/foo*", "/testDir");
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar1")));
-    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar2")));
-    Assert.assertTrue(fileExist(new AlluxioURI("/testDir/foobar3")));
-    Assert.assertFalse(fileExist(new AlluxioURI("/testDir/foobar4")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar1")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar2")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar3")));
+    Assert.assertFalse(fileExists(new AlluxioURI("/testDir/foobar4")));
   }
 }

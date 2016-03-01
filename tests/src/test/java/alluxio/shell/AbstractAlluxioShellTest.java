@@ -167,7 +167,7 @@ public abstract class AbstractAlluxioShellTest {
     return (mFileSystem.getStatus(new AlluxioURI(path)).getInMemoryPercentage() == 100);
   }
 
-  protected boolean fileExist(AlluxioURI path) {
+  protected boolean fileExists(AlluxioURI path) {
     try {
       return mFileSystem.exists(path);
     } catch (IOException e) {
