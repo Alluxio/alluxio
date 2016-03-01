@@ -32,7 +32,7 @@ public final class ValidateConf {
 
   /**
    * Validates the configurations.
-   * 
+   *
    * @return true if the validation succeeds, false otherwise
    */
   public static boolean validate() {
