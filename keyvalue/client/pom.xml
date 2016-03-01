@@ -1,15 +1,27 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<!--
+  ~ The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+  ~ (the “License”). You may not use this work except in compliance with the License, which is
+  ~ available at www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+  ~ either express or implied, as more fully set forth in the License.
+  ~
+  ~ See the NOTICE file distributed with this work for information regarding copyright ownership.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.tachyonproject</groupId>
-    <artifactId>tachyon-keyvalue</artifactId>
-    <version>0.9.0-SNAPSHOT</version>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-keyvalue</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
-  <groupId>org.tachyonproject</groupId>
-  <artifactId>tachyon-keyvalue-client</artifactId>
+  <groupId>org.alluxio</groupId>
+  <artifactId>alluxio-keyvalue-client</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Key Value - Client Distribution</name>
-  <description>Distribution of client for Tachyon Key Value Store</description>
+  <name>Alluxio Key Value - Client Distribution</name>
+  <description>Distribution of client for Alluxio Key Value Store</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -21,129 +33,57 @@
   </properties>
 
   <dependencies>
-    <!-- Compile dependencies copied from tachyon-core-common, except libthrift -->
+    <!-- Other Alluxio dependencies -->
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.4</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.4</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-framework</artifactId>
-      <version>${apache.curator.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-client</artifactId>
-      <version>${apache.curator.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-recipes</artifactId>
-      <version>${apache.curator.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.jboss.netty</groupId>
-          <artifactId>netty</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-
-    <!-- Dependencies copied from tachyon-core-client-internal, not included in tachyon-core-common
-     -->
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client</artifactId>
-    </dependency>
-
-    <!-- Other Tachyon dependencies -->
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-client-internal</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-common</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-keyvalue-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-keyvalue-client-internal</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-hdfs</artifactId>
-      <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-core-common</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <!-- module tachyon-underfs-glusterfs depends on
-         hadoop library of 2.3.0, which may have problem when using with
-         hadoop 2.4 and later. Please check instructions in
-         http://tachyon-project.org/documentation/Configuring-Tachyon-with-GlusterFS.html
-         for how to use glusterfs with Tachyon. -->
-    <!-- <dependency> -->
-    <!--   <groupId>org.tachyonproject</groupId> -->
-    <!--   <artifactId>tachyon-underfs-glusterfs</artifactId> -->
-    <!--   <version>${project.version}</version> -->
-    <!--   <exclusions> -->
-    <!--     <exclusion> -->
-    <!--       <groupId>org.tachyonproject</groupId> -->
-    <!--       <artifactId>tachyon-core-common</artifactId> -->
-    <!--     </exclusion> -->
-    <!--   </exclusions> -->
-    <!-- </dependency> -->
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-s3</artifactId>
-      <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-core-common</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-local</artifactId>
-      <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-core-common</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
   </dependencies>
+
+  <profiles>
+    <!-- Profile used to build alluxio keyvalue client jar used for Apache Spark. This will be activated by using -->
+    <!-- -Pspark in the maven command line. -->
+    <profile>
+      <id>spark</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+       <!-- The dependencies of Spark profile are the basically the same as the default dependencies, except that -->
+       <!-- curator-client, curator-framework, curator-recipies and hadoop-client will be in scope provided as they -->
+       <!-- will be provided by Apache Spark runtime. -->
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-framework</artifactId>
+          <version>${apache.curator.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-client</artifactId>
+          <version>${apache.curator.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-recipes</artifactId>
+          <version>${apache.curator.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
   <build>
     <plugins>
@@ -179,16 +119,14 @@
             <configuration>
               <artifactSet>
                 <includes>
-                  <include>org.tachyonproject:tachyon-core-common</include>
-                  <include>org.tachyonproject:tachyon-core-client-internal</include>
-                  <include>org.tachyonproject:tachyon-keyvalue-client-internal</include>
-                  <include>org.apache.thrift:libthrift</include>
+                  <include>org.alluxio:alluxio-keyvalue-common</include>
+                  <include>org.alluxio:alluxio-keyvalue-client-internal</include>
                 </includes>
               </artifactSet>
               <relocations>
                 <relocation>
                   <pattern>org.apache.thrift</pattern>
-                  <shadedPattern>tachyon.org.apache.thrift</shadedPattern>
+                  <shadedPattern>alluxio.org.apache.thrift</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
@@ -202,11 +140,11 @@
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
               </transformers>
               <filters>
                 <filter>
-                  <artifact>*:* </artifact>
+                  <artifact>*:*</artifact>
                   <excludes>
                     <exclude>LICENSE</exclude>
                     <exclude>META-INF/LICENSE</exclude>

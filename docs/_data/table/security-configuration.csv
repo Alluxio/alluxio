@@ -1,0 +1,9 @@
+propertyName,defaultValue
+alluxio.security.authentication.type,NOSASL
+alluxio.security.authentication.socket.timeout.ms,60000
+alluxio.security.authentication.custom.provider.class,
+alluxio.security.login.username,
+alluxio.security.authorization.permission.enabled,false
+alluxio.security.authorization.permission.umask,022
+alluxio.security.authorization.permission.supergroup,supergroup
+alluxio.security.group.mapping.class,alluxio.security.group.provider.&#8203;ShellBasedUnixGroupsMapping

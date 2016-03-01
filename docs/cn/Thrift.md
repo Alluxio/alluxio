@@ -69,7 +69,7 @@ title: Thrift
 
 ## Debian/Ubuntu
 
-下面的命令会安装所有需要的工具和库，以用于在Debian/Ubuntu系统上构建和安装Apache Thrift编译器。
+下面的命令会安装所有需要的工具包和软件库，以用于在Debian/Ubuntu系统上构建和安装Apache Thrift编译器。
 
 {% include Thrift/install-dependency-apt.md %}
 
@@ -77,7 +77,7 @@ title: Thrift
 
 {% include Thrift/install-dependency-yum.md %}
 
-然后按照你的需求安装Java JDK。输入javac来查看可用的包，选择一个你喜欢的，然后使用包管理器来安装。
+然后按照你的需求安装Java JDK。输入javac来查看可用的包，选择一个你倾向使用的，然后使用包管理器来安装。
 
 Debian Lenny用户需要一些来自backports的包：
 
@@ -105,13 +105,13 @@ Debian Lenny用户需要一些来自backports的包：
 
 # 利用Thrift生成Java文件
 
-Tachyon利用thrift文件定义了其RPC服务，该文件位于：
+Alluxio利用thrift文件定义了其RPC服务，该文件位于：
 
-    ./common/src/thrift/tachyon.thrift
+    ./common/src/thrift/alluxio.thrift
 
 并利用thrift文件生成相应的Java文件，该Java文件位于：
 
-    ./common/src/main/java/tachyon/thrift/
+    ./common/src/main/java/alluxio/thrift/
 
 如果thrift文件被修改了，要重新生成Java文件，你可以运行：
 

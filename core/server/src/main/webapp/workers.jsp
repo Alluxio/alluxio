@@ -1,10 +1,10 @@
-<%@ page import="tachyon.web.*" %>
+<%@ page import="alluxio.web.*" %>
 
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
-  <link href="css/tachyoncustom.min.css" rel="stylesheet">
+  <link href="css/custom.min.css" rel="stylesheet">
 </head>
 <title>Workers</title>
 <body>
@@ -32,7 +32,7 @@
                 <th>Workers Capacity</th>
                 <th>Space Used</th>
                 <th>Space Usage</th>
-              </thead>  
+              </thead>
               <tbody>
                 <% for (WebInterfaceWorkersServlet.NodeInfo nodeInfo : ((WebInterfaceWorkersServlet.NodeInfo[]) request.getAttribute("normalNodeInfos"))) { %>
                   <tr>
@@ -85,7 +85,7 @@
                 <% } %>
                 <th>Last Heartbeat</th>
                 <th>Workers Capacity</th>
-              </thead>  
+              </thead>
               <tbody>
                 <% if (request.getAttribute("failedNodeInfos") != null) {
                   for (WebInterfaceWorkersServlet.NodeInfo nodeInfo : ((WebInterfaceWorkersServlet.NodeInfo[]) request.getAttribute("failedNodeInfos"))) { %>

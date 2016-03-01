@@ -1,15 +1,26 @@
+<!--
+  ~ The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+  ~ (the “License”). You may not use this work except in compliance with the License, which is
+  ~ available at www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+  ~ either express or implied, as more fully set forth in the License.
+  ~
+  ~ See the NOTICE file distributed with this work for information regarding copyright ownership.
+  -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <artifactId>tachyon-parent</artifactId>
-    <groupId>org.tachyonproject</groupId>
-    <version>0.9.0-SNAPSHOT</version>
+    <artifactId>alluxio-parent</artifactId>
+    <groupId>org.alluxio</groupId>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>tachyon-minicluster</artifactId>
+  <artifactId>alluxio-minicluster</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon MiniCluster</name>
-  <description>Tachyon MiniCluster for testing</description>
+  <name>Alluxio MiniCluster</name>
+  <description>Alluxio MiniCluster for testing</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -26,33 +37,33 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-client-internal</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-internal</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-common</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-server</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <!-- Other projects' test-jars -->
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-client-internal</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-internal</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-core-server</artifactId>
-      <type>test-jar</type>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server</artifactId>
       <version>${project.version}</version>
+      <type>test-jar</type>
     </dependency>
   </dependencies>
 </project>

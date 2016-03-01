@@ -1,9 +1,9 @@
-Tachyon
-Copyright 2012-2015 University of California, Berkeley
+Alluxio
+Copyright 2016 Alluxio Open Foundation
 
 ==========
 
-Tachyon project contains subcomponents with separate copyright notices and license terms.
+Alluxio project contains subcomponents with separate copyright notices and license terms.
 
 Your use of the source code for the these subcomponents is subject to the terms and conditions of
 their respective licenses.
@@ -132,7 +132,7 @@ by Google Inc, which can be obtained at:
   * HOMEPAGE:
     * http://code.google.com/p/snappy/
 
-This product optionally depends on 'jnr-fuse', a FUSE implementation in java using 
+This product optionally depends on 'jnr-fuse', a FUSE implementation in java using
 Java Native Runtime (JNR), written by Sergey Tselovalnikov. It can be obtained at:
 
   * LICENSE:

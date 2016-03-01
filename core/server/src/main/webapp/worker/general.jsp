@@ -1,15 +1,16 @@
 <%@ page import="java.util.*" %>
-<%@ page import="tachyon.util.*" %>
-<%@ page import="tachyon.web.WebInterfaceWorkerGeneralServlet.UIStorageDir" %>
-<%@ page import="tachyon.web.WebInterfaceWorkerGeneralServlet.UIWorkerInfo" %>
+<%@ page import="alluxio.util.*" %>
+<%@ page import="alluxio.web.WebInterfaceWorkerGeneralServlet.UIStorageDir" %>
+<%@ page import="alluxio.web.WebInterfaceWorkerGeneralServlet.UIUsageOnTier" %>
+<%@ page import="alluxio.web.WebInterfaceWorkerGeneralServlet.UIWorkerInfo" %>
 
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="../css/bootstrap.min.css" rel="stylesheet" media="screen">
-  <link href="../css/tachyoncustom.min.css" rel="stylesheet">
+  <link href="../css/custom.min.css" rel="stylesheet">
 </head>
-<title>Tachyon</title>
+<title>Alluxio</title>
 <body>
 <script src="../js/jquery-1.9.1.min.js" type="text/javascript"></script>
 <script src="../js/bootstrap.min.js"></script>
@@ -67,18 +68,15 @@
                   <th>Total Capacity / Used</th>
                   <th><%= request.getAttribute("capacityBytes") %> / <%= request.getAttribute("usedBytes") %></th>
                 </tr>
-                <% Map<String, Long> capacityBytesOnTiers = (Map<String, Long>) request.getAttribute("capacityBytesOnTiers"); %>
-                <% Map<String, Long> usedBytesOnTiers = (Map<String, Long>) request.getAttribute("usedBytesOnTiers"); %>
-                <% for (String tierAlias : capacityBytesOnTiers.keySet()) { %>
-                  <% if (capacityBytesOnTiers.get(tierAlias) > 0) { %>
+                <% List<UIUsageOnTier> usageOnTiers = (List<UIUsageOnTier>) request.getAttribute("usageOnTiers"); %>
+                <% for (UIUsageOnTier usageOnTier : usageOnTiers) { %>
                   <tr>
-                    <th><%= tierAlias %> Capacity / Used</th>
+                    <th><%= usageOnTier.getTierAlias() %> Capacity / Used</th>
                     <th>
-                      <%= FormatUtils.getSizeFromBytes(capacityBytesOnTiers.get(tierAlias)) %> /
-                      <%= FormatUtils.getSizeFromBytes(usedBytesOnTiers.get(tierAlias)) %>
+                      <%= FormatUtils.getSizeFromBytes(usageOnTier.getCapacityBytes()) %> /
+                      <%= FormatUtils.getSizeFromBytes(usageOnTier.getUsedBytes()) %>
                     </th>
                   </tr>
-                  <% } %>
                 <% } %>
               </tbody>
             </table>

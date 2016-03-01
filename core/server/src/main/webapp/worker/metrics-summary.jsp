@@ -1,6 +1,6 @@
 <%@ page import="java.util.*" %>
-<%@ page import="tachyon.web.*" %>
-<%@ page import="tachyon.web.*" %>
+<%@ page import="alluxio.web.*" %>
+<%@ page import="alluxio.web.*" %>
 
 <div class="accordion span14" id="accordion4">
   <div class="accordion-group">
@@ -20,7 +20,7 @@
               <th>Blocks Cached</th>
               <th><%= request.getAttribute("worker.BlocksCached") %></th>
             </tr>
-            <tr>              
+            <tr>
               <th>Blocks Canceled</th>
               <th><%= request.getAttribute("worker.BlocksCanceled") %></th>
               <th>Blocks Deleted</th>

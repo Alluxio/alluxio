@@ -1,15 +1,15 @@
 <%@ page import="java.util.*" %>
-<%@ page import="tachyon.web.*" %>
-<%@ page import="tachyon.web.*" %>
+<%@ page import="alluxio.web.*" %>
+<%@ page import="alluxio.web.*" %>
 
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
-  <link href="css/tachyoncustom.min.css" rel="stylesheet">
+  <link href="css/alluxiocustom.min.css" rel="stylesheet">
   <link href="css/linearGraph.css" rel="stylesheet">
 </head>
-<title>Tachyon</title>
+<title>Alluxio</title>
 <body>
 <jsp:include page="header-scripts.jsp" />
 <script src="js/d3.min.js" type="text/javascript"></script>
@@ -25,17 +25,17 @@
               <h4>Master gauges</h4>
             </a>
           </div>
-          
+
           <div id="data3" class="accordion-body collapse in">
             <div class="accordion-inner">
               <table class="table table-hover table-condensed">
-                <thead>                  
-                  <th></th>                  
+                <thead>
+                  <th></th>
                   <th></th>
                 </thead>
                 <tbody>
-                  <tr>                    
-                    <th>Master Capacity</th>                    
+                  <tr>
+                    <th>Master Capacity</th>
                     <th>
                       <div class="progress custom-progress">
                         <div class="bar bar-success" style="width: <%= (Integer) request.getAttribute("masterCapacityFreePercentage") %>%;">
@@ -51,9 +51,9 @@
                       </div>
                     </th>
                   </tr>
-                  
-                  <tr>                    
-                    <th>Master Underfs Capacity</th>                    
+
+                  <tr>
+                    <th>Master Underfs Capacity</th>
                     <th>
                       <div class="progress custom-progress">
                         <div class="bar bar-success" style="width: <%= (Integer) request.getAttribute("masterUnderfsCapacityFreePercentage") %>%;">
@@ -73,7 +73,7 @@
               </table>
             </div>
           </div>
-          
+
         </div>
       </div>
     </div>
