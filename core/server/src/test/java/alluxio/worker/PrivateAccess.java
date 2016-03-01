@@ -11,6 +11,7 @@
 
 package alluxio.worker;
 
+import alluxio.worker.block.BlockWorker;
 import alluxio.worker.file.FileSystemWorker;
 
 import org.powermock.reflect.Whitebox;
@@ -28,5 +29,15 @@ public final class PrivateAccess {
    */
   public static FileSystemWorker getFileSystemWorker(AlluxioWorker worker) {
     return Whitebox.getInternalState(worker, "mFileSystemWorker");
+  }
+
+  /**
+   * Gets the {@link BlockWorker}.
+   *
+   * @param worker the {@link AlluxioWorker}
+   * @return the {@link BlockWorker}
+   */
+  public static BlockWorker getBlockWorker(AlluxioWorker worker) {
+    return Whitebox.getInternalState(worker, "mBlockWorker");
   }
 }
