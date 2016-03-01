@@ -55,7 +55,10 @@ public final class ValidateConf {
     // to check if a property name follows the format. E.g.,
     // "alluxio.worker.tieredstore.level%d.alias" is transformed to
     // "alluxio\.worker\.tieredstore\.level\d+\.alias".
-    Pattern aliasPattern =
+    Pattern masterAliasPattern =
+        Pattern.compile(Constants.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT
+            .replace("%d", "\\d+").replace(".", "\\."));
+    Pattern workerAliasPattern =
         Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.replace("%d", "\\d+")
             .replace(".", "\\."));
     Pattern dirsPathPattern =
@@ -71,7 +74,8 @@ public final class ValidateConf {
     boolean valid = true;
     for (Entry<String, String> entry : configuration.toMap().entrySet()) {
       String propertyName = entry.getKey();
-      if (aliasPattern.matcher(propertyName).matches()
+      if (masterAliasPattern.matcher(propertyName).matches()
+          || workerAliasPattern.matcher(propertyName).matches()
           || dirsPathPattern.matcher(propertyName).matches()
           || dirsQuotaPattern.matcher(propertyName).matches()
           || reservedRatioPattern.matcher(propertyName).matches()) {
