@@ -341,6 +341,7 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Returns the file id for a given path. If the given path does not exist in Alluxio, the method
    * attempts to load it from UFS.
+   * Needs {@link FileSystemAction#READ} permission on the path.
    *
    * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
@@ -378,16 +379,19 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Returns the {@link FileInfo} for a given path. Called via RPC, as well as internal masters.
+   * Needs {@link FileSystemAction#READ} permission on the path.
    *
    * @param path the path to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file id
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path is not valid
+   * @throws AccessControlException if permission checking fails
    */
   public FileInfo getFileInfo(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.READ, path, false);
       Inode inode = mInodeTree.getInodeByPath(path);
       return getFileInfoInternal(inode);
     }
@@ -434,6 +438,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * Returns a list {@link FileInfo} for a given path. If the given path is a file, the list only
    * contains a single object. If it is a directory, the resulting list contains all direct children
    * of the directory.
+   * Needs {@link FileSystemAction#READ} permission on the path.
+   * If the path is a directory, needs {@link FileSystemAction#EXECUTE} permission on the path.
    *
    * @param path the path to get the {@link FileInfo} list for
    * @return the list of {@link FileInfo}s
@@ -445,12 +451,14 @@ public final class FileSystemMaster extends AbstractMaster {
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.READ, path, false);
       // getFileInfoList should load from ufs if the file does not exist
       getFileId(path);
       Inode inode = mInodeTree.getInodeByPath(path);
 
       List<FileInfo> ret = new ArrayList<FileInfo>();
       if (inode.isDirectory()) {
+        checkPermission(FileSystemAction.EXECUTE, path, false);
         for (Inode child : ((InodeDirectory) inode).getChildren()) {
           ret.add(getFileInfoInternal(child));
         }
@@ -471,6 +479,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Completes a file. After a file is completed, it cannot be written to.
+   * Needs {@link FileSystemAction#WRITE} permission on the path.
    *
    * @param path the file path to complete
    * @param options the method options
@@ -584,6 +593,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Creates a file (not a directory) for a given path.
+   * Needs {@link FileSystemAction#WRITE} permission on the parent of the path.
    *
    * @param path the file to create
    * @param options method options
@@ -680,6 +690,10 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
+   * Since {@link FileSystemMaster#create(TachyonURI, CreateFileOptions)} already checked
+   * {@link tachyon.security.authorization.FileSystemAction#WRITE},
+   * it is not needed to check again here when requesting a new block for the file.
+   *
    * @param path the path of the file to get the next block id for
    * @return the next block id for the given file
    * @throws FileDoesNotExistException if the file does not exist
@@ -719,6 +733,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Deletes a given path.
+   * Needs {@link FileSystemAction#WRITE} permission on the parent of the path.
    *
    * @param path the path to delete
    * @param recursive if true, will delete all its children
@@ -1058,6 +1073,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Creates a directory for a given path.
+   * Needs {@link FileSystemAction#WRITE} permission on the parent of the path.
    *
    * @param path the path of the directory
    * @param options method options
@@ -1126,6 +1142,8 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Renames a file to a destination.
+   * Needs {@link FileSystemAction#WRITE} permission on the parent of the src path.
+   * Needs {@link FileSystemAction#WRITE} permission on the parent of the dst path.
    *
    * @param srcPath the source path to rename
    * @param dstPath the destination path to rename the file to
@@ -1317,6 +1335,7 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Frees or evicts all of the blocks of the file from alluxio storage. If the given file is a
    * directory, and the 'recursive' flag is enabled, all descendant files will also be freed.
+   * Needs {@link FileSystemAction#WRITE} permission on the path.
    *
    * @param path the path to free
    * @param recursive if true, and the file is a directory, all descendants will be freed
@@ -1440,6 +1459,8 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Loads metadata for the object identified by the given path from UFS into Alluxio.
+   * Needs {@link FileSystemAction#READ} permission on the path.
+   * Implicitly needs {@link FileSystemAction#WRITE} permission on the parent of the path.
    *
    * @param path the path for which metadata should be loaded
    * @param recursive whether parent directories should be created if they do not already exist
@@ -1524,6 +1545,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Mounts a UFS path onto an Alluxio path.
+   * Needs {@link FileSystemAction#WRITE} permission on the parent of the Tachyon path.
    *
    * @param alluxioPath the Alluxio path to mount to
    * @param ufsPath the UFS path to mount
@@ -1608,6 +1630,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Unmounts a UFS path previously mounted path onto an Alluxio path.
+   * Needs {@link FileSystemAction#WRITE} permission on the parent of the Tachyon path.
    *
    * @param alluxioPath the Alluxio path to unmount, must be a mount point
    * @return true if the UFS path was successfully unmounted, false otherwise
@@ -1672,6 +1695,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Resets a file. It first free the whole file, and then reinitializes it.
+   * Implicitly needs {@link FileSystemAction#WRITE} permission on the path indicated by file id.
    *
    * @param fileId the id of the file
    * @throws FileDoesNotExistException if the file does not exist
@@ -1691,6 +1715,9 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Sets the file attribute.
+   * Needs {@link FileSystemAction#WRITE} permission on the path.
+   * The client user needs to be a super user when setting owner.
+   * The client user needs to be a super user or path owner when setting group or permission.
    *
    * @param path the path to set attribute for
    * @param options attributes to be set, see {@link SetAttributeOptions}
@@ -1904,6 +1931,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Instructs a worker to persist the files.
+   * Implicitly needs {@link FileSystemAction#WRITE} permission on the path.
    *
    * @param workerId the id of the worker that heartbeats
    * @param persistedFiles the files that persisted on the worker
