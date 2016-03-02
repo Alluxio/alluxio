@@ -20,6 +20,7 @@ alluxio.master.web.hostname,localhost
 alluxio.master.web.port,19999
 alluxio.master.whitelist,/
 alluxio.master.worker.threads.max,2048
+alluxio.master.worker.threads.min,512
 alluxio.master.worker.timeout.ms,10000
 alluxio.master.tieredstore.global.levels,3
 alluxio.master.tieredstore.global.level0.alias,MEM

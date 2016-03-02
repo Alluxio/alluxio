@@ -11,10 +11,10 @@ alluxio.worker.block.heartbeat.timeout.ms:
   The timeout value (in milliseconds) of block worker's heartbeat
 alluxio.worker.block.threads.max:
   The maximum number of incoming RPC requests to block worker that can be handled.
-  This value is used for configuring the Thrift server for RPC  with block worker.
+  This value is used to configure maximum number of threads in Thrift thread pool with block worker.
 alluxio.worker.block.threads.min:
-  The minimum number of incoming RPC requests to block worker that can be handled.
-  This value is used for configuring the Thrift server for RPC with block worker.
+  The minimum number of threads used to handle incoming RPC requests to block worker.
+  This value is used to configure minimum number of threads in Thrift thread pool with block worker.
 alluxio.worker.data.bind.host:
   The hostname that the Alluxio worker's data server runs on. See
   <a href="#configure-multihomed-networks">multi-homed networks</a>
