@@ -14,9 +14,12 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.client.ClientContext;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -140,7 +143,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     try {
       if (!src.isDirectory()) {
         // If the dstPath is a directory, then it should be updated to be the path of the file where
-        // src will be copied to
+        // src will be copied to.
         if (mFileSystem.exists(dstPath) && mFileSystem.getStatus(dstPath).isFolder()) {
           dstPath = dstPath.join(src.getName());
         }
@@ -148,7 +151,13 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
         Closer closer = Closer.create();
         FileOutStream os = null;
         try {
-          os = closer.register(mFileSystem.createFile(dstPath));
+          CreateFileOptions options = CreateFileOptions.defaults();
+          // When 'alluxio.user.lineage.enabled=true', the created file should write synchronously
+          // to the under fs.
+          if (ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED)) {
+            options.setWriteType(WriteType.CACHE_THROUGH);
+          }
+          os = closer.register(mFileSystem.createFile(dstPath, options));
           FileInputStream in = closer.register(new FileInputStream(src));
           FileChannel channel = closer.register(in.getChannel());
           ByteBuffer buf = ByteBuffer.allocate(8 * Constants.MB);
@@ -158,7 +167,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
           }
         } catch (IOException e) {
           // Close the out stream and delete the file, so we don't have an incomplete file lying
-          // around
+          // around.
           if (os != null) {
             os.cancel();
             if (mFileSystem.exists(dstPath)) {
@@ -170,7 +179,14 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
           closer.close();
         }
       } else {
-        mFileSystem.createDirectory(dstPath);
+        try {
+          mFileSystem.createDirectory(dstPath);
+        } catch (FileAlreadyExistsException e) {
+          // it's fine if the directory already exists
+        } catch (AlluxioException e) {
+          throw new IOException(e.getMessage());
+        }
+
         List<String> errorMessages = Lists.newArrayList();
         String[] fileList = src.list();
         for (String file : fileList) {
@@ -184,7 +200,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
         }
         if (errorMessages.size() != 0) {
           if (errorMessages.size() == fileList.length) {
-            // If no files were created, then delete the directory
+            // If no files were created, then delete the directory.
             if (mFileSystem.exists(dstPath)) {
               mFileSystem.delete(dstPath);
             }
