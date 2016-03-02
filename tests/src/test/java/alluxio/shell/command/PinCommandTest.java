@@ -17,6 +17,7 @@ import alluxio.client.WriteType;
 import alluxio.shell.AbstractAlluxioShellTest;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
