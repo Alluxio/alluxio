@@ -437,6 +437,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * contains a single object. If it is a directory, the resulting list contains all direct children
    * of the directory.
    * Needs {@link FileSystemAction#READ} permission on the path.
+   * If the path is a directory, needs {@link FileSystemAction#EXECUTE} permission on the path.
    *
    * @param path the path to get the {@link FileInfo} list for
    * @return the list of {@link FileInfo}s
@@ -455,6 +456,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
       List<FileInfo> ret = new ArrayList<FileInfo>();
       if (inode.isDirectory()) {
+        checkPermission(FileSystemAction.EXECUTE, path, false);
         for (Inode child : ((InodeDirectory) inode).getChildren()) {
           ret.add(getFileInfoInternal(child));
         }
