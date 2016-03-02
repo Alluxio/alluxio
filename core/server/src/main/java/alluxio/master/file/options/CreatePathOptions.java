@@ -31,6 +31,7 @@ public abstract class CreatePathOptions<T> {
   protected PermissionStatus mPermissionStatus;
   protected boolean mPersisted;
   protected boolean mRecursive;
+  protected boolean mMetadataLoad;
 
   protected CreatePathOptions() throws IOException {
     mMountPoint = false;
@@ -38,6 +39,7 @@ public abstract class CreatePathOptions<T> {
     mPermissionStatus = PermissionStatus.get(MasterContext.getConf(), true);
     mPersisted = false;
     mRecursive = false;
+    mMetadataLoad = false;
   }
 
   protected abstract T getThis();
@@ -76,6 +78,13 @@ public abstract class CreatePathOptions<T> {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @return the metadataLoad flag; if true, the create path is a result of a metadata load
+   */
+  public boolean isMetadataLoad() {
+    return mMetadataLoad;
   }
 
   /**
@@ -123,6 +132,16 @@ public abstract class CreatePathOptions<T> {
    */
   public T setRecursive(boolean recursive) {
     mRecursive = recursive;
+    return getThis();
+  }
+
+  /**
+   * @param metadataLoad the flag value to use; if true, the create path is a result of a
+   *                     metadata load
+   * @return the updated options object
+   */
+  public T setMetadataLoad(boolean metadataLoad) {
+    mMetadataLoad = metadataLoad;
     return getThis();
   }
 

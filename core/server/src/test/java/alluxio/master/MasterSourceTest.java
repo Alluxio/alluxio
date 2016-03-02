@@ -24,6 +24,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
@@ -400,14 +401,14 @@ public final class MasterSourceTest {
 
     mUfs.mkdirs(MOUNT_URI.getPath(), false);
 
-    mFileSystemMaster.mount(TEST_URI, MOUNT_URI);
+    mFileSystemMaster.mount(TEST_URI, MOUNT_URI, MountOptions.defaults());
 
     Assert.assertEquals(1, mCounters.get("PathsMounted").getCount());
     Assert.assertEquals(1, mCounters.get("MountOps").getCount());
 
     // trying to mount an existing file
     try {
-      mFileSystemMaster.mount(TEST_URI, MOUNT_URI);
+      mFileSystemMaster.mount(TEST_URI, MOUNT_URI, MountOptions.defaults());
       Assert.fail("Should not be able to mount to an existing file");
     } catch (Exception e) {
       // Expected, continue

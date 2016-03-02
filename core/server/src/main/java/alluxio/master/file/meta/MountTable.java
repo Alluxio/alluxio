@@ -13,9 +13,12 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.file.options.MountOptions;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -35,14 +38,15 @@ public final class MountTable {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private Map<String, AlluxioURI> mMountTable;
+  /** Maps from Alluxio path string, to {@link MountInfo}. */
+  private Map<String, MountInfo> mMountTable;
 
   /**
    * Creates a new instance of {@link MountTable}.
    */
   public MountTable() {
     final int initialCapacity = 10;
-    mMountTable = new HashMap<String, AlluxioURI>(initialCapacity);
+    mMountTable = new HashMap<String, MountInfo>(initialCapacity);
   }
 
   /**
@@ -51,10 +55,11 @@ public final class MountTable {
    *
    * @param alluxioUri an Alluxio path URI
    * @param ufsUri a UFS path URI
+   * @param options the mount options
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    */
-  public synchronized void add(AlluxioURI alluxioUri, AlluxioURI ufsUri)
+  public synchronized void add(AlluxioURI alluxioUri, AlluxioURI ufsUri, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException {
     String alluxioPath = alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
@@ -65,9 +70,9 @@ public final class MountTable {
     // Check all non-root mount points, to check if they're a prefix of the alluxioPath we're trying
     // to mount. Also make sure that the ufs path we're trying to mount is not a prefix or suffix of
     // any existing mount path.
-    for (Map.Entry<String, AlluxioURI> entry : mMountTable.entrySet()) {
+    for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
       String mountedAlluxioPath = entry.getKey();
-      AlluxioURI mountedUfsUri = entry.getValue();
+      AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
       if (!mountedAlluxioPath.equals(ROOT)
           && PathUtils.hasPrefix(alluxioPath, mountedAlluxioPath)) {
         throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage(
@@ -87,7 +92,7 @@ public final class MountTable {
         }
       }
     }
-    mMountTable.put(alluxioPath, ufsUri);
+    mMountTable.put(alluxioPath, new MountInfo(ufsUri, options));
   }
 
   /**
@@ -112,7 +117,7 @@ public final class MountTable {
   }
 
   /**
-   * Returns the mount point the given path is nested under.
+   * Returns the closest ancestor mount point the given path is nested under.
    *
    * @param uri an Alluxio path URI
    * @return mount point the given Alluxio path is nested under
@@ -121,7 +126,7 @@ public final class MountTable {
   public synchronized String getMountPoint(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
     String mountPoint = null;
-    for (Map.Entry<String, AlluxioURI> entry : mMountTable.entrySet()) {
+    for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
       String alluxioPath = entry.getKey();
       if (PathUtils.hasPrefix(path, alluxioPath)
           && (mountPoint == null || PathUtils.hasPrefix(alluxioPath, mountPoint))) {
@@ -155,10 +160,27 @@ public final class MountTable {
     LOG.debug("Resolving {}", path);
     String mountPoint = getMountPoint(uri);
     if (mountPoint != null) {
-      AlluxioURI ufsPath = mMountTable.get(mountPoint);
+      AlluxioURI ufsPath = mMountTable.get(mountPoint).getUfsUri();
       return new AlluxioURI(ufsPath.getScheme(), ufsPath.getAuthority(),
           PathUtils.concatPath(ufsPath.getPath(), path.substring(mountPoint.length())));
     }
     return uri;
+  }
+
+  /**
+   * Checks to see if a write operation is allowed for the specified Alluxio path, by determining
+   * if it is under a readonly mount point.
+   *
+   * @param alluxioUri an Alluxio path URI
+   * @throws InvalidPathException if the Alluxio path is invalid
+   * @throws AccessControlException if the Alluxio path is under a readonly mount point
+   */
+  public synchronized void checkUnderWritableMountPoint(AlluxioURI alluxioUri)
+      throws InvalidPathException, AccessControlException {
+    String mountPoint = getMountPoint(alluxioUri);
+    MountInfo mountInfo = mMountTable.get(mountPoint);
+    if (mountInfo.getOptions().isReadOnly()) {
+      throw new AccessControlException(ExceptionMessage.MOUNT_READONLY, alluxioUri, mountPoint);
+    }
   }
 }

@@ -229,7 +229,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this fail on the master side
-      masterClient.mount(src, dst);
+      masterClient.mount(src, dst, options);
       LOG.info("Mount " + src.getPath() + " to " + dst.getPath());
     } finally {
       mContext.releaseMasterClient(masterClient);
