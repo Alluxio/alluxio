@@ -43,10 +43,11 @@ import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
+import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
-import alluxio.master.file.options.CompleteFileOptions;
+import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
@@ -297,7 +298,8 @@ public final class FileSystemMaster extends AbstractMaster {
       mInodeTree.initializeRoot(PermissionStatus.get(MasterContext.getConf(), false));
       String defaultUFS = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
       try {
-        mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS));
+        mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
+            MountOptions.defaults());
       } catch (FileAlreadyExistsException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS);
       } catch (InvalidPathException e) {
@@ -485,6 +487,7 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incCompleteFileOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, path, false);
+      // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeByPath(path);
       long fileId = inode.getId();
@@ -597,6 +600,9 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incCreateFileOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, path, true);
+      if (!options.isMetadataLoad()) {
+        mMountTable.checkUnderWritableMountPoint(path);
+      }
       InodeTree.CreatePathResult createResult = createInternal(path, options);
       List<Inode> created = createResult.getCreated();
 
@@ -730,6 +736,7 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incDeletePathOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, path, true);
+      mMountTable.checkUnderWritableMountPoint(path);
       Inode inode = mInodeTree.getInodeByPath(path);
       long fileId = inode.getId();
       long opTimeMs = System.currentTimeMillis();
@@ -1069,6 +1076,9 @@ public final class FileSystemMaster extends AbstractMaster {
     synchronized (mInodeTree) {
       try {
         checkPermission(FileSystemAction.WRITE, path, true);
+        if (!options.isMetadataLoad()) {
+          mMountTable.checkUnderWritableMountPoint(path);
+        }
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, options);
 
         LOG.debug("writing journal entry for mkdir {}", path);
@@ -1131,6 +1141,8 @@ public final class FileSystemMaster extends AbstractMaster {
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, srcPath, true);
       checkPermission(FileSystemAction.WRITE, dstPath, true);
+      mMountTable.checkUnderWritableMountPoint(srcPath);
+      mMountTable.checkUnderWritableMountPoint(dstPath);
       Inode srcInode = mInodeTree.getInodeByPath(srcPath);
       // Renaming path to itself is a no-op.
       if (srcPath.equals(dstPath)) {
@@ -1463,7 +1475,7 @@ public final class FileSystemMaster extends AbstractMaster {
         // Metadata loaded from UFS has no TTL set.
         CreateFileOptions options =
             CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte).setRecursive(recursive)
-                .setPersisted(true);
+                .setMetadataLoad(true).setPersisted(true);
         long fileId = create(path, options);
         CompleteFileOptions completeOptions =
             CompleteFileOptions.defaults().setUfsLength(ufsLength);
@@ -1494,7 +1506,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws IOException, FileAlreadyExistsException, InvalidPathException, AccessControlException {
     CreateDirectoryOptions options =
         CreateDirectoryOptions.defaults().setMountPoint(mMountTable.isMountPoint(path))
-            .setPersisted(true).setRecursive(recursive);
+            .setPersisted(true).setRecursive(recursive).setMetadataLoad(true);
     InodeTree.CreatePathResult result = mkdir(path, options);
     List<Inode> inodes = null;
     if (result.getCreated().size() > 0) {
@@ -1515,17 +1527,19 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param alluxioPath the Alluxio path to mount to
    * @param ufsPath the UFS path to mount
+   * @param options the mount options
    * @throws FileAlreadyExistsException if the path to be mounted already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
    * @throws AccessControlException if the permission check fails
    */
-  public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath)
+  public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incMountOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, alluxioPath, true);
-      mountInternal(alluxioPath, ufsPath);
+      mMountTable.checkUnderWritableMountPoint(alluxioPath);
+      mountInternal(alluxioPath, ufsPath, options);
       boolean loadMetadataSuceeded = false;
       try {
         // This will create the directory at alluxioPath
@@ -1539,7 +1553,7 @@ public final class FileSystemMaster extends AbstractMaster {
       }
       AddMountPointEntry addMountPoint =
           AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath.toString())
-              .setUfsPath(ufsPath.toString()).build();
+              .setUfsPath(ufsPath.toString()).setOptions(options.toProto()).build();
       writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
       flushJournal();
       MasterContext.getMasterSource().incPathsMounted(1);
@@ -1558,7 +1572,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
     AlluxioURI ufsURI = new AlluxioURI(entry.getUfsPath());
-    mountInternal(alluxioURI, ufsURI);
+    mountInternal(alluxioURI, ufsURI, new MountOptions(entry.getOptions()));
   }
 
   /**
@@ -1570,7 +1584,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O exception occurs
    */
-  void mountInternal(AlluxioURI alluxioPath, AlluxioURI ufsPath)
+  void mountInternal(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     // Check that the ufsPath exists and is a directory
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
@@ -1589,7 +1603,7 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     // This should check that we are not mounting a prefix of an existing mount, and that no
     // existing mount is a prefix of this mount.
-    mMountTable.add(alluxioPath, ufsPath);
+    mMountTable.add(alluxioPath, ufsPath, options);
   }
 
   /**
