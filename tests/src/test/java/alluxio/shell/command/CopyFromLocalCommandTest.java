@@ -93,6 +93,25 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
+  public void copyFromLocalDirToExistingDirTest() throws IOException, AlluxioException {
+    File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
+    File srcInnerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/innerDir");
+    srcOuterDir.mkdir();
+    srcInnerDir.mkdir();
+    generateFileContent("/outerDir/srcFile1", BufferUtils.getIncreasingByteArray(10));
+    generateFileContent("/outerDir/innerDir/srcFile2", BufferUtils.getIncreasingByteArray(10));
+    mFileSystem.createDirectory(new AlluxioURI("/dstDir"));
+    int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/", "/dstDir");
+    Assert.assertEquals(0, ret);
+    AlluxioURI dstURI1 = new AlluxioURI("/dstDir/srcFile1");
+    AlluxioURI dstURI2 = new AlluxioURI("/dstDir/innerDir/srcFile2");
+    URIStatus uriStatus1 = mFileSystem.getStatus(dstURI1);
+    URIStatus uriStatus2 = mFileSystem.getStatus(dstURI2);
+    Assert.assertNotNull(uriStatus1);
+    Assert.assertNotNull(uriStatus2);
+  }
+
+  @Test
   public void copyFromLocalLargeTest() throws IOException, AlluxioException {
     File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
     testFile.createNewFile();
