@@ -13,28 +13,15 @@ package alluxio.worker.netty;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.network.protocol.RPCBlockReadRequest;
-import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCBlockWriteRequest;
-import alluxio.network.protocol.RPCBlockWriteResponse;
 import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCRequest;
 import alluxio.network.protocol.RPCResponse;
-import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataByteBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.base.Preconditions;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -42,14 +29,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class has the main logic of the read path to process {@link RPCRequest} messages and return
- * {@link RPCResponse} messages.
+ * This class processes {@link RPCRequest} messages and delegates them to the appropriate
+ * handlers to return {@link RPCResponse} messages.
  */
 @ChannelHandler.Sharable
 @NotThreadSafe
