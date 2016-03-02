@@ -463,6 +463,25 @@ public class PermissionCheckTest {
     verifyGetFileInfoOrList(TEST_USER_2, dir, false);
   }
 
+  @Test
+  public void readNotExecuteDirTest() throws Exception {
+    // set unmask
+    Configuration conf = MasterContext.getConf();
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "033");
+    MasterContext.reset(conf);
+
+    String dir = PathUtils.concatPath(TEST_DIR_URI, "/notExecuteDir");
+    // create dir "/testDir/notExecuteDir" [user1, group1, drwxr--r--]
+    verifyMkdir(TEST_USER_1, dir, false);
+    verifyRead(TEST_USER_1, dir, false);
+
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.EXECUTE, dir,
+            "notExecuteDir")));
+    verifyGetFileInfoOrList(TEST_USER_2, dir, false);
+  }
+
   private String createUnreadableFileOrDir(boolean isFile) throws Exception {
     // set unmask
     Configuration conf = MasterContext.getConf();
