@@ -140,7 +140,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     try {
       if (!src.isDirectory()) {
         // If the dstPath is a directory, then it should be updated to be the path of the file where
-        // src will be copied to
+        // src will be copied to.
         if (mFileSystem.exists(dstPath) && mFileSystem.getStatus(dstPath).isFolder()) {
           dstPath = dstPath.join(src.getName());
         }
@@ -158,7 +158,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
           }
         } catch (IOException e) {
           // Close the out stream and delete the file, so we don't have an incomplete file lying
-          // around
+          // around.
           if (os != null) {
             os.cancel();
             if (mFileSystem.exists(dstPath)) {
@@ -170,6 +170,8 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
           closer.close();
         }
       } else {
+        // Add a judgement, because the dstPath maybe already exists. For example:
+        // 'copyFromLocal pathToSrcDir /'.
         try {
           mFileSystem.createDirectory(dstPath);
         } catch (FileAlreadyExistsException e) {
