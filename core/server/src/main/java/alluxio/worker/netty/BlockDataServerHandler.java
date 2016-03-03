@@ -40,10 +40,13 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * This class handles {@link RPCBlockReadRequest}s and {@link RPCBlockWriteRequest}s.
  */
-public class BlockDataServerHandler {
+@NotThreadSafe
+public final class BlockDataServerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
