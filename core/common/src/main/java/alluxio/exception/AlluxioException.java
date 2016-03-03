@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * “License”). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -61,12 +61,10 @@ public abstract class AlluxioException extends Exception {
    */
   @SuppressWarnings("unchecked")
   public static AlluxioException from(AlluxioTException e) {
-    Class<? extends AlluxioException> throwClass;
     try {
-      throwClass = (Class<? extends AlluxioException>) Class.forName(e.getType());
-      AlluxioException throwInstance =
-          throwClass.getConstructor(String.class).newInstance(e.getMessage());
-      return throwInstance;
+      Class<? extends AlluxioException> throwClass =
+          (Class<? extends AlluxioException>) Class.forName(e.getType());
+      return throwClass.getConstructor(String.class).newInstance(e.getMessage());
     } catch (ReflectiveOperationException reflectException) {
       String errorMessage = "Could not instantiate " + e.getType() + " with a String-only "
           + "constructor: " + reflectException.getMessage();
