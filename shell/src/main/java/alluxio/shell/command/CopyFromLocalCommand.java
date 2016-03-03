@@ -71,11 +71,48 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     if (srcFiles.size() == 0) {
       throw new IOException("Local path " + srcPath + " does not exist.");
     }
-
     if (srcPath.contains(AlluxioURI.WILDCARD)) {
       copyFromLocalWildcard(srcFiles, dstPath);
     } else {
-      copyFromLocal(new File(srcPath), dstPath);
+      File srcFile = new File(srcPath);
+      if (srcFile.isDirectory()) {
+        copyFromLocalDirs(srcFile.getPath(), dstPath);
+      } else {
+        copyFromLocal(srcFile, dstPath);
+      }
+    }
+  }
+
+  private void copyFromLocalDirs(String dirPathName, AlluxioURI dstPath) throws IOException {
+    try {
+      File srcDir = new File(dirPathName);
+      createDirectory(dstPath);
+
+      List<String> errorMessages = Lists.newArrayList();
+      File[] fileList = srcDir.listFiles();
+      for (File srcFile : fileList) {
+        try {
+          if (srcFile.isDirectory()) {
+            copyFromLocalDirs(srcFile.getPath(), new AlluxioURI(dstPath,
+                    new AlluxioURI(srcFile.getName())));
+          } else {
+            copyFromLocal(srcFile, new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName())));
+          }
+        } catch (IOException e) {
+          errorMessages.add(e.getMessage());
+        }
+      }
+      if (errorMessages.size() != 0) {
+        if (errorMessages.size() == fileList.length) {
+          // If no files were created, then delete the directory
+          if (mFileSystem.exists(dstPath)) {
+            mFileSystem.delete(dstPath);
+          }
+        }
+        throw new IOException(Joiner.on('\n').join(errorMessages));
+      }
+    } catch (AlluxioException e) {
+      throw new IOException(e.getMessage());
     }
   }
 
@@ -89,6 +126,22 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
    * @throws IOException if a non-Alluxio related exception occurs
    */
   private void copyFromLocalWildcard(List<File> srcFiles, AlluxioURI dstPath) throws IOException {
+    createDirectory(dstPath);
+    List<String> errorMessages = Lists.newArrayList();
+    for (File srcFile : srcFiles) {
+      try {
+        copyFromLocal(srcFile,
+                new AlluxioURI(PathUtils.concatPath(dstPath.getPath(), srcFile.getName())));
+      } catch (IOException e) {
+        errorMessages.add(e.getMessage());
+      }
+    }
+    if (errorMessages.size() != 0) {
+      throw new IOException(Joiner.on('\n').join(errorMessages));
+    }
+  }
+
+  private void createDirectory(AlluxioURI dstPath) throws IOException {
     try {
       mFileSystem.createDirectory(dstPath);
     } catch (FileAlreadyExistsException e) {
@@ -105,20 +158,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     }
     if (!dstStatus.isFolder()) {
       throw new IOException(
-          ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
-    }
-
-    List<String> errorMessages = Lists.newArrayList();
-    for (File srcFile : srcFiles) {
-      try {
-        copyFromLocal(srcFile,
-            new AlluxioURI(PathUtils.concatPath(dstPath.getPath(), srcFile.getName())));
-      } catch (IOException e) {
-        errorMessages.add(e.getMessage());
-      }
-    }
-    if (errorMessages.size() != 0) {
-      throw new IOException(Joiner.on('\n').join(errorMessages));
+              ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
     }
   }
 
@@ -170,15 +210,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
           closer.close();
         }
       } else {
-        // Add a judgement, because the dstPath maybe already exists. For example:
-        // 'copyFromLocal pathToSrcDir /'.
-        try {
-          mFileSystem.createDirectory(dstPath);
-        } catch (FileAlreadyExistsException e) {
-          // it's fine if the directory already exists
-        } catch (AlluxioException e) {
-          throw new IOException(e.getMessage());
-        }
+        mFileSystem.createDirectory(dstPath);
         List<String> errorMessages = Lists.newArrayList();
         String[] fileList = src.list();
         for (String file : fileList) {
