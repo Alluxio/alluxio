@@ -103,6 +103,7 @@ public final class Constants {
   public static final String LINEAGE_MASTER_CLIENT_SERVICE_NAME = "LineageMasterClient";
   public static final String LINEAGE_MASTER_WORKER_SERVICE_NAME = "LineageMasterWorker";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
+  public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
