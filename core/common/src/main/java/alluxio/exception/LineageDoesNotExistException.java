@@ -20,16 +20,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public class LineageDoesNotExistException extends AlluxioException {
   private static final long serialVersionUID = 6099440428939973308L;
 
-  private static final AlluxioExceptionType EXCEPTION_TYPE =
-      AlluxioExceptionType.LINEAGE_DOES_NOT_EXIST;
-
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public LineageDoesNotExistException(String message) {
-    super(EXCEPTION_TYPE, message);
+    super(message);
   }
 
   /**
@@ -39,7 +36,7 @@ public class LineageDoesNotExistException extends AlluxioException {
    * @param cause the cause
    */
   public LineageDoesNotExistException(String message, Throwable cause) {
-    super(EXCEPTION_TYPE, message, cause);
+    super(message, cause);
   }
 
   /**

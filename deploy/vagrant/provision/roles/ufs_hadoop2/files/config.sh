@@ -8,12 +8,12 @@ NODES=`cat /vagrant/files/workers`
 
 # setup hadoop
 rm -f /hadoop/etc/hadoop/slaves
-for i in ${NODES[@]}; do
- echo $i >> /hadoop/etc/hadoop/slaves
+for node in ${NODES[@]}; do
+ echo ${node} >> /hadoop/etc/hadoop/slaves
 done
 
 # choose the last node as namenode
-namenode=$i
+namenode=${node}
 cat > /hadoop/etc/hadoop/core-site.xml << EOF
 <configuration>
 <property>
@@ -42,19 +42,19 @@ EOF
 EXTRA_DISKS=`ls / | grep '^disk'`
 DN=""
 NN=""
-for disk in $EXTRA_DISKS; do
- DN=file:///${disk}/dfs/dn,$DN
- NN=file:///${disk}/dfs/nn,$NN
+for disk in ${EXTRA_DISKS}; do
+ DN=file:///${disk}/dfs/dn,${DN}
+ NN=file:///${disk}/dfs/nn,${NN}
 done
 if [[ "$DN" != "" ]]; then
  cat >> /hadoop/etc/hadoop/hdfs-site.xml << EOF
 <property>
  <name>dfs.name.dir</name>
- <value>$NN</value>
+ <value>${NN}</value>
 </property>
 <property>
  <name>dfs.data.dir</name>
- <value>$DN</value>
+ <value>${DN}</value>
 </property>
 EOF
 fi

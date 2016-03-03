@@ -20,16 +20,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public class InvalidFileSizeException extends AlluxioException {
   private static final long serialVersionUID = -4913703614829472342L;
 
-  private static final AlluxioExceptionType EXCEPTION_TYPE =
-      AlluxioExceptionType.INVALID_FILE_SIZE;
-
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public InvalidFileSizeException(String message) {
-    super(EXCEPTION_TYPE, message);
+    super(message);
   }
 
   /**
@@ -39,7 +36,7 @@ public class InvalidFileSizeException extends AlluxioException {
    * @param cause the cause
    */
   public InvalidFileSizeException(String message, Throwable cause) {
-    super(EXCEPTION_TYPE, message, cause);
+    super(message, cause);
   }
 
   /**

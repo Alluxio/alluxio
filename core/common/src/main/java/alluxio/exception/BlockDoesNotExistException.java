@@ -17,15 +17,12 @@ package alluxio.exception;
 public class BlockDoesNotExistException extends AlluxioException {
   private static final long serialVersionUID = -1313208091357063634L;
 
-  private static final AlluxioExceptionType EXCEPTION_TYPE =
-      AlluxioExceptionType.BLOCK_DOES_NOT_EXIST;
-
   /**
    * Constructs a new exception with the specified detail message.
    * @param message the detail message
    */
   public BlockDoesNotExistException(String message) {
-    super(EXCEPTION_TYPE, message);
+    super(message);
   }
 
   /**
@@ -35,7 +32,7 @@ public class BlockDoesNotExistException extends AlluxioException {
    * @param cause the cause
    */
   public BlockDoesNotExistException(String message, Throwable cause) {
-    super(EXCEPTION_TYPE, message, cause);
+    super(message, cause);
   }
 
   /**
