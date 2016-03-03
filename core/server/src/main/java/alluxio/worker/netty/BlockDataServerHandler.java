@@ -46,8 +46,11 @@ import java.nio.channels.FileChannel;
 public class BlockDataServerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** The Block Worker which handles blocks stored in the Alluxio storage of the worker */
   private final BlockWorker mWorker;
+  /** The transfer type used by the data server */
   private final FileTransferType mTransferType;
+  /**  An object storing the mapping of tier aliases to ordinals */
   private final StorageTierAssoc mStorageTierAssoc;
 
   protected BlockDataServerHandler(BlockWorker worker, Configuration configuration) {
@@ -57,6 +60,15 @@ public class BlockDataServerHandler {
         FileTransferType.class);
   }
 
+  /**
+   * Handles a {@link RPCBlockReadRequest} by reading the data through a {@link BlockReader}
+   * provided by the block worker. This method assumes the data is available in the local storage
+   * of the worker and returns an error status if the data is not available.
+   *
+   * @param ctx The context of this request which handles the result of this operation
+   * @param req The initiating {@link RPCBlockReadRequest}
+   * @throws IOException
+   */
   protected void handleBlockReadRequest(final ChannelHandlerContext ctx,
       final RPCBlockReadRequest req) throws IOException {
     final long blockId = req.getBlockId();
@@ -68,9 +80,7 @@ public class BlockDataServerHandler {
     BlockReader reader;
     try {
       reader = mWorker.readBlockRemote(sessionId, blockId, lockId);
-    } catch (BlockDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (InvalidWorkerStateException e) {
+    } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
       throw new IOException(e);
     }
     try {
@@ -97,6 +107,15 @@ public class BlockDataServerHandler {
     }
   }
 
+  /**
+   * Handles a {@link RPCBlockWriteRequest} by writing the data through a {@link BlockWriter}
+   * provided by the block worker. This method takes care of requesting space and creating the
+   * block if necessary.
+   *
+   * @param ctx The context of this request which handles the result of this operation
+   * @param req The initiating {@link RPCBlockWriteRequest}
+   * @throws IOException if an I/O exception occurs when writing the data
+   */
   // TODO(hy): This write request handler is very simple in order to be stateless. Therefore, the
   // block file is opened and closed for every request. If this is too slow, then this handler
   // should be optimized to keep state.
@@ -143,13 +162,20 @@ public class BlockDataServerHandler {
   }
 
   /**
-   * Returns how much of a file to read. When {@code len} is {@code -1}, then
+   * @return how much of a file to read. When {@code len} is {@code -1}, then
    * {@code fileLength - offset} is used.
    */
   private long returnLength(final long offset, final long len, final long fileLength) {
     return (len == -1) ? fileLength - offset : len;
   }
 
+  /**
+   * Validates the bounds of the request. An uncaught exception will be thrown if an
+   * inconsistency occurs.
+   *
+   * @param req The initiating {@link RPCBlockReadRequest}
+   * @param fileLength The length of the block being read
+   */
   private void validateBounds(final RPCBlockReadRequest req, final long fileLength) {
     Preconditions.checkArgument(req.getOffset() <= fileLength,
         "Offset(%s) is larger than file length(%s)", req.getOffset(), fileLength);
@@ -160,15 +186,15 @@ public class BlockDataServerHandler {
   }
 
   /**
-   * Returns the appropriate {@link alluxio.network.protocol.databuffer.DataBuffer} representing the
-   * data to send, depending on the configurable transfer type.
+   * Returns the appropriate {@link DataBuffer} representing the data to send, depending on the
+   * configurable transfer type.
    *
    * @param req The initiating {@link RPCBlockReadRequest}
    * @param reader The {@link BlockReader} for the block to read
    * @param readLength The length, in bytes, of the data to read from the block
-   * @return a {@link alluxio.network.protocol.databuffer.DataBuffer} representing the data
-   * @throws IOException
-   * @throws IllegalArgumentException
+   * @return a {@link DataBuffer} representing the data
+   * @throws IOException if an I/O error occurs when reading the data
+   * @throws IllegalArgumentException if TRANSFER is used and the data source is not a file channel
    */
   private DataBuffer getDataBuffer(RPCBlockReadRequest req, BlockReader reader, long readLength)
       throws IOException, IllegalArgumentException {
