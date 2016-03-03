@@ -3,10 +3,10 @@
 DISK=`ls / | grep '^disk'`
 TIERED_PATH=""
 TIERED_QUOTA=""
-for disk in $DISK; do
- TIERED_PATH=/$disk,$TIERED_PATH
+for disk in ${DISK}; do
+ TIERED_PATH=/${disk},${TIERED_PATH}
  quota=`df -h | grep "/$disk" | awk '{print $2}'`
- TIERED_QUOTA=${quota}B,$TIERED_QUOTA
+ TIERED_QUOTA=${quota}B,${TIERED_QUOTA}
 done
 
 [[ "$TIERED_PATH" == "" ]] && exit 0
