@@ -53,7 +53,7 @@ public final class BlockDataServerHandler {
   private final BlockWorker mWorker;
   /** The transfer type used by the data server. */
   private final FileTransferType mTransferType;
-  /**  An object storing the mapping of tier aliases to ordinals. */
+  /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc;
 
   protected BlockDataServerHandler(BlockWorker worker, Configuration configuration) {
