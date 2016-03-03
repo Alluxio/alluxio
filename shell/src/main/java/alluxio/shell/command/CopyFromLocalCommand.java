@@ -78,9 +78,16 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     }
   }
 
+  /**
+   * Copies a directory from local to dstPath in the Alluxio. This method is used when input path
+   * is a directory.
+   * @param srcDir  The directory in the local filesystem.
+   * @param dstPath The {@link AlluxioURI} of the destination
+   * @throws IOException IOException if a non-Alluxio related exception occurs
+   */
   private void copyFromLocalDirs(File srcDir, AlluxioURI dstPath) throws IOException {
     try {
-      createDirectory(dstPath);
+      createDscDir(dstPath);
       List<String> errorMessages = Lists.newArrayList();
       File[] fileList = srcDir.listFiles();
       for (File srcFile : fileList) {
@@ -118,7 +125,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
    * @throws IOException if a non-Alluxio related exception occurs
    */
   private void copyFromLocalWildcard(List<File> srcFiles, AlluxioURI dstPath) throws IOException {
-    createDirectory(dstPath);
+    createDscDir(dstPath);
     List<String> errorMessages = Lists.newArrayList();
     for (File srcFile : srcFiles) {
       try {
@@ -133,7 +140,13 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     }
   }
 
-  private void createDirectory(AlluxioURI dstPath) throws IOException {
+  /**
+   * Create a directory in the Alluxio filesystem space. It will not throw any exception if the
+   * destination directory is already exists.
+   * @param dstPath The uri of the directory will be created.
+   * @throws IOException
+   */
+  private void createDscDir(AlluxioURI dstPath) throws IOException {
     try {
       mFileSystem.createDirectory(dstPath);
     } catch (FileAlreadyExistsException e) {

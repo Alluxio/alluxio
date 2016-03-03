@@ -114,7 +114,8 @@ public enum ExceptionMessage {
 
   // shell
   DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE(
-      "The destination cannot be an existent file when the src contains wildcards."),
+      "The destination cannot be an existent file when the src is a directory or contains" +
+              " wildcards."),
 
   // lineage
   DELETE_LINEAGE_WITH_CHILDREN("The lineage {0} to delete has child lineages"),
