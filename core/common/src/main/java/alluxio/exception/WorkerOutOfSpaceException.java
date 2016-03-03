@@ -20,16 +20,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public class WorkerOutOfSpaceException extends AlluxioException {
   private static final long serialVersionUID = 8148784998226149669L;
 
-  private static final AlluxioExceptionType EXCEPTION_TYPE =
-      AlluxioExceptionType.WORKER_OUT_OF_SPACE;
-
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public WorkerOutOfSpaceException(String message) {
-    super(EXCEPTION_TYPE, message);
+    super(message);
   }
 
   /**
@@ -39,7 +36,7 @@ public class WorkerOutOfSpaceException extends AlluxioException {
    * @param cause the cause
    */
   public WorkerOutOfSpaceException(String message, Throwable cause) {
-    super(EXCEPTION_TYPE, message, cause);
+    super(message, cause);
   }
 
   /**
