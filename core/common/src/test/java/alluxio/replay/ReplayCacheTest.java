@@ -255,7 +255,7 @@ public final class ReplayCacheTest {
 
     @Override
     public Long call() throws AlluxioException, IOException {
-      // If it's a AlluxioException or IOException, don't wrap it in RuntimeException
+      // If it's an AlluxioException or IOException, don't wrap it in RuntimeException
       Throwables.propagateIfInstanceOf(mException, AlluxioException.class);
       Throwables.propagateIfInstanceOf(mException, IOException.class);
       throw Throwables.propagate(mException);
