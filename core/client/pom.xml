@@ -75,9 +75,6 @@
     <!-- in the maven command line. -->
     <profile>
       <id>spark</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
       <!-- The dependencies are the same as the default dependencies, except that curator-client, curator-framework, -->
       <!-- curator-recipies and hadoop-client are in scope provided, as they are provided by Apache Spark runtime. -->
       <dependencies>
@@ -113,28 +110,6 @@
             <version>2.2</version>
             <executions>
               <execution>
-                <id>shade-thrift</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>shade</goal>
-                </goals>
-                <configuration>
-                  <artifactSet>
-                    <includes>
-                      <include>org.alluxio:alluxio-core-common</include>
-                      <include>org.alluxio:alluxio-core-client</include>
-                      <include>org.apache.thrift:libthrift</include>
-                    </includes>
-                  </artifactSet>
-                  <relocations>
-                    <relocation>
-                      <pattern>org.apache.thrift</pattern>
-                      <shadedPattern>alluxio.org.apache.thrift</shadedPattern>
-                    </relocation>
-                  </relocations>
-                </configuration>
-              </execution>
-              <execution>
                 <id>uber-jar</id>
                 <phase>package</phase>
                 <goals>
@@ -142,6 +117,12 @@
                 </goals>
                 <configuration>
                   <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+                  <relocations>
+                    <relocation>
+                      <pattern>org.apache.thrift</pattern>
+                      <shadedPattern>alluxio.org.apache.thrift</shadedPattern>
+                    </relocation>
+                  </relocations>
                   <transformers>
                     <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                   </transformers>
