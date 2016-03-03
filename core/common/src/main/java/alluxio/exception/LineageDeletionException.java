@@ -20,15 +20,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public class LineageDeletionException extends AlluxioException {
   private static final long serialVersionUID = -1183157316281653017L;
 
-  private static final AlluxioExceptionType EXCEPTION_TYPE = AlluxioExceptionType.LINEAGE_DELETION;
-
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public LineageDeletionException(String message) {
-    super(EXCEPTION_TYPE, message);
+    super(message);
   }
 
   /**
@@ -38,7 +36,7 @@ public class LineageDeletionException extends AlluxioException {
    * @param cause the cause
    */
   public LineageDeletionException(String message, Throwable cause) {
-    super(EXCEPTION_TYPE, message, cause);
+    super(message, cause);
   }
 
   /**
