@@ -9,7 +9,7 @@
         <li id="workers-li"><a href="./workers">Workers</a></li>
         <li id="memory-li"><a href="./memory">In-Memory Files</a></li>
       <% } else {%>
-        <li id="masterBlockInfo-li"><a href="./blockInfo">BlockInfo</a></li>
+        <li id="blockInfo-li"><a href="./blockInfo">BlockInfo</a></li>
       <% } %>
       <li id="browseLogs-li"><a href="./browseLogs">Log Files</a></li>
       <li id="autorefresh-li"><a href="javascript:toggleAutoRefresh();" id="autorefresh-link">Enable Auto-Refresh</a></li>
