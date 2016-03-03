@@ -150,7 +150,6 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
     }
 
     LOG.debug("URI authority = " + uriAuthority);
-    //mUri = URI.create(mUri.getScheme() + "://" + uriAuthority);
     LOG.debug("URI: " + this.mUri.toString());
     LOG.debug("conf: " + conf.toString());
   }
@@ -252,18 +251,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    * @throws IOException if a non-Alluxio error occurs
    */
   public boolean exists(AlluxioURI uri) throws IOException {
-    IOException te = null;
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
-      try {
-        return getFileStatus(uri) != null;
-      } catch (IOException e) {
-        LOG.error("{} try to check if {} exists : {}", retryPolicy.getRetryCount(), uri,
-            e.getMessage(), e);
-        te = e;
-      }
-    }
-    throw te;
+    return getFileStatus(uri) != null;
   }
 
   @Override
@@ -479,27 +467,17 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    * @throws IOException if an I/O error occurs
    */
   public Stat getFileStatus(AlluxioURI uri) throws IOException {
-    Stat stats = null;
-    IOException te = null;
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    String ofsPath = getOFSPath(uri);
+    LOG.debug("f = " + ofsPath);
+    Stat stats = mOrange.posix.stat(ofsPath);
 
-    while (retryPolicy.attemptRetry()) {
-      try {
-        String ofsPath = getOFSPath(uri);
-        LOG.debug("f = " + ofsPath);
-
-        stats = mOrange.posix.stat(ofsPath);
-        if (stats == null) {
-          LOG.debug("stat(" + uri + ") returned null");
-          throw new FileNotFoundException();
-        }
-
-        return stats;
-      } catch (IOException e) {
-        LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
-      }
+    // TODO(pfxuan): should find a good way to retry
+    if (stats == null) {
+      LOG.debug("stat(" + uri + ") returned null");
+      return null;
+    } else {
+      return stats;
     }
-    return null;
   }
 
   /**
