@@ -11,7 +11,7 @@ for i in ${nodes[@]}; do
 done
 
 for i in ${nodes[@]}; do
- if [ "x${brick}" == "x" ]; then
+ if [[ "x${brick}" == "x" ]]; then
   sudo gluster volume create ${vol} ${i}:/gfs_vol force
  else
   sudo gluster volume add-brick ${vol} ${i}:/gfs_vol force

@@ -30,11 +30,11 @@ do
  esac
 done
 
-if [[ "$#" != "1" ]] ; then
+if [[ "$#" != "1" ]]; then
  usage
 fi
 
-if [[ ! -e "$1" ]] ; then
+if [[ ! -e "$1" ]]; then
  echo "File or directory $1 doesn't exist!"
  exit 1
 fi

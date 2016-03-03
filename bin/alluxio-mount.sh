@@ -21,7 +21,7 @@ function init_env() {
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
   . $ALLUXIO_LIBEXEC_DIR/alluxio-config.sh
 
-  if [ -z $ALLUXIO_WORKER_MEMORY_SIZE ] ; then
+  if [[ -z $ALLUXIO_WORKER_MEMORY_SIZE ]]; then
     echo "ALLUXIO_WORKER_MEMORY_SIZE was not set. Using the default one: 128MB"
     ALLUXIO_WORKER_MEMORY_SIZE="128MB"
   fi
@@ -130,14 +130,14 @@ function mac_hfs_provision_sectors() {
 function mount_ramfs_linux() {
   init_env $1
 
-  if [ -z $ALLUXIO_RAM_FOLDER ] ; then
+  if [[ -z $ALLUXIO_RAM_FOLDER ]]; then
     ALLUXIO_RAM_FOLDER=/mnt/ramdisk
     echo "ALLUXIO_RAM_FOLDER was not set. Using the default one: $ALLUXIO_RAM_FOLDER"
   fi
 
   mem_size_to_bytes
   TOTAL_MEM=$(($(cat /proc/meminfo | awk 'NR==1{print $2}') * 1024))
-  if [ $TOTAL_MEM -lt $BYTE_SIZE ] ; then
+  if [[ $TOTAL_MEM -lt $BYTE_SIZE ]]; then
     echo "ERROR: Memory($TOTAL_MEM) is less than requested ramdisk size($BYTE_SIZE). Please reduce ALLUXIO_WORKER_MEMORY_SIZE"
     exit 1
   fi
@@ -146,7 +146,7 @@ function mount_ramfs_linux() {
   echo "Formatting RamFS: $F ($MEM_SIZE)"
   if mount | grep $F > /dev/null; then
     umount -f $F
-    if [ $? -ne 0 ] ; then
+    if [[ $? -ne 0 ]]; then
       echo "ERROR: umount RamFS $F failed"
       exit 1
     fi
@@ -160,7 +160,7 @@ function mount_ramfs_linux() {
 function mount_ramfs_mac() {
   init_env $0
 
-  if [ -z $ALLUXIO_RAM_FOLDER ] ; then
+  if [[ -z $ALLUXIO_RAM_FOLDER ]]; then
     ALLUXIO_RAM_FOLDER=/Volumes/ramdisk
     echo "ALLUXIO_RAM_FOLDER was not set. Using the default one: $ALLUXIO_RAM_FOLDER"
   fi

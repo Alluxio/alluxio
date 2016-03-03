@@ -3,7 +3,7 @@
 # get last field of url cut by '/'
 TARBALL_NAME=${TARBALL_URL##*/}
 
-if [ ! -f "/vagrant/shared/$TARBALL_NAME" ]; then
+if [[ ! -f "/vagrant/shared/$TARBALL_NAME" ]]; then
  # download hadoop
  sudo yum install -y -q wget
  wget -q "$TARBALL_URL" -P /vagrant/shared
