@@ -71,79 +71,17 @@
   </dependencies>
 
   <profiles>
-    <!-- Profile used to build alluxio client jar used for Apache Spark. This will be activated by using -Pspark-->
-    <!-- in the maven command line. -->
     <profile>
       <id>spark</id>
-      <!-- The dependencies are the same as the default dependencies, except that curator-client, curator-framework, -->
-      <!-- curator-recipies and hadoop-client are in scope provided, as they are provided by Apache Spark runtime. -->
       <dependencies>
-        <dependency>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>curator-framework</artifactId>
-          <version>${apache.curator.version}</version>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>curator-client</artifactId>
-          <version>${apache.curator.version}</version>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>curator-recipes</artifactId>
-          <version>${apache.curator.version}</version>
-          <scope>provided</scope>
-        </dependency>
+        <!-- Override the dependency of hadoop-client even it is already in the spark profile in parent pom. -->
+        <!-- Because this dependency is introduced in this file and has a higher priority than parent profile. -->
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-client</artifactId>
           <scope>provided</scope>
         </dependency>
       </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-shade-plugin</artifactId>
-            <version>2.2</version>
-            <executions>
-              <execution>
-                <id>uber-jar</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>shade</goal>
-                </goals>
-                <configuration>
-                  <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
-                  <relocations>
-                    <relocation>
-                      <pattern>org.apache.thrift</pattern>
-                      <shadedPattern>alluxio.org.apache.thrift</shadedPattern>
-                    </relocation>
-                  </relocations>
-                  <transformers>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                  </transformers>
-                  <filters>
-                    <filter>
-                      <artifact>*:*</artifact>
-                      <excludes>
-                        <exclude>LICENSE</exclude>
-                        <exclude>META-INF/LICENSE</exclude>
-                        <exclude>META-INF/*.SF</exclude>
-                        <exclude>META-INF/*.DSA</exclude>
-                        <exclude>META-INF/*.RSA</exclude>
-                      </excludes>
-                    </filter>
-                  </filters>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
   </profiles>
 
@@ -159,6 +97,44 @@
             <goals>
               <goal>test-jar</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.2</version>
+        <executions>
+          <execution>
+            <id>uber-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <relocations>
+                <relocation>
+                  <pattern>org.apache.thrift</pattern>
+                  <shadedPattern>alluxio.org.apache.thrift</shadedPattern>
+                </relocation>
+              </relocations>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+              </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
           </execution>
         </executions>
       </plugin>

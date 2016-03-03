@@ -105,7 +105,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-keyvalue-client-internal</artifactId>
+      <artifactId>alluxio-keyvalue-client</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
