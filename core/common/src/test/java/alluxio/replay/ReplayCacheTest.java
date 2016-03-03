@@ -12,7 +12,6 @@
 package alluxio.replay;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.AlluxioExceptionType;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.replay.ReplayCache.ReplayCallable;
 import alluxio.replay.ReplayCache.ReplayCallableThrowsIOException;
@@ -129,7 +128,7 @@ public final class ReplayCacheTest {
       Assert.fail("Should have thrown AlluxioTException");
     } catch (AlluxioTException e) {
       Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
-      Assert.assertEquals(AlluxioExceptionType.FILE_ALREADY_EXISTS.name(), e.getType());
+      Assert.assertEquals(FileAlreadyExistsException.class.getName(), e.getType());
     }
   }
 
@@ -147,7 +146,7 @@ public final class ReplayCacheTest {
       Assert.fail("Should have thrown AlluxioTException");
     } catch (AlluxioTException e) {
       Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
-      Assert.assertEquals(AlluxioExceptionType.FILE_ALREADY_EXISTS.name(), e.getType());
+      Assert.assertEquals(FileAlreadyExistsException.class.getName(), e.getType());
     }
   }
 
@@ -237,7 +236,7 @@ public final class ReplayCacheTest {
 
     @Override
     public Long call() throws AlluxioException {
-      // If it's an AlluxioException, don't wrap it in RuntimeException
+      // If it's a AlluxioException, don't wrap it in RuntimeException
       Throwables.propagateIfInstanceOf(mException, AlluxioException.class);
       throw Throwables.propagate(mException);
     }
@@ -256,7 +255,7 @@ public final class ReplayCacheTest {
 
     @Override
     public Long call() throws AlluxioException, IOException {
-      // If it's an AlluxioException or IOException, don't wrap it in RuntimeException
+      // If it's a AlluxioException or IOException, don't wrap it in RuntimeException
       Throwables.propagateIfInstanceOf(mException, AlluxioException.class);
       Throwables.propagateIfInstanceOf(mException, IOException.class);
       throw Throwables.propagate(mException);
