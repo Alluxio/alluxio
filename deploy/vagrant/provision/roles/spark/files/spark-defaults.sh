@@ -3,7 +3,7 @@
 cp /spark/conf/spark-defaults.conf.template /spark/conf/spark-defaults.conf
 
 # disk0 should be much larger than root device, put the logs there if it exists
-if [ -d /disk0 ]; then
+if [[ -d /disk0 ]]; then
   EVENTLOG_DIR=/disk0/spark-eventlog
 else
   EVENTLOG_DIR=/tmp/spark-eventlog

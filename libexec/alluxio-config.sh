@@ -20,7 +20,7 @@ this="$config_bin/$script"
 
 # This will set the default installation for a tarball installation while os distributors can create
 # their own alluxio-layout.sh file to set system installation locations.
-if [ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]; then
+if [[ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]]; then
   VERSION=1.1.0-SNAPSHOT
   export ALLUXIO_PREFIX=$(dirname $(dirname "$this"))
   export ALLUXIO_HOME=${ALLUXIO_PREFIX}
@@ -30,7 +30,7 @@ if [ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]; then
 fi
 
 # Make sure alluxio-env.sh exists
-if [ ! -e $ALLUXIO_CONF_DIR/alluxio-env.sh ]; then
+if [[ ! -e $ALLUXIO_CONF_DIR/alluxio-env.sh ]]; then
   echo "Cannot find alluxio-env.sh in $ALLUXIO_CONF_DIR."
   echo "Please create one manually or using '$ALLUXIO_HOME/bin/alluxio bootstrap-conf'."
   exit 1
@@ -39,7 +39,7 @@ fi
 . $ALLUXIO_CONF_DIR/alluxio-env.sh
 
 # A developer option to prepend Alluxio jars before ALLUXIO_CLASSPATH jars
-if [ -n "$ALLUXIO_PREPEND_ALLUXIO_CLASSES" ]; then
+if [[ -n "$ALLUXIO_PREPEND_ALLUXIO_CLASSES" ]]; then
   export CLASSPATH="$ALLUXIO_CONF_DIR/:$ALLUXIO_JARS:$ALLUXIO_CLASSPATH"
 else
   export CLASSPATH="$ALLUXIO_CONF_DIR/:$ALLUXIO_CLASSPATH:$ALLUXIO_JARS"

@@ -60,7 +60,7 @@ if [[ $(uname -s) == Darwin ]]; then
 else
   # Assuming Linux
   if [[ -z "$JAVA_HOME" ]]; then
-    if [ -d /usr/lib/jvm/java-7-oracle ]; then
+    if [[ -d /usr/lib/jvm/java-7-oracle ]]; then
       export JAVA_HOME=/usr/lib/jvm/java-7-oracle
     else
       # openjdk will set this
