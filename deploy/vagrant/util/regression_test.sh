@@ -16,9 +16,9 @@ for (( i = 0; i < ${#PROVIDERS[@]}; i ++ )); do
   # create a cluster configuration
   ln -fs conf/${CONFIGS[i]} init.yml
   # provision the cluster
-  ${CMDS[i]} > buildlog.${PROVIDERS[i]} 2 > &1
+  ${CMDS[i]} > buildlog.${PROVIDERS[i]} 2>&1
   # get the status, error 124 is timeout.
   echo " Status: "$?
   # clean up the cluster
-  vagrant destroy -f > /dev/null 2 > &1
+  vagrant destroy -f > /dev/null 2>&1
 done
