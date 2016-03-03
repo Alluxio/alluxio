@@ -2,5 +2,5 @@
 
 if [ ! -d /alluxio ]; then
   sudo mkdir /alluxio
-  sudo chown -R `whoami` /alluxio
+  sudo chown -R $(whoami) /alluxio
 fi

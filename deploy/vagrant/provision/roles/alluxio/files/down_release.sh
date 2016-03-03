@@ -5,7 +5,7 @@ mkdir -p /vagrant/shared
 DIST=/vagrant/shared/${ALLUXIO_DIST}
 
 if [ ! -f ${DIST} ]; then
- version=`echo ${DIST} | cut -d'-' -f2`
+ version=$(echo ${DIST} | cut -d'-' -f2)
  sudo yum install -y -q wget
  wget -q http://alluxio.org/downloads/files/${version}/${ALLUXIO_DIST} -P /vagrant/shared
  if [ $? -ne 0 ]; then

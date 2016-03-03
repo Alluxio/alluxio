@@ -4,7 +4,7 @@
 ALLUXIO_CLIENT_JAR=$(ls /alluxio/core/client/target/alluxio-core-client-*-jar-with-dependencies.jar)
 echo "export HADOOP_CLASSPATH=\${HADOOP_CLASSPATH}:${ALLUXIO_CLIENT_JAR}" >> /hadoop/conf/hadoop-env.sh
 
-NODES=`cat /vagrant/files/workers`
+NODES=$(cat /vagrant/files/workers)
 
 # setup hadoop
 rm -f /hadoop/conf/slaves
@@ -17,7 +17,7 @@ namenode=${node}
 echo ${namenode} > /hadoop/conf/masters
 
 # use /disk0, /disk1... as local storage
-EXTRA_DISKS=`ls / | grep '^disk'`
+EXTRA_DISKS=$(ls / | grep '^disk')
 DN=""
 NN=""
 TMP=""

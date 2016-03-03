@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-nodes=`cat /vagrant/files/workers`
+nodes=$(cat /vagrant/files/workers)
 vol="alluxio_vol"
 brick=""
 
