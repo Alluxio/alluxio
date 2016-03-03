@@ -8,12 +8,12 @@ NODES=`cat /vagrant/files/workers`
 
 # setup hadoop
 rm -f /hadoop/conf/slaves
-for i in ${NODES[@]}; do
- echo ${i} >> /hadoop/conf/slaves
+for node in ${NODES[@]}; do
+ echo ${node} >> /hadoop/conf/slaves
 done
 
 # choose the last node as namenode
-namenode=${i}
+namenode=${node}
 echo ${namenode} > /hadoop/conf/masters
 
 # use /disk0, /disk1... as local storage
