@@ -46,11 +46,11 @@ import java.nio.channels.FileChannel;
 public class BlockDataServerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** The Block Worker which handles blocks stored in the Alluxio storage of the worker */
+  /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
-  /** The transfer type used by the data server */
+  /** The transfer type used by the data server. */
   private final FileTransferType mTransferType;
-  /**  An object storing the mapping of tier aliases to ordinals */
+  /**  An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc;
 
   protected BlockDataServerHandler(BlockWorker worker, Configuration configuration) {
