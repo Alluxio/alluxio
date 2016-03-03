@@ -9,7 +9,7 @@ NODES=$(cat /vagrant/files/workers)
 # setup hadoop
 rm -f /hadoop/conf/slaves
 for node in ${NODES[@]}; do
- echo ${node} >> /hadoop/conf/slaves
+  echo ${node} >> /hadoop/conf/slaves
 done
 
 # choose the last node as namenode
@@ -22,9 +22,9 @@ DN=""
 NN=""
 TMP=""
 for disk in ${EXTRA_DISKS}; do
- DN=/${disk}/dfs/dn,${DN}
- NN=/${disk}/dfs/nn,${NN}
- TMP=/${disk}/hadoop-tmpstore,${TMP}
+  DN=/${disk}/dfs/dn,${DN}
+  NN=/${disk}/dfs/nn,${NN}
+  TMP=/${disk}/hadoop-tmpstore,${TMP}
 done
 
 [[ "$TMP" == "" ]] && TMP=/tmp/hadoop-tmpstore

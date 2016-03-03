@@ -25,7 +25,7 @@ sudo ln -f -s "$MAVEN_DIR/bin/mvn" /usr/bin/mvn
 
 # relocate local repo to shared folder
 mkdir -p ~/.m2
-cat > ~/.m2/settings.xml <<EOF
+cat > ~/.m2/settings.xml << EOF
 <settings>
 <localRepository>/vagrant/shared</localRepository>
 </settings>
