@@ -8,12 +8,12 @@ NODES=`cat /vagrant/files/workers`
 
 # setup hadoop
 rm -f /hadoop/etc/hadoop/slaves
-for i in ${NODES[@]}; do
- echo ${i} >> /hadoop/etc/hadoop/slaves
+for node in ${NODES[@]}; do
+ echo ${node} >> /hadoop/etc/hadoop/slaves
 done
 
 # choose the last node as namenode
-namenode=${i}
+namenode=${node}
 cat > /hadoop/etc/hadoop/core-site.xml << EOF
 <configuration>
 <property>
