@@ -59,9 +59,9 @@ public abstract class AlluxioException extends Exception {
    * @param e the {link AlluxioTException} to convert to a {@link AlluxioException}
    * @return a {@link AlluxioException} of the type specified in e, with the message specified in e
    */
-  @SuppressWarnings("unchecked")
   public static AlluxioException from(AlluxioTException e) {
     try {
+      @SuppressWarnings("unchecked")
       Class<? extends AlluxioException> throwClass =
           (Class<? extends AlluxioException>) Class.forName(e.getType());
       return throwClass.getConstructor(String.class).newInstance(e.getMessage());
