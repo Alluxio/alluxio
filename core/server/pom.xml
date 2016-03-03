@@ -32,7 +32,7 @@
   <dependencies>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client-internal</artifactId>
+      <artifactId>alluxio-core-client</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

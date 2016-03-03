@@ -18,7 +18,7 @@
   </parent>
   <artifactId>alluxio-core-client</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Core - Client</name>
+  <name>Alluxio Core - Client Implementation</name>
   <description>Client implementation of Alluxio core</description>
 
   <properties>
@@ -122,7 +122,7 @@
                   <artifactSet>
                     <includes>
                       <include>org.alluxio:alluxio-core-common</include>
-                      <include>org.alluxio:alluxio-core-client-internal</include>
+                      <include>org.alluxio:alluxio-core-client</include>
                       <include>org.apache.thrift:libthrift</include>
                     </includes>
                   </artifactSet>
