@@ -44,9 +44,9 @@ printf "%s\n" ${to_mount}
 n=0
 for disk in ${to_mount}; do
  sudo mkfs.ext4 -F "/dev/${disk}" # format to ext4 even if it has been formated before
- sudo mkdir -p "/disk$n"
- sudo mount "/dev/${disk}" "/disk$n"
- sudo chown -R `whoami` "/disk$n"
- n=$(( $n + 1 ))
+ sudo mkdir -p "/disk${n}"
+ sudo mount "/dev/${disk}" "/disk${n}"
+ sudo chown -R `whoami` "/disk${n}"
+ n=$(( ${n} + 1 ))
 done
-echo "$n devices mounted as /disk#"
+echo "${n} devices mounted as /disk#"

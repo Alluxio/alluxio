@@ -5,7 +5,7 @@ TIERED_PATH=""
 TIERED_QUOTA=""
 for disk in ${DISK}; do
  TIERED_PATH=/${disk},${TIERED_PATH}
- quota=`df -h | grep "/$disk" | awk '{print $2}'`
+ quota=`df -h | grep "/${disk}" | awk '{print $2}'`
  TIERED_QUOTA=${quota}B,${TIERED_QUOTA}
 done
 
