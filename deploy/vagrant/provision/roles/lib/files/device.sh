@@ -43,9 +43,9 @@ printf "%s\n" ${to_mount}
 # format disk, sequentially mount to /disk0, /disk1, ...
 n=0
 for disk in ${to_mount}; do
- sudo mkfs.ext4 -F "/dev/$disk" # format to ext4 even if it has been formated before
+ sudo mkfs.ext4 -F "/dev/${disk}" # format to ext4 even if it has been formated before
  sudo mkdir -p "/disk$n"
- sudo mount "/dev/$disk" "/disk$n"
+ sudo mount "/dev/${disk}" "/disk$n"
  sudo chown -R `whoami` "/disk$n"
  n=$(( $n + 1 ))
 done
