@@ -39,7 +39,7 @@ client portion of Alluxio.
 ### Master
 
 Alluxio may be deployed in one of two master modes, [single master](Running-Alluxio-Locally.html) or
-[fault tolerant mode](Running-Alluxio-Fault-Tolerant-on-EC2.html). The master is primarily
+[fault tolerant mode](Running-Alluxio-Fault.html). The master is primarily
 responsible for managing the global metadata of the system, for example, the file system tree.
 Clients may interact with the master to read or modify this metadata. In addition, all workers
 periodically heartbeat to the master to maintain their participation in the cluster. The master does
