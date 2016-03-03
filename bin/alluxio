@@ -319,11 +319,11 @@ case ${COMMAND} in
   exit 0
 ;;
 "thriftGen")
-  declare -a thriftSrcPaths=("${BIN}/../core/common/src" "${BIN}/../keyvalue/common/src")
+  declare -a thriftSrcPaths=($(find "${BIN}/.." -name "*.thrift" -print0 | xargs -0 -n1 dirname | sort | uniq))
   for thriftSrcPath in ${thriftSrcPaths[@]}; do
-    rm -rf "${thriftSrcPath}/main/java/alluxio/thrift"
-    for srcFile in $(ls "${thriftSrcPath}/thrift"); do
-      thrift -I "${BIN}/../core/common/src/thrift" --gen java:private-members -out "${thriftSrcPath}/main/java/." "${thriftSrcPath}/thrift/${srcFile}"
+    rm -rf "${thriftSrcPath}/../main/java/alluxio/thrift"
+    for srcFile in $(ls "${thriftSrcPath}"); do
+      thrift -I "${BIN}/../core/common/src/thrift" --gen java:private-members -out "${thriftSrcPath}/../main/java/." "${thriftSrcPath}/${srcFile}"
     done
   done
   exit 0
