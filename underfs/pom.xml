@@ -28,6 +28,7 @@
     <module>oss</module>
     <module>swift</module>
     <module>s3</module>
+    <module>orangefs</module>
   </modules>
 
   <properties>

@@ -117,6 +117,7 @@ public abstract class UnderFileSystem {
     GLUSTERFS,
     SWIFT,
     OSS,
+    OFS,
   }
 
   /**

@@ -65,6 +65,8 @@ public final class Constants {
   public static final String SCHEME_FT = "alluxio-ft";
   public static final String HEADER_FT = SCHEME_FT + "://";
 
+  public static final String HEADER_OFS = "ofs://";
+
   public static final String HEADER_OSS = "oss://";
 
   public static final String HEADER_S3 = "s3://";
@@ -141,6 +143,11 @@ public final class Constants {
   public static final String UNDERFS_GLUSTERFS_MOUNTS = "alluxio.underfs.glusterfs.mounts";
   public static final String UNDERFS_GLUSTERFS_MR_DIR =
       "alluxio.underfs.glusterfs.mapred.system.dir";
+  public static final String UNDERFS_OFS_BLOCK_SIZE = "alluxio.underfs.ofs.block.size";
+  public static final String UNDERFS_OFS_BUFFER_SIZE = "alluxio.underfs.ofs.buffer.size";
+  public static final String UNDERFS_OFS_LAYOUT = "alluxio.underfs.ofs.layout";
+  public static final String UNDERFS_OFS_MNTLOCATIONS = "alluxio.underfs.ofs.mntLocations";
+  public static final String UNDERFS_OFS_SYSTEMS = "alluxio.underfs.ofs.systems";
   public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
   public static final String UNDERFS_OSS_CONNECT_TIMEOUT =
       "alluxio.underfs.oss.connection.timeout.ms";
