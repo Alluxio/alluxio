@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
- * “License”). You may not use this work except in compliance with the License, which is available
- * at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the “License”). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -33,7 +33,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.util.List;
 import java.util.Stack;
 
@@ -70,15 +69,14 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
 
   private static final int MAX_TRY = 5;
   private static final long DEFAULT_OFS_PERMISSION = 0700;
-  public PVFS2POSIXJNIFlags pf;
-  public PVFS2STDIOJNIFlags sf;
-  private Orange orange;
-  private int ofsBufferSize;
-  private int ofsBlockSize;
-  private OrangeFileSystemLayout ofsLayout;
-  private URI uri;
-  private String ofsMount;
-
+  public PVFS2POSIXJNIFlags mPosixFlags;
+  public PVFS2STDIOJNIFlags mStdioFlags;
+  private Orange mOrange;
+  private int mOfsBufferSize;
+  private int mOfsBlockSize;
+  private OrangeFileSystemLayout mOfsLayout;
+  private AlluxioURI mUri;
+  private String mOfsMount;
 
   /**
    * Constructs a new instance of {@link OrangeFSUnderFileSystem}.
@@ -90,17 +88,18 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
   public OrangeFSUnderFileSystem(String path, Configuration conf) throws IOException {
     super(conf);
 
-    this.orange = Orange.getInstance();
-    this.pf = orange.posix.f;
-    this.sf = orange.stdio.f;
+    mOrange = Orange.getInstance();
+    mPosixFlags = mOrange.posix.f;
+    mStdioFlags = mOrange.stdio.f;
     int ordinal;
     boolean uriAuthorityMatchFound = false;
 
-    ofsBufferSize = (int) conf.getBytes(Constants.UNDERFS_OFS_BUFFER_SIZE);
-    ofsBlockSize = (int) conf.getBytes(Constants.UNDERFS_OFS_BLOCK_SIZE);
-    ofsLayout = conf.getEnum(Constants.UNDERFS_OFS_LAYOUT, OrangeFileSystemLayout.class);
+    mUri = new AlluxioURI(path);
+    mOfsBufferSize = (int) conf.getBytes(Constants.UNDERFS_OFS_BUFFER_SIZE);
+    mOfsBlockSize = (int) conf.getBytes(Constants.UNDERFS_OFS_BLOCK_SIZE);
+    mOfsLayout = conf.getEnum(Constants.UNDERFS_OFS_LAYOUT, OrangeFileSystemLayout.class);
 
-    String uriAuthority = uri.getAuthority();
+    String uriAuthority = mUri.getAuthority();
     List<String> ofsSystems = conf.getList(Constants.UNDERFS_OFS_SYSTEMS, ",");
     List<String> ofsMounts = conf.getList(Constants.UNDERFS_OFS_MNTLOCATIONS, ",");
 
@@ -129,7 +128,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
     }
 
     LOG.debug("Determining file system associated with URI authority.");
-    for (ordinal = 0; ordinal < ofsSystems.size(); ordinal ++) {
+    for (ordinal = 0; ordinal < ofsSystems.size(); ordinal++) {
       LOG.debug("{ofsSystems[" + ordinal + "], ofsMounts[" + ordinal + "]} = {"
           + ofsSystems.get(ordinal) + ", " + ofsMounts.get(ordinal) + "}");
       if (uriAuthority.equals(ofsSystems.get(ordinal))) {
@@ -140,8 +139,8 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
     }
 
     if (uriAuthorityMatchFound) {
-      this.ofsMount = ofsMounts.get(ordinal);
-      LOG.debug("Matching uri authority found at index = " + ordinal);
+      mOfsMount = ofsMounts.get(ordinal);
+      LOG.debug("Matching URI authority found at index = " + ordinal);
     } else {
       LOG.error(
           "No OrangeFS file system found matching the " + "following authority: " + uriAuthority);
@@ -151,8 +150,8 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
     }
 
     LOG.debug("URI authority = " + uriAuthority);
-    this.uri = URI.create(uri.getScheme() + "://" + uriAuthority);
-    LOG.debug("uri: " + this.uri.toString());
+    //mUri = URI.create(mUri.getScheme() + "://" + uriAuthority);
+    LOG.debug("URI: " + this.mUri.toString());
     LOG.debug("conf: " + conf.toString());
   }
 
@@ -179,7 +178,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
   @Override
   public OutputStream create(String path) throws IOException {
 
-    return create(path, ofsBlockSize);
+    return create(path, mOfsBlockSize);
   }
 
   @Override
@@ -194,8 +193,8 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
     while (retryPolicy.attemptRetry()) {
       try {
         LOG.debug("Creating OrangeFS file at {}", path);
-        return new OrangeFileSystemOutputStream(getOFSPath(path), ofsBufferSize, replication,
-            blockSizeByte, false, ofsLayout);
+        return new OrangeFileSystemOutputStream(getOFSPath(path), mOfsBufferSize, replication,
+            blockSizeByte, false, mOfsLayout);
       } catch (IOException e) {
         LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
         te = e;
@@ -222,10 +221,10 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
           // Call recursive delete on path
           LOG.debug("Path f =" + ofsPath + " is a directory and recursive is true."
               + " Recursively deleting directory.");
-          ret = orange.stdio.recursiveDeleteDir(ofsPath) == 0;
+          ret = mOrange.stdio.recursiveDeleteDir(ofsPath) == 0;
         } else {
           LOG.debug("Path f =" + getOFSPath(path) + " exists and is a regular file. unlinking.");
-          ret = orange.posix.unlink(ofsPath) == 0;
+          ret = mOrange.posix.unlink(ofsPath) == 0;
         }
         // Return false on failure.
         if (!ret) {
@@ -341,7 +340,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
     if (!exists(path) || !isFolder(path)) {
       return null;
     }
-    return (String[]) orange.stdio.getEntriesInDir(getOFSPath(path)).toArray();
+    return mOrange.stdio.getEntriesInDir(getOFSPath(path)).toArray(new String[0]);
   }
 
   @Override
@@ -367,7 +366,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
         }
         while (!dirsToMake.empty()) {
           String ofsDir = getOFSPath(dirsToMake.pop());
-          if (orange.posix.mkdirTolerateExisting(ofsDir, DEFAULT_OFS_PERMISSION) != 0) {
+          if (mOrange.posix.mkdirTolerateExisting(ofsDir, DEFAULT_OFS_PERMISSION) != 0) {
             LOG.error("mkdirTolerateExisting failed on path f =" + ofsDir + ", permission = "
                 + DEFAULT_OFS_PERMISSION);
             return false;
@@ -389,7 +388,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        return new OrangeFileSystemInputStream(getOFSPath(path), ofsBufferSize);
+        return new OrangeFileSystemInputStream(getOFSPath(path), mOfsBufferSize);
       } catch (IOException e) {
         LOG.error("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage(), e);
         te = e;
@@ -414,9 +413,9 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        int ret = orange.posix.rename(getOFSPath(src), getOFSPath(dst));
+        int ret = mOrange.posix.rename(getOFSPath(src), getOFSPath(dst));
         if (ret != 0) {
-          LOG.debug("rename(" + uri + ") returned null");
+          LOG.debug("rename(" + mUri + ") returned null");
           throw new FileNotFoundException();
         }
         return ret == 0;
@@ -448,7 +447,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        if (orange.posix.chmod(ofsPath, mode) < 0) {
+        if (mOrange.posix.chmod(ofsPath, mode) < 0) {
           throw new IOException(
               "Failed to set permissions on path = " + ofsPath + ", mode = " + mode);
         }
@@ -465,8 +464,10 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    *
    * @param path The file name
    * @return File stats
+   * @throws FileNotFoundException if an I/O error occurs
+   * @throws IOException if an I/O error occurs
    */
-  public Stat getFileStatus(String path) throws FileNotFoundException, IOException {
+  public Stat getFileStatus(String path) throws IOException {
     return getFileStatus(new AlluxioURI(path));
   }
 
@@ -475,8 +476,9 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    *
    * @param uri The file name with {@link AlluxioURI} form
    * @return File stats
+   * @throws IOException if an I/O error occurs
    */
-  public Stat getFileStatus(AlluxioURI uri) throws FileNotFoundException, IOException {
+  public Stat getFileStatus(AlluxioURI uri) throws IOException {
     Stat stats = null;
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
@@ -486,7 +488,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
         String ofsPath = getOFSPath(uri);
         LOG.debug("f = " + ofsPath);
 
-        stats = orange.posix.stat(ofsPath);
+        stats = mOrange.posix.stat(ofsPath);
         if (stats == null) {
           LOG.debug("stat(" + uri + ") returned null");
           throw new FileNotFoundException();
@@ -505,8 +507,9 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    *
    * @param path The file name
    * @return File stats
+   * @throws IOException if an I/O error occurs
    */
-  public Statfs getFileSystemStatus(String path) throws FileNotFoundException, IOException {
+  public Statfs getFileSystemStatus(String path) throws IOException {
     return getFileSystemStatus(new AlluxioURI(path));
   }
 
@@ -515,18 +518,18 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    *
    * @param uri The file name with {@link AlluxioURI} form
    * @return File stats
+   * @throws IOException if an I/O error occurs
    */
-  public Statfs getFileSystemStatus(AlluxioURI uri) throws FileNotFoundException, IOException {
-    Statfs statfs = null;
-    IOException te = null;
+  public Statfs getFileSystemStatus(AlluxioURI uri) throws IOException {
+    Statfs statfs;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
 
     while (retryPolicy.attemptRetry()) {
       try {
         String ofsPath = getOFSPath(uri);
         LOG.debug("f = " + ofsPath);
-        int fd = orange.posix.open(ofsPath, orange.posix.f.O_RDONLY, 0);
-        statfs = orange.posix.fstatfs(fd);
+        int fd = mOrange.posix.open(ofsPath, mOrange.posix.f.O_RDONLY, 0);
+        statfs = mOrange.posix.fstatfs(fd);
 
         if (statfs == null) {
           LOG.debug("statfs(" + ofsPath + ") returned null");
@@ -551,7 +554,6 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
     return getOFSPath(new AlluxioURI(path));
   }
 
-
   /**
    * Return a Path as a String that OrangeFS can use. ie. removes URI scheme and authority and
    * prepends ofsMount
@@ -559,7 +561,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    * @param uri The file name with {@link AlluxioURI} form
    */
   private String getOFSPath(AlluxioURI uri) {
-    String ret = ofsMount + uri.getPath();
+    String ret = mOfsMount + uri.getPath();
     LOG.debug("ret = " + ret);
     return ret;
   }
@@ -570,8 +572,9 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    *
    * @param path the path to check
    * @return whether the given key identifies a folder
+   * @throws IOException if an I/O error occurs
    */
-  private boolean isFolder(String path) throws FileNotFoundException, IOException {
+  private boolean isFolder(String path) throws IOException {
     return isFolder(new AlluxioURI(path));
   }
 
@@ -581,8 +584,9 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} to check
    * @return whether the given Alluxio URI identifies a folder
+   * @throws IOException if an I/O error occurs
    */
-  private boolean isFolder(AlluxioURI uri) throws FileNotFoundException, IOException {
+  private boolean isFolder(AlluxioURI uri) throws IOException {
     Stat stats = getFileStatus(uri);
     return (stats.st_mode & S_IFDIR) != 0;
   }
