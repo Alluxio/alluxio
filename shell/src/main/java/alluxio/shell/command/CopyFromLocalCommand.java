@@ -74,29 +74,21 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     if (srcPath.contains(AlluxioURI.WILDCARD)) {
       copyFromLocalWildcard(srcFiles, dstPath);
     } else {
-      File srcFile = new File(srcPath);
-      if (srcFile.isDirectory()) {
-        copyFromLocalDirs(srcFile.getPath(), dstPath);
-      } else {
-        copyFromLocal(srcFile, dstPath);
-      }
+      copyFromLocal(new File(srcPath), dstPath);
     }
   }
 
-  private void copyFromLocalDirs(String dirPathName, AlluxioURI dstPath) throws IOException {
+  private void copyFromLocalDirs(File srcDir, AlluxioURI dstPath) throws IOException {
     try {
-      File srcDir = new File(dirPathName);
       createDirectory(dstPath);
-
       List<String> errorMessages = Lists.newArrayList();
       File[] fileList = srcDir.listFiles();
       for (File srcFile : fileList) {
         try {
           if (srcFile.isDirectory()) {
-            copyFromLocalDirs(srcFile.getPath(), new AlluxioURI(dstPath,
-                    new AlluxioURI(srcFile.getName())));
+            copyFromLocalDirs(srcFile, new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName())));
           } else {
-            copyFromLocal(srcFile, new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName())));
+            copyPath(srcFile, new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName())));
           }
         } catch (IOException e) {
           errorMessages.add(e.getMessage());
@@ -172,7 +164,11 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
    */
   private void copyFromLocal(File srcFile, AlluxioURI dstPath)
       throws IOException {
-    copyPath(srcFile, dstPath);
+    if (srcFile.isDirectory()) {
+      copyFromLocalDirs(srcFile, dstPath);
+    } else {
+      copyPath(srcFile, dstPath);
+    }
     System.out.println("Copied " + srcFile.getPath() + " to " + dstPath);
   }
 
