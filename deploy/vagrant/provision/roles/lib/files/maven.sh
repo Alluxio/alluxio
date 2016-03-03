@@ -13,7 +13,7 @@ cd /vagrant/shared
 IFS='-' read -a array <<< "$MAVEN_FN"
 MAVEN_DIR=/vagrant/shared/${array[0]}-${array[1]}-${array[2]}
 
-if [ -d ${MAVEN_DIR} ] && [ `readlink -f /usr/bin/mvn` == "$MAVEN_DIR/bin/mvn" ]; then
+if [ -d ${MAVEN_DIR} ] && [ $(readlink -f /usr/bin/mvn) == "$MAVEN_DIR/bin/mvn" ]; then
   echo "Maven 3 is already installed."
   exit 0
 fi

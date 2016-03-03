@@ -120,7 +120,7 @@ start_worker() {
     ALLUXIO_WORKER_JAVA_OPTS=$ALLUXIO_JAVA_OPTS
   fi
 
-  echo "Starting worker @ `hostname -f`. Logging to $ALLUXIO_LOGS_DIR"
+  echo "Starting worker @ $(hostname -f). Logging to $ALLUXIO_LOGS_DIR"
   (nohup $JAVA -cp $CLASSPATH \
    -Dalluxio.home=$ALLUXIO_HOME \
    -Dalluxio.logs.dir=$ALLUXIO_LOGS_DIR \
@@ -136,9 +136,9 @@ restart_worker() {
     ALLUXIO_WORKER_JAVA_OPTS=$ALLUXIO_JAVA_OPTS
   fi
 
-  RUN=`ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | cut -d" " -f7`
+  RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | cut -d" " -f7)
   if [[ $RUN -eq 0 ]] ; then
-    echo "Restarting worker @ `hostname -f`. Logging to $ALLUXIO_LOGS_DIR"
+    echo "Restarting worker @ $(hostname -f). Logging to $ALLUXIO_LOGS_DIR"
     (nohup $JAVA -cp $CLASSPATH \
      -Dalluxio.home=$ALLUXIO_HOME \
      -Dalluxio.logs \
@@ -155,7 +155,7 @@ restart_worker() {
 run_safe() {
   while [ 1 ]
   do
-    RUN=`ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | wc | cut -d" " -f7`
+    RUN=$(ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | wc | cut -d" " -f7)
     if [[ $RUN -eq 0 ]] ; then
       echo "Restarting the system master..."
       start_master

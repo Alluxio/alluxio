@@ -10,9 +10,9 @@ script="$(basename -- "$this")"
 this="$common_bin/$script"
 
 # convert relative path to absolute path
-config_bin=`dirname "$this"`
-script=`basename "$this"`
-config_bin=`cd "$config_bin"; pwd`
+config_bin=$(dirname "$this")
+script=$(basename "$this")
+config_bin=$(cd "$config_bin"; pwd)
 this="$config_bin/$script"
 
 # Allow for a script which overrides the default settings for system integration folks.
@@ -22,7 +22,7 @@ this="$config_bin/$script"
 # their own alluxio-layout.sh file to set system installation locations.
 if [ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]; then
   VERSION=1.1.0-SNAPSHOT
-  export ALLUXIO_PREFIX=`dirname $(dirname "$this")`
+  export ALLUXIO_PREFIX=$(dirname $(dirname "$this"))
   export ALLUXIO_HOME=${ALLUXIO_PREFIX}
   export ALLUXIO_CONF_DIR="$ALLUXIO_HOME/conf"
   export ALLUXIO_LOGS_DIR="$ALLUXIO_HOME/logs"
