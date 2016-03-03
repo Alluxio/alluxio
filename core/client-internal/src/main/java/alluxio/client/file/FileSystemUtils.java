@@ -19,7 +19,6 @@ import alluxio.client.ReadType;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.AlluxioExceptionType;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;

@@ -20,16 +20,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public class DependencyDoesNotExistException extends AlluxioException {
   private static final long serialVersionUID = -8411287237224325573L;
 
-  private static final AlluxioExceptionType EXCEPTION_TYPE =
-      AlluxioExceptionType.DEPENDENCY_DOES_NOT_EXIST;
-
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public DependencyDoesNotExistException(String message) {
-    super(EXCEPTION_TYPE, message);
+    super(message);
   }
 
   /**
@@ -39,7 +36,7 @@ public class DependencyDoesNotExistException extends AlluxioException {
    * @param cause the cause
    */
   public DependencyDoesNotExistException(String message, Throwable cause) {
-    super(EXCEPTION_TYPE, message, cause);
+    super(message, cause);
   }
 
   /**
