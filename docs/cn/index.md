@@ -4,15 +4,15 @@ title: 概览
 group: Home
 ---
 
-Alluxio是一个以内存为核心的开源分布式存储系统，能够为不同计算框架（如Apache Spark，Apache MapReduce，
-Apache Flink）下编写的集群作业提供可靠的内存级数据共享。在大数据生态系统中，Alluxio介于计算框架(如Apache
-Spark，Apache MapReduce，Apache Flink)和现有的存储系统（如Amazon S3，OpenStack Swift，GlusterFS，HDFS，
-Ceph，OSS）之间。Alluxio为大数据软件栈带来了显著的性能提升。以[百度](https://www.baidu.com)为例，使用
-Alluxio后，其数据处理性能提升了30倍。除性能外，Alluxio为新型大数据应用作用于传统存储系统的数据建立了桥梁。
+Alluxio是世界上第一个以内存为中心的虚拟的分布式存储系统。它统一了数据访问的方式，为上层计算框架和底层存储系统构建了桥梁。
+应用只需要连接Alluxio即可访问存储在底层任意存储系统中的数据。此外，Alluxio的以内存为中心的架构使得数据的访问速度能比现有常规方案快几个数量级。
+
+在大数据生态系统中，Alluxio介于计算框架(如Apache Spark，Apache MapReduce，Apache Flink)和现有的存储系统（如Amazon S3，OpenStack Swift，GlusterFS，HDFS， Ceph，OSS）之间。
+Alluxio为大数据软件栈带来了显著的性能提升。以[百度](https://www.baidu.com)为例，使用Alluxio后，其数据处理性能提升了30倍。
+除性能外，Alluxio为新型大数据应用作用于传统存储系统的数据建立了桥梁。
 用户可以以独立集群方式(如Amazon EC2)运行Alluxio，也可以从Apache Mesos或Apache YARN上启动Alluxio。
 
-Alluxio与Hadoop是兼容的。这意味着已有的Spark和MapReduce程序可以不修改代码直接在Alluxio上运行。Alluxio是一个已在
-多家公司部署的开源项目([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE))。
+Alluxio与Hadoop是兼容的。这意味着已有的Spark和MapReduce程序可以不修改代码直接在Alluxio上运行。Alluxio是一个已在多家公司部署的开源项目([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE))。
 Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以来， 已有超过50个组织机构的
 [200多贡献者](https://github.com/alluxio/alluxio/graphs/contributors)参与到Alluxio的开发中。包括
 [阿里巴巴](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/), [百度](https://www.baidu.com),
