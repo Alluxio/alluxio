@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Unified and Transparent Namespace
-nickname: Unified Namespace
+title: Namespace Unificado e Transparente
+nickname: Namespace Unificado
 group: Features
 priority: 5
 ---
@@ -9,83 +9,87 @@ priority: 5
 * Table of Contents
 {:toc}
 
-Alluxio enables effective data management across different storage systems through its use of
-transparent naming and mounting API.
+O Alluxio permite um efetivo gerenciamento de dados entre diferentes sistemas de armazenamento através
+da utilização de uma nomeação transparente e uma `API` de ponto de montagem.
 
-## Transparent Naming
+## Nomeação Transparente
 
-Transparent naming maintains an identity between the Alluxio namespace and the underlying storage
-system namespace.
+A nomeação transparente mantém uma identidade entre o Alluxio `namespace` e o sistema de armazenamento 
+inferior.
 
 ![transparent]({{site.data.img.screenshot_transparent}})
 
-When a user creates objects in the Alluxio namespace, they can choose whether these objects should
-be persisted in the underlying storage system. For objects that are persisted, Alluxio preserve the
-object paths, relative to the underlying storage system directory in which Alluxio objects are
-stored. For instance, if a user creates a top-level directory `Users` with subdirectories `Alice`
-and `Bob`, the directory structure and naming is preserved in the underlying storage system (e.g.
-HDFS or S3). Similarly, when a user renames or deletes a persisted object in the Alluxio namespace,
-it is renamed or deleted in the underlying storage system.
+Quando um usuário cria objetos no Alluxio `namespace`, estes podem escolher objetos se devem ser mantidos  
+no sistema de armazenamento inferior. Para objetos que serão mantidos, o Alluxio preserva o caminho do 
+objeto, relativo ao do diretório no `under storage system` em que os objetos do Alluxio são armazenados. 
+Por exemplo, se um usuário criar um diretório de nível superior chamado `Usuarios` com os subdiretórios 
+`Alice` e `Bob`, a estrutura de diretório e nomeação será preservada no sistema de armazenamento inferior 
+(exemplo, `HFDS` e `S3`). Similarmente, quando um usuário renomeia ou apaga um objeto que era mantido no 
+Alluxio `namespace`, este é renomeado ou apago do sistema de armazenamento inferior.
 
-Furthermore, Alluxio transparently discovers content present in the underlying storage system which
-was not created through Alluxio. For instance, if the underlying storage system contains a directory
-`Data` with files `Reports` and `Sales`, all of which were not created through Alluxio, their
-metadata will be loaded into Alluxio the first time they are accessed (e.g. when a user requests to
-open a file). The data of file is not loaded to Alluxio during this process. To load the data into
-Alluxio, one can set the `AlluxioStorageType` to `STORE` when reading the data for the first time or
-use the `load` command of the Alluxio shell.
+Além disso, o Alluxio descobre, transparentemente, o conteúdo presente no sistema de armazenamento inferior 
+que não foi criado através do Alluxio. Por exemplo, se o `under storage system` possui um diretório chamado 
+`Dados` com os arquivos `Relatorios` e `Vendas`, todos estes não foram criados através do Alluxio, seus 
+metadados serão carregados dentro do Alluxio pela primeira vez que forem acessados (exemplo, quando um 
+usuário solicitar a abertura de um arquivo). O dado do arquivo não será carregado no Alluxio durante este 
+processo. Para carregar o dado no Alluxio, isto pode ser definido com o `AlluxioStorageType` para `STORE` 
+quando estiver lendo o dado pela primeira vez ou utilize o comando `load` do Alluxio `shell`. 
 
-## Unified Namespace
+## Namespace Unificado
 
-Alluxio provides a mounting API that makes it possible to use Alluxio to access data across multiple
-data sources.
+O Alluxio fornece uma `API` para ponto de montagem que torna possível para utilizar o Alluxio para acessar 
+os dados através de múltiplas origens de dados.
 
 ![unified]({{site.data.img.screenshot_unified}})
 
-By default, Alluxio namespace is mounted onto the directory specified by the
-`alluxio.underfs.address` property of Alluxio configuration; this directory identifies the
-"primary storage" for Alluxio. In addition, users can use the mounting API to add new and remove
-existing data sources:
+Por padrão, o Alluxio `namespace` é montado no diretório definido pela propriedade de configuração 
+`alluxio.underfs.address` do Alluxio. Este diretório identifica o armazenamento primário para o 
+Alluxio. Além disso, os usuários podem utilizar a `API` de montagem para adicionar e removes origens 
+de dados:
 
 {% include Unified-and-Transparent-Namespace/mounting-API.md %}
 
-For example, the primary storage could be HDFS and contains user directories; the `Data` directory
-might be stored in an S3 bucket, which is mounted to the Alluxio namespace through the
-`mount(alluxio://host:port/Data, s3://bucket/directory)` invocation.
+Por exemplo, o armazenamento primário pode ser um `HDFS` e contém diretórios de usuários; o diretório 
+`Dados` pode ser armazenado em um `S3 bucket`, que está montado para o Alluxio `namespace` através da 
+invocação `mount(alluxio://host:port/Data, s3://bucket/directory)`.
 
-## Example
+## Exemplo
 
-In this example, we will showcase the above features. The example assumes that Alluxio source code
-exists in the `${ALLUXIO_HOME}` directory and that there is an instance of Alluxio running locally.
+Neste exemplo, nós iremos demonstrar as funcionalidades acima. O exemplo assume que o código fonte do 
+Alluxio existe dentro do diretório `${ALLUXIO_HOME}` e que existe uma instância do Alluxio em execução.
 
-First, let's create a temporary directory in the local file system that will use for the example:
+Primeiramente, vamos criar um diretório temporário dentro do `file system` local que vamos usar para o 
+exemplo:
 
 {% include Unified-and-Transparent-Namespace/mkdir.md %}
 
-Next, let's mount the directory created above into Alluxio and verify the mounted directory
-appears in Alluxio:
+Em seguida, iremos montar o diretório criado acima dentro do Alluxio e verificar se o diretório montado 
+aparece no Alluxio:
 
 {% include Unified-and-Transparent-Namespace/mount-demo.md %}
 
-Next, let's verify that the metadata for content not created through Alluxio is loaded into Alluxio
-the first time the content is accessed:
+Depois, nós iremos verificar que os metadados para os conteúdos não criados pelo Alluxio estão carregados 
+dentro do Alluxio na primeira vez que o conteúdo for acessado:
 
 {% include Unified-and-Transparent-Namespace/ls-demo-hello.md %}
 
-Next, let's create a file under the mounted directory and verify the file is created in the underlying
-file system:
+Seguindo o teste, iremos criar um arquivo no diretório montado e verificar se o arquivo foi criado no 
+sistema de armazenamento inferior:
 
 {% include Unified-and-Transparent-Namespace/create-file.md %}
 
-Next, let's rename a file in Alluxio and verify the file is renamed in the underlying file system:
+A seguir, iremos renomear um arquivo no Alluxio e verificar se o arquivo foi renomeado no armazenamento 
+inferior:
 
 {% include Unified-and-Transparent-Namespace/rename.md %}
 
-Next, let's delete a file in Alluxio and verify the file is deleted in the underlying file system:
+Depois disso, iremos apagar o arquivo no Alluxio e verificar se o arquivo foi apagado do armazenamento 
+inferior:
 
 {% include Unified-and-Transparent-Namespace/delete.md %}
 
-Finally, let's unmount the mounted directory and verify that the directory is removed from the
-Alluxio namespace, but its content is preserved in the underlying file system:
+Por fim, iremos desmontar o diretório montado e verificar se o diretório foi removido do Alluxio 
+`namespace` mas o conteúdo está preservado no armazenamento inferior:
 
 {% include Unified-and-Transparent-Namespace/unmount.md %}
+
