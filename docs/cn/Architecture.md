@@ -21,7 +21,7 @@ Alluxio的设计使用了单Master和多Worker的架构。从高层的概念理�
 
 ### Master
 
-Alluxio有两种Master部署模式，可以用其中一种进行部署, [单Master模式](Running-Alluxio-Locally.html)或[多Master模式（一个主要的加一个备用的）](Running-Alluxio-Fault-Tolerant.html)。Master主要负责处理全局的系统元数据，例如，文件系统树。Client可以通过与Master的交互来读取或修改元数据。此外所有的Worker会周期性地发送心跳给Master，来确保它们还参与在Alluxio集群中。Master不会主动发起与其他组件的通信，它只是以回复请求的方式与其他组件进行通信。
+Alluxio有两种Master部署模式，可以用其中一种进行部署, [单Master模式](Running-Alluxio-Locally.html)或[多Master模式（一个主要的加一个备用的）](Running-Alluxio-Fault-Tolerant-on-EC2.html)。Master主要负责处理全局的系统元数据，例如，文件系统树。Client可以通过与Master的交互来读取或修改元数据。此外所有的Worker会周期性地发送心跳给Master，来确保它们还参与在Alluxio集群中。Master不会主动发起与其他组件的通信，它只是以回复请求的方式与其他组件进行通信。
 
 ### Worker
 
