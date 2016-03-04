@@ -15,17 +15,6 @@ The prerequisite for this part is that you have [Java](Java-Setup.html). We also
 set up Alluxio and Hadoop in accordance to these guides [Local Mode](Running-Alluxio-Locally.html) or
 [Cluster Mode](Running-Alluxio-on-a-Cluster.html)
 
-## Configuring Hadoop
-
-You need to add the following three properties to `core-site.xml` file in your Hadoop installation
-`conf` directory:
-
-{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
-
-This will allow your MapReduce jobs to use Alluxio for their input and output files. If you are
-using HDFS as the under storage system for Alluxio, it may be necessary to add these properties to
-the `hdfs-site.xml` file as well.
-
 # Compiling the Alluxio Client
 
 In order to use Alluxio with your version of Hadoop, you will have to re-compile the Alluxio client
@@ -47,6 +36,15 @@ After the compilation succeeds, the new Alluxio client jar can be found at:
 This is the jar that you should use for the rest of this guide.
 
 # Configuring Hadoop
+
+You need to add the following three properties to `core-site.xml` file in your Hadoop installation
+`conf` directory:
+
+{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
+
+This will allow your MapReduce jobs to use Alluxio for their input and output files. If you are
+using HDFS as the under storage system for Alluxio, it may be necessary to add these properties to
+the `hdfs-site.xml` file as well.
 
 In order for the Alluxio client jar to be available to the JobClient, you can modify
 `HADOOP_CLASSPATH` by changing `hadoop-env.sh` to:
