@@ -23,7 +23,6 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 
-import alluxio.worker.block.BlockWorkerClientServiceHandler;
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 
@@ -69,7 +68,7 @@ public final class FileSystemWorker extends AbstractWorker {
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
 
-    mServiceHandler = new FileSystemWorkerClientServiceHandler();
+    mServiceHandler = new FileSystemWorkerClientServiceHandler(this);
   }
 
   @Override
@@ -88,7 +87,6 @@ public final class FileSystemWorker extends AbstractWorker {
   public FileSystemWorkerClientServiceHandler getWorkerServiceHandler() {
     return mServiceHandler;
   }
-
 
   /**
    * Starts the filesystem worker service.
