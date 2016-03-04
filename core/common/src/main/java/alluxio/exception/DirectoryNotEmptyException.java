@@ -21,16 +21,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public class DirectoryNotEmptyException extends AlluxioException {
   private static final long serialVersionUID = -8411287237224325573L;
 
-  private static final AlluxioExceptionType EXCEPTION_TYPE =
-      AlluxioExceptionType.DIRECTORY_NOT_EMPTY_EXCEPTION;
-
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public DirectoryNotEmptyException(String message) {
-    super(EXCEPTION_TYPE, message);
+    super(message);
   }
 
   /**
@@ -40,7 +37,7 @@ public class DirectoryNotEmptyException extends AlluxioException {
    * @param cause the cause
    */
   public DirectoryNotEmptyException(String message, Throwable cause) {
-    super(EXCEPTION_TYPE, message, cause);
+    super(message, cause);
   }
 
   /**

@@ -13,7 +13,7 @@ cd /vagrant/shared
 IFS='-' read -a array <<< "$MAVEN_FN"
 MAVEN_DIR=/vagrant/shared/${array[0]}-${array[1]}-${array[2]}
 
-if [ -d ${MAVEN_DIR} ] && [ `readlink -f /usr/bin/mvn` == "${MAVEN_DIR}/bin/mvn" ]; then
+if [ -d ${MAVEN_DIR} ] && [ $(readlink -f /usr/bin/mvn) == "${MAVEN_DIR}/bin/mvn" ]; then
   echo "Maven 3 is already installed."
   exit 0
 fi
@@ -25,7 +25,7 @@ sudo ln -f -s "${MAVEN_DIR}/bin/mvn" /usr/bin/mvn
 
 # relocate local repo to shared folder
 mkdir -p ~/.m2
-cat > ~/.m2/settings.xml <<EOF
+cat > ~/.m2/settings.xml << EOF
 <settings>
 <localRepository>/vagrant/shared</localRepository>
 </settings>

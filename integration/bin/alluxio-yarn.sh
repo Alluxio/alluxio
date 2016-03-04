@@ -11,12 +11,12 @@ function printUsage {
   echo "Example: ./alluxio-yarn.sh 10 hdfs://localhost:9000/tmp/"
 }
 
-if [ "$#" != 2 ]; then
+if [[ "$#" != 2 ]]; then
   printUsage
   exit 1
 fi
 
-if [ -z "$HADOOP_HOME" ]; then
+if [[ -z "$HADOOP_HOME" ]]; then
   echo "\$HADOOP_HOME is unset, please set this variable to connect to HDFS and YARN";
   exit 1
 else
