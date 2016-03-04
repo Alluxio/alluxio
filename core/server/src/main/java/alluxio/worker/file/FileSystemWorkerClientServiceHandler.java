@@ -43,7 +43,7 @@ public final class FileSystemWorkerClientServiceHandler
 
   @Override
   public void ufsCancelFile(String path, UFSCancelFileTOptions options) {
-
+    mWorker.ufsCancelFile(path);
   }
 
   @Override
