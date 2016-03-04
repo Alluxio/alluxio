@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Security (alpha)
+nickname: Security
 group: Features
 priority: 1
 ---

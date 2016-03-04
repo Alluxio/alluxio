@@ -1,6 +1,7 @@
 ---
 layout: global
 title: 安全性（内测版）
+nickname: 安全性
 group: Features
 priority: 1
 ---
