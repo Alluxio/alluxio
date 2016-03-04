@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -22,6 +23,7 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 
+import alluxio.worker.block.BlockWorkerClientServiceHandler;
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 
@@ -44,6 +46,8 @@ public final class FileSystemWorker extends AbstractWorker {
   private final FileSystemMasterClient mFileSystemMasterWorkerClient;
   /** Configuration object. */
   private final Configuration mConf;
+  /** Logic for handling RPC requests. */
+  private final FileSystemWorkerClientServiceHandler mServiceHandler;
 
   /** The service that persists files. */
   private Future<?> mFilePersistenceService;
@@ -64,17 +68,27 @@ public final class FileSystemWorker extends AbstractWorker {
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
+
+    mServiceHandler = new FileSystemWorkerClientServiceHandler();
+  }
+
+  @Override
+  public Map<String, TProcessor> getServices() {
+    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    services.put(
+        Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME,
+        new FileSystemWorkerClientService.Processor<FileSystemWorkerClientServiceHandler>(
+            getWorkerServiceHandler()));
+    return services;
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * {@link FileSystemWorker} exposes no RPC service.
+   * @return the worker service handler
    */
-  @Override
-  public Map<String, TProcessor> getServices() {
-    return new HashMap<String, TProcessor>();
+  public FileSystemWorkerClientServiceHandler getWorkerServiceHandler() {
+    return mServiceHandler;
   }
+
 
   /**
    * Starts the filesystem worker service.

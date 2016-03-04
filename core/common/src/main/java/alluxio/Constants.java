@@ -85,6 +85,7 @@ public final class Constants {
   public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 1;
   public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 1;
+  public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_WORKER_SERVICE_VERSION = 1;
   public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 1;
