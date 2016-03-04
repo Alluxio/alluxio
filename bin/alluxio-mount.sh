@@ -21,7 +21,7 @@ function init_env() {
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
   . $ALLUXIO_LIBEXEC_DIR/alluxio-config.sh
 
-  if [ -z $ALLUXIO_WORKER_MEMORY_SIZE ] ; then
+  if [[ -z $ALLUXIO_WORKER_MEMORY_SIZE ]]; then
     echo "ALLUXIO_WORKER_MEMORY_SIZE was not set. Using the default one: 128MB"
     ALLUXIO_WORKER_MEMORY_SIZE="128MB"
   fi
@@ -97,9 +97,9 @@ function mac_hfs_provision_sectors() {
   local alloc_size=0
 
   n_sectors=$((request_size / sector_size))
-  n_100g=`printf "%.0f" $(echo "scale=4; $request_size/107374182400 + 0.5" | bc)` # round up
-  n_gb=`printf "%.0f" $(echo "scale=4; $request_size/1073741824 + 0.5" | bc)` # round up
-  n_kb=`printf "%.0f" $(echo "scale=4; $request_size/1024 + 0.5" | bc)` #round up
+  n_100g=$(printf "%.0f" $(echo "scale=4; $request_size/107374182400 + 0.5" | bc)) # round up
+  n_gb=$(printf "%.0f" $(echo "scale=4; $request_size/1073741824 + 0.5" | bc)) # round up
+  n_kb=$(printf "%.0f" $(echo "scale=4; $request_size/1024 + 0.5" | bc)) #round up
 
   # allocation bitmap file: one bit per sector
   alloc_bitmap_size=$((n_sectors / 8))
@@ -130,14 +130,14 @@ function mac_hfs_provision_sectors() {
 function mount_ramfs_linux() {
   init_env $1
 
-  if [ -z $ALLUXIO_RAM_FOLDER ] ; then
+  if [[ -z $ALLUXIO_RAM_FOLDER ]]; then
     ALLUXIO_RAM_FOLDER=/mnt/ramdisk
     echo "ALLUXIO_RAM_FOLDER was not set. Using the default one: $ALLUXIO_RAM_FOLDER"
   fi
 
   mem_size_to_bytes
   TOTAL_MEM=$(($(cat /proc/meminfo | awk 'NR==1{print $2}') * 1024))
-  if [ $TOTAL_MEM -lt $BYTE_SIZE ] ; then
+  if [[ $TOTAL_MEM -lt $BYTE_SIZE ]]; then
     echo "ERROR: Memory($TOTAL_MEM) is less than requested ramdisk size($BYTE_SIZE). Please reduce ALLUXIO_WORKER_MEMORY_SIZE"
     exit 1
   fi
@@ -146,7 +146,7 @@ function mount_ramfs_linux() {
   echo "Formatting RamFS: $F ($MEM_SIZE)"
   if mount | grep $F > /dev/null; then
     umount -f $F
-    if [ $? -ne 0 ] ; then
+    if [[ $? -ne 0 ]]; then
       echo "ERROR: umount RamFS $F failed"
       exit 1
     fi
@@ -160,7 +160,7 @@ function mount_ramfs_linux() {
 function mount_ramfs_mac() {
   init_env $0
 
-  if [ -z $ALLUXIO_RAM_FOLDER ] ; then
+  if [[ -z $ALLUXIO_RAM_FOLDER ]]; then
     ALLUXIO_RAM_FOLDER=/Volumes/ramdisk
     echo "ALLUXIO_RAM_FOLDER was not set. Using the default one: $ALLUXIO_RAM_FOLDER"
   fi
@@ -181,23 +181,23 @@ function mount_ramfs_mac() {
   # Format the RAM FS
   # We may have a pre-existing RAM FS which we need to throw away
   echo "Formatting RamFS: $F $NUM_SECTORS sectors ($MEM_SIZE)."
-  DEVICE=`df -l | grep $F | cut -d " " -f 1`
+  DEVICE=$(df -l | grep $F | cut -d " " -f 1)
   if [[ -n "${DEVICE}" ]]; then
     hdiutil detach -force $DEVICE
   fi
-  diskutil erasevolume HFS+ $F `hdiutil attach -nomount ram://$NUM_SECTORS`
+  diskutil erasevolume HFS+ $F $(hdiutil attach -nomount ram://$NUM_SECTORS)
 }
 
 function mount_local() {
-  if [[ `uname -a` == Darwin* ]]; then
+  if [[ $(uname -a) == Darwin* ]]; then
     # Assuming Mac OS X
     mount_ramfs_mac
   else
     # Assuming Linux
     if [[ "$1" == "SudoMount" ]]; then
-      DECL_INIT=`declare -f init_env`
-      DECL_MEM_SIZE_TO_BYTES=`declare -f mem_size_to_bytes`
-      DECL_MOUNT_LINUX=`declare -f mount_ramfs_linux`
+      DECL_INIT=$(declare -f init_env)
+      DECL_MEM_SIZE_TO_BYTES=$(declare -f mem_size_to_bytes)
+      DECL_MOUNT_LINUX=$(declare -f mount_ramfs_linux)
       sudo bash -O extglob -c "BIN=${BIN}; $DECL_INIT; $DECL_MEM_SIZE_TO_BYTES; $DECL_MOUNT_LINUX; mount_ramfs_linux $0"
     else
       mount_ramfs_linux $0
