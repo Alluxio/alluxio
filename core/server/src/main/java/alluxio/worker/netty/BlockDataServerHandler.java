@@ -56,7 +56,7 @@ public final class BlockDataServerHandler {
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc;
 
-  protected BlockDataServerHandler(BlockWorker worker, Configuration configuration) {
+  BlockDataServerHandler(BlockWorker worker, Configuration configuration) {
     mWorker = worker;
     mStorageTierAssoc = new WorkerStorageTierAssoc(configuration);
     mTransferType = configuration.getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE,
@@ -72,8 +72,8 @@ public final class BlockDataServerHandler {
    * @param req The initiating {@link RPCBlockReadRequest}
    * @throws IOException
    */
-  protected void handleBlockReadRequest(final ChannelHandlerContext ctx,
-      final RPCBlockReadRequest req) throws IOException {
+  void handleBlockReadRequest(final ChannelHandlerContext ctx, final RPCBlockReadRequest req)
+      throws IOException {
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
@@ -122,8 +122,8 @@ public final class BlockDataServerHandler {
   // TODO(hy): This write request handler is very simple in order to be stateless. Therefore, the
   // block file is opened and closed for every request. If this is too slow, then this handler
   // should be optimized to keep state.
-  protected void handleBlockWriteRequest(final ChannelHandlerContext ctx,
-      final RPCBlockWriteRequest req) throws IOException {
+  void handleBlockWriteRequest(final ChannelHandlerContext ctx, final RPCBlockWriteRequest req)
+      throws IOException {
     final long sessionId = req.getSessionId();
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
