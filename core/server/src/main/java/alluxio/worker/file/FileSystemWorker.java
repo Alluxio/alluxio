@@ -73,11 +73,10 @@ public final class FileSystemWorker extends AbstractWorker {
 
   @Override
   public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    Map<String, TProcessor> services = new HashMap<>();
     services.put(
         Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME,
-        new FileSystemWorkerClientService.Processor<FileSystemWorkerClientServiceHandler>(
-            getWorkerServiceHandler()));
+        new FileSystemWorkerClientService.Processor<>(getWorkerServiceHandler()));
     return services;
   }
 
