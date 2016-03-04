@@ -2,16 +2,10 @@ cat:
   将Alluxio中的一个文件内容打印在控制台中
 chgrp:
   修改Alluxio中的文件或文件夹的所属组
-chgrpr:
-  递归修改Alluxio中的文件或文件夹的所属组
 chmod:
   修改Alluxio中文件或文件夹的访问权限
-chmodr:
-  递归修改Alluxio中文件或文件夹的访问权限
 chown:
   修改Alluxio中文件或文件夹的所有者
-chownr:
-  递归修改Alluxio中文件或文件夹的所有者
 copyFromLocal:
   将“source path”指定的本地文件系统中的文件拷贝到Alluxio中"remote path"指定的路径
   如果"remote path"已经存在该命令会失败
