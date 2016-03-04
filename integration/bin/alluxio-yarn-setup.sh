@@ -8,11 +8,11 @@ CONTAINER_TYPE=$1
 shift
 
 # launch master or worker on this container
-if [ $CONTAINER_TYPE = 'alluxio-master' ]; then
+if [[ $CONTAINER_TYPE = 'alluxio-master' ]]; then
   ./integration/bin/alluxio-master-yarn.sh $@
-elif [ $CONTAINER_TYPE = 'alluxio-worker' ]; then
+elif [[ $CONTAINER_TYPE = 'alluxio-worker' ]]; then
   ./integration/bin/alluxio-worker-yarn.sh $@
-elif [ $CONTAINER_TYPE = 'application-master' ]; then
+elif [[ $CONTAINER_TYPE = 'application-master' ]]; then
   ./integration/bin/alluxio-application-master.sh $@
 else
   echo "Unrecognized container type: $CONTAINER_TYPE"
