@@ -79,11 +79,13 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
   }
 
   /**
-   * Copies a directory from local to dstPath in the Alluxio. This method is used when input path
-   * is a directory.
-   * @param srcDir The directory in the local filesystem.
+   * Copies a directory from local to Alluxio filesystem. The destination directory structure
+   * maintained as local directory. This method is used when input path is a directory.
+   *
+   * @param srcDir The source directory in the local filesystem
    * @param dstPath The {@link AlluxioURI} of the destination
-   * @throws IOException IOException if a non-Alluxio related exception occurs
+   * @throws IOException if a non-Alluxio related exception occurs
+   *
    */
   private void copyFromLocalDirs(File srcDir, AlluxioURI dstPath) throws IOException {
     try {
@@ -119,10 +121,9 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
    * Copies a list of files or directories specified by srcFiles from the local filesystem to
    * dstPath in the Alluxio filesystem space. This method is used when the input path contains
    * wildcards.
-   *
-   * @param srcFiles The list of files in the local filesystem.
-   * @param dstPath The {@link AlluxioURI} of the destination.
-   * @throws IOException If a non-Alluxio related exception occurs.
+   * @param srcFiles A list of source file in the local filesystem
+   * @param dstPath The {@link AlluxioURI} of the destination
+   * @throws IOException if a non-Alluxio related exception occurs
    */
   private void copyFromLocalWildcard(List<File> srcFiles, AlluxioURI dstPath) throws IOException {
     createDscDir(dstPath);
@@ -143,8 +144,8 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
   /**
    * Create a directory in the Alluxio filesystem space. It will not throw any exception if the
    * destination directory is already exists.
-   * @param dstPath The {@link AlluxioURI} of the directory will be created.
-   * @throws IOException If a non-Alluxio related exception occurs.
+   * @param dstPath The {@link AlluxioURI} of the destination directory which will be created
+   * @throws IOException if a non-Alluxio related exception occurs
    */
   private void createDscDir(AlluxioURI dstPath) throws IOException {
     try {
@@ -169,7 +170,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
 
   /**
    * Copies a file or directory specified by srcPath from the local filesystem to dstPath in the
-   * Alluxio filesystem space. Will fail if the path given already exists in the filesystem.
+   * Alluxio filesystem space.
    *
    * @param srcFile The source file in the local filesystem
    * @param dstPath The {@link AlluxioURI} of the destination
