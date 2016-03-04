@@ -70,7 +70,7 @@ public final class BlockDataServerHandler {
    *
    * @param ctx The context of this request which handles the result of this operation
    * @param req The initiating {@link RPCBlockReadRequest}
-   * @throws IOException
+   * @throws IOException if an I/O error occurs when reading the data requested
    */
   void handleBlockReadRequest(final ChannelHandlerContext ctx, final RPCBlockReadRequest req)
       throws IOException {
@@ -197,7 +197,6 @@ public final class BlockDataServerHandler {
    * @param readLength The length, in bytes, of the data to read from the block
    * @return a {@link DataBuffer} representing the data
    * @throws IOException if an I/O error occurs when reading the data
-   * @throws IllegalArgumentException if TRANSFER is used and the data source is not a file channel
    */
   private DataBuffer getDataBuffer(RPCBlockReadRequest req, BlockReader reader, long readLength)
       throws IOException, IllegalArgumentException {
