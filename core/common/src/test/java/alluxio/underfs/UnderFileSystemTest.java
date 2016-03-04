@@ -151,7 +151,7 @@ public final class UnderFileSystemTest {
 
     factory = UnderFileSystemRegistry.find("ofs://localhost/test/path", mConf);
     Assert.assertNull(
-        "No UnderFileSystemFactory should exist for OrangeFS paths as it requires a separate" +
-            "module", factory);
+        "No UnderFileSystemFactory should exist for OrangeFS paths as it requires a separate"
+            + " module", factory);
   }
 }
