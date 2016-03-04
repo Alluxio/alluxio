@@ -8,7 +8,7 @@ PROVIDERS=( "aws" "openstack" "virtualbox" "docker" )
 CONFIGS=( "init.yml.aws" "init.yml.openstack" "init.yml.hdfs2" "init.yml.docker" )
 CMDS=( "sh ./run_aws.sh" "sh ./run_openstack.sh" "vagrant up" "sh ./run_docker.sh" )
 TIMEOUT=1200s # 20 minutes for timeout
-for (( i = 0; i < ${#PROVIDERS[@]}; i ++ )); do
+for (( i = 0; i < ${#PROVIDERS[@]}; i++ )); do
   # clean up enviornment
   rm -rf files shared
   # print them out for sanity check

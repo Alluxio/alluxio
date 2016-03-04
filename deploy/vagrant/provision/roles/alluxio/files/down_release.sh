@@ -9,8 +9,8 @@ if [[ ! -f ${DIST} ]]; then
   sudo yum install -y -q wget
   wget -q http://alluxio.org/downloads/files/${version}/${ALLUXIO_DIST} -P /vagrant/shared
   if [[ $? -ne 0 ]]; then
-    echo "Failed to download alluxio distribution $ALLUXIO_DIST. Please "  \
-      "make sure your alluxio and hadoop versions are valid"
+    echo "Failed to download alluxio distribution $ALLUXIO_DIST. Please " \
+        "make sure your alluxio and hadoop versions are valid"
     exit 1
   fi
 fi
