@@ -23,31 +23,31 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 /**
- * The AlluxioFS implementation of Hadoop AbstractFileSystem. The implementation delegates to the
- * existing Alluxio FileSystem and Only necessary for use with Hadoop 2.x.
- * Configuration example in Hadoop core-site.xml file:
+ * The AlluxioFs implementation of Hadoop AbstractFileSystem. The implementation delegates to the
+ * existing Alluxio {@link alluxio.hadoop.FileSystem} and is only necessary for use with
+ * Hadoop 2.x. Configuration example in Hadoop core-site.xml file:
  * <pre>
  * &lt;property&gt;
  *    &lt;name>fs.AbstractFileSystem.alluxio.impl&lt;/name&gt;
  *    &lt;value>alluxio.hadoop.AlluxioFs&lt;/value&gt;
  * &lt;/property&gt;
  * </pre>
+ *
+ * For long term solution, we need to rewrite AlluxioFs by extending Hadoop
+ * {@link org.apache.hadoop.fs.AbstractFileSystem} directly.
  */
-// TODO(pfxuan): DelegateToFileSystem is a private/unstable interface.
-// For long term solution, we need to rewrite AlluxioFs by extending Hadoop
-// AbstractFileSystem directly.
-// https://hadoop.apache.org/docs/current/api/org/apache/hadoop/fs/AbstractFileSystem.html
 public class AlluxioFs extends DelegateToFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * This constructor has the signature needed by
-   * {@link org.apache.hadoop.fs.AbstractFileSystem#createFileSystem(java.net.URI, Configuration)}.
+   * {@link org.apache.hadoop.fs.AbstractFileSystem#createFileSystem(URI, Configuration)}
+   * in Hadoop 2.x.
    *
-   * @param uri which must be that of AlluxioFS
-   * @param conf
-   * @throws java.io.IOException
-   * @throws java.net.URISyntaxException
+   * @param uri the uri for this AlluxioFs filesystem
+   * @param conf Hadoop configuration
+   * @throws java.io.IOException if an I/O error occurs
+   * @throws java.net.URISyntaxException if <code>uri</code> has syntax error
    */
   AlluxioFs(final URI uri, final Configuration conf) throws IOException, URISyntaxException {
     super(uri, new FileSystem(), conf, Constants.SCHEME, false);
