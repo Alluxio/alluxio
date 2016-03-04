@@ -38,7 +38,7 @@ usuários irão apenas precisar de uma porção do client do Alluxio.
 ### Master
 
 Aluxio pode ser disponibilizado em dois modos de `master`, [único master](Running-Alluxio-Locally.html)
-ou [modo de tolerância a falha](Running-Alluxio-Fault-Tolerant-on-EC2.html). O `master` é primeiramente
+ou [modo de tolerância a falha](Running-Alluxio-Fault-Tolerant.html). O `master` é primeiramente
 responsável por gerenciar a estrutura de metadados global do sistema, como exemplo, a estrutura
 árvore de diretório. Os `clients` podem interagir com o `master` para leitura e modificação do metadado.
 Além disso, todos os `workers` efetuam periodicamente um `heartbeat` para o `master` a fim de manter a 
