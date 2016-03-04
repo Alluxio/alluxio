@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
+import alluxio.resource.CloseableResource;
 import alluxio.thrift.BlockMasterClientService;
 
 import org.junit.Assert;
@@ -42,17 +43,15 @@ public class BlockMasterClientTest {
     BlockMasterClientService.Client mock = PowerMockito.mock(BlockMasterClientService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
 
-    BlockMasterClient client = BlockStoreContext.INSTANCE.acquireMasterClient();
-    try {
-      Whitebox.invokeMethod(client, "checkVersion", mock,
+    try (CloseableResource<BlockMasterClient> clientResource =
+        BlockStoreContext.INSTANCE.acquireMasterClientResource()) {
+      Whitebox.invokeMethod(clientResource.get(), "checkVersion", mock,
           Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION);
       Assert.fail("checkVersion() should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
           Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
           Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION, 0), e.getMessage());
-    } finally {
-      BlockStoreContext.INSTANCE.releaseMasterClient(client);
     }
   }
 }
