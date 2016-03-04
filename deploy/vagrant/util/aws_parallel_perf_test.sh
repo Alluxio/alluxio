@@ -6,7 +6,7 @@ N_INSTANCE_END=5
 ROOT=$(dirname $0)
 pushd ${ROOT}/.. > /dev/null
 
-if [[ $(uname-a ) == Darwin*  ]]; then
+if [[ $(uname -a) == Darwin* ]]; then
   SED="sed -i ''"
 else
   SED="sed -i"
