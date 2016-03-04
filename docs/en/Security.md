@@ -103,7 +103,7 @@ the file. For directories, the r permission is required to list the contents of 
 the w permission is required to create, rename or delete files or directories under it,
 and the x permission is required to access a child of the directory.
 
-For example, the output of the shell command `lsr` when authorization is enabled is:
+For example, the output of the shell command `ls -R` when authorization is enabled is:
 
 {% include Security/lsr.md %}
 
