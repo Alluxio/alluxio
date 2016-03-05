@@ -101,7 +101,10 @@ public abstract class AbstractFileOutStreamIntegrationTest {
 
       InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) status.getLength()];
-      if (UnderFileSystemCluster.readEOFReturnsNegative() && 0 == res.length) {
+      String underFSClass = UnderFileSystemCluster.getUnderFSClass();
+      if (underFSClass != null
+          && underFSClass.equals("alluxio.underfs.hdfs.LocalMiniDFSCluster")
+          && 0 == res.length) {
         // Returns -1 for zero-sized byte array to indicate no more bytes available here.
         Assert.assertEquals(-1, is.read(res));
       } else {
