@@ -92,19 +92,24 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
       createDscDir(dstPath);
       List<String> errorMessages = Lists.newArrayList();
       File[] fileList = srcDir.listFiles();
+      int misFiles = 0;
       for (File srcFile : fileList) {
+        AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
         try {
           if (srcFile.isDirectory()) {
-            copyFromLocalDirs(srcFile, new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName())));
+            copyFromLocalDirs(srcFile, newURI);
           } else {
-            copyPath(srcFile, new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName())));
+            copyPath(srcFile, newURI);
           }
         } catch (IOException e) {
           errorMessages.add(e.getMessage());
+          if (!mFileSystem.exists(newURI)) {
+            misFiles++;
+          }
         }
       }
       if (errorMessages.size() != 0) {
-        if (errorMessages.size() == fileList.length) {
+        if (misFiles == fileList.length) {
           // If no files were created, then delete the directory
           if (mFileSystem.exists(dstPath)) {
             mFileSystem.delete(dstPath);
@@ -143,7 +148,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
 
   /**
    * Create a directory in the Alluxio filesystem space. It will not throw any exception if the
-   * destination directory is already exists.
+   * destination directory already exists.
    * @param dstPath The {@link AlluxioURI} of the destination directory which will be created
    * @throws IOException if a non-Alluxio related exception occurs
    */
@@ -223,6 +228,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
         mFileSystem.createDirectory(dstPath);
         List<String> errorMessages = Lists.newArrayList();
         String[] fileList = src.list();
+        int misFiles = 0;
         for (String file : fileList) {
           AlluxioURI newPath = new AlluxioURI(dstPath, new AlluxioURI(file));
           File srcFile = new File(src, file);
@@ -230,10 +236,13 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
             copyPath(srcFile, newPath);
           } catch (IOException e) {
             errorMessages.add(e.getMessage());
+            if (!mFileSystem.exists(newPath)) {
+              misFiles++;
+            }
           }
         }
         if (errorMessages.size() != 0) {
-          if (errorMessages.size() == fileList.length) {
+          if (misFiles == fileList.length) {
             // If no files were created, then delete the directory
             if (mFileSystem.exists(dstPath)) {
               mFileSystem.delete(dstPath);
