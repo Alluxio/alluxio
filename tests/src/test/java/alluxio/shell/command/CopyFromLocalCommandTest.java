@@ -55,6 +55,57 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
     Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
+
+    File innerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir/innerDir");
+    innerDir.mkdir();
+    File innerFile = generateFileContent("/localDir/innerDir/innerFile1",
+            BufferUtils.getIncreasingByteArray(30));
+    innerFile.setReadable(false);
+    Assert.assertEquals(-1, mFsShell.run(cmd));
+    Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/innerDir")));
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/innerDir/innerFile1")));
+  }
+
+  @Test
+  public void copyDirectoryFromLocalToExistingDirAtomicTest() throws Exception {
+    File localDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir");
+    localDir.mkdir();
+    File testFile =
+            generateFileContent("/localDir/testFile", BufferUtils.getIncreasingByteArray(10));
+    File testDir = testFile.getParentFile();
+    AlluxioURI alluxioDirPath = new AlluxioURI("/testDir");
+    // Create the destination directory before call command of 'copyFromLocal'.
+    mFileSystem.createDirectory(alluxioDirPath);
+    testFile.setReadable(false);
+
+    String[] cmd = {"copyFromLocal", testDir.getPath(), alluxioDirPath.getPath()};
+    Assert.assertEquals(-1, mFsShell.run(cmd));
+    Assert.assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
+    Assert.assertFalse(mFileSystem.exists(alluxioDirPath));
+    mOutput.reset();
+
+    // If we put a copyable file in the directory, we should be able to copy just that file
+    generateFileContent("/localDir/testFile2", BufferUtils.getIncreasingByteArray(20));
+    Assert.assertEquals(-1, mFsShell.run(cmd));
+    Assert.assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
+    Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
+
+    File innerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir/innerDir");
+    innerDir.mkdir();
+    File innerFile = generateFileContent("/localDir/innerDir/innerFile1",
+            BufferUtils.getIncreasingByteArray(30));
+    innerFile.setReadable(false);
+    Assert.assertEquals(-1, mFsShell.run(cmd));
+    Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/innerDir")));
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/innerDir/innerFile1")));
   }
 
   @Test
@@ -96,8 +147,10 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
   public void copyFromLocalDirToExistingDirTest() throws IOException, AlluxioException {
     File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
     File srcInnerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/innerDir");
+    File emptyDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/emptyDir");
     srcOuterDir.mkdir();
     srcInnerDir.mkdir();
+    emptyDir.mkdir();
     generateFileContent("/outerDir/srcFile1", BufferUtils.getIncreasingByteArray(10));
     generateFileContent("/outerDir/innerDir/srcFile2", BufferUtils.getIncreasingByteArray(10));
     mFileSystem.createDirectory(new AlluxioURI("/dstDir"));
@@ -105,10 +158,13 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(0, ret);
     AlluxioURI dstURI1 = new AlluxioURI("/dstDir/srcFile1");
     AlluxioURI dstURI2 = new AlluxioURI("/dstDir/innerDir/srcFile2");
+    AlluxioURI dstURI3 = new AlluxioURI("/dstDir/emptyDir");
     URIStatus uriStatus1 = mFileSystem.getStatus(dstURI1);
     URIStatus uriStatus2 = mFileSystem.getStatus(dstURI2);
+    URIStatus uriStatus3 = mFileSystem.getStatus(dstURI3);
     Assert.assertNotNull(uriStatus1);
     Assert.assertNotNull(uriStatus2);
+    Assert.assertNotNull(uriStatus3);
   }
 
   @Test
