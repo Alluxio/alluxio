@@ -15,6 +15,27 @@ The prerequisite for this part is that you have [Java](Java-Setup.html). We also
 set up Alluxio and Hadoop in accordance to these guides [Local Mode](Running-Alluxio-Locally.html) or
 [Cluster Mode](Running-Alluxio-on-a-Cluster.html)
 
+## Using Hadoop 1.x
+
+If running a Hadoop 1.x cluster, ensure that the `core-site.xml` file in your Hadoop installation
+`conf` directory has the following properties added:
+
+{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
+
+This will allow your MapReduce jobs to use Alluxio for their input and output files. If you are
+using HDFS as the under storage system for Alluxio, it may be necessary to add these properties to
+the `hdfs-site.xml` file as well.
+
+## Using Hadoop 2.x
+
+If you are using a 2.x Hadoop cluster, you should not need the properties above in your
+`core-site.xml` file. However, in some cases you may encounter the error:
+`java.io.IOException: No FileSystem for scheme: alluxio`. For instance, this may happen when Yarn 
+(as opposed to Hadoop) tries to access Alluxio files. If this error is encountered, add these 
+properties to your `core-site.xml` file, and restart Yarn.
+
+{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
+
 # Compiling the Alluxio Client
 
 In order to use Alluxio with your version of Hadoop, you will have to re-compile the Alluxio client
@@ -36,15 +57,6 @@ After the compilation succeeds, the new Alluxio client jar can be found at:
 This is the jar that you should use for the rest of this guide.
 
 # Configuring Hadoop
-
-You need to add the following three properties to `core-site.xml` file in your Hadoop installation
-`conf` directory:
-
-{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
-
-This will allow your MapReduce jobs to use Alluxio for their input and output files. If you are
-using HDFS as the under storage system for Alluxio, it may be necessary to add these properties to
-the `hdfs-site.xml` file as well.
 
 In order for the Alluxio client jar to be available to the JobClient, you can modify
 `HADOOP_CLASSPATH` by changing `hadoop-env.sh` to:
