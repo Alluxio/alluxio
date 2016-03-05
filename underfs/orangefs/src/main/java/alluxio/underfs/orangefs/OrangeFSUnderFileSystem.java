@@ -415,7 +415,6 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
     return false;
   }
 
-  // Not supported
   @Override
   public void setPermission(String path, String posixPerm) throws IOException {
     if (!exists(path) || posixPerm == null) {
