@@ -609,7 +609,7 @@
             <artifactId>maven-compiler-plugin</artifactId>
             <configuration>
               <excludes>
-                <exclude>**/AlluxioFs.java</exclude>
+                <exclude>**/AlluxioFileSystem.java</exclude>
               </excludes>
             </configuration>
           </plugin>
