@@ -18,8 +18,8 @@
   </parent>
   <artifactId>alluxio-core-server</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Core - Server Implementation</name>
-  <description>Server implementation of Alluxio core</description>
+  <name>Alluxio Core - Server</name>
+  <description>Servers of Alluxio core</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run

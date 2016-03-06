@@ -17,8 +17,8 @@
     <version>1.1.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-keyvalue-client</artifactId>
-  <name>Alluxio Key Value - Client Implementation</name>
-  <description>Client implementation of Alluxio key value store</description>
+  <name>Alluxio Key Value - Client</name>
+  <description>Client of Alluxio Key Value System</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -57,7 +57,7 @@
         <artifactId>maven-shade-plugin</artifactId>
         <version>2.2</version>
         <executions>
-           <execution>
+          <execution>
             <id>uber-jar</id>
             <phase>package</phase>
             <goals>
