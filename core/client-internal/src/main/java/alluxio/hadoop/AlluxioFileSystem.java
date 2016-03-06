@@ -29,14 +29,14 @@ import java.net.URISyntaxException;
  * <pre>
  * &lt;property&gt;
  *    &lt;name>fs.AbstractFileSystem.alluxio.impl&lt;/name&gt;
- *    &lt;value>alluxio.hadoop.AlluxioFs&lt;/value&gt;
+ *    &lt;value>alluxio.hadoop.AlluxioFileSystem&lt;/value&gt;
  * &lt;/property&gt;
  * </pre>
  *
- * For long term solution, we need to rewrite AlluxioFs by extending Hadoop
+ * For long term solution, we need to rewrite AlluxioFileSystem by extending Hadoop
  * {@link org.apache.hadoop.fs.AbstractFileSystem} directly.
  */
-public class AlluxioFs extends DelegateToFileSystem {
+public class AlluxioFileSystem extends DelegateToFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -49,7 +49,8 @@ public class AlluxioFs extends DelegateToFileSystem {
    * @throws java.io.IOException if an I/O error occurs
    * @throws java.net.URISyntaxException if <code>uri</code> has syntax error
    */
-  AlluxioFs(final URI uri, final Configuration conf) throws IOException, URISyntaxException {
+  AlluxioFileSystem(final URI uri, final Configuration conf)
+      throws IOException, URISyntaxException {
     super(uri, new FileSystem(), conf, Constants.SCHEME, false);
   }
 
