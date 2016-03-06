@@ -18,8 +18,8 @@
   </parent>
   <artifactId>alluxio-core-client</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Core - Client Implementation</name>
-  <description>Client implementation of Alluxio core</description>
+  <name>Alluxio Core - Client</name>
+  <description>Client of Alluxio core</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
