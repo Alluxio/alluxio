@@ -601,20 +601,20 @@
       <id>hadoop-1</id>
       <properties>
         <hadoop.version>1.0.4</hadoop.version>
-        <build>
-          <plugins>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-compiler-plugin</artifactId>
-              <configuration>
-                <excludes>
-                  <exclude>**/AlluxioFs.java</exclude>
-                </excludes>
-              </configuration>
-            </plugin>
-          </plugins>
-        </build>
       </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>**/AlluxioFs.java</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
 
     <profile>
