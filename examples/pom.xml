@@ -35,7 +35,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client-internal</artifactId>
+      <artifactId>alluxio-core-client</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -45,7 +45,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-keyvalue-client-internal</artifactId>
+      <artifactId>alluxio-keyvalue-client</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
