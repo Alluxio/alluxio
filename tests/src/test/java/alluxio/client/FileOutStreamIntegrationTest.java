@@ -29,7 +29,7 @@ import java.io.IOException;
 public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamIntegrationTest {
   // TODO(binfan): Run tests with local writes enabled and disabled.
   /**
-   * Test {@link FileOutStream#write(int)}.
+   * Tests {@link FileOutStream#write(int)}.
    */
   @Test
   public void writeTest1() throws IOException, AlluxioException {
@@ -52,7 +52,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   }
 
   /**
-   * Test {@link FileOutStream#write(byte[])}.
+   * Tests {@link FileOutStream#write(byte[])}.
    */
   @Test
   public void writeTest2() throws IOException, AlluxioException {
@@ -73,7 +73,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   }
 
   /**
-   * Test {@link FileOutStream#write(byte[], int, int)}.
+   * Tests {@link FileOutStream#write(byte[], int, int)}.
    */
   @Test
   public void writeTest3() throws IOException, AlluxioException {
@@ -95,7 +95,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   }
 
   /**
-   * Test writing to a file and specify the location to be localhost.
+   * Tests writing to a file and specify the location to be localhost.
    *
    * @throws IOException if file can not be opened successfully
    */
@@ -111,7 +111,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   }
 
   /**
-   * Test writing to a file for longer than HEARTBEAT_INTERVAL_MS to make sure the sessionId doesn't
+   * Tests writing to a file for longer than HEARTBEAT_INTERVAL_MS to make sure the sessionId doesn't
    * change. Tracks [ALLUXIO-171].
    *
    * @throws IOException
