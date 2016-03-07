@@ -9,19 +9,16 @@
   ~ See the NOTICE file distributed with this work for information regarding copyright ownership.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-keyvalue</artifactId>
     <version>1.1.0-SNAPSHOT</version>
   </parent>
-  <groupId>org.alluxio</groupId>
   <artifactId>alluxio-keyvalue-client</artifactId>
-  <packaging>jar</packaging>
-  <name>Alluxio Key Value - Client Distribution</name>
-  <description>Distribution of client for Alluxio Key Value Store</description>
+  <name>Alluxio Key Value - Client</name>
+  <description>Client of Alluxio Key Value System</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -29,11 +26,9 @@
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
-    <failIfNoTests>false</failIfNoTests>
   </properties>
 
   <dependencies>
-    <!-- Other Alluxio dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client</artifactId>
@@ -41,96 +36,27 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-keyvalue-client-internal</artifactId>
+      <artifactId>alluxio-keyvalue-common</artifactId>
       <version>${project.version}</version>
+    </dependency>
+
+    <!-- Other projects' test-jars -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
-  <profiles>
-    <!-- Profile used to build alluxio keyvalue client jar used for Apache Spark. This will be activated by using -->
-    <!-- -Pspark in the maven command line. -->
-    <profile>
-      <id>spark</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-       <!-- The dependencies of Spark profile are the basically the same as the default dependencies, except that -->
-       <!-- curator-client, curator-framework, curator-recipies and hadoop-client will be in scope provided as they -->
-       <!-- will be provided by Apache Spark runtime. -->
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>curator-framework</artifactId>
-          <version>${apache.curator.version}</version>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>curator-client</artifactId>
-          <version>${apache.curator.version}</version>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>curator-recipes</artifactId>
-          <version>${apache.curator.version}</version>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-client</artifactId>
-          <scope>provided</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
-
   <build>
     <plugins>
-      <!-- This plugin generates an empty javadoc jar to comply with Sonatype requirements -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>empty-javadoc-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <configuration>
-              <classifier>javadoc</classifier>
-              <classesDirectory>${basedir}/javadoc</classesDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>2.2</version>
         <executions>
-          <execution>
-            <id>shade-thrift</id>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <artifactSet>
-                <includes>
-                  <include>org.alluxio:alluxio-keyvalue-common</include>
-                  <include>org.alluxio:alluxio-keyvalue-client-internal</include>
-                </includes>
-              </artifactSet>
-              <relocations>
-                <relocation>
-                  <pattern>org.apache.thrift</pattern>
-                  <shadedPattern>alluxio.org.apache.thrift</shadedPattern>
-                </relocation>
-              </relocations>
-            </configuration>
-          </execution>
           <execution>
             <id>uber-jar</id>
             <phase>package</phase>
@@ -139,6 +65,18 @@
             </goals>
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <artifactSet>
+                <includes>
+                  <include>org.alluxio:alluxio-keyvalue-common</include>
+                  <include>org.alluxio:alluxio-keyvalue-client</include>
+                </includes>
+              </artifactSet>
+              <relocations>
+                <relocation>
+                  <pattern>org.apache.thrift</pattern>
+                  <shadedPattern>alluxio.org.apache.thrift</shadedPattern>
+                </relocation>
+              </relocations>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
               </transformers>
