@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthType;
-import alluxio.security.authentication.PlainSaslServer;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
@@ -64,7 +64,7 @@ public final class PermissionStatusTest {
    */
   @Test
   public void applyUMaskTest() {
-    FileSystemPermission umaskPermission = new FileSystemPermission((short) 0022);
+    FileSystemPermission umaskPermission = new FileSystemPermission((short)0022);
     PermissionStatus permissionStatus =
         new PermissionStatus("user1", "group1", FileSystemPermission.getDefault());
     permissionStatus = permissionStatus.applyUMask(umaskPermission);
@@ -92,7 +92,7 @@ public final class PermissionStatusTest {
 
     // authentication is enabled, and remote is true
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    PlainSaslServer.AuthorizedClientUser.set("test_client_user");
+    AuthenticatedClientUser.set("test_client_user");
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
     permissionStatus = PermissionStatus.get(conf, true);
     verifyPermissionStatus("test_client_user", "test_client_user", (short) 0755, permissionStatus);
@@ -128,7 +128,7 @@ public final class PermissionStatusTest {
 
     // authentication is enabled, and remote is true
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    PlainSaslServer.AuthorizedClientUser.set("test_client_user");
+    AuthenticatedClientUser.set("test_client_user");
     permissionStatus = PermissionStatus.get(conf, true);
     verifyPermissionStatus("test_client_user", "group1", (short) 0755, permissionStatus);
 
@@ -163,7 +163,7 @@ public final class PermissionStatusTest {
 
     // authentication is enabled, and remote is true
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    PlainSaslServer.AuthorizedClientUser.set("test_client_user");
+    AuthenticatedClientUser.set("test_client_user");
     permissionStatus = PermissionStatus.get(conf, true);
     verifyPermissionStatus("test_client_user", "", (short) 0755, permissionStatus);
   }

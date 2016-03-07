@@ -18,7 +18,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
@@ -34,18 +33,18 @@ import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.SaslException;
 
 /**
- * Unit test for methods of {@link AuthenticationUtils}
+ * Unit test for methods of {@link TransportProviderUtils}
  *
  * In order to test methods that return kinds of TTransport for connection in different mode, we
  * build Thrift servers and clients with specific TTransport, and let them connect.
  */
-public class AuthenticationUtilsTest {
+public final class TransportProviderTest {
 
   private TThreadPoolServer mServer;
   private Configuration mConfiguration;
   private InetSocketAddress mServerAddress;
   private TServerSocket mServerTSocket;
-  private TSocket mClientTSocket;
+  private TransportProvider mTransportProvider;
 
   /**
    * The exception expected to be thrown.
@@ -55,8 +54,6 @@ public class AuthenticationUtilsTest {
 
   /**
    * Sets up the server before running a test.
-   *
-   * @throws Exception thrown when the {@link TServerSocket} cannot be constructed
    */
   @Before
   public void before() throws Exception {
@@ -66,24 +63,21 @@ public class AuthenticationUtilsTest {
     mServerTSocket = new TServerSocket(new InetSocketAddress(localhost, 0));
     int port = NetworkAddressUtils.getThriftPort(mServerTSocket);
     mServerAddress = new InetSocketAddress(localhost, port);
-    mClientTSocket = AuthenticationUtils.createTSocket(mServerAddress,
-        mConfiguration.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS));
   }
 
   /**
    * In NOSASL mode, the TTransport used should be the same as Alluxio original code.
-   *
-   * @throws Exception thrown when the server cannot be started
    */
   @Test
-  public void nosaslAuthenticationTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL");
+  public void nosaslAuthentricationTest() throws Exception {
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
 
     // start server
     startServerThread();
 
     // create client and connect to server
-    TTransport client = AuthenticationUtils.getClientTransport(mConfiguration, mServerAddress);
+    TTransport client = mTransportProvider.getClientTransport(mServerAddress);
     client.open();
     Assert.assertTrue(client.isOpen());
 
@@ -95,20 +89,17 @@ public class AuthenticationUtilsTest {
   /**
    * In SIMPLE mode, the TTransport mechanism is PLAIN. When server authenticate the connected
    * client user, it use {@link SimpleAuthenticationProvider}.
-   *
-   * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
-   *                   transport fails
    */
   @Test
   public void simpleAuthenticationTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
 
     // start server
     startServerThread();
 
     // when connecting, authentication happens. It is a no-op in Simple mode.
-    TTransport client =
-        PlainSaslUtils.getPlainClientTransport("anyone", "whatever", mClientTSocket);
+    TTransport client = mTransportProvider.getClientTransport(mServerAddress);
     client.open();
     Assert.assertTrue(client.isOpen());
 
@@ -119,43 +110,41 @@ public class AuthenticationUtilsTest {
 
   /**
    * In SIMPLE mode, if client's username is null, an exception should be thrown in client side.
-   *
-   * @throws Exception thrown when the retrieval of the plain client transport fails
    */
   @Test
   public void simpleAuthenticationNullUserTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
 
     // check case that user is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    PlainSaslUtils.getPlainClientTransport(null, "whatever", mClientTSocket);
+    ((PlainSaslTransportProvider) mTransportProvider)
+        .getClientTransport(null, "whatever", mServerAddress);
   }
 
   /**
    * In SIMPLE mode, if client's password is null, an exception should be thrown in client side.
-   *
-   * @throws Exception thrown when the retrieval of the plain client transport fails
    */
   @Test
   public void simpleAuthenticationNullPasswordTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
 
     // check case that password is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    PlainSaslUtils.getPlainClientTransport("anyone", null, mClientTSocket);
+    ((PlainSaslTransportProvider) mTransportProvider)
+        .getClientTransport("anyone", null, mServerAddress);
   }
 
   /**
    * In SIMPLE mode, if client's username is empty, an exception should be thrown in server side.
-   *
-   * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
-   *                   transport fails
    */
   @Test
   public void simpleAuthenticationEmptyUserTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
 
     // start server
     startServerThread();
@@ -164,7 +153,8 @@ public class AuthenticationUtilsTest {
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No authentication"
         + " identity provided");
-    TTransport client = PlainSaslUtils.getPlainClientTransport("", "whatever", mClientTSocket);
+    TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
+        .getClientTransport("", "whatever", mServerAddress);
     try {
       client.open();
     } finally {
@@ -176,22 +166,21 @@ public class AuthenticationUtilsTest {
    * In SIMPLE mode, if client's password is empty, an exception should be thrown in server side.
    * Although password is actually not used and we do not really authenticate the user in SIMPLE
    * mode, we need the Plain SASL server has ability to check empty password.
-   *
-   * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
-   *                   transport fails
    */
   @Test
   public void simpleAuthenticationEmptyPasswordTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
 
     // start server
     startServerThread();
 
     // check case that password is empty
     mThrown.expect(TTransportException.class);
-    mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No password "
-        + "provided");
-    TTransport client = PlainSaslUtils.getPlainClientTransport("anyone", "", mClientTSocket);
+    mThrown.expectMessage(
+        "Peer indicated failure: Plain authentication failed: No password " + "provided");
+    TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
+        .getClientTransport("anyone", "", mServerAddress);
     try {
       client.open();
     } finally {
@@ -203,22 +192,21 @@ public class AuthenticationUtilsTest {
    * In CUSTOM mode, the TTransport mechanism is PLAIN. When server authenticate the connected
    * client user, it use configured AuthenticationProvider. If the username:password pair matches, a
    * connection should be built.
-   *
-   * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
-   *                   transport fails
    */
   @Test
   public void customAuthenticationExactNamePasswordMatchTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     mConfiguration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         ExactlyMatchAuthenticationProvider.class.getName());
+    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
 
     // start server
     startServerThread();
 
     // when connecting, authentication happens. User's name:pwd pair matches and auth pass.
-    TTransport client =
-        PlainSaslUtils.getPlainClientTransport("alluxio", "correct-password", mClientTSocket);
+    TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
+        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME,
+            ExactlyMatchAuthenticationProvider.PASSWORD, mServerAddress);
     client.open();
     Assert.assertTrue(client.isOpen());
 
@@ -230,25 +218,24 @@ public class AuthenticationUtilsTest {
   /**
    * In CUSTOM mode, If the username:password pair does not match based on the configured
    * AuthenticationProvider, an exception should be thrown in server side.
-   *
-   * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
-   *                   transport fails
    */
   @Test
   public void customAuthenticationExactNamePasswordNotMatchTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     mConfiguration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         ExactlyMatchAuthenticationProvider.class.getName());
+    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
 
     // start server
     startServerThread();
 
     // User with wrong password can not pass auth, and throw exception.
-    TTransport wrongClient =
-        PlainSaslUtils.getPlainClientTransport("alluxio", "wrong-password", mClientTSocket);
+    TTransport wrongClient = ((PlainSaslTransportProvider) mTransportProvider)
+        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, "wrong-password",
+            mServerAddress);
     mThrown.expect(TTransportException.class);
-    mThrown.expectMessage("Peer indicated failure: Plain authentication failed: "
-        + "User authentication fails");
+    mThrown.expectMessage(
+        "Peer indicated failure: Plain authentication failed: " + "User authentication fails");
     try {
       wrongClient.open();
     } finally {
@@ -258,17 +245,17 @@ public class AuthenticationUtilsTest {
 
   /**
    * In CUSTOM mode, if client's username is null, an exception should be thrown in client side.
-   *
-   * @throws Exception thrown when the retrieval of the plain client transport fails
    */
   @Test
   public void customAuthenticationNullUserTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
 
     // check case that user is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    PlainSaslUtils.getPlainClientTransport(null, "correct-password", mClientTSocket);
+    ((PlainSaslTransportProvider) mTransportProvider)
+        .getClientTransport(null, ExactlyMatchAuthenticationProvider.PASSWORD, mServerAddress);
   }
 
   /**
@@ -278,25 +265,25 @@ public class AuthenticationUtilsTest {
    */
   @Test
   public void customAuthenticationNullPasswordTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
 
     // check case that password is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    PlainSaslUtils.getPlainClientTransport("alluxio", null, mClientTSocket);
+    ((PlainSaslTransportProvider) mTransportProvider)
+        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, null, mServerAddress);
   }
 
   /**
    * In CUSTOM mode, if client's username is empty, an exception should be thrown in server side.
-   *
-   * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
-   *                   transport fails
    */
   @Test
   public void customAuthenticationEmptyUserTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     mConfiguration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         ExactlyMatchAuthenticationProvider.class.getName());
+    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
 
     // start server
     startServerThread();
@@ -305,8 +292,8 @@ public class AuthenticationUtilsTest {
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No authentication"
         + " identity provided");
-    TTransport client =
-        PlainSaslUtils.getPlainClientTransport("", "correct-password", mClientTSocket);
+    TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
+        .getClientTransport("", ExactlyMatchAuthenticationProvider.PASSWORD, mServerAddress);
     try {
       client.open();
     } finally {
@@ -316,24 +303,23 @@ public class AuthenticationUtilsTest {
 
   /**
    * In CUSTOM mode, if client's password is empty, an exception should be thrown in server side.
-   *
-   * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
-   *                   transport fails
    */
   @Test
   public void customAuthenticationEmptyPasswordTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     mConfiguration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         ExactlyMatchAuthenticationProvider.class.getName());
+    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
 
     // start server
     startServerThread();
 
     // check case that password is empty
     mThrown.expect(TTransportException.class);
-    mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No password "
-        + "provided");
-    TTransport client = PlainSaslUtils.getPlainClientTransport("alluxio", "", mClientTSocket);
+    mThrown.expectMessage(
+        "Peer indicated failure: Plain authentication failed: No password provided");
+    TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
+        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, "", mServerAddress);
     try {
       client.open();
     } finally {
@@ -344,27 +330,24 @@ public class AuthenticationUtilsTest {
   /**
    * TODO(dong): In KERBEROS mode, ...
    * Tests that an exception is thrown when trying to use KERBEROS mode.
-   *
-   * @throws Exception thrown when the server cannot be started
    */
   @Test
   public void kerberosAuthenticationTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, "KERBEROS");
+    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.KERBEROS.getAuthName());
 
     // throw unsupported exception currently
     mThrown.expect(UnsupportedOperationException.class);
     mThrown.expectMessage("Kerberos is not supported currently.");
-    startServerThread();
+    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
   }
 
   private void startServerThread() throws Exception {
     // create args and use them to build a Thrift TServer
-    TTransportFactory tTransportFactory =
-        AuthenticationUtils.getServerTransportFactory(mConfiguration);
+    TTransportFactory tTransportFactory = mTransportProvider.getServerTransportFactory();
 
-    mServer =
-        new TThreadPoolServer(new TThreadPoolServer.Args(mServerTSocket).maxWorkerThreads(2)
-            .minWorkerThreads(1).processor(null).transportFactory(tTransportFactory)
+    mServer = new TThreadPoolServer(
+        new TThreadPoolServer.Args(mServerTSocket).maxWorkerThreads(2).minWorkerThreads(1)
+            .processor(null).transportFactory(tTransportFactory)
             .protocolFactory(new TBinaryProtocol.Factory(true, true)));
 
     // start the server in a new thread
@@ -389,13 +372,16 @@ public class AuthenticationUtilsTest {
   }
 
   /**
-   * This customized authentication provider is used in CUSTOM mode. It authenticate the user by
+   * This customized authentication provider is used in CUSTOM mode. It authenticates the user by
    * verifying the specific username:password pair.
    */
   public static class ExactlyMatchAuthenticationProvider implements AuthenticationProvider {
+    static final String USERNAME = "alluxio";
+    static final String PASSWORD = "correct-password";
+
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {
-      if (!user.equals("alluxio") || !password.equals("correct-password")) {
+      if (!user.equals(USERNAME) || !password.equals(PASSWORD)) {
         throw new AuthenticationException("User authentication fails");
       }
     }
