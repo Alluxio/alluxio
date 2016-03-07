@@ -7,7 +7,7 @@ if [[ "${OLD_BOX}" != "" ]]; then
   exit 0
 fi
 
-HERE="$(dirname$0)"
+HERE="$(dirname $0)"
 pushd "${HERE}" > /dev/null
 
 if [[ -f alluxio-dev.box ]]; then
