@@ -12,15 +12,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <title>{{ page.title }} - Alluxio {{site.ALLUXIO_MASTER_VERSION_SHORT}} Documentation</title>
     <meta name="description" content="">
-
-    <link rel="stylesheet" href="../css/bootstrap.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" href="../css/bootstrap-responsive.min.css">
     <link rel="stylesheet" href="../css/main.css">
 
     <script src="../js/vendor/modernizr-2.6.1-respond-1.1.0.min.js"></script>
-
+    <link rel="shortcut icon" href="../img/favicon.png">
     <link rel="stylesheet" href="../css/pygments-default.css">
 
     <script>
@@ -41,93 +38,103 @@
 
 <!-- This code is taken from http://twitter.github.com/bootstrap/examples/hero.html -->
 
-<div class="navbar navbar-fixed-top" id="topbar">
-    <div class="navbar-inner">
-        <div class="container">
-            <a href="/">
-                <div class="brand" style="display:table;">
-                    <div style="position:relative;display:table-cell;vertical-align:middle;">
-                        <img src="../img/logo-white.png" alt="Alluxio Logo" style="height:34px;"/>
-                        <div style="position:absolute;right:0;top:32px;text-shadow:none;">
-                            <span class="version">{{site.ALLUXIO_MASTER_VERSION_SHORT}}</span>
-                        </div>
-                    </div>
+<div class="navbar navbar-default navbar-fixed-top main-navigation" id="topbar">
+  <div class="container">
+    <div class="navbar-header">
+      <button id="navbar-toggle" type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#primary-menu" aria-expanded="false" aria-controls="primary-menu">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <a class="navbar-brand" href="/">
+        <div class="brand" style="display:table;">
+            <div style="position:relative;display:table-cell;vertical-align:middle;">
+                <img class="brand-logo" src="../img/alluxio-logo-2x.png" alt="Alluxio Logo"/>
+                <div style="position:absolute;right:0;top:32px;text-shadow:none;">
+                    <span class="version hide">{{site.ALLUXIO_MASTER_VERSION_SHORT}}</span>
                 </div>
-            </a>
-            <ul class="nav">
-                {% if page.group == "Home" %}
-                    <li class="active"><a>{{page.title}}</a></li>
-                {% else %}
-                    {% assign overviewPage = site.pages | where:'group',"Home" | where:'lang',page.lang %}
-                    <!-- overviewPage only has one element -->
-                    <li><a href="index.html">{{overviewPage[0].title}}</a></li>
-                {% endif %}
-
-                {% assign categories = "User Guide|Features|Frameworks|Under Store|Resources" | split: "|" %}
-                {% for groupName in categories %}
-                    <li class="dropdown">
-                        {% if page.group == groupName %}
-                            <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{site.categories.[groupName].[page.lang]}}<b
-                                class="caret"></b></a>
-                        {% else %}
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{site.categories.[groupName].[page.lang]}}<b
-                                class="caret"></b></a>
-                        {% endif %}
-
-                        <ul class="dropdown-menu">
-                            {% assign currentGroup = site.pages | where:'group',groupName | where:'lang',page.lang %}
-                            {% assign currentGroup = currentGroup | sort:'priority' %}
-                            {% for node in currentGroup %}
-                                {% if page.url == node.url %}
-                                    <li class="active">
-                                        <a>
-                                            {% if node.nickname == null %}
-                                                {{node.title}}
-                                            {% else %}
-                                                {{node.nickname}}
-                                            {% endif %}
-                                        </a>
-                                    </li>
-                                {% else %}
-                                    <!-- Use the prefix .. to change the absolute url to relative url -->
-                                    <li><a href="..{{ node.url }}">
-                                        {% if node.nickname == null %}
-                                            {{node.title}}
-                                        {% else %}
-                                            {{node.nickname}}
-                                        {% endif %}
-                                    </a></li>
-                                {% endif %}
-                            {% endfor %}
-                            {% if groupName == "Resources" %}
-                                <li><a href="https://alluxio.atlassian.net/browse/ALLUXIO">Reporting Issues (JIRA)</a></li>
-                                <li class="divider"></li>
-                                <li><p>Presentations</p></li>
-                                <li><a href="http://www.slideshare.net/TachyonNexus/tachyon-presentation-at-ampcamp-6-november-2015">AMPCamp 6</a></li>
-                                <li><a href="http://goo.gl/kcKeTp">Strata and Hadoop World 2015</a></li>
-                                <li><a href="http://goo.gl/0HpqeS">Tachyon Workshop 2015</a></li>
-                                <li><a href="http://goo.gl/fP9qkF">Strata and Hadoop World 2014</a></li>
-                                <li><a href="http://goo.gl/DKrE4M">Spark Summit 2014</a></li>
-                                <li><a href="http://goo.gl/AHgz0E">Strata and Hadoop World 2013</a></li>
-                            {% endif %}
-                        </ul>
-                    </li>
-                {% endfor %}
-
-                <!-- Generator the language selector at the right of the navigation bar -->
-                {% assign multiLanguagePages = site.pages | where:'name',page.name | sort:'languagePriority' %}
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{page.languageName}}<b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        {% for singleLanguage in multiLanguagePages %}
-                            <!-- Use the prefix .. to change the absulote url to relative url -->
-                            <li><a href="..{{singleLanguage.url}}">{{singleLanguage.languageName}}</a></li>
-                        {% endfor %}
-                    </ul>
-                </li>
-            </ul>
+            </div>
         </div>
+      </a>
     </div>
+    <div class="collapse navbar-collapse">
+      <ul class="nav navbar-nav navbar-right">
+          {% if page.group == "Home" %}
+              <li class="active"><a>{{page.title}}</a></li>
+          {% else %}
+              {% assign overviewPage = site.pages | where:'group',"Home" | where:'lang',page.lang %}
+              <!-- overviewPage only has one element -->
+              <li><a href="index.html">{{overviewPage[0].title}}</a></li>
+          {% endif %}
+
+          {% assign categories = "User Guide|Features|Frameworks|Under Store|Resources" | split: "|" %}
+          {% for groupName in categories %}
+              <li class="dropdown">
+                  {% if page.group == groupName %}
+                      <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{site.categories.[groupName].[page.lang]}}<b
+                          class="caret"></b></a>
+                  {% else %}
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{site.categories.[groupName].[page.lang]}}<b
+                          class="caret"></b></a>
+                  {% endif %}
+
+                  <ul class="dropdown-menu">
+                      {% assign currentGroup = site.pages | where:'group',groupName | where:'lang',page.lang %}
+                      {% assign currentGroup = currentGroup | sort:'priority' %}
+                      {% for node in currentGroup %}
+                          {% if page.url == node.url %}
+                              <li class="active">
+                                  <a>
+                                      {% if node.nickname == null %}
+                                          {{node.title}}
+                                      {% else %}
+                                          {{node.nickname}}
+                                      {% endif %}
+                                  </a>
+                              </li>
+                          {% else %}
+                              <!-- Use the prefix .. to change the absolute url to relative url -->
+                              <li><a href="..{{ node.url }}">
+                                  {% if node.nickname == null %}
+                                      {{node.title}}
+                                  {% else %}
+                                      {{node.nickname}}
+                                  {% endif %}
+                              </a></li>
+                          {% endif %}
+                      {% endfor %}
+                      {% if groupName == "Resources" %}
+                          <li><a href="https://alluxio.atlassian.net/browse/ALLUXIO">Reporting Issues (JIRA)</a></li>
+                          <li class="divider"></li>
+                          <li><p>Presentations</p></li>
+                          <li><a href="http://www.slideshare.net/TachyonNexus/tachyon-presentation-at-ampcamp-6-november-2015">AMPCamp 6</a></li>
+                          <li><a href="http://goo.gl/kcKeTp">Strata and Hadoop World 2015</a></li>
+                          <li><a href="http://goo.gl/0HpqeS">Tachyon Workshop 2015</a></li>
+                          <li><a href="http://goo.gl/fP9qkF">Strata and Hadoop World 2014</a></li>
+                          <li><a href="http://goo.gl/DKrE4M">Spark Summit 2014</a></li>
+                          <li><a href="http://goo.gl/AHgz0E">Strata and Hadoop World 2013</a></li>
+                      {% endif %}
+                  </ul>
+              </li>
+          {% endfor %}
+
+          <!-- Generator the language selector at the right of the navigation bar -->
+          {% assign multiLanguagePages = site.pages | where:'name',page.name | sort:'languagePriority' %}
+          <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{page.languageName}}<b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                  {% for singleLanguage in multiLanguagePages %}
+                      <!-- Use the prefix .. to change the absulote url to relative url -->
+                      <li><a href="..{{singleLanguage.url}}">{{singleLanguage.languageName}}</a></li>
+                  {% endfor %}
+              </ul>
+          </li>
+      </ul>
+    </div>
+  </div>
 </div>
 
 <div class="container" id="content">
@@ -162,16 +169,21 @@
 
             <hr>-->
 
-    <footer>
-        <hr>
-        <p style="text-align: center; veritcal-align: middle; color: #999;">
-            Alluxio is being developed by a <a href="https://github.com/alluxio/alluxio/graphs/contributors">large
-            community</a>.
-        </p>
+    </div>
+    <!-- /container -->
+    <footer class="site-footer">
+      <div class="container">
+          <div class="row">
+            <div class="col-md-16">
+              <p class="text-center">
+                  Alluxio is being developed by a <a href="https://github.com/alluxio/alluxio/graphs/contributors">large
+                  community</a>.
+              </p>
+            </div>
+          </div>
+        </div>
     </footer>
 
-</div>
-<!-- /container -->
 
 <script src="../js/vendor/jquery-1.8.0.min.js"></script>
 <script src="../js/vendor/bootstrap.min.js"></script>
