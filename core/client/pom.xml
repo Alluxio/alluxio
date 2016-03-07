@@ -74,8 +74,11 @@
     <profile>
       <id>spark</id>
       <dependencies>
-        <!-- Override the dependency of hadoop-client even it is already in the spark profile in parent pom. -->
-        <!-- Because this dependency is introduced in this file and has a higher priority than parent profile. -->
+        <!-- The dependency on hadoop-client is defined in the spark profile in
+             parent pom file with the scope "provided", meanwhile also introduced in
+             the base dependencies of this file with the scope "compile". Since the
+             profile in the parent pom file has a lower priority, we need to override the
+             scope here. -->
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-client</artifactId>
