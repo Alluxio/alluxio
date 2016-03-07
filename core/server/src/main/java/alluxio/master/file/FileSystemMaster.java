@@ -399,7 +399,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    */
   public FileInfo getFileInfo(AlluxioURI path)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.READ, path, false);
@@ -605,8 +605,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Creates a file (not a directory) for a given path. Needs {@link FileSystemAction#WRITE}
-   * permission on the parent of the path.
+   * Creates a file (not a directory) for a given path.
+   * Needs {@link FileSystemAction#WRITE} permission on the parent of the path.
    *
    * @param path the file to create
    * @param options method options
