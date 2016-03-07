@@ -690,8 +690,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Since {@link FileSystemMaster#create(TachyonURI, CreateFileOptions)} already checked
-   * {@link tachyon.security.authorization.FileSystemAction#WRITE},
+   * Since {@link FileSystemMaster#create(AlluxioURI, CreateFileOptions)} already checked
+   * {@link alluxio.security.authorization.FileSystemAction#WRITE},
    * it is not needed to check again here when requesting a new block for the file.
    *
    * @param path the path of the file to get the next block id for

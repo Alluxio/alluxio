@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-python <<EOF
+python << EOF
 import re
 
 PATTERN = r'''<exclusion>
