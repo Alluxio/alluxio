@@ -12,6 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.Configuration;
+import alluxio.resource.DummyCloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -94,7 +95,8 @@ public final class AlluxioBlockStoreTest {
     Mockito.when(sBlockStoreContext.acquireWorkerClient(Mockito.anyString()))
         .thenReturn(sBlockWorkerClient);
     sMasterClient = PowerMockito.mock(BlockMasterClient.class);
-    Mockito.when(sBlockStoreContext.acquireMasterClient()).thenReturn(sMasterClient);
+    Mockito.when(sBlockStoreContext.acquireMasterClientResource()).thenReturn(
+        new DummyCloseableResource<BlockMasterClient>(sMasterClient));
 
     // Inform the block store that it should use the mock context
     sBlockStore = AlluxioBlockStore.get();

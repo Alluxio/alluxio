@@ -14,6 +14,7 @@ package alluxio.client.block;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
+import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -57,12 +58,12 @@ public final class BlockStoreContextTest {
    */
   @Test(timeout = 10000)
   public void acquireMasterLimitTest() throws Exception {
-    final List<BlockMasterClient> clients = Lists.newArrayList();
+    final List<CloseableResource<BlockMasterClient>> clients = Lists.newArrayList();
 
     // Acquire all the clients
     for (int i = 0; i < ClientContext.getConf()
         .getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS); i++) {
-      clients.add(BlockStoreContext.INSTANCE.acquireMasterClient());
+      clients.add(BlockStoreContext.INSTANCE.acquireMasterClientResource());
     }
 
     // Spawn another thread to acquire a master client
@@ -79,8 +80,8 @@ public final class BlockStoreContextTest {
     }
 
     // Release all the clients
-    for (BlockMasterClient client : clients) {
-      BlockStoreContext.INSTANCE.releaseMasterClient(client);
+    for (CloseableResource<BlockMasterClient> client : clients) {
+      client.close();
     }
 
     // Wait for the spawned thread to complete. If it is unable to acquire a master client before
@@ -96,8 +97,9 @@ public final class BlockStoreContextTest {
   class AcquireMasterClient implements Runnable {
     @Override
     public void run() {
-      BlockMasterClient client = BlockStoreContext.INSTANCE.acquireMasterClient();
-      BlockStoreContext.INSTANCE.releaseMasterClient(client);
+      CloseableResource<BlockMasterClient> client =
+          BlockStoreContext.INSTANCE.acquireMasterClientResource();
+      client.close();
     }
   }
 
