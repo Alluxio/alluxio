@@ -84,7 +84,8 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     String[] cmd = {"copyFromLocal", testDir.getPath(), alluxioDirPath.getPath()};
     Assert.assertEquals(-1, mFsShell.run(cmd));
     Assert.assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
-    Assert.assertFalse(mFileSystem.exists(alluxioDirPath));
+    // The destination directory should not be deleted.
+    Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
     mOutput.reset();
 
     // If we put a copyable file in the directory, we should be able to copy just that file

@@ -89,6 +89,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
    */
   private void copyFromLocalDirs(File srcDir, AlluxioURI dstPath) throws IOException {
     try {
+      boolean existing = mFileSystem.exists(dstPath);
       createDscDir(dstPath);
       List<String> errorMessages = Lists.newArrayList();
       File[] fileList = srcDir.listFiles();
@@ -110,8 +111,8 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
       }
       if (errorMessages.size() != 0) {
         if (misFiles == fileList.length) {
-          // If no files were created, then delete the directory
-          if (mFileSystem.exists(dstPath)) {
+          // If the directory doesn't exist and no files were created, then delete the directory
+          if (!existing && mFileSystem.exists(dstPath)) {
             mFileSystem.delete(dstPath);
           }
         }
@@ -191,6 +192,14 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     System.out.println("Copied " + srcFile.getPath() + " to " + dstPath);
   }
 
+  /**
+   * Copies a file or directory specified by srcPath from the local filesystem to dstPath in the
+   * Alluxio filesystem space. This method is used when input path is a file.
+   * @param src The source file in the local filesystem, this file should be a file, not a
+   *            directory.
+   * @param dstPath The {@link AlluxioURI} of the destination
+   * @throws IOException if a non-Alluxio related exception occurs
+   */
   private void copyPath(File src, AlluxioURI dstPath) throws IOException {
     try {
       if (!src.isDirectory()) {
@@ -223,32 +232,6 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
           throw e;
         } finally {
           closer.close();
-        }
-      } else {
-        mFileSystem.createDirectory(dstPath);
-        List<String> errorMessages = Lists.newArrayList();
-        String[] fileList = src.list();
-        int misFiles = 0;
-        for (String file : fileList) {
-          AlluxioURI newPath = new AlluxioURI(dstPath, new AlluxioURI(file));
-          File srcFile = new File(src, file);
-          try {
-            copyPath(srcFile, newPath);
-          } catch (IOException e) {
-            errorMessages.add(e.getMessage());
-            if (!mFileSystem.exists(newPath)) {
-              misFiles++;
-            }
-          }
-        }
-        if (errorMessages.size() != 0) {
-          if (misFiles == fileList.length) {
-            // If no files were created, then delete the directory
-            if (mFileSystem.exists(dstPath)) {
-              mFileSystem.delete(dstPath);
-            }
-          }
-          throw new IOException(Joiner.on('\n').join(errorMessages));
         }
       }
     } catch (AlluxioException e) {
