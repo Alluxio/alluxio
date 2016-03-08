@@ -11,11 +11,14 @@
 
 package alluxio.master.file.options;
 
+import alluxio.proto.journal.File;
+import alluxio.thrift.MountTOptions;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link MountOptionsTest}.
+ * Unit tests for {@link MountOptions}.
  */
 public class MountOptionsTest {
   /**
@@ -25,6 +28,49 @@ public class MountOptionsTest {
   public void defaultsTest() {
     MountOptions options = MountOptions.defaults();
     Assert.assertFalse(options.isReadOnly());
+  }
+
+  /**
+   * Tests creating a {@link MountOptions} from a thrift object.
+   */
+  @Test
+  public void FromThriftTest() {
+    // Null thrift options
+    MountTOptions thriftOptions = null;
+    MountOptions options = new MountOptions(thriftOptions);
+    Assert.assertFalse(options.isReadOnly());
+
+    // Default thrift options
+    thriftOptions = new MountTOptions();
+    options = new MountOptions(thriftOptions);
+    Assert.assertFalse(options.isReadOnly());
+
+    // Set thrift options
+    thriftOptions = new MountTOptions();
+    thriftOptions.setReadOnly(true);
+    options = new MountOptions(thriftOptions);
+    Assert.assertTrue(options.isReadOnly());
+  }
+
+  /**
+   * Tests creating a {@link MountOptions} from a proto object.
+   */
+  @Test
+  public void FromProtoTest() {
+    // Null proto options
+    File.MountOptionsEntry protoOptions = null;
+    MountOptions options = new MountOptions(protoOptions);
+    Assert.assertFalse(options.isReadOnly());
+
+    // Default proto options
+    protoOptions = File.MountOptionsEntry.newBuilder().build();
+    options = new MountOptions(protoOptions);
+    Assert.assertFalse(options.isReadOnly());
+
+    // Set proto options
+    protoOptions = File.MountOptionsEntry.newBuilder().setReadOnly(true).build();
+    options = new MountOptions(protoOptions);
+    Assert.assertTrue(options.isReadOnly());
   }
 
   /**
