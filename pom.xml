@@ -338,7 +338,7 @@
               <arg>-Xlint:none</arg>
             </compilerArgs>
             <excludes>
-              <exclude>**/\${alluxio.hadoop2.iml}</exclude>
+              <exclude>**/\${alluxio.hadoop2.impl}</exclude>
             </excludes>
           </configuration>
         </plugin>
@@ -424,7 +424,7 @@
               <goal>regex-property</goal>
             </goals>
             <configuration>
-              <name>alluxio.hadoop2.iml</name>
+              <name>alluxio.hadoop2.impl</name>
               <value>${hadoop.version}</value>
               <regex>^1\..*$</regex>
               <replacement>AlluxioFileSystem.java</replacement>
