@@ -113,14 +113,11 @@ public abstract class UnderFileSystemCluster {
   }
 
   /**
-   * This method is only used by the alluxio.client.FileOutStreamIntegrationTest unit-test.
    *
-   * @return true if reads on end of file return negative otherwise false
+   * @return the {@link UnderFileSystem} class name
    */
-  public static boolean readEOFReturnsNegative() {
-    // TODO(hy): Should be dynamically determined - may need additional method on UnderFileSystem.
-    return sUnderFSClass != null
-        && sUnderFSClass.equals("alluxio.underfs.hdfs.LocalMiniDFSCluster");
+  public static synchronized String getUnderFSClass() {
+    return sUnderFSClass;
   }
 
   protected String mBaseDir;
