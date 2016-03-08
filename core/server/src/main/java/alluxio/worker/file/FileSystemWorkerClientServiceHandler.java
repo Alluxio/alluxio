@@ -12,10 +12,15 @@
 package alluxio.worker.file;
 
 import alluxio.Constants;
+import alluxio.exception.AlluxioException;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemWorkerClientService;
+import alluxio.thrift.ThriftIOException;
 import alluxio.thrift.UFSCancelFileTOptions;
 import alluxio.thrift.UFSCompleteFileTOptions;
 import alluxio.thrift.UFSCreateFileTOptions;
+
+import java.io.IOException;
 
 /**
  * Handles incoming thrift requests from a worker file system client. This is mostly a wrapper
@@ -42,17 +47,38 @@ public final class FileSystemWorkerClientServiceHandler
   }
 
   @Override
-  public void ufsCancelFile(String path, UFSCancelFileTOptions options) {
-    mWorker.ufsCancelFile(path);
+  public void ufsCancelFile(String path, UFSCancelFileTOptions options)
+      throws AlluxioTException, ThriftIOException {
+    try {
+      mWorker.ufsCancelFile(path);
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
+    }
   }
 
   @Override
-  public void ufsCompleteFile(String path, UFSCompleteFileTOptions options) {
-
+  public void ufsCompleteFile(String path, UFSCompleteFileTOptions options)
+      throws AlluxioTException, ThriftIOException {
+    try {
+      mWorker.ufsCompleteFile(path);
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
+    }
   }
 
   @Override
-  public void ufsCreateFile(String path, UFSCreateFileTOptions options) {
-
+  public void ufsCreateFile(String path, UFSCreateFileTOptions options)
+      throws AlluxioTException, ThriftIOException {
+    try {
+      mWorker.ufsCreateFile(path);
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
+    }
   }
 }
