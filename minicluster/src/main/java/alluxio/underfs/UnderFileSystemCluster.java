@@ -113,9 +113,8 @@ public abstract class UnderFileSystemCluster {
   }
 
   /**
-   * Gets the UnderFileSystemClass.
    *
-   * @return the UnderFileSystemClass name
+   * @return the {@link UnderFileSystem} class name
    */
   public static synchronized String getUnderFSClass() {
     return sUnderFSClass;
