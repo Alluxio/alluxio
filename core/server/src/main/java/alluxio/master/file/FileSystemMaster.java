@@ -381,6 +381,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return the {@link FileInfo} for the given file id
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path is not valid
+   * @throws AccessControlException if permission checking fails
    */
   public FileInfo getFileInfo(AlluxioURI path)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
