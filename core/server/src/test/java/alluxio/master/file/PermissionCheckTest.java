@@ -465,7 +465,7 @@ public class PermissionCheckTest {
   public void setStateSuccessTest() throws Exception {
     // set unmask
     Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "000");
     MasterContext.reset(conf);
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
