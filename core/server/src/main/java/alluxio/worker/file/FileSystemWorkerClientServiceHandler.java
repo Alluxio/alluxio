@@ -47,10 +47,10 @@ public final class FileSystemWorkerClientServiceHandler
   }
 
   @Override
-  public void ufsCancelFile(String path, UFSCancelFileTOptions options)
+  public void ufsCancelFile(long workerFileId, UFSCancelFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mWorker.ufsCancelFile(path);
+      mWorker.ufsCancelFile(workerFileId);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
@@ -59,10 +59,10 @@ public final class FileSystemWorkerClientServiceHandler
   }
 
   @Override
-  public void ufsCompleteFile(String path, UFSCompleteFileTOptions options)
+  public void ufsCompleteFile(long workerFileId, UFSCompleteFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mWorker.ufsCompleteFile(path);
+      mWorker.ufsCompleteFile(workerFileId);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
