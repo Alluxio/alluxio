@@ -37,16 +37,17 @@ public class UnderFileSystemManager {
   }
 
   public void cancelFile(String path) throws FileDoesNotExistException, IOException {
-    closeFileInternal(path);
+    closeFile(path);
     UnderFileSystem ufs = UnderFileSystem.get(path, WorkerContext.getConf());
     ufs.delete(path, false);
   }
 
-  public void closeFile(String path) throws FileDoesNotExistException, IOException {
-    closeFileInternal(path);
+  public void completeFile(String path) throws FileDoesNotExistException, IOException {
+    closeFile(path);
   }
 
-  private void closeFileInternal(String path) throws FileDoesNotExistException, IOException {
+  // TODO(calvin): Make the exception accurate.
+  private void closeFile(String path) throws FileDoesNotExistException, IOException {
     OutputStream stream = mFileToOutputStreamMap.remove(path);
     if (stream != null) {
       stream.close();

@@ -13,6 +13,8 @@ package alluxio.worker.file;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.thrift.FileSystemWorkerClientService;
@@ -47,6 +49,8 @@ public final class FileSystemWorker extends AbstractWorker {
   private final Configuration mConf;
   /** Logic for handling RPC requests. */
   private final FileSystemWorkerClientServiceHandler mServiceHandler;
+  /** Manager for under file system operations */
+  private final UnderFileSystemManager mUnderFileSystemManager;
 
   /** The service that persists files. */
   private Future<?> mFilePersistenceService;
@@ -63,6 +67,7 @@ public final class FileSystemWorker extends AbstractWorker {
 
     mConf = WorkerContext.getConf();
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker));
+    mUnderFileSystemManager = new UnderFileSystemManager();
 
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
@@ -108,5 +113,17 @@ public final class FileSystemWorker extends AbstractWorker {
     }
     mFileSystemMasterWorkerClient.close();
     getExecutorService().shutdown();
+  }
+
+  public void ufsCancelFile(String path) throws FileDoesNotExistException, IOException {
+    mUnderFileSystemManager.cancelFile(path);
+  }
+
+  public void ufsCompleteFile(String path) throws FileDoesNotExistException, IOException {
+    mUnderFileSystemManager.completeFile(path);
+  }
+
+  public void ufsCreateFile(String path) throws FileAlreadyExistsException, IOException {
+    mUnderFileSystemManager.createFile(path);
   }
 }
