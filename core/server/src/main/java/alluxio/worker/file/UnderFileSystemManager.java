@@ -17,38 +17,54 @@ import java.util.concurrent.ConcurrentMap;
  * file names to open streams.
  */
 public class UnderFileSystemManager {
-  private ConcurrentMap<String, OutputStream> mFileToOutputStreamMap;
+  private class NamedOutputStream {
+    private final OutputStream mStream;
+    private final String mPath;
+
+    private NamedOutputStream(OutputStream stream, String path) {
+      mStream = stream;
+      mPath = path;
+    }
+
+    public OutputStream getStream() {
+      return mStream;
+    }
+
+    public String getPath() {
+      return mPath;
+    }
+  }
+
+
+  private ConcurrentMap<Long, NamedOutputStream> mStreams;
 
   public UnderFileSystemManager() {
-    mFileToOutputStreamMap = new ConcurrentHashMap<>();
+    mStreams = new ConcurrentHashMap<>();
   }
 
   public OutputStream createFile(String path) throws FileAlreadyExistsException, IOException {
-    OutputStream stream = mFileToOutputStreamMap.get(path);
-    if (stream == null) {
-      UnderFileSystem ufs = UnderFileSystem.get(path, WorkerContext.getConf());
-      OutputStream newStream = ufs.create(path);
-      stream = mFileToOutputStreamMap.putIfAbsent(path, newStream);
-      if (stream == null) {
-        return newStream;
-      }
+    UnderFileSystem ufs = UnderFileSystem.get(path, WorkerContext.getConf());
+    if (ufs.exists(path)) {
+      throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(path));
     }
-    throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(path));
+
+    OutputStream newStream = ufs.create(path);
+    stream = mStreams.putIfAbsent(path, newStream);
   }
 
-  public void cancelFile(String path) throws FileDoesNotExistException, IOException {
+  public void cancelFile(long workerFileId) throws FileDoesNotExistException, IOException {
     closeFile(path);
     UnderFileSystem ufs = UnderFileSystem.get(path, WorkerContext.getConf());
     ufs.delete(path, false);
   }
 
-  public void completeFile(String path) throws FileDoesNotExistException, IOException {
+  public void completeFile(long workerFileId) throws FileDoesNotExistException, IOException {
     closeFile(path);
   }
 
   // TODO(calvin): Make the exception accurate.
-  private void closeFile(String path) throws FileDoesNotExistException, IOException {
-    OutputStream stream = mFileToOutputStreamMap.remove(path);
+  private void closeFile(long workerFileId) throws FileDoesNotExistException, IOException {
+    OutputStream stream = mStreams.remove(workerFileId);
     if (stream != null) {
       stream.close();
     } else {
