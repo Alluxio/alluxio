@@ -412,7 +412,7 @@
         </executions>
       </plugin>
 
-      <!-- Parse Hadoop major version and resolve the compiling conflict between Hadoop 1.x and 2.x -->
+      <!-- Parse Hadoop major version and resolve the compilation conflict between Hadoop 1.x and 2.x -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>

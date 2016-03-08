@@ -23,7 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 /**
- * The AlluxioFs implementation of Hadoop AbstractFileSystem. The implementation delegates to the
+ * The Alluxio implementation of Hadoop AbstractFileSystem. The implementation delegates to the
  * existing Alluxio {@link alluxio.hadoop.FileSystem} and is only necessary for use with
  * Hadoop 2.x. Configuration example in Hadoop core-site.xml file:
  * <pre>
@@ -33,21 +33,21 @@ import java.net.URISyntaxException;
  * &lt;/property&gt;
  * </pre>
  *
- * For long term solution, we need to rewrite AlluxioFileSystem by extending Hadoop
- * {@link org.apache.hadoop.fs.AbstractFileSystem} directly.
+ * For a long term solution, we need to rewrite AlluxioFileSystem by extending Hadoop's
+ * {@link AbstractFileSystem} directly.
  */
 public class AlluxioFileSystem extends DelegateToFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * This constructor has the signature needed by
-   * {@link org.apache.hadoop.fs.AbstractFileSystem#createFileSystem(URI, Configuration)}
+   * {@link AbstractFileSystem#createFileSystem(URI, Configuration)}
    * in Hadoop 2.x.
    *
-   * @param uri the uri for this AlluxioFs filesystem
+   * @param uri the uri for this Alluxio filesystem
    * @param conf Hadoop configuration
-   * @throws java.io.IOException if an I/O error occurs
-   * @throws java.net.URISyntaxException if <code>uri</code> has syntax error
+   * @throws IOException if an I/O error occurs
+   * @throws URISyntaxException if <code>uri</code> has syntax error
    */
   AlluxioFileSystem(final URI uri, final Configuration conf)
       throws IOException, URISyntaxException {
