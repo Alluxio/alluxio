@@ -40,7 +40,10 @@ public final class MountOptions {
    * @param options Thrift options
    */
   public MountOptions(MountTOptions options) {
-    mReadOnly = options.isReadOnly();
+    this();
+    if (options != null && options.isSetReadOnly()) {
+      mReadOnly = options.isReadOnly();
+    }
   }
 
   /**
@@ -49,7 +52,8 @@ public final class MountOptions {
    * @param options Proto options
    */
   public MountOptions(MountOptionsEntry options) {
-    if (options.hasReadOnly()) {
+    this();
+    if (options != null && options.hasReadOnly()) {
       mReadOnly = options.getReadOnly();
     }
   }
