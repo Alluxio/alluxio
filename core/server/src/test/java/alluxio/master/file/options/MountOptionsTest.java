@@ -58,17 +58,17 @@ public class MountOptionsTest {
   @Test
   public void FromProtoTest() {
     // Null proto options
-    File.MountOptionsEntry protoOptions = null;
+    File.AddMountPointEntry protoOptions = null;
     MountOptions options = new MountOptions(protoOptions);
     Assert.assertFalse(options.isReadOnly());
 
     // Default proto options
-    protoOptions = File.MountOptionsEntry.newBuilder().build();
+    protoOptions = File.AddMountPointEntry.newBuilder().build();
     options = new MountOptions(protoOptions);
     Assert.assertFalse(options.isReadOnly());
 
     // Set proto options
-    protoOptions = File.MountOptionsEntry.newBuilder().setReadOnly(true).build();
+    protoOptions = File.AddMountPointEntry.newBuilder().setReadOnly(true).build();
     options = new MountOptions(protoOptions);
     Assert.assertTrue(options.isReadOnly());
   }

@@ -1575,7 +1575,7 @@ public final class FileSystemMaster extends AbstractMaster {
       }
       AddMountPointEntry addMountPoint =
           AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath.toString())
-              .setUfsPath(ufsPath.toString()).setOptions(options.toProto()).build();
+              .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly()).build();
       writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
       flushJournal();
       MasterContext.getMasterSource().incPathsMounted(1);
@@ -1594,7 +1594,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
     AlluxioURI ufsURI = new AlluxioURI(entry.getUfsPath());
-    mountInternal(alluxioURI, ufsURI, new MountOptions(entry.getOptions()));
+    mountInternal(alluxioURI, ufsURI, new MountOptions(entry));
   }
 
   /**
