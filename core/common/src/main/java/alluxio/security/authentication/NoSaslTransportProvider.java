@@ -30,8 +30,10 @@ import javax.security.sasl.SaslException;
  */
 @ThreadSafe
 public final class NoSaslTransportProvider implements TransportProvider {
-  /** Timtout for socket in ms. */
+  /** Timeout for socket in ms. */
   private int mSocketTimeoutMs;
+  /** Max frame size of thrift transport in bytes. */
+  private int mThriftFrameSizeMax;
 
   /**
    * Constructor for transport provider when authentication type is {@link AuthType#NOSASL).
@@ -40,17 +42,18 @@ public final class NoSaslTransportProvider implements TransportProvider {
   public NoSaslTransportProvider(Configuration conf) {
     Preconditions.checkNotNull(conf);
     mSocketTimeoutMs = conf.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
+    mThriftFrameSizeMax = (int) conf.getBytes(Constants.THRIFT_FRAME_SIZE_BYTES_MAX);
   }
 
   @Override
   public TTransport getClientTransport(InetSocketAddress serverAddress) {
     TTransport tTransport =
         TransportProviderUtils.createThriftSocket(serverAddress, mSocketTimeoutMs);
-    return new TFramedTransport(tTransport);
+    return new TFramedTransport(tTransport, mThriftFrameSizeMax);
   }
 
   @Override
   public TTransportFactory getServerTransportFactory() throws SaslException {
-    return new TFramedTransport.Factory();
+    return new TFramedTransport.Factory(mThriftFrameSizeMax);
   }
 }
