@@ -128,6 +128,11 @@
         <checksumPolicy>fail</checksumPolicy>
       </snapshots>
     </repository>
+    <repository>
+      <id>orangefs-repo</id>
+      <name>OrangeFS Repository</name>
+      <url>http://www.orangefs.org/svn/orangefs/branches/maven-repository/maven2</url>
+    </repository>
   </repositories>
 
   <pluginRepositories>

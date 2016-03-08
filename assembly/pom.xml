@@ -41,6 +41,11 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-orangefs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-oss</artifactId>
       <version>${project.version}</version>
     </dependency>

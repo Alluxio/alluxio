@@ -221,7 +221,7 @@ case ${COMMAND} in
         # if ufs is local filesystem and already exists
         exit 0
       else
-        declare -a schemes=(hdfs s3 s3n glusterfs swift oss)
+        declare -a schemes=(hdfs s3 s3n glusterfs swift oss ofs)
         for scheme in ${schemes[@]}; do
           if [[ ${ALLUXIO_UNDERFS_ADDRESS} == ${scheme}://* ]]; then
             # if ufs is not local filesystem, don't format
