@@ -337,6 +337,9 @@
             <compilerArgs>
               <arg>-Xlint:none</arg>
             </compilerArgs>
+            <excludes>
+              <exclude>**/\${alluxio.hadoop2.impl}</exclude>
+            </excludes>
           </configuration>
         </plugin>
         <plugin>
@@ -405,6 +408,28 @@
             <goals>
               <goal>jar</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Parse Hadoop major version and resolve the compilation conflict between Hadoop 1.x and 2.x -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.10</version>
+        <executions>
+          <execution>
+            <id>parse-hadoop-major-version</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>alluxio.hadoop2.impl</name>
+              <value>${hadoop.version}</value>
+              <regex>^1\..*$</regex>
+              <replacement>AlluxioFileSystem.java</replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
           </execution>
         </executions>
       </plugin>
