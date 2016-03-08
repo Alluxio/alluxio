@@ -66,7 +66,7 @@ public final class FileSystemUtils {
   }
 
   /**
-   * Wait for a file to be marked as completed.
+   * Waits for a file to be marked as completed.
    * <p/>
    * The calling thread will block for <i>at most</i> {@code timeout} time units (as specified via
    * {@code tunit} or until the file is reported as complete by the master. The method will return
@@ -135,7 +135,7 @@ public final class FileSystemUtils {
   }
 
   /**
-   * Persist the given file to the under file system.
+   * Persists the given file to the under file system.
    *
    * @param fs {@link FileSystem} to carry out Alluxio operations
    * @param uri the uri of the file to persist
