@@ -23,7 +23,6 @@
 
   <modules>
     <module>common</module>
-    <module>client-internal</module>
     <module>client</module>
     <module>server</module>
   </modules>

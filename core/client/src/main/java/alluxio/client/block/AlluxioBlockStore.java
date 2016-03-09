@@ -16,6 +16,7 @@ import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -70,13 +71,11 @@ public final class AlluxioBlockStore {
    * @throws IOException if the block does not exist
    */
   public BlockInfo getInfo(long blockId) throws IOException {
-    BlockMasterClient masterClient = mContext.acquireMasterClient();
-    try {
-      return masterClient.getBlockInfo(blockId);
+    try (CloseableResource<BlockMasterClient> masterClientResource =
+        mContext.acquireMasterClientResource()) {
+      return masterClientResource.get().getBlockInfo(blockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
-    } finally {
-      mContext.releaseMasterClient(masterClient);
     }
   }
 
@@ -87,15 +86,13 @@ public final class AlluxioBlockStore {
    */
   public List<BlockWorkerInfo> getWorkerInfoList() throws IOException, AlluxioException {
     List<BlockWorkerInfo> infoList = Lists.newArrayList();
-    BlockMasterClient masterClient = mContext.acquireMasterClient();
-    try {
-      for (WorkerInfo workerInfo : masterClient.getWorkerInfoList()) {
+    try (CloseableResource<BlockMasterClient> masterClientResource =
+        mContext.acquireMasterClientResource()) {
+      for (WorkerInfo workerInfo : masterClientResource.get().getWorkerInfoList()) {
         infoList.add(new BlockWorkerInfo(workerInfo.getAddress(), workerInfo.getCapacityBytes(),
             workerInfo.getUsedBytes()));
       }
       return infoList;
-    } finally {
-      mContext.releaseMasterClient(masterClient);
     }
   }
 
@@ -107,14 +104,12 @@ public final class AlluxioBlockStore {
    * @throws IOException if the block does not exist
    */
   public BufferedBlockInStream getInStream(long blockId) throws IOException {
-    BlockMasterClient masterClient = mContext.acquireMasterClient();
     BlockInfo blockInfo;
-    try {
-      blockInfo = masterClient.getBlockInfo(blockId);
+    try (CloseableResource<BlockMasterClient> masterClientResource =
+        mContext.acquireMasterClientResource()) {
+      blockInfo = masterClientResource.get().getBlockInfo(blockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
-    } finally {
-      mContext.releaseMasterClient(masterClient);
     }
 
     if (blockInfo.getLocations().isEmpty()) {
@@ -162,13 +157,11 @@ public final class AlluxioBlockStore {
   public BufferedBlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address)
       throws IOException {
     if (blockSize == -1) {
-      BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
-      try {
-        blockSize = blockMasterClient.getBlockInfo(blockId).getLength();
+      try (CloseableResource<BlockMasterClient> blockMasterClientResource =
+          mContext.acquireMasterClientResource()) {
+        blockSize = blockMasterClientResource.get().getBlockInfo(blockId).getLength();
       } catch (AlluxioException e) {
         throw new IOException(e);
-      } finally {
-        mContext.releaseMasterClient(blockMasterClient);
       }
     }
     // No specified location to write to.
@@ -194,13 +187,11 @@ public final class AlluxioBlockStore {
    * @throws IOException when the connection to the client fails
    */
   public long getCapacityBytes() throws IOException {
-    BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
-    try {
-      return blockMasterClient.getCapacityBytes();
+    try (CloseableResource<BlockMasterClient> blockMasterClientResource =
+        mContext.acquireMasterClientResource()) {
+      return blockMasterClientResource.get().getCapacityBytes();
     } catch (ConnectionFailedException e) {
       throw new IOException(e);
-    } finally {
-      mContext.releaseMasterClient(blockMasterClient);
     }
   }
 
@@ -211,13 +202,11 @@ public final class AlluxioBlockStore {
    * @throws IOException when the connection to the client fails
    */
   public long getUsedBytes() throws IOException {
-    BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
-    try {
-      return blockMasterClient.getUsedBytes();
+    try (CloseableResource<BlockMasterClient> blockMasterClientResource =
+        mContext.acquireMasterClientResource()) {
+      return blockMasterClientResource.get().getUsedBytes();
     } catch (ConnectionFailedException e) {
       throw new IOException(e);
-    } finally {
-      mContext.releaseMasterClient(blockMasterClient);
     }
   }
 
@@ -230,14 +219,12 @@ public final class AlluxioBlockStore {
    * @throws IOException if the block does not exist
    */
   public void promote(long blockId) throws IOException {
-    BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
     BlockInfo info;
-    try {
-      info = blockMasterClient.getBlockInfo(blockId);
+    try (CloseableResource<BlockMasterClient> blockMasterClientResource =
+        mContext.acquireMasterClientResource()) {
+      info = blockMasterClientResource.get().getBlockInfo(blockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
-    } finally {
-      mContext.releaseMasterClient(blockMasterClient);
     }
     if (info.getLocations().isEmpty()) {
       // Nothing to promote
