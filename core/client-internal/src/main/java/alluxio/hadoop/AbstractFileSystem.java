@@ -506,21 +506,20 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * Attempts to open the specified file for reading.
    *
-   * @param cPath the file name to open
+   * @param path the file name to open
    * @param bufferSize the size in bytes of the buffer to be used
    * @return an {@link FSDataInputStream} at the indicated path of a file
    * @throws IOException if the file cannot be opened (e.g., the path is a folder)
    */
   @Override
-  public FSDataInputStream open(Path cPath, int bufferSize) throws IOException {
-    LOG.info("open({}, {})", cPath, bufferSize);
+  public FSDataInputStream open(Path path, int bufferSize) throws IOException {
+    LOG.info("open({}, {})", path, bufferSize);
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
     }
 
-    AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(cPath));
-    return new FSDataInputStream(new HdfsFileInputStream(path, HadoopUtils.getHDFSPath(path,
-            mUnderFSAddress), getConf(), bufferSize, mStatistics));
+    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    return new FSDataInputStream(new HdfsFileInputStream(uri, getConf(), bufferSize, mStatistics));
   }
 
   @Override
