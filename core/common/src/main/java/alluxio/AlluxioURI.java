@@ -43,7 +43,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   private final URI mUri;
 
   /**
-   * Construct an {@link AlluxioURI} from a String. Path strings are URIs, but with unescaped
+   * Constructs an {@link AlluxioURI} from a String. Path strings are URIs, but with unescaped
    * elements and some additional normalization.
    *
    * @param pathStr path to construct the {@link AlluxioURI} from
@@ -87,7 +87,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Construct an {@link AlluxioURI} from components.
+   * Constructs an {@link AlluxioURI} from components.
    *
    * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
    * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
@@ -101,7 +101,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Resolve a child {@link AlluxioURI} against a parent {@link AlluxioURI}.
+   * Resolves a child {@link AlluxioURI} against a parent {@link AlluxioURI}.
    *
    * @param parent the parent
    * @param child the child
@@ -128,7 +128,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Create the internal URI. Called by all constructors.
+   * Creates the internal URI. Called by all constructors.
    *
    * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
    * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
@@ -166,7 +166,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Return the number of elements of the path component of the {@link AlluxioURI}.
+   * Returns the number of elements of the path component of the {@link AlluxioURI}.
    *
    * <pre>
    * /                                  = 0
@@ -204,7 +204,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Get the first n components of the {@link AlluxioURI} path. There is no trailing separator as
+   * Gets the first n components of the {@link AlluxioURI} path. There is no trailing separator as
    * the path will be normalized by normalizePath().
    *
    * <pre>
@@ -253,7 +253,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Get the final component of the {@link AlluxioURI}.
+   * Gets the final component of the {@link AlluxioURI}.
    *
    * @return the final component of the {@link AlluxioURI}
    */

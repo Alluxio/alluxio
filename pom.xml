@@ -337,6 +337,9 @@
             <compilerArgs>
               <arg>-Xlint:none</arg>
             </compilerArgs>
+            <excludes>
+              <exclude>**/\${alluxio.hadoop2.impl}</exclude>
+            </excludes>
           </configuration>
         </plugin>
         <plugin>
@@ -405,6 +408,28 @@
             <goals>
               <goal>jar</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Parse Hadoop major version and resolve the compilation conflict between Hadoop 1.x and 2.x -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.10</version>
+        <executions>
+          <execution>
+            <id>parse-hadoop-major-version</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>alluxio.hadoop2.impl</name>
+              <value>${hadoop.version}</value>
+              <regex>^1\..*$</regex>
+              <replacement>AlluxioFileSystem.java</replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -697,6 +722,63 @@
     <!-- build profile for Apache Spark -->
     <profile>
       <id>spark</id>
+      <!-- The dependencies are the same as the default dependencies, except that curator-client, curator-framework, -->
+      <!-- curator-recipies and hadoop-client are in scope provided, as they are provided by Apache Spark runtime. -->
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-framework</artifactId>
+          <version>${apache.curator.version}</version>
+          <scope>provided</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.google.guava</groupId>
+              <artifactId>guava</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-client</artifactId>
+          <version>${apache.curator.version}</version>
+          <scope>provided</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.google.guava</groupId>
+              <artifactId>guava</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-recipes</artifactId>
+          <version>${apache.curator.version}</version>
+          <scope>provided</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.google.guava</groupId>
+              <artifactId>guava</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
     </profile>
 
     <!-- profile that activates alluxio fuse for java8 or newer -->

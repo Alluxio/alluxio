@@ -15,6 +15,7 @@ import alluxio.client.ClientContext;
 import alluxio.client.ClientUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -82,9 +83,8 @@ public enum BlockStoreContext {
    * @return {@link WorkerNetAddress} of hostname, or null if no worker found
    */
   private WorkerNetAddress getWorkerAddress(String hostname) {
-    BlockMasterClient masterClient = acquireMasterClient();
-    try {
-      List<WorkerInfo> workers = masterClient.getWorkerInfoList();
+    try (CloseableResource<BlockMasterClient> masterClient = acquireMasterClientResource()) {
+      List<WorkerInfo> workers = masterClient.get().getWorkerInfoList();
       if (hostname.isEmpty() && !workers.isEmpty()) {
         // TODO(calvin): Do this in a more defined way.
         return workers.get(0).getAddress();
@@ -96,28 +96,23 @@ public enum BlockStoreContext {
       }
     } catch (Exception e) {
       Throwables.propagate(e);
-    } finally {
-      releaseMasterClient(masterClient);
     }
     return null;
   }
 
   /**
-   * Acquires a block master client from the block master client pool.
+   * Acquires a block master client resource from the block master client pool. The resource is
+   * {@code Closeable}.
    *
-   * @return the acquired block master client
+   * @return the acquired block master client resource
    */
-  public BlockMasterClient acquireMasterClient() {
-    return mBlockMasterClientPool.acquire();
-  }
-
-  /**
-   * Releases a block master client into the block master client pool.
-   *
-   * @param masterClient a block master client to release
-   */
-  public void releaseMasterClient(BlockMasterClient masterClient) {
-    mBlockMasterClientPool.release(masterClient);
+  public CloseableResource<BlockMasterClient> acquireMasterClientResource() {
+    return new CloseableResource<BlockMasterClient>(mBlockMasterClientPool.acquire()) {
+      @Override
+      public void close() {
+        mBlockMasterClientPool.release(get());
+      }
+    };
   }
 
   /**
