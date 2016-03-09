@@ -501,15 +501,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    URIStatus status;
-    try {
-      status = mFileSystem.getStatus(uri);
-    } catch (AlluxioException e) {
-      throw new IOException(e);
-    }
-    return new FSDataInputStream(
-        new HdfsFileInputStream(uri, new Path(status.getUfsPath()), getConf(), bufferSize,
-            mStatistics));
+    return new FSDataInputStream(new HdfsFileInputStream(uri, getConf(), bufferSize, mStatistics));
   }
 
   @Override
