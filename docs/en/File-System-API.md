@@ -82,30 +82,32 @@ Below is a table of the expected behaviors of `WriteType`
 
 ### Location policy
 
-Alluxio provides location policy to choose which workers to store the blocks of a file. User can set
-the policy in `CreateFileOptions` for writing files and `OpenFileOptions` for reading files into
-Alluxio. Alluxio supports custom location policy, and the built-in polices include:
+Alluxio provides location policy to choose which workers to store the blocks of a file. 
 
-* **LocalFirstPolicy**
+Using Alluxio's Java API, user can set the policy in `CreateFileOptions` for writing files and `OpenFileOptions` for reading files into
+Alluxio.
+
+Or to use the built-in policies, user can also simply override the default policy class in the [configuration file](Configuration-Settings.html) at property `alluxio.user.file.write.location.policy.class`. The built-in polices include:
+
+* **LocalFirstPolicy (alluxio.client.file.policy.LocalFirstPolicy)**
 
     Returns the local host first, and if the local worker doesn't have enough capacity of a block,
     it randomly picks a worker from the active workers list. This is the default policy.
 
-* **MostAvailableFirstPolicy**
+* **MostAvailableFirstPolicy (alluxio.client.file.policy.MostAvailableFirstPolicy)**
 
     Returns the worker with the most available bytes.
 
-* **RoundRobinPolicy**
+* **RoundRobinPolicy (alluxio.client.file.policy.RoundRobinPolicy)**
 
     Chooses the worker for the next block in a round-robin manner and skips workers that do not have
     enough capacity.
 
-* **SpecificHostPolicy**
+* **SpecificHostPolicy (alluxio.client.file.policy.SpecificHostPolicy)**
 
     Returns a worker with the specified host name. This policy cannot be set as default policy.
 
-Alluxio supports custom policies, so you can also develop your own policy appropriate for your
-workload. Note that a default policy must have an empty constructor. And to use ASYNC_THROUGH write
+Alluxio supports custom policies, so you can also develop your own policy appropriate for your workload by implementing interface `alluxio.client.file.policyFileWriteLocationPolicy`. Note that a default policy must have an empty constructor. And to use ASYNC_THROUGH write
 type, all the blocks of a file must be written to the same worker.
 
 ### Accessing an existing file in Alluxio
