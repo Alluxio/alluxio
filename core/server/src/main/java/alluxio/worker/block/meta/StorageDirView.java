@@ -69,7 +69,7 @@ public final class StorageDirView {
   }
 
   /**
-   * Get a filtered list of block metadata, for blocks that are neither pinned or being blocked.
+   * Gets a filtered list of block metadata, for blocks that are neither pinned or being blocked.
    *
    * @return a list of metadata for all evictable blocks
    */
