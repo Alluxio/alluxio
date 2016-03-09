@@ -25,11 +25,11 @@ To configure Alluxio to use OrangeFS as its under storage system, modifications 
 
 {% include Configuring-Alluxio-with-OrangeFS/underfs-address.md %}
     
-Next you need to specify mount point and other optional properties for the OrangeFS file system. In the ALLUXIO_JAVA_OPTS section of the `conf/alluxio-env.sh` file, add:
+Next you need to specify mount points and other optional properties for the OrangeFS file system. In the ALLUXIO_JAVA_OPTS section of the `conf/alluxio-env.sh` file, add:
 
 {% include Configuring-Alluxio-with-OrangeFS/ofs-access.md %}
     
-Here, `<OFS_MOUNT_POINT>` is the root directory of OrangeFS file system. It should have the same name as defined in OrangeFS [pvfs2tab file](http://docs.orangefs.com/v_2_9/pvfs2tab_File.htm). `<OFS_LAYOUT>` and `<OFS_BLOCK_SIZE>` are two optional [hints](http://www.orangefs.org/trac/orangefs/wiki/Distributions) properties, which are used to determine how a Alluxio data file is distributed to underlying OrangeFS servers. `<OFS_BUFFER_SIZE>` is used to define the data request size between Alluxio and OrangeFS.  
+Here, `<OFS_MOUNT_POINTS>` is/are the root directory/directories of OrangeFS file system(s). It/They should have the same name(s) as defined in OrangeFS [pvfs2tab file](http://docs.orangefs.com/v_2_9/pvfs2tab_File.htm). `<OFS_LAYOUT>` and `<OFS_BLOCK_SIZE>` are two optional [hints](http://www.orangefs.org/trac/orangefs/wiki/Distributions) properties, which are used to determine how a Alluxio data file is distributed to underlying OrangeFS servers. `<OFS_BUFFER_SIZE>` is used to define the data request size between Alluxio and OrangeFS.  
 
 If you feel not sure about how to change the `conf/alluxio-env.sh`, there is another way to provide these configurations. You can provide a properties config file named : `alluxio-site.properties` in the `conf/` directory, and edit it as below:
 

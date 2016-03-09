@@ -41,6 +41,14 @@ alluxio.underfs.s3.proxy.https.only:
   If using a proxy to communicate with S3, determine whether to talk to the proxy using https.
 alluxio.underfs.s3.proxy.port:
   Optionally, specify a proxy port for communicating with S3.
+alluxio.underfs.ofs.mountpoints:
+  The mount points of OrangeFS file system, which should have the same name as defined in OrangeFS pvfs2tab file. The delimiter is any whitespace and/or ','.
+alluxio.underfs.ofs.layout:
+  A layout determindes how a Alluxio data file is mapped to underlying OrangeFS servers. There are several layouts provided by OrangeFS (PVFS_SYS_LAYOUT_ROUND_ROBIN, PVFS_SYS_LAYOUT_RANDOM, PVFS_SYS_LAYOUT_LIST, PVFS_SYS_LAYOUT_NONE).
+alluxio.underfs.ofs.block.size:
+  The stripe of OrangeFS file system. To get an optimized throughput, we use 64 MB block size as the stripe size.
+alluxio.underfs.ofs.buffer.size:
+  The data request size between Alluxio and OrangeFS.
 alluxio.web.resources:
   Path to the web application resources.
 alluxio.web.threads:

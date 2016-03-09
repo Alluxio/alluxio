@@ -17,6 +17,10 @@ alluxio.underfs.hdfs.prefixes,"hdfs://,glusterfs:///"
 alluxio.underfs.s3.proxy.host,No default
 alluxio.underfs.s3.proxy.https.only,true
 alluxio.underfs.s3.proxy.port,No default
+alluxio.underfs.ofs.mountpoints,/mnt/orangefs
+alluxio.underfs.ofs.layout,PVFS_SYS_LAYOUT_ROUND_ROBIN
+alluxio.underfs.ofs.block.size,64MB
+alluxio.underfs.ofs.buffer.size,4MB
 alluxio.web.resources,${alluxio.home}/core/server/src/main/webapp
 alluxio.web.threads,1
 alluxio.zookeeper.election.path,/election
