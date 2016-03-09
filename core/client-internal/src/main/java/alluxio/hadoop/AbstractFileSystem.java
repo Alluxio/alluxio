@@ -27,7 +27,6 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.lineage.LineageContext;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -72,8 +71,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   // Always tell Hadoop that we have 3x replication.
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
 
-  private String mUnderFSAddress;
-
   private URI mUri = null;
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
   private Statistics mStatistics = null;
@@ -81,18 +78,18 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private String mAlluxioHeader = null;
 
   @Override
-  public FSDataOutputStream append(Path cPath, int bufferSize, Progressable progress)
+  public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
       throws IOException {
-    LOG.info("append({}, {}, {})", cPath, bufferSize, progress);
+    LOG.info("append({}, {}, {})", path, bufferSize, progress);
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-    AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(cPath));
+    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     try {
-      if (!mFileSystem.exists(path)) {
-        return new FSDataOutputStream(mFileSystem.createFile(path), mStatistics);
+      if (!mFileSystem.exists(uri)) {
+        return new FSDataOutputStream(mFileSystem.createFile(uri), mStatistics);
       } else {
-        throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
+        throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uri));
       }
     } catch (InvalidPathException e) {
       throw new IOException(e);
@@ -109,7 +106,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * Attempts to create a file. Overwrite will not succeed if the path exists and is a folder.
    *
-   * @param cPath path to create
+   * @param path path to create
    * @param permission permissions of the created file/folder
    * @param overwrite overwrite if file exists
    * @param bufferSize the size in bytes of the buffer to be used
@@ -121,26 +118,26 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *         a folder
    */
   @Override
-  public FSDataOutputStream create(Path cPath, FsPermission permission, boolean overwrite,
+  public FSDataOutputStream create(Path path, FsPermission permission, boolean overwrite,
       int bufferSize, short replication, long blockSize, Progressable progress) throws IOException {
-    LOG.info("create({}, {}, {}, {}, {}, {}, {})", cPath, permission, overwrite, bufferSize,
+    LOG.info("create({}, {}, {}, {}, {}, {}, {})", path, permission, overwrite, bufferSize,
         replication, blockSize, progress);
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
 
     // Check whether the file already exists, and delete it if overwrite is true
-    AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(cPath));
+    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     try {
-      if (mFileSystem.exists(path)) {
+      if (mFileSystem.exists(uri)) {
         if (!overwrite) {
-          throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(cPath.toString()));
+          throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path.toString()));
         }
-        if (mFileSystem.getStatus(path).isFolder()) {
+        if (mFileSystem.getStatus(uri).isFolder()) {
           throw new IOException(
-              ExceptionMessage.FILE_CREATE_IS_DIRECTORY.getMessage(cPath.toString()));
+              ExceptionMessage.FILE_CREATE_IS_DIRECTORY.getMessage(path.toString()));
         }
-        mFileSystem.delete(path);
+        mFileSystem.delete(uri);
       }
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -149,7 +146,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // The file no longer exists at this point, so we can create it
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(blockSize);
     try {
-      FileOutStream outStream = mFileSystem.createFile(path, options);
+      FileOutStream outStream = mFileSystem.createFile(uri, options);
       return new FSDataOutputStream(outStream, mStatistics);
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -163,7 +160,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *
    * TODO(hy): We need to refactor this method after having a new internal API support (ALLUXIO-46).
    *
-   * @param cPath the file name to open
+   * @param path the file name to open
    * @param overwrite if a file with this name already exists, then if true, the file will be
    *        overwritten, and if false an error will be thrown.
    * @param bufferSize the size of the buffer to be used
@@ -177,12 +174,12 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    */
   @Override
   @Deprecated
-  public FSDataOutputStream createNonRecursive(Path cPath, FsPermission permission,
+  public FSDataOutputStream createNonRecursive(Path path, FsPermission permission,
       boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress)
           throws IOException {
-    AlluxioURI parentPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(cPath.getParent()));
-    ensureExists(parentPath);
-    return this.create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
+    AlluxioURI parentUri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path.getParent()));
+    ensureExists(parentUri);
+    return this.create(path, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
 
   /**
@@ -202,22 +199,22 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * Attempts to delete the file or directory with the specified path.
    *
-   * @param cPath path to delete
+   * @param path path to delete
    * @param recursive if true, will attempt to delete all children of the path
    * @return true if one or more files/directories were deleted; false otherwise
    * @throws IOException if the path failed to be deleted due to some constraint (ie. non empty
    *         directory with recursive flag disabled)
    */
   @Override
-  public boolean delete(Path cPath, boolean recursive) throws IOException {
-    LOG.info("delete({}, {})", cPath, recursive);
+  public boolean delete(Path path, boolean recursive) throws IOException {
+    LOG.info("delete({}, {})", path, recursive);
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-    AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(cPath));
+    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
     try {
-      mFileSystem.delete(path, options);
+      mFileSystem.delete(uri, options);
       return true;
     } catch (InvalidPathException e) {
       LOG.info("delete failed: {}", e.getMessage());
@@ -246,12 +243,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(file.getPath()));
-    URIStatus status;
-    try {
-      status = mFileSystem.getStatus(path);
-    } catch (AlluxioException e) {
-      throw new IOException(e);
-    }
     List<FileBlockInfo> blocks = getFileBlocks(path);
 
     List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
@@ -294,17 +285,15 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    */
   @Override
   public FileStatus getFileStatus(Path path) throws IOException {
-    AlluxioURI tPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    Path hdfsPath = HadoopUtils.getHDFSPath(tPath, mUnderFSAddress);
+    LOG.info("getFileStatus({})", path);
 
-    LOG.info("getFileStatus({}): HDFS Path: {} Alluxio Path: {}{}", path, hdfsPath, mAlluxioHeader,
-        tPath);
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
     }
+    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     URIStatus fileStatus;
     try {
-      fileStatus = mFileSystem.getStatus(tPath);
+      fileStatus = mFileSystem.getStatus(uri);
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(e.getMessage());
     } catch (AlluxioException e) {
@@ -314,7 +303,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     FileStatus ret = new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
         BLOCK_REPLICATION_CONSTANT, fileStatus.getBlockSizeBytes(), fileStatus.getCreationTimeMs(),
             fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getPermission()),
-            fileStatus.getUserName(), fileStatus.getGroupName(), new Path(mAlluxioHeader + tPath));
+            fileStatus.getUserName(), fileStatus.getGroupName(), new Path(mAlluxioHeader + uri));
     return ret;
   }
 
@@ -331,26 +320,24 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public void setOwner(Path path, final String username, final String groupname)
       throws IOException {
-    AlluxioURI tPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    Path hdfsPath = HadoopUtils.getHDFSPath(tPath, mUnderFSAddress);
-    LOG.info("setOwner({},{},{}) HDFS Path: {} Alluxio Path: {}{}", path, username, groupname,
-        hdfsPath, mAlluxioHeader, tPath);
-    try {
-      SetAttributeOptions options = SetAttributeOptions.defaults();
-      boolean ownerOrGroupChanged = false;
-      if (username != null && !username.isEmpty()) {
-        options.setOwner(username).setRecursive(false);
-        ownerOrGroupChanged = true;
+    LOG.info("setOwner({},{},{})", path, username, groupname);
+    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    SetAttributeOptions options = SetAttributeOptions.defaults();
+    boolean ownerOrGroupChanged = false;
+    if (username != null && !username.isEmpty()) {
+      options.setOwner(username).setRecursive(false);
+      ownerOrGroupChanged = true;
+    }
+    if (groupname != null && !groupname.isEmpty()) {
+      options.setGroup(groupname).setRecursive(false);
+      ownerOrGroupChanged = true;
+    }
+    if (ownerOrGroupChanged) {
+      try {
+        mFileSystem.setAttribute(uri, options);
+      } catch (AlluxioException e) {
+        throw new IOException(e);
       }
-      if (groupname != null && !groupname.isEmpty()) {
-        options.setGroup(groupname).setRecursive(false);
-        ownerOrGroupChanged = true;
-      }
-      if (ownerOrGroupChanged) {
-        mFileSystem.setAttribute(tPath, options);
-      }
-    } catch (AlluxioException e) {
-      throw new IOException(e);
     }
   }
 
@@ -362,14 +349,12 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @throws IOException if the path failed to be changed permission
    */
   public void setPermission(Path path, FsPermission permission) throws IOException {
-    AlluxioURI tPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    Path hdfsPath = HadoopUtils.getHDFSPath(tPath, mUnderFSAddress);
-    LOG.info("setPermission({},{}) HDFS Path: {} Alluxio Path: {}{}", path, permission.toString(),
-        hdfsPath, mAlluxioHeader, tPath);
+    LOG.info("setPermission({},{})", path, permission.toString());
+    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    SetAttributeOptions options =
+        SetAttributeOptions.defaults().setPermission(permission.toShort()).setRecursive(false);
     try {
-      SetAttributeOptions options =
-          SetAttributeOptions.defaults().setPermission(permission.toShort()).setRecursive(false);
-      mFileSystem.setAttribute(tPath, options);
+      mFileSystem.setAttribute(uri, options);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -436,8 +421,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     mFileSystem = FileSystem.Factory.get();
     mUri = URI.create(mAlluxioHeader);
-    mUnderFSAddress = getUfsAddress();
-    LOG.info("{} {} {}", mAlluxioHeader, mUri, mUnderFSAddress);
+    LOG.info("{} {}", mAlluxioHeader, mUri);
   }
 
   /**
@@ -451,17 +435,16 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public FileStatus[] listStatus(Path path) throws IOException {
-    AlluxioURI tPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    Path hdfsPath = HadoopUtils.getHDFSPath(tPath, mUnderFSAddress);
-    LOG.info("listStatus({}): HDFS Path: {}", path, hdfsPath);
+    LOG.info("listStatus({})", path);
 
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
     }
 
+    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     List<URIStatus> statuses;
     try {
-      statuses = mFileSystem.listStatus(tPath);
+      statuses = mFileSystem.listStatus(uri);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -480,22 +463,22 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * Attempts to create a folder with the specified path. Parent directories will be created.
    *
-   * @param cPath path to create
+   * @param path path to create
    * @param permission permissions to grant the created folder
    * @return true if the indicated folder is created successfully or already exists
    * @throws IOException if the folder cannot be created
    */
   @Override
-  public boolean mkdirs(Path cPath, FsPermission permission) throws IOException {
-    LOG.info("mkdirs({}, {})", cPath, permission);
+  public boolean mkdirs(Path path, FsPermission permission) throws IOException {
+    LOG.info("mkdirs({}, {})", path, permission);
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-    AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(cPath));
+    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     CreateDirectoryOptions options =
         CreateDirectoryOptions.defaults().setRecursive(true).setAllowExists(true);
     try {
-      mFileSystem.createDirectory(path, options);
+      mFileSystem.createDirectory(uri, options);
       return true;
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -505,21 +488,28 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * Attempts to open the specified file for reading.
    *
-   * @param cPath the file name to open
+   * @param path the file name to open
    * @param bufferSize the size in bytes of the buffer to be used
    * @return an {@link FSDataInputStream} at the indicated path of a file
    * @throws IOException if the file cannot be opened (e.g., the path is a folder)
    */
   @Override
-  public FSDataInputStream open(Path cPath, int bufferSize) throws IOException {
-    LOG.info("open({}, {})", cPath, bufferSize);
+  public FSDataInputStream open(Path path, int bufferSize) throws IOException {
+    LOG.info("open({}, {})", path, bufferSize);
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
     }
 
-    AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(cPath));
-    return new FSDataInputStream(new HdfsFileInputStream(path, HadoopUtils.getHDFSPath(path,
-            mUnderFSAddress), getConf(), bufferSize, mStatistics));
+    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    URIStatus status;
+    try {
+      status = mFileSystem.getStatus(uri);
+    } catch (AlluxioException e) {
+      throw new IOException(e);
+    }
+    return new FSDataInputStream(
+        new HdfsFileInputStream(uri, new Path(status.getUfsPath()), getConf(), bufferSize,
+            mStatistics));
   }
 
   @Override
@@ -586,17 +576,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     try {
       return master.getFileBlockInfoList(path);
     } catch (AlluxioException e) {
-      throw new IOException(e);
-    } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(master);
-    }
-  }
-
-  private String getUfsAddress() throws IOException {
-    FileSystemMasterClient master = FileSystemContext.INSTANCE.acquireMasterClient();
-    try {
-      return master.getUfsAddress();
-    } catch (ConnectionFailedException e) {
       throw new IOException(e);
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(master);

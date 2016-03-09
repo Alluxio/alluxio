@@ -135,8 +135,9 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Returns the UFS address of the root mount point.
+   *
+   * THIS METHOD IS DEPRECATED AS OF ALLUXIO 1.1 AND SHALL BE REMOVED IN ALLUXIO 2.0.
    */
-  // TODO(gene): Is this necessary?
   string getUfsAddress()
 
   /**

@@ -34,21 +34,6 @@ public final class HadoopUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Returns an HDFS path for the given Alluxio path and under filesystem address.
-   *
-   * @param path Alluxio path
-   * @param ufsAddress under filesystem address
-   * @return an HDFS path
-   */
-  public static Path getHDFSPath(AlluxioURI path, String ufsAddress) {
-    if (path.isPathAbsolute()) {
-      return new Path(ufsAddress + path.getPath());
-    } else {
-      return new Path(ufsAddress + AlluxioURI.SEPARATOR + path.getPath());
-    }
-  }
-
-  /**
    * Given a {@link Path} path, it returns the path component of its URI, which has the form
    * scheme://authority/path.
    *
