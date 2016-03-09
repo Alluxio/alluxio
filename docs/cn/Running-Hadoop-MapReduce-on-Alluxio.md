@@ -12,20 +12,6 @@ priority: 1
 
 这部分的先决条件是你已安装了[Java](Java-Setup.html)。我们也假设你已经按照文档[Local Mode](Running-Alluxio-Locally.html)或[Cluster Mode](Running-Alluxio-on-a-Cluster.html)安装了Alluxio和Hadoop。
 
-## 使用Hadoop 1.x
-
-如果运行的是Hadoop 1.x集群，确保在Hadoop的安装目录下的`conf`目录中有`core-site.xml`文件，并且已经加入了如下属性：
-
-{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
-
-该配置让你的MapReduce作业可以使用Alluxio来输入输出文件。如果你正在使用HDFS作为Alluxio的底层存储系统，同样有必要在`hdfs-site.xml`文件中添加这些属性：
-
-## 使用Hadoop 2.x
-
-如果你正在使用2.x版本的Hadoop集群，你应该不需要像上面那样在`core-site.xml`文件中添加属性。可是，有些情况下可能会遇到`java.io.IOException: No FileSystem for scheme: alluxio`的错误。例如，当YARN(与Hadoop相对)尝试去访问Alluxio文件时，可能发生该错误。如果遇到该错误，在`core-site.xml`文件中添加这些属性，然后重启YARN。
-
-{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
-
 # 编译Alluxio客户端
 
 为了使Alluxio和你的Hadoop版本相对应，你必须重新编译Alluxio Client的Jar包，指明你的Hadoop版本。你可以在Alluxio目录下运行如下命令：
@@ -39,11 +25,17 @@ priority: 1
 
     core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
 
-本页面文档后续的内容都是基于这个Jar而展开。
+文档后续部分将会用到这个jar文件。
 
 # 配置Hadoop
 
-为了可以使Alluxio客户端Jar包对JobClient生效，你可以在`hadoop-env.sh`文件中将`HADOOP_CLASSPATH`修改为：
+首先, 确保在Hadoop的安装目录下的`conf`目录中有`core-site.xml`文件，并且已经加入了如下属性：
+
+{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
+
+该配置让你的MapReduce作业可以使用Alluxio来输入输出文件。如果你正在使用HDFS作为Alluxio的底层存储系统，同样有必要在`hdfs-site.xml`文件中添加这些属性：
+
+其次, 为了让JobClient可以访问Alluxio客户端Jar文件，你可以在`hadoop-env.sh`文件中将`HADOOP_CLASSPATH`修改为:
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/config-hadoop.md %}
 

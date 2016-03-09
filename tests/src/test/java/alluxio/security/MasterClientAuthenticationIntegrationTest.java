@@ -98,7 +98,7 @@ public final class MasterClientAuthenticationIntegrationTest {
   }
 
   /**
-   * Test Alluxio client connects or disconnects to the Master. When the client connects
+   * Tests Alluxio client connects or disconnects to the Master. When the client connects
    * successfully to the Master, it can successfully create file or not.
    *
    * @param filename
