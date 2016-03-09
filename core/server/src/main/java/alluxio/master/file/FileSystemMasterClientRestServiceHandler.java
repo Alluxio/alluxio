@@ -264,7 +264,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @summary get the UFS address
    * @return the UFS address
    */
-  @Deprecated
   @GET
   @Path(GET_UFS_ADDRESS)
   @ReturnType("java.lang.String")
