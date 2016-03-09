@@ -23,31 +23,27 @@ public class OrangeFSUnderStorageCluster extends UnderFileSystemCluster {
 
   public OrangeFSUnderStorageCluster(String baseDir, Configuration configuration) {
     super(baseDir, configuration);
-    checkGlusterConfigured(configuration);
+    checkOrangeFSConfigured(configuration);
   }
 
-  private void checkGlusterConfigured(Configuration conf) {
+  private void checkOrangeFSConfigured(Configuration conf) {
     if (conf == null) {
       throw new NullPointerException("Null Alluxio Configuration provided");
     }
-    if (StringUtils.isEmpty(conf.get(Constants.UNDERFS_OFS_SYSTEMS))) {
-      throw new IllegalArgumentException("OrangeFS Systems are undefined");
-    }
-    if (StringUtils.isEmpty(conf.get(Constants.UNDERFS_OFS_MNTLOCATIONS))) {
+    if (StringUtils.isEmpty(conf.get(Constants.UNDERFS_OFS_MOUNTPOINTS))) {
       throw new IllegalArgumentException("OrangeFS Mounts are undefined");
     }
   }
 
   @Override
   public String getUnderFilesystemAddress() {
-    checkGlusterConfigured(mConfiguration);
-
+    checkOrangeFSConfigured(mConfiguration);
     return "ofs://localhost-orangefs:3334/alluxio_test";
   }
 
   @Override
   public boolean isStarted() {
-    checkGlusterConfigured(mConfiguration);
+    checkOrangeFSConfigured(mConfiguration);
     return true;
   }
 
@@ -57,6 +53,6 @@ public class OrangeFSUnderStorageCluster extends UnderFileSystemCluster {
 
   @Override
   public void start() throws IOException {
-    checkGlusterConfigured(mConfiguration);
+    checkOrangeFSConfigured(mConfiguration);
   }
 }

@@ -146,8 +146,7 @@ public final class Constants {
   public static final String UNDERFS_OFS_BLOCK_SIZE = "alluxio.underfs.ofs.block.size";
   public static final String UNDERFS_OFS_BUFFER_SIZE = "alluxio.underfs.ofs.buffer.size";
   public static final String UNDERFS_OFS_LAYOUT = "alluxio.underfs.ofs.layout";
-  public static final String UNDERFS_OFS_MNTLOCATIONS = "alluxio.underfs.ofs.mntLocations";
-  public static final String UNDERFS_OFS_SYSTEMS = "alluxio.underfs.ofs.systems";
+  public static final String UNDERFS_OFS_MOUNTPOINTS = "alluxio.underfs.ofs.mountpoints";
   public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
   public static final String UNDERFS_OSS_CONNECT_TIMEOUT =
       "alluxio.underfs.oss.connection.timeout.ms";

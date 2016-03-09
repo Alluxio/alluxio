@@ -46,26 +46,26 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // The following flags are defined for the st_mode field:
-  public static final int S_IFIFO = 0010000; // named pipe (fifo)
-  public static final int S_IFCHR = 0020000; // character special
-  public static final int S_IFDIR = 0040000; // directory
-  public static final int S_IFBLK = 0060000; // block special
-  public static final int S_IFREG = 0100000; // regular
-  public static final int S_IFLNK = 0120000; // symbolic link
+  public static final int S_IFIFO = 0010000;  // named pipe (fifo)
+  public static final int S_IFCHR = 0020000;  // character special
+  public static final int S_IFDIR = 0040000;  // directory
+  public static final int S_IFBLK = 0060000;  // block special
+  public static final int S_IFREG = 0100000;  // regular
+  public static final int S_IFLNK = 0120000;  // symbolic link
   public static final int S_IFSOCK = 0140000; // socket
-  public static final int S_IFMT = 0170000; // file mask for type checks
-  public static final int S_ISUID = 0004000; // set user id on execution
-  public static final int S_ISGID = 0002000; // set group id on execution
-  public static final int S_ISVTX = 0001000; // save swapped text even after use
-  public static final int S_IRUSR = 0000400; // read permission, owner
-  public static final int S_IWUSR = 0000200; // write permission, owner
-  public static final int S_IXUSR = 0000100; // execute/search permission, owner
-  public static final int S_IRGRP = 0000040; // read permission, group
-  public static final int S_IWGRP = 0000020; // write permission, group
-  public static final int S_IXGRP = 0000010; // execute/search permission, group
-  public static final int S_IROTH = 0000004; // read permission, other
-  public static final int S_IWOTH = 0000002; // write permission, other
-  public static final int S_IXOTH = 0000001; // execute permission, other
+  public static final int S_IFMT = 0170000;   // file mask for type checks
+  public static final int S_ISUID = 0004000;  // set user id on execution
+  public static final int S_ISGID = 0002000;  // set group id on execution
+  public static final int S_ISVTX = 0001000;  // save swapped text even after use
+  public static final int S_IRUSR = 0000400;  // read permission, owner
+  public static final int S_IWUSR = 0000200;  // write permission, owner
+  public static final int S_IXUSR = 0000100;  // execute/search permission, owner
+  public static final int S_IRGRP = 0000040;  // read permission, group
+  public static final int S_IWGRP = 0000020;  // write permission, group
+  public static final int S_IXGRP = 0000010;  // execute/search permission, group
+  public static final int S_IROTH = 0000004;  // read permission, other
+  public static final int S_IWOTH = 0000002;  // write permission, other
+  public static final int S_IXOTH = 0000001;  // execute permission, other
 
   private static final int MAX_TRY = 5;
   private static final long DEFAULT_OFS_PERMISSION = 0700;
@@ -91,56 +91,26 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
     mOrange = Orange.getInstance();
     mPosixFlags = mOrange.posix.f;
     mStdioFlags = mOrange.stdio.f;
-    int ordinal;
-    boolean uriAuthorityMatchFound = false;
-
-    mUri = new AlluxioURI(path);
     mOfsBufferSize = (int) conf.getBytes(Constants.UNDERFS_OFS_BUFFER_SIZE);
     mOfsBlockSize = (int) conf.getBytes(Constants.UNDERFS_OFS_BLOCK_SIZE);
     mOfsLayout = conf.getEnum(Constants.UNDERFS_OFS_LAYOUT, OrangeFileSystemLayout.class);
-
+    mUri = new AlluxioURI(path);
     String uriAuthority = mUri.getAuthority();
-    List<String> ofsSystems = conf.getList(Constants.UNDERFS_OFS_SYSTEMS, ",");
-    List<String> ofsMounts = conf.getList(Constants.UNDERFS_OFS_MNTLOCATIONS, ",");
+    List<String> ofsMounts = conf.getList(Constants.UNDERFS_OFS_MOUNTPOINTS, ",");
 
-    if (ofsSystems.isEmpty() || ofsMounts.isEmpty()) {
-      throw new IOException("Configuration value alluxio.underfs.ofs.systems or"
-          + "alluxio.underfs.ofs.mntLocations is null. These configuration values must be"
-          + "defined and have at least one entry each.");
-    }
-
-    LOG.debug("Number of specified OrangeFS systems: " + ofsSystems.size());
-    LOG.debug("Number of specified OrangeFS mount locations: " + ofsMounts.size());
-
-    if (ofsSystems.size() != ofsMounts.size()) {
+    if (ofsMounts.isEmpty()) {
       throw new IOException(
-          "Configuration values alluxio.underfs.ofs.systems and alluxio.underfs.ofs.mntLocations"
-              + " must contain the same number of comma-separated elements.");
+          "Configuration value alluxio.underfs.ofs.mountpoints is empty. It must be defined and"
+              + " have at least one mount point.");
     }
+    // TODO(pfxuan): We only use first mount point for now, and will extend this for all mount
+    // points after Alluxio can support multiple underfs addresses.
+    mOfsMount = ofsMounts.get(0);
 
-    LOG.debug("Determining file system associated with URI authority:");
-    for (ordinal = 0; ordinal < ofsSystems.size(); ordinal++) {
-      LOG.debug("(ofsSystems[{}], ofsMounts[{}]) = ({}, {})", ordinal, ofsSystems.get(ordinal),
-          ofsMounts.get(ordinal));
-      if (uriAuthority.equals(ofsSystems.get(ordinal))) {
-        LOG.debug("Match found. Continuing with OrangeFS initialization.");
-        uriAuthorityMatchFound = true;
-        break;
-      }
-    }
-
-    if (uriAuthorityMatchFound) {
-      mOfsMount = ofsMounts.get(ordinal);
-      LOG.debug("Matching URI authority found at index = {}", ordinal);
-    } else {
-      LOG.error("No OrangeFS file system found matching the following authority: {}", uriAuthority);
-      throw new IOException("There was no matching authority found in alluxio.underfs.ofs.systems."
-          + "Check your configuration." + uriAuthority + " != " + ofsSystems.get(ordinal - 1));
-    }
-
-    LOG.debug("URI: " + this.mUri.toString());
-    LOG.debug("URI Authority: " + uriAuthority);
-    LOG.debug("Conf: " + conf.toString());
+    LOG.debug("Number of specified OrangeFS mount points: {}", ofsMounts.size());
+    LOG.debug("URI: {}", mUri.toString());
+    LOG.debug("URI Authority: {}", uriAuthority);
+    LOG.debug("Configuration: {}", conf.toString());
   }
 
   @Override
@@ -174,7 +144,8 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public OutputStream create(String path, short replication, int blockSizeByte) throws IOException {
+  public OutputStream create(String path, short replication, int blockSizeByte)
+      throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
@@ -441,7 +412,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    * @param path The file name
    * @return File stats
    * @throws FileNotFoundException if an I/O error occurs
-   * @throws IOException if an I/O error occurs
+   * @throws IOException if an OrangeFS I/O error occurs
    */
   public Stat getFileStatus(String path) throws IOException {
     return getFileStatus(new AlluxioURI(path));
@@ -452,14 +423,14 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    *
    * @param uri The file name with {@link AlluxioURI} form
    * @return File stats
-   * @throws IOException if an I/O error occurs
+   * @throws IOException if an OrangeFS I/O error occurs
    */
   public Stat getFileStatus(AlluxioURI uri) throws IOException {
     String ofsPath = getOFSPath(uri);
     LOG.debug("f = " + ofsPath);
     Stat stats = mOrange.posix.stat(ofsPath);
 
-    // TODO(pfxuan): should find a good way to retry
+    // TODO(pfxuan): should find a good way to apply retry policy
     if (stats == null) {
       LOG.debug("stat({}) returned null", uri);
       return null;
@@ -473,7 +444,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    *
    * @param path The file name
    * @return File stats
-   * @throws IOException if an I/O error occurs
+   * @throws IOException if an OrangeFS I/O error occurs
    */
   public Statfs getFileSystemStatus(String path) throws IOException {
     return getFileSystemStatus(new AlluxioURI(path));
@@ -484,7 +455,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    *
    * @param uri The file name with {@link AlluxioURI} form
    * @return File stats
-   * @throws IOException if an I/O error occurs
+   * @throws IOException if an OrangeFS I/O error occurs
    */
   public Statfs getFileSystemStatus(AlluxioURI uri) throws IOException {
     Statfs statfs;
@@ -538,7 +509,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    *
    * @param path the path to check
    * @return whether the given key identifies a folder
-   * @throws IOException if an I/O error occurs
+   * @throws IOException if an OrangeFS I/O error occurs
    */
   private boolean isFolder(String path) throws IOException {
     return isFolder(new AlluxioURI(path));
@@ -550,7 +521,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} to check
    * @return whether the given Alluxio URI identifies a folder
-   * @throws IOException if an I/O error occurs
+   * @throws IOException if an OrangeFS I/O error occurs
    */
   private boolean isFolder(AlluxioURI uri) throws IOException {
     Stat stats = getFileStatus(uri);
