@@ -1,0 +1,4 @@
+    -Dalluxio.underfs.ofs.mountpoint=<OFS_MOUNT_POINT>
+    -Dalluxio.underfs.ofs.layout=<OFS_LAYOUT>
+    -Dalluxio.underfs.ofs.block.size=<OFS_BLOCK_SIZE>
+    -Dalluxio.underfs.ofs.buffer.size=<OFS_BUFFER_SIZE>
