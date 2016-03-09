@@ -381,11 +381,14 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return the {@link FileInfo} for the given file id
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path is not valid
+   * @throws AccessControlException if permission checking fails
    */
   public FileInfo getFileInfo(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
+      // getFileInfo should load from ufs if the file does not exist
+      getFileId(path);
       Inode inode = mInodeTree.getInodeByPath(path);
       return getFileInfoInternal(inode);
     }
@@ -406,7 +409,7 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
-   * @param inode the inode to get the {@linke FileInfo} for
+   * @param inode the inode to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given inode
    * @throws FileDoesNotExistException if the file does not exist
    */
