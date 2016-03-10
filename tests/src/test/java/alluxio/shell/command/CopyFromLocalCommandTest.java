@@ -56,6 +56,8 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
     Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
 
+    // The directory should also be deleted from Alluxio filesystem when all files in the
+    // directory are failed.
     File innerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir/innerDir");
     innerDir.mkdir();
     File innerFile = generateFileContent("/localDir/innerDir/innerFile1",
@@ -96,6 +98,8 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
     Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
 
+    // The directory should also be deleted from Alluxio filesystem when all files in the
+    // directory are failed.
     File innerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir/innerDir");
     innerDir.mkdir();
     File innerFile = generateFileContent("/localDir/innerDir/innerFile1",
@@ -145,7 +149,9 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalDirToExistingDirTest() throws IOException, AlluxioException {
+  public void copyFromLocalDirTest() throws IOException, AlluxioException {
+    // Copy a directory from local to Alluxio filesystem, which the destination uri was not created
+    // before.
     File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
     File srcInnerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/innerDir");
     File emptyDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/emptyDir");
@@ -154,18 +160,69 @@ public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     emptyDir.mkdir();
     generateFileContent("/outerDir/srcFile1", BufferUtils.getIncreasingByteArray(10));
     generateFileContent("/outerDir/innerDir/srcFile2", BufferUtils.getIncreasingByteArray(10));
-    mFileSystem.createDirectory(new AlluxioURI("/dstDir"));
     int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/", "/dstDir");
     Assert.assertEquals(0, ret);
     AlluxioURI dstURI1 = new AlluxioURI("/dstDir/srcFile1");
     AlluxioURI dstURI2 = new AlluxioURI("/dstDir/innerDir/srcFile2");
     AlluxioURI dstURI3 = new AlluxioURI("/dstDir/emptyDir");
-    URIStatus uriStatus1 = mFileSystem.getStatus(dstURI1);
-    URIStatus uriStatus2 = mFileSystem.getStatus(dstURI2);
-    URIStatus uriStatus3 = mFileSystem.getStatus(dstURI3);
-    Assert.assertNotNull(uriStatus1);
-    Assert.assertNotNull(uriStatus2);
-    Assert.assertNotNull(uriStatus3);
+    Assert.assertNotNull(mFileSystem.getStatus(dstURI1));
+    Assert.assertNotNull(mFileSystem.getStatus(dstURI2));
+    Assert.assertNotNull(mFileSystem.getStatus(dstURI3));
+  }
+
+  @Test
+  public void copyFromLocalDirToExistingFileTest() throws IOException, AlluxioException {
+    // Copy a directory from local to a file which exists in Alluxio filesystem. This case should
+    // fail.
+    File localDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir");
+    File innerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir/innerDir");
+    localDir.mkdir();
+    innerDir.mkdir();
+    generateFileContent("/localDir/srcFile", BufferUtils.getIncreasingByteArray(10));
+    mFileSystem.createFile(new AlluxioURI("/dstFile"));
+    int ret = mFsShell.run("copyFromLocal", localDir.getPath(), "/dstFile");
+    Assert.assertEquals(-1, ret);
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/dstFile")).isFolder());
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/dstFile/innerDir")));
+  }
+
+  @Test
+  public void copyFromLocalDirToExistingDirTest() throws IOException, AlluxioException {
+    // Copy a directory from local to Alluxio filesystem, which the destination uri has been
+    // created before.
+    File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
+    File srcInnerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/innerDir");
+    File emptyDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/emptyDir");
+    srcOuterDir.mkdir();
+    srcInnerDir.mkdir();
+    emptyDir.mkdir();
+    generateFileContent("/outerDir/srcFile1", BufferUtils.getIncreasingByteArray(10));
+    generateFileContent("/outerDir/innerDir/srcFile2", BufferUtils.getIncreasingByteArray(10));
+    // Copying a directory to a destination directory which exists and doesn't contain the copied
+    // directory.
+    mFileSystem.createDirectory(new AlluxioURI("/dstDir"));
+    int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath(), "/dstDir");
+    Assert.assertEquals(0, ret);
+    AlluxioURI dstURI1 = new AlluxioURI("/dstDir/srcFile1");
+    AlluxioURI dstURI2 = new AlluxioURI("/dstDir/innerDir/srcFile2");
+    AlluxioURI dstURI3 = new AlluxioURI("/dstDir/emptyDir");
+    Assert.assertNotNull(mFileSystem.getStatus(dstURI1));
+    Assert.assertNotNull(mFileSystem.getStatus(dstURI2));
+    Assert.assertNotNull(mFileSystem.getStatus(dstURI3));
+
+    // Copying a directory to a destination directory which exists and does contain the copied
+    // directory.
+    mFileSystem.createDirectory(new AlluxioURI("/dstDir1"));
+    mFileSystem.createDirectory(new AlluxioURI("/dstDir1/innerDir"));
+    int ret1 = mFsShell.run("copyFromLocal", srcOuterDir.getPath(), "/dstDir1");
+    Assert.assertEquals(-1, ret1);
+    dstURI1 = new AlluxioURI("/dstDir1/srcFile1");
+    dstURI2 = new AlluxioURI("/dstDir1/innerDir/srcFile2");
+    dstURI3 = new AlluxioURI("/dstDir1/emptyDir");
+    Assert.assertNotNull(mFileSystem.getStatus(dstURI1));
+    // The directory already exists. But the sub directory shouldn't be copied.
+    Assert.assertFalse(mFileSystem.exists(dstURI2));
+    Assert.assertNotNull(mFileSystem.getStatus(dstURI3));
   }
 
   @Test
