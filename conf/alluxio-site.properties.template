@@ -1,0 +1,81 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the “License”). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+# Site specific configuration properties for Alluxio
+# Details about all configuration properties http://www.alluxio.org/documentation/en/Configuration-Settings.html
+
+
+# Common properties
+alluxio.debug=false
+alluxio.home=/mnt/alluxio_default_home
+alluxio.test.mode=false
+alluxio.underfs.address=${alluxio.home}/underFSStorage
+alluxio.web.threads=1
+
+# Integration properties
+alluxio.integration.master.resource.cpu=1
+alluxio.integration.master.resource.mem=1024MB
+alluxio.integration.worker.resource.cpu=1
+alluxio.integration.worker.resource.mem=1024MB
+
+# Security properties
+alluxio.security.authentication.type=NOSASL
+alluxio.security.authorization.permission.enabled=false
+alluxio.security.authorization.permission.supergroup=supergroup
+alluxio.security.group.mapping.class=alluxio.security.group.provider.ShellBasedUnixGroupsMapping
+
+# Master properties
+alluxio.master.bind.host=0.0.0.0
+alluxio.master.port=19998
+alluxio.master.retry=29
+alluxio.master.web.bind.host=0.0.0.0
+alluxio.master.web.port=19999
+alluxio.master.whitelist=/
+alluxio.master.worker.threads.max=2048
+alluxio.master.worker.threads.min=512
+alluxio.master.worker.timeout.ms=10000
+alluxio.master.tieredstore.global.levels=3
+alluxio.master.tieredstore.global.level0.alias=MEM
+alluxio.master.tieredstore.global.level1.alias=SSD
+alluxio.master.tieredstore.global.level2.alias=HDD
+
+# Worker properties
+alluxio.worker.bind.host=0.0.0.0
+alluxio.worker.block.threads.max=2048
+alluxio.worker.block.threads.min=256
+alluxio.worker.data.bind.host=0.0.0.0
+alluxio.worker.data.folder=/alluxioworker/
+alluxio.worker.data.port=29999
+alluxio.worker.file.persist.pool.size=2
+alluxio.worker.memory.size=128MB
+alluxio.worker.port=29998
+alluxio.worker.session.timeout.ms=10000
+alluxio.worker.tieredstore.levels=1
+alluxio.worker.tieredstore.level0.alias=MEM
+alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
+alluxio.worker.tieredstore.level0.dirs.quota=${alluxio.worker.memory.size}
+alluxio.worker.tieredstore.level0.reserved.ratio=0.1
+alluxio.worker.web.bind.host=0.0.0.0
+alluxio.worker.web.port=30000
+
+# User properties
+alluxio.user.block.master.client.threads=10
+alluxio.user.block.worker.client.threads=10000
+alluxio.user.block.remote.read.buffer.size.bytes=8MB
+alluxio.user.block.size.bytes.default=512MB
+alluxio.user.failed.space.request.limits=3
+alluxio.user.file.buffer.bytes=1MB
+alluxio.user.file.master.client.threads=10
+alluxio.user.file.readtype.default=CACHE_PROMOTE
+alluxio.user.file.write.location.policy.class=alluxio.client.file.policy.LocalFirstPolicy
+alluxio.user.file.writetype.default=MUST_CACHE
+alluxio.user.lineage.enabled=false
+alluxio.user.lineage.master.client.threads=10
