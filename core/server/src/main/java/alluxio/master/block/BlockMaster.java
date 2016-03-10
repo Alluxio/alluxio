@@ -610,8 +610,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     for (long removedBlockId : removedBlockIds) {
       MasterBlockInfo masterBlockInfo = mBlocks.get(removedBlockId);
       if (masterBlockInfo == null) {
-        LOG.warn("Worker {} removed block {} but block does not exist.", workerInfo.getId(),
-            removedBlockId);
+        LOG.warn("Worker {} removed block {}, block metadata has been removed.",
+            workerInfo.getId(), removedBlockId);
+        // TODO(pfxuan): [ALLUXIO-1804] should find a better way to update removed blocks.
+        workerInfo.removeBlock(removedBlockId);
         // Continue to remove the remaining blocks.
         continue;
       }
