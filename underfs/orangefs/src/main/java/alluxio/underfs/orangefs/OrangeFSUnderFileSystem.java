@@ -67,21 +67,40 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
   public static final int S_IWOTH = 0000002;  // write permission, other
   public static final int S_IXOTH = 0000001;  // execute permission, other
 
+  /** Max tries issued by retry policy. **/
   private static final int MAX_TRY = 5;
+
+  /** Default directory permission on under OrangeFS. **/
   private static final long DEFAULT_OFS_PERMISSION = 0700;
+
+  /** OrangeFS POSIX flags. **/
   public PVFS2POSIXJNIFlags mPosixFlags;
+
+  /** OrangeFS STDIO flags. **/
   public PVFS2STDIOJNIFlags mStdioFlags;
+
+  /** OrangeFS instance (a thin wrapper of POSIX and STDIO flags). **/
   private Orange mOrange;
+
+  /** The request size to OrangeFS. **/
   private int mOfsBufferSize;
+
+  /** The stripe size of OrangeFS (we use it as the block size defined in upper file system). **/
   private int mOfsBlockSize;
+
+  /** OrangeFS layout (Map and distribute an Alluxio file to OrangeFS datafile objects). **/
   private OrangeFileSystemLayout mOfsLayout;
+
+  /** OrangeFS path. **/
   private AlluxioURI mUri;
+
+  /** OrangeFS mount point. **/
   private String mOfsMount;
 
   /**
    * Constructs a new instance of {@link OrangeFSUnderFileSystem}.
    *
-   * @param path the name of the bucket
+   * @param path the under FS prefix
    * @param conf the configuration for Alluxio
    * @throws IOException when a connection to OrangeFS could not be created
    */
@@ -228,14 +247,16 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
-  public void setConf(Object conf) {}
+  public void setConf(Object conf) {
+    LOG.warn("setConf is not supported when using OrangeFSUnderFileSystem.");
+  }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     LOG.warn("getFileLocations is not supported when using OrangeFSUnderFileSystem,"
         + "returning null.");
-    return null;
+    throw new IOException("getFileLocations is not supported when using OrangeFSUnderFileSystem");
   }
 
   // Not supported
@@ -243,7 +264,7 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
   public List<String> getFileLocations(String path, long offset) throws IOException {
     LOG.warn(
         "getFileLocations is not supported when using OrangeFSUnderFileSystem, returning null.");
-    return null;
+    throw new IOException("getFileLocations is not supported when using OrangeFSUnderFileSystem");
   }
 
   @Override
@@ -264,13 +285,13 @@ public class OrangeFSUnderFileSystem extends UnderFileSystem {
     if (statfs != null) {
       switch (type) {
         case SPACE_TOTAL:
-          return statfs.getCapacity();
+          return statfs.getCapacity() / Constants.KB;
         case SPACE_USED:
-          return statfs.getUsed();
+          return statfs.getUsed() / Constants.KB;
         case SPACE_FREE:
-          return statfs.getRemaining();
+          return statfs.getRemaining() / Constants.KB;
         default:
-          throw new IOException("Unknown getSpace parameter: " + type);
+          throw new IllegalArgumentException("Unknown getSpace parameter: " + type);
       }
     }
     return -1;
