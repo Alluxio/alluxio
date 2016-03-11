@@ -26,6 +26,7 @@ years open source history, Alluxio has attracted more than
 [160 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 50 institutions,
 including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/), [Baidu](https://www.baidu.com),
 [CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com), [Intel](http://www.intel.com/),
+[NJU](http://www.nju.edu.cn/english/),
 [Red Hat](https://www.redhat.com/), [UC Berkeley](https://amplab.cs.berkeley.edu/),
 and [Yahoo](https://www.yahoo.com/).
 The project is the storage layer of the Berkeley Data Analytics Stack
