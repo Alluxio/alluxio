@@ -31,9 +31,9 @@ import javax.security.sasl.SaslException;
 @ThreadSafe
 public final class NoSaslTransportProvider implements TransportProvider {
   /** Timeout for socket in ms. */
-  private int mSocketTimeoutMs;
+  private final int mSocketTimeoutMs;
   /** Max frame size of thrift transport in bytes. */
-  private int mThriftFrameSizeMax;
+  private final int mThriftFrameSizeMax;
 
   /**
    * Constructor for transport provider when authentication type is {@link AuthType#NOSASL).
