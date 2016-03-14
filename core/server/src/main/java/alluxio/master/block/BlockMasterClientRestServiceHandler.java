@@ -49,9 +49,9 @@ public final class BlockMasterClientRestServiceHandler {
   public static final String GET_BLOCK_INFO = "block_info";
   public static final String GET_CAPACITY_BYTES = "capacity_bytes";
   public static final String GET_DISK_CAPACITY_BYTES = "disk_capacity_bytes";
-  public static final String GET_DISK_FREE_CAPACITY_BYTES = "disk_free_capacity_bytes";
-  public static final String GET_DISK_USED_CAPACITY_BYTES = "disk_used_capacity_bytes";
-  public static final String GET_FREE_CAPACITY_BYTES = "free_capacity_bytes";
+  public static final String GET_DISK_FREE_BYTES = "disk_free_bytes";
+  public static final String GET_DISK_USED_BYTES = "disk_used_bytes";
+  public static final String GET_FREE_BYTES = "free_bytes";
   public static final String GET_TOTAL_BYTES_ON_TIERS = "total_bytes_on_tiers";
   public static final String GET_USED_BYTES = "used_bytes";
   public static final String GET_USED_BYTES_ON_TIERS = "used_bytes_on_tiers";
@@ -135,7 +135,7 @@ public final class BlockMasterClientRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path(GET_DISK_FREE_CAPACITY_BYTES)
+  @Path(GET_DISK_FREE_BYTES)
   @ReturnType("java.lang.Long")
   public Response getFreeDiskCapacityBytes() {
     try {
@@ -151,7 +151,7 @@ public final class BlockMasterClientRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path(GET_DISK_USED_CAPACITY_BYTES)
+  @Path(GET_DISK_USED_BYTES)
   @ReturnType("java.lang.Long")
   public Response getUsedDiskCapacityBytes() {
     try {
@@ -167,7 +167,7 @@ public final class BlockMasterClientRestServiceHandler {
    * @return the response object
    */
   @GET
-  @Path(GET_FREE_CAPACITY_BYTES)
+  @Path(GET_FREE_BYTES)
   @ReturnType("java.lang.Long")
   public Response getFreeCapacityBytes() {
     return Response.ok(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()).build();
