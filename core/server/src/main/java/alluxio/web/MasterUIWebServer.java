@@ -61,7 +61,7 @@ public final class MasterUIWebServer extends UIWebServer {
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet(conf)),
         "/header");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMasterMetricsServlet(
-        master.getMasterMetricsSystem())), "/metricsui");
+        master.getMasterMetricsSystem())), "/metrics");
     // REST configuration
     mWebAppContext.setOverrideDescriptors(Arrays.asList(conf.get(Constants.WEB_RESOURCES)
         + "/WEB-INF/master.xml"));
