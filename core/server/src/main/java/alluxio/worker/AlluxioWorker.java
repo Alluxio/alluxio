@@ -114,7 +114,7 @@ public final class AlluxioWorker {
   /** Worker Web UI server. */
   private UIWebServer mWebServer;
 
-  /** The transport provider to create thrift client transport. */
+  /** The transport provider to create thrift server transport. */
   private TransportProvider mTransportProvider;
 
   /** Thread pool for thrift. */
