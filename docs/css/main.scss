@@ -69,6 +69,10 @@ h2.hero{
  .navbar-brand{
    padding: 20px 10px;
  }
+ .navbar-toggle{
+   margin-top: 32px;
+   margin-bottom: 0;
+ }
  .collapse.in{
    @media screen and (max-width: 991px) {
      .nav{
@@ -130,14 +134,12 @@ h2.hero{
 }
 
 @media screen and (max-width: $screen-sm) {
-  body{
-    padding-top: 68px;
-  }
+
   .navbar{
     min-height: initial;
   }
   .navbar-toggle{
-    margin-top: 25px;
+    margin-top: 32px;
     margin-bottom: 0;
   }
   .navbar-brand{
