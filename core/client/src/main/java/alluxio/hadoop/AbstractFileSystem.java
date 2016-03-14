@@ -131,11 +131,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     try {
       if (mFileSystem.exists(uri)) {
         if (!overwrite) {
-          throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path.toString()));
+          throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uri));
         }
         if (mFileSystem.getStatus(uri).isFolder()) {
           throw new IOException(
-              ExceptionMessage.FILE_CREATE_IS_DIRECTORY.getMessage(path.toString()));
+              ExceptionMessage.FILE_CREATE_IS_DIRECTORY.getMessage(uri));
         }
         mFileSystem.delete(uri);
       }
