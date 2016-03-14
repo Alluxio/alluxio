@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Test RPC authentication between worker and its client, in four modes: NOSASL, SIMPLE, CUSTOM,
+ * Tests RPC authentication between worker and its client, in four modes: NOSASL, SIMPLE, CUSTOM,
  * KERBEROS.
  */
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
@@ -105,7 +105,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
   }
 
   /**
-   * Test Alluxio Worker client connects or disconnects to the Worker.
+   * Tests Alluxio Worker client connects or disconnects to the Worker.
    *
    * @throws Exception
    */

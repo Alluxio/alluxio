@@ -39,7 +39,7 @@ public class ChgrpCommandTest extends AbstractAlluxioShellTest {
   }
 
   /**
-   * Test -R option for chgrp recursively.
+   * Tests -R option for chgrp recursively.
    *
    * @throws Exception
    */
