@@ -4,12 +4,15 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerContext;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Handles writes to the under file system. Manages open output streams to Under File Systems.
@@ -17,13 +20,22 @@ import java.util.concurrent.ConcurrentMap;
  * file names to open streams.
  */
 public class UnderFileSystemManager {
-  private class NamedOutputStream {
+  /**
+   * A wrapper around the output stream to the under file system. This class handles writing the
+   * data to a temporary file. When the stream is closed, the temporary file will attempt to be
+   * renamed to the final file path. This stream guarantees the temporary file will be cleaned up
+   * when close or cancel is called.
+   */
+  private class TemporaryOutputStream {
     private final OutputStream mStream;
     private final String mPath;
+    private final String mTemporaryPath;
 
-    private NamedOutputStream(OutputStream stream, String path) {
+    private TemporaryOutputStream(OutputStream stream, String path, String temporaryPath) {
+      long seed = Math.abs(new Random().nextLong());
       mStream = stream;
       mPath = path;
+      mTemporaryPath = temporaryPath;
     }
 
     public OutputStream getStream() {
@@ -33,43 +45,51 @@ public class UnderFileSystemManager {
     public String getPath() {
       return mPath;
     }
+
+    public String getTemporaryPath() {
+      return mTemporaryPath;
+    }
   }
 
-
-  private ConcurrentMap<Long, NamedOutputStream> mStreams;
+  private AtomicLong mIdGenerator;
+  private ConcurrentMap<Long, TemporaryOutputStream> mStreams;
 
   public UnderFileSystemManager() {
     mStreams = new ConcurrentHashMap<>();
   }
 
-  public OutputStream createFile(String path) throws FileAlreadyExistsException, IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, WorkerContext.getConf());
-    if (ufs.exists(path)) {
-      throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(path));
+  public long createFile(String ufsPath) throws FileAlreadyExistsException, IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(ufsPath, WorkerContext.getConf());
+    if (ufs.exists(ufsPath)) {
+      throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(ufsPath));
     }
-
-    OutputStream newStream = ufs.create(path);
-    stream = mStreams.putIfAbsent(path, newStream);
+    long workerFileId = mIdGenerator.getAndIncrement();
+    String tempPath = PathUtils.temporaryFileName(workerFileId, ufsPath);
+    OutputStream os = ufs.create(tempPath);
+    TemporaryOutputStream stream = new TemporaryOutputStream(os, ufsPath, tempPath);
+    mStreams.put(workerFileId, stream);
+    return workerFileId;
   }
 
+  // TODO(calvin): Add the exception to Exception Messages
   public void cancelFile(long workerFileId) throws FileDoesNotExistException, IOException {
-    closeFile(path);
-    UnderFileSystem ufs = UnderFileSystem.get(path, WorkerContext.getConf());
-    ufs.delete(path, false);
-  }
-
-  public void completeFile(long workerFileId) throws FileDoesNotExistException, IOException {
-    closeFile(path);
-  }
-
-  // TODO(calvin): Make the exception accurate.
-  private void closeFile(long workerFileId) throws FileDoesNotExistException, IOException {
-    OutputStream stream = mStreams.remove(workerFileId);
+    TemporaryOutputStream stream = mStreams.remove(workerFileId);
     if (stream != null) {
-      stream.close();
+      stream.getStream().close();
     } else {
-      throw
-          new FileDoesNotExistException(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(path));
+      throw new FileDoesNotExistException("Bad worker file id: " + workerFileId);
+    }
+    UnderFileSystem ufs = UnderFileSystem.get(stream.getPath(), WorkerContext.getConf());
+    ufs.delete(stream.getPath(), false);
+  }
+
+  // TODO(calvin): Add the exception to Exception Messages
+  public void completeFile(long workerFileId) throws FileDoesNotExistException, IOException {
+    TemporaryOutputStream stream = mStreams.remove(workerFileId);
+    if (stream != null) {
+      stream.getStream().close();
+    } else {
+      throw new FileDoesNotExistException("Bad worker file id: " + workerFileId);
     }
   }
 }
