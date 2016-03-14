@@ -84,10 +84,10 @@ Below is a table of the expected behaviors of `WriteType`
 
 Alluxio provides location policy to choose which workers to store the blocks of a file. 
 
-Using Alluxio's Java API, user can set the policy in `CreateFileOptions` for writing files and `OpenFileOptions` for reading files into
+Using Alluxio's Java API, users can set the policy in `CreateFileOptions` for writing files and `OpenFileOptions` for reading files into
 Alluxio.
 
-Or to use the built-in policies, user can also simply override the default policy class in the [configuration file](Configuration-Settings.html) at property `alluxio.user.file.write.location.policy.class`. The built-in polices include:
+Users can simply override the default policy class in the [configuration file](Configuration-Settings.html) at property `alluxio.user.file.write.location.policy.class`. The built-in policies include:
 
 * **LocalFirstPolicy (alluxio.client.file.policy.LocalFirstPolicy)**
 
