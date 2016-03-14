@@ -28,11 +28,14 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
+import alluxio.thrift.Command;
+import alluxio.thrift.CommandType;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -384,6 +387,12 @@ public final class MasterSourceTest {
 
     // free the file
     Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI, false));
+    // Update the heartbeat of removedBlockId received from worker 1
+    Command heartBeat2 = mBlockMaster.workerHeartbeat(mWorkerId,
+        ImmutableMap.of("MEM", Constants.KB * 1L),
+        ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    // Verify the muted Free command on worker
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat2);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     Assert.assertEquals(2, mCounters.get(MasterSource.FREE_FILE_OPS).getCount());

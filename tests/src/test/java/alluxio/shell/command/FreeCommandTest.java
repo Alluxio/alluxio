@@ -35,7 +35,7 @@ public class FreeCommandTest extends AbstractAlluxioShellTest {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("free", "/testFile");
     Configuration configuration = mLocalAlluxioCluster.getMasterConf();
-    CommonUtils.sleepMs(configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+    CommonUtils.sleepMs(configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2);
     Assert.assertFalse(
         mFileSystem.getStatus(new AlluxioURI("/testFile")).getInMemoryPercentage() == 100);
   }

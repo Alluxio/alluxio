@@ -505,6 +505,12 @@ public final class FileSystemMasterTest {
 
     // free the file
     Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI, false));
+    // Update the heartbeat of removedBlockId received from worker 1
+    Command heartBeat2 = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", Constants.KB * 1L),
+        ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    // Verify the muted Free command on worker1
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat2);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -520,6 +526,12 @@ public final class FileSystemMasterTest {
 
     // free the dir
     Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), true));
+    // Update the heartbeat of removedBlockId received from worker 1
+    Command heartBeat3 = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", Constants.KB * 1L),
+        ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    // Verify the muted Free command on worker1
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat3);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
