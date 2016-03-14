@@ -74,6 +74,7 @@ public class AlluxioMaster {
 
     // validate the conf
     if (!ValidateConf.validate()) {
+      LOG.error("Invalid configuration found");
       System.exit(-1);
     }
 
