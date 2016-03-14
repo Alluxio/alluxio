@@ -26,10 +26,10 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.RealmCallback;
 
 /**
- * Tests the {@link alluxio.security.authentication.PlainSaslUtils.PlainClientCallbackHandler}
+ * Tests the {@link PlainSaslClientCallbackHandler}
  * class.
  */
-public class PlainClientCallbackHandlerTest {
+public final class PlainSaslClientCallbackHandlerTest {
 
   /**
    * The exception expected to be thrown.
@@ -50,7 +50,7 @@ public class PlainClientCallbackHandlerTest {
     String password = "alluxio-user-1-password";
 
     CallbackHandler clientCBHandler =
-        new PlainSaslUtils.PlainClientCallbackHandler(user, password);
+        new PlainSaslClientCallbackHandler(user, password);
     clientCBHandler.handle(callbacks);
 
     validateCallbacks(user, password, callbacks);
@@ -72,7 +72,7 @@ public class PlainClientCallbackHandlerTest {
     String user = "alluxio-user-2";
     String password = "alluxio-user-2-password";
     CallbackHandler clientCBHandler =
-        new PlainSaslUtils.PlainClientCallbackHandler(user, password);
+        new PlainSaslClientCallbackHandler(user, password);
     clientCBHandler.handle(callbacks);
   }
 
@@ -88,7 +88,7 @@ public class PlainClientCallbackHandlerTest {
     String user = null;
     String password = "alluxio-user-3-password";
     CallbackHandler clientCBHandler =
-        new PlainSaslUtils.PlainClientCallbackHandler(user, password);
+        new PlainSaslClientCallbackHandler(user, password);
     clientCBHandler.handle(callbacks);
 
     validateCallbacks(user, password, callbacks);
@@ -106,7 +106,7 @@ public class PlainClientCallbackHandlerTest {
     String user = "alluxio-user-4";
     String password = null;
     CallbackHandler clientCBHandler =
-        new PlainSaslUtils.PlainClientCallbackHandler(user, password);
+        new PlainSaslClientCallbackHandler(user, password);
     clientCBHandler.handle(callbacks);
 
     validateCallbacks(user, password, callbacks);
@@ -128,7 +128,7 @@ public class PlainClientCallbackHandlerTest {
     String user = "alluxio-user-5";
     String password = "alluxio-user-5-password";
     CallbackHandler clientCBHandler =
-        new PlainSaslUtils.PlainClientCallbackHandler(user, password);
+        new PlainSaslClientCallbackHandler(user, password);
     clientCBHandler.handle(callbacks);
   }
 
