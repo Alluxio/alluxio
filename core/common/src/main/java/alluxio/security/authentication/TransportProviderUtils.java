@@ -20,9 +20,7 @@ import java.net.InetSocketAddress;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class provides factory methods for authentication in Alluxio. Based on different
- * authentication types specified in Alluxio configuration, it provides corresponding Thrift class
- * for authenticated connection between Client and Server.
+ * This class provides util methods for {@link TransportProvider}s.
  */
 @ThreadSafe
 public final class TransportProviderUtils {

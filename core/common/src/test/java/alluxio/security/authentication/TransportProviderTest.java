@@ -33,7 +33,7 @@ import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.SaslException;
 
 /**
- * Unit test for methods of {@link TransportProviderUtils}
+ * Unit test for methods of {@link TransportProvider}.
  *
  * In order to test methods that return kinds of TTransport for connection in different mode, we
  * build Thrift servers and clients with specific TTransport, and let them connect.
