@@ -1,4 +1,25 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the “License”). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master;
+
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.Version;
+import alluxio.util.CommonUtils;
+
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
+import com.qmino.miredot.annotations.ReturnType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,16 +31,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
-import com.qmino.miredot.annotations.ReturnType;
-
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.Version;
-import alluxio.util.CommonUtils;
 
 /**
  * This class is a REST handler for requesting general master information.

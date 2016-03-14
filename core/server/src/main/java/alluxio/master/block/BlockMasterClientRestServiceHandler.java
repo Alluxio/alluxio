@@ -11,8 +11,6 @@
 
 package alluxio.master.block;
 
-import java.io.IOException;
-
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
@@ -24,6 +22,8 @@ import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.ws.rs.GET;
