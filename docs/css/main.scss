@@ -151,6 +151,12 @@ h2.hero{
 
 }
 
+@media screen and (max-width: $screen-xs) {
+  body{
+    padding-top: 74px;
+  }
+}
+
 
 
 /*
