@@ -11,6 +11,8 @@
 
 package alluxio.security.authentication;
 
+import com.google.common.base.Preconditions;
+
 import java.io.IOException;
 
 import javax.security.auth.callback.Callback;
@@ -34,7 +36,7 @@ public final class PlainSaslServerCallbackHandler implements CallbackHandler {
    * @param authenticationProvider the authentication provider used
    */
   public PlainSaslServerCallbackHandler(AuthenticationProvider authenticationProvider) {
-    mAuthenticationProvider = authenticationProvider;
+    mAuthenticationProvider = Preconditions.checkNotNull(authenticationProvider);
   }
 
   @Override

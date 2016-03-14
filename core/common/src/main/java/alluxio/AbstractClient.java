@@ -67,7 +67,7 @@ public abstract class AbstractClient implements Closeable {
   protected long mServiceVersion;
 
   /** Handler to the transport provider according to the authentication type. */
-  protected TransportProvider mTransportProvider;
+  protected final TransportProvider mTransportProvider;
 
   /**
    * Creates a new client base.
