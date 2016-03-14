@@ -108,7 +108,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#read()}. Read from underfs.
+   * Tests {@link RemoteBlockInStream#read()}. Read from underfs.
    */
   @Test
   public void readTest1() throws IOException, AlluxioException {
@@ -169,7 +169,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
+   * Tests {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
    */
   @Test
   public void readTest2() throws IOException, AlluxioException {
@@ -206,7 +206,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#read(byte[], int, int)}. Read from underfs.
+   * Tests {@link RemoteBlockInStream#read(byte[], int, int)}. Read from underfs.
    */
   @Test
   public void readTest3() throws IOException, AlluxioException {
@@ -243,7 +243,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#read()}. Read from remote data server.
+   * Tests {@link RemoteBlockInStream#read()}. Read from remote data server.
    */
   @Test
   public void readTest4() throws IOException, AlluxioException {
@@ -275,7 +275,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#read(byte[])}. Read from remote data server.
+   * Tests {@link RemoteBlockInStream#read(byte[])}. Read from remote data server.
    */
   @Test
   public void readTest5() throws IOException, AlluxioException {
@@ -303,7 +303,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#read(byte[], int, int)}. Read from remote data server.
+   * Tests {@link RemoteBlockInStream#read(byte[], int, int)}. Read from remote data server.
    */
   @Test
   public void readTest6() throws IOException, AlluxioException {
@@ -331,7 +331,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
+   * Tests {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
    */
   @Test
   public void readTest7() throws IOException, AlluxioException {
@@ -351,7 +351,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
+   * Tests {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
    * negative position.
    *
    * @throws IOException
@@ -376,7 +376,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
+   * Tests {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
    * position that is past block size.
    *
    * @throws IOException
@@ -401,7 +401,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#seek(long)}.
+   * Tests {@link RemoteBlockInStream#seek(long)}.
    *
    * @throws IOException
    * @throws AlluxioException
@@ -427,7 +427,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#skip(long)}.
+   * Tests {@link RemoteBlockInStream#skip(long)}.
    */
   @Test
   public void skipTest() throws IOException, AlluxioException {
