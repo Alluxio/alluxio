@@ -316,9 +316,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
             continue;
           }
           for (long workerId : new ArrayList<Long>(masterBlockInfo.getWorkers())) {
-            MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
-            if (workerInfo != null) {
-              workerInfo.removeBlock(blockId);
+            masterBlockInfo.removeWorker(workerId);
+            MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
+            if (worker != null) {
+              worker.updateToRemovedBlock(true, blockId);
             }
           }
           // Two cases here:
