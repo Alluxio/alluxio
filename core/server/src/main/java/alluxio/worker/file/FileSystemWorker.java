@@ -11,6 +11,7 @@
 
 package alluxio.worker.file;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.FileAlreadyExistsException;
@@ -145,12 +146,13 @@ public final class FileSystemWorker extends AbstractWorker {
    * Creates a new file in the under file system. This will register a new stream in the under
    * file system manager. The stream can only be accessed with the returned id afterward.
    *
-   * @param path the path of the file to create
+   * @param uri the Alluxio URI of the file to create
    * @throws FileAlreadyExistsException if a file already exists in the under file system with
    *                                    the same path
    * @throws IOException if an error occurs interacting with the under file system
+   * @return the worker file id which references the in progress ufs file
    */
-  public void ufsCreateFile(String path) throws FileAlreadyExistsException, IOException {
-    mUnderFileSystemManager.createFile(path);
+  public long ufsCreateFile(AlluxioURI uri) throws FileAlreadyExistsException, IOException {
+    return mUnderFileSystemManager.createFile(uri);
   }
 }

@@ -11,6 +11,7 @@
 
 package alluxio.worker.file;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
@@ -71,10 +72,10 @@ public final class FileSystemWorkerClientServiceHandler
   }
 
   @Override
-  public void ufsCreateFile(String path, UFSCreateFileTOptions options)
+  public long ufsCreateFile(String path, UFSCreateFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mWorker.ufsCreateFile(path);
+      return mWorker.ufsCreateFile(new AlluxioURI(path));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
