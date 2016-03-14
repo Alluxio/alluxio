@@ -11,9 +11,12 @@
 
 package alluxio.security.authentication;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.security.Security;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +27,17 @@ import javax.security.sasl.SaslServer;
 /**
  * Tests the {@link PlainSaslServerProvider} class.
  */
-public class PlainSaslServerProviderTest {
+public final class PlainSaslServerProviderTest {
+
+  @BeforeClass
+  public static void beforeClass() {
+    Security.addProvider(new PlainSaslServerProvider());
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    Security.removeProvider(PlainSaslServerProvider.NAME);
+  }
 
   /**
    * Tests the {@link Sasl#createSaslServer(String, String, String, Map, CallbackHandler)} method to
@@ -35,6 +48,7 @@ public class PlainSaslServerProviderTest {
     // create plainSaslServer
     SaslServer server = Sasl.createSaslServer(PlainSaslServerProvider.MECHANISM, "", "",
         new HashMap<String, String>(), null);
+    Assert.assertNotNull(server);
     Assert.assertEquals(PlainSaslServerProvider.MECHANISM, server.getMechanismName());
   }
 
@@ -44,17 +58,9 @@ public class PlainSaslServerProviderTest {
    */
   @Test
   public void createNoSupportSaslServerTest() throws Exception {
-    // create a SaslServer which PlainSaslServerProvider has not supported
+    // create a SaslServer which SecurityProvider has not supported
     SaslServer server = Sasl.createSaslServer("NO_PLAIN", "", "",
         new HashMap<String, String>(), null);
     Assert.assertNull(server);
-  }
-
-  /**
-   * Tests the {@link PlainSaslUtils#isPlainSaslProviderAdded()} method.
-   */
-  @Test
-  public void plainSaslProviderHasRegisteredTest() {
-    Assert.assertTrue(PlainSaslUtils.isPlainSaslProviderAdded());
   }
 }

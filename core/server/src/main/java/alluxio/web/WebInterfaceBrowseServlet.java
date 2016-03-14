@@ -26,7 +26,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.AlluxioMaster;
 import alluxio.master.MasterContext;
 import alluxio.security.LoginUser;
-import alluxio.security.authentication.PlainSaslServer;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocation;
@@ -136,8 +136,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     if (SecurityUtils.isSecurityEnabled(mConfiguration)
-        && PlainSaslServer.AuthorizedClientUser.get(mConfiguration) == null) {
-      PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(mConfiguration).getName());
+        && AuthenticatedClientUser.get(mConfiguration) == null) {
+      AuthenticatedClientUser.set(LoginUser.get(mConfiguration).getName());
     }
     request.setAttribute("debug", mConfiguration.getBoolean(Constants.DEBUG));
     request.setAttribute("showPermissions",
