@@ -67,6 +67,7 @@ public final class AlluxioWorker {
     checkArgs(args);
     // validate the conf
     if (!ValidateConf.validate()) {
+      LOG.error("Invalid configuration found");
       System.exit(-1);
     }
     AlluxioWorker worker = get();
