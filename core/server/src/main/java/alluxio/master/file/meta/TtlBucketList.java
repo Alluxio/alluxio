@@ -125,7 +125,7 @@ public final class TtlBucketList {
   }
 
   /**
-   * Remove all buckets in the set.
+   * Removes all buckets in the set.
    *
    * @param buckets a set of buckets to be removed
    */

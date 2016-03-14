@@ -24,14 +24,17 @@ public enum AuthType {
   NOSASL,
 
   /**
-   * User is aware in Alluxio. Login user is OS user. The verification of client user is disabled.
+   * User is aware in Alluxio. On the client side, the login username is determined by the
+   * "alluxio.security.login.username" property, or the OS user upon failure.
+   * On the server side, the verification of client user is disabled.
    */
   SIMPLE,
 
   /**
-   * User is aware in Alluxio. Login user is OS user. The user is verified by Custom
-   * authentication provider (Use with property alluxio.security.authentication.custom.provider
-   * .class).
+   * User is aware in Alluxio. On the client side, the login username is determined by the
+   * "alluxio.security.login.username" property, or the OS user upon failure.
+   * On the server side, the user is verified by a Custom authentication provider
+   * (Specified by property "alluxio.security.authentication.custom.provider.class").
    */
   CUSTOM,
 

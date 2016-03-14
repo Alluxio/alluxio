@@ -20,7 +20,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
-import alluxio.security.authentication.AuthenticationUtils;
+import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.LineageUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -103,6 +103,9 @@ public class AlluxioMaster {
 
   /** The socket for thrift rpc server. */
   private final TServerSocket mTServerSocket;
+
+  /** The transport provider to create thrift server transport. */
+  private final TransportProvider mTransportProvider;
 
   /** The address for the rpc server. */
   private final InetSocketAddress mMasterAddress;
@@ -225,6 +228,7 @@ public class AlluxioMaster {
         Preconditions.checkState(conf.getInt(Constants.MASTER_WEB_PORT) > 0,
             "Master web port is only allowed to be zero in test mode.");
       }
+      mTransportProvider = TransportProvider.Factory.create(conf);
       mTServerSocket =
           new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, conf));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
@@ -459,7 +463,7 @@ public class AlluxioMaster {
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;
     try {
-      transportFactory = AuthenticationUtils.getServerTransportFactory(MasterContext.getConf());
+      transportFactory = mTransportProvider.getServerTransportFactory();
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }

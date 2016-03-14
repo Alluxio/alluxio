@@ -67,7 +67,7 @@ import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.User;
-import alluxio.security.authentication.PlainSaslServer;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.FileSystemAction;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.security.group.GroupMappingService;
@@ -690,8 +690,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Since {@link FileSystemMaster#create(TachyonURI, CreateFileOptions)} already checked
-   * {@link tachyon.security.authorization.FileSystemAction#WRITE},
+   * Since {@link FileSystemMaster#create(AlluxioURI, CreateFileOptions)} already checked
+   * {@link alluxio.security.authorization.FileSystemAction#WRITE},
    * it is not needed to check again here when requesting a new block for the file.
    *
    * @param path the path of the file to get the next block id for
@@ -2145,7 +2145,7 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private String getClientUser() throws AccessControlException {
     try {
-      User authorizedUser = PlainSaslServer.AuthorizedClientUser.get(MasterContext.getConf());
+      User authorizedUser = AuthenticatedClientUser.get(MasterContext.getConf());
       if (authorizedUser == null) {
         throw new AccessControlException(
             ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
