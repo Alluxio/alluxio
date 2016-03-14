@@ -66,6 +66,19 @@ h2.hero{
  -webkit-transition: all 1s ease;
  -moz-transition: all 1s ease;
  border-bottom: 1px solid #eee;
+ .collapse.in{
+   @media screen and (max-width: 991px) {
+     .nav{
+       > li ul{
+          position: relative;
+          float: none;
+          background: transparent;
+          border: 0;
+          box-shadow: none;
+       }
+     }
+   }
+ }
  ul{
    &.nav{
        margin-top: 23px;
@@ -94,6 +107,9 @@ h2.hero{
            left: 0;
            right: auto;
          }
+       }
+       h4{
+         margin: 5px 10px;
        }
      }
   }
@@ -142,6 +158,7 @@ h2.hero{
   .copy{
     margin-top: 25px;
     font-size: 0.8em;
+    text-align: center;
     color: #fff;
     a{
       color: #99bbd7;
@@ -170,12 +187,17 @@ h2.hero{
 /*
 * Single Page Styling
 */
-
 .banner{
   padding: 80px 0;
-  .entry-title{
+  .title{
     color: #fff;
+    text-shadow: 0px 1px 3px #333;
   }
+}
+
+.content-area{
+  padding-top: 40px;
+  padding-bottom: 40px;
 }
 
 @keyframes scroll {
@@ -206,6 +228,132 @@ code{
 }
 pre code{
   font-size: 0.8em;
+}
+
+/*
+* Current Features Home Columns
+*/
+#current-features + ul {
+    text-align: center;
+    margin: 0;
+    -webkit-padding-start: 0;
+    padding: 0;
+}
+#current-features + ul li {
+    display: inline-block;
+    width: 31%;
+    min-height: 450px;
+    vertical-align: top;
+    border: 2px solid black;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 10px;
+    position: relative;
+    overflow: hidden;
+    @media screen and (max-width: 1199px) {
+      width: 46%;
+    }
+    @media screen and (max-width: 624px) {
+      width: 85%;
+    }
+    @media screen and (max-width: $screen-phone) {
+      width: 90%;
+    }
+}
+
+/*card borders*/
+
+#current-features + ul li:nth-child(1) {
+    border-color: rgb(46, 180, 77);
+    background-color: rgba(46, 180, 77, 0.1);
+}
+#current-features + ul li:nth-child(2) {
+    border-color: rgb(242, 144, 58);
+    background-color: rgba(242, 144, 58, 0.1);
+}
+#current-features + ul li:nth-child(3) {
+    border-color: rgb(36, 140, 203);
+    background-color: rgba(36, 140, 203, 0.1);
+}
+#current-features + ul li:nth-child(4) {
+    border-color: rgb(233, 106, 121);
+    background-color: rgba(233, 106, 121, 0.1);
+}
+#current-features + ul li:nth-child(5) {
+    border-color: rgb(20, 103, 103);
+    background-color: rgba(20, 103, 103, 0.1);
+}
+#current-features + ul li:nth-child(6) {
+    border-color: rgb(250, 188, 66);
+    background-color: rgba(250, 188, 66, 0.1);
+}
+
+/*card titles*/
+
+#current-features + ul li:nth-child(1) strong {
+    background-color: rgb(46, 180, 77);
+}
+#current-features + ul li:nth-child(2) strong {
+    background-color: rgb(242, 144, 58);
+}
+#current-features + ul li:nth-child(3) strong {
+    background-color: rgb(36, 140, 203);
+}
+#current-features + ul li:nth-child(4) strong {
+    background-color: rgb(233, 106, 121);
+}
+#current-features + ul li:nth-child(5) strong {
+    background-color: rgb(20, 103, 103);
+}
+#current-features + ul li:nth-child(6) strong {
+    background-color: rgb(250, 188, 66);
+}
+
+/*custom font sizes to make content fit nicely*/
+
+#current-features + ul li:nth-child(1) strong {
+    font-size: 16px;
+}
+#current-features + ul li:nth-child(2) strong {
+    font-size: 16px;
+}
+#current-features + ul li:nth-child(3) strong {
+    font-size: 16px;
+}
+#current-features + ul li:nth-child(4) strong {
+    font-size: 16px;
+}
+#current-features + ul li:nth-child(5) strong {
+    font-size: 16px;
+}
+#current-features + ul li:nth-child(6) strong {
+    font-size: 16px;
+}
+#current-features + ul li p a {
+    text-decoration: underline;
+    color: inherit;
+}
+#current-features + ul li p {
+    text-align: left;
+    line-height: 1.6;
+    padding-top: 30px;
+}
+#current-features + ul li p strong {
+    display: block;
+    font-size: 16px;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    text-align: center;
+    color: white;
+    padding: 5px 0;
+}
+#current-features + ul li p code {
+    background-color: #F7F4F3;
+    border: 1px solid #C4CBCA;
+    font-size: 100%;
+    padding: 0 2px;
 }
 
 /*

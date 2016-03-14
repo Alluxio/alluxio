@@ -16,7 +16,7 @@
     <meta name="viewport" content="width=device-width">
     <link rel="stylesheet" href="../css/main.css">
 
-    <script src="../js/vendor/modernizr-2.6.1-respond-1.1.0.min.js"></script>
+    <!-- <script src="../js/vendor/modernizr-2.6.1-respond-1.1.0.min.js"></script> -->
     <link rel="shortcut icon" href="../img/favicon.png">
     <link rel="stylesheet" href="../css/pygments-default.css">
 
@@ -60,7 +60,7 @@
         </div>
       </a>
     </div>
-    <div class="collapse navbar-collapse">
+    <div id="primary-menu" class="collapse navbar-collapse">
       <ul class="nav navbar-nav navbar-right">
           {% if page.group == "Home" %}
               <li class="active"><a>{{page.title}}</a></li>
@@ -73,6 +73,7 @@
           {% assign categories = "User Guide|Features|Frameworks|Under Store|Resources" | split: "|" %}
           {% for groupName in categories %}
               <li class="dropdown">
+                {{site.categories.[User Guide].en}}
                   {% if page.group == groupName %}
                       <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{site.categories.[groupName].[page.lang]}}<b
                           class="caret"></b></a>
@@ -109,7 +110,7 @@
                       {% if groupName == "Resources" %}
                           <li><a href="https://alluxio.atlassian.net/browse/ALLUXIO">Reporting Issues (JIRA)</a></li>
                           <li class="divider"></li>
-                          <li><p>Presentations</p></li>
+                          <li><h4>Presentations</h4></li>
                           <li><a href="http://www.slideshare.net/TachyonNexus/tachyon-presentation-at-ampcamp-6-november-2015">AMPCamp 6</a></li>
                           <li><a href="http://goo.gl/kcKeTp">Strata and Hadoop World 2015</a></li>
                           <li><a href="http://goo.gl/0HpqeS">Tachyon Workshop 2015</a></li>
@@ -137,9 +138,13 @@
   </div>
 </div>
 
-<div class="container" id="content">
+<div class="banner" style="background: url('../img/home-banner.jpg') center no-repeat; background-size: cover;" >
+  <header class="entry-header text-center">
     <h1 class="title">{{ page.title }}</h1>
+  </header><!-- .entry-header -->
+</div>
 
+<div class="container content-area" id="content">
     {{ content }}
     <!-- Main hero unit for a primary marketing message or call to action -->
     <!--<div class="hero-unit">
@@ -175,7 +180,7 @@
       <div class="container">
           <div class="row">
             <div class="col-md-16">
-              <p class="text-center">
+              <p class="copy">
                   Alluxio is being developed by a <a href="https://github.com/alluxio/alluxio/graphs/contributors">large
                   community</a>.
               </p>
@@ -184,9 +189,9 @@
         </div>
     </footer>
 
-
-<script src="../js/vendor/jquery-1.8.0.min.js"></script>
-<script src="../js/vendor/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+<!-- Latest compiled and minified Bootstrap JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script src="../js/main.js"></script>
 
 <!-- A script to fix internal hash links because we have an overlapping top bar.
@@ -212,6 +217,5 @@
 </script>
 
 <script src="../js/scrollspy.js"></script>
-
 </body>
 </html>
