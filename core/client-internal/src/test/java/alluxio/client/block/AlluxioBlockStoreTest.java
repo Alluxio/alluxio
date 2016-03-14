@@ -124,8 +124,9 @@ public final class AlluxioBlockStoreTest {
     BufferedBlockInStream stream = sBlockStore.getInStream(BLOCK_ID);
 
     Assert.assertTrue(stream instanceof LocalBlockInStream);
-    Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals(BLOCK_LENGTH, Whitebox.getInternalState(stream, "mBlockSize"));
+    Assert.assertEquals(Long.valueOf(BLOCK_ID), Whitebox.getInternalState(stream, "mBlockId"));
+    Assert.assertEquals(Long.valueOf(BLOCK_LENGTH),
+        Whitebox.getInternalState(stream, "mBlockSize"));
   }
 
   /**
@@ -143,8 +144,9 @@ public final class AlluxioBlockStoreTest {
     BufferedBlockInStream stream = sBlockStore.getInStream(BLOCK_ID);
 
     Assert.assertTrue(stream instanceof RemoteBlockInStream);
-    Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals(BLOCK_LENGTH, Whitebox.getInternalState(stream, "mBlockSize"));
+    Assert.assertEquals(Long.valueOf(BLOCK_ID), Whitebox.getInternalState(stream, "mBlockId"));
+    Assert.assertEquals(Long.valueOf(BLOCK_LENGTH),
+        Whitebox.getInternalState(stream, "mBlockSize"));
     Assert.assertEquals(new InetSocketAddress(WORKER_HOSTNAME_REMOTE, WORKER_DATA_PORT),
         Whitebox.getInternalState(stream, "mLocation"));
   }
