@@ -66,6 +66,9 @@ h2.hero{
  -webkit-transition: all 1s ease;
  -moz-transition: all 1s ease;
  border-bottom: 1px solid #eee;
+ .navbar-brand{
+   padding: 20px 10px;
+ }
  .collapse.in{
    @media screen and (max-width: 991px) {
      .nav{
@@ -89,8 +92,9 @@ h2.hero{
      > li{
        > a{
            font-weight: 600;
-           text-transform: uppercase;
+           text-transform: capitalize;
            font-size: 0.8em;
+           padding: 10px 12px;
        }
        &.download.btn{
          padding: 0px 8px;
@@ -114,7 +118,7 @@ h2.hero{
      }
   }
   .brand-logo{
-    width: 250px;
+    width: 220px;
     height: auto;
     transition: all 0s ease;
    -webkit-transition: all 0s ease;
