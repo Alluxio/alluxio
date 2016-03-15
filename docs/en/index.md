@@ -17,18 +17,17 @@ throughput of their data analytics pipeline by
 [30 times](http://www.alluxio.com/assets/uploads/2016/02/Baidu-Case-Study.pdf).
 Barclays makes the impossible possible with Alluxio to accelerate jobs from
 [hours to seconds](https://dzone.com/articles/Accelerate-In-Memory-Processing-with-Spark-from-Hours-to-Seconds-With-Tachyon).
-Beyond performance, Alluxio bridges new
-workloads with data stored in traditional storage systems. Users can run Alluxio using its
-standalone cluster mode, for example on Amazon EC2, or launch Alluxio with Apache Mesos or Apache
-Yarn.
+Beyond performance, Alluxio bridges new workloads with data stored in traditional storage systems.
+Users can run Alluxio using its standalone cluster mode, for example on Amazon EC2, or launch
+Alluxio with Apache Mesos or Apache Yarn.
 
 Alluxio is Hadoop compatible. This means that existing Spark and MapReduce programs can run on top
 of Alluxio without any code changes. The project is open source
 ([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE)) and is deployed at
 multiple companies. It is one of the fastest growing open source projects. With less than three
-years open source history, Alluxio has attracted more than
-[160 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 50 institutions,
-including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
+years of open source history, Alluxio has attracted more than
+[160 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 50
+institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
 [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com),
 [Intel](http://www.intel.com/), [Red Hat](https://www.redhat.com/),
 [UC Berkeley](https://amplab.cs.berkeley.edu/), and [Yahoo](https://www.yahoo.com/).
