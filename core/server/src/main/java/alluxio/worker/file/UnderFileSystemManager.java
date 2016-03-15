@@ -38,6 +38,7 @@ public final class UnderFileSystemManager {
    * renamed to the final file path. This stream guarantees the temporary file will be cleaned up
    * when close or cancel is called.
    */
+  // TODO(calvin): This can be defined by the UnderFileSystem
   private final class UnderFileSystemOutputStream {
     /** Configuration to use for this stream. */
     private final Configuration mConf;
