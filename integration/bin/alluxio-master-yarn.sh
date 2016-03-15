@@ -20,7 +20,6 @@ echo "Starting Alluxio Master"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${ALLUXIO_MASTER_JAVA_OPTS} \
-  -Dalluxio.accesslogger.type="MASTER_ACCESS_LOGGER" \
   -Dalluxio.home="${ALLUXIO_HOME}" \
   -Dalluxio.logger.type="MASTER_LOGGER" \
   -Dalluxio.logs.dir="${YARN_LOG_DIR}" \

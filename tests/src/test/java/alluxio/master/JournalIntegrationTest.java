@@ -30,7 +30,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
-import alluxio.security.authentication.PlainSaslServer;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.IdUtils;
@@ -593,7 +593,7 @@ public class JournalIntegrationTest {
   private void aclTestUtil(URIStatus status) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
-    PlainSaslServer.AuthorizedClientUser.set("user1");
+    AuthenticatedClientUser.set("user1");
     FileInfo info = fsMaster.getFileInfo(new AlluxioURI("/file"));
     Assert.assertEquals(status, new URIStatus(info));
 
