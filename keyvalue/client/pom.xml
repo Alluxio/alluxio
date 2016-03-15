@@ -51,7 +51,7 @@
   </dependencies>
 
   <profiles>
-        <!-- build profile for Apache Spark -->
+    <!-- build profile for Apache Spark -->
     <profile>
       <id>spark</id>
       <!-- The dependencies are the same as the default dependencies, except that curator-client, curator-framework, -->
