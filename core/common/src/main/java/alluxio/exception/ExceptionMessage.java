@@ -112,6 +112,10 @@ public enum ExceptionMessage {
   FAILED_UFS_CREATE("Failed to create {0} in the under file system"),
   FAILED_UFS_RENAME("Failed to rename {0} to {1} in the under file system"),
 
+  // file system worker
+  BAD_WORKER_FILE_ID("Worker file id {0} is invalid. The worker may have crashed or cleaned up "
+      + "the client state due to a timeout."),
+
   // shell
   DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE(
       "The destination cannot be an existent file when the src contains wildcards."),

@@ -46,6 +46,15 @@ public final class FileSystemWorkerClientServiceHandler
     return Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION;
   }
 
+  /**
+   * Cancels the write to the file in the under file system specified by the worker file id. The
+   * temporary file will be automatically cleaned up.
+   *
+   * @param workerFileId the worker id of the ufs file
+   * @param options the options for canceling the file
+   * @throws AlluxioTException if an internal Alluxio error occurs
+   * @throws ThriftIOException if an error occurs outside of Alluxio
+   */
   @Override
   public void ufsCancelFile(long workerFileId, UFSCancelFileTOptions options)
       throws AlluxioTException, ThriftIOException {
@@ -58,6 +67,15 @@ public final class FileSystemWorkerClientServiceHandler
     }
   }
 
+  /**
+   * Completes the write to the file in the under file system specified by the worker file id. The
+   * temporary file will be automatically promoted to the final file if possible.
+   *
+   * @param workerFileId the worker id of the ufs file
+   * @param options the options for completing the file
+   * @throws AlluxioTException if an internal Alluxio error occurs
+   * @throws ThriftIOException if an error occurs outside of Alluxio
+   */
   @Override
   public void ufsCompleteFile(long workerFileId, UFSCompleteFileTOptions options)
       throws AlluxioTException, ThriftIOException {
@@ -70,6 +88,16 @@ public final class FileSystemWorkerClientServiceHandler
     }
   }
 
+  /**
+   * Creates a file in the under file system. The file will be a temporary file until {@link
+   * #ufsCompleteFile} is called.
+   *
+   * @param ufsPath the path of the file in the ufs
+   * @param options the options for creating the file
+   * @return the worker file id assigned to this file, all future access to the file uses this id
+   * @throws AlluxioTException if an internal Alluxio error occurs
+   * @throws ThriftIOException if an error occurs outside of Alluxio
+   */
   @Override
   public long ufsCreateFile(String ufsPath, UFSCreateFileTOptions options)
       throws AlluxioTException, ThriftIOException {

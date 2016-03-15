@@ -42,7 +42,7 @@ public class FileSystemWorkerClientService {
     /**
      * Cancels a file which has not been completed in the under file system.
      * 
-     * @param workerFileId the path of the file in the ufs
+     * @param workerFileId the worker id of the ufs file
      * 
      * @param options the options for canceling the file
      */
@@ -51,7 +51,7 @@ public class FileSystemWorkerClientService {
     /**
      * Completes a file in the under file system.
      * 
-     * @param workerFileId the path of the file in the ufs
+     * @param workerFileId the worker id of the ufs file
      * 
      * @param options the options for completing the file
      */
@@ -627,7 +627,7 @@ public class FileSystemWorkerClientService {
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
-       * the path of the file in the ufs
+       * the worker id of the ufs file
        */
       WORKER_FILE_ID((short)1, "workerFileId"),
       /**
@@ -741,14 +741,14 @@ public class FileSystemWorkerClientService {
     }
 
     /**
-     * the path of the file in the ufs
+     * the worker id of the ufs file
      */
     public long getWorkerFileId() {
       return this.workerFileId;
     }
 
     /**
-     * the path of the file in the ufs
+     * the worker id of the ufs file
      */
     public ufsCancelFile_args setWorkerFileId(long workerFileId) {
       this.workerFileId = workerFileId;
@@ -1584,7 +1584,7 @@ public class FileSystemWorkerClientService {
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
-       * the path of the file in the ufs
+       * the worker id of the ufs file
        */
       WORKER_FILE_ID((short)1, "workerFileId"),
       /**
@@ -1698,14 +1698,14 @@ public class FileSystemWorkerClientService {
     }
 
     /**
-     * the path of the file in the ufs
+     * the worker id of the ufs file
      */
     public long getWorkerFileId() {
       return this.workerFileId;
     }
 
     /**
-     * the path of the file in the ufs
+     * the worker id of the ufs file
      */
     public ufsCompleteFile_args setWorkerFileId(long workerFileId) {
       this.workerFileId = workerFileId;
