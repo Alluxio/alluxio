@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.ValidateConf;
 import alluxio.Version;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -68,6 +69,12 @@ public class AlluxioMaster {
   public static void main(String[] args) {
     if (args.length != 0) {
       LOG.info("java -cp {} alluxio.Master", Version.ALLUXIO_JAR);
+      System.exit(-1);
+    }
+
+    // validate the conf
+    if (!ValidateConf.validate()) {
+      LOG.error("Invalid configuration found");
       System.exit(-1);
     }
 
@@ -258,7 +265,7 @@ public class AlluxioMaster {
       }
 
       mAdditionalMasters = Lists.newArrayList();
-      List<? extends  Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
+      List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
       for (MasterFactory factory : getServiceLoader()) {
         Master master = factory.create(masters, journalDirectory);
         if (master != null) {
@@ -431,9 +438,8 @@ public class AlluxioMaster {
 
   protected void startServingWebServer() {
     Configuration conf = MasterContext.getConf();
-    mWebServer =
-        new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
-            ServiceType.MASTER_WEB, conf), this, conf);
+    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
+        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB, conf), this, conf);
 
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
