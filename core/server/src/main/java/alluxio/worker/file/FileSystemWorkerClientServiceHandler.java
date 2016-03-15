@@ -20,12 +20,17 @@ import alluxio.thrift.UFSCancelFileTOptions;
 import alluxio.thrift.UFSCompleteFileTOptions;
 import alluxio.thrift.UFSCreateFileTOptions;
 
+import com.google.common.base.Preconditions;
+
 import java.io.IOException;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Handles incoming thrift requests from a worker file system client. This is mostly a wrapper
  * around {@link FileSystemWorker} and delegates calls to it.
  */
+@NotThreadSafe
 public final class FileSystemWorkerClientServiceHandler
     implements FileSystemWorkerClientService.Iface {
 
@@ -38,7 +43,7 @@ public final class FileSystemWorkerClientServiceHandler
    * @param worker the file system worker which will handle most of the requests
    */
   public FileSystemWorkerClientServiceHandler(FileSystemWorker worker) {
-    mWorker = worker;
+    mWorker = Preconditions.checkNotNull(worker);
   }
 
   @Override

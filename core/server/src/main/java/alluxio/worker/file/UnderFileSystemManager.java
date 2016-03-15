@@ -19,6 +19,8 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerContext;
 
+import com.google.common.base.Preconditions;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Random;
@@ -26,11 +28,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Handles writes to the under file system. Manages open output streams to Under File Systems.
  * Individual streams should only be used by one client. Each instance keeps its own state of
  * file names to open streams.
  */
+@ThreadSafe
 public final class UnderFileSystemManager {
   /**
    * A wrapper around the output stream to the under file system. This class handles writing the
@@ -51,8 +56,8 @@ public final class UnderFileSystemManager {
 
     private UnderFileSystemOutputStream(String ufsPath, Configuration conf)
         throws FileAlreadyExistsException, IOException {
-      mConf = conf;
-      mPath = ufsPath;
+      mConf = Preconditions.checkNotNull(conf);
+      mPath = Preconditions.checkNotNull(ufsPath);
       mTemporaryPath = PathUtils.temporaryFileName(Math.abs(new Random().nextLong()), mPath);
       UnderFileSystem ufs = UnderFileSystem.get(mPath, mConf);
       if (ufs.exists(mPath)) {
@@ -62,18 +67,11 @@ public final class UnderFileSystemManager {
     }
 
     /**
-     * @return the wrapped output stream to the under file system file
-     */
-    public OutputStream getStream() {
-      return mStream;
-    }
-
-    /**
      * Closes the temporary file and deletes it. This object should be discarded after this call.
      *
      * @throws IOException if an error occurs during the under file system operation
      */
-    public void cancel() throws IOException {
+    private void cancel() throws IOException {
       mStream.close();
       UnderFileSystem ufs = UnderFileSystem.get(mPath, mConf);
       // TODO(calvin): Log a warning if the delete fails
@@ -86,13 +84,20 @@ public final class UnderFileSystemManager {
      *
      * @throws IOException if an error occurs during the under file system operation
      */
-    public void close() throws IOException {
+    private void complete() throws IOException {
       mStream.close();
       UnderFileSystem ufs = UnderFileSystem.get(mPath, mConf);
       if (!ufs.rename(mTemporaryPath, mPath)) {
         // TODO(calvin): Log a warning if the delete fails
         ufs.delete(mTemporaryPath, false);
       }
+    }
+
+    /**
+     * @return the wrapped output stream to the under file system file
+     */
+    private OutputStream getStream() {
+      return mStream;
     }
   }
 
@@ -120,9 +125,9 @@ public final class UnderFileSystemManager {
    * @throws IOException if an error occurs when operating on the under file system
    */
   public long createFile(String ufsPath) throws FileAlreadyExistsException, IOException {
-    long workerFileId = mIdGenerator.getAndIncrement();
     UnderFileSystemOutputStream stream =
         new UnderFileSystemOutputStream(ufsPath, WorkerContext.getConf());
+    long workerFileId = mIdGenerator.getAndIncrement();
     mStreams.put(workerFileId, stream);
     return workerFileId;
   }
@@ -156,7 +161,7 @@ public final class UnderFileSystemManager {
   public void completeFile(long workerFileId) throws FileDoesNotExistException, IOException {
     UnderFileSystemOutputStream stream = mStreams.remove(workerFileId);
     if (stream != null) {
-      stream.close();
+      stream.complete();
     } else {
       throw new FileDoesNotExistException(
           ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(workerFileId));
