@@ -17,6 +17,7 @@ import alluxio.master.block.BlockId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Random;
 import java.util.UUID;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -31,6 +32,7 @@ public final class IdUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   public static final long INVALID_FILE_ID = -1;
   public static final long INVALID_WORKER_ID = -1;
+  private static Random sRandom = new Random();
 
   /**
    * Creates an id for a file based on the given id of the container.
@@ -55,5 +57,12 @@ public final class IdUtils {
    */
   public static String createRpcId() {
     return UUID.randomUUID().toString();
+  }
+
+  /**
+   * @return a random long which is guaranteed to be non negative (zero is allowed)
+   */
+  public static synchronized long getRandomNonNegativeLong() {
+    return Math.abs(sRandom.nextLong());
   }
 }
