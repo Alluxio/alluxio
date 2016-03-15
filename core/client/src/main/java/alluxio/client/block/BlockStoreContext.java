@@ -12,10 +12,10 @@
 package alluxio.client.block;
 
 import alluxio.client.ClientContext;
-import alluxio.client.ClientUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.resource.CloseableResource;
+import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -220,7 +220,7 @@ public enum BlockStoreContext {
     Preconditions.checkArgument(
         !address.getHost().equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),
         PreconditionMessage.REMOTE_CLIENT_BUT_LOCAL_HOSTNAME);
-    long clientId = ClientUtils.getRandomNonNegativeLong();
+    long clientId = IdUtils.getRandomNonNegativeLong();
     return new BlockWorkerClient(address, ClientContext.getExecutorService(),
         ClientContext.getConf(), clientId, false, new ClientMetrics());
   }

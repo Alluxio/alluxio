@@ -14,13 +14,14 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.ValidateConf;
 import alluxio.Version;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
-import alluxio.security.authentication.AuthenticationUtils;
+import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.LineageUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -71,6 +72,12 @@ public class AlluxioMaster {
       System.exit(-1);
     }
 
+    // validate the conf
+    if (!ValidateConf.validate()) {
+      LOG.error("Invalid configuration found");
+      System.exit(-1);
+    }
+
     try {
       AlluxioMaster master = get();
       master.start();
@@ -103,6 +110,9 @@ public class AlluxioMaster {
 
   /** The socket for thrift rpc server. */
   private final TServerSocket mTServerSocket;
+
+  /** The transport provider to create thrift server transport. */
+  private final TransportProvider mTransportProvider;
 
   /** The address for the rpc server. */
   private final InetSocketAddress mMasterAddress;
@@ -225,6 +235,7 @@ public class AlluxioMaster {
         Preconditions.checkState(conf.getInt(Constants.MASTER_WEB_PORT) > 0,
             "Master web port is only allowed to be zero in test mode.");
       }
+      mTransportProvider = TransportProvider.Factory.create(conf);
       mTServerSocket =
           new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, conf));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
@@ -254,7 +265,7 @@ public class AlluxioMaster {
       }
 
       mAdditionalMasters = Lists.newArrayList();
-      List<? extends  Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
+      List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
       for (MasterFactory factory : getServiceLoader()) {
         Master master = factory.create(masters, journalDirectory);
         if (master != null) {
@@ -427,9 +438,8 @@ public class AlluxioMaster {
 
   protected void startServingWebServer() {
     Configuration conf = MasterContext.getConf();
-    mWebServer =
-        new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
-            ServiceType.MASTER_WEB, conf), this, conf);
+    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
+        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB, conf), this, conf);
 
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
@@ -459,7 +469,7 @@ public class AlluxioMaster {
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;
     try {
-      transportFactory = AuthenticationUtils.getServerTransportFactory(MasterContext.getConf());
+      transportFactory = mTransportProvider.getServerTransportFactory();
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }

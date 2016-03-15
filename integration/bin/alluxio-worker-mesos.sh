@@ -13,7 +13,6 @@ mkdir -p "${ALLUXIO_LOGS_DIR}"
 "${JAVA}" -cp "${CLASSPATH}" \
   ${ALLUXIO_WORKER_JAVA_OPTS}  \
   -Djava.library.path="${MESOS_LIBRARY_PATH}" \
-  -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" \
   -Dalluxio.home="${ALLUXIO_HOME}" \
   -Dalluxio.logger.type="WORKER_LOGGER" \
   -Dalluxio.logs.dir="${ALLUXIO_LOGS_DIR}" \

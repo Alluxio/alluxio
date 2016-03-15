@@ -17,7 +17,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
-import alluxio.client.ClientUtils;
 import alluxio.client.UnderStorageType;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.file.options.CompleteFileOptions;
@@ -27,6 +26,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -79,7 +79,7 @@ public class FileOutStream extends AbstractOutStream {
    */
   public FileOutStream(AlluxioURI path, OutStreamOptions options) throws IOException {
     mUri = Preconditions.checkNotNull(path);
-    mNonce = ClientUtils.getRandomNonNegativeLong();
+    mNonce = IdUtils.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
