@@ -23,3 +23,9 @@ S3:
   # The bucket should be the name of an existing bucket (ex. alluxiodata, not
   # s3://alluxiodata, s3n://alluxiodata, etc.)
   Bucket:
+
+# Doc on AccessKeyID and SecretAccessKey:
+# http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html
+GCS:
+  # The bucket should be the name of an existing bucket (ex. alluxiodata, not gs://alluxiodata, etc.)
+  Bucket:
