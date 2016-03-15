@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response;
 // TODO(cc): Investigate auto-generation of REST API documentation.
 public final class AlluxioMasterRestServiceHandler {
   public static final String SERVICE_PREFIX = "master";
+  public static final String GET_CONFIGURATION = "configuration";
   public static final String GET_DEBUG = "debug";
   public static final String GET_ADDRESS = "address";
   public static final String GET_START_TIME_MS = "start_time_ms";
@@ -41,6 +42,23 @@ public final class AlluxioMasterRestServiceHandler {
 
   private final AlluxioMaster mMaster = AlluxioMaster.get();
   private final Configuration mMasterConf = MasterContext.getConf();
+
+  /**
+   * @summary get the configuration map
+   * @return the response object
+   */
+  @GET
+  @Path(GET_CONFIGURATION)
+  @ReturnType("java.util.Map<String, String>")
+  public Response getConfiguration() {
+    Set<Map.Entry<Object, Object>> properties = mMasterConf.getInternalProperties().entrySet();
+    Map<String, String> configuration = new HashMap<>(properties.size());
+    for (Map.Entry<Object, Object> entry : properties) {
+      String key = entry.getKey().toString();
+      configuration.put(key, mMasterConf.get(key));
+    }
+    return Response.ok(configuration).build();
+  }
 
   /**
    * @summary get whether the master is in debug mode
