@@ -107,6 +107,13 @@ public enum WriteType {
   }
 
   /**
+   * @return true if the write type is {@link #MUST_CACHE} or {@link #ASYNC_THROUGH}
+   */
+  public boolean isMustCache() {
+    return (mValue == MUST_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
+  }
+
+  /**
    * @return true if the write type is {@link #CACHE_THROUGH} or {@link #THROUGH}
    */
   public boolean isThrough() {
