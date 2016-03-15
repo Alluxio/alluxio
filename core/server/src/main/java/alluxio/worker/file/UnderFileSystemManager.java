@@ -16,6 +16,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerContext;
 
@@ -23,7 +24,6 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -58,7 +58,7 @@ public final class UnderFileSystemManager {
         throws FileAlreadyExistsException, IOException {
       mConf = Preconditions.checkNotNull(conf);
       mPath = Preconditions.checkNotNull(ufsPath);
-      mTemporaryPath = PathUtils.temporaryFileName(Math.abs(new Random().nextLong()), mPath);
+      mTemporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), mPath);
       UnderFileSystem ufs = UnderFileSystem.get(mPath, mConf);
       if (ufs.exists(mPath)) {
         throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mPath));
@@ -111,7 +111,7 @@ public final class UnderFileSystemManager {
    * manager.
    */
   public UnderFileSystemManager() {
-    mIdGenerator = new AtomicLong(new Random().nextLong());
+    mIdGenerator = new AtomicLong(IdUtils.getRandomNonNegativeLong());
     mStreams = new ConcurrentHashMap<>();
   }
 
