@@ -23,7 +23,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.security.LoginUser;
-import alluxio.security.authentication.PlainSaslServer;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
 import alluxio.wire.FileInfo;
 
@@ -69,8 +69,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())
-        && PlainSaslServer.AuthorizedClientUser.get(MasterContext.getConf()) == null) {
-      PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(MasterContext.getConf()).getName());
+        && AuthenticatedClientUser.get(MasterContext.getConf()) == null) {
+      AuthenticatedClientUser.set(LoginUser.get(MasterContext.getConf()).getName());
     }
     String requestPath = request.getParameter("path");
     if (requestPath == null || requestPath.isEmpty()) {
