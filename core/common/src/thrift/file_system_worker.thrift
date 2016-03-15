@@ -30,7 +30,7 @@ service FileSystemWorkerClientService extends common.AlluxioService {
   /**
    * Creates a file in the under file system.
    */
-  i64 ufsCreateFile( /** the path of the file in the ufs */ 1: string path,
+  i64 ufsCreateFile( /** the path of the file in the ufs */ 1: string ufsPath,
       /** the options for creating the file */ 2: UFSCreateFileTOptions options)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 }
