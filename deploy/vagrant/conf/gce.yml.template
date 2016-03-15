@@ -1,0 +1,42 @@
+# AUTHENTICATION
+# The Client Email address for your Service Account.
+google_client_email:
+# The location of the P12 private key file matching your Service Account.
+google_key_location:
+# The location of the JSON private key file matching your Service Account.
+google_json_key_location:
+# The Project ID for your Google Cloud Platform account.
+google_project_id:
+
+# VM SETUP
+# - The image name to use when booting your instance.
+image:
+# The number of seconds to wait for the instance to become "ready" in GCE. Defaults to 20 seconds.
+instance_ready_timeout: “20”
+
+#  - The machine type to use. The default is "n1-standard-1". When using spark, we recommend "n1-highmem-2", compile spark needs 2G memory at least.
+#  - Differences among GCE instance types: https://cloud.google.com/compute/docs/machine-types
+machine_type: “n1-highmem-2”
+
+#  - The disk size in GB. The default is 10.
+# disk_size: “10”
+# The disk name to use. If the disk exists, it will be reused, otherwise created.
+# disk_name: “”
+
+#  - Custom key/value pairs of metadata to add to the instance.
+# metadata:
+
+ - The name of your instance. The default is "i-yyyymmddhh-randomsd", e.g. 10/08/2015 13:15:15 is "i-2015081013-15637fda".
+# name:
+
+# - The name of the network to use for the instance. Default is "default".
+network: 
+# tags - An array of tags to apply to this instance.
+# zone - The zone name where the instance will be created.
+# can_ip_forward - Boolean whether to enable IP Forwarding.
+# external_ip - The external IP address to use (supports names).
+# preemptible - Boolean whether to enable preemptibility. Default is false.
+# auto_restart - Boolean whether to enable auto_restart. Default is true.
+# on_host_maintenance - What to do on host maintenance. Default is "MIGRATE".
+# service_accounts or scopes - An array of OAuth2 account scopes for services that the instance will have access to. Those can be both full API scopes, just endpoint aliases (the part after ...auth/), and gcloud utility aliases, for example: ['storage-full', 'bigquery', 'https://www.googleapis.com/auth/compute'].
+

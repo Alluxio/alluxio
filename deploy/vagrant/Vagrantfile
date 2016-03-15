@@ -122,6 +122,25 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         config_aws(n, i, Total, name)
       end
 
+      if Provider == “google”
+        if (defined?(@gce)).nil?
+          @gce = YAML.load_file('conf/gce.yml')
+          puts @gce.inspect
+          #KEYPAIR=@gce['Keypair']
+          #KEY_PATH=@gce['Key_Path']
+          #AMI=@gce['AMI']
+          #REGION=@gce['Region']
+          #SECURITY_GROUP=@gce['Security_Group']
+          INSTANCE_TYPE = @gce['Instance_Type']
+          #AVAILABILITY_ZONE  = @gce['Availability_Zone']
+          #BLOCK_DEVICE_MAPPING = @gce['Block_Device_Mapping']
+          #TAG = @gce['Tag']
+          #SUBNET = @gce['Subnet']
+        end
+        config_google(n, i, Total, name)
+      end
+
+
       if Provider == "openstack"
         if (defined?(@os)).nil?
           @os = YAML.load_file('conf/openstack.yml')
