@@ -13,7 +13,11 @@ In the big data ecosystem, Alluxio lies between computation frameworks or jobs, 
 Spark, Apache MapReduce, or Apache Flink, and various kinds of storage systems, such as Amazon S3,
 OpenStack Swift, GlusterFS, HDFS, Ceph, or OSS. Alluxio brings significant performance improvement
 to the ecosystem; for example, [Baidu](https://www.baidu.com) uses Alluxio to improve speedup the
-throughput of their data analytics pipeline by 30 times. Beyond performance, Alluxio bridges new
+throughput of their data analytics pipeline by
+[30 times](http://www.alluxio.com/assets/uploads/2016/02/Baidu-Case-Study.pdf).
+Barclays makes the impossible possible with Alluxio to accelerate jobs from
+[hours to seconds](https://dzone.com/articles/Accelerate-In-Memory-Processing-with-Spark-from-Hours-to-Seconds-With-Tachyon).
+Beyond performance, Alluxio bridges new
 workloads with data stored in traditional storage systems. Users can run Alluxio using its
 standalone cluster mode, for example on Amazon EC2, or launch Alluxio with Apache Mesos or Apache
 Yarn.
