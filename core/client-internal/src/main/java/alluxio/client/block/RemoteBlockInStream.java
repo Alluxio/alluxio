@@ -46,7 +46,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    *
    * @param blockId the block id
    * @param blockSize the block size
-   * @param location the location
+   * @param workerNetAddress the address of the worker to read from
    * @throws IOException if the block is not available on the remote worker
    */
   public RemoteBlockInStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress)
