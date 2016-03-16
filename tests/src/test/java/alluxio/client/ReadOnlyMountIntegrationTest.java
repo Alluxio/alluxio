@@ -246,7 +246,7 @@ public class ReadOnlyMountIntegrationTest {
 //      Assert.fail("File should not exist before loading metadata.");
 //    } catch (FileDoesNotExistException e) {
 //      Assert
-//          .assertEquals(e.getMessage(), ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(FILE_PATH));
+//        .assertEquals(e.getMessage(), ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(FILE_PATH));
 //    }
     mFileSystem.loadMetadata(fileUri);
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
