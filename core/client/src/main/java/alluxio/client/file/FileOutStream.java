@@ -262,9 +262,9 @@ public class FileOutStream extends AbstractOutStream {
     if (mAlluxioStorageType.isStore()) {
       try {
         WorkerNetAddress address = mLocationPolicy
-            .getWorkerForNextBlock(mContext.getAluxioBlockStore().getWorkerInfoList(), mBlockSize);
+            .getWorkerForNextBlock(mContext.getAlluxioBlockStore().getWorkerInfoList(), mBlockSize);
         mCurrentBlockOutStream =
-            mContext.getAluxioBlockStore().getOutStream(getNextBlockId(), mBlockSize, address);
+            mContext.getAlluxioBlockStore().getOutStream(getNextBlockId(), mBlockSize, address);
         mShouldCacheCurrentBlock = true;
       } catch (AlluxioException e) {
         throw new IOException(e);

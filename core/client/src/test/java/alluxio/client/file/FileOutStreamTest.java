@@ -95,7 +95,7 @@ public class FileOutStreamTest {
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
 
-    Mockito.when(mFileSystemContext.getAluxioBlockStore()).thenReturn(mBlockStore);
+    Mockito.when(mFileSystemContext.getAlluxioBlockStore()).thenReturn(mBlockStore);
     Mockito.when(mBlockStoreContext.acquireWorkerClient()).thenReturn(mBlockWorkerClient);
     Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
     Mockito.when(mFileSystemMasterClient.getStatus(Mockito.any(AlluxioURI.class))).thenReturn(

@@ -231,9 +231,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         try {
           long blockSize = getCurrentBlockSize();
           WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
-              mContext.getAluxioBlockStore().getWorkerInfoList(), blockSize);
+              mContext.getAlluxioBlockStore().getWorkerInfoList(), blockSize);
           mCurrentCacheStream =
-              mContext.getAluxioBlockStore().getOutStream(currentBlockId, blockSize, address);
+              mContext.getAlluxioBlockStore().getOutStream(currentBlockId, blockSize, address);
         } catch (IOException e) {
           LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e);
           mShouldCacheCurrentBlock = false;
@@ -311,9 +311,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         try {
           long blockSize = getCurrentBlockSize();
           WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
-              mContext.getAluxioBlockStore().getWorkerInfoList(), blockSize);
+              mContext.getAlluxioBlockStore().getWorkerInfoList(), blockSize);
           mCurrentCacheStream =
-              mContext.getAluxioBlockStore().getOutStream(currentBlockId, blockSize, address);
+              mContext.getAlluxioBlockStore().getOutStream(currentBlockId, blockSize, address);
         } catch (IOException e) {
           LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
           mShouldCacheCurrentBlock = false;
@@ -342,13 +342,13 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     try {
       if (mAlluxioStorageType.isPromote()) {
         try {
-          mContext.getAluxioBlockStore().promote(blockId);
+          mContext.getAlluxioBlockStore().promote(blockId);
         } catch (IOException e) {
           // Failed to promote
           LOG.warn("Promotion of block with ID {} failed.", blockId, e);
         }
       }
-      mCurrentBlockInStream = mContext.getAluxioBlockStore().getInStream(blockId);
+      mCurrentBlockInStream = mContext.getAlluxioBlockStore().getInStream(blockId);
       mShouldCacheCurrentBlock =
           !(mCurrentBlockInStream instanceof LocalBlockInStream) && mAlluxioStorageType.isStore();
     } catch (IOException e) {
