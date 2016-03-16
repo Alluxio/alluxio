@@ -388,22 +388,12 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    */
   public FileInfo getFileInfo(AlluxioURI path)
-<<<<<<< HEAD
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-||||||| merged common ancestors
-      throws FileDoesNotExistException, InvalidPathException {
-=======
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
->>>>>>> upstream/branch-1.0
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
-<<<<<<< HEAD
       checkPermission(FileSystemAction.READ, path, false);
-||||||| merged common ancestors
-=======
       // getFileInfo should load from ufs if the file does not exist
       getFileId(path);
->>>>>>> upstream/branch-1.0
       Inode inode = mInodeTree.getInodeByPath(path);
       return getFileInfoInternal(inode);
     }
