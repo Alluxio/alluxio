@@ -41,7 +41,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -259,8 +258,7 @@ public class RemoteBlockInStreamIntegrationTest {
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
-              workerAddr.getHost(), workerAddr.getDataPort()));
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;
@@ -291,8 +289,7 @@ public class RemoteBlockInStreamIntegrationTest {
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
-              workerAddr.getHost(), workerAddr.getDataPort()));
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
       byte[] ret = new byte[k];
       int start = 0;
       while (start < k) {
@@ -319,8 +316,7 @@ public class RemoteBlockInStreamIntegrationTest {
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
-              workerAddr.getHost(), workerAddr.getDataPort()));
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
       byte[] ret = new byte[k / 2];
       int start = 0;
       while (start < k / 2) {
@@ -550,11 +546,8 @@ public class RemoteBlockInStreamIntegrationTest {
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      InetSocketAddress workerInetAddr =
-          new InetSocketAddress(workerAddr.getHost(), workerAddr.getDataPort());
-
       RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerInetAddr);
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
 
@@ -572,7 +565,7 @@ public class RemoteBlockInStreamIntegrationTest {
       // Try to create an in stream again, and it should fail.
       RemoteBlockInStream is2 = null;
       try {
-        is2 = new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerInetAddr);
+        is2 = new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
       } catch (IOException e) {
         Assert.assertTrue(e.getCause() instanceof BlockDoesNotExistException);
       } finally {
