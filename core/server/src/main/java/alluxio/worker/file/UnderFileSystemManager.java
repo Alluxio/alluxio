@@ -33,7 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Handles writes to the under file system. Manages open output streams to Under File Systems.
  * Individual streams should only be used by one client. Each instance keeps its own state of
- * file names to open streams.
+ * temporary file ids to open streams.
  */
 @ThreadSafe
 public final class UnderFileSystemManager {

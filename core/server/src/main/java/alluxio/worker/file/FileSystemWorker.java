@@ -86,6 +86,46 @@ public final class FileSystemWorker extends AbstractWorker {
   }
 
   /**
+   * Cancels a file currently being written to the under file system. The open stream will be
+   * closed and the partial file will be cleaned up.
+   *
+   * @param workerFileId the id of the file to cancel, only understood by the worker that created
+   *                     the file
+   * @throws FileDoesNotExistException if this worker is not writing the specified file
+   * @throws IOException if an error occurs interacting with the under file system
+   */
+  public void cancelUfsFile(long workerFileId) throws FileDoesNotExistException, IOException {
+    mUnderFileSystemManager.cancelFile(workerFileId);
+  }
+
+  /**
+   * Completes a file currently being written to the under file system. The open stream will be
+   * closed and the partial file will be promoted to the completed file in the under file system.
+   *
+   * @param workerFileId the id of the file to cancel, only understood by the worker that created
+   *                     the file
+   * @throws FileDoesNotExistException if the worker is not writing the specified file
+   * @throws IOException if an error occurs interacting with the under file system
+   */
+  public void completeUfsFile(long workerFileId) throws FileDoesNotExistException, IOException {
+    mUnderFileSystemManager.completeFile(workerFileId);
+  }
+
+  /**
+   * Creates a new file in the under file system. This will register a new stream in the under
+   * file system manager. The stream can only be accessed with the returned id afterward.
+   *
+   * @param ufsPath the under file system path to create a file for
+   * @throws FileAlreadyExistsException if a file already exists in the under file system with
+   *                                    the same path
+   * @throws IOException if an error occurs interacting with the under file system
+   * @return the worker file id which references the in progress ufs file
+   */
+  public long createUfsFile(String ufsPath) throws FileAlreadyExistsException, IOException {
+    return mUnderFileSystemManager.createFile(ufsPath);
+  }
+
+  /**
    * @return the worker service handler
    */
   public FileSystemWorkerClientServiceHandler getWorkerServiceHandler() {
@@ -113,45 +153,5 @@ public final class FileSystemWorker extends AbstractWorker {
     }
     mFileSystemMasterWorkerClient.close();
     getExecutorService().shutdown();
-  }
-
-  /**
-   * Cancels a file currently being written to the under file system. The open stream will be
-   * closed and the partial file will be cleaned up.
-   *
-   * @param workerFileId the id of the file to cancel, only understood by the worker that created
-   *                     the file
-   * @throws FileDoesNotExistException if this worker is not writing the specified file
-   * @throws IOException if an error occurs interacting with the under file system
-   */
-  public void ufsCancelFile(long workerFileId) throws FileDoesNotExistException, IOException {
-    mUnderFileSystemManager.cancelFile(workerFileId);
-  }
-
-  /**
-   * Completes a file currently being written to the under file system. The open stream will be
-   * closed and the partial file will be promoted to the completed file in the under file system.
-   *
-   * @param workerFileId the id of the file to cancel, only understood by the worker that created
-   *                     the file
-   * @throws FileDoesNotExistException if the worker is not writing the specified file
-   * @throws IOException if an error occurs interacting with the under file system
-   */
-  public void ufsCompleteFile(long workerFileId) throws FileDoesNotExistException, IOException {
-    mUnderFileSystemManager.completeFile(workerFileId);
-  }
-
-  /**
-   * Creates a new file in the under file system. This will register a new stream in the under
-   * file system manager. The stream can only be accessed with the returned id afterward.
-   *
-   * @param ufsPath the under file system path to create a file for
-   * @throws FileAlreadyExistsException if a file already exists in the under file system with
-   *                                    the same path
-   * @throws IOException if an error occurs interacting with the under file system
-   * @return the worker file id which references the in progress ufs file
-   */
-  public long ufsCreateFile(String ufsPath) throws FileAlreadyExistsException, IOException {
-    return mUnderFileSystemManager.createFile(ufsPath);
   }
 }

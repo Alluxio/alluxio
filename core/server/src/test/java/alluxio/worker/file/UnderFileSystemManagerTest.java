@@ -26,7 +26,7 @@ import java.io.OutputStream;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({UnderFileSystem.class})
-public class UnderFileSystemManagerTest {
+public final class UnderFileSystemManagerTest {
   /**
    * Tests creating a file with the manager will call {@link UnderFileSystem#create}.
    */
