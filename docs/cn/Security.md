@@ -1,6 +1,7 @@
 ---
 layout: global
-title: 安全性
+title: 安全性（内测版）
+nickname: 安全性
 group: Features
 priority: 1
 ---
@@ -98,7 +99,7 @@ Alluxio文件系统为目录和文件实现了一个访问权限模型，该模�
 所属用户、所属组以及访问权限可以通过以下两种方式进行修改：
 
 1. 用户应用可以调用`FileSystem API`或`Hadoop API`的setAttribute(...)方法，参考[文件系统API](File-System-API.html)。
-2. CLI命令，参考[chown, chownr, chgrp, chgrpr, chmod, chmodr](Command-Line-Interface.html#list-of-operations)。
+2. CLI命令，参考[chown, chgrp, chmod](Command-Line-Interface.html#list-of-operations)。
 
 所属用户只能由超级用户修改。
 所属组和访问权限只能由超级用户和文件所有者修改。
