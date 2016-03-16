@@ -136,17 +136,17 @@ public final class UnderFileSystemManager {
    * Cancels the open stream associated with the given worker file id. This will close the open
    * stream.
    *
-   * @param workerFileId the worker id referencing an open file in the under file system
+   * @param tempUfsFileId the worker id referencing an open file in the under file system
    * @throws FileDoesNotExistException if the worker file id is not valid
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public void cancelFile(long workerFileId) throws FileDoesNotExistException, IOException {
-    UnderFileSystemOutputStream stream = mStreams.remove(workerFileId);
+  public void cancelFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
+    UnderFileSystemOutputStream stream = mStreams.remove(tempUfsFileId);
     if (stream != null) {
       stream.cancel();
     } else {
       throw new FileDoesNotExistException(
-          ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(workerFileId));
+          ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
     }
   }
 
@@ -154,17 +154,17 @@ public final class UnderFileSystemManager {
    * Completes an open stream associated with the given worker file id. This will close the open
    * stream.
    *
-   * @param workerFileId the worker id referencing an open file in the under file system
+   * @param tempUfsFileId the worker id referencing an open file in the under file system
    * @throws FileDoesNotExistException if the worker file id is not valid
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public void completeFile(long workerFileId) throws FileDoesNotExistException, IOException {
-    UnderFileSystemOutputStream stream = mStreams.remove(workerFileId);
+  public void completeFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
+    UnderFileSystemOutputStream stream = mStreams.remove(tempUfsFileId);
     if (stream != null) {
       stream.complete();
     } else {
       throw new FileDoesNotExistException(
-          ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(workerFileId));
+          ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
     }
   }
 }
