@@ -12,9 +12,15 @@
 package alluxio.worker.file;
 
 import alluxio.Configuration;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.PathUtils;
 
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
@@ -28,21 +34,45 @@ import java.io.OutputStream;
 @PrepareForTest({UnderFileSystem.class})
 public final class UnderFileSystemManagerTest {
   /**
+   * The exception expected to be thrown.
+   */
+  @Rule
+  public final ExpectedException mThrown = ExpectedException.none();
+
+  /** The mock under file system client. */
+  private UnderFileSystem mMockUfs;
+
+  @Before
+  public void before() throws Exception {
+    mMockUfs = Mockito.mock(UnderFileSystem.class);
+    OutputStream mockOutputStream = Mockito.mock(OutputStream.class);
+    Mockito.when(mMockUfs.create(Mockito.anyString())).thenReturn(mockOutputStream);
+    PowerMockito.mockStatic(UnderFileSystem.class);
+    BDDMockito.given(UnderFileSystem.get(Mockito.anyString(), Mockito.any(Configuration.class)))
+        .willReturn(mMockUfs);
+  }
+
+  /**
    * Tests creating a file with the manager will call {@link UnderFileSystem#create}.
    */
   @Test
   public void createUfsFileTest() throws Exception {
-    UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
-    OutputStream mockOutputStream = Mockito.mock(OutputStream.class);
-    Mockito.when(mockUfs.create(Mockito.anyString())).thenReturn(mockOutputStream);
-    PowerMockito.mockStatic(UnderFileSystem.class);
-    BDDMockito.given(UnderFileSystem.get(Mockito.anyString(), Mockito.any(Configuration.class)))
-        .willReturn(mockUfs);
-
-    String testFile = "test";
+    String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    manager.createFile(testFile);
-    Mockito.verify(mockUfs).create(Mockito.contains(testFile));
+    manager.createFile(uniqPath);
+    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
+  }
+
+  /**
+   * Tests creating an already existing file with the manager will throw the appropriate exception.
+   */
+  @Test
+  public void createExistingUfsFileTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    mThrown.expect(FileAlreadyExistsException.class);
+    manager.createFile(uniqPath);
   }
 
   /**
@@ -50,19 +80,22 @@ public final class UnderFileSystemManagerTest {
    */
   @Test
   public void completeUfsFileTest() throws Exception {
-    UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
-    OutputStream mockOutputStream = Mockito.mock(OutputStream.class);
-    Mockito.when(mockUfs.create(Mockito.anyString())).thenReturn(mockOutputStream);
-    PowerMockito.mockStatic(UnderFileSystem.class);
-    BDDMockito.given(UnderFileSystem.get(Mockito.anyString(), Mockito.any(Configuration.class)))
-        .willReturn(mockUfs);
-
-    String testFile = "test";
+    String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.createFile(testFile);
-    Mockito.verify(mockUfs).create(Mockito.contains(testFile));
+    long id = manager.createFile(uniqPath);
+    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
     manager.completeFile(id);
-    Mockito.verify(mockUfs).rename(Mockito.contains(testFile), Mockito.eq(testFile));
+    Mockito.verify(mMockUfs).rename(Mockito.contains(uniqPath), Mockito.eq(uniqPath));
+  }
+
+  /**
+   * Tests completing a non existent file throws the correct exception.
+   */
+  @Test
+  public void completeNonExistentUfsFileTest() throws Exception {
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    mThrown.expect(FileDoesNotExistException.class);
+    manager.completeFile(-1L);
   }
 
   /**
@@ -70,18 +103,21 @@ public final class UnderFileSystemManagerTest {
    */
   @Test
   public void cancelUfsFileTest() throws Exception {
-    UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
-    OutputStream mockOutputStream = Mockito.mock(OutputStream.class);
-    Mockito.when(mockUfs.create(Mockito.anyString())).thenReturn(mockOutputStream);
-    PowerMockito.mockStatic(UnderFileSystem.class);
-    BDDMockito.given(UnderFileSystem.get(Mockito.anyString(), Mockito.any(Configuration.class)))
-        .willReturn(mockUfs);
-
-    String testFile = "test";
+    String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.createFile(testFile);
-    Mockito.verify(mockUfs).create(Mockito.contains(testFile));
+    long id = manager.createFile(uniqPath);
+    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
     manager.cancelFile(id);
-    Mockito.verify(mockUfs).delete(Mockito.contains(testFile), Mockito.eq(false));
+    Mockito.verify(mMockUfs).delete(Mockito.contains(uniqPath), Mockito.eq(false));
+  }
+
+  /**
+   * Tests canceling a non existent file throws the correct exception.
+   */
+  @Test
+  public void cancelNonExistentUfsFileTest() throws Exception {
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    mThrown.expect(FileDoesNotExistException.class);
+    manager.cancelFile(-1L);
   }
 }

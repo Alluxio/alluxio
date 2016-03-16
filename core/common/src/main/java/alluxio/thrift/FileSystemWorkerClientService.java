@@ -49,7 +49,7 @@ public class FileSystemWorkerClientService {
      * 
      * @param options the options for canceling the file
      */
-    public void cancelUfsFile(long tempUfsFileId, UFSCancelFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void cancelUfsFile(long tempUfsFileId, CancelUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Completes a file in the under file system.
@@ -58,7 +58,7 @@ public class FileSystemWorkerClientService {
      * 
      * @param options the options for completing the file
      */
-    public void completeUfsFile(long tempUfsFileId, UFSCompleteFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void completeUfsFile(long tempUfsFileId, CompleteUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Creates a file in the under file system.
@@ -67,17 +67,17 @@ public class FileSystemWorkerClientService {
      * 
      * @param options the options for creating the file
      */
-    public long createUfsFile(String ufsPath, UFSCreateFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public long createUfsFile(String ufsPath, CreateUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
 
-    public void cancelUfsFile(long tempUfsFileId, UFSCancelFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void cancelUfsFile(long tempUfsFileId, CancelUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void completeUfsFile(long tempUfsFileId, UFSCompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void completeUfsFile(long tempUfsFileId, CompleteUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void createUfsFile(String ufsPath, UFSCreateFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void createUfsFile(String ufsPath, CreateUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -101,13 +101,13 @@ public class FileSystemWorkerClientService {
       super(iprot, oprot);
     }
 
-    public void cancelUfsFile(long tempUfsFileId, UFSCancelFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void cancelUfsFile(long tempUfsFileId, CancelUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_cancelUfsFile(tempUfsFileId, options);
       recv_cancelUfsFile();
     }
 
-    public void send_cancelUfsFile(long tempUfsFileId, UFSCancelFileTOptions options) throws org.apache.thrift.TException
+    public void send_cancelUfsFile(long tempUfsFileId, CancelUfsFileTOptions options) throws org.apache.thrift.TException
     {
       cancelUfsFile_args args = new cancelUfsFile_args();
       args.setTempUfsFileId(tempUfsFileId);
@@ -128,13 +128,13 @@ public class FileSystemWorkerClientService {
       return;
     }
 
-    public void completeUfsFile(long tempUfsFileId, UFSCompleteFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void completeUfsFile(long tempUfsFileId, CompleteUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_completeUfsFile(tempUfsFileId, options);
       recv_completeUfsFile();
     }
 
-    public void send_completeUfsFile(long tempUfsFileId, UFSCompleteFileTOptions options) throws org.apache.thrift.TException
+    public void send_completeUfsFile(long tempUfsFileId, CompleteUfsFileTOptions options) throws org.apache.thrift.TException
     {
       completeUfsFile_args args = new completeUfsFile_args();
       args.setTempUfsFileId(tempUfsFileId);
@@ -155,13 +155,13 @@ public class FileSystemWorkerClientService {
       return;
     }
 
-    public long createUfsFile(String ufsPath, UFSCreateFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public long createUfsFile(String ufsPath, CreateUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_createUfsFile(ufsPath, options);
       return recv_createUfsFile();
     }
 
-    public void send_createUfsFile(String ufsPath, UFSCreateFileTOptions options) throws org.apache.thrift.TException
+    public void send_createUfsFile(String ufsPath, CreateUfsFileTOptions options) throws org.apache.thrift.TException
     {
       createUfsFile_args args = new createUfsFile_args();
       args.setUfsPath(ufsPath);
@@ -203,7 +203,7 @@ public class FileSystemWorkerClientService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void cancelUfsFile(long tempUfsFileId, UFSCancelFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void cancelUfsFile(long tempUfsFileId, CancelUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
       cancelUfsFile_call method_call = new cancelUfsFile_call(tempUfsFileId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
@@ -212,8 +212,8 @@ public class FileSystemWorkerClientService {
 
     public static class cancelUfsFile_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long tempUfsFileId;
-      private UFSCancelFileTOptions options;
-      public cancelUfsFile_call(long tempUfsFileId, UFSCancelFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private CancelUfsFileTOptions options;
+      public cancelUfsFile_call(long tempUfsFileId, CancelUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.tempUfsFileId = tempUfsFileId;
         this.options = options;
@@ -238,7 +238,7 @@ public class FileSystemWorkerClientService {
       }
     }
 
-    public void completeUfsFile(long tempUfsFileId, UFSCompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void completeUfsFile(long tempUfsFileId, CompleteUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
       completeUfsFile_call method_call = new completeUfsFile_call(tempUfsFileId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
@@ -247,8 +247,8 @@ public class FileSystemWorkerClientService {
 
     public static class completeUfsFile_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long tempUfsFileId;
-      private UFSCompleteFileTOptions options;
-      public completeUfsFile_call(long tempUfsFileId, UFSCompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private CompleteUfsFileTOptions options;
+      public completeUfsFile_call(long tempUfsFileId, CompleteUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.tempUfsFileId = tempUfsFileId;
         this.options = options;
@@ -273,7 +273,7 @@ public class FileSystemWorkerClientService {
       }
     }
 
-    public void createUfsFile(String ufsPath, UFSCreateFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void createUfsFile(String ufsPath, CreateUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
       createUfsFile_call method_call = new createUfsFile_call(ufsPath, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
@@ -282,8 +282,8 @@ public class FileSystemWorkerClientService {
 
     public static class createUfsFile_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String ufsPath;
-      private UFSCreateFileTOptions options;
-      public createUfsFile_call(String ufsPath, UFSCreateFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private CreateUfsFileTOptions options;
+      public createUfsFile_call(String ufsPath, CreateUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.ufsPath = ufsPath;
         this.options = options;
@@ -625,7 +625,7 @@ public class FileSystemWorkerClientService {
     }
 
     private long tempUfsFileId; // required
-    private UFSCancelFileTOptions options; // required
+    private CancelUfsFileTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -703,7 +703,7 @@ public class FileSystemWorkerClientService {
       tmpMap.put(_Fields.TEMP_UFS_FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("tempUfsFileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, UFSCancelFileTOptions.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CancelUfsFileTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cancelUfsFile_args.class, metaDataMap);
     }
@@ -713,7 +713,7 @@ public class FileSystemWorkerClientService {
 
     public cancelUfsFile_args(
       long tempUfsFileId,
-      UFSCancelFileTOptions options)
+      CancelUfsFileTOptions options)
     {
       this();
       this.tempUfsFileId = tempUfsFileId;
@@ -728,7 +728,7 @@ public class FileSystemWorkerClientService {
       __isset_bitfield = other.__isset_bitfield;
       this.tempUfsFileId = other.tempUfsFileId;
       if (other.isSetOptions()) {
-        this.options = new UFSCancelFileTOptions(other.options);
+        this.options = new CancelUfsFileTOptions(other.options);
       }
     }
 
@@ -775,14 +775,14 @@ public class FileSystemWorkerClientService {
     /**
      * the options for canceling the file
      */
-    public UFSCancelFileTOptions getOptions() {
+    public CancelUfsFileTOptions getOptions() {
       return this.options;
     }
 
     /**
      * the options for canceling the file
      */
-    public cancelUfsFile_args setOptions(UFSCancelFileTOptions options) {
+    public cancelUfsFile_args setOptions(CancelUfsFileTOptions options) {
       this.options = options;
       return this;
     }
@@ -816,7 +816,7 @@ public class FileSystemWorkerClientService {
         if (value == null) {
           unsetOptions();
         } else {
-          setOptions((UFSCancelFileTOptions)value);
+          setOptions((CancelUfsFileTOptions)value);
         }
         break;
 
@@ -1018,7 +1018,7 @@ public class FileSystemWorkerClientService {
               break;
             case 2: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.options = new UFSCancelFileTOptions();
+                struct.options = new CancelUfsFileTOptions();
                 struct.options.read(iprot);
                 struct.setOptionsIsSet(true);
               } else { 
@@ -1090,7 +1090,7 @@ public class FileSystemWorkerClientService {
           struct.setTempUfsFileIdIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.options = new UFSCancelFileTOptions();
+          struct.options = new CancelUfsFileTOptions();
           struct.options.read(iprot);
           struct.setOptionsIsSet(true);
         }
@@ -1582,7 +1582,7 @@ public class FileSystemWorkerClientService {
     }
 
     private long tempUfsFileId; // required
-    private UFSCompleteFileTOptions options; // required
+    private CompleteUfsFileTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -1660,7 +1660,7 @@ public class FileSystemWorkerClientService {
       tmpMap.put(_Fields.TEMP_UFS_FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("tempUfsFileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, UFSCompleteFileTOptions.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CompleteUfsFileTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(completeUfsFile_args.class, metaDataMap);
     }
@@ -1670,7 +1670,7 @@ public class FileSystemWorkerClientService {
 
     public completeUfsFile_args(
       long tempUfsFileId,
-      UFSCompleteFileTOptions options)
+      CompleteUfsFileTOptions options)
     {
       this();
       this.tempUfsFileId = tempUfsFileId;
@@ -1685,7 +1685,7 @@ public class FileSystemWorkerClientService {
       __isset_bitfield = other.__isset_bitfield;
       this.tempUfsFileId = other.tempUfsFileId;
       if (other.isSetOptions()) {
-        this.options = new UFSCompleteFileTOptions(other.options);
+        this.options = new CompleteUfsFileTOptions(other.options);
       }
     }
 
@@ -1732,14 +1732,14 @@ public class FileSystemWorkerClientService {
     /**
      * the options for completing the file
      */
-    public UFSCompleteFileTOptions getOptions() {
+    public CompleteUfsFileTOptions getOptions() {
       return this.options;
     }
 
     /**
      * the options for completing the file
      */
-    public completeUfsFile_args setOptions(UFSCompleteFileTOptions options) {
+    public completeUfsFile_args setOptions(CompleteUfsFileTOptions options) {
       this.options = options;
       return this;
     }
@@ -1773,7 +1773,7 @@ public class FileSystemWorkerClientService {
         if (value == null) {
           unsetOptions();
         } else {
-          setOptions((UFSCompleteFileTOptions)value);
+          setOptions((CompleteUfsFileTOptions)value);
         }
         break;
 
@@ -1975,7 +1975,7 @@ public class FileSystemWorkerClientService {
               break;
             case 2: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.options = new UFSCompleteFileTOptions();
+                struct.options = new CompleteUfsFileTOptions();
                 struct.options.read(iprot);
                 struct.setOptionsIsSet(true);
               } else { 
@@ -2047,7 +2047,7 @@ public class FileSystemWorkerClientService {
           struct.setTempUfsFileIdIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.options = new UFSCompleteFileTOptions();
+          struct.options = new CompleteUfsFileTOptions();
           struct.options.read(iprot);
           struct.setOptionsIsSet(true);
         }
@@ -2539,7 +2539,7 @@ public class FileSystemWorkerClientService {
     }
 
     private String ufsPath; // required
-    private UFSCreateFileTOptions options; // required
+    private CreateUfsFileTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -2615,7 +2615,7 @@ public class FileSystemWorkerClientService {
       tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, UFSCreateFileTOptions.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CreateUfsFileTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createUfsFile_args.class, metaDataMap);
     }
@@ -2625,7 +2625,7 @@ public class FileSystemWorkerClientService {
 
     public createUfsFile_args(
       String ufsPath,
-      UFSCreateFileTOptions options)
+      CreateUfsFileTOptions options)
     {
       this();
       this.ufsPath = ufsPath;
@@ -2640,7 +2640,7 @@ public class FileSystemWorkerClientService {
         this.ufsPath = other.ufsPath;
       }
       if (other.isSetOptions()) {
-        this.options = new UFSCreateFileTOptions(other.options);
+        this.options = new CreateUfsFileTOptions(other.options);
       }
     }
 
@@ -2687,14 +2687,14 @@ public class FileSystemWorkerClientService {
     /**
      * the options for creating the file
      */
-    public UFSCreateFileTOptions getOptions() {
+    public CreateUfsFileTOptions getOptions() {
       return this.options;
     }
 
     /**
      * the options for creating the file
      */
-    public createUfsFile_args setOptions(UFSCreateFileTOptions options) {
+    public createUfsFile_args setOptions(CreateUfsFileTOptions options) {
       this.options = options;
       return this;
     }
@@ -2728,7 +2728,7 @@ public class FileSystemWorkerClientService {
         if (value == null) {
           unsetOptions();
         } else {
-          setOptions((UFSCreateFileTOptions)value);
+          setOptions((CreateUfsFileTOptions)value);
         }
         break;
 
@@ -2932,7 +2932,7 @@ public class FileSystemWorkerClientService {
               break;
             case 2: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.options = new UFSCreateFileTOptions();
+                struct.options = new CreateUfsFileTOptions();
                 struct.options.read(iprot);
                 struct.setOptionsIsSet(true);
               } else { 
@@ -3006,7 +3006,7 @@ public class FileSystemWorkerClientService {
           struct.setUfsPathIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.options = new UFSCreateFileTOptions();
+          struct.options = new CreateUfsFileTOptions();
           struct.options.read(iprot);
           struct.setOptionsIsSet(true);
         }
