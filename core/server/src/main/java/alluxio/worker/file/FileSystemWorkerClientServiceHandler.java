@@ -14,11 +14,11 @@ package alluxio.worker.file;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.CancelUfsFileTOptions;
+import alluxio.thrift.CompleteUfsFileTOptions;
+import alluxio.thrift.CreateUfsFileTOptions;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.thrift.ThriftIOException;
-import alluxio.thrift.UFSCancelFileTOptions;
-import alluxio.thrift.UFSCompleteFileTOptions;
-import alluxio.thrift.UFSCreateFileTOptions;
 
 import com.google.common.base.Preconditions;
 
@@ -61,7 +61,7 @@ public final class FileSystemWorkerClientServiceHandler
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public void cancelUfsFile(long tempUfsFileId, UFSCancelFileTOptions options)
+  public void cancelUfsFile(long tempUfsFileId, CancelUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
       mWorker.cancelUfsFile(tempUfsFileId);
@@ -82,7 +82,7 @@ public final class FileSystemWorkerClientServiceHandler
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public void completeUfsFile(long tempUfsFileId, UFSCompleteFileTOptions options)
+  public void completeUfsFile(long tempUfsFileId, CompleteUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
       mWorker.completeUfsFile(tempUfsFileId);
@@ -105,7 +105,7 @@ public final class FileSystemWorkerClientServiceHandler
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public long createUfsFile(String ufsPath, UFSCreateFileTOptions options)
+  public long createUfsFile(String ufsPath, CreateUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
       return mWorker.createUfsFile(ufsPath);
