@@ -55,16 +55,16 @@ public final class FileSystemWorkerClientServiceHandler
    * Cancels the write to the file in the under file system specified by the worker file id. The
    * temporary file will be automatically cleaned up.
    *
-   * @param workerFileId the worker id of the ufs file
+   * @param tempUfsFileId the worker id of the ufs file
    * @param options the options for canceling the file
    * @throws AlluxioTException if an internal Alluxio error occurs
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public void cancelUfsFile(long workerFileId, UFSCancelFileTOptions options)
+  public void cancelUfsFile(long tempUfsFileId, UFSCancelFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mWorker.cancelUfsFile(workerFileId);
+      mWorker.cancelUfsFile(tempUfsFileId);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
@@ -76,16 +76,16 @@ public final class FileSystemWorkerClientServiceHandler
    * Completes the write to the file in the under file system specified by the worker file id. The
    * temporary file will be automatically promoted to the final file if possible.
    *
-   * @param workerFileId the worker id of the ufs file
+   * @param tempUfsFileId the worker id of the ufs file
    * @param options the options for completing the file
    * @throws AlluxioTException if an internal Alluxio error occurs
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public void completeUfsFile(long workerFileId, UFSCompleteFileTOptions options)
+  public void completeUfsFile(long tempUfsFileId, UFSCompleteFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mWorker.completeUfsFile(workerFileId);
+      mWorker.completeUfsFile(tempUfsFileId);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
@@ -99,7 +99,8 @@ public final class FileSystemWorkerClientServiceHandler
    *
    * @param ufsPath the path of the file in the ufs
    * @param options the options for creating the file
-   * @return the worker file id assigned to this file, all future access to the file uses this id
+   * @return the temporary worker specific file id which references the in-progress ufs file, all
+   *         future operations on the file use this id until it is canceled or completed
    * @throws AlluxioTException if an internal Alluxio error occurs
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */

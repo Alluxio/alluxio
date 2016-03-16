@@ -45,20 +45,20 @@ public class FileSystemWorkerClientService {
     /**
      * Cancels a file which has not been completed in the under file system.
      * 
-     * @param workerFileId the worker file id of the ufs file
+     * @param tempUfsFileId the worker specific file id of the ufs file
      * 
      * @param options the options for canceling the file
      */
-    public void cancelUfsFile(long workerFileId, UFSCancelFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void cancelUfsFile(long tempUfsFileId, UFSCancelFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Completes a file in the under file system.
      * 
-     * @param workerFileId the worker file id of the ufs file
+     * @param tempUfsFileId the worker specific file id of the ufs file
      * 
      * @param options the options for completing the file
      */
-    public void completeUfsFile(long workerFileId, UFSCompleteFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void completeUfsFile(long tempUfsFileId, UFSCompleteFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Creates a file in the under file system.
@@ -73,9 +73,9 @@ public class FileSystemWorkerClientService {
 
   public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
 
-    public void cancelUfsFile(long workerFileId, UFSCancelFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void cancelUfsFile(long tempUfsFileId, UFSCancelFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void completeUfsFile(long workerFileId, UFSCompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void completeUfsFile(long tempUfsFileId, UFSCompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void createUfsFile(String ufsPath, UFSCreateFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -101,16 +101,16 @@ public class FileSystemWorkerClientService {
       super(iprot, oprot);
     }
 
-    public void cancelUfsFile(long workerFileId, UFSCancelFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void cancelUfsFile(long tempUfsFileId, UFSCancelFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
-      send_cancelUfsFile(workerFileId, options);
+      send_cancelUfsFile(tempUfsFileId, options);
       recv_cancelUfsFile();
     }
 
-    public void send_cancelUfsFile(long workerFileId, UFSCancelFileTOptions options) throws org.apache.thrift.TException
+    public void send_cancelUfsFile(long tempUfsFileId, UFSCancelFileTOptions options) throws org.apache.thrift.TException
     {
       cancelUfsFile_args args = new cancelUfsFile_args();
-      args.setWorkerFileId(workerFileId);
+      args.setTempUfsFileId(tempUfsFileId);
       args.setOptions(options);
       sendBase("cancelUfsFile", args);
     }
@@ -128,16 +128,16 @@ public class FileSystemWorkerClientService {
       return;
     }
 
-    public void completeUfsFile(long workerFileId, UFSCompleteFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void completeUfsFile(long tempUfsFileId, UFSCompleteFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
-      send_completeUfsFile(workerFileId, options);
+      send_completeUfsFile(tempUfsFileId, options);
       recv_completeUfsFile();
     }
 
-    public void send_completeUfsFile(long workerFileId, UFSCompleteFileTOptions options) throws org.apache.thrift.TException
+    public void send_completeUfsFile(long tempUfsFileId, UFSCompleteFileTOptions options) throws org.apache.thrift.TException
     {
       completeUfsFile_args args = new completeUfsFile_args();
-      args.setWorkerFileId(workerFileId);
+      args.setTempUfsFileId(tempUfsFileId);
       args.setOptions(options);
       sendBase("completeUfsFile", args);
     }
@@ -203,26 +203,26 @@ public class FileSystemWorkerClientService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void cancelUfsFile(long workerFileId, UFSCancelFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void cancelUfsFile(long tempUfsFileId, UFSCancelFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      cancelUfsFile_call method_call = new cancelUfsFile_call(workerFileId, options, resultHandler, this, ___protocolFactory, ___transport);
+      cancelUfsFile_call method_call = new cancelUfsFile_call(tempUfsFileId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class cancelUfsFile_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private long workerFileId;
+      private long tempUfsFileId;
       private UFSCancelFileTOptions options;
-      public cancelUfsFile_call(long workerFileId, UFSCancelFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public cancelUfsFile_call(long tempUfsFileId, UFSCancelFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.workerFileId = workerFileId;
+        this.tempUfsFileId = tempUfsFileId;
         this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("cancelUfsFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
         cancelUfsFile_args args = new cancelUfsFile_args();
-        args.setWorkerFileId(workerFileId);
+        args.setTempUfsFileId(tempUfsFileId);
         args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
@@ -238,26 +238,26 @@ public class FileSystemWorkerClientService {
       }
     }
 
-    public void completeUfsFile(long workerFileId, UFSCompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void completeUfsFile(long tempUfsFileId, UFSCompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      completeUfsFile_call method_call = new completeUfsFile_call(workerFileId, options, resultHandler, this, ___protocolFactory, ___transport);
+      completeUfsFile_call method_call = new completeUfsFile_call(tempUfsFileId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class completeUfsFile_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private long workerFileId;
+      private long tempUfsFileId;
       private UFSCompleteFileTOptions options;
-      public completeUfsFile_call(long workerFileId, UFSCompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public completeUfsFile_call(long tempUfsFileId, UFSCompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.workerFileId = workerFileId;
+        this.tempUfsFileId = tempUfsFileId;
         this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("completeUfsFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
         completeUfsFile_args args = new completeUfsFile_args();
-        args.setWorkerFileId(workerFileId);
+        args.setTempUfsFileId(tempUfsFileId);
         args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
@@ -343,7 +343,7 @@ public class FileSystemWorkerClientService {
       public cancelUfsFile_result getResult(I iface, cancelUfsFile_args args) throws org.apache.thrift.TException {
         cancelUfsFile_result result = new cancelUfsFile_result();
         try {
-          iface.cancelUfsFile(args.workerFileId, args.options);
+          iface.cancelUfsFile(args.tempUfsFileId, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
@@ -369,7 +369,7 @@ public class FileSystemWorkerClientService {
       public completeUfsFile_result getResult(I iface, completeUfsFile_args args) throws org.apache.thrift.TException {
         completeUfsFile_result result = new completeUfsFile_result();
         try {
-          iface.completeUfsFile(args.workerFileId, args.options);
+          iface.completeUfsFile(args.tempUfsFileId, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
@@ -482,7 +482,7 @@ public class FileSystemWorkerClientService {
       }
 
       public void start(I iface, cancelUfsFile_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.cancelUfsFile(args.workerFileId, args.options,resultHandler);
+        iface.cancelUfsFile(args.tempUfsFileId, args.options,resultHandler);
       }
     }
 
@@ -543,7 +543,7 @@ public class FileSystemWorkerClientService {
       }
 
       public void start(I iface, completeUfsFile_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.completeUfsFile(args.workerFileId, args.options,resultHandler);
+        iface.completeUfsFile(args.tempUfsFileId, args.options,resultHandler);
       }
     }
 
@@ -615,7 +615,7 @@ public class FileSystemWorkerClientService {
   public static class cancelUfsFile_args implements org.apache.thrift.TBase<cancelUfsFile_args, cancelUfsFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<cancelUfsFile_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("cancelUfsFile_args");
 
-    private static final org.apache.thrift.protocol.TField WORKER_FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("workerFileId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField TEMP_UFS_FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("tempUfsFileId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -624,15 +624,15 @@ public class FileSystemWorkerClientService {
       schemes.put(TupleScheme.class, new cancelUfsFile_argsTupleSchemeFactory());
     }
 
-    private long workerFileId; // required
+    private long tempUfsFileId; // required
     private UFSCancelFileTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
-       * the worker file id of the ufs file
+       * the worker specific file id of the ufs file
        */
-      WORKER_FILE_ID((short)1, "workerFileId"),
+      TEMP_UFS_FILE_ID((short)1, "tempUfsFileId"),
       /**
        * the options for canceling the file
        */
@@ -651,8 +651,8 @@ public class FileSystemWorkerClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // WORKER_FILE_ID
-            return WORKER_FILE_ID;
+          case 1: // TEMP_UFS_FILE_ID
+            return TEMP_UFS_FILE_ID;
           case 2: // OPTIONS
             return OPTIONS;
           default:
@@ -695,12 +695,12 @@ public class FileSystemWorkerClientService {
     }
 
     // isset id assignments
-    private static final int __WORKERFILEID_ISSET_ID = 0;
+    private static final int __TEMPUFSFILEID_ISSET_ID = 0;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.WORKER_FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("workerFileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.TEMP_UFS_FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("tempUfsFileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, UFSCancelFileTOptions.class)));
@@ -712,12 +712,12 @@ public class FileSystemWorkerClientService {
     }
 
     public cancelUfsFile_args(
-      long workerFileId,
+      long tempUfsFileId,
       UFSCancelFileTOptions options)
     {
       this();
-      this.workerFileId = workerFileId;
-      setWorkerFileIdIsSet(true);
+      this.tempUfsFileId = tempUfsFileId;
+      setTempUfsFileIdIsSet(true);
       this.options = options;
     }
 
@@ -726,7 +726,7 @@ public class FileSystemWorkerClientService {
      */
     public cancelUfsFile_args(cancelUfsFile_args other) {
       __isset_bitfield = other.__isset_bitfield;
-      this.workerFileId = other.workerFileId;
+      this.tempUfsFileId = other.tempUfsFileId;
       if (other.isSetOptions()) {
         this.options = new UFSCancelFileTOptions(other.options);
       }
@@ -738,38 +738,38 @@ public class FileSystemWorkerClientService {
 
     @Override
     public void clear() {
-      setWorkerFileIdIsSet(false);
-      this.workerFileId = 0;
+      setTempUfsFileIdIsSet(false);
+      this.tempUfsFileId = 0;
       this.options = null;
     }
 
     /**
-     * the worker file id of the ufs file
+     * the worker specific file id of the ufs file
      */
-    public long getWorkerFileId() {
-      return this.workerFileId;
+    public long getTempUfsFileId() {
+      return this.tempUfsFileId;
     }
 
     /**
-     * the worker file id of the ufs file
+     * the worker specific file id of the ufs file
      */
-    public cancelUfsFile_args setWorkerFileId(long workerFileId) {
-      this.workerFileId = workerFileId;
-      setWorkerFileIdIsSet(true);
+    public cancelUfsFile_args setTempUfsFileId(long tempUfsFileId) {
+      this.tempUfsFileId = tempUfsFileId;
+      setTempUfsFileIdIsSet(true);
       return this;
     }
 
-    public void unsetWorkerFileId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __WORKERFILEID_ISSET_ID);
+    public void unsetTempUfsFileId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TEMPUFSFILEID_ISSET_ID);
     }
 
-    /** Returns true if field workerFileId is set (has been assigned a value) and false otherwise */
-    public boolean isSetWorkerFileId() {
-      return EncodingUtils.testBit(__isset_bitfield, __WORKERFILEID_ISSET_ID);
+    /** Returns true if field tempUfsFileId is set (has been assigned a value) and false otherwise */
+    public boolean isSetTempUfsFileId() {
+      return EncodingUtils.testBit(__isset_bitfield, __TEMPUFSFILEID_ISSET_ID);
     }
 
-    public void setWorkerFileIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __WORKERFILEID_ISSET_ID, value);
+    public void setTempUfsFileIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TEMPUFSFILEID_ISSET_ID, value);
     }
 
     /**
@@ -804,11 +804,11 @@ public class FileSystemWorkerClientService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case WORKER_FILE_ID:
+      case TEMP_UFS_FILE_ID:
         if (value == null) {
-          unsetWorkerFileId();
+          unsetTempUfsFileId();
         } else {
-          setWorkerFileId((Long)value);
+          setTempUfsFileId((Long)value);
         }
         break;
 
@@ -825,8 +825,8 @@ public class FileSystemWorkerClientService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case WORKER_FILE_ID:
-        return getWorkerFileId();
+      case TEMP_UFS_FILE_ID:
+        return getTempUfsFileId();
 
       case OPTIONS:
         return getOptions();
@@ -842,8 +842,8 @@ public class FileSystemWorkerClientService {
       }
 
       switch (field) {
-      case WORKER_FILE_ID:
-        return isSetWorkerFileId();
+      case TEMP_UFS_FILE_ID:
+        return isSetTempUfsFileId();
       case OPTIONS:
         return isSetOptions();
       }
@@ -863,12 +863,12 @@ public class FileSystemWorkerClientService {
       if (that == null)
         return false;
 
-      boolean this_present_workerFileId = true;
-      boolean that_present_workerFileId = true;
-      if (this_present_workerFileId || that_present_workerFileId) {
-        if (!(this_present_workerFileId && that_present_workerFileId))
+      boolean this_present_tempUfsFileId = true;
+      boolean that_present_tempUfsFileId = true;
+      if (this_present_tempUfsFileId || that_present_tempUfsFileId) {
+        if (!(this_present_tempUfsFileId && that_present_tempUfsFileId))
           return false;
-        if (this.workerFileId != that.workerFileId)
+        if (this.tempUfsFileId != that.tempUfsFileId)
           return false;
       }
 
@@ -888,10 +888,10 @@ public class FileSystemWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_workerFileId = true;
-      list.add(present_workerFileId);
-      if (present_workerFileId)
-        list.add(workerFileId);
+      boolean present_tempUfsFileId = true;
+      list.add(present_tempUfsFileId);
+      if (present_tempUfsFileId)
+        list.add(tempUfsFileId);
 
       boolean present_options = true && (isSetOptions());
       list.add(present_options);
@@ -909,12 +909,12 @@ public class FileSystemWorkerClientService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetWorkerFileId()).compareTo(other.isSetWorkerFileId());
+      lastComparison = Boolean.valueOf(isSetTempUfsFileId()).compareTo(other.isSetTempUfsFileId());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetWorkerFileId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.workerFileId, other.workerFileId);
+      if (isSetTempUfsFileId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.tempUfsFileId, other.tempUfsFileId);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -949,8 +949,8 @@ public class FileSystemWorkerClientService {
       StringBuilder sb = new StringBuilder("cancelUfsFile_args(");
       boolean first = true;
 
-      sb.append("workerFileId:");
-      sb.append(this.workerFileId);
+      sb.append("tempUfsFileId:");
+      sb.append(this.tempUfsFileId);
       first = false;
       if (!first) sb.append(", ");
       sb.append("options:");
@@ -1008,10 +1008,10 @@ public class FileSystemWorkerClientService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // WORKER_FILE_ID
+            case 1: // TEMP_UFS_FILE_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.workerFileId = iprot.readI64();
-                struct.setWorkerFileIdIsSet(true);
+                struct.tempUfsFileId = iprot.readI64();
+                struct.setTempUfsFileIdIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -1040,8 +1040,8 @@ public class FileSystemWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(WORKER_FILE_ID_FIELD_DESC);
-        oprot.writeI64(struct.workerFileId);
+        oprot.writeFieldBegin(TEMP_UFS_FILE_ID_FIELD_DESC);
+        oprot.writeI64(struct.tempUfsFileId);
         oprot.writeFieldEnd();
         if (struct.options != null) {
           oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
@@ -1066,15 +1066,15 @@ public class FileSystemWorkerClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, cancelUfsFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetWorkerFileId()) {
+        if (struct.isSetTempUfsFileId()) {
           optionals.set(0);
         }
         if (struct.isSetOptions()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
-        if (struct.isSetWorkerFileId()) {
-          oprot.writeI64(struct.workerFileId);
+        if (struct.isSetTempUfsFileId()) {
+          oprot.writeI64(struct.tempUfsFileId);
         }
         if (struct.isSetOptions()) {
           struct.options.write(oprot);
@@ -1086,8 +1086,8 @@ public class FileSystemWorkerClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.workerFileId = iprot.readI64();
-          struct.setWorkerFileIdIsSet(true);
+          struct.tempUfsFileId = iprot.readI64();
+          struct.setTempUfsFileIdIsSet(true);
         }
         if (incoming.get(1)) {
           struct.options = new UFSCancelFileTOptions();
@@ -1572,7 +1572,7 @@ public class FileSystemWorkerClientService {
   public static class completeUfsFile_args implements org.apache.thrift.TBase<completeUfsFile_args, completeUfsFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<completeUfsFile_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("completeUfsFile_args");
 
-    private static final org.apache.thrift.protocol.TField WORKER_FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("workerFileId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField TEMP_UFS_FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("tempUfsFileId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -1581,15 +1581,15 @@ public class FileSystemWorkerClientService {
       schemes.put(TupleScheme.class, new completeUfsFile_argsTupleSchemeFactory());
     }
 
-    private long workerFileId; // required
+    private long tempUfsFileId; // required
     private UFSCompleteFileTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
-       * the worker file id of the ufs file
+       * the worker specific file id of the ufs file
        */
-      WORKER_FILE_ID((short)1, "workerFileId"),
+      TEMP_UFS_FILE_ID((short)1, "tempUfsFileId"),
       /**
        * the options for completing the file
        */
@@ -1608,8 +1608,8 @@ public class FileSystemWorkerClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // WORKER_FILE_ID
-            return WORKER_FILE_ID;
+          case 1: // TEMP_UFS_FILE_ID
+            return TEMP_UFS_FILE_ID;
           case 2: // OPTIONS
             return OPTIONS;
           default:
@@ -1652,12 +1652,12 @@ public class FileSystemWorkerClientService {
     }
 
     // isset id assignments
-    private static final int __WORKERFILEID_ISSET_ID = 0;
+    private static final int __TEMPUFSFILEID_ISSET_ID = 0;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.WORKER_FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("workerFileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.TEMP_UFS_FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("tempUfsFileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, UFSCompleteFileTOptions.class)));
@@ -1669,12 +1669,12 @@ public class FileSystemWorkerClientService {
     }
 
     public completeUfsFile_args(
-      long workerFileId,
+      long tempUfsFileId,
       UFSCompleteFileTOptions options)
     {
       this();
-      this.workerFileId = workerFileId;
-      setWorkerFileIdIsSet(true);
+      this.tempUfsFileId = tempUfsFileId;
+      setTempUfsFileIdIsSet(true);
       this.options = options;
     }
 
@@ -1683,7 +1683,7 @@ public class FileSystemWorkerClientService {
      */
     public completeUfsFile_args(completeUfsFile_args other) {
       __isset_bitfield = other.__isset_bitfield;
-      this.workerFileId = other.workerFileId;
+      this.tempUfsFileId = other.tempUfsFileId;
       if (other.isSetOptions()) {
         this.options = new UFSCompleteFileTOptions(other.options);
       }
@@ -1695,38 +1695,38 @@ public class FileSystemWorkerClientService {
 
     @Override
     public void clear() {
-      setWorkerFileIdIsSet(false);
-      this.workerFileId = 0;
+      setTempUfsFileIdIsSet(false);
+      this.tempUfsFileId = 0;
       this.options = null;
     }
 
     /**
-     * the worker file id of the ufs file
+     * the worker specific file id of the ufs file
      */
-    public long getWorkerFileId() {
-      return this.workerFileId;
+    public long getTempUfsFileId() {
+      return this.tempUfsFileId;
     }
 
     /**
-     * the worker file id of the ufs file
+     * the worker specific file id of the ufs file
      */
-    public completeUfsFile_args setWorkerFileId(long workerFileId) {
-      this.workerFileId = workerFileId;
-      setWorkerFileIdIsSet(true);
+    public completeUfsFile_args setTempUfsFileId(long tempUfsFileId) {
+      this.tempUfsFileId = tempUfsFileId;
+      setTempUfsFileIdIsSet(true);
       return this;
     }
 
-    public void unsetWorkerFileId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __WORKERFILEID_ISSET_ID);
+    public void unsetTempUfsFileId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TEMPUFSFILEID_ISSET_ID);
     }
 
-    /** Returns true if field workerFileId is set (has been assigned a value) and false otherwise */
-    public boolean isSetWorkerFileId() {
-      return EncodingUtils.testBit(__isset_bitfield, __WORKERFILEID_ISSET_ID);
+    /** Returns true if field tempUfsFileId is set (has been assigned a value) and false otherwise */
+    public boolean isSetTempUfsFileId() {
+      return EncodingUtils.testBit(__isset_bitfield, __TEMPUFSFILEID_ISSET_ID);
     }
 
-    public void setWorkerFileIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __WORKERFILEID_ISSET_ID, value);
+    public void setTempUfsFileIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TEMPUFSFILEID_ISSET_ID, value);
     }
 
     /**
@@ -1761,11 +1761,11 @@ public class FileSystemWorkerClientService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case WORKER_FILE_ID:
+      case TEMP_UFS_FILE_ID:
         if (value == null) {
-          unsetWorkerFileId();
+          unsetTempUfsFileId();
         } else {
-          setWorkerFileId((Long)value);
+          setTempUfsFileId((Long)value);
         }
         break;
 
@@ -1782,8 +1782,8 @@ public class FileSystemWorkerClientService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case WORKER_FILE_ID:
-        return getWorkerFileId();
+      case TEMP_UFS_FILE_ID:
+        return getTempUfsFileId();
 
       case OPTIONS:
         return getOptions();
@@ -1799,8 +1799,8 @@ public class FileSystemWorkerClientService {
       }
 
       switch (field) {
-      case WORKER_FILE_ID:
-        return isSetWorkerFileId();
+      case TEMP_UFS_FILE_ID:
+        return isSetTempUfsFileId();
       case OPTIONS:
         return isSetOptions();
       }
@@ -1820,12 +1820,12 @@ public class FileSystemWorkerClientService {
       if (that == null)
         return false;
 
-      boolean this_present_workerFileId = true;
-      boolean that_present_workerFileId = true;
-      if (this_present_workerFileId || that_present_workerFileId) {
-        if (!(this_present_workerFileId && that_present_workerFileId))
+      boolean this_present_tempUfsFileId = true;
+      boolean that_present_tempUfsFileId = true;
+      if (this_present_tempUfsFileId || that_present_tempUfsFileId) {
+        if (!(this_present_tempUfsFileId && that_present_tempUfsFileId))
           return false;
-        if (this.workerFileId != that.workerFileId)
+        if (this.tempUfsFileId != that.tempUfsFileId)
           return false;
       }
 
@@ -1845,10 +1845,10 @@ public class FileSystemWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_workerFileId = true;
-      list.add(present_workerFileId);
-      if (present_workerFileId)
-        list.add(workerFileId);
+      boolean present_tempUfsFileId = true;
+      list.add(present_tempUfsFileId);
+      if (present_tempUfsFileId)
+        list.add(tempUfsFileId);
 
       boolean present_options = true && (isSetOptions());
       list.add(present_options);
@@ -1866,12 +1866,12 @@ public class FileSystemWorkerClientService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetWorkerFileId()).compareTo(other.isSetWorkerFileId());
+      lastComparison = Boolean.valueOf(isSetTempUfsFileId()).compareTo(other.isSetTempUfsFileId());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetWorkerFileId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.workerFileId, other.workerFileId);
+      if (isSetTempUfsFileId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.tempUfsFileId, other.tempUfsFileId);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -1906,8 +1906,8 @@ public class FileSystemWorkerClientService {
       StringBuilder sb = new StringBuilder("completeUfsFile_args(");
       boolean first = true;
 
-      sb.append("workerFileId:");
-      sb.append(this.workerFileId);
+      sb.append("tempUfsFileId:");
+      sb.append(this.tempUfsFileId);
       first = false;
       if (!first) sb.append(", ");
       sb.append("options:");
@@ -1965,10 +1965,10 @@ public class FileSystemWorkerClientService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // WORKER_FILE_ID
+            case 1: // TEMP_UFS_FILE_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.workerFileId = iprot.readI64();
-                struct.setWorkerFileIdIsSet(true);
+                struct.tempUfsFileId = iprot.readI64();
+                struct.setTempUfsFileIdIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -1997,8 +1997,8 @@ public class FileSystemWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(WORKER_FILE_ID_FIELD_DESC);
-        oprot.writeI64(struct.workerFileId);
+        oprot.writeFieldBegin(TEMP_UFS_FILE_ID_FIELD_DESC);
+        oprot.writeI64(struct.tempUfsFileId);
         oprot.writeFieldEnd();
         if (struct.options != null) {
           oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
@@ -2023,15 +2023,15 @@ public class FileSystemWorkerClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, completeUfsFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetWorkerFileId()) {
+        if (struct.isSetTempUfsFileId()) {
           optionals.set(0);
         }
         if (struct.isSetOptions()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
-        if (struct.isSetWorkerFileId()) {
-          oprot.writeI64(struct.workerFileId);
+        if (struct.isSetTempUfsFileId()) {
+          oprot.writeI64(struct.tempUfsFileId);
         }
         if (struct.isSetOptions()) {
           struct.options.write(oprot);
@@ -2043,8 +2043,8 @@ public class FileSystemWorkerClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.workerFileId = iprot.readI64();
-          struct.setWorkerFileIdIsSet(true);
+          struct.tempUfsFileId = iprot.readI64();
+          struct.setTempUfsFileIdIsSet(true);
         }
         if (incoming.get(1)) {
           struct.options = new UFSCompleteFileTOptions();
