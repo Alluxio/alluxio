@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -143,8 +142,7 @@ public final class AlluxioBlockStore {
     }
     // No local worker/block, get the first location since it's nearest to memory tier.
     WorkerNetAddress workerNetAddress = blockInfo.getLocations().get(0).getWorkerAddress();
-    return new RemoteBlockInStream(blockId, blockInfo.getLength(),
-        new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort()));
+    return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerNetAddress);
   }
 
   /**
