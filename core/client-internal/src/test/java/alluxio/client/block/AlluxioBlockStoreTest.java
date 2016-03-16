@@ -148,6 +148,6 @@ public final class AlluxioBlockStoreTest {
     Assert.assertEquals(Long.valueOf(BLOCK_LENGTH),
         Whitebox.getInternalState(stream, "mBlockSize"));
     Assert.assertEquals(new InetSocketAddress(WORKER_HOSTNAME_REMOTE, WORKER_DATA_PORT),
-        Whitebox.getInternalState(stream, "mLocation"));
+        Whitebox.getInternalState(stream, "mWorkerInetSocketAddress"));
   }
 }
