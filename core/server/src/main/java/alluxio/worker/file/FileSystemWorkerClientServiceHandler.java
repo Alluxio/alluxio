@@ -61,10 +61,10 @@ public final class FileSystemWorkerClientServiceHandler
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public void ufsCancelFile(long workerFileId, UFSCancelFileTOptions options)
+  public void cancelUfsFile(long workerFileId, UFSCancelFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mWorker.ufsCancelFile(workerFileId);
+      mWorker.cancelUfsFile(workerFileId);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
@@ -82,10 +82,10 @@ public final class FileSystemWorkerClientServiceHandler
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public void ufsCompleteFile(long workerFileId, UFSCompleteFileTOptions options)
+  public void completeUfsFile(long workerFileId, UFSCompleteFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mWorker.ufsCompleteFile(workerFileId);
+      mWorker.completeUfsFile(workerFileId);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
@@ -95,7 +95,7 @@ public final class FileSystemWorkerClientServiceHandler
 
   /**
    * Creates a file in the under file system. The file will be a temporary file until {@link
-   * #ufsCompleteFile} is called.
+   * #completeUfsFile} is called.
    *
    * @param ufsPath the path of the file in the ufs
    * @param options the options for creating the file
@@ -104,10 +104,10 @@ public final class FileSystemWorkerClientServiceHandler
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public long ufsCreateFile(String ufsPath, UFSCreateFileTOptions options)
+  public long createUfsFile(String ufsPath, UFSCreateFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      return mWorker.ufsCreateFile(ufsPath);
+      return mWorker.createUfsFile(ufsPath);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
