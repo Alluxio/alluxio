@@ -185,20 +185,7 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public void mount(String alluxioPath, String ufsPath)
-      throws AlluxioTException, ThriftIOException {
-    try {
-      mFileSystemMaster
-          .mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath), MountOptions.defaults());
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
-  }
-
-  @Override
-  public void mountPath(String alluxioPath, String ufsPath, MountTOptions options)
+  public void mount(String alluxioPath, String ufsPath, MountTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
       mFileSystemMaster
