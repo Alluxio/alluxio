@@ -11,7 +11,6 @@
 
 package alluxio;
 
-import alluxio.util.OSUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
