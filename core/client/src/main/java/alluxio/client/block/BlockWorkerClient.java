@@ -420,6 +420,10 @@ public final class BlockWorkerClient extends AbstractClient {
    * failures.
    */
   public synchronized void periodicHeartbeat() {
+    if (mClosed) {
+      LOG.info("Client is closed, return.");
+      return;
+    }
     try {
       sessionHeartbeat();
     } catch (Exception e) {
