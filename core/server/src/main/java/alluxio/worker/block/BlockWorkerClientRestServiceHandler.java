@@ -45,7 +45,6 @@ import javax.ws.rs.core.Response;
  */
 @NotThreadSafe
 @Path(BlockWorkerClientRestServiceHandler.SERVICE_PREFIX)
-// TODO(jiri): Investigate auto-generation of REST API documentation.
 public final class BlockWorkerClientRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
