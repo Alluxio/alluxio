@@ -11,6 +11,7 @@
 
 package alluxio.worker.file;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
@@ -97,7 +98,7 @@ public final class FileSystemWorkerClientServiceHandler
    * Creates a file in the under file system. The file will be a temporary file until {@link
    * #completeUfsFile} is called.
    *
-   * @param ufsPath the path of the file in the ufs
+   * @param ufsUri the path of the file in the ufs
    * @param options the options for creating the file
    * @return the temporary worker specific file id which references the in-progress ufs file, all
    *         future operations on the file use this id until it is canceled or completed
@@ -105,10 +106,10 @@ public final class FileSystemWorkerClientServiceHandler
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public long createUfsFile(String ufsPath, CreateUfsFileTOptions options)
+  public long createUfsFile(String ufsUri, CreateUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      return mWorker.createUfsFile(ufsPath);
+      return mWorker.createUfsFile(new AlluxioURI(ufsUri));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {

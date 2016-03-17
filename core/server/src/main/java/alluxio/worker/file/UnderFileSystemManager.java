@@ -11,6 +11,7 @@
 
 package alluxio.worker.file;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -49,21 +50,21 @@ public final class UnderFileSystemManager {
     private final Configuration mConf;
     /** Underlying stream to the under file system file. */
     private final OutputStream mStream;
-    /** Final path to write to in the under file system. */
-    private final String mPath;
-    /** Temporary path to write to in the under file system. */
-    private final String mTemporaryPath;
+    /** String form of the final uri to write to in the under file system. */
+    private final String mUri;
+    /** String form of the temporary uri to write to in the under file system. */
+    private final String mTemporaryUri;
 
-    private UnderFileSystemOutputStream(String ufsPath, Configuration conf)
+    private UnderFileSystemOutputStream(AlluxioURI ufsUri, Configuration conf)
         throws FileAlreadyExistsException, IOException {
       mConf = Preconditions.checkNotNull(conf);
-      mPath = Preconditions.checkNotNull(ufsPath);
-      mTemporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), mPath);
-      UnderFileSystem ufs = UnderFileSystem.get(mPath, mConf);
-      if (ufs.exists(mPath)) {
-        throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mPath));
+      mUri = Preconditions.checkNotNull(ufsUri).toString();
+      mTemporaryUri = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), mUri);
+      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConf);
+      if (ufs.exists(mUri)) {
+        throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mUri));
       }
-      mStream = ufs.create(mTemporaryPath);
+      mStream = ufs.create(mTemporaryUri);
     }
 
     /**
@@ -73,9 +74,9 @@ public final class UnderFileSystemManager {
      */
     private void cancel() throws IOException {
       mStream.close();
-      UnderFileSystem ufs = UnderFileSystem.get(mPath, mConf);
+      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConf);
       // TODO(calvin): Log a warning if the delete fails
-      ufs.delete(mTemporaryPath, false);
+      ufs.delete(mTemporaryUri, false);
     }
 
     /**
@@ -86,10 +87,10 @@ public final class UnderFileSystemManager {
      */
     private void complete() throws IOException {
       mStream.close();
-      UnderFileSystem ufs = UnderFileSystem.get(mPath, mConf);
-      if (!ufs.rename(mTemporaryPath, mPath)) {
+      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConf);
+      if (!ufs.rename(mTemporaryUri, mUri)) {
         // TODO(calvin): Log a warning if the delete fails
-        ufs.delete(mTemporaryPath, false);
+        ufs.delete(mTemporaryUri, false);
       }
     }
 
@@ -119,14 +120,14 @@ public final class UnderFileSystemManager {
    * Creates a {@link UnderFileSystemOutputStream} for the given file path and adds it to the
    * open streams map keyed with the returned worker file id.
    *
-   * @param ufsPath the path to create in the under file system
+   * @param ufsUri the path to create in the under file system
    * @return the worker file id which should be used to reference the open stream
    * @throws FileAlreadyExistsException if the under file system path already exists
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public long createFile(String ufsPath) throws FileAlreadyExistsException, IOException {
+  public long createFile(AlluxioURI ufsUri) throws FileAlreadyExistsException, IOException {
     UnderFileSystemOutputStream stream =
-        new UnderFileSystemOutputStream(ufsPath, WorkerContext.getConf());
+        new UnderFileSystemOutputStream(ufsUri, WorkerContext.getConf());
     long workerFileId = mIdGenerator.getAndIncrement();
     mStreams.put(workerFileId, stream);
     return workerFileId;

@@ -11,6 +11,7 @@
 
 package alluxio.worker.file;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -59,7 +60,7 @@ public final class UnderFileSystemManagerTest {
   public void createUfsFileTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    manager.createFile(uniqPath);
+    manager.createFile(new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
   }
 
@@ -72,7 +73,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileAlreadyExistsException.class);
-    manager.createFile(uniqPath);
+    manager.createFile(new AlluxioURI(uniqPath));
   }
 
   /**
@@ -82,7 +83,7 @@ public final class UnderFileSystemManagerTest {
   public void completeUfsFileTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.createFile(uniqPath);
+    long id = manager.createFile(new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
     manager.completeFile(id);
     Mockito.verify(mMockUfs).rename(Mockito.contains(uniqPath), Mockito.eq(uniqPath));
@@ -105,7 +106,7 @@ public final class UnderFileSystemManagerTest {
   public void cancelUfsFileTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.createFile(uniqPath);
+    long id = manager.createFile(new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
     manager.cancelFile(id);
     Mockito.verify(mMockUfs).delete(Mockito.contains(uniqPath), Mockito.eq(false));
