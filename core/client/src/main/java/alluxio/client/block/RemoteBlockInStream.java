@@ -15,6 +15,7 @@ import alluxio.client.ClientContext;
 import alluxio.client.RemoteBlockReader;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.worker.ClientMetrics;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -37,6 +38,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   private final BlockWorkerClient mBlockWorkerClient;
   /** The block store context which provides block worker clients. */
   private final BlockStoreContext mContext;
+  private final ClientMetrics mMetrics;
 
   /**
    * Creates a new remote block input stream.
@@ -59,6 +61,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
       if (mLockId == null) {
         throw new IOException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId));
       }
+      mMetrics = mBlockWorkerClient.getClientMetrics();
     } catch (IOException e) {
       mContext.releaseWorkerClient(mBlockWorkerClient);
       throw e;
@@ -72,7 +75,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     }
 
     // TODO(calvin): Perhaps verify that something was read from this stream
-    ClientContext.getClientMetrics().incBlocksReadRemote(1);
+    mMetrics.incBlocksReadRemote(1);
 
     try {
       mBlockWorkerClient.unlockBlock(mBlockId);
@@ -103,7 +106,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    */
   @Override
   protected void incrementBytesReadMetric(int bytes) {
-    ClientContext.getClientMetrics().incBytesReadRemote(bytes);
+    mMetrics.incBytesReadRemote(bytes);
   }
 
   /**
@@ -130,7 +133,6 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
         int bytesRead = data.remaining();
         data.get(b, off, bytesRead);
         bytesLeft -= bytesRead;
-        incrementBytesReadMetric(bytesRead);
       } finally {
         reader.close();
       }
