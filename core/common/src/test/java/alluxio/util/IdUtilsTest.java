@@ -30,4 +30,27 @@ public final class IdUtilsTest {
     Assert.assertTrue(second >= 0);
     Assert.assertTrue(first != second);
   }
+
+  /**
+   * Tests if output of {@link IdUtils#createFileId(long)} is valid.
+   */
+  @Test
+  public void createFileIdTest() throws Exception {
+    long containerId = 1;
+    long fileId = IdUtils.createFileId(containerId);
+    Assert.assertTrue(fileId != -1);
+  }
+
+  /**
+   * Tests if output of {@link IdUtils#createRpcId()} is non-empty.
+   * Also tests for randomness property.
+   */
+  @Test
+  public void createRpcIdTest() throws Exception {
+    String first = IdUtils.createRpcId();
+    Assert.assertTrue(first != null && !first.isEmpty());
+    String second = IdUtils.createRpcId();
+    Assert.assertTrue(second != null && !second.isEmpty());
+    Assert.assertTrue(!first.equals(second));
+  }
 }
