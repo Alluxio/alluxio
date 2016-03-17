@@ -37,7 +37,12 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
 
   public static final AlluxioURI EMPTY_URI = new AlluxioURI("");
 
-  private static final boolean WINDOWS = OSUtils.isWindows();
+  /**
+   * Commented by Yuanqing Ye (yuanqiny@andrew.cmu.edu)
+   * For the task.
+   * The WINDOWS boolean variable is unused, so I comment this line of code.
+   */
+//  private static final boolean WINDOWS = OSUtils.isWindows();
 
   // a hierarchical uri
   private final URI mUri;
