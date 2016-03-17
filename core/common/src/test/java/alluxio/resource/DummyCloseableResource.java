@@ -14,7 +14,7 @@ package alluxio.resource;
 /**
  * A dummy extension of CloseableResource which doesn't do anything in the close method.
  */
-public class DummyCloseableResource<T> extends CloseableResource<T> {
+public final class DummyCloseableResource<T> extends CloseableResource<T> {
   public DummyCloseableResource(T resource) {
     super(resource);
   }
