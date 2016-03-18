@@ -10,7 +10,7 @@
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
             <param-name>jersey.config.server.provider.packages</param-name>
-            <param-value>alluxio.worker.block</param-value>
+            <param-value>alluxio.worker;alluxio.worker.block</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
