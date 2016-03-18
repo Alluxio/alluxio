@@ -8,6 +8,7 @@ json_Key_Location:
 # The Project ID for your Google Cloud Platform account.
 Google_Cloud_Project_ID:
 
-# The machines will be named to {Tag}-AlluxioMaster, {Tag}-AlluxioWorker1...
-Tag: "my"
+#SSH
+SSH_Username: 
+Key_Path: 
 

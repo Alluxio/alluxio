@@ -126,6 +126,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         if (defined?(@gce)).nil?
           @gce = YAML.load_file('conf/gce.yml')
           puts @gce.inspect
+          SSH_USERNAME = @gce['SSH_Username']
+          KEY_PATH = @gce['Key_Path']
           GOOGLE_CLOUD_PROJECT_ID = @gce['Google_Cloud_Project_ID']
           SERVICE_ACCOUNT_EMAIL_ADDRESS = @gce['Serice_Acount_Email_Address']
           JSON_KEY_LOCATION = @gce['json_Key_Location']
