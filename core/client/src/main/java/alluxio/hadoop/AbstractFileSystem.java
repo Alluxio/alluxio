@@ -65,7 +65,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public static final String FIRST_COM_PATH = "alluxio_dep/";
-  public static final String RECOMPUTE_PATH = "alluxio_recompute/";
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // Always tell Hadoop that we have 3x replication.
