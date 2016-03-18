@@ -36,3 +36,5 @@
 dependency-reduced-pom.xml
 target/
 tests.log*
+
+deploy/vagrant/conf/gce.yml
