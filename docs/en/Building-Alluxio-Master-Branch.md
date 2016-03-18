@@ -11,7 +11,7 @@ group: Resources
 This guide describes how to compile Alluxio from the beginning.
 
 The prerequisite for this guide is that you have [Java 7 (or above)](Java-Setup.html),
-[Maven](Maven.html), and [Thrift 0.9.2](Thrift.html) (Optional) installed.
+[Maven](Maven.html), and [Thrift 0.9.3](Thrift.html) (Optional) installed.
 
 Checkout the Alluxio master branch from Github and package:
 

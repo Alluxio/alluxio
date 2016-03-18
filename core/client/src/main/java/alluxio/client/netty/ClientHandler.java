@@ -80,7 +80,7 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
   public void channelRead0(final ChannelHandlerContext ctx, final RPCMessage msg)
       throws IOException {
     if (msg instanceof RPCResponse) {
-      handleResponse(ctx, (RPCResponse) msg);
+      handleResponse((RPCResponse) msg);
     } else {
       // The client should only receive RPCResponse messages.
       throw new IllegalArgumentException(ExceptionMessage.NO_RPC_HANDLER.getMessage(msg.getType()));
@@ -93,7 +93,7 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
     ctx.close();
   }
 
-  private void handleResponse(final ChannelHandlerContext ctx, final RPCResponse resp)
+  private void handleResponse(final RPCResponse resp)
       throws IOException {
     for (ResponseListener listener : mListeners) {
       listener.onResponseReceived(resp);

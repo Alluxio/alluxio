@@ -135,8 +135,9 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Returns the UFS address of the root mount point.
+   *
+   * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
    */
-  // TODO(gene): Is this necessary?
   string getUfsAddress()
 
   /**
@@ -158,17 +159,8 @@ service FileSystemMasterClientService extends common.AlluxioService {
   /**
    * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given
    * path. The path should not exist and should not be nested under any existing mount point.
-   * mountPath() should be used instead, since it takes options.
    */
   void mount( /** the path of alluxio mount point */ 1: string alluxioPath,
-      /** the path of the under file system */ 2: string ufsPath)
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
-
-  /**
-   * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given
-   * path. The path should not exist and should not be nested under any existing mount point.
-   */
-  void mountPath( /** the path of alluxio mount point */ 1: string alluxioPath,
       /** the path of the under file system */ 2: string ufsPath,
       /** the options for creating the mount point */ 3: MountTOptions options)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)

@@ -19,6 +19,7 @@ import alluxio.client.Seekable;
 import alluxio.client.block.BlockInStream;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.LocalBlockInStream;
+import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
@@ -26,6 +27,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.block.BlockId;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -231,9 +234,29 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         try {
           long blockSize = getCurrentBlockSize();
           WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
-              mContext.getAluxioBlockStore().getWorkerInfoList(), blockSize);
-          mCurrentCacheStream =
-              mContext.getAluxioBlockStore().getOutStream(currentBlockId, blockSize, address);
+              mContext.getAlluxioBlockStore().getWorkerInfoList(), blockSize);
+          // Don't cache the block to somewhere that already has it.
+          // TODO(andrew): Filter the workers provided to the location policy to not include
+          // workers which already contain the block. See ALLUXIO-1816.
+          if (mCurrentBlockInStream instanceof RemoteBlockInStream) {
+            WorkerNetAddress readAddress =
+                ((RemoteBlockInStream) mCurrentBlockInStream).getWorkerNetAddress();
+            // Try to avoid an RPC.
+            if (readAddress.equals(address)) {
+              mShouldCacheCurrentBlock = false;
+            } else {
+              BlockInfo blockInfo = mContext.getAlluxioBlockStore().getInfo(currentBlockId);
+              for (BlockLocation location : blockInfo.getLocations()) {
+                if (address.equals(location.getWorkerAddress())) {
+                  mShouldCacheCurrentBlock = false;
+                }
+              }
+            }
+          }
+          if (mShouldCacheCurrentBlock) {
+            mCurrentCacheStream =
+                mContext.getAlluxioBlockStore().getOutStream(currentBlockId, blockSize, address);
+          }
         } catch (IOException e) {
           LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e);
           mShouldCacheCurrentBlock = false;
@@ -311,9 +334,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         try {
           long blockSize = getCurrentBlockSize();
           WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
-              mContext.getAluxioBlockStore().getWorkerInfoList(), blockSize);
+              mContext.getAlluxioBlockStore().getWorkerInfoList(), blockSize);
           mCurrentCacheStream =
-              mContext.getAluxioBlockStore().getOutStream(currentBlockId, blockSize, address);
+              mContext.getAlluxioBlockStore().getOutStream(currentBlockId, blockSize, address);
         } catch (IOException e) {
           LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
           mShouldCacheCurrentBlock = false;
@@ -342,13 +365,13 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     try {
       if (mAlluxioStorageType.isPromote()) {
         try {
-          mContext.getAluxioBlockStore().promote(blockId);
+          mContext.getAlluxioBlockStore().promote(blockId);
         } catch (IOException e) {
           // Failed to promote
           LOG.warn("Promotion of block with ID {} failed.", blockId, e);
         }
       }
-      mCurrentBlockInStream = mContext.getAluxioBlockStore().getInStream(blockId);
+      mCurrentBlockInStream = mContext.getAlluxioBlockStore().getInStream(blockId);
       mShouldCacheCurrentBlock =
           !(mCurrentBlockInStream instanceof LocalBlockInStream) && mAlluxioStorageType.isStore();
     } catch (IOException e) {
