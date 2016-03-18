@@ -126,7 +126,7 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
 
     private ByteBuffer nextKey(ByteBuffer key) throws IOException, AlluxioException {
       List<ByteBuffer> nextKeys = mClient.getNextKeys(mBlockId, key, 1);
-      if (nextKeys.size() > 0) {
+      if (!nextKeys.isEmpty()) {
         return nextKeys.get(0);
       }
       return null;
