@@ -101,9 +101,9 @@ public class AlluxioShellUtils {
       return Lists.newArrayList(inputURI);
     } else {
       String inputPath = inputURI.getPath();
-      AlluxioURI parentURI =
-          new AlluxioURI(inputURI.getScheme(), inputURI.getAuthority(),
-              inputPath.substring(0, inputPath.indexOf(AlluxioURI.WILDCARD) + 1)).getParent();
+      AlluxioURI parentURI = new AlluxioURI(inputURI.getScheme(), inputURI.getAuthority(),
+          inputPath.substring(0, inputPath.indexOf(AlluxioURI.WILDCARD) + 1),
+          inputURI.getQueryMap()).getParent();
       return getAlluxioURIs(alluxioClient, inputURI, parentURI);
     }
   }
