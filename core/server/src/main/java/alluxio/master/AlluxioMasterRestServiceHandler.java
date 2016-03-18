@@ -50,7 +50,6 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String SERVICE_PREFIX = "master";
   public static final String GET_RPC_ADDRESS = "rpc_address";
   public static final String GET_CONFIGURATION = "configuration";
-  public static final String GET_DEBUG = "debug";
   public static final String GET_CAPACITY_BYTES = "capacity_bytes";
   public static final String GET_USED_BYTES = "used_bytes";
   public static final String GET_FREE_BYTES = "free_bytes";
@@ -87,17 +86,6 @@ public final class AlluxioMasterRestServiceHandler {
       configuration.put(key, mMasterConf.get(key));
     }
     return Response.ok(configuration).build();
-  }
-
-  /**
-   * @summary get whether the master is in debug mode
-   * @return the response object
-   */
-  @GET
-  @Path(GET_DEBUG)
-  @ReturnType("java.lang.Boolean")
-  public Response isDebug() {
-    return Response.ok(mMasterConf.getBoolean(Constants.DEBUG)).build();
   }
 
   /**
