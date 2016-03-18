@@ -13,9 +13,10 @@ package alluxio.worker;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.ValidateConf;
 import alluxio.Version;
 import alluxio.metrics.MetricsSystem;
-import alluxio.security.authentication.AuthenticationUtils;
+import alluxio.security.authentication.TransportProvider;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -64,6 +65,11 @@ public final class AlluxioWorker {
    */
   public static void main(String[] args) {
     checkArgs(args);
+    // validate the conf
+    if (!ValidateConf.validate()) {
+      LOG.error("Invalid configuration found");
+      System.exit(-1);
+    }
     AlluxioWorker worker = get();
     try {
       worker.start();
@@ -113,6 +119,9 @@ public final class AlluxioWorker {
 
   /** Worker Web UI server. */
   private UIWebServer mWebServer;
+
+  /** The transport provider to create thrift server transport. */
+  private TransportProvider mTransportProvider;
 
   /** Thread pool for thrift. */
   private TThreadPoolServer mThriftServer;
@@ -170,6 +179,7 @@ public final class AlluxioWorker {
               mStartTimeMs, mConfiguration);
 
       // Setup Thrift server
+      mTransportProvider = TransportProvider.Factory.create(mConfiguration);
       mThriftServerSocket = createThriftServerSocket();
       mRPCPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
       // Reset worker RPC port based on assigned port number
@@ -376,7 +386,7 @@ public final class AlluxioWorker {
     // Return a TTransportFactory based on the authentication type
     TTransportFactory tTransportFactory;
     try {
-      tTransportFactory = AuthenticationUtils.getServerTransportFactory(mConfiguration);
+      tTransportFactory = mTransportProvider.getServerTransportFactory();
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }

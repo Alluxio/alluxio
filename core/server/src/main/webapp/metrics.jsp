@@ -6,14 +6,12 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
-  <link href="css/alluxiocustom.min.css" rel="stylesheet">
-  <link href="css/linearGraph.css" rel="stylesheet">
+  <link href="css/custom.min.css" rel="stylesheet">
+  <link href="img/favicon.ico" rel="shortcut icon">
 </head>
 <title>Alluxio</title>
 <body>
 <jsp:include page="header-scripts.jsp" />
-<script src="js/d3.min.js" type="text/javascript"></script>
-<script src="js/linearGraph.js" type="text/javascript"></script>
 <div class="container-fluid">
   <jsp:include page="/header" />
 

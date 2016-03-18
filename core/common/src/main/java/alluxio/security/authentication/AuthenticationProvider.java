@@ -17,7 +17,8 @@ import alluxio.Constants;
 import javax.security.sasl.AuthenticationException;
 
 /**
- * Abstraction for an authentication provider for different authentication types.
+ * Abstraction for an authentication provider at Sasl server for
+ * {@link AuthType#SIMPLE} and {@link AuthType#CUSTOM}.
  */
 public interface AuthenticationProvider {
 
@@ -46,7 +47,7 @@ public interface AuthenticationProvider {
   }
 
   /**
-   * The authenticate method is called by the {@link PlainSaslServer.PlainServerCallbackHandler} in
+   * The authenticate method is called by the {@link PlainSaslServerCallbackHandler} in
    * the {@link PlainSaslServer} layer to authenticate users for their requests. If a user is to be
    * granted, return nothing/throw nothing. When a user is to be disallowed, throw an appropriate
    * {@link AuthenticationException}.

@@ -27,7 +27,7 @@ if [[ `uname -a` == Darwin* ]]; then
   export ALLUXIO_JAVA_OPTS="-Djava.security.krb5.realm= -Djava.security.krb5.kdc="
 else
   # Assuming Linux
-  if [ -z "$JAVA_HOME" ]; then
+  if [[ -z "$JAVA_HOME" ]]; then
     export JAVA_HOME=/usr/lib/jvm/java-1.6.0-sun-1.6.0.45.x86_64/
   fi
   export ALLUXIO_RAM_FOLDER=/mnt/ramdisk

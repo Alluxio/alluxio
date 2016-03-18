@@ -10,7 +10,7 @@ group: Resources
 
 该指南介绍如何从头编译Alluxio。
 
-这部分内容的前提条件是你已安装[Java 7 (或以上)](Java-Setup.html)、[Maven](Maven.html)以及[Thrift 0.9.2](Thrift.html) (可选)。
+这部分内容的前提条件是你已安装[Java 7 (或以上)](Java-Setup.html)、[Maven](Maven.html)以及[Thrift 0.9.3](Thrift.html) (可选)。
 
 从Github上获取主分支并打包：
 

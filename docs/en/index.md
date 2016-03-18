@@ -9,25 +9,28 @@ and bridges computation frameworks and underlying storage systems. Applications 
 with Alluxio to access data stored in any underlying storage systems. Additionally, Alluxio’s
 memory-centric architecture enables data access orders of magnitude faster than existing solutions.
 
-In big data ecosystem, Alluxio lies between computation frameworks or jobs, such as Apache Spark,
-Apache MapReduce, or Apache Flink, and various kinds of storage systems, such as Amazon S3, OpenStack
-Swift, GlusterFS, HDFS, Ceph, or OSS. Alluxio brings significant performance improvement to the stack;
-for example, [Baidu](https://www.baidu.com)
-uses Alluxio to improve their data analytics performance by 30 times. Beyond performance, Alluxio
-bridges new workloads with data stored in traditional storage systems. Users can run Alluxio using
-its standalone cluster mode, for example on Amazon EC2, or launch Alluxio with Apache Mesos or
-Apache Yarn.
+In the big data ecosystem, Alluxio lies between computation frameworks or jobs, such as Apache
+Spark, Apache MapReduce, or Apache Flink, and various kinds of storage systems, such as Amazon S3,
+OpenStack Swift, GlusterFS, HDFS, Ceph, or OSS. Alluxio brings significant performance improvement
+to the ecosystem; for example, [Baidu](https://www.baidu.com) uses Alluxio to improve speedup the
+throughput of their data analytics pipeline
+[30 times](http://www.alluxio.com/assets/uploads/2016/02/Baidu-Case-Study.pdf).
+Barclays makes the impossible possible with Alluxio to accelerate jobs from
+[hours to seconds](https://dzone.com/articles/Accelerate-In-Memory-Processing-with-Spark-from-Hours-to-Seconds-With-Tachyon).
+Beyond performance, Alluxio bridges new workloads with data stored in traditional storage systems.
+Users can run Alluxio using its standalone cluster mode, for example on Amazon EC2, or launch
+Alluxio with Apache Mesos or Apache Yarn.
 
 Alluxio is Hadoop compatible. This means that existing Spark and MapReduce programs can run on top
 of Alluxio without any code changes. The project is open source
 ([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE)) and is deployed at
 multiple companies. It is one of the fastest growing open source projects. With less than three
-years open source history, Alluxio has attracted more than
-[160 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 50 institutions,
-including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/), [Baidu](https://www.baidu.com),
-[CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com), [Intel](http://www.intel.com/),
-[Red Hat](https://www.redhat.com/), [UC Berkeley](https://amplab.cs.berkeley.edu/),
-and [Yahoo](https://www.yahoo.com/).
+years of open source history, Alluxio has attracted more than
+[160 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 50
+institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
+[Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com),
+[Intel](http://www.intel.com/), [NJU](http://www.nju.edu.cn/english/), [Red Hat](https://www.redhat.com/),
+[UC Berkeley](https://amplab.cs.berkeley.edu/), and [Yahoo](https://www.yahoo.com/).
 The project is the storage layer of the Berkeley Data Analytics Stack
 ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).

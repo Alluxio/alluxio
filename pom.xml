@@ -18,7 +18,7 @@
   <version>1.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
-  <description>Parent POM of Alluxio project: a Reliable Memory Centric Distributed Storage System</description>
+  <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
   <url>http://alluxio.org/</url>
   <licenses>
     <license>
@@ -337,6 +337,9 @@
             <compilerArgs>
               <arg>-Xlint:none</arg>
             </compilerArgs>
+            <excludes>
+              <exclude>**/\${alluxio.hadoop2.impl}</exclude>
+            </excludes>
           </configuration>
         </plugin>
         <plugin>
@@ -405,6 +408,28 @@
             <goals>
               <goal>jar</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Parse Hadoop major version and resolve the compilation conflict between Hadoop 1.x and 2.x -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.10</version>
+        <executions>
+          <execution>
+            <id>parse-hadoop-major-version</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>alluxio.hadoop2.impl</name>
+              <value>${hadoop.version}</value>
+              <regex>^1\..*$</regex>
+              <replacement>AlluxioFileSystem.java</replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -639,6 +664,14 @@
       </properties>
     </profile>
 
+    <!--
+        Empty spark profile to avoid missing profile complaints. Client
+        submodules do more interesting things with this profile.
+    -->
+    <profile>
+      <id>spark</id>
+    </profile>
+
     <profile>
       <id>mesos</id>
       <modules>
@@ -692,11 +725,6 @@
           </plugins>
         </pluginManagement>
       </build>
-    </profile>
-
-    <!-- build profile for Apache Spark -->
-    <profile>
-      <id>spark</id>
     </profile>
 
     <!-- profile that activates alluxio fuse for java8 or newer -->
