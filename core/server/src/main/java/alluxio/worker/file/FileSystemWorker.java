@@ -11,10 +11,14 @@
 
 package alluxio.worker.file;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -44,6 +48,10 @@ public final class FileSystemWorker extends AbstractWorker {
   private final FileSystemMasterClient mFileSystemMasterWorkerClient;
   /** Configuration object. */
   private final Configuration mConf;
+  /** Logic for handling RPC requests. */
+  private final FileSystemWorkerClientServiceHandler mServiceHandler;
+  /** Manager for under file system operations. */
+  private final UnderFileSystemManager mUnderFileSystemManager;
 
   /** The service that persists files. */
   private Future<?> mFilePersistenceService;
@@ -60,20 +68,70 @@ public final class FileSystemWorker extends AbstractWorker {
 
     mConf = WorkerContext.getConf();
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker));
+    mUnderFileSystemManager = new UnderFileSystemManager();
 
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
+
+    mServiceHandler = new FileSystemWorkerClientServiceHandler(this);
+  }
+
+  @Override
+  public Map<String, TProcessor> getServices() {
+    Map<String, TProcessor> services = new HashMap<>();
+    services.put(
+        Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME,
+        new FileSystemWorkerClientService.Processor<>(getWorkerServiceHandler()));
+    return services;
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * {@link FileSystemWorker} exposes no RPC service.
+   * Cancels a file currently being written to the under file system. The open stream will be
+   * closed and the partial file will be cleaned up.
+   *
+   * @param tempUfsFileId the id of the file to cancel, only understood by the worker that created
+   *                     the file
+   * @throws FileDoesNotExistException if this worker is not writing the specified file
+   * @throws IOException if an error occurs interacting with the under file system
    */
-  @Override
-  public Map<String, TProcessor> getServices() {
-    return new HashMap<String, TProcessor>();
+  public void cancelUfsFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
+    mUnderFileSystemManager.cancelFile(tempUfsFileId);
+  }
+
+  /**
+   * Completes a file currently being written to the under file system. The open stream will be
+   * closed and the partial file will be promoted to the completed file in the under file system.
+   *
+   * @param tempUfsFileId the id of the file to cancel, only understood by the worker that created
+   *                      the file
+   * @throws FileDoesNotExistException if the worker is not writing the specified file
+   * @throws IOException if an error occurs interacting with the under file system
+   */
+  public void completeUfsFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
+    mUnderFileSystemManager.completeFile(tempUfsFileId);
+  }
+
+  /**
+   * Creates a new file in the under file system. This will register a new stream in the under
+   * file system manager. The stream can only be accessed with the returned id afterward.
+   *
+   * @param ufsUri the under file system uri to create a file for
+   * @throws FileAlreadyExistsException if a file already exists in the under file system with
+   *                                    the same path
+   * @throws IOException if an error occurs interacting with the under file system
+   * @return the temporary worker specific file id which references the in-progress ufs file
+   */
+  // TODO(calvin): Add a session id to clean up in case of disconnection
+  public long createUfsFile(AlluxioURI ufsUri) throws FileAlreadyExistsException, IOException {
+    return mUnderFileSystemManager.createFile(ufsUri);
+  }
+
+  /**
+   * @return the worker service handler
+   */
+  public FileSystemWorkerClientServiceHandler getWorkerServiceHandler() {
+    return mServiceHandler;
   }
 
   /**
