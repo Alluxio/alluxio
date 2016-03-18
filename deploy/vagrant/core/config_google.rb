@@ -1,36 +1,26 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# AWS specific configurations go here
+# Google specific configurations go here
 
-def config_aws(config, i, total, name)
+def config_google(config, i, total, name)
   config.vm.box = "dummy"
   config.vm.box_url = 
     "https://github.com/mitchellh/vagrant-google/raw/master/google.box"
-  config.ssh.username = "ec2-user"
-  config.ssh.private_key_path = KEY_PATH
+  config.ssh.username = "ericand"
+  config.ssh.private_key_path = "~/.ssh/google_compute_engine" #KEY_PATH
 
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
-  config.vm.provider :aws do |aws, override|
-    aws.access_key_id = ENV['AWS_ACCESS_KEY_ID']
-    aws.secret_access_key = ENV['AWS_SECRET_ACCESS_KEY']
-    aws.keypair_name = KEYPAIR
-    aws.ami = AMI
-    aws.region = REGION
-    aws.instance_type = INSTANCE_TYPE
-    aws.block_device_mapping = BLOCK_DEVICE_MAPPING
-    aws.tags = {
-      'Name' => TAG + "-" + name,
-    }
-	  aws.availability_zone = AVAILABILITY_ZONE
-    if (SUBNET != nil and SUBNET != "")
-      aws.subnet_id = SUBNET
-      aws.associate_public_ip = TRUE
-      aws.security_groups = ENV['AWS_SECURITY_GROUP_ID_TACH']
-    else
-      aws.security_groups = SECURITY_GROUP
-    end
-    aws.user_data = "#!/bin/bash\necho 'Defaults:root !requiretty' > /etc/sudoers.d/998-vagrant-cloud-init-requiretty && echo 'Defaults:ec2-user !requiretty' > /etc/sudoers.d/999-vagrant-cloud-init-requiretty && chmod 440 /etc/sudoers.d/998-vagrant-cloud-init-requiretty && chmod 440 /etc/sudoers.d/999-vagrant-cloud-init-requiretty"
+  config.vm.provider :google do |google, override|
+    #google.google_project_id = "ericand-sandbox"
+    #google.google_client_email = "eric-laptop@ericand-sandbox.iam.gserviceaccount.com"
+    #google.google_json_key_location = "/users/ericand/keys/ericand-sandbox-d90e056d395a.json"
+    google.google_project_id = GOOGLE_CLOUD_PROJECT_ID
+    google.google_client_email = SERVICE_ACCOUNT_EMAIL_ADDRESS
+    google.google_json_key_location = JSON_KEY_LOCATION
+    #google.tags = {
+    #  'Name' => TAG + "-" + name,
+    #}
   end
 end

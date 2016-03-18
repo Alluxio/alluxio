@@ -20,7 +20,7 @@ error_exit() {
   exit 1
 }
 
-PROVIDERS=("aws" "vb" “google”)
+PROVIDERS=("aws" "vb" "google")
 
 usage() {
   echo -e "${BOLD_RED}>>> Usage: $0 [Machine Number] [Provider] [Options]${NO_COLOR}"
