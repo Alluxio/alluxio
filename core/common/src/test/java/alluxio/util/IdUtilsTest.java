@@ -38,7 +38,7 @@ public final class IdUtilsTest {
   public void createFileIdTest() throws Exception {
     long containerId = 1;
     long fileId = IdUtils.createFileId(containerId);
-    Assert.assertTrue(fileId != -1);
+    Assert.assertNotEquals(-1, fileId);
   }
 
   /**
@@ -51,6 +51,6 @@ public final class IdUtilsTest {
     Assert.assertTrue(first != null && !first.isEmpty());
     String second = IdUtils.createRpcId();
     Assert.assertTrue(second != null && !second.isEmpty());
-    Assert.assertTrue(!first.equals(second));
+    Assert.assertNotEquals(first, second);
   }
 }
