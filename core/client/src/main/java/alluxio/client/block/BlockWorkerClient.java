@@ -434,7 +434,7 @@ public final class BlockWorkerClient extends AbstractClient {
   }
 
   /**
-   * Gets the clients metrics of the worker.
+   * Gets the client metrics of the worker.
    * @return the metrics of the worker
    */
   public ClientMetrics getClientMetrics() {
