@@ -67,16 +67,19 @@ public class MountTableTest {
     }
 
     // Test resolve()
-    Assert.assertEquals(new AlluxioURI("/foo"), mMountTable.resolve(new AlluxioURI("/mnt/foo")));
-    Assert
-        .assertEquals(new AlluxioURI("/foo/x"), mMountTable.resolve(new AlluxioURI("/mnt/foo/x")));
-    Assert.assertEquals(new AlluxioURI("/bar"), mMountTable.resolve(new AlluxioURI("/mnt/bar")));
-    Assert
-        .assertEquals(new AlluxioURI("/bar/y"), mMountTable.resolve(new AlluxioURI("/mnt/bar/y")));
+    Assert.assertEquals(new AlluxioURI("/foo"),
+        mMountTable.resolve(new AlluxioURI("/mnt/foo")).getUri());
+    Assert.assertEquals(new AlluxioURI("/foo/x"),
+        mMountTable.resolve(new AlluxioURI("/mnt/foo/x")).getUri());
+    Assert.assertEquals(new AlluxioURI("/bar"),
+        mMountTable.resolve(new AlluxioURI("/mnt/bar")).getUri());
+    Assert.assertEquals(new AlluxioURI("/bar/y"),
+        mMountTable.resolve(new AlluxioURI("/mnt/bar/y")).getUri());
     Assert.assertEquals(new AlluxioURI("/bar/baz"),
-        mMountTable.resolve(new AlluxioURI("/mnt/bar/baz")));
-    Assert.assertEquals(new AlluxioURI("/foobar"), mMountTable.resolve(new AlluxioURI("/foobar")));
-    Assert.assertEquals(new AlluxioURI("/"), mMountTable.resolve(new AlluxioURI("/")));
+        mMountTable.resolve(new AlluxioURI("/mnt/bar/baz")).getUri());
+    Assert.assertEquals(new AlluxioURI("/foobar"),
+        mMountTable.resolve(new AlluxioURI("/foobar")).getUri());
+    Assert.assertEquals(new AlluxioURI("/"), mMountTable.resolve(new AlluxioURI("/")).getUri());
 
     // Test getMountPoint()
     Assert.assertEquals("/mnt/foo", mMountTable.getMountPoint(new AlluxioURI("/mnt/foo")));
@@ -112,9 +115,9 @@ public class MountTableTest {
   public void uriTest() throws Exception {
     // Test add()
     mMountTable.add(new AlluxioURI("alluxio://localhost:1234/mnt/foo"),
-        new AlluxioURI("hdfs://localhost:5678/foo"), mDefaultOptions);
+        new AlluxioURI("file://localhost:5678/foo"), mDefaultOptions);
     mMountTable.add(new AlluxioURI("alluxio://localhost:1234/mnt/bar"),
-        new AlluxioURI("hdfs://localhost:5678/bar"), mDefaultOptions);
+        new AlluxioURI("file://localhost:5678/bar"), mDefaultOptions);
 
     try {
       mMountTable.add(new AlluxioURI("alluxio://localhost:1234/mnt/foo"),
@@ -135,14 +138,14 @@ public class MountTableTest {
     }
 
     // Test resolve()
-    Assert.assertEquals(new AlluxioURI("hdfs://localhost:5678/foo"),
-        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/foo")));
-    Assert.assertEquals(new AlluxioURI("hdfs://localhost:5678/bar"),
-        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/bar")));
-    Assert.assertEquals(new AlluxioURI("hdfs://localhost:5678/bar/y"),
-        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/bar/y")));
-    Assert.assertEquals(new AlluxioURI("hdfs://localhost:5678/bar/baz"),
-        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/bar/baz")));
+    Assert.assertEquals(new AlluxioURI("file://localhost:5678/foo"),
+        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/foo")).getUri());
+    Assert.assertEquals(new AlluxioURI("file://localhost:5678/bar"),
+        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/bar")).getUri());
+    Assert.assertEquals(new AlluxioURI("file://localhost:5678/bar/y"),
+        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/bar/y")).getUri());
+    Assert.assertEquals(new AlluxioURI("file://localhost:5678/bar/baz"),
+        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/bar/baz")).getUri());
 
     // Test getMountPoint()
     Assert.assertEquals("/mnt/foo",
