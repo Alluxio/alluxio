@@ -419,6 +419,9 @@ public final class BlockWorkerClient extends AbstractClient {
    * failures.
    */
   public synchronized void periodicHeartbeat() {
+    if (mClosed) {
+      return;
+    }
     try {
       sessionHeartbeat();
     } catch (Exception e) {
@@ -428,5 +431,13 @@ public final class BlockWorkerClient extends AbstractClient {
         mHeartbeat = null;
       }
     }
+  }
+
+  /**
+   * Gets the clients metrics of the worker.
+   * @return the metrics of the worker
+   */
+  public ClientMetrics getClientMetrics() {
+    return mClientMetrics;
   }
 }
