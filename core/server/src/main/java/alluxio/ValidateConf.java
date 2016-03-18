@@ -30,7 +30,12 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ValidateConf {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static boolean validate() {
+  /**
+   * Validates the configurations.
+   *
+   * @return true if the validation succeeds, false otherwise
+   */
+  public static boolean validate() {
     Set<String> validProperties = new HashSet<String>();
     try {
       // Iterate over the array of Field objects in alluxio.Constants by reflection

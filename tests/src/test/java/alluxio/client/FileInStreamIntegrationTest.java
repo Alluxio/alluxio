@@ -86,7 +86,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link FileInStream#read()} across block boundary.
+   * Tests {@link FileInStream#read()} across block boundary.
    */
   @Test
   public void readTest1() throws IOException, AlluxioException {
@@ -127,7 +127,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link FileInStream#read(byte[])}.
+   * Tests {@link FileInStream#read(byte[])}.
    */
   @Test
   public void readTest2() throws IOException, AlluxioException {
@@ -152,7 +152,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link FileInStream#read(byte[], int, int)}.
+   * Tests {@link FileInStream#read(byte[], int, int)}.
    */
   @Test
   public void readTest3() throws IOException, AlluxioException {
@@ -177,7 +177,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link FileInStream#read(byte[], int, int)} for end of file.
+   * Tests {@link FileInStream#read(byte[], int, int)} for end of file.
    */
   @Test
   public void readEndOfFileTest() throws IOException, AlluxioException {
@@ -203,7 +203,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link FileInStream#seek(long)}. Validate the expected exception for seeking a negative
+   * Tests {@link FileInStream#seek(long)}. Validate the expected exception for seeking a negative
    * position.
    *
    * @throws IOException
@@ -228,7 +228,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link FileInStream#seek(long)}. Validate the expected exception for seeking a position
+   * Tests {@link FileInStream#seek(long)}. Validate the expected exception for seeking a position
    * that is past EOF.
    *
    * @throws IOException
@@ -252,7 +252,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link FileInStream#seek(long)}.
+   * Tests {@link FileInStream#seek(long)}.
    *
    * @throws IOException
    * @throws AlluxioException
@@ -277,7 +277,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link FileInStream#seek(long)} when at the end of a file at the block boundary.
+   * Tests {@link FileInStream#seek(long)} when at the end of a file at the block boundary.
    *
    * @throws IOException
    */
@@ -302,7 +302,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link FileInStream#skip(long)}.
+   * Tests {@link FileInStream#skip(long)}.
    */
   @Test
   public void skipTest() throws IOException, AlluxioException {

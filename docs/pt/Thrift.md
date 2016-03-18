@@ -5,8 +5,8 @@ title: Thrift
 
 # Mac OS X
 
-Antes que você instale o [Apache Thift](http://thrift.apache.org), primeiro, you irá precisar 
-configurar o suporte a linha de comando. Para fazer isso, você irá precisar de:
+Antes que você instale o [Apache Thift](http://thrift.apache.org), primeiro, você precisará  
+configurar o suporte a linha de comando. Para fazer isso, você irá:
 
 Instalar o Xcode a partir do Mac App Store
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 ALLUXIO_SITE=/alluxio/conf/alluxio-site.properties
 # For Alluxio version >= 0.8
 echo "alluxio.zookeeper.enabled=true" >> "$ALLUXIO_SITE"
