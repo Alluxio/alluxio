@@ -104,7 +104,6 @@ echo "AlluxioMaster" >> files/workers
 
 # create virtual machine without provisioning
 [[ "$PROVIDER" == "aws" ]] && sgid=$(python bin/init_aws.py | tail -n 1)
-
 # pass security group id to vagrant up
 export AWS_SECURITY_GROUP_ID_TACH=$sgid
 if [[ "$PROVIDER" == "aws" && "$(python bin/is_aws_spot.py)" == "0" ]]; then
