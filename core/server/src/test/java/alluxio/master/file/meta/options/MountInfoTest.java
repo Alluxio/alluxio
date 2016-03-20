@@ -9,26 +9,27 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client;
+package alluxio.master.file.meta.options;
+
+import alluxio.AlluxioURI;
+import alluxio.master.file.options.MountOptions;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests {@link ClientUtils}.
+ * Unit tests for {@link MountInfo}.
  */
-public final class ClientUtilsTest {
+public class MountInfoTest {
   /**
-   * Tests if output of {@link ClientUtils#getRandomNonNegativeLong()} is non-negative.
-   * Also tests for randomness property.
-   *
+   * Tests getting fields of {@link MountInfo}.
    */
   @Test
-  public void getRandomNonNegativeLongTest() throws Exception {
-    long first = ClientUtils.getRandomNonNegativeLong();
-    long second = ClientUtils.getRandomNonNegativeLong();
-    Assert.assertTrue(first > 0);
-    Assert.assertTrue(second > 0);
-    Assert.assertTrue(first != second);
+  public void getFieldsTest() {
+    AlluxioURI uri = new AlluxioURI("alluxio://localhost:19998/test");
+    MountOptions options = MountOptions.defaults();
+    MountInfo info = new MountInfo(uri, options);
+    Assert.assertEquals(uri, info.getUfsUri());
+    Assert.assertEquals(options, info.getOptions());
   }
 }

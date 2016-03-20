@@ -68,33 +68,30 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    * Constructs a new stream for reading a file from HDFS.
    *
    * @param uri the Alluxio file URI
-   * @param hdfsPath the HDFS path
    * @param conf Hadoop configuration
    * @param bufferSize the buffer size
    * @param stats filesystem statistics
    * @throws IOException if the underlying file does not exist or its stream cannot be created
    */
-  public HdfsFileInputStream(AlluxioURI uri, Path hdfsPath,
-      org.apache.hadoop.conf.Configuration conf, int bufferSize,
-      org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
-    LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", uri, hdfsPath, conf,
-        bufferSize, stats);
+  public HdfsFileInputStream(AlluxioURI uri, org.apache.hadoop.conf.Configuration conf,
+      int bufferSize, org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
+    LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", uri, conf, bufferSize, stats);
     Configuration configuration = ClientContext.getConf();
     long bufferBytes = configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
     mCurrentPosition = 0;
     FileSystem fs = FileSystem.Factory.get();
-    mHdfsPath = hdfsPath;
     mHadoopConf = conf;
     mHadoopBufferSize = bufferSize;
     mStatistics = stats;
     try {
       mFileInfo = fs.getStatus(uri);
+      mHdfsPath = new Path(mFileInfo.getUfsPath());
       mAlluxioFileInputStream =
           fs.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.CACHE));
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(
-          ExceptionMessage.HDFS_FILE_NOT_FOUND.getMessage(hdfsPath, uri));
+          ExceptionMessage.HDFS_FILE_NOT_FOUND.getMessage(mHdfsPath, uri));
     } catch (AlluxioException e) {
       throw new IOException(e);
     }

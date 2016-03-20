@@ -27,9 +27,9 @@ import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.AuthorizeCallback;
 
 /**
- * Tests the {@link PlainSaslServer.PlainServerCallbackHandler} class.
+ * Tests the {@link PlainSaslServerCallbackHandler} class.
  */
-public class PlainServerCallbackHandlerTest {
+public class PlainSaslServerCallbackHandlerTest {
   private Configuration mConf;
   private CallbackHandler mPlainServerCBHandler;
 
@@ -49,7 +49,7 @@ public class PlainServerCallbackHandlerTest {
     mConf = new Configuration();
     mConf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         NameMatchAuthenticationProvider.class.getName());
-    mPlainServerCBHandler = new PlainSaslServer.PlainServerCallbackHandler(
+    mPlainServerCBHandler = new PlainSaslServerCallbackHandler(
         AuthenticationProvider.Factory.create(AuthType.CUSTOM, mConf));
   }
 
