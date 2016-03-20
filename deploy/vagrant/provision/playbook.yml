@@ -3,7 +3,7 @@
   tasks:
     - include: roles/common/tasks/main.yml
     - include: roles/lib/tasks/mount.yml
-      when: provider == "aws"
+      when: (provider == "aws") or (provider == "google")
 
     - name: open PasswordAuthentication of sshd for openstack
       replace: >

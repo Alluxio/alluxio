@@ -131,6 +131,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           GOOGLE_CLOUD_PROJECT_ID = @gce['Google_Cloud_Project_ID']
           SERVICE_ACCOUNT_EMAIL_ADDRESS = @gce['Serice_Acount_Email_Address']
           JSON_KEY_LOCATION = @gce['json_Key_Location']
+          IMAGE = @gce['Image']
+          MACHINE_TYPE = @gce['Machine_Type']
         end
         config_google(n, i, Total, name)
       end
