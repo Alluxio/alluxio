@@ -15,6 +15,7 @@ import alluxio.client.ClientContext;
 import alluxio.client.RemoteBlockWriter;
 import alluxio.exception.AlluxioException;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.ClientMetrics;
 
 import java.io.IOException;
 
@@ -28,6 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   private final RemoteBlockWriter mRemoteWriter;
   private final BlockWorkerClient mBlockWorkerClient;
+  private final ClientMetrics mMetrics;
 
   /**
    * Creates a new block output stream.
@@ -44,6 +46,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
       mBlockWorkerClient.connect();
       mRemoteWriter.open(mBlockWorkerClient.getDataServerAddress(), mBlockId,
           mBlockWorkerClient.getSessionId());
+      mMetrics = mBlockWorkerClient.getClientMetrics();
     } catch (IOException e) {
       mContext.releaseWorkerClient(mBlockWorkerClient);
       throw e;
@@ -67,6 +70,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
       mBlockWorkerClient.connect();
       mRemoteWriter.open(mBlockWorkerClient.getDataServerAddress(), mBlockId,
           mBlockWorkerClient.getSessionId());
+      mMetrics = mBlockWorkerClient.getClientMetrics();
     } catch (IOException e) {
       mContext.releaseWorkerClient(mBlockWorkerClient);
       throw e;
@@ -101,7 +105,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
       } catch (AlluxioException e) {
         throw new IOException(e);
       }
-      ClientContext.getClientMetrics().incBlocksWrittenRemote(1);
+      mMetrics.incBlocksWrittenRemote(1);
     } else {
       try {
         mBlockWorkerClient.cancelBlock(mBlockId);
@@ -127,6 +131,6 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   private void writeToRemoteBlock(byte[] b, int off, int len) throws IOException {
     mRemoteWriter.write(b, off, len);
     mFlushedBytes += len;
-    ClientContext.getClientMetrics().incBytesWrittenRemote(len);
+    mMetrics.incBytesWrittenRemote(len);
   }
 }
