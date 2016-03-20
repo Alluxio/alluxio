@@ -1,4 +1,4 @@
-This doc is for contributors on deploy module, for users, please go to the [online doc](http://alluxio.org/documentation/master/Deploy-Module.html).
+This doc is for contributors on deploy module, for users, please go to the [online doc](http://alluxio.org/documentation/Getting-Started.html).
 
 ## Tools
 

@@ -2,16 +2,10 @@ cat:
   Print the content of the file to the console.
 chgrp:
   Change the group of the directory or file.
-chgrpr:
-  Recursively change the group of the directory or file.
 chmod:
   Change the permission of the directory or file.
-chmodr:
-  Recursively change the permission of the directory or file.
 chown:
   Change the owner of the directory or file.
-chownr:
-  Recursively change the owner of the directory or file.
 copyFromLocal:
   Copy the specified file specified by "source path" to the path specified by "remote path".
   This command will fail if "remote path" already exists.

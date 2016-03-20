@@ -13,8 +13,8 @@ package alluxio.client.block;
 
 import alluxio.Constants;
 import alluxio.client.ClientContext;
-import alluxio.client.ClientUtils;
 import alluxio.resource.ResourcePool;
+import alluxio.util.IdUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
@@ -59,13 +59,13 @@ final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
     } catch (Exception e) {
       LOG.warn("Failed sending client metrics before releasing the worker client", e);
     }
-    blockWorkerClient.createNewSession(ClientUtils.getRandomNonNegativeLong());
+    blockWorkerClient.createNewSession(IdUtils.getRandomNonNegativeLong());
     super.release(blockWorkerClient);
   }
 
   @Override
   protected BlockWorkerClient createNewResource() {
-    long clientId = ClientUtils.getRandomNonNegativeLong();
+    long clientId = IdUtils.getRandomNonNegativeLong();
     return new BlockWorkerClient(mWorkerNetAddress, ClientContext.getExecutorService(),
         ClientContext.getConf(), clientId, true, ClientContext.getClientMetrics());
   }
