@@ -11,8 +11,6 @@
 
 package alluxio;
 
-import alluxio.util.OSUtils;
-
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
@@ -36,8 +34,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   public static final String WILDCARD = "*";
 
   public static final AlluxioURI EMPTY_URI = new AlluxioURI("");
-
-  private static final boolean WINDOWS = OSUtils.isWindows();
 
   // a hierarchical uri
   private final URI mUri;

@@ -19,6 +19,7 @@ public class BlockDoesNotExistException extends AlluxioException {
 
   /**
    * Constructs a new exception with the specified detail message.
+   *
    * @param message the detail message
    */
   public BlockDoesNotExistException(String message) {

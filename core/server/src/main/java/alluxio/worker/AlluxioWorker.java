@@ -13,6 +13,7 @@ package alluxio.worker;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.ValidateConf;
 import alluxio.Version;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;
@@ -64,6 +65,11 @@ public final class AlluxioWorker {
    */
   public static void main(String[] args) {
     checkArgs(args);
+    // validate the conf
+    if (!ValidateConf.validate()) {
+      LOG.error("Invalid configuration found");
+      System.exit(-1);
+    }
     AlluxioWorker worker = get();
     try {
       worker.start();
