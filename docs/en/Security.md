@@ -1,6 +1,7 @@
 ---
 layout: global
-title: Security
+title: Security (alpha)
+nickname: Security
 group: Features
 priority: 1
 ---
@@ -130,7 +131,7 @@ The owner, group, and permissions can be changed by two ways:
 1. User application invokes the setAttribute(...) method of `FileSystem API` or `Hadoop API`. See
 [File System API](File-System-API.html).
 2. CLI command in shell. See
-[chown, chownr, chgrp, chgrpr, chmod, chmodr](Command-Line-Interface.html#list-of-operations).
+[chown, chgrp, chmod](Command-Line-Interface.html#list-of-operations).
 
 The owner can only be changed by super user.
 The group and permission can only be changed by super user and file owner.

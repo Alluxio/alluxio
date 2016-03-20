@@ -21,7 +21,6 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.security.authentication.AuthenticationUtils;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
@@ -202,7 +201,7 @@ public final class BlockWorkerClient extends AbstractClient {
       LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mAddress);
 
       TProtocol binaryProtocol =
-          new TBinaryProtocol(AuthenticationUtils.getClientTransport(mConfiguration, mAddress));
+          new TBinaryProtocol(mTransportProvider.getClientTransport(mAddress));
       mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       mClient = new BlockWorkerClientService.Client(mProtocol);
 

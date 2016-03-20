@@ -11,7 +11,7 @@
 
 package alluxio.master.file.options;
 
-import alluxio.proto.journal.File.MountOptionsEntry;
+import alluxio.proto.journal.File;
 import alluxio.thrift.MountTOptions;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -40,16 +40,20 @@ public final class MountOptions {
    * @param options Thrift options
    */
   public MountOptions(MountTOptions options) {
-    mReadOnly = options.isReadOnly();
+    this();
+    if (options != null && options.isSetReadOnly()) {
+      mReadOnly = options.isReadOnly();
+    }
   }
 
   /**
-   * Creates a new instance of {@link MountOptions} from {@link MountOptionsEntry}.
+   * Creates a new instance of {@link MountOptions} from {@link File.AddMountPointEntry}.
    *
    * @param options Proto options
    */
-  public MountOptions(MountOptionsEntry options) {
-    if (options.hasReadOnly()) {
+  public MountOptions(File.AddMountPointEntry options) {
+    this();
+    if (options != null && options.hasReadOnly()) {
       mReadOnly = options.getReadOnly();
     }
   }
@@ -70,12 +74,5 @@ public final class MountOptions {
   public MountOptions setReadOnly(boolean readOnly) {
     mReadOnly = readOnly;
     return this;
-  }
-
-  /**
-   * @return Proto representation of the options
-   */
-  public MountOptionsEntry toProto() {
-    return MountOptionsEntry.newBuilder().setReadOnly(mReadOnly).build();
   }
 }
