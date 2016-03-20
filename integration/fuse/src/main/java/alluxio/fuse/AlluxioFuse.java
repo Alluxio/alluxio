@@ -40,6 +40,7 @@ public final class AlluxioFuse {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static Configuration sConfiguration;
 
+  // prevent instantiation
   private AlluxioFuse() {
   }
 
