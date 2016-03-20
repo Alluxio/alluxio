@@ -19,6 +19,7 @@
 /deploy/vagrant/.request_ids
 /deploy/vagrant/.vagrant/
 /deploy/vagrant/conf/ec2.yml
+/deploy/vagrant/conf/ec2.yml
 /deploy/vagrant/conf/init.yml
 /deploy/vagrant/files/
 /deploy/vagrant/shared/
@@ -36,5 +37,3 @@
 dependency-reduced-pom.xml
 target/
 tests.log*
-
-deploy/vagrant/conf/gce.yml
