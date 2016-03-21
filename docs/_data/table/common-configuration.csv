@@ -7,7 +7,6 @@ alluxio.keyvalue.partition.size.bytes.max,512MB
 alluxio.metrics.conf.file,${alluxio.home}/conf/metrics.properties
 alluxio.network.host.resolution.&#8203;timeout.ms,5000
 alluxio.test.mode,false
-alluxio.thrift.frame.size.bytes.max,64MB
 alluxio.underfs.address,${alluxio.home}/underFSStorage
 alluxio.underfs.glusterfs.impl,org.apache.hadoop.fs.glusterfs.&#8203;GlusterFileSystem
 alluxio.underfs.glusterfs.mapred.&#8203;system.dir,glusterfs:///mapred/system
