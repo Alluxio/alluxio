@@ -72,7 +72,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       "The block with ID {} could not be cached into Alluxio storage.";
   /** Error message for cache collision. */
   private static final String BLOCK_ID_EXISTS_SO_NOT_CACHED =
-      "The block with ID {} has already been stored, canceling the cache request.";
+      "The block with ID {} is already stored in the target worker, canceling the cache request.";
 
   /** If the stream is closed, this can only go from false to true. */
   private boolean mClosed;
@@ -131,12 +131,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       try {
         mCurrentCacheStream.write(data);
       } catch (IOException e) {
-        LOG.info("Exception cause: " + e.getCause(), e);
-        if (e.getCause() instanceof BlockAlreadyExistsException) {
-          LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId());
-        } else {
-          LOG.warn(BLOCK_ID_EXISTS_SO_NOT_CACHED, getCurrentBlockId(), e);
-        }
+        logCacheStreamIOException(e);
         mShouldCacheCurrentBlock = false;
       }
     }
@@ -172,12 +167,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         try {
           mCurrentCacheStream.write(b, currentOffset, bytesRead);
         } catch (IOException e) {
-          LOG.info("Exception cause: " + e.getCause(), e);
-          if (e.getCause() instanceof BlockAlreadyExistsException) {
-            LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId());
-          } else {
-            LOG.warn(BLOCK_ID_EXISTS_SO_NOT_CACHED, getCurrentBlockId(), e);
-          }
+          logCacheStreamIOException(e);
           mShouldCacheCurrentBlock = false;
         }
       }
@@ -272,11 +262,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
                 mContext.getAluxioBlockStore().getOutStream(currentBlockId, blockSize, address);
           }
         } catch (IOException e) {
-          if (e.getCause() instanceof BlockAlreadyExistsException) {
-            LOG.warn(BLOCK_ID_EXISTS_SO_NOT_CACHED, getCurrentBlockId());
-          } else {
-            LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
-          }
+          logCacheStreamIOException(e);
           mShouldCacheCurrentBlock = false;
         } catch (AlluxioException e) {
           LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e);
@@ -333,6 +319,18 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
+   * Logs IO exceptions thrown in response to the worker cache request. If the exception is not an
+   * expected exception, a warning will be logged with the stack trace.
+   */
+  private void logCacheStreamIOException(IOException e) {
+    if (e.getCause() instanceof BlockAlreadyExistsException) {
+      LOG.warn(BLOCK_ID_EXISTS_SO_NOT_CACHED, getCurrentBlockId());
+    } else {
+      LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
+    }
+  }
+
+  /**
    * Similar to {@link #checkAndAdvanceBlockInStream()}, but a specific position can be specified
    * and the stream pointer will be at that offset after this method completes.
    *
@@ -356,11 +354,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           mCurrentCacheStream =
               mContext.getAluxioBlockStore().getOutStream(currentBlockId, blockSize, address);
         } catch (IOException e) {
-          if (e.getCause() instanceof BlockAlreadyExistsException) {
-            LOG.warn(BLOCK_ID_EXISTS_SO_NOT_CACHED, getCurrentBlockId());
-          } else {
-            LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
-          }
+          logCacheStreamIOException(e);
           mShouldCacheCurrentBlock = false;
         } catch (AlluxioException e) {
           LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e);
