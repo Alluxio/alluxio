@@ -41,15 +41,16 @@ Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 
 这一部分说明如何将Alluxio作为Spark应用的输入输出源。
 
-将文件`foo`放到HDFS（假定namenode运行在`localhost`）:
+将文件`LICENSE`放到HDFS（假定namenode运行在`localhost`）:
 
-{% include Running-Spark-on-Alluxio/foo.md %}
+{% include Running-Spark-on-Alluxio/license-hdfs.md %}
 
 在`spark-shell`中运行如下命令（假定Alluxio Master运行在`localhost`）:
 
-{% include Running-Spark-on-Alluxio/Alluxio-In-Out-Scala.md %}
+{% include Running-Spark-on-Alluxio/alluxio-hdfs-in-out-scala.md %}
 
-打开浏览器，查看[http://localhost:19999](http://localhost:19999)。可以发现多出一个输出文件`bar`,每一行是由文件`foo`的对应行复制2次得到。
+打开浏览器，查看[http://localhost:19999](http://localhost:19999)。可以发现多出一个输出文件`LICENSE2`,
+每一行是由文件`LICENSE`的对应行复制2次得到。
 
 当以容错模式运行Alluxio时，可以使用任何一个Alluxio master：
 
