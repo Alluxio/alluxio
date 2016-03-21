@@ -16,13 +16,11 @@ import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.util.io.BufferUtils;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.Seekable;
 import org.junit.After;
 import org.junit.Assert;
@@ -70,14 +68,10 @@ public final class HdfsFileInputStreamIntegrationTest {
   @Before
   public final void before() throws IOException, AlluxioException {
     AlluxioURI file1 = new AlluxioURI("/testFile1");
-    URIStatus fileStatus1 = sFileSystem.getStatus(file1);
-    mInMemInputStream = new HdfsFileInputStream(file1, new Path(fileStatus1.getUfsPath()),
-        new Configuration(), BUFFER_SIZE, null);
+    mInMemInputStream = new HdfsFileInputStream(file1, new Configuration(), BUFFER_SIZE, null);
 
     AlluxioURI file2 = new AlluxioURI("/testFile2");
-    URIStatus fileStatus2 = sFileSystem.getStatus(file2);
-    mUfsInputStream = new HdfsFileInputStream(file2, new Path(fileStatus2.getUfsPath()),
-        new Configuration(), BUFFER_SIZE, null);
+    mUfsInputStream = new HdfsFileInputStream(file2, new Configuration(), BUFFER_SIZE, null);
   }
 
   /**
