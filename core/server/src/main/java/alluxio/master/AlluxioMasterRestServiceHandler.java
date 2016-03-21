@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.Version;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.master.block.BlockMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -26,9 +27,11 @@ import com.codahale.metrics.MetricRegistry;
 import com.qmino.miredot.annotations.ReturnType;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.ws.rs.GET;
@@ -46,6 +49,7 @@ import javax.ws.rs.core.Response;
 // TODO(cc): Investigate auto-generation of REST API documentation.
 public final class AlluxioMasterRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final String ALLUXIO_CONF_PREFIX = "alluxio";
 
   public static final String SERVICE_PREFIX = "master";
   public static final String GET_RPC_ADDRESS = "rpc_address";
@@ -55,9 +59,9 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String GET_FREE_BYTES = "free_bytes";
   public static final String GET_CAPACITY_BYTES_ON_TIERS = "capacity_bytes_on_tiers";
   public static final String GET_USED_BYTES_ON_TIERS = "used_bytes_on_tiers";
-  public static final String GET_DISK_CAPACITY_BYTES = "disk_capacity_bytes";
-  public static final String GET_DISK_FREE_BYTES = "disk_free_bytes";
-  public static final String GET_DISK_USED_BYTES = "disk_used_bytes";
+  public static final String GET_UFS_CAPACITY_BYTES = "ufs_capacity_bytes";
+  public static final String GET_UFS_USED_BYTES = "ufs_used_bytes";
+  public static final String GET_UFS_FREE_BYTES = "ufs_free_bytes";
   public static final String GET_METRICS = "metrics";
   public static final String GET_START_TIME_MS = "start_time_ms";
   public static final String GET_UPTIME_MS = "uptime_ms";
@@ -72,18 +76,20 @@ public final class AlluxioMasterRestServiceHandler {
   private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot, mMasterConf);
 
   /**
-   * @summary get the configuration map
+   * @summary get the configuration map, the keys are ordered alphabetically.
    * @return the response object
    */
   @GET
   @Path(GET_CONFIGURATION)
-  @ReturnType("java.util.Map<String, String>")
+  @ReturnType("java.util.SortedMap<String, String>")
   public Response getConfiguration() {
     Set<Map.Entry<Object, Object>> properties = mMasterConf.getInternalProperties().entrySet();
-    Map<String, String> configuration = new HashMap<>(properties.size());
+    SortedMap<String, String> configuration = new TreeMap<>();
     for (Map.Entry<Object, Object> entry : properties) {
       String key = entry.getKey().toString();
-      configuration.put(key, mMasterConf.get(key));
+      if (key.startsWith(ALLUXIO_CONF_PREFIX)) {
+        configuration.put(key, (String) entry.getValue());
+      }
     }
     return Response.ok(configuration).build();
   }
@@ -100,12 +106,12 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary get the master metrics
+   * @summary get the master metrics, the keys are ordered alphabetically.
    * @return the response object
    */
   @GET
   @Path(GET_METRICS)
-  @ReturnType("java.util.Map<String, Long>")
+  @ReturnType("java.util.SortedMap<String, Long>")
   public Response getMetrics() {
     MetricRegistry metricRegistry = mMaster.getMasterMetricsSystem().getMetricRegistry();
 
@@ -119,24 +125,13 @@ public final class AlluxioMasterRestServiceHandler {
     Gauge filesPinned = metricRegistry.getGauges().get(filesPinnedProperty);
 
     // Get values of the counters and gauges and put them into a metrics map.
-    Map<String, Long> metrics = new HashMap<>(counters.size() + 1);
+    SortedMap<String, Long> metrics = new TreeMap<>();
     for (Map.Entry<String, Counter> counter : counters.entrySet()) {
       metrics.put(counter.getKey(), counter.getValue().getCount());
     }
     metrics.put(filesPinnedProperty, ((Integer) filesPinned.getValue()).longValue());
 
     return Response.ok(metrics).build();
-  }
-
-  /**
-   * @summary get the uptime of the master
-   * @return the response object
-   */
-  @GET
-  @Path(GET_UPTIME_MS)
-  @ReturnType("java.lang.Long")
-  public Response getUptimeMs() {
-    return Response.ok(System.currentTimeMillis() - mMaster.getStarttimeMs()).build();
   }
 
   /**
@@ -148,6 +143,17 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   public Response getStartTimeMs() {
     return Response.ok(mMaster.getStarttimeMs()).build();
+  }
+
+  /**
+   * @summary get the uptime of the master
+   * @return the response object
+   */
+  @GET
+  @Path(GET_UPTIME_MS)
+  @ReturnType("java.lang.Long")
+  public Response getUptimeMs() {
+    return Response.ok(System.currentTimeMillis() - mMaster.getStarttimeMs()).build();
   }
 
   /**
@@ -173,76 +179,6 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary get the total disk capacity in bytes, a negative value means the capacity is unknown.
-   * @return the response object
-   */
-  @GET
-  @Path(GET_DISK_CAPACITY_BYTES)
-  @ReturnType("java.lang.Long")
-  public Response getDiskCapacityBytes() {
-    try {
-      return Response.ok(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL)).build();
-    } catch (IOException e) {
-      LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
-    }
-  }
-
-  /**
-   * @summary get the free disk capacity in bytes, a negative value means the capacity is unknown.
-   * @return the response object
-   */
-  @GET
-  @Path(GET_DISK_FREE_BYTES)
-  @ReturnType("java.lang.Long")
-  public Response getFreeDiskCapacityBytes() {
-    try {
-      return Response.ok(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_FREE)).build();
-    } catch (IOException e) {
-      LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
-    }
-  }
-
-  /**
-   * @summary get the used disk capacity, a negative value means the capacity is unknown.
-   * @return the response object
-   */
-  @GET
-  @Path(GET_DISK_USED_BYTES)
-  @ReturnType("java.lang.Long")
-  public Response getUsedDiskCapacityBytes() {
-    try {
-      return Response.ok(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED)).build();
-    } catch (IOException e) {
-      LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
-    }
-  }
-
-  /**
-   * @summary get the free capacity
-   * @return the response object
-   */
-  @GET
-  @Path(GET_FREE_BYTES)
-  @ReturnType("java.lang.Long")
-  public Response getFreeCapacityBytes() {
-    return Response.ok(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()).build();
-  }
-
-  /**
-   * @summary get the mapping from tier alias to total capacity of the tier in bytes
-   * @return the response object
-   */
-  @GET
-  @Path(GET_CAPACITY_BYTES_ON_TIERS)
-  @ReturnType("java.util.Map<String, Long>")
-  public Response getCapacityBytesOnTiers() {
-    return Response.ok(mBlockMaster.getTotalBytesOnTiers()).build();
-  }
-
-  /**
    * @summary get the used capacity
    * @return the response object
    */
@@ -254,14 +190,113 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary get the mapping from tier alias to the used bytes of the tier
+   * @summary get the free capacity
+   * @return the response object
+   */
+  @GET
+  @Path(GET_FREE_BYTES)
+  @ReturnType("java.lang.Long")
+  public Response getFreeBytes() {
+    return Response.ok(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()).build();
+  }
+
+  /**
+   * @summary get the total ufs capacity in bytes, a negative value means the capacity is unknown.
+   * @return the response object
+   */
+  @GET
+  @Path(GET_UFS_CAPACITY_BYTES)
+  @ReturnType("java.lang.Long")
+  public Response getUfsCapacityBytes() {
+    try {
+      return Response.ok(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL)).build();
+    } catch (IOException e) {
+      LOG.warn(e.getMessage());
+      return Response.serverError().entity(e.getMessage()).build();
+    }
+  }
+
+  /**
+   * @summary get the used disk capacity, a negative value means the capacity is unknown.
+   * @return the response object
+   */
+  @GET
+  @Path(GET_UFS_USED_BYTES)
+  @ReturnType("java.lang.Long")
+  public Response getUfsUsedBytes() {
+    try {
+      return Response.ok(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED)).build();
+    } catch (IOException e) {
+      LOG.warn(e.getMessage());
+      return Response.serverError().entity(e.getMessage()).build();
+    }
+  }
+
+  /**
+   * @summary get the free ufs capacity in bytes, a negative value means the capacity is unknown.
+   * @return the response object
+   */
+  @GET
+  @Path(GET_UFS_FREE_BYTES)
+  @ReturnType("java.lang.Long")
+  public Response getUfsFreeBytes() {
+    try {
+      return Response.ok(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_FREE)).build();
+    } catch (IOException e) {
+      LOG.warn(e.getMessage());
+      return Response.serverError().entity(e.getMessage()).build();
+    }
+  }
+
+  private Comparator<String> getTierAliasComparator() {
+    return new Comparator<String>() {
+      private WorkerStorageTierAssoc tierAssoc = new WorkerStorageTierAssoc(mMasterConf);
+
+      @Override
+      public int compare(String tier1, String tier2) {
+        int ordinal1 = tierAssoc.getOrdinal(tier1);
+        int ordinal2 = tierAssoc.getOrdinal(tier2);
+        if (ordinal1 < ordinal2) {
+          return -1;
+        }
+        if (ordinal1 == ordinal2) {
+          return 0;
+        }
+        return 1;
+      }
+    };
+  }
+
+  /**
+   * @summary get the mapping from tier alias to total capacity of the tier in bytes, keys are in
+   *    the order from tier alias with smaller ordinal to those with larger ones.
+   * @return the response object
+   */
+  @GET
+  @Path(GET_CAPACITY_BYTES_ON_TIERS)
+  @ReturnType("java.util.SortedMap<String, Long>")
+  public Response getCapacityBytesOnTiers() {
+    SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
+    for (Map.Entry<String, Long> tierBytes : mBlockMaster.getTotalBytesOnTiers().entrySet()) {
+      capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
+    }
+    return Response.ok(capacityBytesOnTiers).build();
+  }
+
+  /**
+   * @summary get the mapping from tier alias to the used bytes of the tier, keys are in the order
+   *    from tier alias with smaller ordinal to those with larger ones.
    * @return the response object
    */
   @GET
   @Path(GET_USED_BYTES_ON_TIERS)
-  @ReturnType("java.util.Map<String, Long>")
+  @ReturnType("java.util.SortedMap<String, Long>")
   public Response getUsedBytesOnTiers() {
-    return Response.ok(mBlockMaster.getUsedBytesOnTiers()).build();
+    SortedMap<String, Long> usedBytesOnTiers = new TreeMap<>(getTierAliasComparator());
+    for (Map.Entry<String, Long> tierBytes : mBlockMaster.getUsedBytesOnTiers().entrySet()) {
+      usedBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
+    }
+    return Response.ok(usedBytesOnTiers).build();
   }
 
   /**
