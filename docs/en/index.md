@@ -4,7 +4,7 @@ title: Overview
 group: Home
 ---
 
-Alluxio, the world’s first memory-centric virtual distributed storage system, unifies data access
+Alluxio, formerly known as Tachyon, the world’s first memory-centric virtual distributed storage system, unifies data access
 and bridges computation frameworks and underlying storage systems. Applications only need to connect
 with Alluxio to access data stored in any underlying storage systems. Additionally, Alluxio’s
 memory-centric architecture enables data access orders of magnitude faster than existing solutions.
