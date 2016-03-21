@@ -9,7 +9,7 @@ import "key_value.proto";
 import "lineage.proto";
 
 // Wraps around all types of Alluxio journal messages.
-// next available id: 28
+// next available id: 29
 message JournalEntry {
   optional int64 sequence_number = 1;
   oneof entry {
@@ -35,6 +35,7 @@ message JournalEntry {
     AsyncPersistRequestEntry async_persist_request = 16;
     ReinitializeFileEntry reinitialize_file = 18;
     RenameEntry rename = 19;
+    RenameStoreEntry rename_store = 28;
     SetAttributeEntry set_attribute = 27;
   }
 }
