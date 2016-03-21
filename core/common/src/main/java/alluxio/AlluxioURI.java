@@ -35,6 +35,16 @@ import javax.annotation.concurrent.ThreadSafe;
  * It uses a hierarchical URI internally. URI requires that String is escaped, {@link AlluxioURI}
  * does not.
  *
+ * {@link AlluxioURI} supports more than just strict {@link URI}. Some examples:
+ *   * Windows paths
+ *     * C:\
+ *     * D:\path\to\file
+ *     * E:\path\to\skip\..\file
+ *   * URI with multiple scheme components
+ *     * scheme://host:123/path
+ *     * scheme:part2://host:123/path
+ *     * scheme:part2:part3://host:123/path
+ *
  * Does not support fragment in the URI.
  */
 @ThreadSafe
@@ -47,13 +57,13 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   public static final AlluxioURI EMPTY_URI = new AlluxioURI("");
 
   /**
-   * A hierarchical URI. java.net.URI is used to hold the URI components as well as to reuse URI
+   * A hierarchical URI. {@link URI} is used to hold the URI components as well as to reuse URI
    * functionality.
    */
   private final URI mUri;
 
   /**
-   * java.net.URI does not handle a sub-component in the scheme. If the scheme has a sub-component,
+   * {@link URI} does not handle a sub-component in the scheme. If the scheme has a sub-component,
    * this prefix holds the first components, while the java.net.URI will only consider the last
    * component. For example, the uri 'scheme:part1:part2://localhost:1234/' has multiple
    * components in the scheme, so this variable will hold 'scheme:part1', while java.net.URI will
