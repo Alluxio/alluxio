@@ -154,19 +154,19 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#deleteFile(AlluxioURI, boolean)} method.
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, boolean)} method.
    *
    * @throws Exception if deleting a file fails
    */
   @Test
   public void deleteFileTest() throws Exception {
     // cannot delete root
-    Assert.assertFalse(mFileSystemMaster.deleteFile(ROOT_URI, true));
+    Assert.assertFalse(mFileSystemMaster.delete(ROOT_URI, true));
 
     // delete the file
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     Assert.assertTrue(
-        mFileSystemMaster.deleteFile(NESTED_FILE_URI, false));
+        mFileSystemMaster.delete(NESTED_FILE_URI, false));
 
     mThrown.expect(BlockInfoException.class);
     mBlockMaster.getBlockInfo(blockId);
@@ -184,7 +184,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#deleteFile(AlluxioURI, boolean)} method with a non-empty
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, boolean)} method with a non-empty
    * directory.
    *
    * @throws Exception if deleting a directory fails
@@ -194,7 +194,7 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(NESTED_FILE_URI);
     String dirName = mFileSystemMaster.getFileInfo(NESTED_URI).getName();
     try {
-      mFileSystemMaster.deleteFile(NESTED_URI, false);
+      mFileSystemMaster.delete(NESTED_URI, false);
       Assert.fail("Deleting a non-empty directory without setting recursive should fail");
     } catch (DirectoryNotEmptyException e) {
       String expectedMessage =
@@ -203,11 +203,11 @@ public final class FileSystemMasterTest {
     }
 
     // Now delete with recursive set to true
-    Assert.assertTrue(mFileSystemMaster.deleteFile(NESTED_URI, true));
+    Assert.assertTrue(mFileSystemMaster.delete(NESTED_URI, true));
   }
 
   /**
-   * Tests the {@link FileSystemMaster#deleteFile(AlluxioURI, boolean)} method for a directory.
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, boolean)} method for a directory.
    *
    * @throws Exception if deleting the directory fails
    */
@@ -215,7 +215,7 @@ public final class FileSystemMasterTest {
   public void deleteDirTest() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
     // delete the dir
-    Assert.assertTrue(mFileSystemMaster.deleteFile(NESTED_URI, true));
+    Assert.assertTrue(mFileSystemMaster.delete(NESTED_URI, true));
 
     // verify the dir is deleted
     Assert.assertEquals(-1, mFileSystemMaster.getFileId(NESTED_URI));
@@ -228,7 +228,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void getNewBlockIdForFileTest() throws Exception {
-    mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
@@ -248,8 +248,9 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that an exception is in the
-   * {@link FileSystemMaster#create(AlluxioURI, CreateFileOptions)} with a TTL set in the
-   * {@link CreatePathOptions} after the TTL check was done once.
+<<<<<<< HEAD
+   * {@link FileSystemMaster#createFile(AlluxioURI, CreateFileOptions)} with a TTL set in the
+   * {@link CreateFileOptions} after the TTL check was done once.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -257,7 +258,7 @@ public final class FileSystemMasterTest {
   public void createFileWithTtlTest() throws Exception {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(1);
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(fileInfo.getFileId(), fileId);
 
@@ -276,7 +277,7 @@ public final class FileSystemMasterTest {
   public void setTtlForFileWithNoTtlTest() throws Exception {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
     executeTtlCheckOnce();
     // Since no valid TTL is set, the file should not be deleted.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getFileId());
@@ -299,7 +300,7 @@ public final class FileSystemMasterTest {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true)
             .setTtl(Constants.HOUR_MS);
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
     executeTtlCheckOnce();
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getFileId());
@@ -320,7 +321,7 @@ public final class FileSystemMasterTest {
   public void setLargerTtlForFileWithTtlTest() throws Exception {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getFileId());
 
     mFileSystemMaster
@@ -339,7 +340,7 @@ public final class FileSystemMasterTest {
   public void setNoTtlForFileWithTtlTest() throws Exception {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
     mFileSystemMaster
@@ -356,7 +357,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setStateTest() throws Exception {
-    mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
@@ -386,18 +387,6 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#isDirectory(long)} method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
-   */
-  @Test
-  public void isDirectoryTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
-    Assert.assertFalse(mFileSystemMaster.isDirectory(fileId));
-    Assert.assertTrue(mFileSystemMaster.isDirectory(mFileSystemMaster.getFileId(NESTED_URI)));
-  }
-
-  /**
    * Tests that a file is fully written to memory.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
@@ -405,7 +394,7 @@ public final class FileSystemMasterTest {
   @Test
   public void isFullyInMemoryTest() throws Exception {
     // add nested file
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
     // add in-memory block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
@@ -425,7 +414,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void renameTest() throws Exception {
-    mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
 
     // try to rename a file to root
     try {
@@ -469,7 +458,7 @@ public final class FileSystemMasterTest {
     mThrown.expectMessage(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/nested/test"));
 
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB);
-    mFileSystemMaster.create(TEST_URI, options);
+    mFileSystemMaster.createFile(TEST_URI, options);
 
     // nested dir
     mFileSystemMaster.rename(TEST_URI, NESTED_FILE_URI);
@@ -486,7 +475,7 @@ public final class FileSystemMasterTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage("/nested/test is a prefix of /nested/test/file");
 
-    mFileSystemMaster.create(NESTED_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_URI, sNestedFileOptions);
     mFileSystemMaster.rename(NESTED_URI, NESTED_FILE_URI);
   }
 
@@ -584,7 +573,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void persistenceFileWithBlocksOnMultipleWorkers() throws Exception {
-    long fileId = mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
+    long fileId = mFileSystemMaster.createFile(ROOT_FILE_URI, sNestedFileOptions);
     long blockId1 = mFileSystemMaster.getNewBlockIdForFile(ROOT_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId1, Constants.KB);
     long blockId2 = mFileSystemMaster.getNewBlockIdForFile(ROOT_FILE_URI);
@@ -622,7 +611,7 @@ public final class FileSystemMasterTest {
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
-    mFileSystemMaster.create(uri, sNestedFileOptions);
+    mFileSystemMaster.createFile(uri, sNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
     CompleteFileOptions options = CompleteFileOptions.defaults().setUfsLength(Constants.KB);

@@ -77,7 +77,7 @@ public final class FileSystemMasterClientServiceHandler implements
   public void createDirectory(String path, CreateDirectoryTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mFileSystemMaster.mkdir(new AlluxioURI(path), new CreateDirectoryOptions(options));
+      mFileSystemMaster.createDirectory(new AlluxioURI(path), new CreateDirectoryOptions(options));
     } catch (AlluxioException e) {
       throw e.toAlluxioTException();
     } catch (IOException e) {
@@ -89,7 +89,7 @@ public final class FileSystemMasterClientServiceHandler implements
   public void createFile(String path, CreateFileTOptions options) throws AlluxioTException,
       ThriftIOException {
     try {
-      mFileSystemMaster.create(new AlluxioURI(path), new CreateFileOptions(options));
+      mFileSystemMaster.createFile(new AlluxioURI(path), new CreateFileOptions(options));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
@@ -201,7 +201,7 @@ public final class FileSystemMasterClientServiceHandler implements
   public void remove(String path, boolean recursive)
       throws AlluxioTException, ThriftIOException {
     try {
-      mFileSystemMaster.deleteFile(new AlluxioURI(path), recursive);
+      mFileSystemMaster.delete(new AlluxioURI(path), recursive);
     } catch (AlluxioException e) {
       throw e.toAlluxioTException();
     } catch (IOException e) {
