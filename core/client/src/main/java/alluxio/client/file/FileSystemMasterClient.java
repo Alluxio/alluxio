@@ -24,7 +24,6 @@ import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemMasterClientService;
@@ -248,20 +247,6 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * @return the under file system address
-   * @throws ConnectionFailedException if network connection failed
-   * @throws IOException if an I/O error occurs
-   */
-  public synchronized String getUfsAddress() throws IOException, ConnectionFailedException {
-    return retryRPC(new RpcCallable<String>() {
-      @Override
-      public String call() throws TException {
-        return mClient.getUfsAddress();
-      }
-    });
-  }
-
-  /**
    * @param path the path to list
    * @return the list of file information for the given path
    * @throws IOException if an I/O error occurs
@@ -314,7 +299,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
-        mClient.mountPath(alluxioPath.toString(), ufsPath.toString(), options.toThrift());
+        mClient.mount(alluxioPath.toString(), ufsPath.toString(), options.toThrift());
         return null;
       }
     });

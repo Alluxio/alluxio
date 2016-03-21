@@ -74,6 +74,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     ClientContext.getConf().set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     ClientContext.getConf().set(Constants.MASTER_RPC_PORT,
         Integer.toString(mMasterLocation.getPort()));
+    ClientContext.init();
     FileSystem alluxioClient = FileSystem.Factory.get();
     write(alluxioClient);
     return read(alluxioClient);
