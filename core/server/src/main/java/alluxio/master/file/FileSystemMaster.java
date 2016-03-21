@@ -66,11 +66,8 @@ import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.security.User;
-import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.FileSystemAction;
 import alluxio.security.authorization.PermissionStatus;
-import alluxio.security.group.GroupMappingService;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemCommandOptions;
@@ -80,7 +77,6 @@ import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.IdUtils;
-import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -142,8 +138,9 @@ public final class FileSystemMaster extends AbstractMaster {
   /** This generates unique directory ids. This must be journaled. */
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
 
-  /** This provides user groups mapping service. */
-  private final GroupMappingService mGroupMappingService;
+  /** This checks user permissions on different operations. */
+  @GuardedBy("mInodeTree")
+  private final PermissionChecker mPermissionChecker;
 
   /** List of paths to always keep in memory. */
   private final PrefixList mWhitelist;
@@ -188,19 +185,19 @@ public final class FileSystemMaster extends AbstractMaster {
     mWhitelist = new PrefixList(conf.getList(Constants.MASTER_WHITELIST, ","));
 
     mWorkerToAsyncPersistFiles = Maps.newHashMap();
-    mGroupMappingService = GroupMappingService.Factory.getUserToGroupsMappingService(conf);
+    mPermissionChecker = new PermissionChecker(mInodeTree);
   }
 
   @Override
   public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    Map<String, TProcessor> services = new HashMap<>();
     services.put(
         Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
-        new FileSystemMasterClientService.Processor<FileSystemMasterClientServiceHandler>(
+        new FileSystemMasterClientService.Processor<>(
             new FileSystemMasterClientServiceHandler(this)));
     services.put(
         Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
-        new FileSystemMasterWorkerService.Processor<FileSystemMasterWorkerServiceHandler>(
+        new FileSystemMasterWorkerService.Processor<>(
             new FileSystemMasterWorkerServiceHandler(this)));
     return services;
   }
@@ -238,11 +235,7 @@ public final class FileSystemMaster extends AbstractMaster {
     } else if (innerEntry instanceof CompleteFileEntry) {
       try {
         completeFileFromEntry((CompleteFileEntry) innerEntry);
-      } catch (InvalidPathException e) {
-        throw new RuntimeException(e);
-      } catch (InvalidFileSizeException e) {
-        throw new RuntimeException(e);
-      } catch (FileAlreadyCompletedException e) {
+      } catch (InvalidPathException | InvalidFileSizeException | FileAlreadyCompletedException e) {
         throw new RuntimeException(e);
       }
     } else if (innerEntry instanceof SetAttributeEntry) {
@@ -252,7 +245,7 @@ public final class FileSystemMaster extends AbstractMaster {
         throw new RuntimeException(e);
       }
     } else if (innerEntry instanceof DeleteFileEntry) {
-      deleteFileFromEntry((DeleteFileEntry) innerEntry);
+      deleteFromEntry((DeleteFileEntry) innerEntry);
     } else if (innerEntry instanceof RenameEntry) {
       renameFromEntry((RenameEntry) innerEntry);
     } else if (innerEntry instanceof InodeDirectoryIdGeneratorEntry) {
@@ -262,9 +255,7 @@ public final class FileSystemMaster extends AbstractMaster {
     } else if (innerEntry instanceof AddMountPointEntry) {
       try {
         mountFromEntry((AddMountPointEntry) innerEntry);
-      } catch (FileAlreadyExistsException e) {
-        throw new RuntimeException(e);
-      } catch (InvalidPathException e) {
+      } catch (FileAlreadyExistsException | InvalidPathException e) {
         throw new RuntimeException(e);
       }
     } else if (innerEntry instanceof DeleteMountPointEntry) {
@@ -277,9 +268,7 @@ public final class FileSystemMaster extends AbstractMaster {
       try {
         long fileId = ((AsyncPersistRequestEntry) innerEntry).getFileId();
         scheduleAsyncPersistenceInternal(getPath(fileId));
-      } catch (FileDoesNotExistException e) {
-        throw new RuntimeException(e);
-      } catch (InvalidPathException e) {
+      } catch (FileDoesNotExistException | InvalidPathException e) {
         throw new RuntimeException(e);
       }
     } else {
@@ -304,9 +293,7 @@ public final class FileSystemMaster extends AbstractMaster {
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
             MountOptions.defaults());
-      } catch (FileAlreadyExistsException e) {
-        throw new IOException("Failed to mount the default UFS " + defaultUFS);
-      } catch (InvalidPathException e) {
+      } catch (FileAlreadyExistsException | InvalidPathException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS);
       }
     }
@@ -325,30 +312,9 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Whether the filesystem contains a directory with the id.
-   *
-   * @param id id of the directory
-   * @return true if there is a directory with the id, false otherwise
-   */
-  public boolean isDirectory(long id) {
-    synchronized (mInodeTree) {
-      Inode<?> inode;
-      if (!mInodeTree.inodeIdExists(id)) {
-        return false;
-      }
-      try {
-        inode = mInodeTree.getInodeById(id);
-      } catch (FileDoesNotExistException e) {
-        return false;
-      }
-      return inode.isDirectory();
-    }
-  }
-
-  /**
    * Returns the file id for a given path. If the given path does not exist in Alluxio, the method
    * attempts to load it from UFS.
-   * Needs {@link FileSystemAction#READ} permission on the path.
+   * This operation requires users to have {@link FileSystemAction#READ} permission of the path.
    *
    * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
@@ -358,15 +324,15 @@ public final class FileSystemMaster extends AbstractMaster {
   public long getFileId(AlluxioURI path) throws AccessControlException, FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode<?> inode;
-      checkPermission(FileSystemAction.READ, path, false);
-      if (!mInodeTree.inodePathExists(path)) {
-        try {
-          return loadMetadata(path, true);
-        } catch (Exception e) {
-          return IdUtils.INVALID_FILE_ID;
-        }
-      }
       try {
+        mPermissionChecker.checkPermission(FileSystemAction.READ, path);
+        if (!mInodeTree.inodePathExists(path)) {
+          try {
+            return loadMetadata(path, true);
+          } catch (Exception e) {
+            return IdUtils.INVALID_FILE_ID;
+          }
+        }
         inode = mInodeTree.getInodeByPath(path);
       } catch (InvalidPathException e) {
         return IdUtils.INVALID_FILE_ID;
@@ -380,6 +346,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return the {@link FileInfo} for the given file
    * @throws FileDoesNotExistException if the file does not exist
    */
+  @Deprecated // Currently used by block worker and web UI
   public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
@@ -389,8 +356,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Returns the {@link FileInfo} for a given path. Called via RPC, as well as internal masters.
-   * Needs {@link FileSystemAction#READ} permission on the path.
+   * Returns the {@link FileInfo} for a given path.
+   * This operation requires users to have {@link FileSystemAction#READ} permission on the path.
    *
    * @param path the path to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file id
@@ -402,7 +369,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.READ, path, false);
+      mPermissionChecker.checkPermission(FileSystemAction.READ, path);
       // getFileInfo should load from ufs if the file does not exist
       getFileId(path);
       Inode<?> inode = mInodeTree.getInodeByPath(path);
@@ -415,6 +382,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return the persistence state for the given file
    * @throws FileDoesNotExistException if the file does not exist
    */
+  // Internal facing, currently used by Lineage master
   public PersistenceState getPersistenceState(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode<?> inode = mInodeTree.getInodeById(fileId);
@@ -423,36 +391,11 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
-   * @param inode the inode to get the {@link FileInfo} for
-   * @return the {@link FileInfo} for the given inode
-   * @throws FileDoesNotExistException if the file does not exist
-   */
-  private FileInfo getFileInfoInternal(Inode<?> inode) throws FileDoesNotExistException {
-    FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
-    fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
-    AlluxioURI path = mInodeTree.getPath(inode);
-    AlluxioURI resolvedPath;
-    try {
-      resolvedPath = mMountTable.resolve(path);
-    } catch (InvalidPathException e) {
-      throw new FileDoesNotExistException(e.getMessage(), e);
-    }
-    // Only set the UFS path if the path is nested under a mount point.
-    if (!path.equals(resolvedPath)) {
-      fileInfo.setUfsPath(resolvedPath.toString());
-    }
-    MasterContext.getMasterSource().incFileInfosGot(1);
-    return fileInfo;
-  }
-
-  /**
    * Returns a list {@link FileInfo} for a given path. If the given path is a file, the list only
    * contains a single object. If it is a directory, the resulting list contains all direct children
-   * of the directory.
-   * Needs {@link FileSystemAction#READ} permission on the path.
-   * If the path is a directory, needs {@link FileSystemAction#EXECUTE} permission on the path.
+   * of the directory. This operation requires users to have
+   * {@link FileSystemAction#READ} permission on the path, and also
+   * {@link FileSystemAction#EXECUTE} permission on the path if it is a directory.
    *
    * @param path the path to get the {@link FileInfo} list for
    * @return the list of {@link FileInfo}s
@@ -464,14 +407,14 @@ public final class FileSystemMaster extends AbstractMaster {
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.READ, path, false);
+      mPermissionChecker.checkPermission(FileSystemAction.READ, path);
       // getFileInfoList should load from ufs if the file does not exist
       getFileId(path);
       Inode<?> inode = mInodeTree.getInodeByPath(path);
 
-      List<FileInfo> ret = new ArrayList<FileInfo>();
+      List<FileInfo> ret = new ArrayList<>();
       if (inode.isDirectory()) {
-        checkPermission(FileSystemAction.EXECUTE, path, false);
+        mPermissionChecker.checkPermission(FileSystemAction.EXECUTE, path);
         for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
           ret.add(getFileInfoInternal(child));
         }
@@ -492,7 +435,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Completes a file. After a file is completed, it cannot be written to.
-   * Needs {@link FileSystemAction#WRITE} permission on the path.
+   * This operation requires users to have {@link FileSystemAction#WRITE} permission on the path.
    *
    * @param path the file path to complete
    * @param options the method options
@@ -508,7 +451,7 @@ public final class FileSystemMaster extends AbstractMaster {
       InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException {
     MasterContext.getMasterSource().incCompleteFileOps(1);
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.WRITE, path, false);
+      mPermissionChecker.checkPermission(FileSystemAction.WRITE, path);
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
       long opTimeMs = System.currentTimeMillis();
       Inode<?> inode = mInodeTree.getInodeByPath(path);
@@ -555,8 +498,6 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param blockIds the block ids to use
    * @param fileId the file id to use
    * @param length the length to use
@@ -566,6 +507,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidFileSizeException if an invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file has already been completed
    */
+  @GuardedBy("mInodeTree")
   void completeFileInternal(List<Long> blockIds, long fileId, long length, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
       FileAlreadyCompletedException {
@@ -587,13 +529,12 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param entry the entry to use
    * @throws InvalidPathException if an invalid path is encountered
    * @throws InvalidFileSizeException if an invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file has already been completed
    */
+  @GuardedBy("mInodeTree")
   private void completeFileFromEntry(CompleteFileEntry entry)
       throws InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException {
     try {
@@ -606,7 +547,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Creates a file (not a directory) for a given path.
-   * Needs {@link FileSystemAction#WRITE} permission on the parent of the path.
+   * This operation requires {@link FileSystemAction#WRITE} permission on the parent of this path.
    *
    * @param path the file to create
    * @param options method options
@@ -619,16 +560,16 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  public long create(AlluxioURI path, CreateFileOptions options)
+  public long createFile(AlluxioURI path, CreateFileOptions options)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
           BlockInfoException, IOException, FileDoesNotExistException {
     MasterContext.getMasterSource().incCreateFileOps(1);
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.WRITE, path, true);
+      mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
       if (!options.isMetadataLoad()) {
         mMountTable.checkUnderWritableMountPoint(path);
       }
-      InodeTree.CreatePathResult createResult = createInternal(path, options);
+      InodeTree.CreatePathResult createResult = createFileInternal(path, options);
       List<Inode<?>> created = createResult.getCreated();
 
       writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
@@ -639,8 +580,6 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param path the path to be created
    * @param options method options
    * @return {@link InodeTree.CreatePathResult} with the path creation result
@@ -651,7 +590,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  InodeTree.CreatePathResult createInternal(AlluxioURI path, CreateFileOptions options)
+  @GuardedBy("mInodeTree")
+  InodeTree.CreatePathResult createFileInternal(AlluxioURI path, CreateFileOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
       FileDoesNotExistException {
     InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, options);
@@ -679,6 +619,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the path does not exist
    */
+  // Used by lineage master
   public long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl)
       throws InvalidPathException, FileDoesNotExistException {
     synchronized (mInodeTree) {
@@ -695,10 +636,9 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param entry the entry to use
    */
+  @GuardedBy("mInodeTree")
   private void resetBlockFileFromEntry(ReinitializeFileEntry entry) {
     try {
       mInodeTree.reinitializeFile(new AlluxioURI(entry.getPath()), entry.getBlockSizeBytes(),
@@ -709,9 +649,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Since {@link FileSystemMaster#create(AlluxioURI, CreateFileOptions)} already checked
-   * {@link alluxio.security.authorization.FileSystemAction#WRITE},
-   * it is not needed to check again here when requesting a new block for the file.
+   * This operation requires users to have {@link FileSystemAction#WRITE} permission on the parent
+   * of the path.
    *
    * @param path the path of the file to get the next block id for
    * @return the next block id for the given file
@@ -719,14 +658,12 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if the given path is not valid
    */
   public long getNewBlockIdForFile(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incGetNewBlockOps(1);
     Inode<?> inode;
     synchronized (mInodeTree) {
-      inode = mInodeTree.getInodeByPath(path);
-    }
-    if (!inode.isFile()) {
-      throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
+      mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
+      inode = mInodeTree.getInodeFileByPath(path);
     }
     MasterContext.getMasterSource().incNewBlocksGot(1);
     return ((InodeFile) inode).getNewBlockId();
@@ -751,8 +688,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Deletes a given path.
-   * Needs {@link FileSystemAction#WRITE} permission on the parent of the path.
+   * Deletes a given path. This operation requires user to have {@link FileSystemAction#WRITE}
+   * permission on the parent of the path.
    *
    * @param path the path to delete
    * @param recursive if true, will delete all its children
@@ -764,17 +701,17 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public boolean deleteFile(AlluxioURI path, boolean recursive)
+  public boolean delete(AlluxioURI path, boolean recursive)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
           InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incDeletePathOps(1);
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.WRITE, path, true);
+      mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
       mMountTable.checkUnderWritableMountPoint(path);
       Inode<?> inode = mInodeTree.getInodeByPath(path);
       long fileId = inode.getId();
       long opTimeMs = System.currentTimeMillis();
-      boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
+      boolean ret = deleteInternal(fileId, recursive, false, opTimeMs);
       DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder()
           .setId(fileId)
           .setRecursive(recursive)
@@ -787,14 +724,13 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param entry the entry to use
    */
-  private void deleteFileFromEntry(DeleteFileEntry entry) {
+  @GuardedBy("mInodeTree")
+  private void deleteFromEntry(DeleteFileEntry entry) {
     MasterContext.getMasterSource().incDeletePathOps(1);
     try {
-      deleteFileInternal(entry.getId(), entry.getRecursive(), true, entry.getOpTimeMs());
+      deleteInternal(entry.getId(), entry.getRecursive(), true, entry.getOpTimeMs());
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -802,9 +738,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Convenience method for avoiding {@link DirectoryNotEmptyException} when calling
-   * {@link #deleteFileInternal(long, boolean, boolean, long)}.
-   *
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   * {@link #deleteInternal(long, boolean, boolean, long)}.
    *
    * @param fileId the file id
    * @param replayed whether the operation is a result of replaying the journal
@@ -813,21 +747,20 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws IOException if an I/O error is encountered
    */
-  boolean deleteFileRecursiveInternal(long fileId, boolean replayed, long opTimeMs)
+  @GuardedBy("mInodeTree")
+  private boolean deleteRecursiveInternal(long fileId, boolean replayed, long opTimeMs)
       throws FileDoesNotExistException, IOException {
     try {
-      return deleteFileInternal(fileId, true, replayed, opTimeMs);
+      return deleteInternal(fileId, true, replayed, opTimeMs);
     } catch (DirectoryNotEmptyException e) {
       throw new IllegalStateException(
-          "deleteFileInternal should never throw DirectoryNotEmptyException when recursive is true",
+          "deleteInternal should never throw DirectoryNotEmptyException when recursive is true",
           e);
     }
   }
 
   /**
    * Implements file deletion.
-   *
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
    * @param fileId the file id
    * @param recursive if the file id identifies a directory, this flag specifies whether the
@@ -839,8 +772,9 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if an I/O error is encountered
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  boolean deleteFileInternal(long fileId, boolean recursive, boolean replayed, long opTimeMs)
-      throws FileDoesNotExistException, IOException, DirectoryNotEmptyException {
+  @GuardedBy("mInodeTree")
+  boolean deleteInternal(long fileId, boolean recursive, boolean replayed,
+      long opTimeMs) throws FileDoesNotExistException, IOException, DirectoryNotEmptyException {
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Alluxio and UFS.
     if (!mInodeTree.inodeIdExists(fileId)) {
@@ -909,75 +843,52 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Returns the {@link FileBlockInfo} for given file and block index.
-   *
-   * @param fileId the file id to get the info for
-   * @param fileBlockIndex the block index of the file to get the block info for
-   * @return the {@link FileBlockInfo} for the file and block index
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws BlockInfoException if the block size is invalid
-   * @throws InvalidPathException if the mount table is not able to resolve the file
-   */
-  public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
-      throws BlockInfoException, FileDoesNotExistException, InvalidPathException {
-    MasterContext.getMasterSource().incGetFileBlockInfoOps(1);
-    synchronized (mInodeTree) {
-      Inode<?> inode = mInodeTree.getInodeById(fileId);
-      if (inode.isDirectory()) {
-        throw new FileDoesNotExistException(
-            ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
-      }
-      InodeFile file = (InodeFile) inode;
-      List<Long> blockIdList = new ArrayList<Long>(1);
-      blockIdList.add(file.getBlockIdByIndex(fileBlockIndex));
-      List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
-      if (blockInfoList.size() != 1) {
-        throw new BlockInfoException(
-            "FileId " + fileId + " BlockIndex " + fileBlockIndex + " is not a valid block.");
-      }
-      FileBlockInfo blockInfo = generateFileBlockInfo(file, blockInfoList.get(0));
-      MasterContext.getMasterSource().incFileBlockInfosGot(1);
-      return blockInfo;
-    }
-  }
-
-  /**
    * @param path the path to get the info for
    * @return a list of {@link FileBlockInfo} for all the blocks of the given file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path of the given file is invalid
    */
   public List<FileBlockInfo> getFileBlockInfoList(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incGetFileBlockInfoOps(1);
     synchronized (mInodeTree) {
-      Inode<?> inode = mInodeTree.getInodeByPath(path);
-      if (inode.isDirectory()) {
-        throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
-      }
-      InodeFile file = (InodeFile) inode;
-      List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
-
-      List<FileBlockInfo> ret = new ArrayList<FileBlockInfo>();
-      for (BlockInfo blockInfo : blockInfoList) {
-        ret.add(generateFileBlockInfo(file, blockInfo));
-      }
+      mPermissionChecker.checkPermission(FileSystemAction.READ, path);
+      InodeFile inode = mInodeTree.getInodeFileByPath(path);
+      List<FileBlockInfo> ret = getFileBlockInfoListInternal(inode);
       MasterContext.getMasterSource().incFileBlockInfosGot(ret.size());
       return ret;
     }
   }
 
   /**
+   * Implementation of {@link #getFileBlockInfoList}.
+   *
+   * @param file The inode for the file to get block info list
+   * @return a list of {@link FileBlockInfo} for all the blocks of the given file
+   * @throws InvalidPathException if the path of the given file is invalid
+   */
+  @GuardedBy("mInodeTree")
+  private List<FileBlockInfo> getFileBlockInfoListInternal(InodeFile file)
+    throws InvalidPathException {
+    List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
+
+    List<FileBlockInfo> ret = new ArrayList<>();
+    for (BlockInfo blockInfo : blockInfoList) {
+      ret.add(generateFileBlockInfo(file, blockInfo));
+    }
+    return ret;
+  }
+
+  /**
    * Generates a {@link FileBlockInfo} object from internal metadata. This adds file information to
    * the block, such as the file offset, and additional UFS locations for the block.
-   *
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
    * @param file the file the block is a part of
    * @param blockInfo the {@link BlockInfo} to generate the {@link FileBlockInfo} from
    * @return a new {@link FileBlockInfo} for the block
    * @throws InvalidPathException if the mount table is not able to resolve the file
    */
+  @GuardedBy("mInodeTree")
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo)
       throws InvalidPathException {
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
@@ -1101,8 +1012,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Creates a directory for a given path.
-   * Needs {@link FileSystemAction#WRITE} permission on the parent of the path.
+   * Creates a directory for a given path. This operation requires the client user to have
+   * {@link FileSystemAction#WRITE} permission on the parent of the path.
    *
    * @param path the path of the directory
    * @param options method options
@@ -1116,24 +1027,23 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  public InodeTree.CreatePathResult mkdir(AlluxioURI path, CreateDirectoryOptions options)
+  public InodeTree.CreatePathResult createDirectory(AlluxioURI path, CreateDirectoryOptions options)
       throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
       FileDoesNotExistException {
-    LOG.debug("mkdir {} ", path);
+    LOG.debug("createDirectory {} ", path);
     MasterContext.getMasterSource().incCreateDirectoriesOps(1);
     synchronized (mInodeTree) {
       try {
-        checkPermission(FileSystemAction.WRITE, path, true);
+        mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
         if (!options.isMetadataLoad()) {
           mMountTable.checkUnderWritableMountPoint(path);
         }
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, options);
-
-        LOG.debug("writing journal entry for mkdir {}", path);
+        LOG.debug("writing journal entry for createDirectory {}", path);
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
         journalCreatePathResult(createResult);
         flushJournal();
-        LOG.debug("flushed journal for mkdir {}", path);
+        LOG.debug("flushed journal for createDirectory {}", path);
         MasterContext.getMasterSource().incDirectoriesCreated(1);
         return createResult;
       } catch (BlockInfoException e) {
@@ -1173,9 +1083,9 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Renames a file to a destination.
-   * Needs {@link FileSystemAction#WRITE} permission on the parent of the src path.
-   * Needs {@link FileSystemAction#WRITE} permission on the parent of the dst path.
+   * Renames a file to a destination. This operation requires users to have
+   * {@link FileSystemAction#WRITE} permission on the parent of the src path, and
+   * {@link FileSystemAction#WRITE} permission on the parent of the dst path.
    *
    * @param srcPath the source path to rename
    * @param dstPath the destination path to rename the file to
@@ -1189,8 +1099,8 @@ public final class FileSystemMaster extends AbstractMaster {
       FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incRenamePathOps(1);
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.WRITE, srcPath, true);
-      checkPermission(FileSystemAction.WRITE, dstPath, true);
+      mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, srcPath);
+      mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, dstPath);
       mMountTable.checkUnderWritableMountPoint(srcPath);
       mMountTable.checkUnderWritableMountPoint(dstPath);
       Inode<?> srcInode = mInodeTree.getInodeByPath(srcPath);
@@ -1266,8 +1176,6 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Implements renaming.
    *
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param fileId the file id of the rename source
    * @param dstPath the path to the rename destionation
    * @param replayed whether the operation is a result of replaying the journal
@@ -1276,6 +1184,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error is encountered
    */
+  @GuardedBy("mInodeTree")
   void renameInternal(long fileId, AlluxioURI dstPath, boolean replayed, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     Inode<?> srcInode = mInodeTree.getInodeById(fileId);
@@ -1314,10 +1223,9 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param entry the entry to use
    */
+  @GuardedBy("mInodeTree")
   private void renameFromEntry(RenameEntry entry) {
     MasterContext.getMasterSource().incRenamePathOps(1);
     try {
@@ -1331,12 +1239,11 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Propagates the persisted status to all parents of the given inode in the same mount partition.
    *
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param inode the inode to start the propagation at
    * @param replayed whether the invocation is a result of replaying the journal
    * @throws FileDoesNotExistException if a non-existent file is encountered
    */
+  @GuardedBy("mInodeTree")
   private void propagatePersisted(Inode<?> inode, boolean replayed)
       throws FileDoesNotExistException {
     if (!inode.isPersisted()) {
@@ -1367,7 +1274,7 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Frees or evicts all of the blocks of the file from alluxio storage. If the given file is a
    * directory, and the 'recursive' flag is enabled, all descendant files will also be freed.
-   * Needs {@link FileSystemAction#WRITE} permission on the path.
+   * This operation requires users to have {@link FileSystemAction#READ} permission on the path.
    *
    * @param path the path to free
    * @param recursive if true, and the file is a directory, all descendants will be freed
@@ -1380,33 +1287,44 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incFreeFileOps(1);
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.WRITE, path, false);
+      mPermissionChecker.checkPermission(FileSystemAction.READ, path);
 
       Inode<?> inode = mInodeTree.getInodeByPath(path);
-
-      if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
-        // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
-        // true
-        return false;
-      }
-
-      List<Inode<?>> freeInodes = new ArrayList<Inode<?>>();
-      freeInodes.add(inode);
-      if (inode.isDirectory()) {
-        freeInodes.addAll(mInodeTree.getInodeChildrenRecursive((InodeDirectory) inode));
-      }
-
-      // We go through each inode.
-      for (int i = freeInodes.size() - 1; i >= 0; i--) {
-        Inode<?> freeInode = freeInodes.get(i);
-
-        if (freeInode.isFile()) {
-          // Remove corresponding blocks from workers.
-          mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
-        }
-      }
-      MasterContext.getMasterSource().incFilesFreed(freeInodes.size());
+      return freeInternal(inode, recursive);
     }
+  }
+
+  /**
+   * Implements free operation.
+   *
+   * @param inode inode of the path to free
+   * @param recursive if true, and the file is a directory, all descendants will be freed
+   * @return true if the file was freed
+   */
+  @GuardedBy("mInodeTree")
+  private boolean freeInternal(Inode inode, boolean recursive) {
+    if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
+      // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
+      // true
+      return false;
+    }
+
+    List<Inode<?>> freeInodes = new ArrayList<Inode<?>>();
+    freeInodes.add(inode);
+    if (inode.isDirectory()) {
+      freeInodes.addAll(mInodeTree.getInodeChildrenRecursive((InodeDirectory) inode));
+    }
+
+    // We go through each inode.
+    for (int i = freeInodes.size() - 1; i >= 0; i--) {
+      Inode<?> freeInode = freeInodes.get(i);
+
+      if (freeInode.isFile()) {
+        // Remove corresponding blocks from workers.
+        mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
+      }
+    }
+    MasterContext.getMasterSource().incFilesFreed(freeInodes.size());
     return true;
   }
 
@@ -1417,6 +1335,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return the path of the file
    * @throws FileDoesNotExistException raise if the file does not exist
    */
+  @Deprecated
   public AlluxioURI getPath(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       return mInodeTree.getPath(mInodeTree.getInodeById(fileId));
@@ -1462,12 +1381,14 @@ public final class FileSystemMaster extends AbstractMaster {
     return new ArrayList<Long>(lostFiles);
   }
 
+  // Used by Lineage master
   /**
    * Reports a file as lost.
    *
    * @param fileId the id of the file
    * @throws FileDoesNotExistException if the file does not exist
    */
+  @Deprecated
   public void reportLostFile(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode<?> inode = mInodeTree.getInodeById(fileId);
@@ -1478,7 +1399,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
       List<Long> blockIds = Lists.newArrayList();
       try {
-        for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(getPath(fileId))) {
+        for (FileBlockInfo fileBlockInfo : getFileBlockInfoListInternal((InodeFile) inode)) {
           blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
         }
       } catch (InvalidPathException e) {
@@ -1491,8 +1412,8 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Loads metadata for the object identified by the given path from UFS into Alluxio.
-   * Needs {@link FileSystemAction#READ} permission on the path.
-   * Implicitly needs {@link FileSystemAction#WRITE} permission on the parent of the path.
+   * This operation requires users to have {@link FileSystemAction#READ} permission on the path,
+   * and {@link FileSystemAction#WRITE} permission on the parent of the path.
    *
    * @param path the path for which metadata should be loaded
    * @param recursive whether parent directories should be created if they do not already exist
@@ -1513,7 +1434,8 @@ public final class FileSystemMaster extends AbstractMaster {
       AccessControlException {
     AlluxioURI ufsPath;
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.READ, path, false);
+      mPermissionChecker.checkPermission(FileSystemAction.READ, path);
+      mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
       ufsPath = mMountTable.resolve(path);
     }
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
@@ -1529,13 +1451,13 @@ public final class FileSystemMaster extends AbstractMaster {
         CreateFileOptions options =
             CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte).setRecursive(recursive)
                 .setMetadataLoad(true).setPersisted(true);
-        long fileId = create(path, options);
+        long fileId = createFile(path, options);
         CompleteFileOptions completeOptions =
             CompleteFileOptions.defaults().setUfsLength(ufsLength);
         completeFile(path, completeOptions);
         return fileId;
       } else {
-        return loadMetadataDirectory(path, recursive);
+        return loadDirectoryMetadata(path, recursive);
       }
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));
@@ -1556,13 +1478,13 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    */
-  private long loadMetadataDirectory(AlluxioURI path, boolean recursive)
+  private long loadDirectoryMetadata(AlluxioURI path, boolean recursive)
       throws IOException, FileAlreadyExistsException, InvalidPathException, AccessControlException,
       FileDoesNotExistException {
     CreateDirectoryOptions options =
         CreateDirectoryOptions.defaults().setMountPoint(mMountTable.isMountPoint(path))
             .setPersisted(true).setRecursive(recursive).setMetadataLoad(true);
-    InodeTree.CreatePathResult result = mkdir(path, options);
+    InodeTree.CreatePathResult result = createDirectory(path, options);
     List<Inode<?>> inodes = null;
     if (result.getCreated().size() > 0) {
       inodes = result.getCreated();
@@ -1578,8 +1500,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Mounts a UFS path onto an Alluxio path.
-   * Needs {@link FileSystemAction#WRITE} permission on the parent of the Tachyon path.
+   * Mounts a UFS path onto an Alluxio path. This operation requires users to have
+   * {@link FileSystemAction#WRITE} permission on the parent of the Alluxio path.
    *
    * @param alluxioPath the Alluxio path to mount to
    * @param ufsPath the UFS path to mount
@@ -1593,7 +1515,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileAlreadyExistsException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incMountOps(1);
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.WRITE, alluxioPath, true);
+      mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, alluxioPath);
       mMountTable.checkUnderWritableMountPoint(alluxioPath);
       // Check that the Alluxio Path does not exist
       // TODO(calvin): Provide a cleaner way to check for existence (ALLUXIO-1830)
@@ -1614,7 +1536,7 @@ public final class FileSystemMaster extends AbstractMaster {
       boolean loadMetadataSuceeded = false;
       try {
         // This will create the directory at alluxioPath
-        loadMetadataDirectory(alluxioPath, false);
+        loadDirectoryMetadata(alluxioPath, false);
         loadMetadataSuceeded = true;
       } catch (FileDoesNotExistException e) {
         // This exception should be impossible since we just mounted this path
@@ -1623,7 +1545,7 @@ public final class FileSystemMaster extends AbstractMaster {
         if (!loadMetadataSuceeded) {
           unmountInternal(alluxioPath);
         }
-        // Exception will be propagated from loadMetadataDirectory
+        // Exception will be propagated from loadDirectoryMetadata
       }
       AddMountPointEntry addMountPoint =
           AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath.toString())
@@ -1635,13 +1557,12 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param entry the entry to use
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O exception occurs
    */
+  @GuardedBy("mInodeTree")
   void mountFromEntry(AddMountPointEntry entry)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
@@ -1650,14 +1571,13 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param alluxioPath the Alluxio mount point
    * @param ufsPath the UFS endpoint to mount
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O exception occurs
    */
+  @GuardedBy("mInodeTree")
   void mountInternal(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     // Check that the ufsPath exists and is a directory
@@ -1682,7 +1602,8 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Unmounts a UFS path previously mounted path onto an Alluxio path.
-   * Needs {@link FileSystemAction#WRITE} permission on the parent of the Tachyon path.
+   * This operation requires users to have {@link FileSystemAction#WRITE} permission on the parent
+   * of the Alluxio path.
    *
    * @param alluxioPath the Alluxio path to unmount, must be a mount point
    * @return true if the UFS path was successfully unmounted, false otherwise
@@ -1695,14 +1616,14 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incUnmountOps(1);
     synchronized (mInodeTree) {
-      checkPermission(FileSystemAction.WRITE, alluxioPath, true);
+      mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, alluxioPath);
       if (unmountInternal(alluxioPath)) {
         Inode<?> inode = mInodeTree.getInodeByPath(alluxioPath);
         // Use the internal delete API, setting {@code replayed} to false to prevent the delete
         // operations from being persisted in the UFS.
         long fileId = inode.getId();
         long opTimeMs = System.currentTimeMillis();
-        deleteFileRecursiveInternal(fileId, true /* replayed */, opTimeMs);
+        deleteRecursiveInternal(fileId, true /* replayed */, opTimeMs);
         DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder()
             .setId(fileId)
             .setRecursive(true)
@@ -1722,12 +1643,11 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param entry the entry to use
    * @throws InvalidPathException if an invalid path is encountered
    */
-  void unmountFromEntry(DeleteMountPointEntry entry) throws InvalidPathException {
+  @GuardedBy("mInodeTree")
+  private void unmountFromEntry(DeleteMountPointEntry entry) throws InvalidPathException {
     AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
     if (!unmountInternal(alluxioURI)) {
       LOG.error("Failed to unmount {}", alluxioURI);
@@ -1735,41 +1655,41 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param alluxioPath the Alluxio mount point to unmount
    * @return true if successful, false otherwise
    * @throws InvalidPathException if an invalied path is encountered
    */
-  boolean unmountInternal(AlluxioURI alluxioPath) throws InvalidPathException {
+  @GuardedBy("mInodeTree")
+  private boolean unmountInternal(AlluxioURI alluxioPath) throws InvalidPathException {
     return mMountTable.delete(alluxioPath);
   }
 
+  // Used by lineage system
   /**
    * Resets a file. It first free the whole file, and then reinitializes it.
-   * Implicitly needs {@link FileSystemAction#WRITE} permission on the path indicated by file id.
    *
    * @param fileId the id of the file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid for the id of the file
    */
+  @Deprecated
   public void resetFile(long fileId)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     // TODO(yupeng) check the file is not persisted
     synchronized (mInodeTree) {
       // free the file first
-      free(getPath(fileId), false);
+      freeInternal(mInodeTree.getInodeById(fileId), false);
       InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
       inodeFile.reset();
     }
   }
 
   /**
-   * Sets the file attribute.
-   * Needs {@link FileSystemAction#WRITE} permission on the path.
-   * The client user needs to be a super user when setting owner.
-   * The client user needs to be a super user or path owner when setting group or permission.
+   * Sets the file attribute. This operation requires users to have
+   * {@link FileSystemAction#WRITE} permission on the path. In addition,
+   * the client user must be a super user when setting owner, and
+   * a super user or path owner when setting group or permission.
    *
    * @param path the path to set attribute for
    * @param options attributes to be set, see {@link SetAttributeOptions}
@@ -1786,7 +1706,7 @@ public final class FileSystemMaster extends AbstractMaster {
     boolean ownerRequired =
         (options.getGroup() != null) || (options.getPermission() != Constants.INVALID_PERMISSION);
     synchronized (mInodeTree) {
-      checkSetAttributePermission(path, rootRequired, ownerRequired);
+      mPermissionChecker.checkSetAttributePermission(path, rootRequired, ownerRequired);
 
       long fileId = mInodeTree.getInodeByPath(path).getId();
       long opTimeMs = System.currentTimeMillis();
@@ -1795,7 +1715,8 @@ public final class FileSystemMaster extends AbstractMaster {
         List<Inode<?>> inodeChildren =
             mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
         for (Inode<?> inode : inodeChildren) {
-          checkSetAttributePermission(mInodeTree.getPath(inode), rootRequired, ownerRequired);
+          mPermissionChecker.checkSetAttributePermission(mInodeTree.getPath(inode), rootRequired,
+              ownerRequired);
         }
         for (Inode<?> inode : inodeChildren) {
           long id = inode.getId();
@@ -1809,12 +1730,11 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param fileId the file id to use
    * @param opTimeMs the operation time (in milliseconds)
    * @param options the method options
    */
+  @GuardedBy("mInodeTree")
   private void journalSetAttribute(long fileId, long opTimeMs, SetAttributeOptions options) {
     SetAttributeEntry.Builder builder =
         SetAttributeEntry.newBuilder().setId(fileId).setOpTimeMs(opTimeMs);
@@ -1834,7 +1754,7 @@ public final class FileSystemMaster extends AbstractMaster {
       builder.setGroup(options.getGroup());
     }
     if (options.getPermission() != Constants.INVALID_PERMISSION) {
-      builder.setPermission(options.getPermission().shortValue());
+      builder.setPermission(options.getPermission());
     }
     writeJournalEntry(JournalEntry.newBuilder().setSetAttribute(builder).build());
     flushJournal();
@@ -1864,13 +1784,12 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param path the path to schedule asynchronous persistence for
    * @return the id of the worker that will perform the operation
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if an invalid path is encountered
    */
+  @GuardedBy("mInodeTree")
   private long scheduleAsyncPersistenceInternal(AlluxioURI path) throws
       FileDoesNotExistException, InvalidPathException {
     // find the worker
@@ -1972,7 +1891,7 @@ public final class FileSystemMaster extends AbstractMaster {
           }
 
           filesToPersist.add(new PersistFile(fileId, blockIds));
-          // update the inode file persisence state
+          // update the inode file persistence state
           inode.setPersistenceState(PersistenceState.IN_PROGRESS);
         }
       }
@@ -2009,13 +1928,12 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param fileId the file id to use
    * @param opTimeMs the operation time (in milliseconds)
    * @param options the method options
    * @throws FileDoesNotExistException
    */
+  @GuardedBy("mInodeTree")
   private void setAttributeInternal(long fileId, long opTimeMs, SetAttributeOptions options)
       throws FileDoesNotExistException {
     Inode<?> inode = mInodeTree.getInodeById(fileId);
@@ -2056,16 +1974,15 @@ public final class FileSystemMaster extends AbstractMaster {
       inode.setGroupName(options.getGroup());
     }
     if (options.getPermission() != Constants.INVALID_PERMISSION) {
-      inode.setPermission(options.getPermission().shortValue());
+      inode.setPermission(options.getPermission());
     }
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param entry the entry to use
    * @throws FileDoesNotExistException if the file does not exist
    */
+  @GuardedBy("mInodeTree")
   private void setAttributeFromEntry(SetAttributeEntry entry) throws FileDoesNotExistException {
     SetAttributeOptions options = SetAttributeOptions.defaults();
     if (entry.hasPinned()) {
@@ -2090,151 +2007,28 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Checks whether the client user is the owner of the path.
-   *
    * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
-   * @param path to be checked on
-   * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
+   * @param inode the inode to get the {@linke FileInfo} for
+   * @return the {@link FileInfo} for the given inode
+   * @throws FileDoesNotExistException if the file does not exist
    */
-  private void checkOwner(AlluxioURI path) throws AccessControlException, InvalidPathException {
-    // bypasses permission checking if security is not enabled.
-    if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
-      return;
-    }
-
-    // collects inodes info on the path
-    List<FileInfo> fileInfos = collectFileInfoList(path);
-
-    // collects user and groups
-    String user = getClientUser();
-    List<String> groups = getGroups(user);
-
-    // checks the owner
-    PermissionChecker.checkOwner(user, groups, path, fileInfos);
-  }
-
-  /**
-   * Checks whether a user has permission to edit the attribute of a given path.
-   *
-   * @param path the path to check permission on
-   * @param rootRequired indicates whether it requires to be the superuser
-   * @param ownerRequired indicates whether it requires to be the owner of this path
-   * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
-   */
-  private void checkSetAttributePermission(AlluxioURI path, boolean rootRequired, boolean
-      ownerRequired) throws AccessControlException, InvalidPathException {
-    // bypasses permission checking if security is not enabled.
-    if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
-      return;
-    }
-    // For chown, superuser is required
-    if (rootRequired) {
-      PermissionChecker.checkSuperuser(getClientUser(), getGroups(getClientUser()));
-    }
-    // For chgrp or chmod, owner is required
-    if (ownerRequired) {
-      checkOwner(path);
-    }
-    checkPermission(FileSystemAction.WRITE, path, false);
-  }
-
-  /**
-   * Checks whether a user has permission to perform a specific action on a path. If the path is
-   * invalid, it should bypass the {@link InvalidPathException}.
-   *
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
-   * @param action requested {@link FileSystemAction} by user
-   * @param path the path to check permission on
-   * @param checkParent indicates whether to check its parent
-   * @throws AccessControlException if permission checking fails
-   */
-  private void checkPermission(FileSystemAction action, AlluxioURI path, boolean checkParent)
-      throws AccessControlException {
-    // bypasses permission checking if security is not enabled.
-    if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
-      return;
-    }
-
+  private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
+    FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
+    fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
+    AlluxioURI path = mInodeTree.getPath(inode);
+    AlluxioURI resolvedPath;
     try {
-      // collects inodes info on the path
-      List<FileInfo> fileInfos = collectFileInfoList(path);
-
-      // collects user and groups
-      String user = getClientUser();
-      List<String> groups = getGroups(user);
-
-      // perform permission check
-      String[] pathComponents = PathUtils.getPathComponents(path.getPath());
-      if (checkParent) {
-        if (// involved methods: create, mkdir, rename, deleteFile
-            action.equals(FileSystemAction.WRITE)
-            // create or mkdir under root "/", then assumes to have write permission.
-            && (fileInfos.size() == 1 && pathComponents.length > 1)
-            // rename or deleteFile under root "/", then must be the owner.
-            || (fileInfos.size() == 2 && pathComponents.length == 2)) {
-          // Handle a special case where the path is a level under root "/" and checking write
-          // permission on it. We simply assume user has write permission on the root "/",
-          // with a limitation that the user must be the owner of the path.
-          PermissionChecker.checkOwner(user, groups, path, fileInfos);
-        } else {
-          PermissionChecker.checkParentPermission(user, groups, action, path, fileInfos);
-        }
-      } else {
-        PermissionChecker.checkPermission(user, groups, action, path, fileInfos);
-      }
+      resolvedPath = mMountTable.resolve(path);
     } catch (InvalidPathException e) {
-      LOG.warn("Invalid Path {} for checking permission: " + e.getMessage(), path);
+      throw new FileDoesNotExistException(e.getMessage(), e);
     }
-  }
-
-  /**
-   * @return the client user
-   * @throws AccessControlException if the client user information cannot be accessed
-   */
-  private String getClientUser() throws AccessControlException {
-    try {
-      User authorizedUser = AuthenticatedClientUser.get(MasterContext.getConf());
-      if (authorizedUser == null) {
-        throw new AccessControlException(
-            ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
-      }
-      return authorizedUser.getName();
-    } catch (IOException e) {
-      throw new AccessControlException(e.getMessage());
+    // Only set the UFS path if the path is nested under a mount point.
+    if (!path.equals(resolvedPath)) {
+      fileInfo.setUfsPath(resolvedPath.toString());
     }
-  }
-
-  /**
-   * @param user the user to get groups for
-   * @return the groups for the given user
-   * @throws AccessControlException if the group service information cannot be accessed
-   */
-  private List<String> getGroups(String user) throws AccessControlException {
-    try {
-      return mGroupMappingService.getGroups(user);
-    } catch (IOException e) {
-      throw new AccessControlException(
-          ExceptionMessage.PERMISSION_DENIED.getMessage(e.getMessage()));
-    }
-  }
-
-  /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
-   * @param path the path to collect file information for
-   * @return a list of {@link FileInfo}
-   * @throws InvalidPathException if an invalid path is encountered
-   */
-  private List<FileInfo> collectFileInfoList(AlluxioURI path) throws InvalidPathException {
-    List<FileInfo> fileInfos = Lists.newArrayList();
-    for (Inode<?> inodeOnPath :  mInodeTree.collectInodes(path)) {
-      fileInfos.add(inodeOnPath.generateClientFileInfo(mInodeTree.getPath(inodeOnPath).toString()));
-    }
-    return fileInfos;
+    MasterContext.getMasterSource().incFileInfosGot(1);
+    return fileInfo;
   }
 
   /**
@@ -2251,7 +2045,7 @@ public final class FileSystemMaster extends AbstractMaster {
               // file.isPinned() is deliberately not checked because ttl will have effect no matter
               // whether the file is pinned.
               try {
-                deleteFile(mInodeTree.getPath(file), false);
+                delete(mInodeTree.getPath(file), false);
               } catch (Exception e) {
                 LOG.error("Exception trying to clean up {} for ttl check: {}", file.toString(),
                     e.toString());

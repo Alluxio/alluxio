@@ -206,9 +206,9 @@ public class PermissionCheckTest {
     long fileId;
     if (recursive) {
       fileId = mFileSystemMaster
-          .create(new AlluxioURI(path), CreateFileOptions.defaults().setRecursive(true));
+          .createFile(new AlluxioURI(path), CreateFileOptions.defaults().setRecursive(true));
     } else {
-      fileId = mFileSystemMaster.create(new AlluxioURI(path), CreateFileOptions.defaults());
+      fileId = mFileSystemMaster.createFile(new AlluxioURI(path), CreateFileOptions.defaults());
     }
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
@@ -219,16 +219,16 @@ public class PermissionCheckTest {
 
   @Test
   public void mkdirUnderRootTest() throws Exception {
-    // mkdir "/dir1" for user1
+    // createDirectory "/dir1" for user1
     verifyMkdir(TEST_USER_1, "/dir1", false);
 
-    // mkdir "/dir_admin" for superuser
+    // createDirectory "/dir_admin" for superuser
     verifyMkdir(TEST_USER_ADMIN, "/dir_admin", false);
 
-    // mkdir "/dir_supergroup" for user in supergroup
+    // createDirectory "/dir_supergroup" for user in supergroup
     verifyMkdir(TEST_USER_SUPERGROUP, "/dir_supergroup", false);
 
-    // mkdir nested "/notExistDir/notExistSubDir" for user1
+    // createDirectory nested "/notExistDir/notExistSubDir" for user1
     verifyMkdir(TEST_USER_1, "/notExistDir/notExistSubDir", true);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
         new AlluxioURI("/notExistDir")));
@@ -239,7 +239,7 @@ public class PermissionCheckTest {
 
   @Test
   public void mkdirSuccessTest() throws Exception {
-    // mkdir "/testDir/dir1" for user1
+    // createDirectory "/testDir/dir1" for user1
     verifyMkdir(TEST_USER_1, TEST_DIR_URI + "/dir1", false);
   }
 
@@ -250,7 +250,7 @@ public class PermissionCheckTest {
         toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_URI + "/dir1",
             "testDir")));
 
-    // mkdir "/testDir/dir1" for user2
+    // createDirectory "/testDir/dir1" for user2
     verifyMkdir(TEST_USER_2, TEST_DIR_URI + "/dir1", false);
   }
 
@@ -258,9 +258,10 @@ public class PermissionCheckTest {
     AuthenticatedClientUser.set(user.getUser());
     if (recursive) {
       mFileSystemMaster
-          .mkdir(new AlluxioURI(path), CreateDirectoryOptions.defaults().setRecursive(true));
+          .createDirectory(new AlluxioURI(path), CreateDirectoryOptions.defaults()
+              .setRecursive(true));
     } else {
-      mFileSystemMaster.mkdir(new AlluxioURI(path), CreateDirectoryOptions.defaults());
+      mFileSystemMaster.createDirectory(new AlluxioURI(path), CreateDirectoryOptions.defaults());
     }
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
@@ -409,7 +410,7 @@ public class PermissionCheckTest {
 
   private void verifyDelete(TestUser user, String path, boolean recursive) throws Exception {
     AuthenticatedClientUser.set(user.getUser());
-    mFileSystemMaster.deleteFile(new AlluxioURI(path), recursive);
+    mFileSystemMaster.delete(new AlluxioURI(path), recursive);
 
     Assert.assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(path)));
   }

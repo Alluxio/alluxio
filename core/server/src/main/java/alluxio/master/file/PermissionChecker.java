@@ -12,135 +12,236 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.master.MasterContext;
+import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeTree;
+import alluxio.security.User;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.FileSystemAction;
 import alluxio.security.authorization.FileSystemPermission;
+import alluxio.security.group.GroupMappingService;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
 
+import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Base class to provide permission check logic.
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
+@NotThreadSafe
 public final class PermissionChecker {
-  private static boolean sPermissionCheckEnabled;
+  /** The file system inode structure. */
+  private final InodeTree mInodeTree;
+
+  /** Whether the permission check is enabled. */
+  private final boolean mPermissionCheckEnabled;
 
   /** The owner of root directory. */
-  private static String sFileSystemOwner;
+  private final String mFileSystemOwner;
 
   /** The super group of Alluxio file system. All users in this group have super permission. */
-  private static String sFileSystemSuperGroup;
+  private final String mFileSystemSuperGroup;
+
+  /** This provides user groups mapping service. */
+  private final GroupMappingService mGroupMappingService;
 
   /**
-   * Initializes the permission related property of the whole Alluxio file system.
+   * Constructs a permission checker instance for Alluxio file system.
    *
-   * @param permissionCheckEnabled whether permission checking is enabled
-   * @param owner the user of root directory, who is seen as the super user
-   * @param superGroup the super group of the whole Alluxio file system
+   * @param inodeTree inode tree of the file system master
    */
-  public static synchronized void initializeFileSystem(boolean permissionCheckEnabled,
-      String owner, String superGroup) {
-    sPermissionCheckEnabled = permissionCheckEnabled;
-    sFileSystemOwner = owner;
-    sFileSystemSuperGroup = superGroup;
+  public PermissionChecker(InodeTree inodeTree) {
+    mInodeTree = Preconditions.checkNotNull(inodeTree);
+    mPermissionCheckEnabled =
+        MasterContext.getConf().getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
+    mFileSystemOwner = mInodeTree.getRootUserName();
+    mFileSystemSuperGroup =
+        MasterContext.getConf().get(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
+    mGroupMappingService =
+        GroupMappingService.Factory.getUserToGroupsMappingService(MasterContext.getConf());
   }
 
   /**
-   * Checks requested permission and basic permission on the parent of the path.
-   * Parent means the parent directory of the path.
-   * If parent directory does not exist, treat the closest ancestor directory of the path as
-   * its parent and check permission on it.
+   * Checks whether a user has permission to perform a specific action on the parent of the given
+   * path. This check will pass if the path is invalid, or path has no parent (e.g., root).
    *
-   * @param user who requests access permission
-   * @param groups in which user belongs to
    * @param action requested {@link FileSystemAction} by user
-   * @param path whose parent to check permission on
-   * @param fileInfoList file info list of all the inodes retrieved by traversing the path
+   * @param path the path to check permission on
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public static void checkParentPermission(String user, List<String> groups,
-      FileSystemAction action, AlluxioURI path, List<FileInfo> fileInfoList)
+  @GuardedBy("mInodeTree")
+  public void checkParentPermission(FileSystemAction action, AlluxioURI path)
       throws AccessControlException, InvalidPathException {
+    if (!mPermissionCheckEnabled) {
+      return;
+    }
+
     // root "/" has no parent, so return without checking
     if (PathUtils.isRoot(path.getPath())) {
       return;
     }
 
+    // collects inodes info on the path
+    List<Inode<?>> inodeList = mInodeTree.collectInodes(path);
+
+    // collects user and groups
+    String user = getClientUser();
+    List<String> groups = getGroups(user);
+
+    // perform permission check
     String[] pathComponents = PathUtils.getPathComponents(path.getPath());
+
+    // Checks requested permission and basic permission on the parent of the path.
+    // If parent directory does not exist, treats the closest ancestor directory of the path as
+    // its parent and check permission on it.
 
     // remove the last element if all components of the path exist, since we only check the parent.
-    if (pathComponents.length == fileInfoList.size()) {
-      fileInfoList.remove(fileInfoList.size() - 1);
+    if (pathComponents.length == inodeList.size()) {
+      inodeList.remove(inodeList.size() - 1);
     }
-    checkByFileInfoList(user, groups, action, path.getPath(), fileInfoList, false);
+    checkInodeList(user, groups, action, path.getPath(), inodeList, false);
   }
 
   /**
-   * Checks requested permission and basic permission on the path.
+   * Checks whether a user has permission to perform a specific action on a path. This check will
+   * pass if the path is invalid.
    *
-   * @param user who requests access permission
-   * @param groups in which user belongs to
    * @param action requested {@link FileSystemAction} by user
    * @param path the path to check permission on
-   * @param fileInfoList file info list of all the inodes retrieved by traversing the path
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public static void checkPermission(String user, List<String> groups, FileSystemAction action,
-      AlluxioURI path, List<FileInfo> fileInfoList) throws AccessControlException,
-      InvalidPathException {
-    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
-
-    for (int i = fileInfoList.size(); i < pathComponents.length; i++) {
-      fileInfoList.add(null);
+  @GuardedBy("mInodeTree")
+  public void checkPermission(FileSystemAction action, AlluxioURI path)
+      throws AccessControlException, InvalidPathException {
+    if (!mPermissionCheckEnabled) {
+      return;
     }
-    checkByFileInfoList(user, groups, action, path.getPath(), fileInfoList, false);
+
+    // collects inodes info on the path
+    List<Inode<?>> inodeList = mInodeTree.collectInodes(path);
+
+    // collects user and groups
+    String user = getClientUser();
+    List<String> groups = getGroups(user);
+
+    // Checks requested permission and basic permission on the path.
+    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
+    for (int i = inodeList.size(); i < pathComponents.length; i++) {
+      inodeList.add(null);
+    }
+    checkInodeList(user, groups, action, path.getPath(), inodeList, false);
   }
 
   /**
-   * Checks whether the user is the owner of the path.
+   * Checks whether a user has permission to edit the attribute of a given path.
    *
-   * @param user who is verified to be the owner of the path
-   * @param groups in which user belongs to
-   * @param path the path to check its owner
-   * @param fileInfoList file info list of all the inodes retrieved by traversing the path
+   * @param path the path to check permission on
+   * @param superuserRequired indicates whether it requires to be the superuser
+   * @param ownerRequired indicates whether it requires to be the owner of this path
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public static void checkOwner(String user, List<String> groups, AlluxioURI path,
-      List<FileInfo> fileInfoList) throws AccessControlException, InvalidPathException {
+  @GuardedBy("mInodeTree")
+  public void checkSetAttributePermission(AlluxioURI path, boolean superuserRequired,
+      boolean ownerRequired) throws AccessControlException, InvalidPathException {
+    if (!mPermissionCheckEnabled) {
+      return;
+    }
+
+    // For chown, superuser is required
+    if (superuserRequired) {
+      checkSuperuser();
+    }
+    // For chgrp or chmod, owner is required
+    if (ownerRequired) {
+      checkOwner(path);
+    }
+    checkPermission(FileSystemAction.WRITE, path);
+  }
+
+  /**
+   * @return the client user
+   * @throws AccessControlException if the client user information cannot be accessed
+   */
+  private String getClientUser() throws AccessControlException {
+    try {
+      User authorizedUser = AuthenticatedClientUser.get(MasterContext.getConf());
+      if (authorizedUser == null) {
+        throw new AccessControlException(
+            ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
+      }
+      return authorizedUser.getName();
+    } catch (IOException e) {
+      throw new AccessControlException(e.getMessage());
+    }
+  }
+
+  /**
+   * @param user the user to get groups for
+   * @return the groups for the given user
+   * @throws AccessControlException if the group service information cannot be accessed
+   */
+  private List<String> getGroups(String user) throws AccessControlException {
+    try {
+      return mGroupMappingService.getGroups(user);
+    } catch (IOException e) {
+      throw new AccessControlException(
+          ExceptionMessage.PERMISSION_DENIED.getMessage(e.getMessage()));
+    }
+  }
+
+  /**
+   * Checks whether the client user is the owner of the path.
+   *
+   * @param path to be checked on
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
+  @GuardedBy("mInodeTree")
+  private void checkOwner(AlluxioURI path) throws AccessControlException, InvalidPathException {
+    // collects inodes info on the path
+    List<Inode<?>> inodeList = mInodeTree.collectInodes(path);
+
+    // collects user and groups
+    String user = getClientUser();
+    List<String> groups = getGroups(user);
+
+    // checks the owner
     String[] pathComponents = PathUtils.getPathComponents(path.getPath());
 
-    for (int i = fileInfoList.size(); i < pathComponents.length; i++) {
-      fileInfoList.add(null);
+    for (int i = inodeList.size(); i < pathComponents.length; i++) {
+      inodeList.add(null);
     }
-    checkByFileInfoList(user, groups, null, path.getPath(), fileInfoList, true);
+    checkInodeList(user, groups, null, path.getPath(), inodeList, true);
   }
 
   /**
    * Checks whether the user is a super user or in super group.
    *
-   * @param user who is verified to be the super user
-   * @param groups in which user belongs to
    * @throws AccessControlException if the user is not a super user
    */
-  public static void checkSuperuser(String user, List<String> groups) throws
-      AccessControlException {
-    if (sFileSystemOwner.equals(user) || groups.contains(sFileSystemSuperGroup)) {
+  private void checkSuperuser() throws AccessControlException {
+    // collects user and groups
+    String user = getClientUser();
+    List<String> groups = getGroups(user);
+
+    if (mFileSystemOwner.equals(user) || groups.contains(mFileSystemSuperGroup)) {
       return;
     }
-    throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED.getMessage(user
-        + " is not a super user or in super group"));
+    throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
+        .getMessage(user + " is not a super user or in super group"));
   }
 
   /**
@@ -155,41 +256,36 @@ public final class PermissionChecker {
    * @param groups in which user belongs to
    * @param action requested {@link FileSystemAction} by user
    * @param path the path to check permission on
-   * @param fileInfoList file info list of all the inodes retrieved by traversing the path
+   * @param inodeList file info list of all the inodes retrieved by traversing the path
    * @param checkIsOwner indicates whether to check the user is the owner of the path
    * @throws AccessControlException if permission checking fails
    */
-  private static void checkByFileInfoList(String user, List<String> groups, FileSystemAction
-      action, String path, List<FileInfo> fileInfoList,
-      boolean checkIsOwner) throws AccessControlException {
-    int size = fileInfoList.size();
-    Preconditions.checkArgument(size > 0,
-        PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
-
-    if (!sPermissionCheckEnabled) {
-      return;
-    }
+  private void checkInodeList(String user, List<String> groups, FileSystemAction action,
+      String path, List<Inode<?>> inodeList, boolean checkIsOwner)
+      throws AccessControlException {
+    int size = inodeList.size();
+    Preconditions
+        .checkArgument(size > 0, PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
 
     // bypass checking permission for super user or super group of Alluxio file system.
-    if (sFileSystemOwner.equals(user) || groups.contains(sFileSystemSuperGroup)) {
+    if (mFileSystemOwner.equals(user) || groups.contains(mFileSystemSuperGroup)) {
       return;
     }
 
     // traverses parent path to ensure inodes in it are all executable
     for (int i = 0; i < size - 1; i++) {
-      check(user, groups, fileInfoList.get(i), FileSystemAction.EXECUTE, path);
+      checkInode(user, groups, inodeList.get(i), FileSystemAction.EXECUTE, path);
     }
 
+    Inode inode = inodeList.get(inodeList.size() - 1);
     if (checkIsOwner) {
-      FileInfo fileInfo = fileInfoList.get(fileInfoList.size() - 1);
-      if (fileInfo == null || user.equals(fileInfo.getUserName())) {
+      if (inode == null || user.equals(inode.getUserName())) {
         return;
       }
-      throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED.getMessage(
-          "user=" + user + " is not the owner of path=" + path));
-    } else {
-      check(user, groups, fileInfoList.get(fileInfoList.size() - 1), action, path);
+      throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
+          .getMessage("user=" + user + " is not the owner of path=" + path));
     }
+    checkInode(user, groups, inode, action, path);
   }
 
   /**
@@ -197,49 +293,44 @@ public final class PermissionChecker {
    *
    * @param user who requests access permission
    * @param groups in which user belongs to
-   * @param fileInfo whose attributes used for permission check logic
+   * @param inode whose attributes used for permission check logic
    * @param action requested {@link FileSystemAction} by user
    * @param path the path to check permission on
    * @throws AccessControlException if permission checking fails
    */
-  private static void check(String user, List<String> groups, FileInfo fileInfo,
+  private void checkInode(String user, List<String> groups, Inode inode,
       FileSystemAction action, String path) throws AccessControlException {
-    if (fileInfo == null) {
+    if (inode == null) {
       return;
     }
 
-    short permission = (short) fileInfo.getPermission();
+    short permission = inode.getPermission();
 
-    if (user.equals(fileInfo.getUserName())) {
-      if (FileSystemPermission.createUserAction(permission).imply(action)) {
-        return;
-      }
+    if (user.equals(inode.getUserName()) && FileSystemPermission.createUserAction(permission)
+        .imply(action)) {
+      return;
     }
 
-    if (groups.contains(fileInfo.getGroupName())) {
-      if (FileSystemPermission.createGroupAction(permission).imply(action)) {
-        return;
-      }
+    if (groups.contains(inode.getGroupName()) && FileSystemPermission
+        .createGroupAction(permission).imply(action)) {
+      return;
     }
 
     if (FileSystemPermission.createOtherAction(permission).imply(action)) {
       return;
     }
 
-    throw new AccessControlException(
-        ExceptionMessage.PERMISSION_DENIED.getMessage(toExceptionMessage(user, action, path,
-            fileInfo)));
+    throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
+        .getMessage(toExceptionMessage(user, action, path, inode)));
   }
 
   private static String toExceptionMessage(String user, FileSystemAction action, String path,
-      FileInfo fileInfo) {
+      Inode inode) {
     // message format: who, action, resource: failed at where
-    StringBuilder stringBuilder = new StringBuilder()
-        .append("user=").append(user).append(", ")
-        .append("access=").append(action).append(", ")
-        .append("path=").append(path).append(": ")
-        .append("failed at ")
-        .append(fileInfo.getName().equals("") ? "/" : fileInfo.getName());
+    StringBuilder stringBuilder =
+        new StringBuilder().append("user=").append(user).append(", ").append("access=")
+            .append(action).append(", ").append("path=").append(path).append(": ")
+            .append("failed at ").append(inode.getName().equals("") ? "/" : inode.getName());
     return stringBuilder.toString();
   }
 }
