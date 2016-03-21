@@ -31,7 +31,6 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.FileSystemAction;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.security.group.GroupMappingService;
-import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Lists;
 import org.junit.Assert;
@@ -42,10 +41,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
