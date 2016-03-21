@@ -31,6 +31,7 @@ import alluxio.proto.journal.KeyValue.CompleteStoreEntry;
 import alluxio.proto.journal.KeyValue.CreateStoreEntry;
 import alluxio.proto.journal.KeyValue.DeleteStoreEntry;
 import alluxio.proto.journal.KeyValue.MergeStoreEntry;
+import alluxio.proto.journal.KeyValue.RenameStoreEntry;
 import alluxio.thrift.KeyValueMasterClientService;
 import alluxio.thrift.PartitionInfo;
 import alluxio.util.IdUtils;
@@ -115,6 +116,8 @@ public final class KeyValueMaster extends AbstractMaster {
         completeStoreFromEntry((CompleteStoreEntry) innerEntry);
       } else if (innerEntry instanceof DeleteStoreEntry) {
         deleteStoreFromEntry((DeleteStoreEntry) innerEntry);
+      } else if (innerEntry instanceof RenameStoreEntry) {
+        renameStoreFromEntry((RenameStoreEntry) innerEntry);
       } else if (innerEntry instanceof MergeStoreEntry) {
         mergeStoreFromEntry((MergeStoreEntry) innerEntry);
       } else {
@@ -314,6 +317,43 @@ public final class KeyValueMaster extends AbstractMaster {
   }
 
   /**
+   *Renames one completed key-value store.
+   *
+   * @param oldUri the old {@link AlluxioURI} to the store
+   * @param newUri the {@link AlluxioURI} to the store
+   * @throws IOException if non-Alluxio error occurs
+   * @throws AlluxioException if other Alluxio error occurs
+   */
+  public synchronized void renameStore(AlluxioURI oldUri, AlluxioURI newUri)
+      throws IOException, AlluxioException {
+    long oldFileId = getFileId(oldUri);
+    checkIsCompletePartition(oldFileId, oldUri);
+    try {
+      mFileSystemMaster.rename(oldUri, newUri);
+    } catch (FileAlreadyExistsException e) {
+      throw new FileAlreadyExistsException(
+          String.format("failed to rename store:the path %s has been used", newUri), e);
+    }
+
+    final long newFileId = mFileSystemMaster.getFileId(newUri);
+    Preconditions.checkState(newFileId != IdUtils.INVALID_FILE_ID);
+    renameStoreInternal(oldFileId, newFileId);
+
+    writeJournalEntry(newRenameStoreEntry(oldFileId, newFileId));
+    flushJournal();
+  }
+
+  private void renameStoreInternal(long oldFileId, long newFileId) {
+    List<PartitionInfo> partitionsRenamed = mCompleteStoreToPartitions.remove(oldFileId);
+    mCompleteStoreToPartitions.put(newFileId, partitionsRenamed);
+  }
+
+  // Rename one completed stores, called when replaying journals.
+  private void renameStoreFromEntry(RenameStoreEntry entry) {
+    renameStoreInternal(entry.getOldStoreId(), entry.getNewStoreId());
+  }
+
+  /**
    * Merges one completed key-value store to another completed key-value store.
    *
    * @param fromUri the {@link AlluxioURI} to the store to be merged
@@ -391,6 +431,12 @@ public final class KeyValueMaster extends AbstractMaster {
   private JournalEntry newDeleteStoreEntry(long fileId) {
     DeleteStoreEntry deleteStore = DeleteStoreEntry.newBuilder().setStoreId(fileId).build();
     return JournalEntry.newBuilder().setDeleteStore(deleteStore).build();
+  }
+
+  private JournalEntry newRenameStoreEntry(long oldFileId, long newFileId) {
+    RenameStoreEntry renameStore = RenameStoreEntry.newBuilder().setOldStoreId(oldFileId)
+        .setNewStoreId(newFileId).build();
+    return JournalEntry.newBuilder().setRenameStore(renameStore).build();
   }
 
   private JournalEntry newMergeStoreEntry(long fromFileId, long toFileId) {
