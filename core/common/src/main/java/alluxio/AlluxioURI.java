@@ -11,23 +11,17 @@
 
 package alluxio;
 
-import alluxio.collections.Pair;
-
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -56,23 +50,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
 
   public static final AlluxioURI EMPTY_URI = new AlluxioURI("");
 
-  /**
-   * A hierarchical URI. {@link URI} is used to hold the URI components as well as to reuse URI
-   * functionality.
-   */
+  /** A {@link URI} is used to hold the URI components. */
   private final URI mUri;
-
-  /**
-   * {@link URI} does not handle a sub-component in the scheme. If the scheme has a sub-component,
-   * this prefix holds the first components, while the java.net.URI will only consider the last
-   * component. For example, the uri 'scheme:part1:part2://localhost:1234/' has multiple
-   * components in the scheme, so this variable will hold 'scheme:part1', while java.net.URI will
-   * handle the URI starting from 'part2'.
-   */
-  private final String mSchemePrefix;
-
-  /** A map representation of the query component of the URI. It may be empty. */
-  private final Map<String, String> mQueryMap;
 
   /**
    * Constructs an {@link AlluxioURI} from a String. Path strings are URIs, but with unescaped
@@ -81,69 +60,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param pathStr path to construct the {@link AlluxioURI} from
    */
   public AlluxioURI(String pathStr) {
-    if (pathStr == null) {
-      throw new IllegalArgumentException("Can not create a uri with a null path.");
-    }
-
-    // add a slash in front of paths with Windows drive letters
-    if (hasWindowsDrive(pathStr, false)) {
-      pathStr = "/" + pathStr;
-    }
-
-    // parse uri components
-    String scheme = null;
-    String authority = null;
-    String query = null;
-
-    int start = 0;
-
-    // parse uri scheme, if any
-    int colon = pathStr.indexOf(':');
-    int slash = pathStr.indexOf('/');
-    if ((colon != -1) && ((slash == -1) || (colon < slash))) { // has a scheme
-      if (slash != -1) {
-        // There is a slash. The scheme may have multiple parts, so the scheme is everything before
-        // the slash.
-        start = slash;
-
-        // Ignore any trailing colons from the scheme.
-        while (slash > 0 && pathStr.charAt(slash - 1) == ':') {
-          slash--;
-        }
-        scheme = pathStr.substring(0, slash);
-      } else {
-        // There is no slash. The scheme is the component before the first colon.
-        scheme = pathStr.substring(0, colon);
-        start = colon + 1;
-      }
-    }
-
-    // Handle schemes with two components.
-    Pair<String, String> schemeComponents = getSchemeComponents(scheme);
-    mSchemePrefix = schemeComponents.getFirst();
-    scheme = schemeComponents.getSecond();
-
-    // parse uri authority, if any
-    if (pathStr.startsWith("//", start) && (pathStr.length() - start > 2)) { // has authority
-      int nextSlash = pathStr.indexOf('/', start + 2);
-      int authEnd = nextSlash > 0 ? nextSlash : pathStr.length();
-      authority = pathStr.substring(start + 2, authEnd);
-      start = authEnd;
-    }
-
-    // uri path is the rest of the string -- fragment not supported
-    String path = pathStr.substring(start, pathStr.length());
-
-    // Parse the query part.
-    int question = path.indexOf('?');
-    if (question != -1) {
-      // There is a query.
-      query = path.substring(question + 1);
-      path = path.substring(0, question);
-    }
-    mQueryMap = parseQueryString(query);
-
-    mUri = createURI(scheme, authority, path, query);
+    mUri = URI.Factory.create(pathStr);
   }
 
   /**
@@ -154,7 +71,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    */
   public AlluxioURI(String scheme, String authority, String path) {
-    this(scheme, authority, path, null);
+    mUri = URI.Factory.create(scheme, authority, path, null);
   }
 
   /**
@@ -166,17 +83,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param queryMap the (nullable) map of key/value pairs for the query component of the URI
    */
   public AlluxioURI(String scheme, String authority, String path, Map<String, String> queryMap) {
-    if (path == null) {
-      throw new IllegalArgumentException("Can not create a uri with a null path.");
-    }
-
-    // Handle schemes with two components.
-    Pair<String, String> schemeComponents = getSchemeComponents(scheme);
-    mSchemePrefix = schemeComponents.getFirst();
-    scheme = schemeComponents.getSecond();
-    mQueryMap = queryMap;
-
-    mUri = createURI(scheme, authority, path, generateQueryString());
+    mUri = URI.Factory.create(scheme, authority, path, generateQueryString(queryMap));
   }
 
   /**
@@ -186,107 +93,34 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param child the child
    */
   public AlluxioURI(AlluxioURI parent, AlluxioURI child) {
-    // Add a slash to parent's path so resolution is compatible with URI's
-    URI parentUri = parent.mUri;
-    String parentPath = parentUri.getPath();
-    if (!parentPath.endsWith(SEPARATOR) && parentPath.length() > 0) {
-      parentPath += SEPARATOR;
-    }
-    try {
-      parentUri =
-          new URI(parentUri.getScheme(), parentUri.getAuthority(), parentPath, parentUri.getQuery(),
-              null);
-    } catch (URISyntaxException e) {
-      throw new IllegalArgumentException(e);
-    }
-    URI resolved = parentUri.resolve(child.mUri);
-
-    // Determine which scheme prefix to take.
-    if (child.getPath() == null || parent.getPath() == null || child.getScheme() != null) {
-      // With these conditions, the resolved URI uses the child's scheme.
-      mSchemePrefix = child.mSchemePrefix;
-    } else {
-      // Otherwise, the parent scheme is used in the resolved URI.
-      mSchemePrefix = parent.mSchemePrefix;
-    }
-
-    mQueryMap = parseQueryString(resolved.getQuery());
-
-    mUri = createURI(resolved.getScheme(), resolved.getAuthority(), resolved.getPath(),
-        resolved.getQuery());
+    mUri = URI.Factory.create(parent.mUri, child.mUri);
   }
 
   /**
-   * Compares the full schemes of this URI and a given URI.
+   * Constructs an {@link AlluxioURI} from components.
    *
-   * @param other the other {@link AlluxioURI} to compare the scheme
-   * @return a negative integer, zero, or a positive integer if this full scheme is respectively
-   *         less than, equal to, or greater than the full scheme of the other URI.
+   * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
+   * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
+   * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
+   * @param query the query component of the URI
    */
-  private int compareFullScheme(AlluxioURI other) {
-    // Both of these full schemes may be null.
-    String fullScheme = getFullScheme(mUri.getScheme());
-    String otherFullScheme = other.getFullScheme(other.mUri.getScheme());
-
-    if (fullScheme == null && otherFullScheme == null) {
-      return 0;
-    }
-    if (fullScheme != null) {
-      if (otherFullScheme != null) {
-        return fullScheme.compareToIgnoreCase(otherFullScheme);
-      }
-      // not null is greater than 'null'.
-      return 1;
-    }
-    // 'null' is less than not null.
-    return -1;
+  private AlluxioURI(String scheme, String authority, String path, String query) {
+    mUri = URI.Factory.create(scheme, authority, path, query);
   }
 
   /**
-   * Returns a {@link Pair} of components of the given scheme. A given scheme may have have two
-   * components if it has the ':' character to specify a sub-protocol of the scheme. If the
-   * scheme does not have multiple components, the first component will be the empty string, and
-   * the second component will be the given scheme. If the given scheme is null, both components
-   * in the {@link Pair} will be null.
+   * Generates a query string from a {@link Map<String, String>} of key/value pairs.
    *
-   * @param scheme the scheme string
-   * @return a {@link Pair} with the scheme components
+   * @param queryMap the map of query key/value pairs
+   * @return the generated query string
    */
-  private Pair<String, String> getSchemeComponents(String scheme) {
-    if (scheme == null) {
-      return new Pair<>(null, null);
-    }
-    int colon = scheme.lastIndexOf(':');
-    if (colon == -1) {
-      return new Pair<>("", scheme);
-    }
-    return new Pair<>(scheme.substring(0, colon), scheme.substring(colon + 1));
-  }
-
-  /**
-   * @param uriScheme the given scheme, that comes from a {@link URI} instance
-   * @return the full scheme which combines the mSchemePrefix with the given scheme
-   */
-  private String getFullScheme(String uriScheme) {
-    if (uriScheme == null) {
+  private String generateQueryString(Map<String, String> queryMap) {
+    if (queryMap == null || queryMap.isEmpty()) {
       return null;
     }
-    if (mSchemePrefix.length() > 0) {
-      return mSchemePrefix + ":" + uriScheme;
-    }
-    return uriScheme;
-  }
-
-  /**
-   * @return the query string, generated from {@link #mQueryMap}
-   */
-  private String generateQueryString() {
-    if (mQueryMap == null || mQueryMap.isEmpty()) {
-      return null;
-    }
-    ArrayList<String> pairs = new ArrayList<>(mQueryMap.size());
+    ArrayList<String> pairs = new ArrayList<>(queryMap.size());
     try {
-      for (Map.Entry<String, String> entry : mQueryMap.entrySet()) {
+      for (Map.Entry<String, String> entry : queryMap.entrySet()) {
         pairs.add(URLEncoder.encode(entry.getKey(), "UTF-8") + "=" + URLEncoder
             .encode(entry.getValue(), "UTF-8"));
       }
@@ -338,31 +172,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
 
   @Override
   public int compareTo(AlluxioURI other) {
-    // Compare full schemes first.
-    int compare = compareFullScheme(other);
-    if (compare != 0) {
-      return compare;
-    }
-    // Full schemes are equal, so use java.net.URI compare.
     return mUri.compareTo(other.mUri);
-  }
-
-  /**
-   * Creates the internal URI. Called by all constructors.
-   *
-   * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
-   * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
-   * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
-   * @param query the query component of the URI. e.g. "a=b", "a=b&c=d&e=f"
-   * @throws IllegalArgumentException when an illegal argument is encountered
-   */
-  private URI createURI(String scheme, String authority, String path, String query)
-      throws IllegalArgumentException {
-    try {
-      return new URI(scheme, authority, normalizePath(path), query, null).normalize();
-    } catch (URISyntaxException e) {
-      throw new IllegalArgumentException(e);
-    }
   }
 
   @Override
@@ -374,9 +184,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       return false;
     }
     AlluxioURI that = (AlluxioURI) o;
-    if (compareFullScheme(that) != 0) {
-      return false;
-    }
     return mUri.equals(that.mUri);
   }
 
@@ -507,7 +314,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       int end = hasWindowsDrive(path, true) ? 3 : 0;
       parent = path.substring(0, lastSlash == end ? end + 1 : lastSlash);
     }
-    return new AlluxioURI(getFullScheme(mUri.getScheme()), mUri.getAuthority(), parent, mQueryMap);
+    return new AlluxioURI(mUri.getScheme(), mUri.getAuthority(), parent, mUri.getQuery());
   }
 
   /**
@@ -534,10 +341,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return the map of query parameters
    */
   public Map<String, String> getQueryMap() {
-    if (mQueryMap == null || mQueryMap.isEmpty()) {
-      return Collections.emptyMap();
-    }
-    return Collections.unmodifiableMap(mQueryMap);
+    return parseQueryString(mUri.getQuery());
   }
 
   /**
@@ -546,7 +350,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return the scheme, null if there is no scheme
    */
   public String getScheme() {
-    return getFullScheme(mUri.getScheme());
+    return mUri.getScheme();
   }
 
   /**
@@ -560,7 +364,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(mUri, mSchemePrefix);
+    return mUri.hashCode();
   }
 
   /**
@@ -569,7 +373,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return true if it has, false otherwise
    */
   public boolean hasScheme() {
-    return getFullScheme(mUri.getScheme()) != null;
+    return mUri.getScheme() != null;
   }
 
   /**
@@ -637,7 +441,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   public AlluxioURI join(String suffix) {
     return new AlluxioURI(getScheme(), getAuthority(), getPath() + AlluxioURI.SEPARATOR + suffix,
-        mQueryMap);
+        mUri.getQuery());
   }
 
   /**
@@ -681,7 +485,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    String fullScheme = getFullScheme(mUri.getScheme());
+    String fullScheme = mUri.getScheme();
     if (fullScheme != null) {
       sb.append(fullScheme);
       sb.append("://");
