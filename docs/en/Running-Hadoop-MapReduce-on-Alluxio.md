@@ -11,9 +11,12 @@ run your MapReduce programs with files stored on Alluxio.
 
 # Initial Setup
 
-The prerequisite for this part is that you have [Java](Java-Setup.html). We also assume that you have 
-set up Alluxio and Hadoop in accordance to these guides [Local Mode](Running-Alluxio-Locally.html) or
-[Cluster Mode](Running-Alluxio-on-a-Cluster.html)
+The prerequisite for this part is that you have [Java](Java-Setup.html). We also assume that you
+have set up Alluxio and Hadoop in accordance to these guides
+[Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
+In order to run some simple map-reduce examples, we also recommend you download the
+[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1),
+or if you are using Hadoop 1, this [examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1).
 
 ## Using Hadoop 1.x
 
@@ -30,8 +33,8 @@ the `hdfs-site.xml` file as well.
 
 If you are using a 2.x Hadoop cluster, you should not need the properties above in your
 `core-site.xml` file. However, in some cases you may encounter the error:
-`java.io.IOException: No FileSystem for scheme: alluxio`. For instance, this may happen when Yarn 
-(as opposed to Hadoop) tries to access Alluxio files. If this error is encountered, add these 
+`java.io.IOException: No FileSystem for scheme: alluxio`. For instance, this may happen when Yarn
+(as opposed to Hadoop) tries to access Alluxio files. If this error is encountered, add these
 properties to your `core-site.xml` file, and restart Yarn.
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
@@ -79,7 +82,7 @@ Another way to distribute the client jar is to manually distribute it to all the
 Below are instructions for the 2 main alternatives:
 
 1.**Using the -libjars command line option.**
-You can run a job by using the `-libjars` command line option when using `hadoop jar ...`, 
+You can run a job by using the `-libjars` command line option when using `hadoop jar ...`,
 specifying
 `/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
 as the argument. This will place the jar in the Hadoop DistributedCache, making it available to all
@@ -93,7 +96,7 @@ For installing Alluxio on each node, you must place the client jar
 (located in the `/<PATH_TO_ALLUXIO>/core/client/target/` directory), in the `$HADOOP_HOME/lib`
 (may be `$HADOOP_HOME/share/hadoop/common/lib` for different versions of Hadoop) directory of every
 MapReduce node, and then restart all of the TaskTrackers. One caveat of this approach is that the
-jars must be installed again for each update to a new release. On the other hand, when the jar is 
+jars must be installed again for each update to a new release. On the other hand, when the jar is
 already on every node, then the `-libjars` command line option is not needed.
 
 # Running Hadoop wordcount with Alluxio Locally
@@ -130,6 +133,3 @@ After this job completes, the result of the wordcount will be in the `/wordcount
 in Alluxio. You can see the resulting files by running:
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/cat-result.md %}
-
-You can also see the file in the under storage system HDFS name node web UI. The local HDFS cluster
-web UI can be found at [localhost:50070](http://localhost:50070/).
