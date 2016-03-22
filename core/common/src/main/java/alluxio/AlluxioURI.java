@@ -657,7 +657,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param path the path to normalize
    * @return the normalized path
    */
-  private String normalizePath(String path) {
+  public static String normalizePath(String path) {
     while (path.contains("\\")) {
       path = path.replace("\\", "/");
     }
