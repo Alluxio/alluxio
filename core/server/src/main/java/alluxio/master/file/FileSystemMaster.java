@@ -567,7 +567,6 @@ public final class FileSystemMaster extends AbstractMaster {
           BlockInfoException, IOException, FileDoesNotExistException {
     MasterContext.getMasterSource().incCreateFileOps(1);
     synchronized (mInodeTree) {
-      // TODO(bin): doublecheck checkparentpermission
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
       if (!options.isMetadataLoad()) {
         mMountTable.checkUnderWritableMountPoint(path);
@@ -652,8 +651,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * This operation requires users to have {@link FileSystemAction#WRITE} permission on the parent
-   * of the path.
+   * This operation requires users to have {@link FileSystemAction#WRITE} permission on the path as
+   * this API is called when creating a new block for a file.
    *
    * @param path the path of the file to get the next block id for
    * @return the next block id for the given file
@@ -666,8 +665,7 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incGetNewBlockOps(1);
     Inode<?> inode;
     synchronized (mInodeTree) {
-      // TODO(bin): write to path not inode, check permission on path
-      mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
+      mPermissionChecker.checkPermission(FileSystemAction.WRITE, path);
       inode = mInodeTree.getInodeFileByPath(path);
     }
     MasterContext.getMasterSource().incNewBlocksGot(1);
@@ -1431,8 +1429,8 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Loads metadata for the object identified by the given path from UFS into Alluxio.
-   * This operation requires users to have {@link FileSystemAction#READ} permission on the path,
-   * and {@link FileSystemAction#WRITE} permission on the parent of the path.
+   * This operation requires users to have {@link FileSystemAction#WRITE} permission on the parent
+   * of the path.
    *
    * @param path the path for which metadata should be loaded
    * @param recursive whether parent directories should be created if they do not already exist
@@ -1453,8 +1451,6 @@ public final class FileSystemMaster extends AbstractMaster {
       AccessControlException {
     AlluxioURI ufsPath;
     synchronized (mInodeTree) {
-      // TODO(bin): maybe remove this read permission checking
-      mPermissionChecker.checkPermission(FileSystemAction.READ, path);
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
       ufsPath = mMountTable.resolve(path);
     }
@@ -1476,9 +1472,8 @@ public final class FileSystemMaster extends AbstractMaster {
             CompleteFileOptions.defaults().setUfsLength(ufsLength);
         completeFile(path, completeOptions);
         return fileId;
-      } else {
-        return loadDirectoryMetadata(path, recursive);
       }
+      return loadDirectoryMetadata(path, recursive);
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));
       throw e;
@@ -1706,8 +1701,8 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Sets the file attribute. This operation requires users to have
    * {@link FileSystemAction#WRITE} permission on the path. In addition,
-   * the client user must be a super user when setting owner, and
-   * a super user or path owner when setting group or permission.
+   * the client user must be a super user when setting the owner, and must be
+   * a super user or the owner when setting the group or permission.
    *
    * @param path the path to set attribute for
    * @param options attributes to be set, see {@link SetAttributeOptions}
@@ -1721,7 +1716,6 @@ public final class FileSystemMaster extends AbstractMaster {
     // for chown
     boolean rootRequired = options.getOwner() != null;
     // for chgrp, chmod
-    // TODO(binfan): superuser?
     boolean ownerRequired =
         (options.getGroup() != null) || (options.getPermission() != Constants.INVALID_PERMISSION);
     synchronized (mInodeTree) {

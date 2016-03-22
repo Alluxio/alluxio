@@ -69,7 +69,9 @@ public final class PermissionChecker {
 
   /**
    * Checks whether a user has permission to perform a specific action on the parent of the given
-   * path. This check will pass if the path is invalid, or path has no parent (e.g., root).
+   * path; if parent directory does not exist, treats the closest ancestor directory of the path as
+   * its parent and checks permission on it. This check will pass if the path is invalid, or path
+   * has no parent (e.g., root).
    *
    * @param action requested {@link FileSystemAction} by user
    * @param path the path to check permission on
@@ -88,7 +90,8 @@ public final class PermissionChecker {
       return;
     }
 
-    // collects inodes info on the path
+    // collects existing inodes info on the path. Note that, not all the components of the path have
+    // corresponding inodes.
     List<Inode<?>> inodeList = mInodeTree.collectInodes(path);
 
     // collects user and groups
@@ -97,10 +100,6 @@ public final class PermissionChecker {
 
     // perform permission check
     String[] pathComponents = PathUtils.getPathComponents(path.getPath());
-
-    // Checks requested permission and basic permission on the parent of the path.
-    // If parent directory does not exist, treats the closest ancestor directory of the path as
-    // its parent and check permission on it.
 
     // remove the last element if all components of the path exist, since we only check the parent.
     if (pathComponents.length == inodeList.size()) {
@@ -160,7 +159,7 @@ public final class PermissionChecker {
     if (superuserRequired) {
       checkSuperuser();
     }
-    // For chgrp or chmod, owner is required
+    // For chgrp or chmod, owner or superuser (supergroup) is required
     if (ownerRequired) {
       checkOwner(path);
     }
@@ -214,6 +213,10 @@ public final class PermissionChecker {
     String user = getClientUser();
     List<String> groups = getGroups(user);
 
+    if (user.equals(mInodeTree.getRootUserName()) || groups.contains(mFileSystemSuperGroup)) {
+      return;
+    }
+
     // checks the owner
     String[] pathComponents = PathUtils.getPathComponents(path.getPath());
 
@@ -241,11 +244,10 @@ public final class PermissionChecker {
   }
 
   /**
-   * This method provides basic permission checking logic on a list of fileInfo.
-   * The input is User and its Groups, requested Permission and fileInfo list (of inodes by
+   * This method provides basic permission checking logic on a list of inodes.
+   * The input includes User and its Groups, requested Permission and inode list (by
    * traversing the Path).
-   * The initialized static attributes will be used in the checking logic to bypass checking.
-   * Then User, Group, and Action will be compared to those of inodes.
+   * Then User, Group, and Action will be evaluated on each of the inodes.
    * It will return if check passed, and throw exception if check failed.
    *
    * @param user who requests access permission
@@ -268,7 +270,7 @@ public final class PermissionChecker {
       return;
     }
 
-    // traverses parent path to ensure inodes in it are all executable
+    // traverses from root to the parent dir to all inodes included by this path are executable
     for (int i = 0; i < size - 1; i++) {
       checkInode(user, groups, inodeList.get(i), FileSystemAction.EXECUTE, path);
     }

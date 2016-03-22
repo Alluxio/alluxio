@@ -512,7 +512,8 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void deleteDirectoryWithDirectoriesTest() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
-    mFsMaster.createDirectory(new AlluxioURI("/testFolder/testFolder2"), CreateDirectoryOptions.defaults());
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder/testFolder2"),
+        CreateDirectoryOptions.defaults());
     long fileId =
         mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
     long fileId2 = mFsMaster.createFile(new AlluxioURI("/testFolder/testFolder2/testFile2"),
@@ -530,7 +531,8 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void deleteDirectoryWithDirectoriesTest2() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
-    mFsMaster.createDirectory(new AlluxioURI("/testFolder/testFolder2"), CreateDirectoryOptions.defaults());
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder/testFolder2"),
+        CreateDirectoryOptions.defaults());
     long fileId =
         mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
     long fileId2 = mFsMaster.createFile(new AlluxioURI("/testFolder/testFolder2/testFile2"),
@@ -742,7 +744,8 @@ public class FileSystemMasterIntegrationTest {
         CreateDirectoryOptions.defaults().setRecursive(true);
     mThrown.expect(InvalidPathException.class);
     mFsMaster.createDirectory(new AlluxioURI("/testDir1/testDir2"), createDirectoryOptions);
-    mFsMaster.createFile(new AlluxioURI("/testDir1/testDir2/testDir3/testFile3"), createFileOptions);
+    mFsMaster.createFile(new AlluxioURI("/testDir1/testDir2/testDir3/testFile3"),
+        createFileOptions);
     mFsMaster.rename(new AlluxioURI("/testDir1/testDir2"),
         new AlluxioURI("/testDir1/testDir2/testDir3/testDir4"));
   }
