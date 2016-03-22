@@ -61,7 +61,7 @@ Copy `deploy/vagrant/conf/gce.yml.template` to `deploy/vagrant/conf/gce.yml` by:
 
 In the configuration file `deploy/vagrant/conf/gce.yml`, set the project id, service account, location to JSON key and ssh username you've just created.
 
-For Google Compute Engine, use Hadoop2 as the underfs, as GCS is not yet supported. 
+GCE currently defaults to using Hadoop2 as the underfs, as GCS is not yet supported with Alluxio. 
 
 Now you can launch the Alluxio cluster by running
 the script under `deploy/vagrant`:
