@@ -41,15 +41,13 @@ in `deploy/vagrant` run:
 
 # Launch a Cluster
 
-To run an Alluxio cluster on GCE, first sign up for an Google Cloud account and create a project
-on the [Google Cloud Platform site](http://cloud.google.com/).
+To run an Alluxio cluster on GCE, you need a [Google Cloud](cloud.google.com) billing account, project, service account and JSON keys for the service account. 
 
-If you are not familiar with Google Compute Engine, you can read the [documentation](http://cloud.google.com/compute/docs) first.
+If you are new to Google Cloud, create a billing account and project at the [free trial signup page](https://console.cloud.google.com/billing/freetrial). Also, If you are not familiar with Google Compute Engine, you may want to review the [documentation](http://cloud.google.com/compute/docs) first.
 
-Then create a [service account](https://console.google.com/)
-
-Next, generate a Google Cloud service account at the 
-[Google Cloud Console](http://console.cloud.google.com) Permissions page. In the dialog box for new Service Accounts, check "Furnish a new private key." Download and store the JSON key in a reliable location.
+Next, new and existing Google Cloud users need to choose or create a service account within the [Console](console.google.com) on the [Permissions](http://console.cloud.google.com/permissions) page, under the [Service Accounts](http://console.cloud.google.com/permissions) tab.
+If creating a new service account, check "Furnish a new private key." from the account creation dialog box. Download and store the JSON key in a safe location.
+If reusing a service account make sure you also have saved JSON keys for the account. If not, while still in the [Service Accounts](http://console.cloud.google.com/permissions) tab find the menu for the account under the 3 dots at the right of the service account list and select "create key." Save the JSON key in a safe location.
 
 Using the [gcloud sdk](http://console.cloud.google.com) configure keys for ssh:
 
