@@ -62,8 +62,8 @@ Run the following commands from `spark-shell`, assuming Alluxio Master is runnin
 
 {% include Running-Spark-on-Alluxio/alluxio-local-in-out-scala.md %}
 
-Open your browser and check [http://localhost:19999](http://localhost:19999). There should be an
-output file `LICENSE2` which doubles each line in the file `LICENSE`.
+Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There
+should be an output file `LICENSE2` which doubles each line in the file `LICENSE`.
 
 ### Use Data from HDFS
 
@@ -78,9 +78,9 @@ following commands from `spark-shell`, assuming Alluxio Master is running on `lo
 
 {% include Running-Spark-on-Alluxio/alluxio-hdfs-in-out-scala.md %}
 
-Open your browser and check [http://localhost:19999](http://localhost:19999). There should be an
-output file `LICENSE2` which doubles each line in the file `LICENSE`. Also, the `LICENSE` file now
-appears in the Alluxio file system space.
+Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There
+should be an output file `LICENSE2` which doubles each line in the file `LICENSE`. Also, the
+`LICENSE` file now appears in the Alluxio file system space.
 
 NOTE: It is possible that the `LICENSE` file is not in Alluxio storage (Not In-Memory). This is
 because Alluxio only stores fully read blocks, and if the file is too small, the Spark job will
