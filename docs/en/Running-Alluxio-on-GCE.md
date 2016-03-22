@@ -6,13 +6,13 @@ group: User Guide
 priority: 4
 ---
 
-Alluxio can be deployed on Amazon GCE using the
+Alluxio can be deployed on Google Compute Engine (GCE) using the
 [Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with
 Alluxio. The scripts let you create, configure, and destroy clusters.
 
 # Prerequisites
 
-**Install Vagrant and the Google plugins**
+**Install Vagrant and the Google plugin**
 
 Download [Vagrant](https://www.vagrantup.com/downloads.html)
 
