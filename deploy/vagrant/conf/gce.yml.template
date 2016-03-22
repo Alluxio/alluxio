@@ -1,42 +1,61 @@
-# Template for Running Alluxio on GCE
-
-# The Project ID for your Google Cloud Platform account. Create one in the 
-# Google Cloud console (console.cloud.google.com)
-Google_Cloud_Project_ID: 
-
-
-# Specify a service account. Create one in the console under permissions.
+# Setting up your Google Cloud Project
+#
+# The Project ID for your Google Cloud Platform account.
+Google_Cloud_Project_ID:
 
 # The Client Email address for your Service Account.
-Serice_Acount_Email_Address: 
+Serice_Acount_Email_Address:
 
 # The location of the JSON private key file matching your Service Account.
 json_Key_Location: 
 
 
-#SSH
-
-# The easiest way to setup GCE keys is using the CLI (gcloud compute config-ssh)
-# which adds keys GCE’s metadata service, which contents are added to each VM at
-# launch. Alternatively, it is possible to add to the GCE metatdata service
+#SSH - Vagrant/Ansible will SSH into VMs for environment setup.
+#
+# This is the path to SSH keys. The easiest way to setup GCE keys is using the 
+# CLI (gcloud compute config-ssh) Which creates metatdata that is provided to 
+# every VM launched. Alternatively, it is possible to add to the GCE metatdata service
 # directly or manually manage keys.
 Key_Path: "~/.ssh/google_compute_engine"
 
 # This is the username associated with the keys above.
-SSH_Username: 
+SSH_Username: "gce-user"
 
 
 # Configuring virtual machines
-
-# See the web docs (https://cloud.google.com/compute/docs/operating-systems) or 
-# CLI (gcloud compute images list) for a list of available images.
-Image: "centos-7-v20160301" 
+#
+#Boolean whether to enable preemptibility. Default is false.
+Preemptible: false
 
 # See the web docs (https://cloud.google.com/compute/docs/machine-types) or 
 # CLI (gcloud compute machine-types list) for a list of available machine types.
-Machine_Type: "n1-standard-1”
+# When using spark, we recommend "n1-highmem-2", compile spark needs 2G memory at least
+Machine_Type: "n1-standard-1"
 
+# Scopes
+# An array of OAuth2 account scopes for services that the instance will have access to. 
+# Those can be both full API scopes, just endpoint aliases (the part after ...auth/), 
+# and gcloud utility aliases, 
+# for example: ['storage-full', 'bigquery', 'https://www.googleapis.com/auth/compute'].
+Scopes: ['https://www.googleapis.com/auth/cloud-platform']
 
-# Many more fields could be added here in the future, as shown in the vagrant-google
-# github project (https://github.com/mitchellh/vagrant-google)
+# The disk size in GB. The default is 10.
+Disk_Size: 10
 
+# An array of tags to apply to this instance.
+Tags: "Alluxio"
+
+#The name of your instance. The default is "i-yyyymmddhh-randomsd", e.g. 10/08/2015 13:15:15 is "i-2015081013-15637fda".
+Name:
+
+# The name of the network to use for the instance. Default is "default".
+Network: "default"
+
+##################################################
+# Advanced Configurations
+# 
+# Only change these if you know what you are doing
+# 
+# Image: See the web docs (https://cloud.google.com/compute/docs/operating-systems)
+# or CLI (gcloud compute images list) for a list of available images.
+Image: "centos-7-v20160301" 
