@@ -71,7 +71,7 @@ if [[ "$PROVIDER" == "aws" ]]; then
 fi
 
 # make sure gce.yml exists
-if [[ "$PROVIDER" == “google” ]]; then
+if [[ "$PROVIDER" == "google" ]]; then
   if [[ ! -f conf/gce.yml ]]; then
     error_exit "Please create your own conf/gce.yml from conf/gce.yml.template"
   fi
