@@ -231,14 +231,13 @@ public final class AlluxioWorkerRestApiTest {
   @Test
   public void getUptimeMsTest() throws Exception {
     Random random = new Random();
-    long currentTime = random.nextLong();
-    PowerMockito.spy(System.class);
-    Mockito.when(System.currentTimeMillis()).thenReturn(currentTime);
-    long startTime = random.nextLong();
-    Mockito.doReturn(startTime).when(sWorker).getStartTimeMs();
+    long uptime = random.nextLong();
+    Mockito.doReturn(uptime).when(sWorker).getUptimeMs();
 
     TestCaseFactory
         .newWorkerTestCase(getEndpoint(AlluxioWorkerRestServiceHandler.GET_UPTIME_MS), NO_PARAMS,
-            "GET", currentTime - startTime, mResource).run();
+            "GET", uptime, mResource).run();
+
+    Mockito.verify(sWorker).getUptimeMs();
   }
 }

@@ -235,7 +235,7 @@ public final class AlluxioMasterRestApiTest {
   public void getStartTimeMsTest() throws Exception {
     Random random = new Random();
     long startTime = random.nextLong();
-    Mockito.doReturn(startTime).when(sAlluxioMaster).getStarttimeMs();
+    Mockito.doReturn(startTime).when(sAlluxioMaster).getStartTimeMs();
 
     TestCaseFactory
         .newMasterTestCase(getEndpoint(AlluxioMasterRestServiceHandler.GET_START_TIME_MS),
@@ -245,15 +245,14 @@ public final class AlluxioMasterRestApiTest {
   @Test
   public void getUptimeMsTest() throws Exception {
     Random random = new Random();
-    long currentTime = random.nextLong();
-    PowerMockito.spy(System.class);
-    Mockito.when(System.currentTimeMillis()).thenReturn(currentTime);
-    long startTime = random.nextLong();
-    Mockito.when(sAlluxioMaster.getStarttimeMs()).thenReturn(startTime);
+    long uptime = random.nextLong();
+    Mockito.doReturn(uptime).when(sAlluxioMaster).getUptimeMs();
 
     TestCaseFactory
         .newMasterTestCase(getEndpoint(AlluxioMasterRestServiceHandler.GET_UPTIME_MS), NO_PARAMS,
-            "GET", currentTime - startTime, mResource).run();
+            "GET", uptime, mResource).run();
+
+    Mockito.verify(sAlluxioMaster).getUptimeMs();
   }
 
   @Test

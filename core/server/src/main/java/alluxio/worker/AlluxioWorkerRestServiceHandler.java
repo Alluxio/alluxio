@@ -184,7 +184,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_UPTIME_MS)
   @ReturnType("java.lang.Long")
   public Response getUptimeMs() {
-    return Response.ok(System.currentTimeMillis() - mWorker.getStartTimeMs()).build();
+    return Response.ok(mWorker.getUptimeMs()).build();
   }
 
   /**
