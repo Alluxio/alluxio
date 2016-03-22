@@ -44,11 +44,11 @@ in `deploy/vagrant` run:
 To run an Alluxio cluster on GCE, first sign up for an Google Cloud account and create a project
 on the [Google Cloud Platform site](http://cloud.google.com/).
 
-If you are not familiar with Google Compute Engine, you can read [the documentation](http://cloud.google.com/compute/docs) first.
+If you are not familiar with Google Compute Engine, you can read the [documentation](http://cloud.google.com/compute/docs) first.
 
 Then create a [service account](https://console.google.com/)
 
-Next generate a Google Cloud service account at the 
+Next, generate a Google Cloud service account at the 
 [Google Cloud Console](http://console.cloud.google.com) Permissions page. In the dialog box for new Service Accounts, check "Furnish a new private key." Download and store the JSON key in a reliable location.
 
 Using the [gcloud sdk](http://console.cloud.google.com) configure keys for ssh:
