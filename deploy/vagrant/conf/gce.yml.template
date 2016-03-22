@@ -24,38 +24,46 @@ SSH_Username: "gce-user"
 
 # Configuring virtual machines
 #
-#Boolean whether to enable preemptibility. Default is false.
+# Preemptible VMs are short lived, low cost, ephemeral VMs. They run for 24 hours or less
+# but my be preempted at any time. Otherwise they are exactly they same as standard VMs.
+# They are ideal for batch jobs and fault-tolerant workloads, assuming your application is
+# can withstand possible instance preemptions.
+# See documentation (https://cloud.google.com/compute/docs/instances/preemptible) for more details.
+# Boolean whether to enable preemptibility. Default is false.
 Preemptible: false
 
 # See the web docs (https://cloud.google.com/compute/docs/machine-types) or 
 # CLI (gcloud compute machine-types list) for a list of available machine types.
-# When using spark, we recommend "n1-highmem-2", compile spark needs 2G memory at least
+# When using spark, we recommend "n1-highmem-2" as compiling spark requires at least 2G of memory.
 Machine_Type: "n1-standard-1"
 
 # Scopes
 # An array of OAuth2 account scopes for services that the instance will have access to. 
-# Those can be both full API scopes, just endpoint aliases (the part after ...auth/), 
-# and gcloud utility aliases, 
-# for example: ['storage-full', 'bigquery', 'https://www.googleapis.com/auth/compute'].
+# Those can be both full API scopes, just endpoint aliases (the part after ...auth/), and gcloud utility aliases.
+# Examples include: ['storage-full', 'bigquery', 'https://www.googleapis.com/auth/compute'].
+# For simplicity, ['https://www.googleapis.com/auth/cloud-platform'] provides access to all resources.
+# See documentation on scopes generally (https://cloud.google.com/docs/authentication#oauth_scopes) 
+# and specific to GCE (https://cloud.google.com/compute/docs/authentication#using).
 Scopes: ['https://www.googleapis.com/auth/cloud-platform']
 
 # The disk size in GB. The default is 10.
 Disk_Size: 10
 
-# An array of tags to apply to this instance.
+# An array of tags to apply to this instance. These are metadata tags and do not impact the name of the instance.
 Tags: "Alluxio"
 
 #The name of your instance. The default is "i-yyyymmddhh-randomsd", e.g. 10/08/2015 13:15:15 is "i-2015081013-15637fda".
 Name:
 
-# The name of the network to use for the instance. Default is "default".
+# The name of the network to use for the instance. If there is an existing network with the specified
+# Alluxio will reuse and deploy to that network, otherwise a new one will be created. Default is "default".
 Network: "default"
 
 ##################################################
 # Advanced Configurations
 # 
-# Only change these if you know what you are doing
+# Only change these if you know what you are doing.
 # 
 # Image: See the web docs (https://cloud.google.com/compute/docs/operating-systems)
 # or CLI (gcloud compute images list) for a list of available images.
-Image: "centos-7-v20160301" 
+Image: "centos-7-v20160301"
