@@ -12,7 +12,7 @@
 package alluxio.worker;
 
 import alluxio.Version;
-import alluxio.collections.Pair;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockStoreMeta;
 
@@ -21,8 +21,11 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.qmino.miredot.annotations.ReturnType;
 
-import java.util.HashMap;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.ws.rs.GET;
@@ -86,26 +89,56 @@ public final class AlluxioWorkerRestServiceHandler {
     return Response.ok(mStoreMeta.getUsedBytes()).build();
   }
 
+  private Comparator<String> getTierAliasComparator() {
+    return new Comparator<String>() {
+      private WorkerStorageTierAssoc mTierAssoc = new WorkerStorageTierAssoc(
+          WorkerContext.getConf());
+
+      @Override
+      public int compare(String tier1, String tier2) {
+        int ordinal1 = mTierAssoc.getOrdinal(tier1);
+        int ordinal2 = mTierAssoc.getOrdinal(tier2);
+        if (ordinal1 < ordinal2) {
+          return -1;
+        }
+        if (ordinal1 == ordinal2) {
+          return 0;
+        }
+        return 1;
+      }
+    };
+  }
+
   /**
-   * @summary get the mapping from tier alias to the total capacity of the tier in bytes
+   * @summary get the mapping from tier alias to the total capacity of the tier in bytes, the keys
+   *    are in the order from tier aliases with smaller ordinals to those with larger ones.
    * @return the response object
    */
   @GET
   @Path(GET_CAPACITY_BYTES_ON_TIERS)
-  @ReturnType("java.util.Map<String, Long>")
+  @ReturnType("java.util.SortedMap<String, Long>")
   public Response getCapacityBytesOnTiers() {
-    return Response.ok(mStoreMeta.getCapacityBytesOnTiers()).build();
+    SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
+    for (Map.Entry<String, Long> tierBytes : mStoreMeta.getCapacityBytesOnTiers().entrySet()) {
+      capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
+    }
+    return Response.ok(capacityBytesOnTiers).build();
   }
 
   /**
-   * @summary get the mapping from tier alias to the used bytes of the tier
+   * @summary get the mapping from tier alias to the used bytes of the tier, the keys are in the
+   *    order from tier aliases with smaller ordinals to those with larger ones.
    * @return the response object
    */
   @GET
   @Path(GET_USED_BYTES_ON_TIERS)
-  @ReturnType("java.util.Map<String, Long>")
+  @ReturnType("java.util.SortedMap<String, Long>")
   public Response getUsedBytesOnTiers() {
-    return Response.ok(mStoreMeta.getUsedBytesOnTiers()).build();
+    SortedMap<String, Long> usedBytesOnTiers = new TreeMap<>(getTierAliasComparator());
+    for (Map.Entry<String, Long> tierBytes : mStoreMeta.getUsedBytesOnTiers().entrySet()) {
+      usedBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
+    }
+    return Response.ok(usedBytesOnTiers).build();
   }
 
   /**
@@ -114,12 +147,10 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_DIRECTORY_PATHS_ON_TIERS)
-  @ReturnType("java.util.Map<String, String>")
+  @ReturnType("java.util.SortedMap<String, java.util.List<String>>")
   public Response getDirectoryPathsOnTiers() {
-    Map<String, String> tierToDirPaths = new HashMap<>(mStoreMeta.getCapacityBytesOnDirs().size());
-    for (Pair<String, String> tierToDirPath : mStoreMeta.getCapacityBytesOnDirs().keySet()) {
-      tierToDirPaths.put(tierToDirPath.getFirst(), tierToDirPath.getSecond());
-    }
+    SortedMap<String, List<String>> tierToDirPaths = new TreeMap<>(getTierAliasComparator());
+    tierToDirPaths.putAll(mStoreMeta.getDirectoryPathsOnTiers());
     return Response.ok(tierToDirPaths).build();
   }
 
@@ -162,7 +193,7 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_METRICS)
-  @ReturnType("java.util.Map<String, Long>")
+  @ReturnType("java.util.SortedMap<String, Long>")
   public Response getMetrics() {
     MetricRegistry metricRegistry = mWorker.getWorkerMetricsSystem().getMetricRegistry();
 
@@ -176,7 +207,7 @@ public final class AlluxioWorkerRestServiceHandler {
     Gauge blocksCached = metricRegistry.getGauges().get(blocksCachedProperty);
 
     // Get values of the counters and gauges and put them into a metrics map.
-    Map<String, Long> metrics = new HashMap<>(counters.size() + 1);
+    SortedMap<String, Long> metrics = new TreeMap<>();
     for (Map.Entry<String, Counter> counter : counters.entrySet()) {
       metrics.put(counter.getKey(), counter.getValue().getCount());
     }
