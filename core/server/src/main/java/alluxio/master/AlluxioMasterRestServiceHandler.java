@@ -19,12 +19,12 @@ import alluxio.master.block.BlockMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.qmino.miredot.annotations.ReturnType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -46,7 +46,6 @@ import javax.ws.rs.core.Response;
 @NotThreadSafe
 @Path(AlluxioMasterRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
-// TODO(cc): Investigate auto-generation of REST API documentation.
 public final class AlluxioMasterRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";

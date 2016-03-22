@@ -26,6 +26,11 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerInfoTest;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -36,11 +41,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import java.net.InetSocketAddress;
 import java.util.LinkedHashMap;
@@ -54,8 +54,8 @@ import java.util.SortedMap;
  * Test cases for {@link AlluxioMasterRestServiceHandler}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioMaster.class, AlluxioMasterRestServiceHandler.class, BlockMaster.class,
-    Configuration.class, MasterContext.class, MetricRegistry.class, UnderFileSystem.class})
+@PrepareForTest({AlluxioMaster.class, BlockMaster.class, Configuration.class, MasterContext.class,
+    MetricRegistry.class, UnderFileSystem.class})
 @Ignore
 public final class AlluxioMasterRestApiTest {
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
