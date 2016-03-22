@@ -46,9 +46,6 @@ public final class PermissionChecker {
   /** Whether the permission check is enabled. */
   private final boolean mPermissionCheckEnabled;
 
-  /** The owner of root directory. */
-  private final String mFileSystemOwner;
-
   /** The super group of Alluxio file system. All users in this group have super permission. */
   private final String mFileSystemSuperGroup;
 
@@ -64,7 +61,6 @@ public final class PermissionChecker {
     mInodeTree = Preconditions.checkNotNull(inodeTree);
     mPermissionCheckEnabled =
         MasterContext.getConf().getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
-    mFileSystemOwner = mInodeTree.getRootUserName();
     mFileSystemSuperGroup =
         MasterContext.getConf().get(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
     mGroupMappingService =
@@ -237,7 +233,7 @@ public final class PermissionChecker {
     String user = getClientUser();
     List<String> groups = getGroups(user);
 
-    if (mFileSystemOwner.equals(user) || groups.contains(mFileSystemSuperGroup)) {
+    if (user.equals(mInodeTree.getRootUserName()) || groups.contains(mFileSystemSuperGroup)) {
       return;
     }
     throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
@@ -268,7 +264,7 @@ public final class PermissionChecker {
         .checkArgument(size > 0, PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
 
     // bypass checking permission for super user or super group of Alluxio file system.
-    if (mFileSystemOwner.equals(user) || groups.contains(mFileSystemSuperGroup)) {
+    if (user.equals(mInodeTree.getRootUserName()) || groups.contains(mFileSystemSuperGroup)) {
       return;
     }
 

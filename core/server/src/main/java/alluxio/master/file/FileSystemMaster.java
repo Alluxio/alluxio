@@ -567,6 +567,7 @@ public final class FileSystemMaster extends AbstractMaster {
           BlockInfoException, IOException, FileDoesNotExistException {
     MasterContext.getMasterSource().incCreateFileOps(1);
     synchronized (mInodeTree) {
+      // TODO(bin): doublecheck checkparentpermission
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
       if (!options.isMetadataLoad()) {
         mMountTable.checkUnderWritableMountPoint(path);
@@ -665,6 +666,7 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incGetNewBlockOps(1);
     Inode<?> inode;
     synchronized (mInodeTree) {
+      // TODO(bin): write to path not inode, check permission on path
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
       inode = mInodeTree.getInodeFileByPath(path);
     }
@@ -1036,34 +1038,51 @@ public final class FileSystemMaster extends AbstractMaster {
     LOG.debug("createDirectory {} ", path);
     MasterContext.getMasterSource().incCreateDirectoriesOps(1);
     synchronized (mInodeTree) {
-      try {
-        mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
-        if (!options.isMetadataLoad()) {
-          mMountTable.checkUnderWritableMountPoint(path);
-        }
-        InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, options);
-        LOG.debug("writing journal entry for createDirectory {}", path);
-        writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
-        journalCreatePathResult(createResult);
-        flushJournal();
-        LOG.debug("flushed journal for createDirectory {}", path);
-        MasterContext.getMasterSource().incDirectoriesCreated(1);
-        return createResult;
-      } catch (BlockInfoException e) {
-        // Since we are creating a directory, the block size is ignored, no such exception should
-        // happen.
-        Throwables.propagate(e);
+      mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
+      if (!options.isMetadataLoad()) {
+        mMountTable.checkUnderWritableMountPoint(path);
       }
+      InodeTree.CreatePathResult createResult = createDirectoryInternal(path, options);
+      writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
+      journalCreatePathResult(createResult);
+      flushJournal();
+      MasterContext.getMasterSource().incDirectoriesCreated(1);
+      return createResult;
+    }
+  }
+
+  /**
+   * Creates a directory for a given path.
+   *
+   * @param path the path of the directory
+   * @param options method options
+   * @return an {@link alluxio.master.file.meta.InodeTree.CreatePathResult} representing the
+   *         modified inodes and created inodes during path creation
+   * @throws InvalidPathException when the path is invalid, please see documentation on
+   *         {@link InodeTree#createPath(AlluxioURI, CreatePathOptions)} for more details
+   * @throws FileAlreadyExistsException when there is already a file at path
+   * @throws IOException if a non-Alluxio related exception occurs
+   * @throws AccessControlException if permission checking fails
+   */
+  InodeTree.CreatePathResult createDirectoryInternal(AlluxioURI path,
+      CreateDirectoryOptions options) throws InvalidPathException, FileAlreadyExistsException,
+      IOException, AccessControlException, FileDoesNotExistException {
+    try {
+      return mInodeTree.createPath(path, options);
+    } catch (BlockInfoException e) {
+      // Since we are creating a directory, the block size is ignored, no such exception should
+      // happen.
+      Throwables.propagate(e);
     }
     return null;
   }
 
-  /**
-   * Journals the {@link InodeTree.CreatePathResult}. This does not flush the journal.
-   * Synchronization is required outside of this method.
-   *
-   * @param createResult the {@link InodeTree.CreatePathResult} to journal
-   */
+    /**
+     * Journals the {@link InodeTree.CreatePathResult}. This does not flush the journal.
+     * Synchronization is required outside of this method.
+     *
+     * @param createResult the {@link InodeTree.CreatePathResult} to journal
+     */
   private void journalCreatePathResult(InodeTree.CreatePathResult createResult) {
     for (Inode<?> inode : createResult.getModified()) {
       InodeLastModificationTimeEntry inodeLastModificationTime =
@@ -1434,6 +1453,7 @@ public final class FileSystemMaster extends AbstractMaster {
       AccessControlException {
     AlluxioURI ufsPath;
     synchronized (mInodeTree) {
+      // TODO(bin): maybe remove this read permission checking
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
       ufsPath = mMountTable.resolve(path);
@@ -1701,6 +1721,7 @@ public final class FileSystemMaster extends AbstractMaster {
     // for chown
     boolean rootRequired = options.getOwner() != null;
     // for chgrp, chmod
+    // TODO(binfan): superuser?
     boolean ownerRequired =
         (options.getGroup() != null) || (options.getPermission() != Constants.INVALID_PERMISSION);
     synchronized (mInodeTree) {
@@ -1932,7 +1953,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException
    */
   @GuardedBy("mInodeTree")
-  private void setAttributeInternal(long fileId, long opTimeMs, SetAttributeOptions options)
+  void setAttributeInternal(long fileId, long opTimeMs, SetAttributeOptions options)
       throws FileDoesNotExistException {
     Inode<?> inode = mInodeTree.getInodeById(fileId);
     if (options.getPinned() != null) {
