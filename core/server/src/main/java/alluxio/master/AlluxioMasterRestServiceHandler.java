@@ -13,8 +13,8 @@ package alluxio.master;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.MasterStorageTierAssoc;
 import alluxio.Version;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.master.block.BlockMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -250,12 +250,12 @@ public final class AlluxioMasterRestServiceHandler {
 
   private Comparator<String> getTierAliasComparator() {
     return new Comparator<String>() {
-      private WorkerStorageTierAssoc tierAssoc = new WorkerStorageTierAssoc(mMasterConf);
+      private MasterStorageTierAssoc mTierAssoc = new MasterStorageTierAssoc(mMasterConf);
 
       @Override
       public int compare(String tier1, String tier2) {
-        int ordinal1 = tierAssoc.getOrdinal(tier1);
-        int ordinal2 = tierAssoc.getOrdinal(tier2);
+        int ordinal1 = mTierAssoc.getOrdinal(tier1);
+        int ordinal2 = mTierAssoc.getOrdinal(tier2);
         if (ordinal1 < ordinal2) {
           return -1;
         }

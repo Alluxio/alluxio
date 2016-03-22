@@ -13,7 +13,9 @@ package alluxio.master;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.MasterStorageTierAssoc;
 import alluxio.Version;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.master.block.BlockMaster;
@@ -140,19 +142,6 @@ public final class AlluxioMasterRestApiTest {
     Mockito.verify(sBlockMaster).getWorkerInfoList();
   }
 
-  /**
-   * @return a random sequence of characters from 'a' to 'z' of random length
-   */
-  private String randomString() {
-    Random random = new Random();
-    int length = random.nextInt(100) + 1;
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < length; i++) {
-      sb.append((char) (random.nextInt(26) + 97));
-    }
-    return sb.toString();
-  }
-
   private Configuration mockConfiguration() {
     Configuration conf = PowerMockito.spy(MasterContext.getConf());
     PowerMockito.spy(MasterContext.class);
@@ -163,14 +152,17 @@ public final class AlluxioMasterRestApiTest {
   @Test
   public void getConfigurationTest() throws Exception {
     SortedMap<String, String> propertyMap = Maps.newTreeMap();
-    propertyMap.put(ALLUXIO_CONF_PREFIX + randomString(), randomString());
-    propertyMap.put(ALLUXIO_CONF_PREFIX + randomString(), randomString());
+    propertyMap.put(ALLUXIO_CONF_PREFIX + IntegrationTestUtils.randomString(),
+        IntegrationTestUtils.randomString());
+    propertyMap.put(ALLUXIO_CONF_PREFIX + IntegrationTestUtils.randomString(),
+        IntegrationTestUtils.randomString());
 
     Properties properties = new Properties();
     for (Map.Entry<String, String> property : propertyMap.entrySet()) {
       properties.put(property.getKey(), property.getValue());
     }
-    properties.put(NOT_ALLUXIO_CONF_PREFIX + randomString(), randomString());
+    properties.put(NOT_ALLUXIO_CONF_PREFIX + IntegrationTestUtils.randomString(),
+        IntegrationTestUtils.randomString());
 
     Configuration configuration = mockConfiguration();
     Mockito.doReturn(properties).when(configuration).getInternalProperties();
@@ -185,7 +177,8 @@ public final class AlluxioMasterRestApiTest {
   @Test
   public void getRpcAddressTest() throws Exception {
     Random random = new Random();
-    InetSocketAddress address = new InetSocketAddress(randomString(), random.nextInt(8080) + 1);
+    InetSocketAddress address = new InetSocketAddress(IntegrationTestUtils.randomString(),
+        random.nextInt(8080) + 1);
     Mockito.doReturn(address).when(sAlluxioMaster).getMasterAddress();
 
     TestCaseFactory
@@ -206,8 +199,8 @@ public final class AlluxioMasterRestApiTest {
     // Generate random metrics.
     Random random = new Random();
     SortedMap<String, Long> metricsMap = Maps.newTreeMap();
-    metricsMap.put(randomString(), random.nextLong());
-    metricsMap.put(randomString(), random.nextLong());
+    metricsMap.put(IntegrationTestUtils.randomString(), random.nextLong());
+    metricsMap.put(IntegrationTestUtils.randomString(), random.nextLong());
     String filesPinnedProperty = CommonUtils.argsToString(".",
         MasterContext.getMasterSource().getName(), MasterSource.FILES_PINNED);
     Integer filesPinned = random.nextInt();
@@ -324,7 +317,7 @@ public final class AlluxioMasterRestApiTest {
   @Test
   public void getCapacityBytesOnTiersTest() throws Exception {
     Random random = new Random();
-    WorkerStorageTierAssoc tierAssoc = new WorkerStorageTierAssoc(MasterContext.getConf());
+    MasterStorageTierAssoc tierAssoc = new MasterStorageTierAssoc(MasterContext.getConf());
     int nTiers = tierAssoc.size();
     // LinkedHashMap keeps keys in the serialized json object in the insertion order, the insertion
     // order is from smaller tier ordinal to larger ones.
