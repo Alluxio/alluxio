@@ -29,9 +29,6 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterUIWebServer;
 import alluxio.web.UIWebServer;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -42,6 +39,9 @@ import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -347,8 +347,15 @@ public class AlluxioMaster {
   /**
    * @return the millisecond when Alluxio Master starts serving, return -1 when not started
    */
-  public long getStarttimeMs() {
+  public long getStartTimeMs() {
     return mStartTimeMs;
+  }
+
+  /**
+   * @return the uptime of the master in milliseconds
+   */
+  public long getUptimeMs() {
+    return System.currentTimeMillis() - mStartTimeMs;
   }
 
   /**

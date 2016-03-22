@@ -142,7 +142,7 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_START_TIME_MS)
   @ReturnType("java.lang.Long")
   public Response getStartTimeMs() {
-    return Response.ok(mMaster.getStarttimeMs()).build();
+    return Response.ok(mMaster.getStartTimeMs()).build();
   }
 
   /**
@@ -153,7 +153,7 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_UPTIME_MS)
   @ReturnType("java.lang.Long")
   public Response getUptimeMs() {
-    return Response.ok(System.currentTimeMillis() - mMaster.getStarttimeMs()).build();
+    return Response.ok(mMaster.getUptimeMs()).build();
   }
 
   /**
