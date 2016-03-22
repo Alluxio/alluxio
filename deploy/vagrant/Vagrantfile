@@ -133,6 +133,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           JSON_KEY_LOCATION = @gce['json_Key_Location']
           IMAGE = @gce['Image']
           MACHINE_TYPE = @gce['Machine_Type']
+          PREEMPTIBLE = @gce['Preemtible']
+          SCOPES = @gce['Scopes']
+          DISK_SIZE = @gce['Disk_Size']
+          NAME = @gce['Name']
+          TAGS = @gce['Tags']
+          NETWORK = @gce['Network']
         end
         config_google(n, i, Total, name)
       end
