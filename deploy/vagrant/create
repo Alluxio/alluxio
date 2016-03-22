@@ -118,7 +118,7 @@ else
     ./vbox/buildbox.sh
   fi
   VUP="vagrant up --provider=$FULL_PROVIDER_NAME --no-provision"
-  [[ "$PROVIDER" == "aws" ]] && VUP="${VUP} --parallel"
+  [[ "$PROVIDER" == "aws" ]] && VUP="${VUP} --parallel" #Provider google could also be added here.
   $VUP
 fi
 
