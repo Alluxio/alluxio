@@ -485,13 +485,12 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    String fullScheme = mUri.getScheme();
-    if (fullScheme != null) {
-      sb.append(fullScheme);
+    if (mUri.getScheme() != null) {
+      sb.append(mUri.getScheme());
       sb.append("://");
     }
     if (mUri.getAuthority() != null) {
-      if (fullScheme == null) {
+      if (mUri.getScheme() == null) {
         sb.append("//");
       }
       sb.append(mUri.getAuthority());
@@ -499,7 +498,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     if (mUri.getPath() != null) {
       String path = mUri.getPath();
       if (path.indexOf('/') == 0 && hasWindowsDrive(path, true) && // has windows drive
-          fullScheme == null && // but no scheme
+          mUri.getScheme() == null && // but no scheme
           mUri.getAuthority() == null) { // or authority
         path = path.substring(1); // remove slash before drive
       }
