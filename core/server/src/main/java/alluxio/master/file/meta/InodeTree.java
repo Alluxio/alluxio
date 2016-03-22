@@ -131,9 +131,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
-   * @return username of root of inode tree
+   * @return username of root of inode tree, null if the inode tree is not initialized
    */
   public String getRootUserName() {
+    if (mRoot == null) {
+      return null;
+    }
     return mRoot.getUserName();
   }
 
