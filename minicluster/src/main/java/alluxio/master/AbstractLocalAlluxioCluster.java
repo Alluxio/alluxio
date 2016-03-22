@@ -274,7 +274,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
-    stopTFS();
+    stopFS();
     stopUFS();
 
     resetContext();
@@ -286,7 +286,7 @@ public abstract class AbstractLocalAlluxioCluster {
    *
    * @throws Exception when the operation fails
    */
-  public abstract void stopTFS() throws Exception;
+  public abstract void stopFS() throws Exception;
 
   /**
    * Cleans up the underfs cluster test folder only.
