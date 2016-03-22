@@ -194,7 +194,9 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @param fileId the file id of the file
    * @return the {@link UIFileInfo} object of the file
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws BlockDoesNotExistException if the block does not exist
    * @throws IOException if an I/O error occurs
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   private UIFileInfo getUiFileInfo(FileSystem fileSystem, long fileId)
       throws FileDoesNotExistException, BlockDoesNotExistException, IOException, AlluxioException {
@@ -215,8 +217,11 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @param fileSystem the {@link FileSystem} client
    * @param filePath the path of the file. valid iff fileId is -1
    * @return the {@link UIFileInfo} object of the file
+   * @throws BlockDoesNotExistException if the block does not exist
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the path is invalid
    * @throws IOException if an I/O error occurs
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   private UIFileInfo getUiFileInfo(FileSystem fileSystem, AlluxioURI filePath)
       throws BlockDoesNotExistException, FileDoesNotExistException, InvalidPathException,
