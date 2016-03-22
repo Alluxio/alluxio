@@ -23,6 +23,7 @@ import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,6 +50,7 @@ import java.util.SortedMap;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioWorker.class, BlockWorker.class, BlockStoreMeta.class})
+@Ignore
 public final class AlluxioWorkerRestApiTest {
   private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
   private static AlluxioWorker sWorker;
