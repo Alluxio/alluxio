@@ -842,6 +842,7 @@ public final class FileSystemMaster extends AbstractMaster {
         try {
           AlluxioURI alluxioUriToDel = mInodeTree.getPath(delInode);
           // If this is a mount point, we have deleted all the children and can unmount it
+          // TODO(calvin): Add tests (ALLUXIO-1831)
           if (mMountTable.isMountPoint(alluxioUriToDel)) {
             unmountInternal(alluxioUriToDel);
           } else {
