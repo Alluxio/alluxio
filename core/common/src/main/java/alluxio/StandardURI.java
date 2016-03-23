@@ -14,9 +14,12 @@ package alluxio;
 import java.net.URISyntaxException;
 import java.util.Objects;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * A wrapper class around {@link java.net.URI}.
  */
+@ThreadSafe
 public class StandardURI implements URI {
   private static final long serialVersionUID = 3705239942914676079L;
 
