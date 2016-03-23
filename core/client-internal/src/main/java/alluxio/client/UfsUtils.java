@@ -95,7 +95,7 @@ public final class UfsUtils {
         AlluxioURI alluxioUriToLoad = alluxioUri.join(file);
         LOG.debug("Loading metadata for Alluxio uri: " + alluxioUriToLoad);
         // TODO(calvin): Remove the need for this hack
-        AlluxioURI alluxioPath = new AlluxioURI(alluxioUri.getPath());
+        AlluxioURI alluxioPath = new AlluxioURI(alluxioUriToLoad.getPath());
         if (!fs.exists(alluxioPath)) {
           fs.loadMetadata(alluxioPath);
         }
