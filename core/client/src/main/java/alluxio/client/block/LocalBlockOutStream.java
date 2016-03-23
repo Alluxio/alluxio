@@ -16,6 +16,7 @@ import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 
 import com.google.common.io.Closer;
@@ -44,13 +45,19 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
    *
    * @param blockId the block id
    * @param blockSize the block size
+   * @param workerAddress the address of the local worker
    * @throws IOException if an I/O error occurs
    */
-  public LocalBlockOutStream(long blockId, long blockSize) throws IOException {
+  public LocalBlockOutStream(long blockId, long blockSize, WorkerNetAddress workerAddress)
+      throws IOException {
     super(blockId, blockSize);
+    if (!NetworkAddressUtils.getLocalHostName(ClientContext.getConf())
+        .equals(workerAddress.getHost())) {
+      throw new IOException("The worker address " + workerAddress + " is not local");
+    }
+
     mCloser = Closer.create();
-    mBlockWorkerClient =
-        mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
+    mBlockWorkerClient = mContext.acquireWorkerClient(workerAddress);
 
     try {
       long initialSize = ClientContext.getConf().getBytes(Constants.USER_FILE_BUFFER_BYTES);
