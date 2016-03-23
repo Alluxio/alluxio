@@ -137,7 +137,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           SCOPES = @gce['Scopes']
           DISK_SIZE = @gce['Disk_Size']
           PREFIX = @gce['Prefix']
-          TAGS = @gce['Tags']
           NETWORK = @gce['Network']
         end
         config_google(n, i, Total, name)
