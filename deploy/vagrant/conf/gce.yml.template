@@ -49,14 +49,18 @@ Scopes: ['https://www.googleapis.com/auth/cloud-platform']
 # The disk size in GB. The default is 10.
 Disk_Size: 10
 
-# An array of tags to apply to this instance. These are metadata tags and do not impact the name of the instance.
-Tags: "Alluxio"
+# Alluxio refers to instances as AlluxioMaster, AlluxioWorker1, etc. GCE does not allow uppercase instance names, so 
+# GCE will refer to the same instances as alluxiomaster, alluxioworker1, etc. A prefix can be added to track
+# deployments and avoid naming collisions with multiple deployments. If used, instance naming becomes: 
+# {Prefix}-alluxioworker1, etc.
+Prefix:
 
-#The name of your instance. The default is "i-yyyymmddhh-randomsd", e.g. 10/08/2015 13:15:15 is "i-2015081013-15637fda".
-Name:
-
-# The name of the network to use for the instance. If there is an existing network with the specified
+# The name of the network to use for the instances. This name defines the group of network/firewall rules the
+# instances will be subject to. If there is an existing network with the specified name,
 # Alluxio will reuse and deploy to that network, otherwise a new one will be created. Default is "default".
+# Note: A firewall rule will need to be added to this network to access the Alluxio Web UI which can be done 
+# with the following gcloud commmand: gcloud compute firewall-rules create Alluxio-UI --allow tcp:19999
+# See documentation (https://cloud.google.com/compute/docs/networking#addingafirewall) for more details.
 Network: "default"
 
 ##################################################
