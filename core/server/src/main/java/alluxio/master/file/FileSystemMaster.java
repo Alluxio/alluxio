@@ -839,15 +839,22 @@ public final class FileSystemMaster extends AbstractMaster {
       // TODO(jiri): What should the Alluxio behavior be when a UFS delete operation fails?
       // Currently, it will result in an inconsistency between Alluxio and UFS.
       if (!replayed && delInode.isPersisted()) {
-        // Delete the file in the under file system.
         try {
-          String ufsPath = mMountTable.resolve(mInodeTree.getPath(delInode)).toString();
-          UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
-          if (!ufs.exists(ufsPath)) {
-            LOG.warn("File does not exist the underfs: {}", ufsPath);
-          } else if (!ufs.delete(ufsPath, true)) {
-            LOG.error("Failed to delete {}", ufsPath);
-            return false;
+          AlluxioURI alluxioUriToDel = mInodeTree.getPath(delInode);
+          // If this is a mount point, we have deleted all the children and can unmount it
+          // TODO(calvin): Add tests (ALLUXIO-1831)
+          if (mMountTable.isMountPoint(alluxioUriToDel)) {
+            unmountInternal(alluxioUriToDel);
+          } else {
+            // Delete the file in the under file system.
+            String ufsPath = mMountTable.resolve(alluxioUriToDel).toString();
+            UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
+            if (!ufs.exists(ufsPath)) {
+              LOG.warn("File does not exist the underfs: {}", ufsPath);
+            } else if (!ufs.delete(ufsPath, true)) {
+              LOG.error("Failed to delete {}", ufsPath);
+              return false;
+            }
           }
         } catch (InvalidPathException e) {
           LOG.warn(e.getMessage());
