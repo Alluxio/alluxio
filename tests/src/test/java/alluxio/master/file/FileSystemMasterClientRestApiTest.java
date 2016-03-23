@@ -11,9 +11,9 @@
 
 package alluxio.master.file;
 
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
 import alluxio.master.AlluxioMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -306,14 +306,9 @@ public class FileSystemMasterClientRestApiTest {
     Map<String, String> params = Maps.newHashMap();
     params.put("path", "test");
 
-    Random random = new Random();
-    long scheduleAsyncPersistResult = random.nextLong();
-    Mockito.doReturn(scheduleAsyncPersistResult).when(sFileSystemMaster)
-        .scheduleAsyncPersistence(Mockito.<AlluxioURI>any());
-
     TestCaseFactory.newMasterTestCase(
         getEndpoint(FileSystemMasterClientRestServiceHandler.SCHEDULE_ASYNC_PERSIST), params,
-        "POST", scheduleAsyncPersistResult, mResource).run();
+        "POST", "", mResource).run();
 
     Mockito.verify(sFileSystemMaster).scheduleAsyncPersistence(Mockito.<AlluxioURI>any());
   }
