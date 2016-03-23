@@ -16,6 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
@@ -94,6 +95,8 @@ public class BlockWorkerTest {
     Configuration conf = WorkerContext.getConf();
     conf.set("alluxio.worker.tieredstore.level0.dirs.path",
         mFolder.newFolder().getAbsolutePath());
+    conf.set(Constants.WORKER_DATA_PORT, "0");
+
     mBlockWorker = new BlockWorker();
 
     Whitebox.setInternalState(mBlockWorker, "mBlockMasterClient", mBlockMasterClient);
@@ -105,7 +108,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Stop the DataServer to clean up.
+   * Reset the worker context and close the data server on clean up.
    *
    * @throws IOException if clean up fails
    */
@@ -114,6 +117,7 @@ public class BlockWorkerTest {
     ((DataServer) Whitebox.getInternalState(mBlockWorker, "mDataServer")).close();
     WorkerContext.reset();
   }
+
   /**
    * Tests the {@link BlockWorker#abortBlock(long, long)} method.
    *
