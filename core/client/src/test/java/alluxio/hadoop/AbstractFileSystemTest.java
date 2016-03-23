@@ -72,11 +72,11 @@ public class AbstractFileSystemTest {
     mockMasterClient();
 
     if (isHadoop1x()) {
-      LOG.debug("Running TFS tests against hadoop 1x");
+      LOG.debug("Running Alluxio FS tests against hadoop 1x");
     } else if (isHadoop2x()) {
-      LOG.debug("Running TFS tests against hadoop 2x");
+      LOG.debug("Running Alluxio FS tests against hadoop 2x");
     } else {
-      LOG.warn("Running TFS tests against untargeted Hadoop version: " + getHadoopVersion());
+      LOG.warn("Running Alluxio FS tests against untargeted Hadoop version: " + getHadoopVersion());
     }
   }
 
