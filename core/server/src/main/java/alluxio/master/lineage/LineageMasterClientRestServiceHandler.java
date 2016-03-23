@@ -42,7 +42,6 @@ import javax.ws.rs.core.Response;
 @NotThreadSafe
 @Path(LineageMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
-
 public final class LineageMasterClientRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
