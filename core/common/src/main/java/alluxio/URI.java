@@ -13,6 +13,7 @@ package alluxio;
 
 import alluxio.collections.Pair;
 
+import java.io.Serializable;
 import java.net.URISyntaxException;
 
 /**
@@ -31,7 +32,7 @@ import java.net.URISyntaxException;
  *
  * Does not support fragment in the URI.
  */
-public interface URI extends Comparable<URI> {
+public interface URI extends Comparable<URI>, Serializable {
 
   /**
    * Factory for {@link URI}.
@@ -237,5 +238,5 @@ public interface URI extends Comparable<URI> {
   /**
    * @return the {@link java.net.URI} representation of this {@link URI}
    */
-  java.net.URI getJavaURI();
+  java.net.URI getBaseURI();
 }

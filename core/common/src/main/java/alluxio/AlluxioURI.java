@@ -47,6 +47,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   public static final String SEPARATOR = "/";
   public static final String CUR_DIR = ".";
   public static final String WILDCARD = "*";
+  public static final char QUERY_SEPARATOR = '&';
+  public static final char QUERY_KEY_VALUE_SEPARATOR = '=';
 
   public static final AlluxioURI EMPTY_URI = new AlluxioURI("");
 
@@ -121,14 +123,15 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     ArrayList<String> pairs = new ArrayList<>(queryMap.size());
     try {
       for (Map.Entry<String, String> entry : queryMap.entrySet()) {
-        pairs.add(URLEncoder.encode(entry.getKey(), "UTF-8") + "=" + URLEncoder
-            .encode(entry.getValue(), "UTF-8"));
+        pairs.add(
+            URLEncoder.encode(entry.getKey(), "UTF-8") + QUERY_KEY_VALUE_SEPARATOR + URLEncoder
+                .encode(entry.getValue(), "UTF-8"));
       }
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
     }
 
-    Joiner joiner = Joiner.on('&');
+    Joiner joiner = Joiner.on(QUERY_SEPARATOR);
     return joiner.join(pairs);
   }
 

@@ -15,6 +15,8 @@ package alluxio;
  * {@link MultiPartSchemeURI} supports multiple components for the scheme.
  */
 public class MultiPartSchemeURI extends StandardURI {
+  private static final long serialVersionUID = 8172074724822918501L;
+
   /**
    * {@link java.net.URI} does not handle a sub-component in the scheme. If the scheme has a
    * sub-component, this prefix holds the first components, while the java.net.URI will only
