@@ -18,6 +18,7 @@ import java.util.Objects;
  * A wrapper class around {@link java.net.URI}.
  */
 public class StandardURI implements URI {
+  private static final long serialVersionUID = 3705239942914676079L;
 
   /**
    * A hierarchical URI. {@link java.net.URI} is used to hold the URI components as well as to
@@ -76,7 +77,7 @@ public class StandardURI implements URI {
   }
 
   @Override
-  public java.net.URI getJavaURI() {
+  public java.net.URI getBaseURI() {
     return mUri;
   }
 
@@ -88,7 +89,7 @@ public class StandardURI implements URI {
       return compare;
     }
     // schemes are equal, so use java.net.URI compare.
-    return mUri.compareTo(other.getJavaURI());
+    return mUri.compareTo(other.getBaseURI());
   }
 
   /**
@@ -128,7 +129,7 @@ public class StandardURI implements URI {
     if (compareScheme(that) != 0) {
       return false;
     }
-    return mUri.equals(that.mUri);
+    return mUri.equals(that.getBaseURI());
   }
 
   @Override
