@@ -84,7 +84,7 @@ public final class BlockWorkerClient extends AbstractClient {
   public BlockWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
       Configuration conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "blockWorker");
-    mWorkerNetAddress = workerNetAddress;
+    mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
     mSessionId = sessionId;

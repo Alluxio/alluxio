@@ -130,10 +130,10 @@ public final class BlockStoreContextTest {
     BlockWorkerClient workerClientMock = PowerMockito.mock(BlockWorkerClient.class);
     PowerMockito.doNothing().when(workerClientMock).sessionHeartbeat();
     PowerMockito.doReturn(true).when(workerClientMock).isLocal();
-    PowerMockito
-        .whenNew(BlockWorkerClient.class)
-        .withArguments(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyLong(),
-            Mockito.anyBoolean(), Mockito.any()).thenReturn(workerClientMock);
+    PowerMockito.doReturn(list.get(0).getAddress()).when(workerClientMock).getWorkerNetAddress();
+    PowerMockito.whenNew(BlockWorkerClient.class).withArguments(Mockito.any(), Mockito.any(),
+        Mockito.any(), Mockito.anyLong(), Mockito.anyBoolean(), Mockito.any())
+        .thenReturn(workerClientMock);
 
     final List<BlockWorkerClient> clients = Lists.newArrayList();
 

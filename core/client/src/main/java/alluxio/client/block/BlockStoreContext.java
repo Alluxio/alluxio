@@ -96,7 +96,7 @@ public enum BlockStoreContext {
     } catch (Exception e) {
       Throwables.propagate(e);
     }
-    return null;
+    return addresses;
   }
 
   /**
