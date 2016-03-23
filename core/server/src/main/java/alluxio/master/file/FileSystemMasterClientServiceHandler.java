@@ -14,8 +14,6 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -225,9 +223,7 @@ public final class FileSystemMasterClientServiceHandler implements
   public void scheduleAsyncPersist(String path) throws AlluxioTException {
     try {
       mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
-    } catch (FileDoesNotExistException e) {
-      throw e.toAlluxioTException();
-    } catch (InvalidPathException e) {
+    } catch (AlluxioException e) {
       throw e.toAlluxioTException();
     }
   }

@@ -409,7 +409,8 @@ public final class FileSystemMasterClientRestServiceHandler {
   public Response scheduleAsyncPersist(@QueryParam("path") String path) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      return Response.ok(mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path))).build();
+      mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
+      return Response.ok().build();
     } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return Response.serverError().entity(e.getMessage()).build();
