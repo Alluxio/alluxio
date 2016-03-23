@@ -40,45 +40,23 @@ public final class UfsUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Loads files under path "ufsAddrRootPath" (excluding excludePathPrefix relative to the path) to
-   * the given tfs under a given destination path.
+   * Mounts the given folder in the under storage system to an Alluxio path which does not exist.
+   * Then loads metadata for each file in the under file system unless excluded by the exclusions
+   * list. If the folder has already been mounted, this method assumes the mount is correct and
+   * will continue to load metadata for each file. This method can be called repeatedly to sync
+   * the latest metadata from the under file system.
    *
-   * @param tfsAddrRootPath the Alluxio file system address and path to load the src files, like
-   *        "alluxio://host:port/dest".
-   * @param ufsAddrRootPath the address and root path of the under file system, like
-   *        "hdfs://host:port/src"
-   * @param excludePaths paths to exclude from ufsRootPath, which will not be loaded in Alluxio file
-   *        system
-   * @param configuration the instance of {@link Configuration} to be used
-   * @throws IOException when an event that prevents the operation from completing is encountered
+   * @param mountPointUri the destination point in Alluxio file system to load the under file system
+   *        path onto, this must not already exist
+   * @param mountDirectoryUri the directory in the under file system to mount
+   * @param exclusions prefixes to exclude which will not be registered in the Alluxio file system
+   * @param conf instance of {@link Configuration}
+   * @throws IOException if an error occurs when operating on the under file system
    * @throws AlluxioException if an unexpected Alluxio error occurs
    */
-  private static void loadUfs(AlluxioURI tfsAddrRootPath, AlluxioURI ufsAddrRootPath,
-      String excludePaths, Configuration configuration) throws IOException, AlluxioException {
-    FileSystem tfs = FileSystem.Factory.get();
-
-    PrefixList excludePathPrefix = new PrefixList(excludePaths, ";");
-
-    loadUfs(tfs, tfsAddrRootPath, ufsAddrRootPath, excludePathPrefix, configuration);
-  }
-
-  /**
-   * Loads files under path "ufsAddress/ufsRootPath" (excluding excludePathPrefix) to the given fs
-   * under the given tfsRootPath directory.
-   *
-   * @param fs the {@link FileSystem} handler created out of address like "alluxio://host:port"
-   * @param mountPointUri the destination point in Alluxio file system to load the under file system
-   *        path onto
-   * @param mountDirectoryUri the address and root path of the under file system, like
-   *        "hdfs://host:port/dir"
-   * @param exclusions paths to exclude from ufsRootPath, which will not be registered in
-   *        Alluxio file system
-   * @param conf instance of {@link Configuration}
-   * @throws IOException when an event that prevents the operation from completing is encountered
-   * @throws AlluxioException if an unexpected alluxio error occurs
-   */
-  public static void loadUfs(FileSystem fs, AlluxioURI mountPointUri, AlluxioURI mountDirectoryUri,
+  public static void loadUfs(AlluxioURI mountPointUri, AlluxioURI mountDirectoryUri,
       PrefixList exclusions, Configuration conf) throws AlluxioException, IOException {
+    FileSystem fs = FileSystem.Factory.get();
     LOG.info("Mounting: {} to Alluxio directory: {}, excluding: {}", mountDirectoryUri,
         mountPointUri, exclusions);
 
@@ -119,8 +97,13 @@ public final class UfsUtils {
   }
 
   /**
-   * Starts the command line utility to load files under path "ufsAddress/ufsRootPath"
-   * (excluding excludePathPrefix) to the given tfs under the given tfsRootPath directory.
+   * Starts the command line utility to mount the UfsPath to the AlluxioPath. In addition to the
+   * regular mount operation, the metadata for all files will be loaded, unless they match the
+   * exclusions prefix list. This utility can be called again on an already mounted directory to
+   * sync with the under file system.
+   *
+   * NOTE: The user must guarantee additional calls to the utility do not change the Alluxio/Ufs
+   * Path pairing.
    *
    * @param args the parameters as <AlluxioPath> <UfsPath> [<Optional ExcludePathPrefix, seperated
    *             by ;>]
@@ -134,7 +117,8 @@ public final class UfsUtils {
     String exList = (args.length == 3) ? args[2] : "";
 
     try {
-      loadUfs(new AlluxioURI(args[0]), new AlluxioURI(args[1]), exList, new Configuration());
+      loadUfs(new AlluxioURI(args[0]), new AlluxioURI(args[1]), new PrefixList(exList, ";"),
+          new Configuration());
     } catch (Exception e) {
       e.printStackTrace();
       printUsage();
@@ -155,8 +139,8 @@ public final class UfsUtils {
     System.out.println("Example: " + cmd + "alluxio://127.0.0.1:19998/a hdfs://localhost:9000/b c");
     System.out.println("Example: " + cmd + "alluxio://127.0.0.1:19998/a file:///b c");
     System.out.println("Example: " + cmd + "alluxio://127.0.0.1:19998/a /b c");
-    System.out.print("In the TFS, all files under local FS /b will be registered under /a, ");
-    System.out.println("except for those with prefix c");
+    System.out.println("In the Alluxio file system, /b will be mounted to /a, and the metadata");
+    System.out.println("for all files under /b will be loaded except for those with prefix c");
   }
 
   private UfsUtils() {} // prevent instantiation
