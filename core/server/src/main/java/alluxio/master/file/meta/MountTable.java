@@ -152,10 +152,10 @@ public final class MountTable {
    * no-op.
    *
    * @param uri an Alluxio path URI
-   * @return the {@link UfsResolution} respresenting the UFS path
+   * @return the {@link Resolution} respresenting the UFS path
    * @throws InvalidPathException if an invalid path is encountered
    */
-  public synchronized UfsResolution resolve(AlluxioURI uri) throws InvalidPathException {
+  public synchronized Resolution resolve(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
     LOG.debug("Resolving {}", path);
     String mountPoint = getMountPoint(uri);
@@ -164,9 +164,9 @@ public final class MountTable {
       AlluxioURI resolvedUri = new AlluxioURI(ufsPath.getScheme(), ufsPath.getAuthority(),
           PathUtils.concatPath(ufsPath.getPath(), path.substring(mountPoint.length())));
       UnderFileSystem ufs = UnderFileSystem.get(resolvedUri.toString(), MasterContext.getConf());
-      return new UfsResolution(resolvedUri, ufs);
+      return new Resolution(resolvedUri, ufs);
     }
-    return new UfsResolution(uri, null);
+    return new Resolution(uri, null);
   }
 
   /**
@@ -190,11 +190,11 @@ public final class MountTable {
    * This class represents a UFS path after resolution. The UFS URI and the {@link UnderFileSystem}
    * for the UFS path are available.
    */
-  public final class UfsResolution {
+  public final class Resolution {
     private final AlluxioURI mUri;
     private final UnderFileSystem mUfs;
 
-    private UfsResolution(AlluxioURI uri, UnderFileSystem ufs) {
+    private Resolution(AlluxioURI uri, UnderFileSystem ufs) {
       mUri = uri;
       mUfs = ufs;
     }
