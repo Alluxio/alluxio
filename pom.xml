@@ -684,6 +684,11 @@
       </build>
     </profile>
 
+    <!-- build profile for Apache Flink -->
+    <profile>
+      <id>flink</id>
+    </profile>
+
     <!-- build profile for Apache Spark -->
     <profile>
       <id>spark</id>
