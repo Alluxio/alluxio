@@ -13,6 +13,8 @@ package alluxio;
 
 import alluxio.collections.Pair;
 
+import com.google.common.base.Preconditions;
+
 import java.io.Serializable;
 import java.net.URISyntaxException;
 
@@ -45,9 +47,7 @@ public interface URI extends Comparable<URI>, Serializable {
      * @return the created {@link URI}
      */
     public static URI create(String uriStr) {
-      if (uriStr == null) {
-        throw new IllegalArgumentException("Can not create a uri with a null path.");
-      }
+      Preconditions.checkArgument(uriStr != null, "Can not create a uri with a null path.");
 
       // add a slash in front of paths with Windows drive letters
       if (AlluxioURI.hasWindowsDrive(uriStr, false)) {
@@ -114,9 +114,7 @@ public interface URI extends Comparable<URI>, Serializable {
      * @return the created {@link URI}
      */
     public static URI create(String scheme, String authority, String path, String query) {
-      if (path == null) {
-        throw new IllegalArgumentException("Can not create a uri with a null path.");
-      }
+      Preconditions.checkArgument(path != null, "Can not create a uri with a null path.");
 
       // Handle schemes with two components.
       Pair<String, String> schemeComponents = getSchemeComponents(scheme);
