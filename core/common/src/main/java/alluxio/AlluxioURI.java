@@ -11,16 +11,12 @@
 
 package alluxio;
 
-import com.google.common.base.Joiner;
+import alluxio.util.URIUtils;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -85,7 +81,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param queryMap the (nullable) map of key/value pairs for the query component of the URI
    */
   public AlluxioURI(String scheme, String authority, String path, Map<String, String> queryMap) {
-    mUri = URI.Factory.create(scheme, authority, path, generateQueryString(queryMap));
+    mUri = URI.Factory.create(scheme, authority, path, URIUtils.generateQueryString(queryMap));
   }
 
   /**
@@ -108,69 +104,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   private AlluxioURI(String scheme, String authority, String path, String query) {
     mUri = URI.Factory.create(scheme, authority, path, query);
-  }
-
-  /**
-   * Generates a query string from a {@link Map<String, String>} of key/value pairs.
-   *
-   * @param queryMap the map of query key/value pairs
-   * @return the generated query string
-   */
-  private String generateQueryString(Map<String, String> queryMap) {
-    if (queryMap == null || queryMap.isEmpty()) {
-      return null;
-    }
-    ArrayList<String> pairs = new ArrayList<>(queryMap.size());
-    try {
-      for (Map.Entry<String, String> entry : queryMap.entrySet()) {
-        pairs.add(
-            URLEncoder.encode(entry.getKey(), "UTF-8") + QUERY_KEY_VALUE_SEPARATOR + URLEncoder
-                .encode(entry.getValue(), "UTF-8"));
-      }
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
-    }
-
-    Joiner joiner = Joiner.on(QUERY_SEPARATOR);
-    return joiner.join(pairs);
-  }
-
-  /**
-   * Parses the given query string, and returns a map of the query parameters.
-   *
-   * @param query the query string to parse
-   * @return the map of query keys and values
-   */
-  private Map<String, String> parseQueryString(String query) {
-    Map<String, String> queryMap = new HashMap<>();
-    if (query == null || query.isEmpty()) {
-      return queryMap;
-    }
-    // The query string should escape '&'.
-    String[] entries = query.split("&");
-
-    try {
-      for (String entry : entries) {
-        // There should be at most 2 parts, since key and value both should escape '='.
-        String[] parts = entry.split("=");
-        if (parts.length == 0) {
-          // Skip this empty entry.
-        } else if (parts.length == 1) {
-          // There is no value part. Just use empty string as the value.
-          String key = URLDecoder.decode(parts[0], "UTF-8");
-          queryMap.put(key, "");
-        } else {
-          // Save the key and value.
-          String key = URLDecoder.decode(parts[0], "UTF-8");
-          String value = URLDecoder.decode(parts[1], "UTF-8");
-          queryMap.put(key, value);
-        }
-      }
-    } catch (UnsupportedEncodingException e) {
-      // This is unexpected.
-      throw new RuntimeException(e);
-    }
-    return queryMap;
   }
 
   @Override
@@ -344,7 +277,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return the map of query parameters
    */
   public Map<String, String> getQueryMap() {
-    return parseQueryString(mUri.getQuery());
+    return URIUtils.parseQueryString(mUri.getQuery());
   }
 
   /**

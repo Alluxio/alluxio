@@ -11,20 +11,23 @@
 
 package alluxio;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * {@link MultiPartSchemeURI} supports multiple components for the scheme.
  */
-public class MultiPartSchemeURI extends StandardURI {
+@ThreadSafe
+public final class MultiPartSchemeURI extends StandardURI {
   private static final long serialVersionUID = 8172074724822918501L;
 
   /**
-   * {@link java.net.URI} does not handle a sub-component in the scheme. If the scheme has a
-   * sub-component, this prefix holds the first components, while the java.net.URI will only
-   * consider the last component. For example, the uri 'scheme:part1:part2://localhost:1234/' has
-   * multiple components in the scheme, so this variable will hold 'scheme:part1', while
-   * {@link java.net.URI} will handle the URI starting from 'part2'.
+   * {@link java.net.URI} does not handle a sub-component in the scheme. This variable will hold
+   * the full scheme with all of the components. For example, the uri
+   * 'scheme:part1:part2://localhost:1234/' has multiple components in the scheme, so this
+   * variable will hold 'scheme:part1:part2', because {@link java.net.URI} will only handle the
+   * URI starting from 'part2'.
    */
-  private final String mSchemePrefix;
+  private final String mFullScheme;
 
   /**
    * @param schemePrefix the prefix of the scheme string of the URI
@@ -36,18 +39,26 @@ public class MultiPartSchemeURI extends StandardURI {
   public MultiPartSchemeURI(String schemePrefix, String scheme, String authority, String path,
       String query) {
     super(scheme, authority, path, query);
-    mSchemePrefix = schemePrefix;
+    mFullScheme = getFullScheme(schemePrefix, mUri.getScheme());
   }
 
   @Override
   public String getScheme() {
-    String uriScheme = mUri.getScheme();
+    return mFullScheme;
+  }
+
+  /**
+   * @param schemePrefix the prefix of the scheme
+   * @param uriScheme the scheme of the URI
+   * @return the combined scheme
+   */
+  private String getFullScheme(String schemePrefix, String uriScheme) {
     if (uriScheme == null) {
       return null;
     }
-    if (mSchemePrefix == null || mSchemePrefix.isEmpty()) {
+    if (schemePrefix == null || schemePrefix.isEmpty()) {
       return uriScheme;
     }
-    return mSchemePrefix + ":" + uriScheme;
+    return schemePrefix + ":" + uriScheme;
   }
 }
