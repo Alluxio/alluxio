@@ -127,7 +127,7 @@ public final class AlluxioBlockStore {
       if (workerNetAddress.getHost().equals(localHostName)) {
         // There is a local worker and the block is local.
         try {
-          return new LocalBlockInStream(blockId, blockInfo.getLength());
+          return new LocalBlockInStream(blockId, blockInfo.getLength(), workerNetAddress);
         } catch (IOException e) {
           LOG.warn("Failed to open local stream for block " + blockId + ". " + e.getMessage());
           // Getting a local stream failed, do not try again
@@ -231,7 +231,7 @@ public final class AlluxioBlockStore {
     // Get the first worker address for now, as this will likely be the location being read from
     // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
     WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-    BlockWorkerClient blockWorkerClient = mContext.acquireWorkerClient(workerAddr.getHost());
+    BlockWorkerClient blockWorkerClient = mContext.acquireWorkerClient(workerAddr);
     try {
       blockWorkerClient.promoteBlock(blockId);
     } catch (AlluxioException e) {
