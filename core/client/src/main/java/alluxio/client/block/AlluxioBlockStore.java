@@ -168,11 +168,7 @@ public final class AlluxioBlockStore {
     }
     // Location is local.
     if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(address.getHost())) {
-      if (mContext.hasLocalWorker()) {
-        return new LocalBlockOutStream(blockId, blockSize);
-      } else {
-        throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage("write"));
-      }
+      return new LocalBlockOutStream(blockId, blockSize, address);
     }
     // Location is specified and it is remote.
     return new RemoteBlockOutStream(blockId, blockSize, address);
