@@ -1551,6 +1551,22 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incMountOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, alluxioPath, true);
+
+      // Check that the Alluxio Path does not exist
+      // TODO(calvin): Provide a cleaner way to check for existence (ALLUXIO-1830)
+      boolean pathExists = false;
+      try {
+        mInodeTree.getInodeByPath(alluxioPath);
+        pathExists = true;
+      } catch (InvalidPathException e) {
+        // Expected, continue
+      }
+      if (pathExists) {
+        // TODO(calvin): Add a test to validate this (ALLUXIO-1831)
+        throw new InvalidPathException(
+            ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
+      }
+
       mountInternal(alluxioPath, ufsPath);
       boolean loadMetadataSuceeded = false;
       try {
