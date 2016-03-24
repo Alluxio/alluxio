@@ -11,6 +11,7 @@
 
 package alluxio.underfs.local;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
@@ -47,10 +48,11 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new {@link LocalUnderFileSystem}.
    *
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Alluxio
    */
-  public LocalUnderFileSystem(Configuration conf) {
-    super(conf);
+  public LocalUnderFileSystem(AlluxioURI uri, Configuration conf) {
+    super(uri, conf);
   }
 
   @Override

@@ -1522,11 +1522,11 @@ public final class FileSystemMaster extends AbstractMaster {
     AlluxioURI ufsUri = resolution.getUri();
     UnderFileSystem ufs = resolution.getUfs();
     try {
-      if (!ufs.exists(ufsUri.getPath())) {
+      if (!ufs.exists(ufsUri.toString())) {
         throw new FileDoesNotExistException(
             ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path.getPath()));
       }
-      if (ufs.isFile(ufsUri.getPath())) {
+      if (ufs.isFile(ufsUri.toString())) {
         long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
         long ufsLength = ufs.getFileSize(ufsUri.toString());
         // Metadata loaded from UFS has no TTL set.
@@ -1633,7 +1633,8 @@ public final class FileSystemMaster extends AbstractMaster {
       }
       AddMountPointEntry addMountPoint =
           AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath.toString())
-              .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly()).build();
+              .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly())
+              .addAllProperties(options.getPropertiesForProto()).build();
       writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
       flushJournal();
       MasterContext.getMasterSource().incPathsMounted(1);
@@ -1655,8 +1656,12 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
+   * Updates the mount table with the specified mount point. The mount options may be updated during
+   * this method.
+   *
    * @param alluxioPath the Alluxio mount point
    * @param ufsPath the UFS endpoint to mount
+   * @param options the mount options (may be updated)
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O exception occurs
@@ -1666,10 +1671,11 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     // Check that the ufsPath exists and is a directory
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
-    if (!ufs.exists(ufsPath.getPath())) {
+    ufs.setProperties(options.getProperties());
+    if (!ufs.exists(ufsPath.toString())) {
       throw new IOException(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
     }
-    if (ufs.isFile(ufsPath.getPath())) {
+    if (ufs.isFile(ufsPath.toString())) {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_DIRECTORY.getMessage(ufsPath.getPath()));
     }
     // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
@@ -1682,6 +1688,10 @@ public final class FileSystemMaster extends AbstractMaster {
     // This should check that we are not mounting a prefix of an existing mount, and that no
     // existing mount is a prefix of this mount.
     mMountTable.add(alluxioPath, ufsPath, options);
+
+    // Configure the ufs properties, and update the mount options with the configured properties.
+    ufs.configureProperties();
+    options.setProperties(ufs.getProperties());
   }
 
   /**
