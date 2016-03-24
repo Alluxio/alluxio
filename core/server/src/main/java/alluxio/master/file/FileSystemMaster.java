@@ -363,8 +363,8 @@ public final class FileSystemMaster extends AbstractMaster {
       }
       try {
         inode = mInodeTree.getInodeByPath(path);
-      } catch (InvalidPathException e2) {
-        throw new AccessControlException(e2.getMessage());
+      } catch (InvalidPathException e) {
+        return IdUtils.INVALID_FILE_ID;
       }
       return inode.getId();
     }
@@ -836,6 +836,9 @@ public final class FileSystemMaster extends AbstractMaster {
       return true;
     }
     Inode inode = mInodeTree.getInodeById(fileId);
+    if (inode == null) {
+      return true;
+    }
     if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
       // true
