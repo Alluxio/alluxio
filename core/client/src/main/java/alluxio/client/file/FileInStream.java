@@ -94,6 +94,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    *
    * @param status the file status
    * @param options the client options
+   * @return the created {@link FileInStream} instance
    */
   public static FileInStream create(URIStatus status, InStreamOptions options) {
     if (status.getLength() == Constants.UNKNOWN_SIZE) {
