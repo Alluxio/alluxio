@@ -357,6 +357,7 @@ public final class BlockWorker extends AbstractWorker {
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
     String blockPath = createdBlock.getPath();
     FileUtils.createBlockPath(blockPath);
+    FileUtils.createFile(blockPath);
     FileUtils.changeLocalFileToFullPermission(blockPath);
     LOG.info("Created new file block, block path: {}", blockPath);
     return blockPath;
@@ -382,6 +383,7 @@ public final class BlockWorker extends AbstractWorker {
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
     String blockPath = createdBlock.getPath();
     FileUtils.createBlockPath(blockPath);
+    FileUtils.createFile(blockPath);
     FileUtils.changeLocalFileToFullPermission(blockPath);
     LOG.info("Created new file block, block path: {}", blockPath);
   }
