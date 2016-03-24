@@ -39,9 +39,8 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
     Preconditions.checkNotNull(configuration);
 
     if (addAndCheckSwiftCredentials(configuration)) {
-      AlluxioURI uri = new AlluxioURI(path);
       try {
-        return new SwiftUnderFileSystem(uri.getHost(), configuration);
+        return new SwiftUnderFileSystem(new AlluxioURI(path), configuration);
       } catch (Exception e) {
         LOG.error("Failed to create SwiftUnderFileSystem.", e);
         throw Throwables.propagate(e);

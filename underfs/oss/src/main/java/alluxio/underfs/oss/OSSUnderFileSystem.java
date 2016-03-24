@@ -11,6 +11,7 @@
 
 package alluxio.underfs.oss;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
@@ -69,8 +70,9 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /** The OSS endpoint. */
   private final String mEndPoint;
 
-  protected OSSUnderFileSystem(String bucketName, Configuration configuration) throws Exception {
-    super(configuration);
+  protected OSSUnderFileSystem(AlluxioURI uri, Configuration configuration) throws Exception {
+    super(uri, configuration);
+    String bucketName = uri.getHost();
     Preconditions.checkArgument(configuration.containsKey(Constants.OSS_ACCESS_KEY),
         "Property " + Constants.OSS_ACCESS_KEY + " is required to connect to OSS");
     Preconditions.checkArgument(configuration.containsKey(Constants.OSS_SECRET_KEY),
