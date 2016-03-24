@@ -38,7 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Base class to provide permission check logic.
  */
-@NotThreadSafe
+@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class PermissionChecker {
   /** The file system inode structure. */
   private final InodeTree mInodeTree;
@@ -53,7 +53,7 @@ public final class PermissionChecker {
   private final GroupMappingService mGroupMappingService;
 
   /**
-   * Constructs a permission checker instance for Alluxio file system.
+   * Constructs a {@link PermissionChecker} instance for Alluxio file system.
    *
    * @param inodeTree inode tree of the file system master
    */
@@ -157,7 +157,7 @@ public final class PermissionChecker {
 
     // For chown, superuser is required
     if (superuserRequired) {
-      checkSuperuser();
+      checkSuperUser();
     }
     // For chgrp or chmod, owner or superuser (supergroup) is required
     if (ownerRequired) {
@@ -213,7 +213,7 @@ public final class PermissionChecker {
     String user = getClientUser();
     List<String> groups = getGroups(user);
 
-    if (user.equals(mInodeTree.getRootUserName()) || groups.contains(mFileSystemSuperGroup)) {
+    if (isPrivilegedUser(user, groups)) {
       return;
     }
 
@@ -231,24 +231,21 @@ public final class PermissionChecker {
    *
    * @throws AccessControlException if the user is not a super user
    */
-  private void checkSuperuser() throws AccessControlException {
+  private void checkSuperUser() throws AccessControlException {
     // collects user and groups
     String user = getClientUser();
     List<String> groups = getGroups(user);
-
-    if (user.equals(mInodeTree.getRootUserName()) || groups.contains(mFileSystemSuperGroup)) {
-      return;
+    if (!isPrivilegedUser(user, groups)) {
+      throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
+          .getMessage(user + " is not a super user or in super group"));
     }
-    throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
-        .getMessage(user + " is not a super user or in super group"));
   }
 
   /**
-   * This method provides basic permission checking logic on a list of inodes.
-   * The input includes User and its Groups, requested Permission and inode list (by
-   * traversing the Path).
-   * Then User, Group, and Action will be evaluated on each of the inodes.
-   * It will return if check passed, and throw exception if check failed.
+   * This method provides basic permission checking logic on a list of inodes. The input includes
+   * User and its Groups, requested Permission and inode list (by traversing the Path).
+   * Then User, Group, and Action will be evaluated on each of the inodes. It will return if check
+   * passed, and throw exception if check failed.
    *
    * @param user who requests access permission
    * @param groups in which user belongs to
@@ -259,14 +256,13 @@ public final class PermissionChecker {
    * @throws AccessControlException if permission checking fails
    */
   private void checkInodeList(String user, List<String> groups, FileSystemAction action,
-      String path, List<Inode<?>> inodeList, boolean checkIsOwner)
-      throws AccessControlException {
+      String path, List<Inode<?>> inodeList, boolean checkIsOwner) throws AccessControlException {
     int size = inodeList.size();
     Preconditions
         .checkArgument(size > 0, PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
 
     // bypass checking permission for super user or super group of Alluxio file system.
-    if (user.equals(mInodeTree.getRootUserName()) || groups.contains(mFileSystemSuperGroup)) {
+    if (isPrivilegedUser(user, groups)) {
       return;
     }
 
@@ -296,8 +292,8 @@ public final class PermissionChecker {
    * @param path the path to check permission on
    * @throws AccessControlException if permission checking fails
    */
-  private void checkInode(String user, List<String> groups, Inode inode,
-      FileSystemAction action, String path) throws AccessControlException {
+  private void checkInode(String user, List<String> groups, Inode inode, FileSystemAction action,
+      String path) throws AccessControlException {
     if (inode == null) {
       return;
     }
@@ -309,8 +305,8 @@ public final class PermissionChecker {
       return;
     }
 
-    if (groups.contains(inode.getGroupName()) && FileSystemPermission
-        .createGroupAction(permission).imply(action)) {
+    if (groups.contains(inode.getGroupName()) && FileSystemPermission.createGroupAction(permission)
+        .imply(action)) {
       return;
     }
 
@@ -320,6 +316,10 @@ public final class PermissionChecker {
 
     throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
         .getMessage(toExceptionMessage(user, action, path, inode)));
+  }
+
+  private boolean isPrivilegedUser(String user, List<String> groups) {
+    return user.equals(mInodeTree.getRootUserName()) || groups.contains(mFileSystemSuperGroup);
   }
 
   private static String toExceptionMessage(String user, FileSystemAction action, String path,
