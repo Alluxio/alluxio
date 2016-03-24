@@ -355,7 +355,11 @@ public final class BlockWorker extends AbstractWorker {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
-    return createdBlock.getPath();
+    String blockPath = createdBlock.getPath();
+    FileUtils.createBlockPath(blockPath);
+    FileUtils.changeLocalFileToFullPermission(blockPath);
+    LOG.info("Created new file block, block path: {}", blockPath);
+    return blockPath;
   }
 
   /**
@@ -376,7 +380,10 @@ public final class BlockWorker extends AbstractWorker {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
-    FileUtils.createBlockPath(createdBlock.getPath());
+    String blockPath = createdBlock.getPath();
+    FileUtils.createBlockPath(blockPath);
+    FileUtils.changeLocalFileToFullPermission(blockPath);
+    LOG.info("Created new file block, block path: {}", blockPath);
   }
 
   /**
