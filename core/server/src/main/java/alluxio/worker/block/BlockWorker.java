@@ -356,10 +356,7 @@ public final class BlockWorker extends AbstractWorker {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
     String blockPath = createdBlock.getPath();
-    FileUtils.createBlockPath(blockPath);
-    FileUtils.createFile(blockPath);
-    FileUtils.changeLocalFileToFullPermission(blockPath);
-    LOG.info("Created new file block, block path: {}", blockPath);
+    createBlockFile(blockPath);
     return blockPath;
   }
 
@@ -381,11 +378,7 @@ public final class BlockWorker extends AbstractWorker {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
-    String blockPath = createdBlock.getPath();
-    FileUtils.createBlockPath(blockPath);
-    FileUtils.createFile(blockPath);
-    FileUtils.changeLocalFileToFullPermission(blockPath);
-    LOG.info("Created new file block, block path: {}", blockPath);
+    createBlockFile(createdBlock.getPath());
   }
 
   /**
@@ -637,5 +630,20 @@ public final class BlockWorker extends AbstractWorker {
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
+  }
+
+  /**
+   * Creates a file to represent a block denoted by the given block path. This file will be owned
+   * by the Alluxio worker but have 777 permissions so clients can read and write to the file
+   * without going through the worker. Only the worker can delete or rename this file.
+   *
+   * @param blockPath the block path to create
+   * @throws IOException if the file cannot be created in the tiered storage folder
+   */
+  private void createBlockFile(String blockPath) throws IOException {
+    FileUtils.createBlockPath(blockPath);
+    FileUtils.createFile(blockPath);
+    FileUtils.changeLocalFileToFullPermission(blockPath);
+    LOG.info("Created new file block, block path: {}", blockPath);
   }
 }
