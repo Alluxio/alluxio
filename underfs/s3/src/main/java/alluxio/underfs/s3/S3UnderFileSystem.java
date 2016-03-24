@@ -103,7 +103,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
     }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
-    mBucketPrefix = Constants.HEADER_S3N + mBucketName + PATH_SEPARATOR;
+    mBucketPrefix = normalizePath(Constants.HEADER_S3N + mBucketName);
   }
 
   @Override
@@ -250,7 +250,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return null;
     }
     // Non recursive list
-    path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
+    path = normalizePath(path);
     return listInternal(path, false);
   }
 
@@ -470,8 +470,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * @return true if the key is the root, false otherwise
    */
   private boolean isRoot(String key) {
-    return key.equals(Constants.HEADER_S3N + mBucketName)
-        || key.equals(Constants.HEADER_S3N + mBucketName + PATH_SEPARATOR);
+    return normalizePath(key).equals(normalizePath(Constants.HEADER_S3N + mBucketName));
   }
 
   /**
@@ -486,7 +485,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   private String[] listInternal(String path, boolean recursive) throws IOException {
     try {
       path = stripPrefixIfPresent(path);
-      path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
+      path = normalizePath(path);
       path = path.equals(PATH_SEPARATOR) ? "" : path;
       // Gets all the objects under the path, because we have no idea if there are non Alluxio
       // managed "directories"
@@ -590,5 +589,15 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return key.substring(PATH_SEPARATOR.length());
     }
     return key;
+  }
+
+  /**
+   * Adds a trailing {@link S3UnderFileSystem#PATH_SEPARATOR} if it does not exists in path.
+   *
+   * @param path the file name
+   * @return updated path with trailing {@link S3UnderFileSystem#PATH_SEPARATOR}
+   */
+  private String normalizePath(String path) {
+    return path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
   }
 }
