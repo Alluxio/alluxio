@@ -35,6 +35,7 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.FormatUtils;
+import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
@@ -499,8 +500,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * represents the root inode, the tree is "reset", and all state is cleared.
    *
    * @param entry the journal entry representing an inode
+   * @throws IOException when owner of mRoot is not the owner of root journal entry
    */
-  public void addInodeFromJournal(JournalEntry entry) {
+  public void addInodeFromJournal(JournalEntry entry) throws IOException {
     Message innerEntry = JournalProtoUtils.unwrap(entry);
     if (innerEntry instanceof InodeFileEntry) {
       InodeFile file = InodeFile.fromJournalEntry((InodeFileEntry) innerEntry);
@@ -510,6 +512,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
       if (directory.getName().equals(ROOT_INODE_NAME)) {
         // This is the root inode. Clear all the state, and set the root.
+        if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())
+            && mRoot != null && !mRoot.getUserName().equals(directory.getUserName())) {
+          // user is not the owner of journal root entry
+          throw new IOException(
+              ExceptionMessage.PERMISSION_DENIED.getMessage("Unauthorized user on root"));
+        }
         mInodes.clear();
         mPinnedInodeFileIds.clear();
         mRoot = directory;
