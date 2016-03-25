@@ -8,8 +8,8 @@ public final class File {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
   }
-  public interface EntryStringStringOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.EntryStringString)
+  public interface StringPairEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.StringPairEntry)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -41,29 +41,29 @@ public final class File {
         getValueBytes();
   }
   /**
-   * Protobuf type {@code alluxio.proto.journal.EntryStringString}
+   * Protobuf type {@code alluxio.proto.journal.StringPairEntry}
    *
    * <pre>
    * A pair of strings, useful for maps.
    * </pre>
    */
-  public static final class EntryStringString extends
+  public static final class StringPairEntry extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.EntryStringString)
-      EntryStringStringOrBuilder {
-    // Use EntryStringString.newBuilder() to construct.
-    private EntryStringString(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.StringPairEntry)
+      StringPairEntryOrBuilder {
+    // Use StringPairEntry.newBuilder() to construct.
+    private StringPairEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
       this.unknownFields = builder.getUnknownFields();
     }
-    private EntryStringString(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+    private StringPairEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
 
-    private static final EntryStringString defaultInstance;
-    public static EntryStringString getDefaultInstance() {
+    private static final StringPairEntry defaultInstance;
+    public static StringPairEntry getDefaultInstance() {
       return defaultInstance;
     }
 
-    public EntryStringString getDefaultInstanceForType() {
+    public StringPairEntry getDefaultInstanceForType() {
       return defaultInstance;
     }
 
@@ -73,7 +73,7 @@ public final class File {
         getUnknownFields() {
       return this.unknownFields;
     }
-    private EntryStringString(
+    private StringPairEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -122,28 +122,28 @@ public final class File {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_EntryStringString_descriptor;
+      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_StringPairEntry_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_EntryStringString_fieldAccessorTable
+      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_StringPairEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.proto.journal.File.EntryStringString.class, alluxio.proto.journal.File.EntryStringString.Builder.class);
+              alluxio.proto.journal.File.StringPairEntry.class, alluxio.proto.journal.File.StringPairEntry.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<EntryStringString> PARSER =
-        new com.google.protobuf.AbstractParser<EntryStringString>() {
-      public EntryStringString parsePartialFrom(
+    public static com.google.protobuf.Parser<StringPairEntry> PARSER =
+        new com.google.protobuf.AbstractParser<StringPairEntry>() {
+      public StringPairEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-        return new EntryStringString(input, extensionRegistry);
+        return new StringPairEntry(input, extensionRegistry);
       }
     };
 
     @java.lang.Override
-    public com.google.protobuf.Parser<EntryStringString> getParserForType() {
+    public com.google.protobuf.Parser<StringPairEntry> getParserForType() {
       return PARSER;
     }
 
@@ -284,53 +284,53 @@ public final class File {
       return super.writeReplace();
     }
 
-    public static alluxio.proto.journal.File.EntryStringString parseFrom(
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static alluxio.proto.journal.File.EntryStringString parseFrom(
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static alluxio.proto.journal.File.EntryStringString parseFrom(byte[] data)
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static alluxio.proto.journal.File.EntryStringString parseFrom(
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static alluxio.proto.journal.File.EntryStringString parseFrom(java.io.InputStream input)
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return PARSER.parseFrom(input);
     }
-    public static alluxio.proto.journal.File.EntryStringString parseFrom(
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return PARSER.parseFrom(input, extensionRegistry);
     }
-    public static alluxio.proto.journal.File.EntryStringString parseDelimitedFrom(java.io.InputStream input)
+    public static alluxio.proto.journal.File.StringPairEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return PARSER.parseDelimitedFrom(input);
     }
-    public static alluxio.proto.journal.File.EntryStringString parseDelimitedFrom(
+    public static alluxio.proto.journal.File.StringPairEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return PARSER.parseDelimitedFrom(input, extensionRegistry);
     }
-    public static alluxio.proto.journal.File.EntryStringString parseFrom(
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return PARSER.parseFrom(input);
     }
-    public static alluxio.proto.journal.File.EntryStringString parseFrom(
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -339,7 +339,7 @@ public final class File {
 
     public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(alluxio.proto.journal.File.EntryStringString prototype) {
+    public static Builder newBuilder(alluxio.proto.journal.File.StringPairEntry prototype) {
       return newBuilder().mergeFrom(prototype);
     }
     public Builder toBuilder() { return newBuilder(this); }
@@ -351,7 +351,7 @@ public final class File {
       return builder;
     }
     /**
-     * Protobuf type {@code alluxio.proto.journal.EntryStringString}
+     * Protobuf type {@code alluxio.proto.journal.StringPairEntry}
      *
      * <pre>
      * A pair of strings, useful for maps.
@@ -359,21 +359,21 @@ public final class File {
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.EntryStringString)
-        alluxio.proto.journal.File.EntryStringStringOrBuilder {
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.StringPairEntry)
+        alluxio.proto.journal.File.StringPairEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_EntryStringString_descriptor;
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_StringPairEntry_descriptor;
       }
 
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_EntryStringString_fieldAccessorTable
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_StringPairEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                alluxio.proto.journal.File.EntryStringString.class, alluxio.proto.journal.File.EntryStringString.Builder.class);
+                alluxio.proto.journal.File.StringPairEntry.class, alluxio.proto.journal.File.StringPairEntry.Builder.class);
       }
 
-      // Construct using alluxio.proto.journal.File.EntryStringString.newBuilder()
+      // Construct using alluxio.proto.journal.File.StringPairEntry.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -406,23 +406,23 @@ public final class File {
 
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_EntryStringString_descriptor;
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_StringPairEntry_descriptor;
       }
 
-      public alluxio.proto.journal.File.EntryStringString getDefaultInstanceForType() {
-        return alluxio.proto.journal.File.EntryStringString.getDefaultInstance();
+      public alluxio.proto.journal.File.StringPairEntry getDefaultInstanceForType() {
+        return alluxio.proto.journal.File.StringPairEntry.getDefaultInstance();
       }
 
-      public alluxio.proto.journal.File.EntryStringString build() {
-        alluxio.proto.journal.File.EntryStringString result = buildPartial();
+      public alluxio.proto.journal.File.StringPairEntry build() {
+        alluxio.proto.journal.File.StringPairEntry result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
         return result;
       }
 
-      public alluxio.proto.journal.File.EntryStringString buildPartial() {
-        alluxio.proto.journal.File.EntryStringString result = new alluxio.proto.journal.File.EntryStringString(this);
+      public alluxio.proto.journal.File.StringPairEntry buildPartial() {
+        alluxio.proto.journal.File.StringPairEntry result = new alluxio.proto.journal.File.StringPairEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
@@ -439,16 +439,16 @@ public final class File {
       }
 
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof alluxio.proto.journal.File.EntryStringString) {
-          return mergeFrom((alluxio.proto.journal.File.EntryStringString)other);
+        if (other instanceof alluxio.proto.journal.File.StringPairEntry) {
+          return mergeFrom((alluxio.proto.journal.File.StringPairEntry)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(alluxio.proto.journal.File.EntryStringString other) {
-        if (other == alluxio.proto.journal.File.EntryStringString.getDefaultInstance()) return this;
+      public Builder mergeFrom(alluxio.proto.journal.File.StringPairEntry other) {
+        if (other == alluxio.proto.journal.File.StringPairEntry.getDefaultInstance()) return this;
         if (other.hasKey()) {
           bitField0_ |= 0x00000001;
           key_ = other.key_;
@@ -471,11 +471,11 @@ public final class File {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        alluxio.proto.journal.File.EntryStringString parsedMessage = null;
+        alluxio.proto.journal.File.StringPairEntry parsedMessage = null;
         try {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (alluxio.proto.journal.File.EntryStringString) e.getUnfinishedMessage();
+          parsedMessage = (alluxio.proto.journal.File.StringPairEntry) e.getUnfinishedMessage();
           throw e;
         } finally {
           if (parsedMessage != null) {
@@ -638,15 +638,15 @@ public final class File {
         return this;
       }
 
-      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.EntryStringString)
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.StringPairEntry)
     }
 
     static {
-      defaultInstance = new EntryStringString(true);
+      defaultInstance = new StringPairEntry(true);
       defaultInstance.initFields();
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.EntryStringString)
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.StringPairEntry)
   }
 
   public interface AddMountPointEntryOrBuilder extends
@@ -691,27 +691,27 @@ public final class File {
     boolean getReadOnly();
 
     /**
-     * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
      */
-    java.util.List<alluxio.proto.journal.File.EntryStringString> 
+    java.util.List<alluxio.proto.journal.File.StringPairEntry> 
         getPropertiesList();
     /**
-     * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
      */
-    alluxio.proto.journal.File.EntryStringString getProperties(int index);
+    alluxio.proto.journal.File.StringPairEntry getProperties(int index);
     /**
-     * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
      */
     int getPropertiesCount();
     /**
-     * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
      */
-    java.util.List<? extends alluxio.proto.journal.File.EntryStringStringOrBuilder> 
+    java.util.List<? extends alluxio.proto.journal.File.StringPairEntryOrBuilder> 
         getPropertiesOrBuilderList();
     /**
-     * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
      */
-    alluxio.proto.journal.File.EntryStringStringOrBuilder getPropertiesOrBuilder(
+    alluxio.proto.journal.File.StringPairEntryOrBuilder getPropertiesOrBuilder(
         int index);
   }
   /**
@@ -789,10 +789,10 @@ public final class File {
             }
             case 34: {
               if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
-                properties_ = new java.util.ArrayList<alluxio.proto.journal.File.EntryStringString>();
+                properties_ = new java.util.ArrayList<alluxio.proto.journal.File.StringPairEntry>();
                 mutable_bitField0_ |= 0x00000008;
               }
-              properties_.add(input.readMessage(alluxio.proto.journal.File.EntryStringString.PARSER, extensionRegistry));
+              properties_.add(input.readMessage(alluxio.proto.journal.File.StringPairEntry.PARSER, extensionRegistry));
               break;
             }
           }
@@ -938,36 +938,36 @@ public final class File {
     }
 
     public static final int PROPERTIES_FIELD_NUMBER = 4;
-    private java.util.List<alluxio.proto.journal.File.EntryStringString> properties_;
+    private java.util.List<alluxio.proto.journal.File.StringPairEntry> properties_;
     /**
-     * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
      */
-    public java.util.List<alluxio.proto.journal.File.EntryStringString> getPropertiesList() {
+    public java.util.List<alluxio.proto.journal.File.StringPairEntry> getPropertiesList() {
       return properties_;
     }
     /**
-     * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
      */
-    public java.util.List<? extends alluxio.proto.journal.File.EntryStringStringOrBuilder> 
+    public java.util.List<? extends alluxio.proto.journal.File.StringPairEntryOrBuilder> 
         getPropertiesOrBuilderList() {
       return properties_;
     }
     /**
-     * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
      */
     public int getPropertiesCount() {
       return properties_.size();
     }
     /**
-     * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
      */
-    public alluxio.proto.journal.File.EntryStringString getProperties(int index) {
+    public alluxio.proto.journal.File.StringPairEntry getProperties(int index) {
       return properties_.get(index);
     }
     /**
-     * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
      */
-    public alluxio.proto.journal.File.EntryStringStringOrBuilder getPropertiesOrBuilder(
+    public alluxio.proto.journal.File.StringPairEntryOrBuilder getPropertiesOrBuilder(
         int index) {
       return properties_.get(index);
     }
@@ -1477,22 +1477,22 @@ public final class File {
         return this;
       }
 
-      private java.util.List<alluxio.proto.journal.File.EntryStringString> properties_ =
+      private java.util.List<alluxio.proto.journal.File.StringPairEntry> properties_ =
         java.util.Collections.emptyList();
       private void ensurePropertiesIsMutable() {
         if (!((bitField0_ & 0x00000008) == 0x00000008)) {
-          properties_ = new java.util.ArrayList<alluxio.proto.journal.File.EntryStringString>(properties_);
+          properties_ = new java.util.ArrayList<alluxio.proto.journal.File.StringPairEntry>(properties_);
           bitField0_ |= 0x00000008;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          alluxio.proto.journal.File.EntryStringString, alluxio.proto.journal.File.EntryStringString.Builder, alluxio.proto.journal.File.EntryStringStringOrBuilder> propertiesBuilder_;
+          alluxio.proto.journal.File.StringPairEntry, alluxio.proto.journal.File.StringPairEntry.Builder, alluxio.proto.journal.File.StringPairEntryOrBuilder> propertiesBuilder_;
 
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
-      public java.util.List<alluxio.proto.journal.File.EntryStringString> getPropertiesList() {
+      public java.util.List<alluxio.proto.journal.File.StringPairEntry> getPropertiesList() {
         if (propertiesBuilder_ == null) {
           return java.util.Collections.unmodifiableList(properties_);
         } else {
@@ -1500,7 +1500,7 @@ public final class File {
         }
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
       public int getPropertiesCount() {
         if (propertiesBuilder_ == null) {
@@ -1510,9 +1510,9 @@ public final class File {
         }
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
-      public alluxio.proto.journal.File.EntryStringString getProperties(int index) {
+      public alluxio.proto.journal.File.StringPairEntry getProperties(int index) {
         if (propertiesBuilder_ == null) {
           return properties_.get(index);
         } else {
@@ -1520,10 +1520,10 @@ public final class File {
         }
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
       public Builder setProperties(
-          int index, alluxio.proto.journal.File.EntryStringString value) {
+          int index, alluxio.proto.journal.File.StringPairEntry value) {
         if (propertiesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -1537,10 +1537,10 @@ public final class File {
         return this;
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
       public Builder setProperties(
-          int index, alluxio.proto.journal.File.EntryStringString.Builder builderForValue) {
+          int index, alluxio.proto.journal.File.StringPairEntry.Builder builderForValue) {
         if (propertiesBuilder_ == null) {
           ensurePropertiesIsMutable();
           properties_.set(index, builderForValue.build());
@@ -1551,9 +1551,9 @@ public final class File {
         return this;
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
-      public Builder addProperties(alluxio.proto.journal.File.EntryStringString value) {
+      public Builder addProperties(alluxio.proto.journal.File.StringPairEntry value) {
         if (propertiesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -1567,10 +1567,10 @@ public final class File {
         return this;
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
       public Builder addProperties(
-          int index, alluxio.proto.journal.File.EntryStringString value) {
+          int index, alluxio.proto.journal.File.StringPairEntry value) {
         if (propertiesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -1584,10 +1584,10 @@ public final class File {
         return this;
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
       public Builder addProperties(
-          alluxio.proto.journal.File.EntryStringString.Builder builderForValue) {
+          alluxio.proto.journal.File.StringPairEntry.Builder builderForValue) {
         if (propertiesBuilder_ == null) {
           ensurePropertiesIsMutable();
           properties_.add(builderForValue.build());
@@ -1598,10 +1598,10 @@ public final class File {
         return this;
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
       public Builder addProperties(
-          int index, alluxio.proto.journal.File.EntryStringString.Builder builderForValue) {
+          int index, alluxio.proto.journal.File.StringPairEntry.Builder builderForValue) {
         if (propertiesBuilder_ == null) {
           ensurePropertiesIsMutable();
           properties_.add(index, builderForValue.build());
@@ -1612,10 +1612,10 @@ public final class File {
         return this;
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
       public Builder addAllProperties(
-          java.lang.Iterable<? extends alluxio.proto.journal.File.EntryStringString> values) {
+          java.lang.Iterable<? extends alluxio.proto.journal.File.StringPairEntry> values) {
         if (propertiesBuilder_ == null) {
           ensurePropertiesIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -1627,7 +1627,7 @@ public final class File {
         return this;
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
       public Builder clearProperties() {
         if (propertiesBuilder_ == null) {
@@ -1640,7 +1640,7 @@ public final class File {
         return this;
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
       public Builder removeProperties(int index) {
         if (propertiesBuilder_ == null) {
@@ -1653,16 +1653,16 @@ public final class File {
         return this;
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
-      public alluxio.proto.journal.File.EntryStringString.Builder getPropertiesBuilder(
+      public alluxio.proto.journal.File.StringPairEntry.Builder getPropertiesBuilder(
           int index) {
         return getPropertiesFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
-      public alluxio.proto.journal.File.EntryStringStringOrBuilder getPropertiesOrBuilder(
+      public alluxio.proto.journal.File.StringPairEntryOrBuilder getPropertiesOrBuilder(
           int index) {
         if (propertiesBuilder_ == null) {
           return properties_.get(index);  } else {
@@ -1670,9 +1670,9 @@ public final class File {
         }
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
-      public java.util.List<? extends alluxio.proto.journal.File.EntryStringStringOrBuilder> 
+      public java.util.List<? extends alluxio.proto.journal.File.StringPairEntryOrBuilder> 
            getPropertiesOrBuilderList() {
         if (propertiesBuilder_ != null) {
           return propertiesBuilder_.getMessageOrBuilderList();
@@ -1681,33 +1681,33 @@ public final class File {
         }
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
-      public alluxio.proto.journal.File.EntryStringString.Builder addPropertiesBuilder() {
+      public alluxio.proto.journal.File.StringPairEntry.Builder addPropertiesBuilder() {
         return getPropertiesFieldBuilder().addBuilder(
-            alluxio.proto.journal.File.EntryStringString.getDefaultInstance());
+            alluxio.proto.journal.File.StringPairEntry.getDefaultInstance());
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
-      public alluxio.proto.journal.File.EntryStringString.Builder addPropertiesBuilder(
+      public alluxio.proto.journal.File.StringPairEntry.Builder addPropertiesBuilder(
           int index) {
         return getPropertiesFieldBuilder().addBuilder(
-            index, alluxio.proto.journal.File.EntryStringString.getDefaultInstance());
+            index, alluxio.proto.journal.File.StringPairEntry.getDefaultInstance());
       }
       /**
-       * <code>repeated .alluxio.proto.journal.EntryStringString properties = 4;</code>
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
        */
-      public java.util.List<alluxio.proto.journal.File.EntryStringString.Builder> 
+      public java.util.List<alluxio.proto.journal.File.StringPairEntry.Builder> 
            getPropertiesBuilderList() {
         return getPropertiesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          alluxio.proto.journal.File.EntryStringString, alluxio.proto.journal.File.EntryStringString.Builder, alluxio.proto.journal.File.EntryStringStringOrBuilder> 
+          alluxio.proto.journal.File.StringPairEntry, alluxio.proto.journal.File.StringPairEntry.Builder, alluxio.proto.journal.File.StringPairEntryOrBuilder> 
           getPropertiesFieldBuilder() {
         if (propertiesBuilder_ == null) {
           propertiesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              alluxio.proto.journal.File.EntryStringString, alluxio.proto.journal.File.EntryStringString.Builder, alluxio.proto.journal.File.EntryStringStringOrBuilder>(
+              alluxio.proto.journal.File.StringPairEntry, alluxio.proto.journal.File.StringPairEntry.Builder, alluxio.proto.journal.File.StringPairEntryOrBuilder>(
                   properties_,
                   ((bitField0_ & 0x00000008) == 0x00000008),
                   getParentForChildren(),
@@ -11685,10 +11685,10 @@ public final class File {
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_proto_journal_EntryStringString_descriptor;
+    internal_static_alluxio_proto_journal_StringPairEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_alluxio_proto_journal_EntryStringString_fieldAccessorTable;
+      internal_static_alluxio_proto_journal_StringPairEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_AddMountPointEntry_descriptor;
   private static
@@ -11768,47 +11768,47 @@ public final class File {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\nfile.proto\022\025alluxio.proto.journal\"/\n\021E" +
-      "ntryStringString\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002" +
-      " \001(\t\"\214\001\n\022AddMountPointEntry\022\024\n\014alluxio_p" +
-      "ath\030\001 \001(\t\022\020\n\010ufs_path\030\002 \001(\t\022\020\n\010readOnly\030" +
-      "\003 \001(\010\022<\n\nproperties\030\004 \003(\0132(.alluxio.prot" +
-      "o.journal.EntryStringString\"+\n\030AsyncPers" +
-      "istRequestEntry\022\017\n\007file_id\030\001 \001(\003\"V\n\021Comp" +
-      "leteFileEntry\022\021\n\tblock_ids\030\001 \003(\003\022\n\n\002id\030\002" +
-      " \001(\003\022\016\n\006length\030\003 \001(\003\022\022\n\nop_time_ms\030\004 \001(\003" +
-      "\"D\n\017DeleteFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\trecur",
-      "sive\030\002 \001(\010\022\022\n\nop_time_ms\030\003 \001(\003\"-\n\025Delete" +
-      "MountPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\372\001" +
-      "\n\023InodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tpar" +
-      "ent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistenc" +
-      "e_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creatio" +
-      "n_time_ms\030\006 \001(\003\022!\n\031last_modification_tim" +
-      "e_ms\030\007 \001(\003\022\021\n\tuser_name\030\010 \001(\t\022\022\n\ngroup_n" +
-      "ame\030\t \001(\t\022\022\n\npermission\030\n \001(\005\022\023\n\013mount_p" +
-      "oint\030\013 \001(\010\"O\n\036InodeDirectoryIdGeneratorE" +
-      "ntry\022\024\n\014container_id\030\001 \001(\003\022\027\n\017sequence_n",
-      "umber\030\002 \001(\003\"\315\002\n\016InodeFileEntry\022\n\n\002id\030\001 \001" +
-      "(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021p" +
-      "ersistence_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030" +
-      "\n\020creation_time_ms\030\006 \001(\003\022!\n\031last_modific" +
-      "ation_time_ms\030\007 \001(\003\022\030\n\020block_size_bytes\030" +
-      "\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010" +
-      "\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003t" +
-      "tl\030\r \001(\003\022\021\n\tuser_name\030\016 \001(\t\022\022\n\ngroup_nam" +
-      "e\030\017 \001(\t\022\022\n\npermission\030\020 \001(\005\"O\n\036InodeLast" +
-      "ModificationTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031las",
-      "t_modification_time_ms\030\002 \001(\003\"#\n\025PersistD" +
-      "irectoryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFile" +
-      "Entry\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_" +
-      "time_ms\030\003 \001(\003\"L\n\025ReinitializeFileEntry\022\014" +
-      "\n\004path\030\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013" +
-      "\n\003ttl\030\003 \001(\003\"?\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020" +
-      "\n\010dst_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\"\225\001\n" +
-      "\021SetAttributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_tim" +
-      "e_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022" +
-      "\021\n\tpersisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005gro",
-      "up\030\007 \001(\t\022\022\n\npermission\030\010 \001(\005"
+      "\n\nfile.proto\022\025alluxio.proto.journal\"-\n\017S" +
+      "tringPairEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001" +
+      "(\t\"\212\001\n\022AddMountPointEntry\022\024\n\014alluxio_pat" +
+      "h\030\001 \001(\t\022\020\n\010ufs_path\030\002 \001(\t\022\020\n\010readOnly\030\003 " +
+      "\001(\010\022:\n\nproperties\030\004 \003(\0132&.alluxio.proto." +
+      "journal.StringPairEntry\"+\n\030AsyncPersistR" +
+      "equestEntry\022\017\n\007file_id\030\001 \001(\003\"V\n\021Complete" +
+      "FileEntry\022\021\n\tblock_ids\030\001 \003(\003\022\n\n\002id\030\002 \001(\003" +
+      "\022\016\n\006length\030\003 \001(\003\022\022\n\nop_time_ms\030\004 \001(\003\"D\n\017" +
+      "DeleteFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\trecursive",
+      "\030\002 \001(\010\022\022\n\nop_time_ms\030\003 \001(\003\"-\n\025DeleteMoun" +
+      "tPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\372\001\n\023In" +
+      "odeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_" +
+      "id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_st" +
+      "ate\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_ti" +
+      "me_ms\030\006 \001(\003\022!\n\031last_modification_time_ms" +
+      "\030\007 \001(\003\022\021\n\tuser_name\030\010 \001(\t\022\022\n\ngroup_name\030" +
+      "\t \001(\t\022\022\n\npermission\030\n \001(\005\022\023\n\013mount_point" +
+      "\030\013 \001(\010\"O\n\036InodeDirectoryIdGeneratorEntry" +
+      "\022\024\n\014container_id\030\001 \001(\003\022\027\n\017sequence_numbe",
+      "r\030\002 \001(\003\"\315\002\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021" +
+      "\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persi" +
+      "stence_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020cr" +
+      "eation_time_ms\030\006 \001(\003\022!\n\031last_modificatio" +
+      "n_time_ms\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(" +
+      "\003\022\016\n\006length\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\t" +
+      "cacheable\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r" +
+      " \001(\003\022\021\n\tuser_name\030\016 \001(\t\022\022\n\ngroup_name\030\017 " +
+      "\001(\t\022\022\n\npermission\030\020 \001(\005\"O\n\036InodeLastModi" +
+      "ficationTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_mo",
+      "dification_time_ms\030\002 \001(\003\"#\n\025PersistDirec" +
+      "toryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntr" +
+      "y\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time" +
+      "_ms\030\003 \001(\003\"L\n\025ReinitializeFileEntry\022\014\n\004pa" +
+      "th\030\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003tt" +
+      "l\030\003 \001(\003\"?\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010ds" +
+      "t_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\"\225\001\n\021Set" +
+      "AttributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms" +
+      "\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tp" +
+      "ersisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007",
+      " \001(\t\022\022\n\npermission\030\010 \001(\005"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -11822,11 +11822,11 @@ public final class File {
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
-    internal_static_alluxio_proto_journal_EntryStringString_descriptor =
+    internal_static_alluxio_proto_journal_StringPairEntry_descriptor =
       getDescriptor().getMessageTypes().get(0);
-    internal_static_alluxio_proto_journal_EntryStringString_fieldAccessorTable = new
+    internal_static_alluxio_proto_journal_StringPairEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_EntryStringString_descriptor,
+        internal_static_alluxio_proto_journal_StringPairEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_proto_journal_AddMountPointEntry_descriptor =
       getDescriptor().getMessageTypes().get(1);
