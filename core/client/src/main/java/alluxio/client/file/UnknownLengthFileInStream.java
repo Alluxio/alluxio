@@ -22,6 +22,9 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.wire.WorkerNetAddress;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -32,7 +35,17 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public class UnknownFileInStream extends FileInStream {
+public class UnknownLengthFileInStream extends FileInStream {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  /**
+   * Since the file length is unknown, the actual length of the block is also unknown. Simply
+   * using the maximum block size does not work well for allocation, since the maximum block size
+   * for an unknown file may be large, and may not fit on any worker. Therefore, use a smaller
+   * allocation block size to allow the allocation to succeed, but the cache out stream may fail
+   * later.
+   */
+  private static final long ALLOCATION_BLOCK_SIZE = 128;
+
   /** Number of bytes read by stream. */
   private long mReadBytes;
   /** Number of bytes written by {@link #mCurrentCacheStream}. */
@@ -44,7 +57,7 @@ public class UnknownFileInStream extends FileInStream {
    * @param status the file status
    * @param options the client options
    */
-  public UnknownFileInStream(URIStatus status, InStreamOptions options) {
+  public UnknownLengthFileInStream(URIStatus status, InStreamOptions options) {
     super(status, options);
     mReadBytes = 0;
     mCurrentCacheBytesWritten = 0;
@@ -68,6 +81,8 @@ public class UnknownFileInStream extends FileInStream {
       } finally {
         mContext.releaseMasterClient(masterClient);
       }
+    } else {
+      LOG.warn("File with unknown length was closed before fully reading the input stream.");
     }
     super.close();
   }
@@ -95,11 +110,7 @@ public class UnknownFileInStream extends FileInStream {
   @Override
   protected long getBlockSizeAllocation(long pos) {
     // TODO(gpang): need a better way to handle unknown block size allocation
-    // Since the file length is unknown, the actual length of the block is also unknown. Simply
-    // using the maximum block size does not work well for allocation, since the maximum block
-    // size for an unknown file may be large, and may not fit on any worker. Therefore, just
-    // allow the allocation to succeed, but the cache out stream may fail later.
-    return 128;
+    return ALLOCATION_BLOCK_SIZE;
   }
 
   @Override

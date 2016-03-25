@@ -14,6 +14,8 @@ package alluxio.master.block.meta;
 import alluxio.Constants;
 
 import com.google.common.base.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +31,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterBlockInfo {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** The id of the block. */
   private final long mBlockId;
   /**
@@ -69,6 +73,9 @@ public final class MasterBlockInfo {
   public synchronized void updateLength(long length) {
     if (mLength == Constants.UNKNOWN_SIZE) {
       mLength = length;
+    } else if (mLength != length) {
+      LOG.warn("Attempting to update block length ({}) to a different length ({}).", mLength,
+          length);
     }
   }
 
