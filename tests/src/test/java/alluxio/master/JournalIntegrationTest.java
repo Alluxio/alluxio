@@ -448,6 +448,10 @@ public class JournalIntegrationTest {
   }
 
 
+  /**
+   * Tests file and directory creation, and rename.
+   */
+  @Test
   public void renameTest() throws Exception {
     for (int i = 0; i < 10; i++) {
       mFileSystem.createDirectory(new AlluxioURI("/i" + i));
