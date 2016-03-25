@@ -1,8 +1,7 @@
 ---
 layout: global
 title: Debugging Guide
-group: User Guide
-priority: 0
+group: Resources
 ---
 
 * Table of Contents
@@ -19,7 +18,8 @@ Feel free to post questions on [Alluxio Mailing List](https://groups.google.com/
 Alluxio can be configured under a variety of modes, in different production environments.
 Please make sure the Alluxio being deployed, is a supported version.
 
-When posting questions on mailing list, please attach the full environment information, including
+When posting questions on [Mailing List](https://groups.google.com/forum/alluxio-users),
+please attach the full environment information, including
 - Alluxio version
 - OS version
 - Java version
@@ -34,21 +34,22 @@ named as `master.log`, `master.out`, `worker.log`, `worker.out` and `user.log`.
 
 The master and worker logs are very useful to understand what happened in Alluxio Master and
 Workers, when you ran into any issues. If you do not understand the error messages,
-try to search them in the user mailing list, to see if the problem has been discussed before.
+try to search them in the [Mailing List](https://groups.google.com/forum/alluxio-users),
+in case the problem has been discussed before.
 
 ## Alluxio Setup FAQ
 
-### Q: I'm new to Alluxio and getting started. I failed to set up Alluxio on my local machine. What shall I do?
+#### Q: I'm new to Alluxio and getting started. I failed to set up Alluxio on my local machine. What shall I do?
 
 A: First check `{ALLUXIO_HOME}/logs` to see if there are any master or worker logs. If the logs
 show some errors, follow the clue. Otherwise please double check if you missed any configuration
 steps in [Running-Alluxio-Locally](Running-Alluxio-Locally.html).
 
-Typical mis-configurations:
+Typical issues:
 - `ALLUXIO_UNDERFS_ADDRESS` is not configured correctly.
 - Could not `ssh localhost` . Please make sure the public ssh key for the host is added in `~/.ssh/authorized_keys`.
 
-### Q: I'm trying to deploy Alluxio in a cluster with Spark/HDFS. Are there any suggestions?
+#### Q: I'm trying to deploy Alluxio in a cluster with Spark/HDFS. Are there any suggestions?
 
 A: Please follow [Running-Alluxio-on-a-Cluster](Running-Alluxio-on-a-Cluster.html),
 [Configuring-Alluxio-with-HDFS](Configuring-Alluxio-with-HDFS.html).
@@ -58,19 +59,18 @@ Tips:
 - Also, using Alluxio can be very beneficial if/when the under storage is remote (like S3 or remote HDFS).
 - You can use Mesos and yarn if you are already using Mesos or Yarn to manage your cluster. Using Mesos or Yarn can benefit management.
 
-### Q: I have problems setting up Alluxio cluster on EC2. Can you advice?
+#### Q: I have problems setting up Alluxio cluster on EC2. Can you advice?
 
 A: Please follow [Running-Alluxio-on-EC2.html](Running-Alluxio-on-EC2.html) for details.
 
-Typical mis-configurations:
+Typical issues:
 - Please make sure AWS access keys and Key Pairs are set up coordinately.
 - If the UnderFileSystem is S3, check the S3 bucket name in `ufs.yml` is the name of an existing bucket, without the `s3://` or `s3n://` prefix.
 - If you are not able to access the UI, please check that your security group allows incoming traffic on port 19999.
 
 ## Alluxio Performance FAQ
 
-### Q: I tested Alluxio/Spark against HDFS/Spark (running simple work count of GBs of files). There is
-no discernible performance difference. Why?
+#### Q: I tested Alluxio/Spark against HDFS/Spark (running simple work count of GBs of files). There is no discernible performance difference. Why?
 
 A: Alluxio accelerates your system performance by leveraging data locality using distributed in-memory storage
 (and tiered storage). If your workloads do not have good data locality, and most accesses still need to go to
