@@ -308,6 +308,19 @@ public final class Journal {
     alluxio.proto.journal.File.RenameEntryOrBuilder getRenameOrBuilder();
 
     /**
+     * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+     */
+    boolean hasRenameStore();
+    /**
+     * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+     */
+    alluxio.proto.journal.KeyValue.RenameStoreEntry getRenameStore();
+    /**
+     * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+     */
+    alluxio.proto.journal.KeyValue.RenameStoreEntryOrBuilder getRenameStoreOrBuilder();
+
+    /**
      * <code>optional .alluxio.proto.journal.SetAttributeEntry set_attribute = 27;</code>
      */
     boolean hasSetAttribute();
@@ -325,7 +338,7 @@ public final class Journal {
    *
    * <pre>
    * Wraps around all types of Alluxio journal messages.
-   * next available id: 28
+   * next available id: 29
    * </pre>
    */
   public static final class JournalEntry extends
@@ -681,6 +694,19 @@ public final class Journal {
               entryCase_ = 27;
               break;
             }
+            case 226: {
+              alluxio.proto.journal.KeyValue.RenameStoreEntry.Builder subBuilder = null;
+              if (entryCase_ == 28) {
+                subBuilder = ((alluxio.proto.journal.KeyValue.RenameStoreEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(alluxio.proto.journal.KeyValue.RenameStoreEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((alluxio.proto.journal.KeyValue.RenameStoreEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 28;
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -747,6 +773,7 @@ public final class Journal {
       ASYNC_PERSIST_REQUEST(16),
       REINITIALIZE_FILE(18),
       RENAME(19),
+      RENAME_STORE(28),
       SET_ATTRIBUTE(27),
       ENTRY_NOT_SET(0);
       private int value = 0;
@@ -777,6 +804,7 @@ public final class Journal {
           case 16: return ASYNC_PERSIST_REQUEST;
           case 18: return REINITIALIZE_FILE;
           case 19: return RENAME;
+          case 28: return RENAME_STORE;
           case 27: return SET_ATTRIBUTE;
           case 0: return ENTRY_NOT_SET;
           default: throw new java.lang.IllegalArgumentException(
@@ -1381,6 +1409,32 @@ public final class Journal {
       return alluxio.proto.journal.File.RenameEntry.getDefaultInstance();
     }
 
+    public static final int RENAME_STORE_FIELD_NUMBER = 28;
+    /**
+     * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+     */
+    public boolean hasRenameStore() {
+      return entryCase_ == 28;
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+     */
+    public alluxio.proto.journal.KeyValue.RenameStoreEntry getRenameStore() {
+      if (entryCase_ == 28) {
+         return (alluxio.proto.journal.KeyValue.RenameStoreEntry) entry_;
+      }
+      return alluxio.proto.journal.KeyValue.RenameStoreEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+     */
+    public alluxio.proto.journal.KeyValue.RenameStoreEntryOrBuilder getRenameStoreOrBuilder() {
+      if (entryCase_ == 28) {
+         return (alluxio.proto.journal.KeyValue.RenameStoreEntry) entry_;
+      }
+      return alluxio.proto.journal.KeyValue.RenameStoreEntry.getDefaultInstance();
+    }
+
     public static final int SET_ATTRIBUTE_FIELD_NUMBER = 27;
     /**
      * <code>optional .alluxio.proto.journal.SetAttributeEntry set_attribute = 27;</code>
@@ -1495,6 +1549,9 @@ public final class Journal {
       if (entryCase_ == 27) {
         output.writeMessage(27, (alluxio.proto.journal.File.SetAttributeEntry) entry_);
       }
+      if (entryCase_ == 28) {
+        output.writeMessage(28, (alluxio.proto.journal.KeyValue.RenameStoreEntry) entry_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -1600,6 +1657,10 @@ public final class Journal {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(27, (alluxio.proto.journal.File.SetAttributeEntry) entry_);
       }
+      if (entryCase_ == 28) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(28, (alluxio.proto.journal.KeyValue.RenameStoreEntry) entry_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
@@ -1683,7 +1744,7 @@ public final class Journal {
      *
      * <pre>
      * Wraps around all types of Alluxio journal messages.
-     * next available id: 28
+     * next available id: 29
      * </pre>
      */
     public static final class Builder extends
@@ -1912,6 +1973,13 @@ public final class Journal {
             result.entry_ = renameBuilder_.build();
           }
         }
+        if (entryCase_ == 28) {
+          if (renameStoreBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = renameStoreBuilder_.build();
+          }
+        }
         if (entryCase_ == 27) {
           if (setAttributeBuilder_ == null) {
             result.entry_ = entry_;
@@ -2026,6 +2094,10 @@ public final class Journal {
           }
           case RENAME: {
             mergeRename(other.getRename());
+            break;
+          }
+          case RENAME_STORE: {
+            mergeRenameStore(other.getRenameStore());
             break;
           }
           case SET_ATTRIBUTE: {
@@ -5081,6 +5153,141 @@ public final class Journal {
       }
 
       private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.KeyValue.RenameStoreEntry, alluxio.proto.journal.KeyValue.RenameStoreEntry.Builder, alluxio.proto.journal.KeyValue.RenameStoreEntryOrBuilder> renameStoreBuilder_;
+      /**
+       * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+       */
+      public boolean hasRenameStore() {
+        return entryCase_ == 28;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+       */
+      public alluxio.proto.journal.KeyValue.RenameStoreEntry getRenameStore() {
+        if (renameStoreBuilder_ == null) {
+          if (entryCase_ == 28) {
+            return (alluxio.proto.journal.KeyValue.RenameStoreEntry) entry_;
+          }
+          return alluxio.proto.journal.KeyValue.RenameStoreEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 28) {
+            return renameStoreBuilder_.getMessage();
+          }
+          return alluxio.proto.journal.KeyValue.RenameStoreEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+       */
+      public Builder setRenameStore(alluxio.proto.journal.KeyValue.RenameStoreEntry value) {
+        if (renameStoreBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          renameStoreBuilder_.setMessage(value);
+        }
+        entryCase_ = 28;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+       */
+      public Builder setRenameStore(
+          alluxio.proto.journal.KeyValue.RenameStoreEntry.Builder builderForValue) {
+        if (renameStoreBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          renameStoreBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 28;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+       */
+      public Builder mergeRenameStore(alluxio.proto.journal.KeyValue.RenameStoreEntry value) {
+        if (renameStoreBuilder_ == null) {
+          if (entryCase_ == 28 &&
+              entry_ != alluxio.proto.journal.KeyValue.RenameStoreEntry.getDefaultInstance()) {
+            entry_ = alluxio.proto.journal.KeyValue.RenameStoreEntry.newBuilder((alluxio.proto.journal.KeyValue.RenameStoreEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 28) {
+            renameStoreBuilder_.mergeFrom(value);
+          }
+          renameStoreBuilder_.setMessage(value);
+        }
+        entryCase_ = 28;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+       */
+      public Builder clearRenameStore() {
+        if (renameStoreBuilder_ == null) {
+          if (entryCase_ == 28) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 28) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          renameStoreBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+       */
+      public alluxio.proto.journal.KeyValue.RenameStoreEntry.Builder getRenameStoreBuilder() {
+        return getRenameStoreFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+       */
+      public alluxio.proto.journal.KeyValue.RenameStoreEntryOrBuilder getRenameStoreOrBuilder() {
+        if ((entryCase_ == 28) && (renameStoreBuilder_ != null)) {
+          return renameStoreBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 28) {
+            return (alluxio.proto.journal.KeyValue.RenameStoreEntry) entry_;
+          }
+          return alluxio.proto.journal.KeyValue.RenameStoreEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RenameStoreEntry rename_store = 28;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.KeyValue.RenameStoreEntry, alluxio.proto.journal.KeyValue.RenameStoreEntry.Builder, alluxio.proto.journal.KeyValue.RenameStoreEntryOrBuilder> 
+          getRenameStoreFieldBuilder() {
+        if (renameStoreBuilder_ == null) {
+          if (!(entryCase_ == 28)) {
+            entry_ = alluxio.proto.journal.KeyValue.RenameStoreEntry.getDefaultInstance();
+          }
+          renameStoreBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              alluxio.proto.journal.KeyValue.RenameStoreEntry, alluxio.proto.journal.KeyValue.RenameStoreEntry.Builder, alluxio.proto.journal.KeyValue.RenameStoreEntryOrBuilder>(
+                  (alluxio.proto.journal.KeyValue.RenameStoreEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 28;
+        return renameStoreBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
           alluxio.proto.journal.File.SetAttributeEntry, alluxio.proto.journal.File.SetAttributeEntry.Builder, alluxio.proto.journal.File.SetAttributeEntryOrBuilder> setAttributeBuilder_;
       /**
        * <code>optional .alluxio.proto.journal.SetAttributeEntry set_attribute = 27;</code>
@@ -5242,7 +5449,7 @@ public final class Journal {
     java.lang.String[] descriptorData = {
       "\n\rjournal.proto\022\025alluxio.proto.journal\032\013" +
       "block.proto\032\nfile.proto\032\017key_value.proto" +
-      "\032\rlineage.proto\"\243\r\n\014JournalEntry\022\027\n\017sequ" +
+      "\032\rlineage.proto\"\344\r\n\014JournalEntry\022\027\n\017sequ" +
       "ence_number\030\001 \001(\003\022D\n\017add_mount_point\030\002 \001" +
       "(\0132).alluxio.proto.journal.AddMountPoint" +
       "EntryH\000\022]\n\034block_container_id_generator\030" +
@@ -5283,9 +5490,11 @@ public final class Journal {
       "itialize_file\030\022 \001(\0132,.alluxio.proto.jour" +
       "nal.ReinitializeFileEntryH\000\0224\n\006rename\030\023 " +
       "\001(\0132\".alluxio.proto.journal.RenameEntryH" +
-      "\000\022A\n\rset_attribute\030\033 \001(\0132(.alluxio.proto" +
-      ".journal.SetAttributeEntryH\000B\007\n\005entryB\027\n" +
-      "\025alluxio.proto.journal"
+      "\000\022?\n\014rename_store\030\034 \001(\0132\'.alluxio.proto." +
+      "journal.RenameStoreEntryH\000\022A\n\rset_attrib" +
+      "ute\030\033 \001(\0132(.alluxio.proto.journal.SetAtt" +
+      "ributeEntryH\000B\007\n\005entryB\027\n\025alluxio.proto." +
+      "journal"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -5308,7 +5517,7 @@ public final class Journal {
     internal_static_alluxio_proto_journal_JournalEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_JournalEntry_descriptor,
-        new java.lang.String[] { "SequenceNumber", "AddMountPoint", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "CompletePartition", "CompleteStore", "CreateStore", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "DeleteStore", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "MergeStore", "PersistDirectory", "AsyncPersistRequest", "ReinitializeFile", "Rename", "SetAttribute", "Entry", });
+        new java.lang.String[] { "SequenceNumber", "AddMountPoint", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "CompletePartition", "CompleteStore", "CreateStore", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "DeleteStore", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "MergeStore", "PersistDirectory", "AsyncPersistRequest", "ReinitializeFile", "Rename", "RenameStore", "SetAttribute", "Entry", });
     alluxio.proto.journal.Block.getDescriptor();
     alluxio.proto.journal.File.getDescriptor();
     alluxio.proto.journal.KeyValue.getDescriptor();
