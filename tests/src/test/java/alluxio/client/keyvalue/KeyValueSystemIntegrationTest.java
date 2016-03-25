@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -263,6 +264,22 @@ public final class KeyValueSystemIntegrationTest {
     mThrown.expect(IOException.class);
     mThrown.expectMessage(ExceptionMessage.KEY_VALUE_TOO_LARGE.getMessage(keyLength, valueLength));
     mWriter.put(key, value);
+  }
+
+  /**
+   * Tests putting a key-value pair whose key already exists in the store, expecting exception
+   * thrown.
+   */
+  @Test
+  public void putKeyAlreadyExistsTest() throws Exception {
+    mWriter = sKeyValueSystem.createStore(mStoreUri);
+    mWriter.put(KEY1, VALUE1);
+
+    byte[] copyOfKey1 = Arrays.copyOf(KEY1, KEY1.length);
+
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage(ExceptionMessage.KEY_ALREADY_EXISTS.getMessage());
+    mWriter.put(copyOfKey1, VALUE2);
   }
 
   /**

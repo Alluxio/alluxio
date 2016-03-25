@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -52,6 +53,8 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   private boolean mClosed;
   /** Whether this writer is canceled. */
   private boolean mCanceled;
+  /** Byte array of the last input key. */
+  private byte[] mLastKey = null;
 
   /**
    * Constructs a {@link BaseKeyValueStoreWriter}. This constructor will create a new key-value
@@ -106,6 +109,12 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     Preconditions.checkArgument(key.length > 0, PreconditionMessage.ERR_PUT_EMPTY_KEY);
     Preconditions.checkArgument(value.length > 0, PreconditionMessage.ERR_PUT_EMPTY_VALUE);
 
+    // Since the input keys are guaranteed in non-decreasing order by the client, only the last
+    // input key needs to be checked in order to prevent inputting same key.
+    if (mLastKey != null && Arrays.equals(key, mLastKey)) {
+      throw new IOException(ExceptionMessage.KEY_ALREADY_EXISTS.getMessage());
+    }
+
     // If this is the first put to the first partition in this store, create a new partition; or
     // if this is a put to an existing but full partition, create a new partition and switch to
     // this one.
@@ -126,6 +135,10 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     }
 
     mWriter.put(key, value);
+
+    // Update the last input key.
+    mLastKey = key;
+
     ByteBuffer keyBuf = ByteBuffer.wrap(key);
     // Update the min key in the current partition.
     if (mKeyStart == null || keyBuf.compareTo(mKeyStart) < 0) {
