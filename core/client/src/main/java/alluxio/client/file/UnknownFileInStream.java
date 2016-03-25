@@ -24,7 +24,8 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A streaming API to read a file on unknown length.
+ * A streaming API to read a file of unknown length. A file of unknown length cannot be more than
+ * one block.
  */
 @PublicApi
 @NotThreadSafe
@@ -66,6 +67,7 @@ public class UnknownFileInStream extends FileInStream {
     if (mCurrentBlockInStream != null) {
       return mCurrentBlockInStream.remaining();
     }
+    // A file of unknown length can only be one block.
     return mBlockSize - mPos;
   }
 
@@ -85,7 +87,7 @@ public class UnknownFileInStream extends FileInStream {
   }
 
   @Override
-  protected BlockInStream getUnderStoreBlockInStream(long blockStart, long length, String path)
+  protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
     return UnderStoreBlockInStream.createWithUnknownLength(blockStart, length, path);
   }

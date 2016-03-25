@@ -273,7 +273,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Returns {@link BlockInStream} for the UFS.
+   * Creates and returns a {@link BlockInStream} for the UFS.
    *
    * @param blockStart the offset to start the block from
    * @param length the length of the block
@@ -281,7 +281,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @return the {@link BlockInStream} for the UFS
    * @throws IOException if the stream cannot be created
    */
-  protected BlockInStream getUnderStoreBlockInStream(long blockStart, long length, String path)
+  protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
     return mCurrentBlockInStream = UnderStoreBlockInStream.create(blockStart, length, path);
   }
@@ -474,7 +474,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       }
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
       mCurrentBlockInStream =
-          getUnderStoreBlockInStream(blockStart, getBlockSize(blockStart), mStatus.getUfsPath());
+          createUnderStoreBlockInStream(blockStart, getBlockSize(blockStart), mStatus.getUfsPath());
       mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
     }
   }
