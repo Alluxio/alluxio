@@ -275,4 +275,17 @@ public class PathUtilsTest {
       }
     }
   }
+
+  /**
+   * Tests the {@link PathUtils#normalizePath(String, String)} method.
+   */
+  @Test
+  public void normalizePathTest() throws Exception {
+    Assert.assertEquals("/", PathUtils.normalizePath("", "/"));
+    Assert.assertEquals("/", PathUtils.normalizePath("/", "/"));
+    Assert.assertEquals("/foo/bar/", PathUtils.normalizePath("/foo/bar", "/"));
+    Assert.assertEquals("/foo/bar/", PathUtils.normalizePath("/foo/bar/", "/"));
+    Assert.assertEquals("/foo/bar//", PathUtils.normalizePath("/foo/bar//", "/"));
+    Assert.assertEquals("/foo/bar%", PathUtils.normalizePath("/foo/bar", "%"));
+  }
 }
