@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream;
@@ -89,7 +90,7 @@ public class UnknownFileInStream extends FileInStream {
   @Override
   protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
-    return UnderStoreBlockInStream.createWithUnknownLength(blockStart, length, path);
+    return new UnderStoreBlockInStream(blockStart, Constants.UNKNOWN_SIZE, length, path);
   }
 
   @Override

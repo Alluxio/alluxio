@@ -283,7 +283,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
-    return mCurrentBlockInStream = UnderStoreBlockInStream.create(blockStart, length, path);
+    return new UnderStoreBlockInStream(blockStart, length, length, path);
   }
 
   /**
