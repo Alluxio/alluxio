@@ -40,7 +40,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class UnderFileSystem {
   protected final Configuration mConfiguration;
 
-  /** The UFS {@link AlluxioURI} used to create this UnderFileSystem. */
+  /** The UFS {@link AlluxioURI} used to create this {@link UnderFileSystem}. */
   protected final AlluxioURI mUri;
 
   /** A map of property names to values. */
@@ -209,7 +209,8 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * Configures and updates the properties. This may do work in order to add or update properties.
+   * Configures and updates the properties. For instance, this method can add new properties or
+   * modify existing properties specified through {@link #setProperties(Map)}.
    */
   public void configureProperties() {
     // Default implementation does not update any properties.
@@ -353,7 +354,7 @@ public abstract class UnderFileSystem {
   public abstract long getModificationTimeMs(String path) throws IOException;
 
   /**
-   * @return the property map for this UnderFileSystem
+   * @return the property map for this {@link UnderFileSystem}
    */
   public Map<String, String> getProperties() {
     return Collections.unmodifiableMap(mProperties);
@@ -483,9 +484,9 @@ public abstract class UnderFileSystem {
   public abstract boolean rename(String src, String dst) throws IOException;
 
   /**
-   * Returns an {@link AlluxioURI} representation for the UnderFileSystem given a base UFS URI, and
-   * the Alluxio path from the base. The default implementation simply concatenates the path to the
-   * base URI.
+   * Returns an {@link AlluxioURI} representation for the {@link UnderFileSystem} given a base
+   * UFS URI, and the Alluxio path from the base. The default implementation simply concatenates
+   * the path to the base URI.
    *
    * @param ufsBaseUri the base {@link AlluxioURI} in the UFS
    * @param alluxioPath the path in Alluxio from the given base
