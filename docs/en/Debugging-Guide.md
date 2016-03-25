@@ -16,7 +16,7 @@ Feel free to post questions on [Alluxio Mailing List](https://groups.google.com/
 ## Environment
 
 Alluxio can be configured under a variety of modes, in different production environments.
-Please make sure the Alluxio being deployed, is a supported version.
+Please make sure the Alluxio version being deployed, is update-to-date and supported.
 
 When posting questions on [Mailing List](https://groups.google.com/forum/alluxio-users),
 please attach the full environment information, including
@@ -41,13 +41,13 @@ in case the problem has been discussed before.
 
 #### Q: I'm new to Alluxio and getting started. I failed to set up Alluxio on my local machine. What shall I do?
 
-A: First check `{ALLUXIO_HOME}/logs` to see if there are any master or worker logs. If the logs
-show some errors, follow the clue. Otherwise please double check if you missed any configuration
+A: First check `{ALLUXIO_HOME}/logs` to see if there are any master or worker logs. Follow the clue
+indicated by the error logs. Otherwise please double check if you missed any configuration
 steps in [Running-Alluxio-Locally](Running-Alluxio-Locally.html).
 
 Typical issues:
 - `ALLUXIO_UNDERFS_ADDRESS` is not configured correctly.
-- Could not `ssh localhost` . Please make sure the public ssh key for the host is added in `~/.ssh/authorized_keys`.
+- If `ssh localhost` failed, make sure the public ssh key for the host is added in `~/.ssh/authorized_keys`.
 
 #### Q: I'm trying to deploy Alluxio in a cluster with Spark/HDFS. Are there any suggestions?
 
@@ -56,15 +56,15 @@ A: Please follow [Running-Alluxio-on-a-Cluster](Running-Alluxio-on-a-Cluster.htm
 
 Tips:
 - Usually, the best performance gains occur when Alluxio workers are co-located with the nodes of the computation frameworks.
-- Also, using Alluxio can be very beneficial if/when the under storage is remote (like S3 or remote HDFS).
-- You can use Mesos and yarn if you are already using Mesos or Yarn to manage your cluster. Using Mesos or Yarn can benefit management.
+- You can use Mesos and Yarn integration if you are already using Mesos or Yarn to manage your cluster. Using Mesos or Yarn can benefit management.
+- If the under storage is remote (like S3 or remote HDFS), using Alluxio can be very beneficial.
 
 #### Q: I have problems setting up Alluxio cluster on EC2. Can you advice?
 
 A: Please follow [Running-Alluxio-on-EC2.html](Running-Alluxio-on-EC2.html) for details.
 
 Typical issues:
-- Please make sure AWS access keys and Key Pairs are set up coordinately.
+- Please make sure AWS access keys and Key Pairs are set up.
 - If the UnderFileSystem is S3, check the S3 bucket name in `ufs.yml` is the name of an existing bucket, without the `s3://` or `s3n://` prefix.
 - If you are not able to access the UI, please check that your security group allows incoming traffic on port 19999.
 
@@ -74,4 +74,4 @@ Typical issues:
 
 A: Alluxio accelerates your system performance by leveraging data locality using distributed in-memory storage
 (and tiered storage). If your workloads do not have good data locality, and most accesses still need to go to
-the UnderFileSystem, you will not see tremendous performance difference.
+the UnderFileSystem, you will not see tremendous performance boost.
