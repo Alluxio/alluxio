@@ -387,6 +387,45 @@ public final class KeyValueSystemIntegrationTest {
     }
   }
 
+  private void testRenameStore(AlluxioURI oldStore, List<KeyValuePair> pairs, AlluxioURI newStore)
+      throws Exception {
+    sKeyValueSystem.renameStore(oldStore, newStore);
+    List<KeyValuePair> newPairs = Lists.newArrayList();
+    mReader = sKeyValueSystem.openStore(newStore);
+    KeyValueIterator iterator = mReader.iterator();
+    while (iterator.hasNext()) {
+      newPairs.add(iterator.next());
+    }
+
+    Assert.assertEquals(pairs.size(), newPairs.size());
+    Collections.sort(pairs);
+    Collections.sort(newPairs);
+    Assert.assertEquals(pairs, newPairs);
+    try {
+      sKeyValueSystem.openStore(oldStore);
+    } catch (AlluxioException e) {
+      Assert.assertEquals(e.getMessage(),
+          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(oldStore));
+      return;
+    }
+    Assert.assertTrue("The URI to the old key-value store still exists", false);
+  }
+
+  /**
+   *
+   * Test that rename a store of 5 key-value pairs.
+   */
+  @Test
+  public void renameStoreTest() throws Exception {
+    final int storeOfSize = 5;
+    final String newPath = "newPath";
+    List<KeyValuePair> pairs = Lists.newArrayList();
+    AlluxioURI oldStore = createStoreOfSize(storeOfSize, pairs);
+    AlluxioURI newStore = new AlluxioURI(PathUtils.concatPath(oldStore.getParent().toString(),
+        newPath));
+    testRenameStore(oldStore, pairs, newStore);
+  }
+
   private void testMergeStore(AlluxioURI store1, List<KeyValuePair> keyValuePairs1,
       AlluxioURI store2, List<KeyValuePair> keyValuePairs2) throws Exception {
     sKeyValueSystem.mergeStore(store1, store2);
