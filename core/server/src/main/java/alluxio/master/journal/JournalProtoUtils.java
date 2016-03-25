@@ -72,7 +72,7 @@ public final class JournalProtoUtils {
       case COMPLETE_STORE:
         return entry.getCompleteStore();
       case CREATE_STORE:
-        return entry.getCompleteStore();
+        return entry.getCreateStore();
       case DELETE_STORE:
         return entry.getDeleteStore();
       case MERGE_STORE:
