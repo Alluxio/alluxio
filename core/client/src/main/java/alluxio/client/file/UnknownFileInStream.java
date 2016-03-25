@@ -15,10 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockInStream;
+import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.UnderStoreBlockInStream;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 
@@ -31,6 +33,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public class UnknownFileInStream extends FileInStream {
+  /** Number of bytes read by stream. */
+  private long mReadBytes;
+  /** Number of bytes written by {@link #mCurrentCacheStream}. */
+  private long mCurrentCacheBytesWritten;
+
   /**
    * Creates a new file input stream, for a file of unknown length.
    *
@@ -39,6 +46,8 @@ public class UnknownFileInStream extends FileInStream {
    */
   public UnknownFileInStream(URIStatus status, InStreamOptions options) {
     super(status, options);
+    mReadBytes = 0;
+    mCurrentCacheBytesWritten = 0;
   }
 
   @Override
@@ -73,6 +82,12 @@ public class UnknownFileInStream extends FileInStream {
   }
 
   @Override
+  protected void updatePosForRead(int bytesRead) {
+    super.updatePosForRead(bytesRead);
+    mReadBytes += bytesRead;
+  }
+
+  @Override
   protected boolean validPosition(long pos) {
     return pos < mBlockSize;
   }
@@ -102,6 +117,20 @@ public class UnknownFileInStream extends FileInStream {
       return true;
     }
     return super.shouldCloseCacheStream();
+  }
+
+  @Override
+  protected void writeToCacheStream(byte[] buffer, int offset, int length) throws IOException {
+    super.writeToCacheStream(buffer, offset, length);
+    mCurrentCacheBytesWritten += length;
+  }
+
+  @Override
+  protected BufferedBlockOutStream createCacheStream(long blockId, long length,
+      WorkerNetAddress address) throws IOException {
+    BufferedBlockOutStream out = super.createCacheStream(blockId, length, address);
+    mCurrentCacheBytesWritten = 0;
+    return out;
   }
 
   @Override
