@@ -11,14 +11,14 @@ This page is a collection of high-level guides and tips regarding how to diagnos
 Alluxio.
 
 Note: this doc is not intended to be the full list of Alluxio questions.
-Feel free to post questions on [Alluxio Mailing List](https://groups.google.com/forum/alluxio-users).
+Feel free to post questions on [Alluxio Mailing List](https://groups.google.com/forum/#!forum/alluxio-users).
 
 ## Environment
 
 Alluxio can be configured under a variety of modes, in different production environments.
 Please make sure the Alluxio version being deployed, is update-to-date and supported.
 
-When posting questions on [Mailing List](https://groups.google.com/forum/alluxio-users),
+When posting questions on [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users),
 please attach the full environment information, including
 - Alluxio version
 - OS version
@@ -34,7 +34,7 @@ named as `master.log`, `master.out`, `worker.log`, `worker.out` and `user.log`.
 
 The master and worker logs are very useful to understand what happened in Alluxio Master and
 Workers, when you ran into any issues. If you do not understand the error messages,
-try to search them in the [Mailing List](https://groups.google.com/forum/alluxio-users),
+try to search them in the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users),
 in case the problem has been discussed before.
 
 ## Alluxio Setup FAQ
