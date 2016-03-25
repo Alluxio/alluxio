@@ -317,7 +317,7 @@ public final class KeyValueMaster extends AbstractMaster {
   }
 
   /**
-   *Renames one completed key-value store.
+   * Renames one completed key-value store.
    *
    * @param oldUri the old {@link AlluxioURI} to the store
    * @param newUri the {@link AlluxioURI} to the store
