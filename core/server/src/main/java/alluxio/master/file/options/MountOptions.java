@@ -70,7 +70,7 @@ public final class MountOptions {
       if (options.hasReadOnly()) {
         mReadOnly = options.getReadOnly();
       }
-      for (File.EntryStringString entry : options.getPropertiesList()) {
+      for (File.StringPairEntry entry : options.getPropertiesList()) {
         mProperties.put(entry.getKey(), entry.getValue());
       }
     }
@@ -102,12 +102,12 @@ public final class MountOptions {
   }
 
   /**
-   * @return the properties map as a list of {@link alluxio.proto.journal.File.EntryStringString}
+   * @return the properties map as a list of {@link alluxio.proto.journal.File.StringPairEntry}
    */
-  public List<File.EntryStringString> getPropertiesForProto() {
-    List<File.EntryStringString> entries = new ArrayList<>(mProperties.size());
+  public List<File.StringPairEntry> getPropertiesForProto() {
+    List<File.StringPairEntry> entries = new ArrayList<>(mProperties.size());
     for (Map.Entry<String, String> entry : mProperties.entrySet()) {
-      entries.add(File.EntryStringString.newBuilder()
+      entries.add(File.StringPairEntry.newBuilder()
           .setKey(entry.getKey())
           .setValue(entry.getValue())
           .build());
