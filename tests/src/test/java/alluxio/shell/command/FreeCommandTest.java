@@ -12,30 +12,46 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.exception.AlluxioException;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.CommonUtils;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for free command.
  */
 public class FreeCommandTest extends AbstractAlluxioShellTest {
+
+  @BeforeClass
+  public static void beforeClass() {
+    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
+        HeartbeatContext.SCHEDULED_TIMER_CLASS);
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
+        HeartbeatContext.SLEEPING_TIMER_CLASS);
+  }
+
   @Test
   public void freeTest() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
+
     mFsShell.run("free", "/testFile");
-    Configuration configuration = mLocalAlluxioCluster.getMasterConf();
-    CommonUtils.sleepMs(configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2);
+    triggerWorkerHeartbeats();
     Assert.assertFalse(
         mFileSystem.getStatus(new AlluxioURI("/testFile")).getInMemoryPercentage() == 100);
   }
@@ -44,11 +60,8 @@ public class FreeCommandTest extends AbstractAlluxioShellTest {
   public void freeWildCardTest() throws IOException, AlluxioException {
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
-    Configuration configuration = mLocalAlluxioCluster.getMasterConf();
-
     int ret = mFsShell.run("free", "/testWild*/foo/*");
-    CommonUtils.sleepMs(null,
-        configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10);
+    triggerWorkerHeartbeats();
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar1"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar2"));
@@ -56,10 +69,25 @@ public class FreeCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(isInMemoryTest("/testWildCards/foobar4"));
 
     ret = mFsShell.run("free", "/testWild*/*/");
-    CommonUtils.sleepMs(null,
-        configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10);
+    triggerWorkerHeartbeats();
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/bar/foobar3"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foobar4"));
+  }
+
+  private void triggerWorkerHeartbeats() {
+    // Execute the blocks free, which needs two heartbeats. Make sure there is some time delay
+    // between two heartbeats to make sure worker got time to generate block removal reports.
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    try {
+      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+          TimeUnit.SECONDS));
+      CommonUtils.sleepMs(50);
+      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+          TimeUnit.SECONDS));
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
   }
 }
