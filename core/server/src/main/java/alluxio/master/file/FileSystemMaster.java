@@ -329,6 +329,9 @@ public final class FileSystemMaster extends AbstractMaster {
   public boolean isDirectory(long id) {
     synchronized (mInodeTree) {
       Inode inode;
+      if (!mInodeTree.inodeIdExists(id)) {
+        return false;
+      }
       try {
         inode = mInodeTree.getInodeById(id);
       } catch (FileDoesNotExistException e) {
@@ -350,15 +353,18 @@ public final class FileSystemMaster extends AbstractMaster {
   public long getFileId(AlluxioURI path) throws AccessControlException {
     synchronized (mInodeTree) {
       Inode inode;
-      try {
-        checkPermission(FileSystemAction.READ, path, false);
-        inode = mInodeTree.getInodeByPath(path);
-      } catch (InvalidPathException e) {
+      checkPermission(FileSystemAction.READ, path, false);
+      if (!mInodeTree.inodePathExists(path)) {
         try {
           return loadMetadata(path, true);
-        } catch (Exception e2) {
+        } catch (Exception e) {
           return IdUtils.INVALID_FILE_ID;
         }
+      }
+      try {
+        inode = mInodeTree.getInodeByPath(path);
+      } catch (InvalidPathException e) {
+        return IdUtils.INVALID_FILE_ID;
       }
       return inode.getId();
     }
@@ -826,6 +832,9 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileDoesNotExistException, IOException, DirectoryNotEmptyException {
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Alluxio and UFS.
+    if (!mInodeTree.inodeIdExists(fileId)) {
+      return true;
+    }
     Inode inode = mInodeTree.getInodeById(fileId);
     if (inode == null) {
       return true;

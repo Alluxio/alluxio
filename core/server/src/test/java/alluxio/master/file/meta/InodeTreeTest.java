@@ -135,6 +135,7 @@ public final class InodeTreeTest {
   public void createDirectoryTest() throws Exception {
     // create directory
     mTree.createPath(TEST_URI, sDirectoryOptions);
+    Assert.assertTrue(mTree.inodePathExists(TEST_URI));
     Inode test = mTree.getInodeByPath(TEST_URI);
     Assert.assertEquals(TEST_PATH, test.getName());
     Assert.assertTrue(test.isDirectory());
@@ -144,6 +145,7 @@ public final class InodeTreeTest {
 
     // create nested directory
     mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
+    Assert.assertTrue(mTree.inodePathExists(NESTED_URI));
     Inode nested = mTree.getInodeByPath(NESTED_URI);
     Assert.assertEquals(TEST_PATH, nested.getName());
     Assert.assertEquals(2, nested.getParentId());
@@ -352,6 +354,36 @@ public final class InodeTreeTest {
   }
 
   /**
+   * Tests {@link InodeTree#inodeIdExists(long)}.
+   */
+  @Test
+  public void inodeIdExistsTest() throws Exception {
+    Assert.assertTrue(mTree.inodeIdExists(0));
+    Assert.assertFalse(mTree.inodeIdExists(1));
+
+    mTree.createPath(TEST_URI, sFileOptions);
+    Inode inode = mTree.getInodeByPath(TEST_URI);
+    Assert.assertTrue(mTree.inodeIdExists(inode.getId()));
+
+    mTree.deleteInode(inode);
+    Assert.assertFalse(mTree.inodeIdExists(inode.getId()));
+  }
+
+  /**
+   * Tests {@link InodeTree#inodePathExists(AlluxioURI)}.
+   */
+  @Test
+  public void inodePathExistsTest() throws Exception {
+    Assert.assertFalse(mTree.inodePathExists(TEST_URI));
+
+    mTree.createPath(TEST_URI, sFileOptions);
+    Assert.assertTrue(mTree.inodePathExists(TEST_URI));
+
+    mTree.deleteInode(mTree.getInodeByPath(TEST_URI));
+    Assert.assertFalse(mTree.inodePathExists(TEST_URI));
+  }
+
+  /**
    * Tests that an exception is thrown when trying to get an Inode by a non-existing path.
    *
    * @throws Exception if getting the Inode by path fails
@@ -361,6 +393,7 @@ public final class InodeTreeTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage("Path /test does not exist");
 
+    Assert.assertFalse(mTree.inodePathExists(TEST_URI));
     mTree.getInodeByPath(TEST_URI);
   }
 
@@ -375,6 +408,7 @@ public final class InodeTreeTest {
     mThrown.expectMessage("Path /nested/test/file does not exist");
 
     mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
+    Assert.assertFalse(mTree.inodePathExists(NESTED_FILE_URI));
     mTree.getInodeByPath(NESTED_FILE_URI);
   }
 
@@ -388,6 +422,7 @@ public final class InodeTreeTest {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Inode id 1 does not exist");
 
+    Assert.assertFalse(mTree.inodeIdExists(1));
     mTree.getInodeById(1);
   }
 
