@@ -56,7 +56,6 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
    * @param value value to put, cannot be null
    * @throws IOException if a non-Alluxio exception occurs
    */
-  // TODO(binfan): throw already exists exception if the key is already inserted.
   void put(byte[] key, byte[] value) throws IOException;
 
   /**

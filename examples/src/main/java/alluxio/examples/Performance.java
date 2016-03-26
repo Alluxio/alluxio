@@ -293,10 +293,9 @@ public class Performance {
      * @throws IOException if a non-Alluxio related exception occurs
      * @throws AlluxioException if the file cannot be opened or the stream cannot be retrieved
      */
-    public void readPartition()
-            throws IOException, AlluxioException {
+    public void readPartition() throws IOException, AlluxioException {
       if (sDebugMode) {
-        ByteBuffer buf = ByteBuffer.allocate(sBlockSizeBytes);
+        ByteBuffer buf = ByteBuffer.allocate((int) (sBlockSizeBytes * sBlocksPerFile));
         LOG.info("Verifying the reading data...");
 
         for (int pId = mLeft; pId < mRight; pId++) {
@@ -636,14 +635,13 @@ public class Performance {
       sResultPrefix = "AlluxioFilesWriteTest " + sResultPrefix;
       LOG.info(sResultPrefix);
       sFileSystem = FileSystem.Factory.get();
-      createFiles();
-      AlluxioTest(true);
+      AlluxioTest(true /* write */);
     } else if (testCase == 2 || testCase == 9) {
       sResultPrefix = "AlluxioFilesReadTest " + sResultPrefix;
       LOG.info(sResultPrefix);
       sFileSystem = FileSystem.Factory.get();
       sAlluxioStreamingRead = (9 == testCase);
-      AlluxioTest(false);
+      AlluxioTest(false /* read */);
     } else if (testCase == 3) {
       sResultPrefix = "RamFile Write " + sResultPrefix;
       LOG.info(sResultPrefix);
