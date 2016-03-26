@@ -7,7 +7,7 @@ Google_Cloud_Project_ID:
 Service_Acount_Email_Address:
 
 # The location of the JSON private key file matching your Service Account.
-json_Key_Location: 
+Json_Key_Location:
 
 
 #SSH - Vagrant/Ansible will SSH into VMs for environment setup.
@@ -16,10 +16,10 @@ json_Key_Location:
 # CLI (gcloud compute config-ssh) Which creates metatdata that is provided to 
 # every VM launched. Alternatively, it is possible to add to the GCE metatdata service
 # directly or manually manage keys.
-Key_Path: "~/.ssh/google_compute_engine"
+Key_Path:
 
 # This is the username associated with the keys above.
-SSH_Username: "gce-user"
+SSH_Username:
 
 
 # Configuring virtual machines
@@ -46,7 +46,8 @@ Machine_Type: "n1-standard-1"
 # and specific to GCE (https://cloud.google.com/compute/docs/authentication#using).
 Scopes: ['https://www.googleapis.com/auth/cloud-platform']
 
-# The disk size in GB. The default is 10.
+# The Persistent Disk size in GB. The default is 10. See documentation (https://cloud.google.com/compute/docs/disks)
+# for more details.
 Disk_Size: 10
 
 # Alluxio refers to instances as AlluxioMaster, AlluxioWorker1, etc. GCE does not allow uppercase instance names, so 
