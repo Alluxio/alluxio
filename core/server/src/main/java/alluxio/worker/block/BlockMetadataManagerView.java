@@ -229,4 +229,19 @@ public class BlockMetadataManagerView {
       return null;
     }
   }
+
+  /**
+   * Return -1 if block does not exist, else return the byte size of the block.
+   *
+   * @param blockId id of the block
+   * @return block size or -1 if the block does not exist
+   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this block id is found
+   */
+  public long getBlockSizeIfExist(long blockId) throws BlockDoesNotExistException {
+    if (mMetadataManager.hasBlockMeta(blockId)) {
+      return mMetadataManager.getBlockMeta(blockId).getBlockSize();
+    } else {
+      return -1;
+    }
+  }
 }
