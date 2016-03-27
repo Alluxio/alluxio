@@ -24,7 +24,7 @@ Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以�
 
 [Github ](https://github.com/alluxio/alluxio/) |
 [ 版 本  ](http://alluxio.org/releases/) |
-[ 下 载  ](http://alluxio.org/downloads/) |
+[ 下 载  ](http://alluxio.org/download/) |
 [ 用户文档  ](Getting-Started.html) |
 [ 开发者文档  ](Contributing-to-Alluxio.html) |
 [ Meetup 小组  ](https://www.meetup.com/Alluxio/) |
