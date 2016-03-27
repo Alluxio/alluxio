@@ -37,7 +37,7 @@ The project is the storage layer of the Berkeley Data Analytics Stack
 
 [Github](https://github.com/alluxio/alluxio/) |
 [Releases](http://alluxio.org/releases/) |
-[Downloads](http://alluxio.org/downloads/) |
+[Downloads](http://alluxio.org/download/) |
 [User Document](Getting-Started.html) |
 [Developer Document](Contributing-to-Alluxio.html) |
 [Meetup Group](https://www.meetup.com/Alluxio/) |
