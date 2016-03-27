@@ -19,7 +19,7 @@ Alluxio启动时会加载默认（也可以指定）配置属性文件从而设�
 
 1. Alluxio的配置属性默认值在`alluxio-default.properties`文件中，该文件在Alluxio源代码或者二进制包里都能找到，不建议初学者直接修改该文件。
 
-2. 每个部署点以及应用客户端都能够通过`alluxio-site.properties`文件将默认属性值覆盖掉，注意该文件必须在Alluxio Java VM的**classpath**中，最简单的方法是将该属性文件放在`$ALLUXIO_HOME/conf`目录中。
+2. 每个部署点以及应用客户端都能够通过`alluxio-site.properties`文件将默认属性值覆盖掉，注意该文件必须在Alluxio Java VM的**classpath**中，最简单的方法是将该属性文件放在`$ALLUXIO_HOME/conf`目录中，并根据你的配置调节的需求对其进行编辑。
 
 所有Alluxio配置属性都属于以下六类之一：
 [共有配置项](#common-configuration)（由Master和Worker共享），
