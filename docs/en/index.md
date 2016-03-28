@@ -87,7 +87,7 @@ page which will go through how to deploy Alluxio and run some basic examples in 
 # Downloads
 
 You can get the released versions of Alluxio from the
-[Project Downloads Page](http://alluxio.org/downloads). Each release comes with prebuilt
+[Project Downloads Page](http://alluxio.org/download). Each release comes with prebuilt
 binaries compatibile with various Hadoop versions. If you would like to build the project from the
 source code, check out the
 [Building From Master Branch Documentation](Building-Alluxio-Master-Branch.html).
