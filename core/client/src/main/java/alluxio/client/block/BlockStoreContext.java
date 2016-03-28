@@ -79,7 +79,8 @@ public enum BlockStoreContext {
   }
 
   /**
-   * Gets the worker addresses with the given hostname by querying the master.
+   * Gets the worker addresses with the given hostname by querying the master. Returns all the
+   * addresses, if the hostname is an empty string.
    *
    * @param hostname hostname of the worker to query, empty string denotes any worker
    * @return {@link List} of {@link WorkerNetAddress} of hostname
@@ -115,26 +116,6 @@ public enum BlockStoreContext {
   }
 
   /**
-   * Obtains a worker client to a worker in the system. A local client is preferred to be returned
-   * but not guaranteed. The caller should use {@link BlockWorkerClient#isLocal()} to verify if the
-   * client is local before assuming so.
-   *
-   * @return a {@link BlockWorkerClient} to a worker in the Alluxio system
-   */
-  public BlockWorkerClient acquireWorkerClient() {
-    BlockWorkerClient client = acquireLocalWorkerClient();
-    if (client == null) {
-      // Get a worker client for any worker in the system.
-      List<WorkerNetAddress> workerAddresses = getWorkerAddresses("");
-      if (workerAddresses.isEmpty()) {
-        return acquireRemoteWorkerClient(null);
-      }
-      return acquireRemoteWorkerClient(workerAddresses.get(0));
-    }
-    return client;
-  }
-
-  /**
    * Obtains a client for a worker with the given address.
    *
    * @param address the address of the worker to get a client to
@@ -150,7 +131,7 @@ public enum BlockStoreContext {
       client = acquireLocalWorkerClient(address);
       if (client == null) {
         throw new IOException(
-            ExceptionMessage.NO_WORKER_AVAILABLE_ON_HOST.getMessage(address.getHost()));
+            ExceptionMessage.NO_WORKER_AVAILABLE_ON_ADDRESS.getMessage(address));
       }
     } else {
       client = acquireRemoteWorkerClient(address);

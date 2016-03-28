@@ -53,7 +53,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     super(blockId, blockSize);
     if (!NetworkAddressUtils.getLocalHostName(ClientContext.getConf())
         .equals(workerAddress.getHost())) {
-      throw new IOException("The worker address " + workerAddress + " is not local");
+      throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage(workerAddress));
     }
 
     mCloser = Closer.create();

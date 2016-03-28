@@ -144,7 +144,7 @@ public final class BlockStoreContextTest {
     // Acquire all the clients
     for (int i = 0; i < ClientContext.getConf()
         .getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS); i++) {
-      clients.add(BlockStoreContext.INSTANCE.acquireWorkerClient());
+      clients.add(BlockStoreContext.INSTANCE.acquireLocalWorkerClient());
     }
 
     // Spawn another thread to acquire a worker client
@@ -180,7 +180,7 @@ public final class BlockStoreContextTest {
   class AcquireWorkerClient implements Runnable {
     @Override
     public void run() {
-      BlockWorkerClient client = BlockStoreContext.INSTANCE.acquireWorkerClient();
+      BlockWorkerClient client = BlockStoreContext.INSTANCE.acquireLocalWorkerClient();
       BlockStoreContext.INSTANCE.releaseWorkerClient(client);
     }
   }

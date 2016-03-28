@@ -32,28 +32,6 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   private final ClientMetrics mMetrics;
 
   /**
-   * Creates a new block output stream.
-   *
-   * @param blockId the block id
-   * @param blockSize the block size
-   * @throws IOException if I/O error occurs
-   */
-  public RemoteBlockOutStream(long blockId, long blockSize) throws IOException {
-    super(blockId, blockSize);
-    mRemoteWriter = RemoteBlockWriter.Factory.create(ClientContext.getConf());
-    mBlockWorkerClient = mContext.acquireWorkerClient();
-    try {
-      mBlockWorkerClient.connect();
-      mRemoteWriter.open(mBlockWorkerClient.getDataServerAddress(), mBlockId,
-          mBlockWorkerClient.getSessionId());
-      mMetrics = mBlockWorkerClient.getClientMetrics();
-    } catch (IOException e) {
-      mContext.releaseWorkerClient(mBlockWorkerClient);
-      throw e;
-    }
-  }
-
-  /**
    * Creates a new block output stream on a specific address.
    *
    * @param blockId the block id
