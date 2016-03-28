@@ -5,6 +5,7 @@ package alluxio.proto.journal;
 // Journal entry messages for the file master.
 
 // A pair of strings, useful for maps.
+// next available id: 3
 message StringPairEntry {
   optional string key = 1;
   optional string value = 2;

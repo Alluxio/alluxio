@@ -14,10 +14,8 @@ package alluxio.master.file.options;
 import alluxio.proto.journal.File;
 import alluxio.thrift.MountTOptions;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -102,25 +100,13 @@ public final class MountOptions {
   }
 
   /**
-   * @return the properties map as a list of {@link alluxio.proto.journal.File.StringPairEntry}
-   */
-  public List<File.StringPairEntry> getPropertiesForProto() {
-    List<File.StringPairEntry> entries = new ArrayList<>(mProperties.size());
-    for (Map.Entry<String, String> entry : mProperties.entrySet()) {
-      entries.add(File.StringPairEntry.newBuilder()
-          .setKey(entry.getKey())
-          .setValue(entry.getValue())
-          .build());
-    }
-    return entries;
-  }
-
-  /**
-   * @param properties the properties map to use
+   * @param properties the properties map to use. The existing map will be cleared first, and then
+   *                   entries of the input map will be added to the internal map.
    * @return the updated options object
    */
   public MountOptions setProperties(Map<String, String> properties) {
-    mProperties = properties;
+    mProperties.clear();
+    mProperties.putAll(properties);
     return this;
   }
 }
