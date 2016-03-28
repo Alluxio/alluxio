@@ -62,7 +62,7 @@
                 <th><%= request.getAttribute("master.PathsRenamed") %></th>
               </tr>
               <tr>
-                <th>PathsUnmounted</th>
+                <th>Paths Unmounted</th>
                 <th><%= request.getAttribute("master.PathsUnmounted") %></th>
                 <th></th>
                 <th></th>
