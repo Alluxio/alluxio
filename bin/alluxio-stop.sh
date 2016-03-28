@@ -17,20 +17,20 @@ Where component is one of:
 -h  display this help."
 
 kill_master() {
-  $LAUNCHER ${BIN}/alluxio killAll alluxio.master.AlluxioMaster
+  ${LAUNCHER} ${BIN}/alluxio killAll alluxio.master.AlluxioMaster
 }
 
 kill_worker() {
-  $LAUNCHER ${BIN}/alluxio killAll alluxio.worker.AlluxioWorker
+  ${LAUNCHER} ${BIN}/alluxio killAll alluxio.worker.AlluxioWorker
 }
 
 kill_remote_workers() {
-  $LAUNCHER ${BIN}/alluxio-workers.sh ${BIN}/alluxio killAll alluxio.worker.AlluxioWorker
+  ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio killAll alluxio.worker.AlluxioWorker
 }
 
 WHAT=${1:--h}
 
-case "$WHAT" in
+case "${WHAT}" in
   master)
     kill_master
     ;;
@@ -47,12 +47,12 @@ case "$WHAT" in
     kill_remote_workers
     ;;
   -h)
-    echo -e "$Usage"
+    echo -e "${Usage}"
     exit 0
     ;;
   *)
-    echo "Error: Invalid component: $WHAT"
-    echo -e "$Usage"
+    echo "Error: Invalid component: ${WHAT}"
+    echo -e "${Usage}"
     exit 1
     ;;
 esac
