@@ -64,7 +64,7 @@ A: Alluxio accelerates your system performance by leveraging temporal or spatial
 ## Environment
 
 Alluxio can be configured under a variety of modes, in different production environments.
-Please make sure the Alluxio version being deployed, is update-to-date and supported.
+Please make sure the Alluxio version being deployed is update-to-date and supported.
 
 When posting questions on the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users),
 please attach the full environment information, including
