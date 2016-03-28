@@ -11,21 +11,7 @@ This page is a collection of high-level guides and tips regarding how to diagnos
 Alluxio.
 
 Note: this doc is not intended to be the full list of Alluxio questions.
-Feel free to post questions on [Alluxio Mailing List](https://groups.google.com/forum/#!forum/alluxio-users).
-
-## Environment
-
-Alluxio can be configured under a variety of modes, in different production environments.
-Please make sure the Alluxio version being deployed, is update-to-date and supported.
-
-When posting questions on [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users),
-please attach the full environment information, including
-- Alluxio version
-- OS version
-- Java version
-- UnderFileSystem type and version
-- Computing framework type and version
-- Cluster information
+Feel free to post questions on the [Alluxio Mailing List](https://groups.google.com/forum/#!forum/alluxio-users).
 
 ## Where are the Alluxio logs?
 
@@ -57,9 +43,9 @@ A: Please follow [Running-Alluxio-on-a-Cluster](Running-Alluxio-on-a-Cluster.htm
 Tips:
 - Usually, the best performance gains occur when Alluxio workers are co-located with the nodes of the computation frameworks.
 - You can use Mesos and Yarn integration if you are already using Mesos or Yarn to manage your cluster. Using Mesos or Yarn can benefit management.
-- If the under storage is remote (like S3 or remote HDFS), using Alluxio can be very beneficial.
+- If the under storage is remote (like S3 or remote HDFS), using Alluxio can be especially beneficial.
 
-#### Q: I have problems setting up Alluxio cluster on EC2. Can you advice?
+#### Q: I'm having problems setting up Alluxio cluster on EC2. Can you advice?
 
 A: Please follow [Running-Alluxio-on-EC2.html](Running-Alluxio-on-EC2.html) for details.
 
@@ -70,8 +56,21 @@ Typical issues:
 
 ## Alluxio Performance FAQ
 
-#### Q: I tested Alluxio/Spark against HDFS/Spark (running simple work count of GBs of files). There is no discernible performance difference. Why?
+#### Q: I tested Alluxio/Spark against HDFS/Spark (running simple word count of GBs of files). There is no discernible performance difference. Why?
 
-A: Alluxio accelerates your system performance by leveraging data locality using distributed in-memory storage
-(and tiered storage). If your workloads do not have good data locality, and most accesses still need to go to
-the UnderFileSystem, you will not see tremendous performance boost.
+A: Alluxio accelerates your system performance by leveraging temporal or spatial locality using distributed in-memory storage
+(and tiered storage). If your workloads don't have any locality, you will not see tremendous performance boost. 
+
+## Environment
+
+Alluxio can be configured under a variety of modes, in different production environments.
+Please make sure the Alluxio version being deployed, is update-to-date and supported.
+
+When posting questions on the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users),
+please attach the full environment information, including
+- Alluxio version
+- OS version
+- Java version
+- UnderFileSystem type and version
+- Computing framework type and version
+- Cluster information, e.g. the number of nodes, memory size in each node, intra-datacenter or cross-datacenter
