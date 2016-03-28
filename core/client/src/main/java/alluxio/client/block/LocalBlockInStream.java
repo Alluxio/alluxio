@@ -55,7 +55,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     super(blockId, blockSize);
     if (!NetworkAddressUtils.getLocalHostName(ClientContext.getConf())
         .equals(workerAddress.getHost())) {
-      throw new IOException("The worker address " + workerAddress + " is not local");
+      throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage(workerAddress));
     }
     mContext = BlockStoreContext.INSTANCE;
 
