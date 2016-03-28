@@ -446,8 +446,6 @@ public class JournalIntegrationTest {
     }
     fsMaster.stop();
   }
-
-
   /**
    * Tests file and directory creation, and rename.
    */
