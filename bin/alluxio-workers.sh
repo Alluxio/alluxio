@@ -29,7 +29,7 @@ else
 fi
 
 for worker in $(echo ${HOSTLIST}); do
-  echo "$(date +"%F %H:%M:%S,$(date +"%s%N" | cut -c 11- | cut -c 1-3)") \
+  echo "$(date +"%F %H:%M:%S,$(date +"%s%N" | cut -c 11- | cut -c 1-3)")
    INFO ${WORKER_ACTION_TYPE}  Connecting to ${worker} as ${USER}..." >> ${ALLUXIO_TASK_LOG}
   nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -t ${worker} ${LAUNCHER} \
    $"${@// /\\ }" >> ${ALLUXIO_TASK_LOG} 2>&1&
