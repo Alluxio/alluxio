@@ -31,14 +31,17 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderStoreBlockInStream extends BlockInStream {
   /** The start of this block. This is the absolute position within the UFS file. */
   private final long mInitPos;
-  /** The length of this current block. This may be {@link Constants#UNKNOWN_SIZE}. */
+  /**
+   * The length of this current block. This may be
+   * {@link Constants#UNKNOWN_SIZE}. See {@link #getLength()} for more length information.
+   */
   private final long mLength;
   /** The UFS path for this block. */
   private final String mUfsPath;
   /**
    * The maximum possible length for this block. This is usually equal to {@link #mLength}, but when
    * {@link #mLength} is {@link Constants#UNKNOWN_SIZE}, this {@link #mMaxLength} will be the
-   * block size of the file.
+   * block size of the file. See {@link #getLength()} for more length information.
    */
   private final long mMaxLength;
 
@@ -49,14 +52,17 @@ public final class UnderStoreBlockInStream extends BlockInStream {
   private long mPos;
   /** The current under store stream. */
   private InputStream mUnderStoreStream;
-  /** The computed length of the block. This is only computed when the UFS stream is done. */
+  /**
+   * The computed length of the block. This is only computed when the UFS stream is done. See
+   * {@link #getLength()} for more length information.
+   */
   private long mComputedLength;
 
   /**
    * Creates a new under storage file input stream.
    *
    * @param initPos the initial position
-   * @param length the length of this current block
+   * @param length the length of this current block (allowed to be {@link Constants#UNKNOWN_SIZE})
    * @param maxLength the max possible length of this block, which is the block size for the file
    * @param ufsPath the under file system path
    * @throws IOException if an I/O error occurs
@@ -83,7 +89,7 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     }
     int data = mUnderStoreStream.read();
     if (data == -1) {
-      // End of stream.
+      // End of stream. Compute the length.
       mComputedLength = mPos;
       return data;
     }
@@ -103,7 +109,7 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     }
     int bytesRead = mUnderStoreStream.read(b, off, len);
     if (bytesRead == -1) {
-      // End of stream.
+      // End of stream. Compute the length.
       mComputedLength = mPos;
       return bytesRead;
     }
@@ -170,18 +176,24 @@ public final class UnderStoreBlockInStream extends BlockInStream {
   }
 
   /**
+   * Returns the length of the current UFS block. This method handles the situation when the UFS
+   * file has an unknown length. If the UFS file has an unknown length, the length returned will
+   * be the block size, or the computed size (if it is valid). The computed size is valid only
+   * once the UFS stream is read completely.
+   *
    * @return the length of this current block
    */
   private long getLength() {
-    if (mLength == Constants.UNKNOWN_SIZE) {
-      if (mComputedLength != Constants.UNKNOWN_SIZE) {
-        // If the length was unknown, but the computed length is known (UFS stream completed), use
-        // the computed length.
-        return mComputedLength;
-      }
-      // The length is unknown. Use the max block size until the computed length is known.
-      return mMaxLength;
+    if (mLength != Constants.UNKNOWN_SIZE) {
+      return mLength;
     }
-    return mLength;
+    // The length of the stream was initially unknown.
+    if (mComputedLength != Constants.UNKNOWN_SIZE) {
+      // If the length was unknown, but the computed length is known (UFS stream completed), use
+      // the computed length.
+      return mComputedLength;
+    }
+    // The length is unknown. Use the max block size until the computed length is known.
+    return mMaxLength;
   }
 }
