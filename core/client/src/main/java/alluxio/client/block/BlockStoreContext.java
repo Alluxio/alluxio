@@ -27,9 +27,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -52,7 +52,7 @@ public enum BlockStoreContext {
   private BlockMasterClientPool mBlockMasterClientPool;
   /** A map from the worker's address to its client pool. */
   private Map<WorkerNetAddress, BlockWorkerClientPool> mLocalBlockWorkerClientPoolMap =
-      new HashMap<>();
+      new ConcurrentHashMap<>();
 
   private boolean mLocalBlockWorkerClientPoolInitialized = false;
 
@@ -83,7 +83,7 @@ public enum BlockStoreContext {
    * addresses, if the hostname is an empty string.
    *
    * @param hostname hostname of the worker to query, empty string denotes any worker
-   * @return {@link List} of {@link WorkerNetAddress} of hostname
+   * @return List of {@link WorkerNetAddress} of hostname
    */
   private List<WorkerNetAddress> getWorkerAddresses(String hostname) {
     List<WorkerNetAddress> addresses = new ArrayList<>();
@@ -140,7 +140,7 @@ public enum BlockStoreContext {
   }
 
   /**
-   * Obtains a worker client on the local worker in the system.
+   * Obtains a worker client on the local worker in the system. For testing only.
    *
    * @return a {@link BlockWorkerClient} to a worker in the Alluxio system or null if failed
    */
