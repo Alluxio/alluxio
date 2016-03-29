@@ -31,4 +31,3 @@
   var url = window.location.pathname;
   $("#"+url.substring(1)+"-li").addClass("active");
 </script>
-<link rel="stylesheet" type="text/css" href="css/bootstrap-responsive.min.css">
