@@ -32,10 +32,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * A streaming API to read a file of unknown length. A file of unknown length cannot be more than
  * one block.
+ *
+ * TODO(gpang): This class should probably not implement BoundedStream, since remaining() does
+ * not make sense for a file of unknown length. Investigate an alternative class hierarchy.
  */
 @PublicApi
 @NotThreadSafe
-public class UnknownLengthFileInStream extends FileInStream {
+public final class UnknownLengthFileInStream extends FileInStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /**
    * Since the file length is unknown, the actual length of the block is also unknown. Simply
