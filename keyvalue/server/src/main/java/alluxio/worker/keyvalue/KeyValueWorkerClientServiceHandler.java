@@ -121,6 +121,8 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
     ByteBuffer fileBuffer = blockReader.read(0, blockReader.getLength());
     ByteBufferKeyValuePartitionReader reader = new ByteBufferKeyValuePartitionReader(fileBuffer);
     // TODO(binfan): clean fileBuffer which is a direct byte buffer
+
+    blockReader.close();
     return reader;
   }
 
