@@ -89,7 +89,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
     // TODO(chaomin): maybe add proxy support for GCS.
     mClient = new GoogleStorageService(googleCredentials);
-    mBucketPrefix = Constants.HEADER_GCS + mBucketName + PATH_SEPARATOR;
+    mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_GCS + mBucketName, PATH_SEPARATOR);
   }
 
   @Override
@@ -236,7 +236,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
       return null;
     }
     // Non recursive list
-    path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
+    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
     return listInternal(path, false);
   }
 
@@ -456,8 +456,8 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    * @return true if the key is the root, false otherwise
    */
   private boolean isRoot(String key) {
-    return key.equals(Constants.HEADER_GCS + mBucketName)
-        || key.equals(Constants.HEADER_GCS + mBucketName + PATH_SEPARATOR);
+    return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(
+        PathUtils.normalizePath(Constants.HEADER_GCS + mBucketName, PATH_SEPARATOR));
   }
 
   /**
@@ -472,7 +472,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
   private String[] listInternal(String path, boolean recursive) throws IOException {
     try {
       path = stripPrefixIfPresent(path);
-      path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
+      path = PathUtils.normalizePath(path, PATH_SEPARATOR);
       path = path.equals(PATH_SEPARATOR) ? "" : path;
       // Gets all the objects under the path, because we have no idea if there are non Alluxio
       // managed "directories"
