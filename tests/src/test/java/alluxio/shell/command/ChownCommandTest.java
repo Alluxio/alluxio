@@ -40,7 +40,7 @@ public class ChownCommandTest extends AbstractAlluxioShellTest {
   }
 
   /**
-   * Test -R option for chown recursively.
+   * Tests -R option for chown recursively.
    *
    * @throws Exception
    */

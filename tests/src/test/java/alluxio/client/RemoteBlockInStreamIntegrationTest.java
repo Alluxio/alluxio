@@ -41,7 +41,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -108,7 +107,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#read()}. Read from underfs.
+   * Tests {@link RemoteBlockInStream#read()}. Read from underfs.
    */
   @Test
   public void readTest1() throws IOException, AlluxioException {
@@ -169,7 +168,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
+   * Tests {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
    */
   @Test
   public void readTest2() throws IOException, AlluxioException {
@@ -206,7 +205,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#read(byte[], int, int)}. Read from underfs.
+   * Tests {@link RemoteBlockInStream#read(byte[], int, int)}. Read from underfs.
    */
   @Test
   public void readTest3() throws IOException, AlluxioException {
@@ -243,7 +242,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#read()}. Read from remote data server.
+   * Tests {@link RemoteBlockInStream#read()}. Read from remote data server.
    */
   @Test
   public void readTest4() throws IOException, AlluxioException {
@@ -256,8 +255,7 @@ public class RemoteBlockInStreamIntegrationTest {
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
-              workerAddr.getHost(), workerAddr.getDataPort()));
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;
@@ -275,7 +273,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#read(byte[])}. Read from remote data server.
+   * Tests {@link RemoteBlockInStream#read(byte[])}. Read from remote data server.
    */
   @Test
   public void readTest5() throws IOException, AlluxioException {
@@ -288,8 +286,7 @@ public class RemoteBlockInStreamIntegrationTest {
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
-              workerAddr.getHost(), workerAddr.getDataPort()));
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
       byte[] ret = new byte[k];
       int start = 0;
       while (start < k) {
@@ -303,7 +300,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#read(byte[], int, int)}. Read from remote data server.
+   * Tests {@link RemoteBlockInStream#read(byte[], int, int)}. Read from remote data server.
    */
   @Test
   public void readTest6() throws IOException, AlluxioException {
@@ -316,8 +313,7 @@ public class RemoteBlockInStreamIntegrationTest {
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
-              workerAddr.getHost(), workerAddr.getDataPort()));
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
       byte[] ret = new byte[k / 2];
       int start = 0;
       while (start < k / 2) {
@@ -331,7 +327,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
+   * Tests {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
    */
   @Test
   public void readTest7() throws IOException, AlluxioException {
@@ -351,7 +347,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
+   * Tests {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
    * negative position.
    *
    * @throws IOException
@@ -376,7 +372,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
+   * Tests {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
    * position that is past block size.
    *
    * @throws IOException
@@ -401,7 +397,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#seek(long)}.
+   * Tests {@link RemoteBlockInStream#seek(long)}.
    *
    * @throws IOException
    * @throws AlluxioException
@@ -427,7 +423,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link RemoteBlockInStream#skip(long)}.
+   * Tests {@link RemoteBlockInStream#skip(long)}.
    */
   @Test
   public void skipTest() throws IOException, AlluxioException {
@@ -547,11 +543,8 @@ public class RemoteBlockInStreamIntegrationTest {
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      InetSocketAddress workerInetAddr =
-          new InetSocketAddress(workerAddr.getHost(), workerAddr.getDataPort());
-
       RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerInetAddr);
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
 
@@ -569,7 +562,7 @@ public class RemoteBlockInStreamIntegrationTest {
       // Try to create an in stream again, and it should fail.
       RemoteBlockInStream is2 = null;
       try {
-        is2 = new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerInetAddr);
+        is2 = new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
       } catch (IOException e) {
         Assert.assertTrue(e.getCause() instanceof BlockDoesNotExistException);
       } finally {

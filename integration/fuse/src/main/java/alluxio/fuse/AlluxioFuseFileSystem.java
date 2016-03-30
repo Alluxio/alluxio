@@ -96,6 +96,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   /**
    * Creates and opens a new file.
+   *
    * @param path The FS path of the file to open
    * @param mode mode flags
    * @param fi FileInfo data struct kept by FUSE
@@ -156,6 +157,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    * Flushes cached data on Alluxio.
    *
    * Called on explicit sync() operation or at close().
+   *
    * @param path The path on the FS of the file to close
    * @param fi FileInfo data struct kept by FUSE
    * @return 0 on success, a negative value on error
@@ -186,6 +188,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   /**
    * Retrieves file attributes.
+   *
    * @param path The path on the FS of the file
    * @param stat FUSE data structure to fill with file attrs
    * @return 0 on success, negative value on error
@@ -257,6 +260,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   /**
    * Creates a new dir.
+   *
    * @param path the path on the FS of the new dir
    * @param mode Dir creation flags (IGNORED)
    * @return 0 on success, a negative value on error
@@ -353,6 +357,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   /**
    * Reads data from an open file.
+   *
    * @param path the FS path of the file to read
    * @param buf FUSE buffer to fill with data read
    * @param size how many bytes to read. The maximum value that is accepted
@@ -418,6 +423,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   /**
    * Reads the contents of a directory.
+   *
    * @param path The FS path of the directory
    * @param buff The FUSE buffer to fill
    * @param filter FUSE filter
@@ -472,6 +478,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    * Releases the resources associated to an open file.
    *
    * Guaranteed to be called once for each open() or create().
+   *
    * @param path the FS path of the file to release
    * @param fi FileInfo data structure kept by FUSE
    * @return 0. The return value is ignored by FUSE (any error should be reported
@@ -538,6 +545,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   /**
    * Deletes an empty directory.
+   *
    * @param path The FS path of the directory
    * @return 0 on success, a negative value on error
    */
@@ -549,6 +557,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   /**
    * Deletes a file from the FS.
+   *
    * @param path the FS path of the file
    * @return 0 on success, a negative value on error
    */
@@ -560,6 +569,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   /**
    * Writes a buffer to an open Alluxio file.
+   *
    * @param buf The buffer with source data
    * @param size How much data to write from the buffer. The maximum accepted size
    *             for writes is {@link Integer#MAX_VALUE}. Note that current FUSE
@@ -606,6 +616,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   /**
    * Convenience internal method to remove files or directories.
+   *
    * @param path The path to remove
    * @param mustBeFile When true, returns an error when trying to
    *                   remove a directory

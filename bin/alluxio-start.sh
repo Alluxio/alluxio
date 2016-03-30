@@ -34,7 +34,7 @@ MOPT is one of:
 -h  display this help."
 
 ensure_dirs() {
-  if [ ! -d "$ALLUXIO_LOGS_DIR" ]; then
+  if [[ ! -d "$ALLUXIO_LOGS_DIR" ]]; then
     echo "ALLUXIO_LOGS_DIR: $ALLUXIO_LOGS_DIR"
     mkdir -p $ALLUXIO_LOGS_DIR
   fi
@@ -52,7 +52,7 @@ check_mount_mode() {
     SudoMount);;
     NoMount);;
     *)
-      if [ -z $1 ] ; then
+      if [[ -z $1 ]]; then
         echo "This command requires a mount mode be specified"
       else
         echo "Invalid mount mode: $1"
@@ -86,15 +86,15 @@ stop() {
 
 start_master() {
   MASTER_ADDRESS=$ALLUXIO_MASTER_ADDRESS
-  if [ -z $ALLUXIO_MASTER_ADDRESS ] ; then
+  if [[ -z $ALLUXIO_MASTER_ADDRESS ]]; then
     MASTER_ADDRESS=localhost
   fi
 
-  if [[ -z $ALLUXIO_MASTER_JAVA_OPTS ]] ; then
+  if [[ -z $ALLUXIO_MASTER_JAVA_OPTS ]]; then
     ALLUXIO_MASTER_JAVA_OPTS=$ALLUXIO_JAVA_OPTS
   fi
 
-  if [ "${1}" == "-f" ] ; then
+  if [[ "${1}" == "-f" ]]; then
     $LAUNCHER ${BIN}/alluxio format
   fi
 
@@ -103,7 +103,6 @@ start_master() {
    -Dalluxio.home=$ALLUXIO_HOME \
    -Dalluxio.logs.dir=$ALLUXIO_LOGS_DIR \
    -Dalluxio.logger.type="MASTER_LOGGER" \
-   -Dalluxio.accesslogger.type="MASTER_ACCESS_LOGGER" \
    -Dlog4j.configuration=file:$ALLUXIO_CONF_DIR/log4j.properties \
    $ALLUXIO_MASTER_JAVA_OPTS \
    alluxio.master.AlluxioMaster > $ALLUXIO_LOGS_DIR/master.out 2>&1) &
@@ -116,35 +115,33 @@ start_worker() {
     exit 1
   fi
 
-  if [[ -z $ALLUXIO_WORKER_JAVA_OPTS ]] ; then
+  if [[ -z $ALLUXIO_WORKER_JAVA_OPTS ]]; then
     ALLUXIO_WORKER_JAVA_OPTS=$ALLUXIO_JAVA_OPTS
   fi
 
-  echo "Starting worker @ `hostname -f`. Logging to $ALLUXIO_LOGS_DIR"
+  echo "Starting worker @ $(hostname -f). Logging to $ALLUXIO_LOGS_DIR"
   (nohup $JAVA -cp $CLASSPATH \
    -Dalluxio.home=$ALLUXIO_HOME \
    -Dalluxio.logs.dir=$ALLUXIO_LOGS_DIR \
    -Dalluxio.logger.type="WORKER_LOGGER" \
-   -Dalluxio.accesslogger.type="WORKER_ACCESS_LOGGER" \
    -Dlog4j.configuration=file:$ALLUXIO_CONF_DIR/log4j.properties \
    $ALLUXIO_WORKER_JAVA_OPTS \
    alluxio.worker.AlluxioWorker > $ALLUXIO_LOGS_DIR/worker.out 2>&1 ) &
 }
 
 restart_worker() {
-  if [[ -z $ALLUXIO_WORKER_JAVA_OPTS ]] ; then
+  if [[ -z $ALLUXIO_WORKER_JAVA_OPTS ]]; then
     ALLUXIO_WORKER_JAVA_OPTS=$ALLUXIO_JAVA_OPTS
   fi
 
-  RUN=`ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | cut -d" " -f7`
-  if [[ $RUN -eq 0 ]] ; then
-    echo "Restarting worker @ `hostname -f`. Logging to $ALLUXIO_LOGS_DIR"
+  RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | cut -d" " -f7)
+  if [[ $RUN -eq 0 ]]; then
+    echo "Restarting worker @ $(hostname -f). Logging to $ALLUXIO_LOGS_DIR"
     (nohup $JAVA -cp $CLASSPATH \
      -Dalluxio.home=$ALLUXIO_HOME \
      -Dalluxio.logs \
      .dir=$ALLUXIO_LOGS_DIR \
      -Dalluxio.logger.type="WORKER_LOGGER" \
-     -Dalluxio.accesslogger \
      .type="WORKER_ACCESS_LOGGER" \
      -Dlog4j.configuration=file:$ALLUXIO_CONF_DIR/log4j.properties \
      $ALLUXIO_WORKER_JAVA_OPTS \
@@ -155,8 +152,8 @@ restart_worker() {
 run_safe() {
   while [ 1 ]
   do
-    RUN=`ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | wc | cut -d" " -f7`
-    if [[ $RUN -eq 0 ]] ; then
+    RUN=$(ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | wc | cut -d" " -f7)
+    if [[ $RUN -eq 0 ]]; then
       echo "Restarting the system master..."
       start_master
     fi
@@ -188,7 +185,7 @@ shift $((OPTIND-1))
 
 WHAT=$1
 
-if [ -z "${WHAT}" ]; then
+if [[ -z "${WHAT}" ]]; then
   echo "Error: no WHAT specified"
   echo -e "$Usage"
   exit 1
@@ -203,7 +200,7 @@ ensure_dirs
 case "${WHAT}" in
   all)
     check_mount_mode $2
-    if [ "${killonstart}" != "no" ]; then
+    if [[ "${killonstart}" != "no" ]]; then
       stop ${BIN}
     fi
     start_master $3
@@ -211,13 +208,13 @@ case "${WHAT}" in
     $LAUNCHER ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker $2
     ;;
   local)
-    if [ "${killonstart}" != "no" ]; then
+    if [[ "${killonstart}" != "no" ]]; then
       stop ${BIN}
       sleep 1
     fi
     $LAUNCHER ${BIN}/alluxio-mount.sh SudoMount
     stat=$?
-    if [ $stat -ne 0 ] ; then
+    if [[ $stat -ne 0 ]]; then
       echo "Mount failed, not starting"
       exit 1
     fi

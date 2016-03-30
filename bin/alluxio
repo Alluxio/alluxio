@@ -190,7 +190,7 @@ function killAll {
 }
 
 function copyDir {
-  if [[ $# -ne 1 ]] ; then
+  if [[ $# -ne 1 ]]; then
     echo "Usage: alluxio copyDir <path>"
     exit 1
   fi
@@ -240,7 +240,7 @@ case ${COMMAND} in
     exit 2
   fi
 
-  if [[ -z ${ALLUXIO_MASTER_ADDRESS} ]] ; then
+  if [[ -z ${ALLUXIO_MASTER_ADDRESS} ]]; then
     ALLUXIO_MASTER_ADDRESS=localhost
   fi
 
