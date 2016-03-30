@@ -28,7 +28,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class GCSInputStream extends InputStream {
-
   /** Bucket name of the Alluxio GCS bucket. */
   private final String mBucketName;
 
