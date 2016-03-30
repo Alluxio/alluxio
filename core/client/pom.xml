@@ -79,6 +79,11 @@
       <artifactId>alluxio-underfs-s3</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-gcs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- Dependency for findbugs (SuppressFBWarnings) -->
     <dependency>

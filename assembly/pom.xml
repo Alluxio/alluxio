@@ -49,12 +49,17 @@
       <artifactId>alluxio-underfs-s3</artifactId>
       <version>${project.version}</version>
     </dependency>
-   <dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-gcs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-swift</artifactId>
       <version>${project.version}</version>
     </dependency>
-     <dependency>
+    <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-local</artifactId>
       <version>${project.version}</version>
