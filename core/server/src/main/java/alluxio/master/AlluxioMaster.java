@@ -345,10 +345,17 @@ public class AlluxioMaster {
   }
 
   /**
-   * @return the millisecond when Alluxio Master starts serving, return -1 when not started
+   * @return the start time of the master in milliseconds
    */
-  public long getStarttimeMs() {
+  public long getStartTimeMs() {
     return mStartTimeMs;
+  }
+
+  /**
+   * @return the uptime of the master in milliseconds
+   */
+  public long getUptimeMs() {
+    return System.currentTimeMillis() - mStartTimeMs;
   }
 
   /**
