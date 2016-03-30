@@ -34,7 +34,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -46,14 +48,26 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** Default size of ByteBufferKeyValuePartitionReader pool. */
+  private static final int DEFAULT_POOL_SIZE = 10;
+
   /** BlockWorker handler for access block info. */
   private final BlockWorker mBlockWorker;
 
+  /** A cache pool for ByteBufferKeyValuePartitionReader,map from blockId. */
+  private final Map<Long, ByteBufferKeyValuePartitionReader> mCachePool;
   /**
    * @param blockWorker the {@link BlockWorker}
    */
   public KeyValueWorkerClientServiceHandler(BlockWorker blockWorker) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
+    mCachePool =
+        new LinkedHashMap<Long, ByteBufferKeyValuePartitionReader>(DEFAULT_POOL_SIZE, 0.75f, true) {
+          protected boolean
+          removeEldestEntry(Map.Entry<Long, ByteBufferKeyValuePartitionReader> eldest) {
+            return size() > DEFAULT_POOL_SIZE;
+          }
+        };
   }
 
   @Override
@@ -102,15 +116,23 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
    */
   private ByteBuffer getInternal(long blockId, ByteBuffer keyBuffer)
       throws BlockDoesNotExistException, IOException {
-    final long sessionId = Sessions.KEYVALUE_SESSION_ID;
-    final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
-    try {
-      return getReader(sessionId, lockId, blockId).get(keyBuffer);
-    } catch (InvalidWorkerStateException e) {
-      // We shall never reach here
-      LOG.error("Reaching invalid state to get a key", e);
-    } finally {
-      mBlockWorker.unlockBlock(lockId);
+    synchronized (mCachePool) {
+      if (mCachePool.containsKey(blockId)) {
+        return mCachePool.get(blockId).get(keyBuffer);
+      }
+
+      final long sessionId = Sessions.KEYVALUE_SESSION_ID;
+      final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
+      try {
+        ByteBufferKeyValuePartitionReader reader = getReader(sessionId, lockId, blockId);
+        mCachePool.put(blockId, reader);
+        return reader.get(keyBuffer);
+      } catch (InvalidWorkerStateException e) {
+        // We shall never reach here
+        LOG.error("Reaching invalid state to get a key", e);
+      } finally {
+        mBlockWorker.unlockBlock(lockId);
+      }
     }
     return null;
   }
