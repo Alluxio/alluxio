@@ -122,6 +122,27 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         config_aws(n, i, Total, name)
       end
 
+      if Provider == "google"
+        if (defined?(@gce)).nil?
+          @gce = YAML.load_file('conf/gce.yml')
+          puts @gce.inspect
+          SSH_USERNAME = @gce['SSH_Username']
+          KEY_PATH = @gce['Key_Path']
+          GOOGLE_CLOUD_PROJECT_ID = @gce['Google_Cloud_Project_ID']
+          SERVICE_ACCOUNT_EMAIL_ADDRESS = @gce['Service_Acount_Email_Address']
+          JSON_KEY_LOCATION = @gce['Json_Key_Location']
+          IMAGE = @gce['Image']
+          MACHINE_TYPE = @gce['Machine_Type']
+          PREEMPTIBLE = @gce['Preemptible']
+          SCOPES = @gce['Scopes']
+          DISK_SIZE = @gce['Disk_Size']
+          PREFIX = @gce['Prefix']
+          NETWORK = @gce['Network']
+        end
+        config_google(n, i, Total, name)
+      end
+
+
       if Provider == "openstack"
         if (defined?(@os)).nil?
           @os = YAML.load_file('conf/openstack.yml')

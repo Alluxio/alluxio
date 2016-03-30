@@ -16,9 +16,9 @@ import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
-import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
+import alluxio.util.SecurityUtils;
 
 import java.io.IOException;
 
@@ -117,8 +117,7 @@ public final class PermissionStatus {
    * @throws java.io.IOException when getting login user fails
    */
   public static PermissionStatus get(Configuration conf, boolean remote) throws IOException {
-    AuthType authType = conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
-    if (authType == AuthType.NOSASL) {
+    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
       // no authentication
       return new PermissionStatus("", "", FileSystemPermission.getNoneFsPermission());
     }

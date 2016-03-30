@@ -227,7 +227,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       return null;
     }
     // Non recursive list
-    path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
+    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
     return listInternal(path, false);
   }
 
@@ -448,8 +448,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    * @return true if the key is the root, false otherwise
    */
   private boolean isRoot(String key) {
-    return key.equals(Constants.HEADER_OSS + mBucketName)
-        || key.equals(Constants.HEADER_OSS + mBucketName + PATH_SEPARATOR);
+    return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(
+          PathUtils.normalizePath(Constants.HEADER_OSS + mBucketName, PATH_SEPARATOR));
   }
 
   /**
@@ -464,7 +464,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   private String[] listInternal(String path, boolean recursive) throws IOException {
     try {
       path = stripPrefixIfPresent(path);
-      path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
+      path = PathUtils.normalizePath(path, PATH_SEPARATOR);
       path = path.equals(PATH_SEPARATOR) ? "" : path;
       // Gets all the objects under the path, because we have no idea if there are non Alluxio
       // managed "directories"
