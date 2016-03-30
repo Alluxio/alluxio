@@ -24,6 +24,8 @@ should also note the directory you want to use in that bucket, either by creatin
 the bucket, or using an existing one. For the purposes of this guide, the GCS bucket name is called
 `GCS_BUCKET`, and the directory in that bucket is called `GCS_DIRECTORY`.
 
+If you are new to Google Cloud Storage, please read the GCS [documentations](https://cloud.google.com/storage/docs/overview) first.
+
 # Configuring Alluxio
 
 To configure Alluxio to use GCS as its under storage system, modifications to the
