@@ -84,7 +84,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
   private Configuration mTestConf = null;
 
   /**
-   * Create a new instance.
+   * Creates a new instance.
    *
    * @param workerCapacityBytes the capacity of the worker in bytes
    * @param userBlockSize the block size for a user
@@ -101,7 +101,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
   }
 
   /**
-   * Create a new {@link LocalAlluxioClusterResource} with default configuration.
+   * Creates a new {@link LocalAlluxioClusterResource} with default configuration.
    */
   // TODO(andrew) Go through our integration tests and see how many can use this constructor.
   public LocalAlluxioClusterResource() {

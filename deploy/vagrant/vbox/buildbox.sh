@@ -8,7 +8,7 @@ if [[ "${OLD_BOX}" != "" ]]; then
 fi
 
 HERE="$(dirname $0)"
-pushd "${HERE}" >/dev/null
+pushd "${HERE}" > /dev/null
 
 if [[ -f alluxio-dev.box ]]; then
   rm -f alluxio-dev.box
@@ -20,4 +20,4 @@ vagrant package --output alluxio-dev.box default
 vagrant destroy -f
 vagrant box add alluxio-dev alluxio-dev.box
 
-popd >/dev/null
+popd > /dev/null

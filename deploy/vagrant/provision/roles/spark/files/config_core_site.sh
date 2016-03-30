@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 cat > /spark/conf/core-site.xml << EOF
 <configuration>
   <property>

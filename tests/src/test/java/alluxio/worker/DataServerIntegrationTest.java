@@ -290,7 +290,7 @@ public class DataServerIntegrationTest {
   }
 
   /**
-   * Create a new socket to the data port and send a block request. The returned value is the
+   * Creates a new socket to the data port and send a block request. The returned value is the
    * response from the server.
    */
   private DataServerMessage request(final BlockInfo block, final long offset, final long length)

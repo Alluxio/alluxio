@@ -67,7 +67,7 @@ import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.User;
-import alluxio.security.authentication.PlainSaslServer;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.FileSystemAction;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.security.group.GroupMappingService;
@@ -329,6 +329,9 @@ public final class FileSystemMaster extends AbstractMaster {
   public boolean isDirectory(long id) {
     synchronized (mInodeTree) {
       Inode inode;
+      if (!mInodeTree.inodeIdExists(id)) {
+        return false;
+      }
       try {
         inode = mInodeTree.getInodeById(id);
       } catch (FileDoesNotExistException e) {
@@ -350,15 +353,18 @@ public final class FileSystemMaster extends AbstractMaster {
   public long getFileId(AlluxioURI path) throws AccessControlException {
     synchronized (mInodeTree) {
       Inode inode;
-      try {
-        checkPermission(FileSystemAction.READ, path, false);
-        inode = mInodeTree.getInodeByPath(path);
-      } catch (InvalidPathException e) {
+      checkPermission(FileSystemAction.READ, path, false);
+      if (!mInodeTree.inodePathExists(path)) {
         try {
           return loadMetadata(path, true);
-        } catch (Exception e2) {
+        } catch (Exception e) {
           return IdUtils.INVALID_FILE_ID;
         }
+      }
+      try {
+        inode = mInodeTree.getInodeByPath(path);
+      } catch (InvalidPathException e) {
+        return IdUtils.INVALID_FILE_ID;
       }
       return inode.getId();
     }
@@ -388,10 +394,12 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    */
   public FileInfo getFileInfo(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.READ, path, false);
+      // getFileInfo should load from ufs if the file does not exist
+      getFileId(path);
       Inode inode = mInodeTree.getInodeByPath(path);
       return getFileInfoInternal(inode);
     }
@@ -412,7 +420,7 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * NOTE: {@link #mInodeTree} should already be locked before calling this method.
    *
-   * @param inode the inode to get the {@linke FileInfo} for
+   * @param inode the inode to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given inode
    * @throws FileDoesNotExistException if the file does not exist
    */
@@ -690,8 +698,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Since {@link FileSystemMaster#create(TachyonURI, CreateFileOptions)} already checked
-   * {@link tachyon.security.authorization.FileSystemAction#WRITE},
+   * Since {@link FileSystemMaster#create(AlluxioURI, CreateFileOptions)} already checked
+   * {@link alluxio.security.authorization.FileSystemAction#WRITE},
    * it is not needed to check again here when requesting a new block for the file.
    *
    * @param path the path of the file to get the next block id for
@@ -824,6 +832,9 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileDoesNotExistException, IOException, DirectoryNotEmptyException {
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Alluxio and UFS.
+    if (!mInodeTree.inodeIdExists(fileId)) {
+      return true;
+    }
     Inode inode = mInodeTree.getInodeById(fileId);
     if (inode == null) {
       return true;
@@ -1575,7 +1586,7 @@ public final class FileSystemMaster extends AbstractMaster {
       }
       AddMountPointEntry addMountPoint =
           AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath.toString())
-              .setUfsPath(ufsPath.toString()).setOptions(options.toProto()).build();
+              .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly()).build();
       writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
       flushJournal();
       MasterContext.getMasterSource().incPathsMounted(1);
@@ -1594,7 +1605,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
     AlluxioURI ufsURI = new AlluxioURI(entry.getUfsPath());
-    mountInternal(alluxioURI, ufsURI, new MountOptions(entry.getOptions()));
+    mountInternal(alluxioURI, ufsURI, new MountOptions(entry));
   }
 
   /**
@@ -2145,7 +2156,7 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private String getClientUser() throws AccessControlException {
     try {
-      User authorizedUser = PlainSaslServer.AuthorizedClientUser.get(MasterContext.getConf());
+      User authorizedUser = AuthenticatedClientUser.get(MasterContext.getConf());
       if (authorizedUser == null) {
         throw new AccessControlException(
             ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());

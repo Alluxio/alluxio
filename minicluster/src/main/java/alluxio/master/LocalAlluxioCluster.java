@@ -145,7 +145,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
-  public void stopTFS() throws Exception {
+  public void stopFS() throws Exception {
     LOG.info("stop Alluxio filesystem");
 
     // Stopping Worker before stopping master speeds up tests

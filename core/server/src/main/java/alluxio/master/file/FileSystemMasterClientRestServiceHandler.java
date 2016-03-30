@@ -263,7 +263,9 @@ public final class FileSystemMasterClientRestServiceHandler {
   /**
    * @summary get the UFS address
    * @return the UFS address
+   * @deprecated since version 1.1 and will be removed in version 2.0
    */
+  @Deprecated
   @GET
   @Path(GET_UFS_ADDRESS)
   @ReturnType("java.lang.String")
@@ -347,7 +349,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       mFileSystemMaster
           .mount(new AlluxioURI(path), new AlluxioURI(ufsPath), MountOptions.defaults());
       return Response.ok().build();
-    } catch (AlluxioException | IOException | NullPointerException e) {
+    } catch (AlluxioException | IOException | NullPointerException | IllegalArgumentException e) {
       LOG.warn(e.getMessage());
       return Response.serverError().entity(e.getMessage()).build();
     }

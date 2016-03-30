@@ -269,7 +269,7 @@ public final class BufferUtils {
   }
 
   /**
-   * Get a {@link ByteBuffer} containing an increasing sequence of integers starting at the given
+   * Gets a {@link ByteBuffer} containing an increasing sequence of integers starting at the given
    * value.
    *
    * @param start the starting value to use

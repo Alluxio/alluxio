@@ -75,7 +75,7 @@ public final class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link alluxio.client.block.BufferedBlockInStream#read()}.
+   * Tests {@link alluxio.client.block.BufferedBlockInStream#read()}.
    */
   @Test
   public void readTest1() throws IOException, AlluxioException {
@@ -102,7 +102,7 @@ public final class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link alluxio.client.block.BufferedBlockInStream#read(byte[])}.
+   * Tests {@link alluxio.client.block.BufferedBlockInStream#read(byte[])}.
    */
   @Test
   public void readTest2() throws IOException, AlluxioException {
@@ -126,7 +126,7 @@ public final class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link alluxio.client.block.BufferedBlockInStream#read(byte[], int, int)}.
+   * Tests {@link alluxio.client.block.BufferedBlockInStream#read(byte[], int, int)}.
    */
   @Test
   public void readTest3() throws IOException, AlluxioException {
@@ -151,7 +151,7 @@ public final class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link alluxio.client.block.BufferedBlockInStream#skip(long)}.
+   * Tests {@link alluxio.client.block.BufferedBlockInStream#skip(long)}.
    */
   @Test
   public void skipTest() throws IOException, AlluxioException {

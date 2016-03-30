@@ -10,7 +10,7 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 usage="Usage: alluxio-workers.sh command..."
 
 # if no args specified, show usage
-if [ $# -le 0 ]; then
+if [[ $# -le 0 ]]; then
   echo $usage
   exit 1
 fi
@@ -22,7 +22,7 @@ ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 HOSTLIST=$(cat ${ALLUXIO_CONF_DIR}/workers | sed  "s/#.*$//;/^$/d")
 ALLUXIO_TASK_LOG="$(echo ${BIN} | sed 's/bin$//g')"logs/task.log
 
-if [ "${3}" == "alluxio.worker.AlluxioWorker" ]; then
+if [[ "${3}" == "alluxio.worker.AlluxioWorker" ]]; then
   WORKER_ACTION_TYPE="WORKERS"
 else
   WORKER_ACTION_TYPE="MASTER"

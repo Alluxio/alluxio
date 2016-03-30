@@ -2116,6 +2116,489 @@ public final class KeyValue {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.DeleteStoreEntry)
   }
 
+  public interface RenameStoreEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.RenameStoreEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 old_store_id = 1;</code>
+     */
+    boolean hasOldStoreId();
+    /**
+     * <code>optional int64 old_store_id = 1;</code>
+     */
+    long getOldStoreId();
+
+    /**
+     * <code>optional int64 new_store_id = 2;</code>
+     */
+    boolean hasNewStoreId();
+    /**
+     * <code>optional int64 new_store_id = 2;</code>
+     */
+    long getNewStoreId();
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.journal.RenameStoreEntry}
+   *
+   * <pre>
+   * next available id: 3
+   * </pre>
+   */
+  public static final class RenameStoreEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.RenameStoreEntry)
+      RenameStoreEntryOrBuilder {
+    // Use RenameStoreEntry.newBuilder() to construct.
+    private RenameStoreEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private RenameStoreEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final RenameStoreEntry defaultInstance;
+    public static RenameStoreEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public RenameStoreEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private RenameStoreEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              oldStoreId_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              newStoreId_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_RenameStoreEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_RenameStoreEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.journal.KeyValue.RenameStoreEntry.class, alluxio.proto.journal.KeyValue.RenameStoreEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<RenameStoreEntry> PARSER =
+        new com.google.protobuf.AbstractParser<RenameStoreEntry>() {
+      public RenameStoreEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new RenameStoreEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<RenameStoreEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int OLD_STORE_ID_FIELD_NUMBER = 1;
+    private long oldStoreId_;
+    /**
+     * <code>optional int64 old_store_id = 1;</code>
+     */
+    public boolean hasOldStoreId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 old_store_id = 1;</code>
+     */
+    public long getOldStoreId() {
+      return oldStoreId_;
+    }
+
+    public static final int NEW_STORE_ID_FIELD_NUMBER = 2;
+    private long newStoreId_;
+    /**
+     * <code>optional int64 new_store_id = 2;</code>
+     */
+    public boolean hasNewStoreId() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 new_store_id = 2;</code>
+     */
+    public long getNewStoreId() {
+      return newStoreId_;
+    }
+
+    private void initFields() {
+      oldStoreId_ = 0L;
+      newStoreId_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, oldStoreId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, newStoreId_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, oldStoreId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, newStoreId_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.journal.KeyValue.RenameStoreEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.journal.RenameStoreEntry}
+     *
+     * <pre>
+     * next available id: 3
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.RenameStoreEntry)
+        alluxio.proto.journal.KeyValue.RenameStoreEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_RenameStoreEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_RenameStoreEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.journal.KeyValue.RenameStoreEntry.class, alluxio.proto.journal.KeyValue.RenameStoreEntry.Builder.class);
+      }
+
+      // Construct using alluxio.proto.journal.KeyValue.RenameStoreEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        oldStoreId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        newStoreId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_RenameStoreEntry_descriptor;
+      }
+
+      public alluxio.proto.journal.KeyValue.RenameStoreEntry getDefaultInstanceForType() {
+        return alluxio.proto.journal.KeyValue.RenameStoreEntry.getDefaultInstance();
+      }
+
+      public alluxio.proto.journal.KeyValue.RenameStoreEntry build() {
+        alluxio.proto.journal.KeyValue.RenameStoreEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.journal.KeyValue.RenameStoreEntry buildPartial() {
+        alluxio.proto.journal.KeyValue.RenameStoreEntry result = new alluxio.proto.journal.KeyValue.RenameStoreEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.oldStoreId_ = oldStoreId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.newStoreId_ = newStoreId_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.journal.KeyValue.RenameStoreEntry) {
+          return mergeFrom((alluxio.proto.journal.KeyValue.RenameStoreEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.journal.KeyValue.RenameStoreEntry other) {
+        if (other == alluxio.proto.journal.KeyValue.RenameStoreEntry.getDefaultInstance()) return this;
+        if (other.hasOldStoreId()) {
+          setOldStoreId(other.getOldStoreId());
+        }
+        if (other.hasNewStoreId()) {
+          setNewStoreId(other.getNewStoreId());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.journal.KeyValue.RenameStoreEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.journal.KeyValue.RenameStoreEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long oldStoreId_ ;
+      /**
+       * <code>optional int64 old_store_id = 1;</code>
+       */
+      public boolean hasOldStoreId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 old_store_id = 1;</code>
+       */
+      public long getOldStoreId() {
+        return oldStoreId_;
+      }
+      /**
+       * <code>optional int64 old_store_id = 1;</code>
+       */
+      public Builder setOldStoreId(long value) {
+        bitField0_ |= 0x00000001;
+        oldStoreId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 old_store_id = 1;</code>
+       */
+      public Builder clearOldStoreId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        oldStoreId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long newStoreId_ ;
+      /**
+       * <code>optional int64 new_store_id = 2;</code>
+       */
+      public boolean hasNewStoreId() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 new_store_id = 2;</code>
+       */
+      public long getNewStoreId() {
+        return newStoreId_;
+      }
+      /**
+       * <code>optional int64 new_store_id = 2;</code>
+       */
+      public Builder setNewStoreId(long value) {
+        bitField0_ |= 0x00000002;
+        newStoreId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 new_store_id = 2;</code>
+       */
+      public Builder clearNewStoreId() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        newStoreId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.RenameStoreEntry)
+    }
+
+    static {
+      defaultInstance = new RenameStoreEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.RenameStoreEntry)
+  }
+
   public interface MergeStoreEntryOrBuilder extends
       // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.MergeStoreEntry)
       com.google.protobuf.MessageOrBuilder {
@@ -2620,6 +3103,11 @@ public final class KeyValue {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_DeleteStoreEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_RenameStoreEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_journal_RenameStoreEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_MergeStoreEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -2639,8 +3127,10 @@ public final class KeyValue {
       "(\t\022\020\n\010block_id\030\004 \001(\003\"&\n\022CompleteStoreEnt" +
       "ry\022\020\n\010store_id\030\001 \001(\003\"$\n\020CreateStoreEntry" +
       "\022\020\n\010store_id\030\001 \001(\003\"$\n\020DeleteStoreEntry\022\020" +
-      "\n\010store_id\030\001 \001(\003\"=\n\017MergeStoreEntry\022\025\n\rf" +
-      "rom_store_id\030\001 \001(\003\022\023\n\013to_store_id\030\002 \001(\003"
+      "\n\010store_id\030\001 \001(\003\">\n\020RenameStoreEntry\022\024\n\014" +
+      "old_store_id\030\001 \001(\003\022\024\n\014new_store_id\030\002 \001(\003" +
+      "\"=\n\017MergeStoreEntry\022\025\n\rfrom_store_id\030\001 \001" +
+      "(\003\022\023\n\013to_store_id\030\002 \001(\003"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -2678,8 +3168,14 @@ public final class KeyValue {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_DeleteStoreEntry_descriptor,
         new java.lang.String[] { "StoreId", });
-    internal_static_alluxio_proto_journal_MergeStoreEntry_descriptor =
+    internal_static_alluxio_proto_journal_RenameStoreEntry_descriptor =
       getDescriptor().getMessageTypes().get(4);
+    internal_static_alluxio_proto_journal_RenameStoreEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_RenameStoreEntry_descriptor,
+        new java.lang.String[] { "OldStoreId", "NewStoreId", });
+    internal_static_alluxio_proto_journal_MergeStoreEntry_descriptor =
+      getDescriptor().getMessageTypes().get(5);
     internal_static_alluxio_proto_journal_MergeStoreEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_MergeStoreEntry_descriptor,
