@@ -210,7 +210,6 @@ public final class KeyValueSystemIntegrationTest {
    */
   @Test
   public void createMultiPartitionsTest() throws Exception {
-    // TODO(cc): Remove codes using createStoreOfMultiplePartitions.
     final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
     final int numKeys = 10;
     final int keyLength = 4; // 4Byte key
@@ -218,23 +217,15 @@ public final class KeyValueSystemIntegrationTest {
 
     FileSystem fs = FileSystem.Factory.get();
 
-    ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
-        String.valueOf(maxPartitionSize));
-    mWriter = sKeyValueSystem.createStore(mStoreUri);
-    for (int i = 0; i < numKeys; i++) {
-      byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
-      byte[] value = BufferUtils.getIncreasingByteArray(i, valueLength);
-      mWriter.put(key, value);
-    }
-    mWriter.close();
+    AlluxioURI storeUri = createStoreOfMultiplePartitions(numKeys, null);
 
-    List<URIStatus> files = fs.listStatus(mStoreUri);
+    List<URIStatus> files = fs.listStatus(storeUri);
     Assert.assertEquals(numKeys, files.size());
     for (URIStatus info : files) {
       Assert.assertTrue(info.getLength() <= maxPartitionSize);
     }
 
-    mReader = sKeyValueSystem.openStore(mStoreUri);
+    mReader = sKeyValueSystem.openStore(storeUri);
     for (int i = 0; i < numKeys; i++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = mReader.get(key);
