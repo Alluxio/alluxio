@@ -86,6 +86,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   protected BlockInStream mCurrentBlockInStream;
   /** Current {@link BufferedBlockOutStream} writing the data into Alluxio, this may be null. */
   protected BufferedBlockOutStream mCurrentCacheStream;
+  /** Block id for the current instream, {@link #mCurrentBlockInStream}. */
+  protected long mCurrentBlockId;
 
   /**
    * Creates a new file input stream.
@@ -181,8 +183,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     int currentOffset = off;
     int bytesLeftToRead = len;
 
-    while ((mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() != 0)
-        && bytesLeftToRead > 0 && validPosition(mPos)) {
+    while (bytesLeftToRead > 0 && validPosition(mPos)) {
       checkAndAdvanceBlockInStream();
 
       int bytesToRead = (int) Math.min(bytesLeftToRead, mCurrentBlockInStream.remaining());
@@ -335,9 +336,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   private void checkAndAdvanceBlockInStream() throws IOException {
     long currentBlockId = getCurrentBlockId();
-    if (mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0) {
+    if (mCurrentBlockInStream == null
+        || (mCurrentBlockInStream.remaining() == 0 && currentBlockId != mCurrentBlockId)) {
       closeCacheStream();
       updateBlockInStream(currentBlockId);
+      mCurrentBlockId = currentBlockId;
       if (mShouldCacheCurrentBlock) {
         try {
           WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
