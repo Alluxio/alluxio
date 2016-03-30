@@ -181,7 +181,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     int currentOffset = off;
     int bytesLeftToRead = len;
 
-    while (bytesLeftToRead > 0 && validPosition(mPos)) {
+    while ((mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() != 0)
+        && bytesLeftToRead > 0 && validPosition(mPos)) {
       checkAndAdvanceBlockInStream();
 
       int bytesToRead = (int) Math.min(bytesLeftToRead, mCurrentBlockInStream.remaining());
