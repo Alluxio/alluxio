@@ -1210,12 +1210,12 @@ public final class FileSystemMaster extends AbstractMaster {
       Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
       if (!srcParentInode.isDirectory()) {
         throw new InvalidPathException(
-            ExceptionMessage.FILE_MUST_HAVE_VALID_PARENT.getMessage(srcPath));
+            ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(srcPath));
       }
       Inode dstParentInode = mInodeTree.getInodeByPath(dstParentURI);
       if (!dstParentInode.isDirectory()) {
         throw new InvalidPathException(
-            ExceptionMessage.FILE_MUST_HAVE_VALID_PARENT.getMessage(dstPath));
+            ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(dstPath));
       }
 
       // Make sure destination path does not exist
@@ -2192,11 +2192,6 @@ public final class FileSystemMaster extends AbstractMaster {
     List<FileInfo> fileInfos = Lists.newArrayList();
     for (Inode inodeOnPath :  mInodeTree.collectInodes(path)) {
       fileInfos.add(inodeOnPath.generateClientFileInfo(mInodeTree.getPath(inodeOnPath).toString()));
-    }
-
-    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
-    if (pathComponents.length < fileInfos.size()) {
-      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path.getPath()));
     }
     return fileInfos;
   }
