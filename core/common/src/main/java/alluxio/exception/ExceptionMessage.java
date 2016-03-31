@@ -100,7 +100,7 @@ public enum ExceptionMessage {
   HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
 
   // file system master
-  FILE_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
+  PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
   RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),
   RENAME_CANNOT_BE_ACROSS_MOUNTS("Renaming {0} to {1} is a cross mount operation"),
