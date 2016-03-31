@@ -23,7 +23,7 @@ Então se você não ainda não criou o arquivo de configuração do `template`,
 
 Também, para preparar a utilização do `OSS` com o Alluxio, crie um `bucket` ou utilize um já existente. Você também deve 
 tomar nota do diretório que você quer utilizar no `bucket`, ou pela criação de um novo diretório no `bucket` ou por utilizar 
-um já existente. Para intenção deste guia, o nome do `bucket OSS` será chamado de `OSS_BUCKET e o diretório será 
+um já existente. Para intenção deste guia, o nome do `bucket OSS` será chamado de `OSS_BUCKET` e o diretório será 
 chamado de `OSS_DIRECTORY`. Também, para utilizar um serviço OSS, você deve prover um `endpoint OSS` para especificar 
 uma variedade do `bucket`. O `endpoint` será chamado de `OSS_ENDPOINT` e para aprender mais sobre `endpoints` de uma 
 variedade especial, você pode ver [aqui](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/domain-region). 
