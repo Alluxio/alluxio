@@ -1226,7 +1226,7 @@ public final class FileSystemMaster extends AbstractMaster {
             ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(dstPath));
       }
 
-      // Now we remove srcInode<?> from it's parent and insert it into dstPath's parent
+      // Now we remove srcInode from it's parent and insert it into dstPath's parent
       long opTimeMs = System.currentTimeMillis();
       renameInternal(srcInode.getId(), dstPath, false, opTimeMs);
 
