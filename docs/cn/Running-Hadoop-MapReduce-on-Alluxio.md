@@ -18,7 +18,7 @@ priority: 1
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/compile-Alluxio-Hadoop.md %}
 
-`<YOUR_HADOOP_VERSION>`版本支持很多不同的Hadoop发行版。例如：`mvn install -Dhadoop.version=2.7.1`将会编译出适合Apache Hadoop 2.7.1版本的Alluxio。 
+`<YOUR_HADOOP_VERSION>`版本支持很多不同的Hadoop发行版。例如：`mvn install -Dhadoop.version=2.7.1 -DskipTests`将会编译出适合Apache Hadoop 2.7.1版本的Alluxio。 
 请访问[构建Alluxio主分支](Building-Alluxio-Master-Branch.html#distro-support)页面来获取其他发行版本的支持信息。
 
 编译成功后，新的Alluxio客户端Jar包可以在如下目录中找到：
