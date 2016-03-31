@@ -24,7 +24,7 @@ directory:
 {% include Running-Hadoop-MapReduce-on-Alluxio/compile-Alluxio-Hadoop.md %}
 
 The version `<YOUR_HADOOP_VERSION>` supports many different distributions of Hadoop. For example,
-`mvn install -Dhadoop.version=2.7.1` would compile Alluxio for the Apache Hadoop version 2.7.1.
+`mvn install -Dhadoop.version=2.7.1 -DskipTests` would compile Alluxio for the Apache Hadoop version 2.7.1.
 Please visit the
 [Building Alluxio Master Branch](Building-Alluxio-Master-Branch.html#distro-support) page for more
 information about support for other distributions.
