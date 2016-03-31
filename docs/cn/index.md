@@ -9,7 +9,7 @@ Alluxio（之前名为Tachyon）是世界上第一个以内存为中心的虚拟
 
 在大数据生态系统中，Alluxio介于计算框架(如Apache Spark，Apache MapReduce，Apache Flink)和现有的存储系统（如Amazon S3，OpenStack Swift，GlusterFS，HDFS， Ceph，OSS）之间。
 Alluxio为大数据软件栈带来了显著的性能提升。例如，[百度](https://www.baidu.com)采用Alluxio使他们数据分析流水线的吞吐量提升了[30倍](http://www.alluxio.com/assets/uploads/2016/02/Baidu-Case-Study.pdf)。
-巴克莱银行使用Alluxio将他们的作业分析的耗时从[小时级降到秒级](https://dzone.com/articles/Accelerate-In-Memory-Processing-with-Spark-from-Hours-to-Seconds-With-Tachyon)
+巴克莱银行使用Alluxio将他们的作业分析的耗时从[小时级降到秒级](https://dzone.com/articles/Accelerate-In-Memory-Processing-with-Spark-from-Hours-to-Seconds-With-Tachyon)。
 除性能外，Alluxio为新型大数据应用作用于传统存储系统的数据建立了桥梁。
 用户可以以独立集群方式(如Amazon EC2)运行Alluxio，也可以从Apache Mesos或Apache YARN上启动Alluxio。
 
