@@ -64,9 +64,6 @@ public class DataServerIntegrationTest {
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.FILE_CHANNEL_TRANSFER,
         IntegrationTestConstants.NETTY_BLOCK_READER});
-    // The transfer type is not applicable to the NIODataServer.
-    list.add(new Object[] {IntegrationTestConstants.NIO_DATA_SERVER,
-        IntegrationTestConstants.UNUSED_TRANSFER, IntegrationTestConstants.NETTY_BLOCK_READER});
     return list;
   }
 
@@ -293,7 +290,7 @@ public class DataServerIntegrationTest {
   }
 
   /**
-   * Create a new socket to the data port and send a block request. The returned value is the
+   * Creates a new socket to the data port and send a block request. The returned value is the
    * response from the server.
    */
   private DataServerMessage request(final BlockInfo block, final long offset, final long length)

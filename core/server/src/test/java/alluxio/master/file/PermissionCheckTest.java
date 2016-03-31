@@ -25,7 +25,7 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
-import alluxio.security.authentication.PlainSaslServer;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.FileSystemAction;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.io.PathUtils;
@@ -202,11 +202,11 @@ public class PermissionCheckTest {
   }
 
   private void verifyCreate(TestUser user, String path, boolean recursive) throws Exception {
-    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
+    AuthenticatedClientUser.set(user.getUser());
     long fileId;
     if (recursive) {
-      fileId = mFileSystemMaster.create(new AlluxioURI(path),
-          new CreateFileOptions.Builder(MasterContext.getConf()).setRecursive(true).build());
+      fileId = mFileSystemMaster
+          .create(new AlluxioURI(path), CreateFileOptions.defaults().setRecursive(true));
     } else {
       fileId = mFileSystemMaster.create(new AlluxioURI(path), CreateFileOptions.defaults());
     }
@@ -255,10 +255,10 @@ public class PermissionCheckTest {
   }
 
   private void verifyMkdir(TestUser user, String path, boolean recursive) throws Exception {
-    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
+    AuthenticatedClientUser.set(user.getUser());
     if (recursive) {
-      mFileSystemMaster.mkdir(new AlluxioURI(path),
-          new CreateDirectoryOptions.Builder(MasterContext.getConf()).setRecursive(true).build());
+      mFileSystemMaster
+          .mkdir(new AlluxioURI(path), CreateDirectoryOptions.defaults().setRecursive(true));
     } else {
       mFileSystemMaster.mkdir(new AlluxioURI(path), CreateDirectoryOptions.defaults());
     }
@@ -333,7 +333,7 @@ public class PermissionCheckTest {
   }
 
   private void verifyRename(TestUser user, String srcPath, String dstPath) throws Exception {
-    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
+    AuthenticatedClientUser.set(user.getUser());
     String fileOwner = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
         new AlluxioURI(srcPath))).getUserName();
 
@@ -408,64 +408,129 @@ public class PermissionCheckTest {
   }
 
   private void verifyDelete(TestUser user, String path, boolean recursive) throws Exception {
-    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
+    AuthenticatedClientUser.set(user.getUser());
     mFileSystemMaster.deleteFile(new AlluxioURI(path), recursive);
 
     Assert.assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(path)));
   }
 
   @Test
-  public void getFileIdSuccessTest() throws Exception {
-    verifyGetFileId(TEST_USER_1, TEST_DIR_FILE_URI);
-    verifyGetFileId(TEST_USER_1, TEST_DIR_URI);
-    verifyGetFileId(TEST_USER_1, TEST_FILE_URI);
+  public void readSuccessTest() throws Exception {
+    verifyRead(TEST_USER_1, TEST_DIR_FILE_URI, true);
+    verifyRead(TEST_USER_1, TEST_DIR_URI, false);
+    verifyRead(TEST_USER_1, TEST_FILE_URI, true);
 
-    verifyGetFileId(TEST_USER_2, TEST_DIR_FILE_URI);
+    verifyRead(TEST_USER_2, TEST_DIR_FILE_URI, true);
   }
 
   @Test
-  public void readFileFailTest() throws Exception {
+  public void readFileIdFailTest() throws Exception {
+    String file = createUnreadableFileOrDir(true);
+
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file, "onlyReadByUser1")));
+    verifyGetFileId(TEST_USER_2, file);
+  }
+
+  @Test
+  public void readFileInfoFailTest() throws Exception {
+    String file = createUnreadableFileOrDir(true);
+
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file, "onlyReadByUser1")));
+    verifyGetFileInfoOrList(TEST_USER_2, file, true);
+  }
+
+  @Test
+  public void readDirIdFailTest() throws Exception {
+    String dir = createUnreadableFileOrDir(false);
+
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, dir, "onlyReadByUser1")));
+    verifyGetFileId(TEST_USER_2, dir);
+  }
+
+  @Test
+  public void readDirInfoFailTest() throws Exception {
+    String dir = createUnreadableFileOrDir(false);
+
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, dir, "onlyReadByUser1")));
+    verifyGetFileInfoOrList(TEST_USER_2, dir, false);
+  }
+
+  @Test
+  public void readNotExecuteDirTest() throws Exception {
+    // set unmask
+    Configuration conf = MasterContext.getConf();
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "033");
+    MasterContext.reset(conf);
+
+    String dir = PathUtils.concatPath(TEST_DIR_URI, "/notExecuteDir");
+    // create dir "/testDir/notExecuteDir" [user1, group1, drwxr--r--]
+    verifyMkdir(TEST_USER_1, dir, false);
+    verifyRead(TEST_USER_1, dir, false);
+
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.EXECUTE, dir,
+            "notExecuteDir")));
+    verifyGetFileInfoOrList(TEST_USER_2, dir, false);
+  }
+
+  private String createUnreadableFileOrDir(boolean isFile) throws Exception {
     // set unmask
     Configuration conf = MasterContext.getConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
     MasterContext.reset(conf);
 
-    // read file "/onlyReadByUser1" [user1, group1, -rw-------]
-    String file = "/onlyReadByUser1";
-    verifyCreate(TEST_USER_1, file, false);
-    verifyGetFileId(TEST_USER_1, file);
-
-    mThrown.expect(AccessControlException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file,
-            "onlyReadByUser1")));
-    verifyGetFileId(TEST_USER_2, file);
+    String fileOrDir = PathUtils.concatPath(TEST_DIR_URI, "/onlyReadByUser1");
+    if (isFile) {
+      // create file "/testDir/onlyReadByUser1" [user1, group1, -rw-------]
+      verifyCreate(TEST_USER_1, fileOrDir, false);
+      verifyRead(TEST_USER_1, fileOrDir, true);
+    } else {
+      // create dir "/testDir/onlyReadByUser1" [user1, group1, drwx--x--x]
+      verifyMkdir(TEST_USER_1, fileOrDir, false);
+      verifyRead(TEST_USER_1, fileOrDir, false);
+    }
+    return fileOrDir;
   }
 
-  @Test
-  public void readDirFailTest() throws Exception {
-    // set unmask
-    Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
-    MasterContext.reset(conf);
+  private void verifyRead(TestUser user, String path, boolean isFile) throws Exception {
+    verifyGetFileId(user, path);
+    verifyGetFileInfoOrList(user, path, isFile);
+  }
 
-    // read dir "/testDir/testSubDir" [user1, group1, drwx--x--x]
-    String file = TEST_DIR_URI + "/testSubDir";
-    verifyMkdir(TEST_USER_1, file, false);
-    verifyGetFileId(TEST_USER_1, file);
+  private void verifyGetFileId(TestUser user, String path) throws Exception {
+    AuthenticatedClientUser.set(user.getUser());
+    long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
+    Assert.assertNotEquals(-1, fileId);
+  }
 
-    mThrown.expect(AccessControlException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file,
-            "testSubDir")));
-    verifyGetFileId(TEST_USER_2, file);
+  private void verifyGetFileInfoOrList(TestUser user, String path,
+      boolean isFile) throws Exception {
+    AuthenticatedClientUser.set(user.getUser());
+    if (isFile) {
+      Assert.assertEquals(path, mFileSystemMaster.getFileInfo(new AlluxioURI(path)).getPath());
+      Assert.assertEquals(1, mFileSystemMaster.getFileInfoList(new AlluxioURI(path)).size());
+    } else {
+      List<FileInfo> fileInfoList = mFileSystemMaster.getFileInfoList(new AlluxioURI(path));
+      if (fileInfoList.size() > 0) {
+        Assert.assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
+      }
+    }
   }
 
   @Test
   public void setStateSuccessTest() throws Exception {
     // set unmask
     Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "000");
     MasterContext.reset(conf);
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
@@ -498,18 +563,18 @@ public class PermissionCheckTest {
     boolean recursive = true;
     long ttl = 11;
 
-    return new SetAttributeOptions.Builder().setPinned(recursive).setTtl(ttl).build();
+    return SetAttributeOptions.defaults().setPinned(recursive).setTtl(ttl);
   }
 
   private SetAttributeOptions verifySetState(
       TestUser user, String path, SetAttributeOptions options) throws Exception {
-    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
+    AuthenticatedClientUser.set(user.getUser());
 
     mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(new AlluxioURI(path));
-    return new SetAttributeOptions.Builder().setPinned(fileInfo.isPinned())
-        .setTtl(fileInfo.getTtl()).setPersisted(fileInfo.isPersisted()).build();
+    return SetAttributeOptions.defaults().setPinned(fileInfo.isPinned()).setTtl(fileInfo.getTtl())
+        .setPersisted(fileInfo.isPersisted());
   }
 
   @Test
@@ -546,13 +611,13 @@ public class PermissionCheckTest {
     long ufsLength = 12;
     long operationTimeMs = 21;
 
-    return new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(ufsLength)
-        .setOperationTimeMs(operationTimeMs).build();
+    return CompleteFileOptions.defaults().setUfsLength(ufsLength)
+        .setOperationTimeMs(operationTimeMs);
   }
 
   private void verifyCompleteFile(TestUser user, String path, CompleteFileOptions options)
       throws Exception {
-    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
+    AuthenticatedClientUser.set(user.getUser());
     mFileSystemMaster.completeFile(new AlluxioURI(path), options);
   }
 
@@ -615,15 +680,8 @@ public class PermissionCheckTest {
   }
 
   private void verifyFree(TestUser user, String path, boolean recursive) throws Exception {
-    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
+    AuthenticatedClientUser.set(user.getUser());
     mFileSystemMaster.free(new AlluxioURI(path), recursive);
-  }
-
-  private void verifyGetFileId(TestUser user, String path) throws Exception {
-    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
-    long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
-
-    Assert.assertNotEquals(-1, fileId);
   }
 
   @Test
@@ -725,13 +783,13 @@ public class PermissionCheckTest {
 
   private void verifySetAcl(TestUser runUser, String path, String owner, String group,
       short permission, boolean recursive) throws Exception {
-    PlainSaslServer.AuthorizedClientUser.set(runUser.getUser());
+    AuthenticatedClientUser.set(runUser.getUser());
     SetAttributeOptions options =
-        new SetAttributeOptions.Builder().setOwner(owner).setGroup(group)
-            .setPermission(permission).setRecursive(recursive).build();
+        SetAttributeOptions.defaults().setOwner(owner).setGroup(group).setPermission(permission)
+            .setRecursive(recursive);
     mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
-    PlainSaslServer.AuthorizedClientUser.set(TEST_USER_ADMIN.getUser());
+    AuthenticatedClientUser.set(TEST_USER_ADMIN.getUser());
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
         new AlluxioURI(path)));
     if (owner != null) {

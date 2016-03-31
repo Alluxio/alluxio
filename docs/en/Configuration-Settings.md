@@ -26,8 +26,12 @@ distributed with Alluxio binaries. We do not recommend beginner users to edit th
 
 2. Each site deployment and application client can also override the default property values via
 `alluxio-site.properties` file. Note that, this file **must be in the classpath** of the Java VM in
-which Alluxio is running. The easiest way is to put the site properties file in directory
-`$ALLUXIO_HOME/conf`.
+which Alluxio is running. The easiest way is to copy the site properties template in directory
+`$ALLUXIO_HOME/conf` and edit it to fit your configuration tuning needs.
+
+```bash
+$ cp $ALLUXIO_HOME/conf/alluxio-site.properties.template $ALLUXIO_HOME/conf/alluxio-site.properties
+```
 
 All Alluxio configuration properties fall into one of the six categories:
 [Common](#common-configuration) (shared by Master and Worker),

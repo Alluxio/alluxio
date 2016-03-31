@@ -30,12 +30,12 @@ public final class WorkerNetAddress {
   private int mWebPort;
 
   /**
-   * Creates a new instance of {@WorkerNetAddress}.
+   * Creates a new instance of {@link WorkerNetAddress}.
    */
   public WorkerNetAddress() {}
 
   /**
-   * Creates a new instance of {@WorkerNetAddress} from thrift representation.
+   * Creates a new instance of {@link WorkerNetAddress} from thrift representation.
    *
    * @param workerNetAddress the thrift net address
    */

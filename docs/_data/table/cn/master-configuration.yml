@@ -39,9 +39,11 @@ alluxio.master.web.port:
 alluxio.master.whitelist:
   以该配置中的前缀开头的路径是可缓存的，这些前缀用分号隔开。Alluxio在第一次读这些文件时会尝试缓存这些可缓存的文件。
 alluxio.master.worker.threads.max:
-  与master相连的最大worker数目。
+  Alluxio master能处理的最大RPC并发请求数目，该值用于配置master的Thrift线程池的最大线程数。
+alluxio.master.worker.threads.min:
+  Alluxio master用于处理RPC请求的最小线程数，该值用于配置master的Thrift线程池的最小线程数。
 alluxio.master.worker.timeout.ms:
-  master与worker之间响应的最大超时时间（单位：毫秒），超过该时间表明该worker失效。
+  Alluxio master与worker之间响应的最大超时时间（单位：毫秒），超过该时间表明该worker失效。
 alluxio.master.tieredstore.global.levels:
   系统中存储层的总数目。
 alluxio.master.tieredstore.global.level0.alias:

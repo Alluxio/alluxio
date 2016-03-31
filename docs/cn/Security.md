@@ -1,6 +1,7 @@
 ---
 layout: global
-title: 安全性
+title: 安全性（内测版）
+nickname: 安全性
 group: Features
 priority: 1
 ---
@@ -78,7 +79,7 @@ Alluxio文件系统为目录和文件实现了一个访问权限模型，该模�
 
 对于文件，读取该文件需要r权限，修改该文件需要w权限。对于目录，列出该目录的内容需要r权限，在该目录下创建、重命名或者删除其子文件或子目录需要w权限，访问该目录下的子项需要x权限。
 
-例如，当启用访问权限控制时，运行shell命令`lsr`后其输出如下：
+例如，当启用访问权限控制时，运行shell命令`ls -R`后其输出如下：
 
 {% include Security/lsr.md %}
 
@@ -98,7 +99,7 @@ Alluxio文件系统为目录和文件实现了一个访问权限模型，该模�
 所属用户、所属组以及访问权限可以通过以下两种方式进行修改：
 
 1. 用户应用可以调用`FileSystem API`或`Hadoop API`的setAttribute(...)方法，参考[文件系统API](File-System-API.html)。
-2. CLI命令，参考[chown, chownr, chgrp, chgrpr, chmod, chmodr](Command-Line-Interface.html#list-of-operations)。
+2. CLI命令，参考[chown, chgrp, chmod](Command-Line-Interface.html#list-of-operations)。
 
 所属用户只能由超级用户修改。
 所属组和访问权限只能由超级用户和文件所有者修改。

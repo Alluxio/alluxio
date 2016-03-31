@@ -34,122 +34,45 @@ import javax.annotation.concurrent.ThreadSafe;
  * Alluxio file system's file representation in the file system master.
  */
 @ThreadSafe
-public final class InodeFile extends Inode {
+public final class InodeFile extends Inode<InodeFile> {
   /** This default umask is used to calculate file permission from directory permission. */
   private static final FileSystemPermission UMASK =
       new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
 
-  /**
-   * Builder for {@link InodeFile}.
-   */
-  public static class Builder extends Inode.Builder<InodeFile.Builder> {
-    private long mBlockContainerId;
-    private long mBlockSizeBytes;
-    private boolean mCacheable;
-    private long mTtl;
-
-    /**
-     * Creates a new builder for {@link InodeFile}.
-     */
-    public Builder() {
-      super();
-      mBlockContainerId = 0;
-      mBlockSizeBytes = 0;
-      mCacheable = false;
-      mDirectory = false;
-      mTtl = Constants.NO_TTL;
-    }
-
-    /**
-     * @param blockContainerId the block container id to use
-     * @return the builder
-     */
-    public Builder setBlockContainerId(long blockContainerId) {
-      mBlockContainerId = blockContainerId;
-      mId = BlockId.createBlockId(mBlockContainerId, BlockId.getMaxSequenceNumber());
-      return this;
-    }
-
-    /**
-     * @param blockSizeBytes the block size in bytes to use
-     * @return the builder
-     */
-    public Builder setBlockSizeBytes(long blockSizeBytes) {
-      mBlockSizeBytes = blockSizeBytes;
-      return this;
-    }
-
-    /**
-     * @param cacheable the cacheable flag value to use
-     * @return the builder
-     */
-    public Builder setCacheable(boolean cacheable) {
-      mCacheable = cacheable;
-      return this;
-    }
-
-    @Override
-    public Builder setId(long id) {
-      // id is computed using the block container id
-      // TODO(jiri): Should we throw an exception to warn the caller?
-      return this;
-    }
-
-    /**
-     * @param ttl the ttl value to use
-     * @return the builder
-     */
-    public Builder setTtl(long ttl) {
-      mTtl = ttl;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link InodeFile}.
-     *
-     * @return a {@link InodeFile} instance
-     */
-    @Override
-    public InodeFile build() {
-      return new InodeFile(this);
-    }
-
-    @Override
-    protected InodeFile.Builder getThis() {
-      return this;
-    }
-
-    @Override
-    public InodeFile.Builder setPermissionStatus(PermissionStatus ps) {
-      return super.setPermissionStatus(ps.applyUMask(UMASK));
-    }
-  }
-
-  private long mBlockContainerId;
-
-  private long mBlockSizeBytes;
-
-  // list of block ids.
   private List<Long> mBlocks;
-
+  private long mBlockContainerId;
+  private long mBlockSizeBytes;
   private boolean mCacheable;
-
   private boolean mCompleted;
-
-  // length of inode file in bytes.
   private long mLength;
-
   private long mTtl;
 
-  private InodeFile(InodeFile.Builder builder) {
-    super(builder);
-    mBlockContainerId = builder.mBlockContainerId;
-    mBlockSizeBytes = builder.mBlockSizeBytes;
+  /**
+   * Creates a new instance of {@link InodeFile}.
+   *
+   * @param id the block container id to use
+   */
+  public InodeFile(long id) {
+    super(0);
     mBlocks = new ArrayList<Long>(3);
-    mCacheable = builder.mCacheable;
+    mBlockContainerId = id;
+    mBlockSizeBytes = 0;
+    mCacheable = false;
     mCompleted = false;
+    mDirectory = false;
+    mId = BlockId.createBlockId(mBlockContainerId, BlockId.getMaxSequenceNumber());
     mLength = 0;
-    mTtl = builder.mTtl;
+    mTtl = Constants.NO_TTL;
+  }
+
+  private InodeFile(long id, long creationTimeMs) {
+    this(id);
+    mCreationTimeMs = creationTimeMs;
+  }
+
+  @Override
+  protected InodeFile getThis() {
+    return this;
   }
 
   @Override
@@ -187,21 +110,6 @@ public final class InodeFile extends Inode {
     mLength = 0;
     mCompleted = false;
     mCacheable = false;
-  }
-
-  /**
-   * @param blockSizeBytes the block size to use
-   */
-  public synchronized void setBlockSize(long blockSizeBytes) {
-    Preconditions.checkArgument(blockSizeBytes >= 0, "Block size cannot be negative");
-    mBlockSizeBytes = blockSizeBytes;
-  }
-
-  /**
-   * @param ttl the TTL to use, in milliseconds
-   */
-  public synchronized void setTtl(long ttl) {
-    mTtl = ttl;
   }
 
   /**
@@ -268,34 +176,65 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Sets the id's of the block.
-   *
-   * @param blockIds the id's of the block
+   * @param blockSizeBytes the block size to use
+   * @return the updated object
    */
-  public synchronized void setBlockIds(List<Long> blockIds) {
+  public synchronized InodeFile setBlockSizeBytes(long blockSizeBytes) {
+    Preconditions.checkArgument(blockSizeBytes >= 0, "Block size cannot be negative");
+    mBlockSizeBytes = blockSizeBytes;
+    return getThis();
+  }
+
+  /**
+   * @param blockIds the id's of the block
+   * @return the updated object
+   */
+  public synchronized InodeFile setBlockIds(List<Long> blockIds) {
     mBlocks = Lists.newArrayList(Preconditions.checkNotNull(blockIds));
+    return getThis();
   }
 
   /**
    * @param cacheable the cacheable flag value to use
+   * @return the updated object
    */
-  public synchronized void setCacheable(boolean cacheable) {
+  public synchronized InodeFile setCacheable(boolean cacheable) {
     // TODO(gene). This related logic is not complete right. Fix this.
     mCacheable = cacheable;
+    return getThis();
   }
 
   /**
    * @param completed the complete flag value to use
+   * @return the updated object
    */
-  public synchronized void setCompleted(boolean completed) {
+  public synchronized InodeFile setCompleted(boolean completed) {
     mCompleted = completed;
+    return getThis();
   }
 
   /**
    * @param length the length to use
+   * @return the updated object
    */
-  public synchronized void setLength(long length) {
+  public synchronized InodeFile setLength(long length) {
     mLength = length;
+    return getThis();
+  }
+
+  @Override
+  public InodeFile setPermissionStatus(PermissionStatus permissionStatus) {
+    Preconditions.checkNotNull(permissionStatus, "Permission status is not set");
+    return super.setPermissionStatus(permissionStatus.applyUMask(UMASK));
+  }
+
+  /**
+   * @param ttl the TTL to use, in milliseconds
+   * @return the updated object
+   */
+  public synchronized InodeFile setTtl(long ttl) {
+    mTtl = ttl;
+    return getThis();
   }
 
   /**
@@ -341,27 +280,19 @@ public final class InodeFile extends Inode {
     PermissionStatus permissionStatus = new PermissionStatus(entry.getUserName(),
         entry.getGroupName(), (short) entry.getPermission());
     InodeFile inode =
-        new InodeFile.Builder()
+        new InodeFile(BlockId.getContainerId(entry.getId()), entry.getCreationTimeMs())
             .setName(entry.getName())
-            .setBlockContainerId(BlockId.getContainerId(entry.getId()))
+            .setBlockIds(entry.getBlocksList())
             .setBlockSizeBytes(entry.getBlockSizeBytes())
             .setCacheable(entry.getCacheable())
-            .setCreationTimeMs(entry.getCreationTimeMs())
+            .setCompleted(entry.getCompleted())
             .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+            .setLength(entry.getLength())
             .setParentId(entry.getParentId())
             .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
             .setPinned(entry.getPinned())
             .setTtl(entry.getTtl())
-            .setPermissionStatus(permissionStatus)
-            .build();
-
-    inode.setBlockIds(entry.getBlocksList());
-    inode.setCompleted(entry.getCompleted());
-    inode.setLength(entry.getLength());
-    inode.setPinned(entry.getPinned());
-    inode.setCacheable(entry.getCacheable());
-    inode.setLastModificationTimeMs(entry.getLastModificationTimeMs());
-
+            .setPermissionStatus(permissionStatus);
     return inode;
   }
 

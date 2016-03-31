@@ -54,15 +54,15 @@ public class RmCommandTest extends AbstractAlluxioShellTest {
     AlluxioURI testFolder1 = new AlluxioURI("/testFolder1");
     AlluxioURI testFolder2 = new AlluxioURI("/testFolder1/testFolder2");
     AlluxioURI testFile2 = new AlluxioURI("/testFolder1/testFolder2/testFile2");
-    Assert.assertTrue(fileExist(testFolder1));
-    Assert.assertTrue(fileExist(testFolder2));
-    Assert.assertTrue(fileExist(testFile2));
+    Assert.assertTrue(fileExists(testFolder1));
+    Assert.assertTrue(fileExists(testFolder2));
+    Assert.assertTrue(fileExists(testFile2));
     mFsShell.run("rm", "/testFolder1/testFolder2/testFile2");
     toCompare.append(getCommandOutput(new String[] {"rm", "/testFolder1/testFolder2/testFile2"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
-    Assert.assertTrue(fileExist(testFolder1));
-    Assert.assertTrue(fileExist(testFolder2));
-    Assert.assertFalse(fileExist(testFile2));
+    Assert.assertTrue(fileExists(testFolder1));
+    Assert.assertTrue(fileExists(testFolder2));
+    Assert.assertFalse(fileExists(testFile2));
   }
 
   @Test
@@ -70,14 +70,14 @@ public class RmCommandTest extends AbstractAlluxioShellTest {
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     mFsShell.run("rm", "/testWildCards/foo/foo*");
-    Assert.assertFalse(fileExist(new AlluxioURI("/testWildCards/foo/foobar1")));
-    Assert.assertFalse(fileExist(new AlluxioURI("/testWildCards/foo/foobar2")));
-    Assert.assertTrue(fileExist(new AlluxioURI("/testWildCards/bar/foobar3")));
+    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/foo/foobar1")));
+    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/foo/foobar2")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testWildCards/bar/foobar3")));
 
     mFsShell.run("rm", "/testWildCards/*");
-    Assert.assertFalse(fileExist(new AlluxioURI("/testWildCards/foobar4")));
-    Assert.assertTrue(fileExist(new AlluxioURI("/testWildCards/foo")));
-    Assert.assertTrue(fileExist(new AlluxioURI("/testWildCards/bar")));
-    Assert.assertTrue(fileExist(new AlluxioURI("/testWildCards/bar/foobar3")));
+    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/foobar4")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testWildCards/foo")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testWildCards/bar")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testWildCards/bar/foobar3")));
   }
 }

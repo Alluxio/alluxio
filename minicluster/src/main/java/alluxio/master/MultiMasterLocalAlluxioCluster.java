@@ -214,7 +214,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  public void stopTFS() throws Exception {
+  public void stopFS() throws Exception {
     mWorker.stop();
     for (int k = 0; k < mNumOfMasters; k++) {
       // Use kill() instead of stop(), because stop() does not work well in multi-master mode.

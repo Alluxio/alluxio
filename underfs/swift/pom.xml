@@ -42,6 +42,31 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-openstack</artifactId>
       <version>${hadoop-openstack.version}</version>
+
+      <!-- Exclude the jsp/servlet related dependencies to avoid troubles in web test -->
+      <exclusions>
+        <exclusion>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>jsp-2.1</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>tomcat</groupId>
+          <artifactId>jasper-runtime</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>tomcat</groupId>
+          <artifactId>jasper-compiler</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.servlet.jsp</groupId>
+          <artifactId>jsp-api</artifactId>
+        </exclusion>
+      </exclusions>
+
     </dependency>
      <dependency>
       <groupId>org.alluxio</groupId>

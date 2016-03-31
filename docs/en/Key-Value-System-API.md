@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Key Value System Client API
+title: Key Value System Client API (alpha)
 nickname: Key Value System API
 group: Features
 priority: 4
@@ -58,7 +58,7 @@ a reader to retrieve value by the key. For example:
 {% include Key-Value-Store-API/iterate-key-values.md %}
 
 # Accessing Key-Value System in Hadoop MapReduce
- 
+
 ## MapReduce InputFormat
 
 Alluxio provides an implementation of `InputFormat` for Hadoop MapReduce programs to access
@@ -73,12 +73,12 @@ Similarly, Alluxio also provides implementations of `OutputFormat` and `OutputCo
  MapReduce programs to create a key-value store by taking a key-value URI, and saving key-value
  pairs to the key-value store:
 
- {% include Key-Value-Store-API/set-output-format.md %}
+{% include Key-Value-Store-API/set-output-format.md %}
 
 
 # Configuration Parameters For Key-Value System
 
-Key-Value support in Alluxio is disabled by default, and it can be enabled in Alluxio by setting 
+Key-Value support in Alluxio is disabled by default, and it can be enabled in Alluxio by setting
 `alluxio.keyvalue.enabled` to true (see [configuration parameters](Configuration-Settings.html))
 
 {% include Key-Value-Store-API/key-value-configuration.md %}

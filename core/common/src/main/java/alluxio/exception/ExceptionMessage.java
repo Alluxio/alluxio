@@ -114,7 +114,8 @@ public enum ExceptionMessage {
 
   // shell
   DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE(
-      "The destination cannot be an existent file when the src contains wildcards."),
+      "The destination cannot be an existent file when the src is a directory or contains"
+            +  " wildcards."),
 
   // lineage
   DELETE_LINEAGE_WITH_CHILDREN("The lineage {0} to delete has child lineages"),
@@ -155,10 +156,12 @@ public enum ExceptionMessage {
   UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
   MOUNT_PATH_SHADOWS_DEFAULT_UFS(
       "Mount path {0} shadows an existing path in the default underlying filesystem"),
+  MOUNT_READONLY("A write operation on {0} is under a readonly mount point {1}"),
 
   // key-value
   KEY_VALUE_TOO_LARGE("Unable to put key-value pair: key {0} bytes, value {1} bytes"),
   INVALID_KEY_VALUE_STORE_URI("The URI {0} exists but is not a key-value store"),
+  KEY_ALREADY_EXISTS("The input key already exists in the key-value store"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

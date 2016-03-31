@@ -21,200 +21,50 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * {@link Inode} is an abstract class, with information shared by all types of Inodes.
+ * @param <T> the concrete subclass of this object
  */
 @ThreadSafe
-public abstract class Inode implements JournalEntryRepresentable {
-
-  /**
-   * Builder for {@link Inode}.
-   *
-   * @param <T> the concrete subclass of this object
-   */
-  public abstract static class Builder<T extends Builder<T>> {
-    private long mCreationTimeMs;
-    protected boolean mDirectory;
-    protected long mId;
-    private long mLastModificationTimeMs;
-    private String mName;
-    private long mParentId;
-    private PersistenceState mPersistenceState;
-    private PermissionStatus mPermissionStatus;
-    private boolean mPinned;
-
-    /**
-     * Creates a new builder for {@link Inode}.
-     */
-    public Builder() {
-      mCreationTimeMs = System.currentTimeMillis();
-      mDirectory = false;
-      mId = 0;
-      mLastModificationTimeMs = mCreationTimeMs;
-      mName = null;
-      mParentId = InodeTree.NO_PARENT;
-      mPersistenceState = PersistenceState.NOT_PERSISTED;
-      mPinned = false;
-      mPermissionStatus = null;
-    }
-
-    /**
-     * @param creationTimeMs the creation time to use
-     * @return the builder
-     */
-    public T setCreationTimeMs(long creationTimeMs) {
-      mCreationTimeMs = creationTimeMs;
-      return getThis();
-    }
-
-    /**
-     * @param id the inode id to use
-     * @return the builder
-     */
-    public T setId(long id) {
-      mId = id;
-      return getThis();
-    }
-
-    /**
-     * @param lastModificationTimeMs the last modification time to use
-     * @return the builder
-     */
-    public T setLastModificationTimeMs(long lastModificationTimeMs) {
-      mLastModificationTimeMs = lastModificationTimeMs;
-      return getThis();
-    }
-
-    /**
-     * @param name the name to use
-     * @return the builder
-     */
-    public T setName(String name) {
-      mName = name;
-      return getThis();
-    }
-
-    /**
-     * @param parentId the parent id to use
-     * @return the builder
-     */
-    public T setParentId(long parentId) {
-      mParentId = parentId;
-      return getThis();
-    }
-
-    /**
-     * @param persistenceState the {@link PersistenceState} to use
-     * @return the builder
-     */
-    public T setPersistenceState(PersistenceState persistenceState) {
-      mPersistenceState = persistenceState;
-      return getThis();
-    }
-
-    /**
-     * @param ps the {@link PermissionStatus} to use
-     * @return the builder
-     */
-    public T setPermissionStatus(PermissionStatus ps) {
-      mPermissionStatus = ps;
-      return getThis();
-    }
-
-    /**
-     * @param pinned the pinned flag value to use
-     * @return the builder
-     */
-    public T setPinned(boolean pinned) {
-      mPinned = pinned;
-      return getThis();
-    }
-
-    /**
-     * Builds a new instance of {@link Inode}.
-     *
-     * @return a {@link Inode} instance
-     */
-    public abstract Inode build();
-
-    /**
-     * Returns `this` so that the abstract class can use the fluent builder pattern.
-     */
-    protected abstract T getThis();
-  }
-
-  private final long mCreationTimeMs;
-
-  private String mUserName;
-  private String mGroupName;
-  private short mPermission;
-
-  /**
-   * Indicates whether an inode is deleted or not.
-   */
+public abstract class Inode<T> implements JournalEntryRepresentable {
+  protected long mCreationTimeMs;
   private boolean mDeleted;
-
-  protected final boolean mDirectory;
-
-  private final long mId;
-
-  /**
-   * The last modification time of this inode, in milliseconds.
-   */
+  protected boolean mDirectory;
+  private String mGroupName;
+  protected long mId;
   private long mLastModificationTimeMs;
-
   private String mName;
-
   private long mParentId;
-  /**
-   * A pinned file is never evicted from memory. Folders are not pinned in memory; however, new
-   * files and folders will inherit this flag from their parents.
-   */
-  private boolean mPinned;
-
+  private short mPermission;
   private PersistenceState mPersistenceState;
+  private boolean mPinned;
+  private String mUserName;
 
-  protected Inode(Builder<?> builder) {
-    mCreationTimeMs = builder.mCreationTimeMs;
+  protected Inode(long id) {
+    mCreationTimeMs = System.currentTimeMillis();
     mDeleted = false;
-    mDirectory = builder.mDirectory;
-    mLastModificationTimeMs = builder.mCreationTimeMs;
-    mId = builder.mId;
-    mLastModificationTimeMs = builder.mLastModificationTimeMs;
-    mName = builder.mName;
-    mPersistenceState = builder.mPersistenceState;
-    mParentId = builder.mParentId;
-    mPinned = builder.mPinned;
-    if (builder.mPermissionStatus != null) {
-      mUserName = builder.mPermissionStatus.getUserName();
-      mGroupName = builder.mPermissionStatus.getGroupName();
-      mPermission = builder.mPermissionStatus.getPermission().toShort();
-    }
+    mDirectory = false;
+    mGroupName = "";
+    mId = id;
+    mLastModificationTimeMs = mCreationTimeMs;
+    mName = null;
+    mParentId = InodeTree.NO_PARENT;
+    mPermission = 0;
+    mPersistenceState = PersistenceState.NOT_PERSISTED;
+    mPinned = false;
+    mUserName = "";
   }
-
-  @Override
-  public synchronized boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof Inode)) {
-      return false;
-    }
-    Inode that = (Inode) o;
-    return mId == that.mId;
-  }
-
-  /**
-   * Generates a {@link FileInfo} of the file or folder.
-   *
-   * @param path The path of the file
-   * @return generated FileInfo
-   */
-  public abstract FileInfo generateClientFileInfo(String path);
 
   /**
    * @return the create time, in milliseconds
    */
   public synchronized long getCreationTimeMs() {
     return mCreationTimeMs;
+  }
+
+  /**
+   * @return the group name of the inode
+   */
+  public synchronized String getGroupName() {
+    return mGroupName;
   }
 
   /**
@@ -239,6 +89,13 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
+   * @return the permission of the inode
+   */
+  public synchronized short getPermission() {
+    return mPermission;
+  }
+
+  /**
    * @return the {@link PersistenceState} of the inode
    */
   public synchronized PersistenceState getPersistenceState() {
@@ -252,9 +109,11 @@ public abstract class Inode implements JournalEntryRepresentable {
     return mParentId;
   }
 
-  @Override
-  public synchronized int hashCode() {
-    return ((Long) mId).hashCode();
+  /**
+   * @return the user name of the inode
+   */
+  public synchronized String getUserName() {
+    return mUserName;
   }
 
   /**
@@ -293,99 +152,127 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Sets the deleted flag of the inode.
-   *
    * @param deleted the deleted flag to use
+   * @return the updated object
    */
-  public synchronized void setDeleted(boolean deleted) {
+  public synchronized T setDeleted(boolean deleted) {
     mDeleted = deleted;
-  }
-
-  /**
-   * Sets the last modification time of the inode.
-   *
-   * @param lastModificationTimeMs the last modification time, in milliseconds
-   */
-  public synchronized void setLastModificationTimeMs(long lastModificationTimeMs) {
-    mLastModificationTimeMs = lastModificationTimeMs;
-  }
-
-  /**
-   * Sets the name of the inode.
-   *
-   * @param name the new name of the inode
-   */
-  public synchronized void setName(String name) {
-    mName = name;
-  }
-
-  /**
-   * Sets the parent folder of the inode.
-   *
-   * @param parentId the new parent
-   */
-  public synchronized void setParentId(long parentId) {
-    mParentId = parentId;
-  }
-
-  /**
-   * Sets the {@link PersistenceState} of the file.
-   *
-   * @param persistenceState the {@link PersistenceState} to use
-   */
-  public synchronized void setPersistenceState(PersistenceState persistenceState) {
-    mPersistenceState = persistenceState;
-  }
-
-  /**
-   * Sets the pinned flag of the inode.
-   *
-   * @param pinned If true, the inode need pinned, and a pinned file is never evicted from memory
-   */
-  public synchronized void setPinned(boolean pinned) {
-    mPinned = pinned;
-  }
-
-  /**
-   * @return the user name of the inode
-   */
-  public synchronized String getUserName() {
-    return mUserName;
-  }
-
-  /**
-   * @param userName the user name of the inode
-   */
-  public synchronized void setUserName(String userName) {
-    mUserName = userName;
-  }
-
-  /**
-   * @return the group name of the inode
-   */
-  public synchronized String getGroupName() {
-    return mGroupName;
+    return getThis();
   }
 
   /**
    * @param groupName the group name of the inode
+   * @return the updated object
    */
-  public synchronized void setGroupName(String groupName) {
+  public synchronized T setGroupName(String groupName) {
     mGroupName = groupName;
+    return getThis();
   }
 
   /**
-   * @return the permission of the inode
+   * @param lastModificationTimeMs the last modification time to use
+   * @return the updated object
    */
-  public synchronized short getPermission() {
-    return mPermission;
+  public synchronized T setLastModificationTimeMs(long lastModificationTimeMs) {
+    mLastModificationTimeMs = lastModificationTimeMs;
+    return getThis();
+  }
+
+  /**
+   * @param name the name to use
+   * @return the updated object
+   */
+  public synchronized T setName(String name) {
+    mName = name;
+    return getThis();
+  }
+
+  /**
+   * @param parentId the parent id to use
+   * @return the updated object
+   */
+  public synchronized T setParentId(long parentId) {
+    mParentId = parentId;
+    return getThis();
+  }
+
+  /**
+   * @param persistenceState the {@link PersistenceState} to use
+   * @return the updated object
+   */
+  public synchronized T setPersistenceState(PersistenceState persistenceState) {
+    mPersistenceState = persistenceState;
+    return getThis();
+  }
+
+  /**
+   * @param permissionStatus the {@link PermissionStatus} to use
+   * @return the updated object
+   */
+  public synchronized T setPermissionStatus(PermissionStatus permissionStatus) {
+    if (permissionStatus != null) {
+      mGroupName = permissionStatus.getGroupName();
+      mPermission = permissionStatus.getPermission().toShort();
+      mUserName = permissionStatus.getUserName();
+    }
+    return getThis();
   }
 
   /**
    * @param permission the permission of the inode
+   * @return the updated object
    */
-  public synchronized void setPermission(short permission) {
+  public synchronized T setPermission(short permission) {
     mPermission = permission;
+    return getThis();
+  }
+
+  /**
+   * @param pinned the pinned flag value to use
+   * @return the updated object
+   */
+  public synchronized T setPinned(boolean pinned) {
+    mPinned = pinned;
+    return getThis();
+  }
+
+  /**
+   * @param userName the user name of the inode
+   * @return the updated object
+   */
+  public synchronized T setUserName(String userName) {
+    mUserName = userName;
+    return getThis();
+  }
+
+  /**
+   * Generates a {@link FileInfo} of the file or folder.
+   *
+   * @param path the path of the file
+   * @return generated {@link FileInfo}
+   */
+  public abstract FileInfo generateClientFileInfo(String path);
+
+  /**
+   * @return {@code this} so that the abstract class can use the fluent builder pattern
+   */
+  protected abstract T getThis();
+
+  @Override
+  public synchronized int hashCode() {
+    return ((Long) mId).hashCode();
+  }
+
+  @Override
+  public synchronized boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Inode)) {
+      return false;
+    }
+    Inode that = (Inode) o;
+    return mId == that.mId;
   }
 
   protected synchronized Objects.ToStringHelper toStringHelper() {

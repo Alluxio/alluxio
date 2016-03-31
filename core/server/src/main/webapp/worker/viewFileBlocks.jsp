@@ -1,17 +1,28 @@
-<%@ page import="java.util.*" %>
+<%--
+~ The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+~ (the “License”). You may not use this work except in compliance with the License, which is
+~ available at www.apache.org/licenses/LICENSE-2.0
+~
+~ This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+~ either express or implied, as more fully set forth in the License.
+~
+~ See the NOTICE file distributed with this work for information regarding copyright ownership.
+--%>
+
+<%@ page import="java.util.List" %>
 <%@ page import="alluxio.web.*" %>
+<%@ page import="org.apache.commons.lang3.tuple.*" %>
 <%@ page import="static org.apache.commons.lang.StringEscapeUtils.escapeHtml" %>
 
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
-<link href="css/custom.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <jsp:include page="../header-links.jsp" />
 </head>
 <title>Alluxio</title>
 <body>
-  <script src="js/jquery-1.9.1.min.js" type="text/javascript"></script>
-    <script src="js/bootstrap.min.js"></script>
+  <script src="../js/jquery-1.9.1.min.js" type="text/javascript"></script>
+    <script src="../js/bootstrap.min.js"></script>
     <script>
       function time_ago(time) {
         if (time == -1) {
@@ -86,11 +97,11 @@
               <th>Tier</th>
               <th>Size (Byte)</th>
             </tr>
-            <% for (Map.Entry<String, List<UIFileBlockInfo>> entry : ((Map<String, List<UIFileBlockInfo>>) request.getAttribute("fileBlocksOnTier")).entrySet()) { %>
-              <% for (UIFileBlockInfo masterBlockInfo : entry.getValue()) { %>
+            <% for (ImmutablePair<String, List<UIFileBlockInfo>> pair : (List<ImmutablePair<String, List<UIFileBlockInfo>>>) request.getAttribute("fileBlocksOnTier")) { %>
+              <% for (UIFileBlockInfo masterBlockInfo : pair.getRight()) { %>
                 <tr>
                   <td><%= masterBlockInfo.getID() %></td>
-                  <td><%= entry.getKey() %></td>
+                  <td><%= pair.getLeft() %></td>
                   <td><%= masterBlockInfo.getBlockLength() %></td>
                 </tr>
               <% } %>

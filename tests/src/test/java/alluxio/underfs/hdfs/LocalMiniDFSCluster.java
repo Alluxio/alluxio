@@ -32,7 +32,7 @@ import java.io.IOException;
  */
 public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   /**
-   * Test the local minidfscluster only.
+   * Tests the local minidfscluster only.
    */
   public static void main(String[] args) throws Exception {
     LocalMiniDFSCluster cluster = null;

@@ -57,11 +57,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Alluxio (e.g., ${ALLUXIO_HOME}/conf/)
  *
  * <p>
- * Developers can create an instance of this class by {@link Configuration()}, which will load
+ * Developers can create an instance of this class by {@link #Configuration()}, which will load
  * values from any Java system properties set as well.
  *
  * <p>
- * The class only supports creation using {@link Configuration(Properties)} to override default
+ * The class only supports creation using {@link #Configuration(Properties)} to override default
  * values.
  */
 @NotThreadSafe

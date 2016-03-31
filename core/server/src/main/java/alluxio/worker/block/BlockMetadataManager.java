@@ -420,7 +420,7 @@ public final class BlockMetadataManager {
   }
 
   /**
-   * Remove the metadata of a specific block.
+   * Removes the metadata of a specific block.
    *
    * @param block the meta data of the block to remove
    * @throws BlockDoesNotExistException when block is not found

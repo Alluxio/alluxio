@@ -23,7 +23,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.security.LoginUser;
-import alluxio.security.authentication.PlainSaslServer;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
 import alluxio.wire.FileInfo;
 
@@ -69,8 +69,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())
-        && PlainSaslServer.AuthorizedClientUser.get(MasterContext.getConf()) == null) {
-      PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(MasterContext.getConf()).getName());
+        && AuthenticatedClientUser.get(MasterContext.getConf()) == null) {
+      AuthenticatedClientUser.set(LoginUser.get(MasterContext.getConf()).getName());
     }
     String requestPath = request.getParameter("path");
     if (requestPath == null || requestPath.isEmpty()) {
@@ -104,6 +104,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
    * @param response the {@link HttpServletResponse} object
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   private void downloadFile(AlluxioURI path, HttpServletRequest request,
       HttpServletResponse response) throws FileDoesNotExistException, IOException,
