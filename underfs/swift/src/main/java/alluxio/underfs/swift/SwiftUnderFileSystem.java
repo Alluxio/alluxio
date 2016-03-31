@@ -79,15 +79,21 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     super(configuration);
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
-    config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
-    config.setTenantName(configuration.get(Constants.SWIFT_TENANT_KEY));
-    config.setPassword(configuration.get(Constants.SWIFT_API_KEY));
+    if (configuration.containsKey(Constants.SWIFT_API_KEY)) {
+      config.setPassword(configuration.get(Constants.SWIFT_API_KEY));
+    } else if (configuration.containsKey(Constants.SWIFT_PASSWORD_KEY)) {
+      config.setPassword(configuration.get(Constants.SWIFT_PASSWORD_KEY));
+    }
     config.setAuthUrl(configuration.get(Constants.SWIFT_AUTH_URL_KEY));
     String authMethod = configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
     if (authMethod != null && authMethod.equals("keystone")) {
       config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
+      config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
+      config.setTenantName(configuration.get(Constants.SWIFT_TENANT_KEY));
     } else {
       config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
+      config.setTenantName(configuration.get(Constants.SWIFT_USER_KEY));
+      config.setUsername(configuration.get(Constants.SWIFT_TENANT_KEY));
     }
 
     ObjectMapper mapper = new ObjectMapper();
