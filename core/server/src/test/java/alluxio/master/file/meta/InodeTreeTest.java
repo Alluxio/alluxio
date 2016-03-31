@@ -318,7 +318,7 @@ public final class InodeTreeTest {
    */
   @Test
   public void createFileUnderNonexistingDirTest() throws Exception {
-    mThrown.expect(InvalidPathException.class);
+    mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("File /nested/test creation failed. Component 1(nested) does not exist");
 
     mTree.createPath(NESTED_URI, sFileOptions);
@@ -390,7 +390,7 @@ public final class InodeTreeTest {
    */
   @Test
   public void getInodeByNonexistingPathTest() throws Exception {
-    mThrown.expect(InvalidPathException.class);
+    mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Path /test does not exist");
 
     Assert.assertFalse(mTree.inodePathExists(TEST_URI));
@@ -404,7 +404,7 @@ public final class InodeTreeTest {
    */
   @Test
   public void getInodeByNonexistingNestedPathTest() throws Exception {
-    mThrown.expect(InvalidPathException.class);
+    mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Path /nested/test/file does not exist");
 
     mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
