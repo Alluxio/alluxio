@@ -668,8 +668,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
       return new TraversalResult(true, -1, inode, nonPersisted, inodes);
     }
 
-    static TraversalResult createNotFoundResult(Inode<?> inode, int index, List<Inode<?>> nonPersisted,
-        List<Inode<?>> inodes) {
+    static TraversalResult createNotFoundResult(Inode<?> inode, int index,
+        List<Inode<?>> nonPersisted, List<Inode<?>> inodes) {
       return new TraversalResult(false, index, inode, nonPersisted, inodes);
     }
 
