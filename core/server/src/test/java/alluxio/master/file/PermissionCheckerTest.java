@@ -150,7 +150,7 @@ public class PermissionCheckerTest {
     verifyPermissionChecker(true, TEST_PERMISSION_STATUS_SUPER.getUserName(), TEST_SUPER_GROUP);
 
     // verify initializing root twice
-    Inode root = sTree.getInodeByPath(new AlluxioURI("/"));
+    Inode<?> root = sTree.getInodeByPath(new AlluxioURI("/"));
     sTree.initializeRoot(TEST_PERMISSION_STATUS_SUPER);
     verifyPermissionChecker(true, root.getUserName(), TEST_SUPER_GROUP);
 
@@ -173,7 +173,7 @@ public class PermissionCheckerTest {
         sTree.collectInodes(new AlluxioURI(TEST_NOT_EXIST_URI)));
   }
 
-  private static void verifyInodesList(String[] expectedInodes, List<Inode> inodes) {
+  private static void verifyInodesList(String[] expectedInodes, List<Inode<?>> inodes) {
     String[] inodesName = new String[inodes.size()];
     for (int i = 0; i < inodes.size(); i++) {
       inodesName[i] = inodes.get(i).getName();
@@ -304,9 +304,9 @@ public class PermissionCheckerTest {
   }
 
   private List<FileInfo> collectFileInfos(AlluxioURI path) throws Exception {
-    List<Inode> inodes = sTree.collectInodes(path);
+    List<Inode<?>> inodes = sTree.collectInodes(path);
     List<FileInfo> fileInfos = new ArrayList<FileInfo>();
-    for (Inode inode : inodes) {
+    for (Inode<?> inode : inodes) {
       fileInfos.add(inode.generateClientFileInfo(sTree.getPath(inode).toString()));
     }
     return fileInfos;
