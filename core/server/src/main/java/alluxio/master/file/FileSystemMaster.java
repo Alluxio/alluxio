@@ -349,8 +349,9 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
    * @throws AccessControlException if permission checking fails
+   * @throws FileDoesNotExistException if the path does not exist
    */
-  public long getFileId(AlluxioURI path) throws AccessControlException {
+  public long getFileId(AlluxioURI path) throws AccessControlException, FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode inode;
       checkPermission(FileSystemAction.READ, path, false);
@@ -611,10 +612,11 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws BlockInfoException if an invalid block information in encountered
    * @throws IOException if the creation fails
    * @throws AccessControlException if permission checking fails
+   * @throws FileDoesNotExistException if the path does not exist
    */
   public long create(AlluxioURI path, CreateFileOptions options)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
-          BlockInfoException, IOException {
+          BlockInfoException, IOException, FileDoesNotExistException {
     MasterContext.getMasterSource().incCreateFileOps(1);
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, path, true);
@@ -641,9 +643,11 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileAlreadyExistsException if the file already exists
    * @throws BlockInfoException if invalid block information is encountered
    * @throws IOException if an I/O error occurs
+   * @throws FileDoesNotExistException if the path does not exist
    */
   InodeTree.CreatePathResult createInternal(AlluxioURI path, CreateFileOptions options)
-      throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
+      throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
+      FileDoesNotExistException {
     InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, options);
     // If the create succeeded, the list of created inodes will not be empty.
     List<Inode> created = createResult.getCreated();
@@ -667,9 +671,10 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param ttl the ttl
    * @return the file id
    * @throws InvalidPathException if the path is invalid
+   * @throws FileDoesNotExistException if the path does not exist
    */
   public long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl)
-      throws InvalidPathException {
+      throws InvalidPathException, FileDoesNotExistException {
     synchronized (mInodeTree) {
       long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
       ReinitializeFileEntry reinitializeFile = ReinitializeFileEntry.newBuilder()
@@ -692,7 +697,7 @@ public final class FileSystemMaster extends AbstractMaster {
     try {
       mInodeTree.reinitializeFile(new AlluxioURI(entry.getPath()), entry.getBlockSizeBytes(),
           entry.getTtl());
-    } catch (InvalidPathException e) {
+    } catch (InvalidPathException | FileDoesNotExistException e) {
       throw new RuntimeException(e);
     }
   }
@@ -1095,9 +1100,12 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws IOException if a non-Alluxio related exception occurs
    * @throws AccessControlException if permission checking fails
+   * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
+   *         option is false
    */
   public InodeTree.CreatePathResult mkdir(AlluxioURI path, CreateDirectoryOptions options)
-      throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException {
+      throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
+      FileDoesNotExistException {
     LOG.debug("mkdir {} ", path);
     MasterContext.getMasterSource().incCreateDirectoriesOps(1);
     synchronized (mInodeTree) {
@@ -1533,9 +1541,11 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if invalid path is encountered
    * @throws IOException if an I/O error occurs   *
    * @throws AccessControlException if permission checking fails
+   * @throws FileDoesNotExistException if the path does not exist
    */
   private long loadMetadataDirectory(AlluxioURI path, boolean recursive)
-      throws IOException, FileAlreadyExistsException, InvalidPathException, AccessControlException {
+      throws IOException, FileAlreadyExistsException, InvalidPathException, AccessControlException,
+      FileDoesNotExistException {
     CreateDirectoryOptions options =
         CreateDirectoryOptions.defaults().setMountPoint(mMountTable.isMountPoint(path))
             .setPersisted(true).setRecursive(recursive).setMetadataLoad(true);
@@ -1578,6 +1588,9 @@ public final class FileSystemMaster extends AbstractMaster {
         // This will create the directory at alluxioPath
         loadMetadataDirectory(alluxioPath, false);
         loadMetadataSuceeded = true;
+      } catch (FileDoesNotExistException e) {
+        // This exception should be impossible since we just mounted this path
+        throw Throwables.propagate(e);
       } finally {
         if (!loadMetadataSuceeded) {
           unmountInternal(alluxioPath);
