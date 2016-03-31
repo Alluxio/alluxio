@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -209,7 +210,6 @@ public final class KeyValueSystemIntegrationTest {
    */
   @Test
   public void createMultiPartitionsTest() throws Exception {
-    // TODO(cc): Remove codes using createStoreOfMultiplePartitions.
     final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
     final int numKeys = 10;
     final int keyLength = 4; // 4Byte key
@@ -217,23 +217,15 @@ public final class KeyValueSystemIntegrationTest {
 
     FileSystem fs = FileSystem.Factory.get();
 
-    ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
-        String.valueOf(maxPartitionSize));
-    mWriter = sKeyValueSystem.createStore(mStoreUri);
-    for (int i = 0; i < numKeys; i++) {
-      byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
-      byte[] value = BufferUtils.getIncreasingByteArray(i, valueLength);
-      mWriter.put(key, value);
-    }
-    mWriter.close();
+    AlluxioURI storeUri = createStoreOfMultiplePartitions(numKeys, null);
 
-    List<URIStatus> files = fs.listStatus(mStoreUri);
+    List<URIStatus> files = fs.listStatus(storeUri);
     Assert.assertEquals(numKeys, files.size());
     for (URIStatus info : files) {
       Assert.assertTrue(info.getLength() <= maxPartitionSize);
     }
 
-    mReader = sKeyValueSystem.openStore(mStoreUri);
+    mReader = sKeyValueSystem.openStore(storeUri);
     for (int i = 0; i < numKeys; i++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = mReader.get(key);
@@ -263,6 +255,22 @@ public final class KeyValueSystemIntegrationTest {
     mThrown.expect(IOException.class);
     mThrown.expectMessage(ExceptionMessage.KEY_VALUE_TOO_LARGE.getMessage(keyLength, valueLength));
     mWriter.put(key, value);
+  }
+
+  /**
+   * Tests putting a key-value pair whose key already exists in the store, expecting exception
+   * thrown.
+   */
+  @Test
+  public void putKeyAlreadyExistsTest() throws Exception {
+    mWriter = sKeyValueSystem.createStore(mStoreUri);
+    mWriter.put(KEY1, VALUE1);
+
+    byte[] copyOfKey1 = Arrays.copyOf(KEY1, KEY1.length);
+
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage(ExceptionMessage.KEY_ALREADY_EXISTS.getMessage());
+    mWriter.put(copyOfKey1, VALUE2);
   }
 
   /**
@@ -368,6 +376,45 @@ public final class KeyValueSystemIntegrationTest {
     for (AlluxioURI storeUri : storeUris) {
       testDeleteStore(storeUri);
     }
+  }
+
+  private void testRenameStore(AlluxioURI oldStore, List<KeyValuePair> pairs, AlluxioURI newStore)
+      throws Exception {
+    sKeyValueSystem.renameStore(oldStore, newStore);
+    List<KeyValuePair> newPairs = Lists.newArrayList();
+    mReader = sKeyValueSystem.openStore(newStore);
+    KeyValueIterator iterator = mReader.iterator();
+    while (iterator.hasNext()) {
+      newPairs.add(iterator.next());
+    }
+
+    Assert.assertEquals(pairs.size(), newPairs.size());
+    Collections.sort(pairs);
+    Collections.sort(newPairs);
+    Assert.assertEquals(pairs, newPairs);
+    try {
+      sKeyValueSystem.openStore(oldStore);
+    } catch (AlluxioException e) {
+      Assert.assertEquals(e.getMessage(),
+          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(oldStore));
+      return;
+    }
+    Assert.assertTrue("The URI to the old key-value store still exists", false);
+  }
+
+  /**
+   *
+   * Test that rename a store of 5 key-value pairs.
+   */
+  @Test
+  public void renameStoreTest() throws Exception {
+    final int storeOfSize = 5;
+    final String newPath = "newPath";
+    List<KeyValuePair> pairs = Lists.newArrayList();
+    AlluxioURI oldStore = createStoreOfSize(storeOfSize, pairs);
+    AlluxioURI newStore = new AlluxioURI(PathUtils.concatPath(oldStore.getParent().toString(),
+        newPath));
+    testRenameStore(oldStore, pairs, newStore);
   }
 
   private void testMergeStore(AlluxioURI store1, List<KeyValuePair> keyValuePairs1,

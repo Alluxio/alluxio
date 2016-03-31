@@ -17,7 +17,6 @@ package alluxio;
 public class IntegrationTestConstants {
   // DataServer variations.
   public static final String NETTY_DATA_SERVER = "alluxio.worker.netty.NettyDataServer";
-  public static final String NIO_DATA_SERVER = "alluxio.worker.nio.NIODataServer";
 
   // Remote block reader variations.
   public static final String NETTY_BLOCK_READER = "alluxio.client.netty.NettyRemoteBlockReader";

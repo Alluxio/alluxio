@@ -118,7 +118,7 @@ fi
 
 get_env
 check_java_version && check_tfuse_jar
-if [[ $? -ne 0 ]] ; then
+if [[ $? -ne 0 ]]; then
   exit 1
 fi
 

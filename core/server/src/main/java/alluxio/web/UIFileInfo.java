@@ -60,7 +60,7 @@ public final class UIFileInfo {
     private final boolean mIsDirectory;
 
     /**
-     * Creates a new instance of {@link LocalFileInfo}.
+     * Creates a new instance of {@link UIFileInfo.LocalFileInfo}.
      *
      * @param name name
      * @param absolutePath absolute path
@@ -138,7 +138,7 @@ public final class UIFileInfo {
   /**
    * Creates a new instance of {@link UIFileInfo}.
    *
-   * @param fileInfo underlying {@link LocalFileInfo}
+   * @param fileInfo underlying {@link UIFileInfo.LocalFileInfo}
    */
   public UIFileInfo(LocalFileInfo fileInfo) {
     mId = -1;
@@ -279,7 +279,7 @@ public final class UIFileInfo {
    * @return the percentage of the file stored in the given tier
    */
   public int getOnTierPercentage(String tierAlias) {
-    Long sizeOnTier = mSizeOnTier.containsKey(tierAlias) ? mSizeOnTier.get(tierAlias) : 0;
+    Long sizeOnTier = mSizeOnTier.containsKey(tierAlias) ? mSizeOnTier.get(tierAlias) : 0L;
     return (int) (100 * sizeOnTier / mSize);
   }
 

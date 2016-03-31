@@ -19,6 +19,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.CompleteFileTOptions;
@@ -27,6 +28,7 @@ import alluxio.thrift.CreateFileTOptions;
 import alluxio.thrift.FileBlockInfo;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.MountTOptions;
 import alluxio.thrift.SetAttributeTOptions;
 import alluxio.thrift.ThriftIOException;
 import alluxio.wire.ThriftUtils;
@@ -145,7 +147,13 @@ public final class FileSystemMasterClientServiceHandler implements
     }
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @deprecated since version 1.1 and will be removed in version 2.0
+   */
   @Override
+  @Deprecated
   public String getUfsAddress() {
     return mFileSystemMaster.getUfsAddress();
   }
@@ -177,10 +185,11 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public void mount(String alluxioPath, String ufsPath)
+  public void mount(String alluxioPath, String ufsPath, MountTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath));
+      mFileSystemMaster
+          .mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath), new MountOptions(options));
     } catch (AlluxioException e) {
       throw e.toAlluxioTException();
     } catch (IOException e) {

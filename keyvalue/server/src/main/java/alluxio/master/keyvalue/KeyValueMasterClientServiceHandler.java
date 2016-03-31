@@ -93,6 +93,18 @@ public final class KeyValueMasterClientServiceHandler implements KeyValueMasterC
   }
 
   @Override
+  public void renameStore(String oldPath, String newPath)
+      throws AlluxioTException, ThriftIOException {
+    try {
+      mKeyValueMaster.renameStore(new AlluxioURI(oldPath), new AlluxioURI(newPath));
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    }
+  }
+
+  @Override
   public void mergeStore(String fromPath, String toPath)
       throws AlluxioTException, ThriftIOException {
     try {

@@ -200,5 +200,16 @@ public final class PathUtils {
     return "/" + caller.getClassName() + "/" + caller.getMethodName() + "/" + time;
   }
 
+  /**
+   * Adds a trailing separator if it does not exists in path.
+   *
+   * @param path the file name
+   * @param separator trailing separator to add
+   * @return updated path with trailing separator
+   */
+  public static String normalizePath(String path, String separator) {
+    return path.endsWith(separator) ? path : path + separator;
+  }
+
   private PathUtils() {} // prevent instantiation
 }

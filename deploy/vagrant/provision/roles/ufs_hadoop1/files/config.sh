@@ -4,27 +4,27 @@
 ALLUXIO_CLIENT_JAR=$(ls /alluxio/core/client/target/alluxio-core-client-*-jar-with-dependencies.jar)
 echo "export HADOOP_CLASSPATH=\${HADOOP_CLASSPATH}:${ALLUXIO_CLIENT_JAR}" >> /hadoop/conf/hadoop-env.sh
 
-NODES=`cat /vagrant/files/workers`
+NODES=$(cat /vagrant/files/workers)
 
 # setup hadoop
 rm -f /hadoop/conf/slaves
-for i in ${NODES[@]}; do
- echo $i >> /hadoop/conf/slaves
+for node in ${NODES[@]}; do
+  echo ${node} >> /hadoop/conf/slaves
 done
 
 # choose the last node as namenode
-namenode=$i
-echo $namenode > /hadoop/conf/masters
+namenode=${node}
+echo ${namenode} > /hadoop/conf/masters
 
 # use /disk0, /disk1... as local storage
-EXTRA_DISKS=`ls / | grep '^disk'`
+EXTRA_DISKS=$(ls / | grep '^disk')
 DN=""
 NN=""
 TMP=""
-for disk in $EXTRA_DISKS; do
- DN=/${disk}/dfs/dn,$DN
- NN=/${disk}/dfs/nn,$NN
- TMP=/${disk}/hadoop-tmpstore,$TMP
+for disk in ${EXTRA_DISKS}; do
+  DN=/${disk}/dfs/dn,${DN}
+  NN=/${disk}/dfs/nn,${NN}
+  TMP=/${disk}/hadoop-tmpstore,${TMP}
 done
 
 [[ "$TMP" == "" ]] && TMP=/tmp/hadoop-tmpstore
@@ -32,7 +32,7 @@ cat > /hadoop/conf/core-site.xml << EOF
 <configuration>
 <property>
   <name>hadoop.tmp.dir</name>
-  <value>$TMP</value>
+  <value>${TMP}</value>
 </property>
 <property>
   <name>fs.default.name</name>
@@ -59,11 +59,11 @@ cat > /hadoop/conf/hdfs-site.xml << EOF
 </property>
 <property>
  <name>dfs.data.dir</name>
- <value>$DN</value>
+ <value>${DN}</value>
 </property>
 <property>
  <name>dfs.name.dir</name>
- <value>$NN</value>
+ <value>${NN}</value>
 </property>
 <property>
  <name>dfs.support.broken.append</name>

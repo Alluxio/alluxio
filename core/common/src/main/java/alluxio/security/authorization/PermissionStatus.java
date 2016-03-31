@@ -16,9 +16,9 @@ import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
-import alluxio.security.authentication.AuthType;
-import alluxio.security.authentication.PlainSaslServer;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
+import alluxio.util.SecurityUtils;
 
 import java.io.IOException;
 
@@ -109,7 +109,7 @@ public final class PermissionStatus {
    *
    * @param conf the runtime configuration of Alluxio
    * @param remote true if the request is for creating permission from client side, the
-   *               username binding into inode will be gotten from {@code AuthorizedClientUser
+   *               username binding into inode will be gotten from {@code AuthenticatedClientUser
    *               .get().getName()}.
    *               If the remote is false, the username binding into inode will be gotten from
    *               {@link alluxio.security.LoginUser}.
@@ -117,14 +117,13 @@ public final class PermissionStatus {
    * @throws java.io.IOException when getting login user fails
    */
   public static PermissionStatus get(Configuration conf, boolean remote) throws IOException {
-    AuthType authType = conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
-    if (authType == AuthType.NOSASL) {
+    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
       // no authentication
       return new PermissionStatus("", "", FileSystemPermission.getNoneFsPermission());
     }
     if (remote) {
       // get the username through the authentication mechanism
-      User user = PlainSaslServer.AuthorizedClientUser.get(conf);
+      User user = AuthenticatedClientUser.get(conf);
       if (user == null) {
         throw new IOException(ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
       }

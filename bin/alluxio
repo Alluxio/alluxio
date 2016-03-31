@@ -190,7 +190,7 @@ function killAll {
 }
 
 function copyDir {
-  if [[ $# -ne 1 ]] ; then
+  if [[ $# -ne 1 ]]; then
     echo "Usage: alluxio copyDir <path>"
     exit 1
   fi
@@ -240,7 +240,7 @@ case ${COMMAND} in
     exit 2
   fi
 
-  if [[ -z ${ALLUXIO_MASTER_ADDRESS} ]] ; then
+  if [[ -z ${ALLUXIO_MASTER_ADDRESS} ]]; then
     ALLUXIO_MASTER_ADDRESS=localhost
   fi
 
@@ -319,11 +319,11 @@ case ${COMMAND} in
   exit 0
 ;;
 "thriftGen")
-  declare -a thriftSrcPaths=("${BIN}/../core/common/src" "${BIN}/../keyvalue/common/src")
+  declare -a thriftSrcPaths=($(find "${BIN}/.." -name "*.thrift" -print0 | xargs -0 -n1 dirname | sort | uniq))
   for thriftSrcPath in ${thriftSrcPaths[@]}; do
-    rm -rf "${thriftSrcPath}/main/java/alluxio/thrift"
-    for srcFile in $(ls "${thriftSrcPath}/thrift"); do
-      thrift -I "${BIN}/../core/common/src/thrift" --gen java:private-members -out "${thriftSrcPath}/main/java/." "${thriftSrcPath}/thrift/${srcFile}"
+    rm -rf "${thriftSrcPath}/../main/java/alluxio/thrift"
+    for srcFile in $(ls "${thriftSrcPath}"); do
+      thrift -I "${BIN}/../core/common/src/thrift" --gen java:private-members -out "${thriftSrcPath}/../main/java/." "${thriftSrcPath}/${srcFile}"
     done
   done
   exit 0

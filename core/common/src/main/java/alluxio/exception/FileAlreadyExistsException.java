@@ -20,16 +20,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public class FileAlreadyExistsException extends AlluxioException {
   private static final long serialVersionUID = -621175311680977828L;
 
-  private static final AlluxioExceptionType EXCEPTION_TYPE =
-      AlluxioExceptionType.FILE_ALREADY_EXISTS;
-
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public FileAlreadyExistsException(String message) {
-    super(EXCEPTION_TYPE, message);
+    super(message);
   }
 
   /**
@@ -39,7 +36,7 @@ public class FileAlreadyExistsException extends AlluxioException {
    * @param cause the cause
    */
   public FileAlreadyExistsException(String message, Throwable cause) {
-    super(EXCEPTION_TYPE, message, cause);
+    super(message, cause);
   }
 
   /**

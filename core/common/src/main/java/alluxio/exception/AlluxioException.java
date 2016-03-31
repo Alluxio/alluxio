@@ -23,8 +23,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class AlluxioException extends Exception {
   private static final long serialVersionUID = 2243833925609642384L;
 
-  private final AlluxioExceptionType mType;
-
   /**
    * Constructs a {@link AlluxioException} with an exception type from a {@link AlluxioTException}.
    *
@@ -32,22 +30,18 @@ public abstract class AlluxioException extends Exception {
    */
   public AlluxioException(AlluxioTException te) {
     super(te.getMessage());
-    mType = AlluxioExceptionType.valueOf(te.getType());
   }
 
-  protected AlluxioException(AlluxioExceptionType type, Throwable cause) {
+  protected AlluxioException(Throwable cause) {
     super(cause);
-    mType = type;
   }
 
-  protected AlluxioException(AlluxioExceptionType type, String message) {
+  protected AlluxioException(String message) {
     super(message);
-    mType = type;
   }
 
-  protected AlluxioException(AlluxioExceptionType type, String message, Throwable cause) {
+  protected AlluxioException(String message, Throwable cause) {
     super(message, cause);
-    mType = type;
   }
 
   /**
@@ -56,7 +50,7 @@ public abstract class AlluxioException extends Exception {
    * @return a {@link AlluxioTException} of the type of this exception
    */
   public AlluxioTException toAlluxioTException() {
-    return new AlluxioTException(mType.name(), getMessage());
+    return new AlluxioTException(getClass().getName(), getMessage());
   }
 
   /**
@@ -66,12 +60,13 @@ public abstract class AlluxioException extends Exception {
    * @return a {@link AlluxioException} of the type specified in e, with the message specified in e
    */
   public static AlluxioException from(AlluxioTException e) {
-    AlluxioExceptionType exceptionType = AlluxioExceptionType.valueOf(e.getType());
-    Class<? extends AlluxioException> throwClass = exceptionType.getExceptionClass();
     try {
+      @SuppressWarnings("unchecked")
+      Class<? extends AlluxioException> throwClass =
+          (Class<? extends AlluxioException>) Class.forName(e.getType());
       return throwClass.getConstructor(String.class).newInstance(e.getMessage());
     } catch (ReflectiveOperationException reflectException) {
-      String errorMessage = "Could not instantiate " + throwClass.getName() + " with a String-only "
+      String errorMessage = "Could not instantiate " + e.getType() + " with a String-only "
           + "constructor: " + reflectException.getMessage();
       throw new IllegalStateException(errorMessage, reflectException);
     }

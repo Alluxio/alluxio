@@ -65,15 +65,12 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    */
   @Test
   public void equalsTest() {
-    InodeDirectory inode1 =
-        new InodeDirectory.Builder().setName("test1").setId(1).setParentId(0)
-        .setPermissionStatus(PermissionStatus.getDirDefault()).build();
-    InodeDirectory inode2 =
-        new InodeDirectory.Builder().setName("test2").setId(1).setParentId(0)
-        .setPermissionStatus(PermissionStatus.getDirDefault()).build();
-    InodeDirectory inode3 =
-        new InodeDirectory.Builder().setName("test3").setId(3).setParentId(0)
-        .setPermissionStatus(PermissionStatus.getDirDefault()).build();
+    InodeDirectory inode1 = new InodeDirectory(1).setName("test1").setParentId(0)
+        .setPermissionStatus(PermissionStatus.getDirDefault());
+    InodeDirectory inode2 = new InodeDirectory(1).setName("test2").setParentId(0)
+        .setPermissionStatus(PermissionStatus.getDirDefault());
+    InodeDirectory inode3 = new InodeDirectory(3).setName("test3").setParentId(0)
+        .setPermissionStatus(PermissionStatus.getDirDefault());
     Assert.assertTrue(inode1.equals(inode2));
     Assert.assertTrue(inode1.equals(inode1));
     Assert.assertFalse(inode1.equals(inode3));
