@@ -22,6 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for creating a path.
+ *
  * @param <T> the type of the object to create
  */
 @NotThreadSafe

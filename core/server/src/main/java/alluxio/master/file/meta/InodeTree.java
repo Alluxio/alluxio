@@ -243,7 +243,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *         parent directories is actually a file
    * @throws IOException if creating the path fails
    */
-  public CreatePathResult createPath(AlluxioURI path, CreatePathOptions options)
+  public CreatePathResult createPath(AlluxioURI path, CreatePathOptions<?> options)
       throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException {
     if (path.isRoot()) {
       LOG.info(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
