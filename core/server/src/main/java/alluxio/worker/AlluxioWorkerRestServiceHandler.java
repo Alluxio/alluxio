@@ -205,7 +205,8 @@ public final class AlluxioWorkerRestServiceHandler {
     String blocksCachedProperty = CommonUtils.argsToString(".",
         WorkerContext.getWorkerSource().getName(), WorkerSource.BLOCKS_CACHED);
     @SuppressWarnings("unchecked")
-    Gauge<Integer> blocksCached = (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
+    Gauge<Integer> blocksCached =
+        (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
 
     // Get values of the counters and gauges and put them into a metrics map.
     SortedMap<String, Long> metrics = new TreeMap<>();

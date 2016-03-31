@@ -122,7 +122,8 @@ public final class AlluxioMasterRestServiceHandler {
     String filesPinnedProperty = CommonUtils.argsToString(".",
         MasterContext.getMasterSource().getName(), MasterSource.FILES_PINNED);
     @SuppressWarnings("unchecked")
-    Gauge<Integer> filesPinned = (Gauge<Integer>) metricRegistry.getGauges().get(filesPinnedProperty);
+    Gauge<Integer> filesPinned =
+        (Gauge<Integer>) metricRegistry.getGauges().get(filesPinnedProperty);
 
     // Get values of the counters and gauges and put them into a metrics map.
     SortedMap<String, Long> metrics = new TreeMap<>();
