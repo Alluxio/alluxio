@@ -9,7 +9,7 @@ group: Resources
 
 本页主要是关于Alluxio使用过程中的一些指导和提示，方便用户能够更快的解决使用过程遇到的问题。
 注意: 本页并不包含Alluxio使用过程中遇到的所有问题。
-用户可随时向 [Alluxio邮件列表](https://groups.google.com/forum/#!forum/alluxio-users)提交列表。
+用户可随时向 [Alluxio邮件列表](https://groups.google.com/forum/#!forum/alluxio-users)提交问题。
 
 ## Alluxio日志地址
 
@@ -27,7 +27,7 @@ master和worker日志对于理解Alluxio master节点和worker节点的运行过
 典型问题:
 
 - `ALLUXIO_UNDERFS_ADDRESS`配置不正确
-- 如果 `ssh localhost` 失败, 确定`~/.ssh/authorized_keys`文件中包含主机的ssh公钥
+- 如果 `ssh localhost` 失败, 请确认`~/.ssh/authorized_keys`文件中包含主机的ssh公钥
 
 #### 问题: 打算在Spark/HDFS集群中部署Alluxio，有什么建议？
 
@@ -38,7 +38,7 @@ master和worker日志对于理解Alluxio master节点和worker节点的运行过
 
 - 通常情况下, 当Alluxio workers和计算框架的节点部署在一起的时候，性能可达到最优
 - 如果你正在使用Mesos或者Yarn管理集群,也可以将Mesos和Yarn集成到Alluxio中，使用Mesos和Yarn可方便集群管理
-- 如果底层存储是远程的，比如说S3或者远程HDFS,这种情况下，使用Alluxio是最合适的
+- 如果底层存储是远程的，比如说S3或者远程HDFS,这种情况下，使用Alluxio会非常有帮助
 
 #### 问题: 在EC2上安装Alluxio遇到问题，有什么建议？
 
@@ -59,7 +59,7 @@ master和worker日志对于理解Alluxio master节点和worker节点的运行过
 ## 环境
 
 Alluxio在不同的生产环境下可配置不同的运行模式。
-请确定当前Alluxio版本是最新的，可提供支持的。
+请确定当前Alluxio版本是最新的并且是支持的版本。
 
 在[邮件列表](https://groups.google.com/forum/#!forum/alluxio-users)提交问题时请附上完整的环境信息,包括
 
