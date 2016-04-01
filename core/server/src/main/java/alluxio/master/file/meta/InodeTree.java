@@ -247,7 +247,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  public CreatePathResult createPath(AlluxioURI path, CreatePathOptions options)
+  public CreatePathResult createPath(AlluxioURI path, CreatePathOptions<?> options)
       throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException,
       FileDoesNotExistException {
     if (path.isRoot()) {

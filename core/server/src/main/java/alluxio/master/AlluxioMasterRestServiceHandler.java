@@ -121,14 +121,16 @@ public final class AlluxioMasterRestServiceHandler {
     // spaces, those statistics can be gotten via other REST apis.
     String filesPinnedProperty = CommonUtils.argsToString(".",
         MasterContext.getMasterSource().getName(), MasterSource.FILES_PINNED);
-    Gauge filesPinned = metricRegistry.getGauges().get(filesPinnedProperty);
+    @SuppressWarnings("unchecked")
+    Gauge<Integer> filesPinned =
+        (Gauge<Integer>) metricRegistry.getGauges().get(filesPinnedProperty);
 
     // Get values of the counters and gauges and put them into a metrics map.
     SortedMap<String, Long> metrics = new TreeMap<>();
     for (Map.Entry<String, Counter> counter : counters.entrySet()) {
       metrics.put(counter.getKey(), counter.getValue().getCount());
     }
-    metrics.put(filesPinnedProperty, ((Integer) filesPinned.getValue()).longValue());
+    metrics.put(filesPinnedProperty, filesPinned.getValue().longValue());
 
     return Response.ok(metrics).build();
   }
