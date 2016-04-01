@@ -17,7 +17,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -235,7 +234,7 @@ public final class MasterSourceTest {
     try {
       mFileSystemMaster.getFileBlockInfoList(new AlluxioURI("/doesNotExist"));
       Assert.fail("get file block info for a non existing file must throw an exception");
-    } catch (InvalidPathException e) {
+    } catch (FileDoesNotExistException e) {
       Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/doesNotExist"),
           e.getMessage());
     }

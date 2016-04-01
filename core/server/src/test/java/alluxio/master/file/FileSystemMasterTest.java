@@ -465,7 +465,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void renameUnderNonexistingDir() throws Exception {
-    mThrown.expect(InvalidPathException.class);
+    mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/nested/test"));
 
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB);
