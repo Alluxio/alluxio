@@ -144,18 +144,18 @@ function mount_ramfs_linux() {
   fi
 
   F=${ALLUXIO_RAM_FOLDER}
-  echo "Formatting RamFS: $F (${MEM_SIZE})"
-  if mount | grep $F > /dev/null; then
-    umount -f $F
+  echo "Formatting RamFS: ${F} (${MEM_SIZE})"
+  if mount | grep ${F} > /dev/null; then
+    umount -f ${F}
     if [[ $? -ne 0 ]]; then
-      echo "ERROR: umount RamFS $F failed"
+      echo "ERROR: umount RamFS ${F} failed"
       exit 1
     fi
   else
-    mkdir -p $F
+    mkdir -p ${F}
   fi
 
-  mount -t ramfs -o size=${MEM_SIZE} ramfs $F ; chmod a+w $F ;
+  mount -t ramfs -o size=${MEM_SIZE} ramfs ${F} ; chmod a+w ${F} ;
 }
 
 function mount_ramfs_mac() {

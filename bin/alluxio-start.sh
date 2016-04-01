@@ -163,7 +163,7 @@ run_safe() {
 }
 
 while getopts "hNw" o; do
-  case "$o" in
+  case "${o}" in
     h)
       echo -e "${USAGE}"
       exit 0
