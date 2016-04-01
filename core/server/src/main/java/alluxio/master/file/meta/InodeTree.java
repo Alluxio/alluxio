@@ -186,12 +186,14 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param path the path to get the inode for
    * @return the inode with the given path
    * @throws InvalidPathException if the path is invalid
+   * @throws FileDoesNotExistException if the path does not exist
    */
-  public Inode<?> getInodeByPath(AlluxioURI path) throws InvalidPathException {
+  public Inode<?> getInodeByPath(AlluxioURI path)
+      throws InvalidPathException, FileDoesNotExistException {
     TraversalResult traversalResult =
         traverseToInode(PathUtils.getPathComponents(path.toString()), false);
     if (!traversalResult.isFound()) {
-      throw new InvalidPathException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
     return traversalResult.getInode();
   }
@@ -242,9 +244,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *         necessary parent directories and recursive is false, (2) when one of the necessary
    *         parent directories is actually a file
    * @throws IOException if creating the path fails
+   * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
+   *         option is false
    */
   public CreatePathResult createPath(AlluxioURI path, CreatePathOptions<?> options)
-      throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException {
+      throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException,
+      FileDoesNotExistException {
     if (path.isRoot()) {
       LOG.info(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
       throw new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
@@ -277,8 +282,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
             .append(traversalResult.getNonexistentPathIndex()).append("(")
             .append(parentPath[traversalResult.getNonexistentPathIndex()])
             .append(") does not exist").toString();
-        LOG.info("InvalidPathException: {}", msg);
-        throw new InvalidPathException(msg);
+        LOG.info("FileDoesNotExistException: {}", msg);
+        throw new FileDoesNotExistException(msg);
       } else {
         // We will start filling at the index of the non-existing step found by the traversal.
         pathIndex = traversalResult.getNonexistentPathIndex();
@@ -393,9 +398,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param ttl the ttl
    * @return the file id
    * @throws InvalidPathException if the path is invalid
+   * @throws FileDoesNotExistException if the path does not exist
    */
   public long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl)
-      throws InvalidPathException {
+      throws InvalidPathException, FileDoesNotExistException {
     InodeFile file = (InodeFile) getInodeByPath(path);
     file.setBlockSizeBytes(blockSizeBytes);
     file.setTtl(ttl);
