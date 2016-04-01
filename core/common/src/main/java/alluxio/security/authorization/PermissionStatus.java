@@ -118,8 +118,8 @@ public final class PermissionStatus {
    */
   public static PermissionStatus get(Configuration conf, boolean remote) throws IOException {
     if (!SecurityUtils.isAuthenticationEnabled(conf)) {
-      // no authentication
-      return new PermissionStatus("", "", FileSystemPermission.getNoneFsPermission());
+      // no authentication, every action is permitted
+      return new PermissionStatus("", "", FileSystemPermission.getFullFsPermission());
     }
     if (remote) {
       // get the username through the authentication mechanism
