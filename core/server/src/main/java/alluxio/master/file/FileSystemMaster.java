@@ -214,7 +214,11 @@ public final class FileSystemMaster extends AbstractMaster {
   public void processJournalEntry(JournalEntry entry) throws IOException {
     Message innerEntry = JournalProtoUtils.unwrap(entry);
     if (innerEntry instanceof InodeFileEntry || innerEntry instanceof InodeDirectoryEntry) {
-      mInodeTree.addInodeFromJournal(entry);
+      try {
+        mInodeTree.addInodeFromJournal(entry);
+      } catch (AccessControlException e) {
+        throw new RuntimeException(e);
+      }
     } else if (innerEntry instanceof InodeLastModificationTimeEntry) {
       InodeLastModificationTimeEntry modTimeEntry = (InodeLastModificationTimeEntry) innerEntry;
       try {
