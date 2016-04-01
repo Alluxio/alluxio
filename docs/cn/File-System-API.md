@@ -87,7 +87,7 @@ Alluxio提供定位策略，用于确定应该选择哪个Worker来存储文件�
 
     返回指定主机名的Worker。该策略不能被设置为默认策略。
 
-Alluxio支持自定义策略，所以你可以开发自己的定位策略来迎合应用需求通过实现接口`alluxio.client.file.policyFileWriteLocationPolicy`。注意默认策略必须要有一个空构造函数。要想使用ASYNC_THROUGH写类型，所有的文件数据块必须被写到相同的Worker上。
+Alluxio支持自定义策略，所以你可以通过实现接口`alluxio.client.file.policyFileWriteLocationPolicy`，开发自己的定位策略来迎合应用需求。注意默认策略必须要有一个空构造函数。要想使用ASYNC_THROUGH写类型，所有的文件数据块必须被写到相同的Worker上。
 
 ### 访问Alluxio上一个存在的文件
 
