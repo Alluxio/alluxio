@@ -109,13 +109,20 @@ public final class FreeAndDeleteIntegrationTest {
     Assert.assertTrue(bm.getLostBlocks().isEmpty());
 
     mFileSystem.free(filePath);
-    // Execute the blocks free, which needs two heartbeats. Make sure there is some time delay
-    // between two heartbeats to make sure worker got time to generate block removal reports.
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+    // Schedule 1st heartbeat from worker.
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
         TimeUnit.SECONDS));
-    CommonUtils.sleepMs(50);
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    // Waiting for the removal of blockMeta from worker.
+    while (bw.hasBlockMeta(blockId)) {
+      CommonUtils.sleepMs(50);
+    }
+    // Schedule 2nd heartbeat from worker.
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+        TimeUnit.SECONDS));
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    // Ensure the 2nd heartbeat is finished.
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
         TimeUnit.SECONDS));
 
