@@ -22,7 +22,7 @@ priority: 2
 
 {% include Running-Alluxio-on-a-Cluster/start-Alluxio.md %}
 
-验证Alluxio是否运行，访问**[http://localhost:19999](http://localhost:19999)**，或查看`alluxio/logs`文件夹下的日志。也可以运行一个样例程序
+验证Alluxio是否运行，可以访问`http://<alluxio_master_hostname>:19999`，或查看`alluxio/logs`文件夹下的日志。也可以运行一个样例程序
 
 {% include Running-Alluxio-on-a-Cluster/run-tests.md %}
 
