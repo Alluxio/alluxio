@@ -38,11 +38,11 @@ import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
-import jersey.repackaged.com.google.common.base.Throwables;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

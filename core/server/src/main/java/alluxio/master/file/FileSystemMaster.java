@@ -601,8 +601,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Creates a file (not a directory) for a given path.
-   * Needs {@link FileSystemAction#WRITE} permission on the parent of the path.
+   * Creates a file (not a directory) for a given path. Needs {@link FileSystemAction#WRITE}
+   * permission on the parent of the path.
    *
    * @param path the file to create
    * @param options method options
@@ -612,7 +612,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws BlockInfoException if an invalid block information in encountered
    * @throws IOException if the creation fails
    * @throws AccessControlException if permission checking fails
-   * @throws FileDoesNotExistException if the path does not exist
+   * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
+   *         option is false
    */
   public long create(AlluxioURI path, CreateFileOptions options)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
@@ -643,7 +644,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileAlreadyExistsException if the file already exists
    * @throws BlockInfoException if invalid block information is encountered
    * @throws IOException if an I/O error occurs
-   * @throws FileDoesNotExistException if the path does not exist
+   * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
+   *         option is false
    */
   InodeTree.CreatePathResult createInternal(AlluxioURI path, CreateFileOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
