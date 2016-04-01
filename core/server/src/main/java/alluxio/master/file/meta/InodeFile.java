@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.InvalidFileSizeException;
+import alluxio.master.MasterContext;
 import alluxio.master.block.BlockId;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -225,7 +226,7 @@ public final class InodeFile extends Inode<InodeFile> {
   @Override
   public InodeFile setPermissionStatus(PermissionStatus permissionStatus) {
     Preconditions.checkNotNull(permissionStatus, "Permission status is not set");
-    return super.setPermissionStatus(permissionStatus.applyUMask(UMASK));
+    return super.setPermissionStatus(permissionStatus.applyUMask(UMASK, MasterContext.getConf()));
   }
 
   /**

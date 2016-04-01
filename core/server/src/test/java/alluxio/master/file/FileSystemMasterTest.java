@@ -394,11 +394,10 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void permissionTest() throws Exception {
-    Assert.assertFalse(SecurityUtils.isAuthenticationEnabled(new Configuration()));
-    mFileSystemMaster.create(NESTED_URI, sNestedFileOptions);
-    Assert.assertEquals(0777, mFileSystemMaster.getFileInfo(NESTED_URI).getPermission());
+    Assert.assertFalse(SecurityUtils.isSecurityEnabled(new Configuration()));
     mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
-    Assert.assertEquals(0666, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPermission());
+    Assert.assertEquals(0777, mFileSystemMaster.getFileInfo(NESTED_URI).getPermission());
+    Assert.assertEquals(0777, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPermission());
   }
 
   /**
