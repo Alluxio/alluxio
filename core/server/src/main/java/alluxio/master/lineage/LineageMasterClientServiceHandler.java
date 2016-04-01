@@ -81,7 +81,8 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   }
 
   @Override
-  public boolean deleteLineage(final long lineageId, final boolean cascade) throws AlluxioTException {
+  public boolean deleteLineage(final long lineageId, final boolean cascade)
+      throws AlluxioTException {
     return RpcUtils.call(new RpcCallable<Boolean>() {
       @Override
       public Boolean call() throws AlluxioException {
