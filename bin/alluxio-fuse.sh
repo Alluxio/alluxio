@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-if [[ -n "$BASH_VERSION" ]]; then
+if [[ -n "${BASH_VERSION}" ]]; then
     BIN="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-elif [[ -n "$ZSH_VERSION" ]]; then
+elif [[ -n "${ZSH_VERSION}" ]]; then
     BIN="$( cd "$( dirname "${(%):-%x}" )" && pwd )"
 else
     echo "Please, launch your scripts from zsh or bash only." >&2
@@ -11,7 +11,7 @@ fi
 
 get_env () {
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
-  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
   ALLUXIO_MASTER_PORT=${ALLUXIO_MASTER_PORT:-19998}

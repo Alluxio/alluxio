@@ -11,14 +11,14 @@ if [[ "$-" == *x* ]]; then
 fi
 BIN=$(cd "$( dirname "$0" )"; pwd)
 
-Usage="Usage: alluxio-mount.sh [Mount|SudoMount] [MACHINE]
+USAGE="Usage: alluxio-mount.sh [Mount|SudoMount] [MACHINE]
 \nIf omitted, MACHINE is default to be 'local'. MACHINE is one of:\n
   local\t\t\tMount local machine\n
   workers\t\tMount all the workers on worker nodes"
 
 function init_env() {
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
-  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
   if [[ -z ${ALLUXIO_WORKER_MEMORY_SIZE} ]]; then
@@ -144,18 +144,18 @@ function mount_ramfs_linux() {
   fi
 
   F=${ALLUXIO_RAM_FOLDER}
-  echo "Formatting RamFS: ${F} (${MEM_SIZE})"
-  if mount | grep ${F} > /dev/null; then
-    umount -f ${F}
+  echo "Formatting RamFS: $F (${MEM_SIZE})"
+  if mount | grep $F > /dev/null; then
+    umount -f $F
     if [[ $? -ne 0 ]]; then
-      echo "ERROR: umount RamFS ${F} failed"
+      echo "ERROR: umount RamFS $F failed"
       exit 1
     fi
   else
-    mkdir -p ${F}
+    mkdir -p $F
   fi
 
-  mount -t ramfs -o size=${MEM_SIZE} ramfs ${F} ; chmod a+w ${F} ;
+  mount -t ramfs -o size=${MEM_SIZE} ramfs $F ; chmod a+w $F ;
 }
 
 function mount_ramfs_mac() {
@@ -219,6 +219,6 @@ case "${1}" in
     esac
     ;;
   *)
-    echo -e ${Usage}
+    echo -e ${USAGE}
     exit 1
 esac
