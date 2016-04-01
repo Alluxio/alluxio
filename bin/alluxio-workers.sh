@@ -9,7 +9,7 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 
 USAGE="Usage: alluxio-workers.sh command..."
 
-# if no args specified, show USAGE
+# if no args specified, show usage
 if [[ $# -le 0 ]]; then
   echo ${USAGE}
   exit 1
