@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # maven package's location
-MAVEN_LOC=http://apache.arvixe.com/maven/maven-3/3.3.3/binaries/apache-maven-3.3.3-bin.tar.gz
+MAVEN_LOC=http://apache.cs.utah.edu/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
 
 # maven package's name
 MAVEN_FN=$(basename "$MAVEN_LOC")
