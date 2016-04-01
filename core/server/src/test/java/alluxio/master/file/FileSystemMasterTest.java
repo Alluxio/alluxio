@@ -36,6 +36,7 @@ import alluxio.master.journal.ReadWriteJournal;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.util.IdUtils;
+import alluxio.util.SecurityUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -386,6 +387,18 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
     Assert.assertFalse(mFileSystemMaster.isDirectory(fileId));
     Assert.assertTrue(mFileSystemMaster.isDirectory(mFileSystemMaster.getFileId(NESTED_URI)));
+  }
+
+  /**
+   * Tests both directories and files have full permissions when the security is not turned on.
+   */
+  @Test
+  public void permissionTest() throws Exception {
+    Assert.assertFalse(SecurityUtils.isAuthenticationEnabled(new Configuration()));
+    mFileSystemMaster.create(NESTED_URI, sNestedFileOptions);
+    Assert.assertEquals(0777, mFileSystemMaster.getFileInfo(NESTED_URI).getPermission());
+    mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
+    Assert.assertEquals(0666, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPermission());
   }
 
   /**
