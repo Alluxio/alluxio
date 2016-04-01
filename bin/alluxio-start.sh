@@ -9,7 +9,7 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 
 #start up alluxio
 
-Usage="Usage: alluxio-start.sh [-hNw] WHAT [MOPT] [-f]
+USAGE="Usage: alluxio-start.sh [-hNw] WHAT [MOPT] [-f]
 Where WHAT is one of:
   all MOPT\t\tStart master and all workers.
   local\t\t\tStart a master and worker locally
@@ -42,12 +42,12 @@ ensure_dirs() {
 
 get_env() {
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
-  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 }
 
 check_mount_mode() {
-  case "${1}" in
+  case "$1" in
     Mount);;
     SudoMount);;
     NoMount);;
@@ -57,7 +57,7 @@ check_mount_mode() {
       else
         echo "Invalid mount mode: $1"
       fi
-      echo -e "${Usage}"
+      echo -e "${USAGE}"
       exit 1
   esac
 }
@@ -65,7 +65,7 @@ check_mount_mode() {
 # pass mode as $1
 do_mount() {
   MOUNT_FAILED=0
-  case "${1}" in
+  case "$1" in
     Mount|SudoMount)
       ${LAUNCHER} ${BIN}/alluxio-mount.sh $1
       MOUNT_FAILED=$?
@@ -74,7 +74,7 @@ do_mount() {
       ;;
     *)
       echo "This command requires a mount mode be specified"
-      echo -e "${Usage}"
+      echo -e "${USAGE}"
       exit 1
   esac
 }
@@ -94,7 +94,7 @@ start_master() {
     ALLUXIO_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
   fi
 
-  if [[ "${1}" == "-f" ]]; then
+  if [[ "$1" == "-f" ]]; then
     ${LAUNCHER} ${BIN}/alluxio format
   fi
 
@@ -163,9 +163,9 @@ run_safe() {
 }
 
 while getopts "hNw" o; do
-  case "${o}" in
+  case "$o" in
     h)
-      echo -e "${Usage}"
+      echo -e "${USAGE}"
       exit 0
       ;;
     N)
@@ -175,7 +175,7 @@ while getopts "hNw" o; do
       wait="true"
       ;;
     *)
-      echo -e "${Usage}"
+      echo -e "${USAGE}"
       exit 1
       ;;
   esac
@@ -187,7 +187,7 @@ WHAT=$1
 
 if [[ -z "${WHAT}" ]]; then
   echo "Error: no WHAT specified"
-  echo -e "${Usage}"
+  echo -e "${USAGE}"
   exit 1
 fi
 
@@ -219,7 +219,7 @@ case "${WHAT}" in
       exit 1
     fi
     if [ ! -z $2 ] && [ $2 != "-f" ]; then
-      echo -e "${Usage}"
+      echo -e "${USAGE}"
       exit 1
     fi
     start_master $2
@@ -228,7 +228,7 @@ case "${WHAT}" in
     ;;
   master)
     if [ ! -z $2 ] && [ $2 != "-f" ]; then
-      echo -e "${Usage}"
+      echo -e "${USAGE}"
       exit 1
     fi
     start_master $2
@@ -253,7 +253,7 @@ case "${WHAT}" in
     ;;
   *)
     echo "Error: Invalid WHAT: ${WHAT}"
-    echo -e "${Usage}"
+    echo -e "${USAGE}"
     exit 1
 esac
 sleep 2

@@ -7,7 +7,7 @@ if [[ "$-" == *x* ]]; then
 fi
 BIN=$(cd "$( dirname "$0" )"; pwd)
 
-Usage="Usage: alluxio-stop.sh [-h] [component]
+USAGE="Usage: alluxio-stop.sh [-h] [component]
 Where component is one of:
   all\t\t\tStop local master/worker and remote workers. Default.
   master\t\tStop local master.
@@ -47,12 +47,12 @@ case "${WHAT}" in
     kill_remote_workers
     ;;
   -h)
-    echo -e "${Usage}"
+    echo -e "${USAGE}"
     exit 0
     ;;
   *)
     echo "Error: Invalid component: ${WHAT}"
-    echo -e "${Usage}"
+    echo -e "${USAGE}"
     exit 1
     ;;
 esac

@@ -7,22 +7,22 @@ if [[ "$-" == *x* ]]; then
 fi
 BIN=$(cd "$( dirname "$0" )"; pwd)
 
-Usage="Usage: alluxio-workers.sh command..."
+USAGE="Usage: alluxio-workers.sh command..."
 
-# if no args specified, show Usage
+# if no args specified, show USAGE
 if [[ $# -le 0 ]]; then
-  echo ${Usage}
+  echo ${USAGE}
   exit 1
 fi
 
 DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
-ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
 . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
 HOSTLIST=$(cat ${ALLUXIO_CONF_DIR}/workers | sed  "s/#.*$//;/^$/d")
 ALLUXIO_TASK_LOG="$(echo ${BIN} | sed 's/bin$//g')"logs/task.log
 
-if [[ "${3}" == "alluxio.worker.AlluxioWorker" ]]; then
+if [[ "$3" == "alluxio.worker.AlluxioWorker" ]]; then
   WORKER_ACTION_TYPE="WORKERS"
 else
   WORKER_ACTION_TYPE="MASTER"
