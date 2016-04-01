@@ -20,7 +20,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * the RPC framework and convert back without losing any necessary information.
  */
 @ThreadSafe
-public abstract class AlluxioException extends Exception {
+public class AlluxioException extends Exception {
   private static final long serialVersionUID = 2243833925609642384L;
 
   /**
@@ -32,15 +32,15 @@ public abstract class AlluxioException extends Exception {
     super(te.getMessage());
   }
 
-  protected AlluxioException(Throwable cause) {
+  public AlluxioException(Throwable cause) {
     super(cause);
   }
 
-  protected AlluxioException(String message) {
+  public AlluxioException(String message) {
     super(message);
   }
 
-  protected AlluxioException(String message, Throwable cause) {
+  public AlluxioException(String message, Throwable cause) {
     super(message, cause);
   }
 
