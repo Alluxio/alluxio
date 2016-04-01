@@ -14,7 +14,7 @@ alluxio.master.lineage.recompute.interval.ms,600000
 alluxio.master.lineage.recompute.log.path,${alluxio.home}/logs/recompute.log
 alluxio.master.port,19998
 alluxio.master.retry,29
-alluxio.master.ttlchecker.interval.ms,3600000
+alluxio.master.ttl.checker.interval.ms,3600000
 alluxio.master.web.bind.host,0.0.0.0
 alluxio.master.web.hostname,localhost
 alluxio.master.web.port,19999
