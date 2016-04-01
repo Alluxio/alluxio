@@ -204,14 +204,16 @@ public final class AlluxioWorkerRestServiceHandler {
     // spaces, those statistics can be gotten via other REST apis.
     String blocksCachedProperty = CommonUtils.argsToString(".",
         WorkerContext.getWorkerSource().getName(), WorkerSource.BLOCKS_CACHED);
-    Gauge blocksCached = metricRegistry.getGauges().get(blocksCachedProperty);
+    @SuppressWarnings("unchecked")
+    Gauge<Integer> blocksCached =
+        (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
 
     // Get values of the counters and gauges and put them into a metrics map.
     SortedMap<String, Long> metrics = new TreeMap<>();
     for (Map.Entry<String, Counter> counter : counters.entrySet()) {
       metrics.put(counter.getKey(), counter.getValue().getCount());
     }
-    metrics.put(blocksCachedProperty, ((Integer) blocksCached.getValue()).longValue());
+    metrics.put(blocksCachedProperty, blocksCached.getValue().longValue());
 
     return Response.ok(metrics).build();
   }

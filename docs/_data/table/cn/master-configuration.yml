@@ -28,7 +28,7 @@ alluxio.master.port:
   Alluxio master的运行端口。
 alluxio.master.retry:
   client尝试与master相连的最大重试次数。
-alluxio.master.ttlchecker.interval.ms:
+alluxio.master.ttl.checker.interval.ms:
   清除过期ttl值的文件任务的时间间隔（单位：毫秒）。
 alluxio.master.web.bind.host:
   Alluxio master web UI绑定的主机名。参考<a href="#configure-multihomed-networks">多宿主网络</a>
