@@ -32,14 +32,30 @@ public class AlluxioException extends Exception {
     super(te.getMessage());
   }
 
+  /**
+   * Constructs an {@link AlluxioException} with the given cause.
+   *
+   * @param cause the cause
+   */
   public AlluxioException(Throwable cause) {
     super(cause);
   }
 
+  /**
+   * Constructs an {@link AlluxioException} with the given message.
+   *
+   * @param message the message
+   */
   public AlluxioException(String message) {
     super(message);
   }
 
+  /**
+   * Constructs an {@link AlluxioException} with the given message and cause.
+   *
+   * @param message the message
+   * @param cause the cause
+   */
   public AlluxioException(String message, Throwable cause) {
     super(message, cause);
   }
