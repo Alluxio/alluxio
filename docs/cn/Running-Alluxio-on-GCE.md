@@ -39,7 +39,7 @@ priority: 4
 
 # 启动集群
 
-要在GCE上运行Alluxio集群, 首先在 [Google Cloud](cloud.google.com) 上有一个计费账号，项目，服务账户和JSON服务账号的密钥。 
+要在GCE上运行Alluxio集群, 首先在 [Google Cloud](cloud.google.com) 上有一个计费账号，项目，服务账户和JSON服务账号的密钥。
 
 如果你未注册过Google Cloud, 你需要在 [free trial signup page](https://console.cloud.google.com/billing/freetrial)上创建一个计费账号和项目。 同样地，如果你不熟悉Google计算引擎，你可以先在 [documentation](http://cloud.google.com/compute/docs)上回顾一下关于这部分的内容。
 
@@ -57,7 +57,7 @@ priority: 4
 
 在 `deploy/vagrant/conf/gce.yml`配置文件中,设置你的 项目 id,服务账号, JSON密钥的位置和已经创建好的ssh用户名.
 
-目前GCE默认使用 Hadoop2 作为它的底层文件系统, 因为GCS目前并不支持Alluxio。
+目前GCE默认使用 Hadoop2 作为它的底层文件系统, 因为目前Alluxio并不支持GCS作为底层文件系统。
 
 现在你可以启动Alluxio集群了，通过在 `deploy/vagrant`目录下运行:
 
