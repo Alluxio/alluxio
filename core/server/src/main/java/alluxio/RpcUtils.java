@@ -8,6 +8,7 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
+
 package alluxio;
 
 import alluxio.exception.AlluxioException;
@@ -30,6 +31,7 @@ public final class RpcUtils {
    * Calls the given {@link RpcCallable} and handles any exceptions thrown.
    *
    * @param callable the callable to call
+   * @param <T> the return type of the callable
    * @return the return value from calling the callable
    * @throws AlluxioTException if the callable throws an Alluxio or runtime exception
    */
@@ -48,6 +50,7 @@ public final class RpcUtils {
    * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown.
    *
    * @param callable the callable to call
+   * @param <T> the return type of the callable
    * @return the return value from calling the callable
    * @throws AlluxioTException if the callable throws an Alluxio or runtime exception
    * @throws ThriftIOException if the callable throws an IOException
@@ -72,6 +75,12 @@ public final class RpcUtils {
    * @param <T> the return type of the callable
    */
   public interface RpcCallable<T> {
+    /**
+     * The RPC implementation.
+     *
+     * @return the return value from the RPC
+     * @throws AlluxioException if an expected exception occurs in the Alluxio system
+     */
     T call() throws AlluxioException;
   }
 
@@ -81,6 +90,13 @@ public final class RpcUtils {
    * @param <T> the return type of the callable
    */
   public interface RpcCallableThrowsIOException<T> {
+    /**
+     * The RPC implementation.
+     *
+     * @return the return value from the RPC
+     * @throws AlluxioException if an expected exception occurs in the Alluxio system
+     * @throws IOException if an exception is thrown when interacting with the underlying system
+     */
     T call() throws AlluxioException, IOException;
   }
 }

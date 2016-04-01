@@ -95,7 +95,8 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @throws ThriftIOException if an I/O error occurs
    */
   @Override
-  public void cacheBlock(final long sessionId, final long blockId) throws AlluxioTException, ThriftIOException {
+  public void cacheBlock(final long sessionId, final long blockId)
+      throws AlluxioTException, ThriftIOException {
     RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
@@ -162,6 +163,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
     return RpcUtils.call(new RpcCallableThrowsIOException<Boolean>() {
       @Override
       public Boolean call() throws AlluxioException, IOException {
+        // TODO(calvin): Make the top level configurable.
         mWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId, mStorageTierAssoc.getAlias(0));
         return true;
       }
@@ -188,6 +190,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
     return RpcUtils.call(new RpcCallableThrowsIOException<String>() {
       @Override
       public String call() throws AlluxioException, IOException {
+        // NOTE: right now, we ask allocator to allocate new blocks in top tier
         return mWorker.createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(0), initialBytes);
       }
     });
@@ -223,7 +226,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * found or failed to delete the block
    * @throws AlluxioTException if an Alluxio error occurs
    */
-  // TODO(andrew): this should return void
+  // TODO(andrew): This should return void
   @Override
   public boolean unlockBlock(final long blockId, final long sessionId) throws AlluxioTException {
     return RpcUtils.call(new RpcCallable<Boolean>() {
