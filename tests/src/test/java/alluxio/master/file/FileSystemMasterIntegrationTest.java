@@ -324,7 +324,8 @@ public class FileSystemMasterIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(1000, Constants.GB,
-          Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+          Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName(),
+          Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
   private Configuration mMasterConfiguration;
   private FileSystemMaster mFsMaster;
 
