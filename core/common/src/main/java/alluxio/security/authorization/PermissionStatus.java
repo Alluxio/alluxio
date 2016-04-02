@@ -85,7 +85,7 @@ public final class PermissionStatus {
    * Applies umask.
    *
    * @param umask the umask to apply
-   * @param Configuration the configuration
+   * @param configuration the configuration
    * @return a new {@link PermissionStatus}
    * @see FileSystemPermission#applyUMask(FileSystemPermission)
    */
