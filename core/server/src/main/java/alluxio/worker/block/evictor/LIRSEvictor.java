@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
@@ -42,16 +41,22 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * This class is used to evict blocks with LIRS policy on each tier. Different from LRU and LRFU,
  * LIRS evicts the block with maximum Inter-Reference Recency (IRR). IRR is the number of distinct
- * blocks between last access and second-to-last access to the block. Block with large IRR is
- * predicted to be accessed again in a long time, so they needs to be evicted first to make room for
+ * blocks between last access and second-to-last access to the block. Block with high IRR is
+ * predicted to be accessed again in a long time, so they need to be evicted first to make room for
  * other blocks which will be accessed soon. LIRS divides the tier into 2 parts: LIR cache and HIR
- * cache. LIR cache holds blocks with small IRR and HIR cache holds blocks with large IRR. So blocks
- * in HIR cache needs to be evicted first. If blocks in HIR cache gets a small IRR, they will be
- * moved to LIR cache. And if the LIR cache is full, some blocks with relatively large IRR will be
- * moved to HIR cache. LIRS can achieve better performance than LRU and LRFU in loop access pattern
- * (like a1,a2,...,ak,a1,a2,...,ak,...). Besides, LIRS can achieve as good performance as LRU and
- * LRFU in most of workloads. If your workloads contain a lot of iterations, LIRS policy is
- * recommended for you.
+ * cache. LIR cache holds blocks with low IRR and HIR cache holds blocks with high IRR. So blocks
+ * in HIR cache needs to be evicted first. If blocks in HIR cache gets a low IRR, they will be
+ * moved to LIR cache. And if the LIR cache is full, some blocks with relatively high IRR will be
+ * moved to HIR cache. LIRS can achieve better performance than LRU and LRFU in loop access pattern.
+ * For example, a list of files contain blocks: a1,a2,...,ak. When iterating accessing these files,
+ * the blocks will be referenced in the order: a1,a2,...,ak,a1,a2,...,ak,.... some blocks of them
+ * will be stored in LIR cache and the others in HIR cache. No HIR blocks will be moved to LIR cache
+ * because all blocks have equal IRR. Therefore, all blocks in LIR cache will never be removed which
+ * promise the hit rate is at least (number of LIR blocks)/(number of all blocks). while if these
+ * blocks cannot be held in the memory in this case, LRU will achieve zero hit rate. It's also
+ * verified with Spark kmeans that the hit rate of LIRS policy improves a lot than other policies.
+ * So if your workloads contain a lot of iterations like kmeans, LIRS policy is recommended for you.
+ * Besides, LIRS can achieve as good performance as LRU and LRFU in most of workloads.
  */
 public final class LIRSEvictor extends AbstractEvictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -308,9 +313,6 @@ public final class LIRSEvictor extends AbstractEvictor {
               new Pair<BlockStoreLocation, Long>(dirLocation, blockId);
           SpaceContainer spaceContainer = mSpaceManager.get(dirLocation);
           long blockSize = mManagerView.getBlockSizeIfExist(blockId);
-          if (blockSize == -1) {
-            throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
-          }
           mBlockIdToSize.put(blockId, blockSize);
           if (spaceContainer.getLIRBytes() + blockSize > spaceContainer.getCapacity()
               * mLIRPercent) {
