@@ -12,6 +12,7 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.AlluxioMaster;
@@ -68,6 +69,8 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
     }
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("fatalError", "");
+    request.setAttribute("showPermissions",
+        MasterContext.getConf().getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
     List<AlluxioURI> inMemoryFiles = mMaster.getFileSystemMaster().getInMemoryFiles();
     Collections.sort(inMemoryFiles);
