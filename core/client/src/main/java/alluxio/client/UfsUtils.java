@@ -16,21 +16,19 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.Version;
 import alluxio.client.file.FileSystem;
-import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -42,179 +40,81 @@ public final class UfsUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Builds a new path relative to a given root by retrieving the given path relative to the
-   * ufsRootPath.
+   * Mounts the given folder in the under storage system to an Alluxio path which must not already
+   * exist. Then loads metadata for each file in the under file system unless excluding any file
+   * in the under file system matching a prefix in the exclusions list. If the folder has already
+   * been mounted, this method assumes the mount is correct and will continue to load metadata
+   * for each file. This method can be called repeatedly to load new files written directly to
+   * the under file system. File deletions will not be reflected, ie. deleting a file, foo, in
+   * the under file system and then running loadUfs will not delete the file foo in Alluxio.
    *
-   * @param tfsRootPath the destination point in Alluxio file system to load the under file system
-   *        path onto
-   * @param ufsRootPath the source path in the under file system to be loaded
-   * @param path the path in the under file system be loaded, path.startsWith(ufsRootPath) must be
-   *        true
-   * @return the new path relative to tfsRootPath
-   */
-  private static AlluxioURI buildTFSPath(AlluxioURI tfsRootPath, AlluxioURI ufsRootPath,
-      AlluxioURI path) {
-    String filePath = path.getPath().substring(ufsRootPath.getPath().length());
-    if (filePath.isEmpty()) {
-      // retrieve the basename in ufsRootPath
-      filePath = path.getPath().substring(
-          ufsRootPath.getPath().lastIndexOf(AlluxioURI.SEPARATOR) + 1);
-    }
-    return new AlluxioURI(PathUtils.concatPath(tfsRootPath, filePath));
-  }
-
-  /**
-   * Loads files under path "ufsAddrRootPath" (excluding excludePathPrefix relative to the path) to
-   * the given tfs under a given destination path.
-   *
-   * @param tfsAddrRootPath the Alluxio file system address and path to load the src files, like
-   *        "alluxio://host:port/dest".
-   * @param ufsAddrRootPath the address and root path of the under file system, like
-   *        "hdfs://host:port/src"
-   * @param excludePaths paths to exclude from ufsRootPath, which will not be loaded in Alluxio file
-   *        system
-   * @param configuration the instance of {@link Configuration} to be used
-   * @throws IOException when an event that prevents the operation from completing is encountered
-   * @throws AlluxioException if an unexpected Alluxio error occurs
-   */
-  private static void loadUfs(AlluxioURI tfsAddrRootPath, AlluxioURI ufsAddrRootPath,
-      String excludePaths, Configuration configuration) throws IOException, AlluxioException {
-    FileSystem tfs = FileSystem.Factory.get();
-
-    PrefixList excludePathPrefix = new PrefixList(excludePaths, ";");
-
-    loadUfs(tfs, tfsAddrRootPath, ufsAddrRootPath, excludePathPrefix, configuration);
-  }
-
-  /**
-   * Loads files under path "ufsAddress/ufsRootPath" (excluding excludePathPrefix) to the given fs
-   * under the given tfsRootPath directory.
-   *
-   * @param fs the {@link FileSystem} handler created out of address like "alluxio://host:port"
-   * @param alluxioPath the destination point in Alluxio file system to load the under file system
-   *        path onto
-   * @param ufsAddrRootPath the address and root path of the under file system, like
-   *        "hdfs://host:port/dir"
-   * @param excludePathPrefix paths to exclude from ufsRootPath, which will not be registered in
-   *        Alluxio file system
+   * @param alluxioUri the destination point in Alluxio file system to load the under file system
+   *        path onto, this must not already exist
+   * @param ufsUri the directory in the under file system to mount
+   * @param exclusions prefixes to exclude which will not be registered in the Alluxio file
+   *                   system, these should be relative to the under file system path and not the
+   *                   Alluxio path
    * @param conf instance of {@link Configuration}
-   * @throws IOException when an event that prevents the operation from completing is encountered
-   * @throws AlluxioException if an unexpected alluxio error occurs
-   * @deprecated As of version 0.8. Use
-   *             {@link #loadUfs(AlluxioURI, AlluxioURI, String, Configuration)} instead.
+   * @throws IOException if an error occurs when operating on the under file system
+   * @throws AlluxioException if an unexpected Alluxio error occurs
+   * @deprecated This utility will be replaced with the mount and recursive load metadata
+   *             operations.
    */
   @Deprecated
-  public static void loadUfs(FileSystem fs, AlluxioURI alluxioPath, AlluxioURI ufsAddrRootPath,
-      PrefixList excludePathPrefix, Configuration conf) throws IOException, AlluxioException {
-    LOG.info("Loading to {} {} {}", alluxioPath, ufsAddrRootPath, excludePathPrefix);
+  public static void loadUfs(AlluxioURI alluxioUri, AlluxioURI ufsUri,
+      PrefixList exclusions, Configuration conf) throws AlluxioException, IOException {
+    FileSystem fs = FileSystem.Factory.get();
+    LOG.info("Mounting: {} to Alluxio directory: {}, excluding: {}", ufsUri,
+        alluxioUri, exclusions);
+
+    UnderFileSystem ufs = UnderFileSystem.get(ufsUri.toString(), conf);
+    // The mount directory must exist in the UFS
+    String mountDirectoryPath = ufsUri.getPath();
+    if (!ufs.exists(mountDirectoryPath)) {
+      throw new FileDoesNotExistException(
+          ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsUri));
+    }
+    // Mount the ufs directory to the Alluxio mount point
     try {
-      // resolve and replace hostname embedded in the given ufsAddress/alluxioAddress
-      ufsAddrRootPath = NetworkAddressUtils.replaceHostName(ufsAddrRootPath);
-      alluxioPath = NetworkAddressUtils.replaceHostName(alluxioPath);
-    } catch (UnknownHostException e) {
-      LOG.error("Failed to resolve hostname", e);
-      throw new IOException(e);
-    }
-
-    Pair<String, String> ufsPair = UnderFileSystem.parse(ufsAddrRootPath, conf);
-    String ufsAddress = ufsPair.getFirst();
-    String ufsRootPath = ufsPair.getSecond();
-
-    LOG.debug("Loading ufs, address:{}; root path: {}", ufsAddress, ufsRootPath);
-
-    // create the under FS handler (e.g. hdfs, local FS, s3 etc.)
-    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, conf);
-
-    if (!ufs.exists(ufsAddrRootPath.toString())) {
-      throw new FileNotFoundException("ufs path " + ufsAddrRootPath + " not found.");
-    }
-
-    // directory name to load, either the path parent or the actual path if it is a directory
-    AlluxioURI directoryName;
-    if (ufs.isFile(ufsAddrRootPath.toString())) {
-      if ((ufsRootPath == null) || ufsRootPath.isEmpty() || ufsRootPath.equals("/")) {
-        directoryName = AlluxioURI.EMPTY_URI;
-      } else {
-        int lastSlashPos = ufsRootPath.lastIndexOf('/');
-        if (lastSlashPos > 0) {
-          directoryName = new AlluxioURI(ufsRootPath.substring(0, lastSlashPos)); // trim the slash
-        } else {
-          directoryName = AlluxioURI.EMPTY_URI;
-        }
+      fs.mount(alluxioUri, ufsUri);
+    } catch (InvalidPathException e) {
+      // If the mount point already exists, ignore it and assume the mount is consistent
+      if (!ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioUri)
+          .equals(e.getMessage())) {
+        throw e;
       }
-    } else {
-      directoryName = alluxioPath;
+      LOG.warn("Mount point: " + alluxioUri + " has already been mounted! Assuming the mount "
+          + "is consistent and proceeding to load metadata.");
     }
-
-    if (!directoryName.equals(AlluxioURI.EMPTY_URI)) {
-      if (!fs.exists(directoryName)) {
-        LOG.debug("Loading ufs. Make dir if needed for '{}'.", directoryName);
-        fs.createDirectory(directoryName);
-      }
-    }
-
-    Queue<AlluxioURI> ufsPathQueue = new LinkedList<AlluxioURI>();
-    if (excludePathPrefix.outList(ufsRootPath)) {
-      ufsPathQueue.add(ufsAddrRootPath);
-    }
-
-    while (!ufsPathQueue.isEmpty()) {
-      AlluxioURI ufsPath = ufsPathQueue.poll(); // this is the absolute path
-      LOG.debug("Loading: {}", ufsPath);
-      if (ufs.isFile(ufsPath.toString())) { // TODO(hy): Fix path matching issue.
-        AlluxioURI tfsPath = buildTFSPath(directoryName, ufsAddrRootPath, ufsPath);
-        LOG.debug("Loading ufs. fs path = {}.", tfsPath);
-        if (fs.exists(tfsPath)) {
-          LOG.debug("File {} already exists in Alluxio.", tfsPath);
-          continue;
-        } else {
-          fs.loadMetadata(tfsPath);
-        }
-        LOG.debug("Create alluxio file {} with checkpoint location {}", tfsPath, ufsPath);
-      } else { // ufsPath is a directory
-        LOG.debug("Loading ufs. ufs path is a directory.");
-        String[] files = ufs.list(ufsPath.toString()); // ufs.list() returns relative path
-        if (files != null) {
-          for (String filePath : files) {
-            if (filePath.isEmpty()) { // Prevent infinite loops
-              continue;
-            }
-            LOG.debug("Get: {}", filePath);
-            String aPath = PathUtils.concatPath(ufsPath, filePath);
-            String checkPath = aPath.substring(ufsAddrRootPath.toString().length());
-            if (checkPath.startsWith(AlluxioURI.SEPARATOR)) {
-              checkPath = checkPath.substring(AlluxioURI.SEPARATOR.length());
-            }
-            if (excludePathPrefix.inList(checkPath)) {
-              LOG.debug("excluded: {}", checkPath);
-            } else {
-              ufsPathQueue.add(new AlluxioURI(aPath));
-            }
-          }
-        }
-        // ufsPath is a directory, so only concat the tfsRoot with the relative path
-        AlluxioURI tfsPath = new AlluxioURI(PathUtils.concatPath(
-            alluxioPath, ufsPath.getPath().substring(ufsAddrRootPath.getPath().length())));
-        LOG.debug("Loading ufs. ufs path is a directory. tfsPath = {}.", tfsPath);
-        if (!fs.exists(tfsPath)) {
-          LOG.debug("Loading ufs. ufs path is a directory. make dir = {}.", tfsPath);
-          fs.loadMetadata(tfsPath);
-          // TODO(hy): Add the following.
-          // if (fs.mkdir(tfsPath)) {
-          // LOG.info("Created Alluxio folder {} with checkpoint location {}", tfsPath, ufsPath);
-          // } else {
-          // LOG.info("Failed to create alluxio folder: {}", tfsPath);
-          // }
+    // Get the list of files to load
+    List<String> files = Arrays.asList(ufs.listRecursive(mountDirectoryPath));
+    for (String file : files) {
+      LOG.debug("Considering ufs path: " + file);
+      // Not excluded
+      if (exclusions.outList(file)) {
+        AlluxioURI alluxioUriToLoad = alluxioUri.join(file);
+        LOG.debug("Loading metadata for Alluxio uri: " + alluxioUriToLoad);
+        // TODO(calvin): Remove the need for this hack
+        AlluxioURI alluxioPath = new AlluxioURI(alluxioUriToLoad.getPath());
+        if (!fs.exists(alluxioPath)) {
+          fs.loadMetadata(alluxioPath);
         }
       }
     }
   }
 
   /**
-   * Starts the command line utility to load files under path "ufsAddress/ufsRootPath"
-   * (excluding excludePathPrefix) to the given tfs under the given tfsRootPath directory.
+   * Starts the command line utility to mount the UfsPath to the AlluxioPath. In addition to the
+   * regular mount operation, the metadata for all files will be loaded, unless the ufs path matches
+   * an exclusion in the exclusions prefix list. This utility can be called repeatedly to load new
+   * files written directly to the under file system. File deletions will not be reflected, ie.
+   * deleting a file, foo, in the under file system and then running loadUfs will not delete the
+   * file foo in Alluxio.
    *
-   * @param args the parameters as <AlluxioPath> <UfsPath> [<Optional ExcludePathPrefix, seperated
+   * NOTE: The user must guarantee additional calls to the utility do not change the Alluxio/Ufs
+   * Path pairing.
+   *
+   * @param args the parameters as <AlluxioUri> <UfsUri> [<Optional ExcludePathPrefix, seperated
    *             by ;>]
    */
   public static void main(String[] args) {
@@ -226,7 +126,8 @@ public final class UfsUtils {
     String exList = (args.length == 3) ? args[2] : "";
 
     try {
-      loadUfs(new AlluxioURI(args[0]), new AlluxioURI(args[1]), exList, new Configuration());
+      loadUfs(new AlluxioURI(args[0]), new AlluxioURI(args[1]), new PrefixList(exList, ";"),
+          new Configuration());
     } catch (Exception e) {
       e.printStackTrace();
       printUsage();
@@ -242,13 +143,13 @@ public final class UfsUtils {
   public static void printUsage() {
     String cmd = "java -cp " + Version.ALLUXIO_JAR + " alluxio.client.UfsUtils ";
 
-    System.out.println("Usage: " + cmd + "<AlluxioPath> <UfsPath> "
+    System.out.println("Usage: " + cmd + "<AlluxioUri> <UfsUri> "
         + "[<Optional ExcludePathPrefix, separated by ;>]");
     System.out.println("Example: " + cmd + "alluxio://127.0.0.1:19998/a hdfs://localhost:9000/b c");
     System.out.println("Example: " + cmd + "alluxio://127.0.0.1:19998/a file:///b c");
     System.out.println("Example: " + cmd + "alluxio://127.0.0.1:19998/a /b c");
-    System.out.print("In the TFS, all files under local FS /b will be registered under /a, ");
-    System.out.println("except for those with prefix c");
+    System.out.println("In the Alluxio file system, /b will be mounted to /a, and the metadata");
+    System.out.println("for all files under /b will be loaded except for those with prefix c");
   }
 
   private UfsUtils() {} // prevent instantiation
