@@ -44,7 +44,7 @@ public final class FileWorkerMasterSyncExecutorTest {
   }
 
   /**
-   * {@link FileDataManager.#clearPersistedFiles(java.util.List)} is not called when the heartbeat
+   * {@link FileDataManager#clearPersistedFiles(java.util.List)} is not called when the heartbeat
    * of {@link FileSystemMasterClient} fails.
    */
   @Test

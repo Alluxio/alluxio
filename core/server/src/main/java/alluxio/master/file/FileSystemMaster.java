@@ -1595,7 +1595,6 @@ public final class FileSystemMaster extends AbstractMaster {
     synchronized (mInodeTree) {
       checkPermission(FileSystemAction.WRITE, alluxioPath, true);
       mMountTable.checkUnderWritableMountPoint(alluxioPath);
-      mountInternal(alluxioPath, ufsPath, options);
       // Check that the Alluxio Path does not exist
       // TODO(calvin): Provide a cleaner way to check for existence (ALLUXIO-1830)
       boolean pathExists = false;
