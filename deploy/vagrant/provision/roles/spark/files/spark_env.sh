@@ -2,5 +2,7 @@
 
 cp /vagrant/files/workers /spark/conf/slaves
 
-echo export HADOOP_CONF_DIR=/hadoop/etc/hadoop >> /spark/conf/spark-env.sh
-echo export SPARK_MASTER_IP="`tail -n1 /spark/conf/slaves`" >> /spark/conf/spark-env.sh
+cat > /spark/conf/spark-env.sh << EOF
+export SPARK_MASTER_IP=`tail -n1 /spark/conf/slaves`
+export SPARK_LOCAL_HOSTNAME=`hostname`
+EOF

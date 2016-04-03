@@ -2,7 +2,7 @@
 set -e
 
 nodes=`cat /vagrant/files/workers`
-vol="tachyon_vol"
+vol="alluxio_vol"
 brick=""
 
 # create a simple volume

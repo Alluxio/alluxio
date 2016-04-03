@@ -42,7 +42,7 @@
   <!-- Local Swift cluster using Keystone- identified via "swift1"
   Use this via swift://<swift container>.swift1 -->
   <property>
-   <name>fs.swift.service.swift.location-aware</name>
+   <name>fs.swift.service.swift1.location-aware</name>
    <value>false</value>
   </property>
   <property>

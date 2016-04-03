@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This test covers vagrant aws, openstack, docker, and virtualbox providers
-# it uses hdfs2 as ufs and provision Tachyon clusters on these providers.
+# it uses hdfs2 as ufs and provision Alluxio clusters on these providers.
 # a successful deployment will yield status 0.
 
 PROVIDERS=("aws" "openstack" "virtualbox" "docker")

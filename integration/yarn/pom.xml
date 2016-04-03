@@ -4,14 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>tachyon-integration</artifactId>
-    <groupId>org.tachyonproject</groupId>
-    <version>0.8.0-SNAPSHOT</version>
+    <artifactId>alluxio-integration</artifactId>
+    <groupId>org.alluxio</groupId>
+    <version>1.0.2-SNAPSHOT</version>
   </parent>
-  <name>Tachyon Integration - YARN</name>
-  <artifactId>tachyon-integration-yarn</artifactId>
+  <name>Alluxio Integration - YARN</name>
+  <artifactId>alluxio-integration-yarn</artifactId>
 
   <properties>
+    <!-- These need to be defined here as well as in the parent pom so that mvn can run
+         properly from sub-project directories -->
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
@@ -20,29 +22,58 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-common</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-servers</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-local</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-local</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-hdfs</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-hdfs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-yarn-client</artifactId>
-      <version>${yarn.version}</version>
+      <version>${hadoop.version}</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <id>enforce-versions</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireProperty>
+                  <property>hadoop.version</property>
+                  <regex>[^12]\..*|2\.[4-9]\..*</regex>
+                  <regexMessage>
+                    hadoop.version must be 2.4.0 or later to build yarn integration.
+                  </regexMessage>
+                </requireProperty>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

@@ -1,0 +1,12 @@
+alluxio.fuse.maxwrite.bytes:
+  FUSE写操作的粒度（bytes），注意目前128KB是linux内核限制的上界。
+alluxio.fuse.debug.enabled:
+  允许FUSE调试输出， 该输出会被重定向到`alluxio.logs.dir`指定目录中的`fuse.out`日志文件。
+alluxio.fuse.cachedpaths.max:
+  定义Alluxio-FUSE内部缓存的大小，该缓存用于存储最频繁使用的本地文件系统路径与Alluxio文件URI的对应关系。
+alluxio.fuse.mount.default:
+  默认挂载点，只有当用户在挂载时未指定其他值时使用。
+alluxio.fuse.fs.root:
+  Alluxio文件系统中的路径，该路径被当作FUSE挂载的根路径。
+alluxio.fuse.fs.name:
+  FUSE挂载文件系统使用的描述性名称。

@@ -1,0 +1,3 @@
+PropertyName,Value
+alluxio.zookeeper.enabled,true
+alluxio.zookeeper.address,[zookeeper_hostname]:2181

@@ -1,4 +1,0 @@
-- name: start tachyon worker
-  shell: /tachyon/bin/tachyon-start.sh worker SudoMount
-
-# vim :set filetype=ansible.yaml:

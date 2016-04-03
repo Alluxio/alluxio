@@ -1,4 +1,0 @@
-- name: start tachyon master
-  shell: /tachyon/bin/tachyon-start.sh master -f
-
-# vim :set filetype=ansible.yaml:

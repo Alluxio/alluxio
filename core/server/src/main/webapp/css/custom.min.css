@@ -1,0 +1,10 @@
+.custom-progress{margin-bottom:0px;}
+.file-content
+{
+	width:100%;
+	height:50%;
+}
+a
+{
+    color:rgb(0, 96, 214); /* The same shade of blue as the Alluxio logo. */
+}
