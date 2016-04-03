@@ -391,6 +391,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     super.initialize(uri, conf);
     LOG.info("initialize({}, {}). Connecting to Alluxio: {}", uri, conf, uri.toString());
     HadoopUtils.addS3Credentials(conf);
+    HadoopUtils.addSwiftCredentials(conf);
     setConf(conf);
     mAlluxioHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
 
