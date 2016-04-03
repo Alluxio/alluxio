@@ -18,7 +18,7 @@
   </parent>
   <artifactId>alluxio-underfs-gcs</artifactId>
   <name>Alluxio Under File System - GCS</name>
-  <description>GCS Under File System implementation</description>
+  <description>Google Cloud Storage (GCS) Under File System implementation</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -45,11 +45,10 @@
     <dependency>
       <groupId>net.java.dev.jets3t</groupId>
       <artifactId>jets3t</artifactId>
-      <version>0.9.4</version>
     </dependency>
 
     <!-- The following are jets3t dependencies
-     (see http://mvnrepository.com/artifact/net.java.dev.jets3t/jets3t/0.8.1).
+     (see http://mvnrepository.com/artifact/net.java.dev.jets3t/jets3t/0.9.4).
      We need to explicitly include them, because jets3t is shaded. -->
     <!-- TODO(jsimsa): Investigate whether the same outcome can be achieved
      using the promoteTransitiveDependencies option of the maven shade plugin. -->

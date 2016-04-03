@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * reached. This input stream returns 0 when calling read with an empty buffer.
  */
 @NotThreadSafe
-public class GCSInputStream extends InputStream {
+public final class GCSInputStream extends InputStream {
   /** Bucket name of the Alluxio GCS bucket. */
   private final String mBucketName;
 
@@ -104,7 +104,10 @@ public class GCSInputStream extends InputStream {
     mInputStream.close();
     mPos += n;
     try {
-      mObject = mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
+      mObject = mClient.getObject(mBucketName, mKey, null /* ignore ModifiedSince */,
+          null /* ignore UnmodifiedSince */, null /* ignore MatchTags */,
+          null /* ignore NoneMatchTags */, mPos /* byteRangeStart */,
+          null /* ignore byteRangeEnd */);
       mInputStream = new BufferedInputStream(mObject.getDataInputStream());
     } catch (ServiceException e) {
       throw new IOException(e);
