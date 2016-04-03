@@ -6,7 +6,7 @@ group: Resources
 
 目前有许多公司和组织都在使用Alluxio，下面列出了其中一部分。如果你的组织也在使用，可以自由将你的组织[添加到这个列表中](https://github.com/alluxio/alluxio/edit/master/docs/cn/Powered-By-Alluxio.md)，或者通过邮件告诉我们(project.alluxio@gmail.com)，或者填写[调查](http://alluxio.org/resources/survey-users/)让我们知道。
 
-* [Alibaba](http://www.alibaba.com/
+* [Alibaba](http://www.alibaba.com/)
 * [Alluxio](http://www.alluxio.com/)
 * [Arimo](http://arimo.com/)
 * [Atigeo](http://atigeo.com/)

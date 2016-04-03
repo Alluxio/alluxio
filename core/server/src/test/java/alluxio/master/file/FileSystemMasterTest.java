@@ -33,12 +33,14 @@ import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
+import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.util.IdUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -168,6 +170,13 @@ public final class FileSystemMasterTest {
 
     mThrown.expect(BlockInfoException.class);
     mBlockMaster.getBlockInfo(blockId);
+
+    // Update the heartbeat of removedBlockId received from worker 1
+    Command heartBeat1 = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", Constants.KB * 1L),
+        ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    // Verify the muted Free command on worker1
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat1);
     Assert.assertFalse(mBlockMaster.getLostBlocks().contains(blockId));
 
     // verify the file is deleted
@@ -456,7 +465,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void renameUnderNonexistingDir() throws Exception {
-    mThrown.expect(InvalidPathException.class);
+    mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/nested/test"));
 
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB);
@@ -496,6 +505,12 @@ public final class FileSystemMasterTest {
 
     // free the file
     Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI, false));
+    // Update the heartbeat of removedBlockId received from worker 1
+    Command heartBeat2 = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", Constants.KB * 1L),
+        ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    // Verify the muted Free command on worker1
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat2);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -511,6 +526,12 @@ public final class FileSystemMasterTest {
 
     // free the dir
     Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), true));
+    // Update the heartbeat of removedBlockId received from worker 1
+    Command heartBeat3 = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", Constants.KB * 1L),
+        ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    // Verify the muted Free command on worker1
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat3);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
