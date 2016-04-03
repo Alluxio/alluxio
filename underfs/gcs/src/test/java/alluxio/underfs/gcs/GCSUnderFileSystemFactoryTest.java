@@ -21,7 +21,7 @@ import org.junit.Test;
 /**
  * Unit tests for the {@link GCSUnderFileSystemFactory}.
  */
-public class GCSUnderFileSystemFactoryTest {
+public final class GCSUnderFileSystemFactoryTest {
 
   /**
    * This test ensures the GCS UFS module correctly accepts paths that begin with gs://.
