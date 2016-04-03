@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * before returning a client. The validity of the credentials is checked by the client.
  */
 @ThreadSafe
-public class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
+public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Override

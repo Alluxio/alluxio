@@ -21,7 +21,7 @@ import org.powermock.reflect.Whitebox;
  * Tests for the private helper methods in {@link GCSUnderFileSystem} that do not require an GCS
  * backend.
  */
-public class GCSUnderFileSystemTest {
+public final class GCSUnderFileSystemTest {
   private GCSUnderFileSystem mMockGCSUnderFileSystem;
 
   /**
