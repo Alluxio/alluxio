@@ -26,7 +26,7 @@ of Alluxio without any code changes. The project is open source
 ([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE)) and is deployed at
 multiple companies. It is one of the fastest growing open source projects. With less than three
 years of open source history, Alluxio has attracted more than
-[180 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 50
+[190 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 50
 institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
 [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com),
 [Intel](http://www.intel.com/), [NJU](http://www.nju.edu.cn/english/), [Red Hat](https://www.redhat.com/),
