@@ -101,7 +101,7 @@ Agora você pode iniciar o Alluxio `cluster` com o seu `under filesystem` escolh
 
 {% include Running-Alluxio-on-EC2/launch-cluster.md %}
 
-Cado nó do `cluster` executa um Alluxio `worker` e o `AlluxioMaster` roda o Alluxio `master.
+Cado nó do `cluster` executa um Alluxio `worker` e o `AlluxioMaster` roda o Alluxio `master`.
 
 # Acessando o cluster
 
