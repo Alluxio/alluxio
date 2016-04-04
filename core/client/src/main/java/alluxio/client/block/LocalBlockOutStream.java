@@ -45,19 +45,19 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
    *
    * @param blockId the block id
    * @param blockSize the block size
-   * @param workerAddress the address of the local worker
+   * @param workerNetAddress the address of the local worker
    * @throws IOException if an I/O error occurs
    */
-  public LocalBlockOutStream(long blockId, long blockSize, WorkerNetAddress workerAddress)
+  public LocalBlockOutStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress)
       throws IOException {
     super(blockId, blockSize);
     if (!NetworkAddressUtils.getLocalHostName(ClientContext.getConf())
-        .equals(workerAddress.getHost())) {
-      throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage(workerAddress));
+        .equals(workerNetAddress.getHost())) {
+      throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage(workerNetAddress));
     }
 
     mCloser = Closer.create();
-    mBlockWorkerClient = mContext.acquireWorkerClient(workerAddress);
+    mBlockWorkerClient = mContext.acquireWorkerClient(workerNetAddress);
 
     try {
       long initialSize = ClientContext.getConf().getBytes(Constants.USER_FILE_BUFFER_BYTES);
