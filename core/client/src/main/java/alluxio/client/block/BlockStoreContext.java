@@ -149,8 +149,8 @@ public enum BlockStoreContext {
    * @return a {@link BlockWorkerClient} to a worker in the Alluxio system or null if failed
    */
   public BlockWorkerClient acquireLocalWorkerClient() {
+    initializeLocalBlockWorkerClientPool();
     synchronized (mLocalBlockWorkerClientPoolMap) {
-      initializeLocalBlockWorkerClientPool();
       if (mLocalBlockWorkerClientPoolMap.isEmpty()) {
         return null;
       }
@@ -168,8 +168,8 @@ public enum BlockStoreContext {
    *         be found
    */
   public BlockWorkerClient acquireLocalWorkerClient(WorkerNetAddress address) {
+    initializeLocalBlockWorkerClientPool();
     synchronized (mLocalBlockWorkerClientPoolMap) {
-      initializeLocalBlockWorkerClientPool();
       if (!mLocalBlockWorkerClientPoolMap.containsKey(address)) {
         return null;
       }
