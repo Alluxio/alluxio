@@ -20,9 +20,9 @@ import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,7 +55,7 @@ public class BlockMetadataManagerView {
   private final Set<Long> mPinnedInodes = new HashSet<Long>();
 
   /** Indices of locks that are being used. */
-  private final BitSet mInUseLocks = new BitSet();
+  private final Set<Long> mInUseBlocks = Sets.newHashSet();
 
   /** A map from tier alias to {@link StorageTierView}. */
   private Map<String, StorageTierView> mAliasToTierViews = new HashMap<String, StorageTierView>();
@@ -74,9 +74,7 @@ public class BlockMetadataManagerView {
     mMetadataManager = Preconditions.checkNotNull(manager);
     mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes));
     Preconditions.checkNotNull(lockedBlocks);
-    for (Long blockId : lockedBlocks) {
-      mInUseLocks.set(BlockLockManager.blockHashIndex(blockId));
-    }
+    mInUseBlocks.addAll(lockedBlocks);
 
     // iteratively create all StorageTierViews and StorageDirViews
     for (StorageTier tier : manager.getTiers()) {
@@ -115,12 +113,7 @@ public class BlockMetadataManagerView {
    * @return boolean, true if block is locked
    */
   public boolean isBlockLocked(long blockId) {
-    int index = BlockLockManager.blockHashIndex(blockId);
-    if (index < mInUseLocks.length()) {
-      return mInUseLocks.get(index);
-    } else {
-      return false;
-    }
+    return mInUseBlocks.contains(blockId);
   }
 
   /**
