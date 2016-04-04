@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -50,7 +51,9 @@ public enum BlockStoreContext {
   INSTANCE;
 
   private BlockMasterClientPool mBlockMasterClientPool;
+
   /** A map from the worker's address to its client pool. */
+  @GuardedBy("itself")
   private Map<WorkerNetAddress, BlockWorkerClientPool> mLocalBlockWorkerClientPoolMap =
       new ConcurrentHashMap<>();
 
@@ -67,7 +70,7 @@ public enum BlockStoreContext {
    * Initializes {@link #mLocalBlockWorkerClientPool}. This method is supposed be called in a lazy
    * manner.
    */
-  private synchronized void initializeLocalBlockWorkerClientPool() {
+  private void initializeLocalBlockWorkerClientPool() {
     if (!mLocalBlockWorkerClientPoolInitialized) {
       for (WorkerNetAddress localWorkerAddress : getWorkerAddresses(
           NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
@@ -146,11 +149,13 @@ public enum BlockStoreContext {
    */
   public BlockWorkerClient acquireLocalWorkerClient() {
     initializeLocalBlockWorkerClientPool();
-    if (mLocalBlockWorkerClientPoolMap.isEmpty()) {
-      return null;
+    synchronized (mLocalBlockWorkerClientPoolMap) {
+      if (mLocalBlockWorkerClientPoolMap.isEmpty()) {
+        return null;
+      }
+      // return any local worker
+      return mLocalBlockWorkerClientPoolMap.values().iterator().next().acquire();
     }
-    // return any local worker
-    return mLocalBlockWorkerClientPoolMap.values().iterator().next().acquire();
   }
 
   /**
@@ -163,10 +168,12 @@ public enum BlockStoreContext {
    */
   public BlockWorkerClient acquireLocalWorkerClient(WorkerNetAddress address) {
     initializeLocalBlockWorkerClientPool();
-    if (!mLocalBlockWorkerClientPoolMap.containsKey(address)) {
-      return null;
+    synchronized (mLocalBlockWorkerClientPoolMap) {
+      if (!mLocalBlockWorkerClientPoolMap.containsKey(address)) {
+        return null;
+      }
+      return mLocalBlockWorkerClientPoolMap.get(address).acquire();
     }
-    return mLocalBlockWorkerClientPoolMap.get(address).acquire();
   }
 
   /**
@@ -204,8 +211,10 @@ public enum BlockStoreContext {
     if (blockWorkerClient.isLocal()) {
       // Return local worker client to its resource pool.
       WorkerNetAddress address = blockWorkerClient.getWorkerNetAddress();
-      Preconditions.checkState(mLocalBlockWorkerClientPoolMap.containsKey(address));
-      mLocalBlockWorkerClientPoolMap.get(address).release(blockWorkerClient);
+      synchronized (mLocalBlockWorkerClientPoolMap) {
+        Preconditions.checkState(mLocalBlockWorkerClientPoolMap.containsKey(address));
+        mLocalBlockWorkerClientPoolMap.get(address).release(blockWorkerClient);
+      }
     } else {
       // Destroy remote worker client.
       blockWorkerClient.close();
@@ -221,10 +230,12 @@ public enum BlockStoreContext {
     if (mBlockMasterClientPool != null) {
       mBlockMasterClientPool.close();
     }
-    for (BlockWorkerClientPool pool : mLocalBlockWorkerClientPoolMap.values()) {
-      pool.close();
+    synchronized (mLocalBlockWorkerClientPoolMap) {
+      for (BlockWorkerClientPool pool : mLocalBlockWorkerClientPoolMap.values()) {
+        pool.close();
+      }
+      mLocalBlockWorkerClientPoolMap.clear();
     }
-    mLocalBlockWorkerClientPoolMap.clear();
     mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
     mLocalBlockWorkerClientPoolInitialized = false;
   }
