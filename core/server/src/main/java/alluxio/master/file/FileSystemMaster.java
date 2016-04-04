@@ -11,43 +11,112 @@
 
 package alluxio.master.file;
 
-import src.main.java.alluxio.master.AbstractMaster;
-import src.main.java.alluxio.master.MasterContext;
-import src.main.java.alluxio.master.block.BlockMaster;
-import src.main.java.alluxio.master.file.async.AsyncPersistHandler;
-import src.main.java.alluxio.master.file.meta.FileSystemMasterView;
-import src.main.java.alluxio.master.file.meta.Inode;
-import src.main.java.alluxio.master.file.meta.InodeDirectory;
-import src.main.java.alluxio.master.file.meta.InodeDirectoryIdGenerator;
-import src.main.java.alluxio.master.file.meta.InodeFile;
-import src.main.java.alluxio.master.file.meta.InodeTree;
-import src.main.java.alluxio.master.file.meta.MountTable;
-import src.main.java.alluxio.master.file.meta.PersistenceState;
-import src.main.java.alluxio.master.file.meta.TtlBucket;
-import src.main.java.alluxio.master.file.meta.TtlBucketList;
-import src.main.java.alluxio.master.file.options.CompleteFileOptions;
-import src.main.java.alluxio.master.file.options.CreateDirectoryOptions;
-import src.main.java.alluxio.master.file.options.CreateFileOptions;
-import src.main.java.alluxio.master.file.options.CreatePathOptions;
-import src.main.java.alluxio.master.file.options.MountOptions;
-import src.main.java.alluxio.master.file.options.SetAttributeOptions;
-import src.main.java.alluxio.master.journal.Journal;
-import src.main.java.alluxio.master.journal.JournalOutputStream;
-import src.main.java.alluxio.master.journal.JournalProtoUtils;
-import src.main.java.alluxio.proto.journal.File.AddMountPointEntry;
-import src.main.java.alluxio.proto.journal.File.AsyncPersistRequestEntry;
-import src.main.java.alluxio.proto.journal.File.CompleteFileEntry;
-import src.main.java.alluxio.proto.journal.File.DeleteFileEntry;
-import src.main.java.alluxio.proto.journal.File.DeleteMountPointEntry;
-import src.main.java.alluxio.proto.journal.File.InodeDirectoryEntry;
-import src.main.java.alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
-import src.main.java.alluxio.proto.journal.File.InodeFileEntry;
-import src.main.java.alluxio.proto.journal.File.InodeLastModificationTimeEntry;
-import src.main.java.alluxio.proto.journal.File.PersistDirectoryEntry;
-import src.main.java.alluxio.proto.journal.File.ReinitializeFileEntry;
-import src.main.java.alluxio.proto.journal.File.RenameEntry;
-import src.main.java.alluxio.proto.journal.File.SetAttributeEntry;
-import src.main.java.alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.collections.Pair;
+import alluxio.collections.PrefixList;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.BlockInfoException;
+import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileAlreadyCompletedException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidFileSizeException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.PreconditionMessage;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.AbstractMaster;
+import alluxio.master.MasterContext;
+import alluxio.master.block.BlockId;
+import alluxio.master.block.BlockMaster;
+import alluxio.master.file.FileSystemMasterClientServiceHandler;
+import alluxio.master.file.FileSystemMasterWorkerServiceHandler;
+import alluxio.master.file.PermissionChecker;
+import alluxio.master.file.async.AsyncPersistHandler;
+import alluxio.master.file.meta.FileSystemMasterView;
+import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeDirectory;
+import alluxio.master.file.meta.InodeDirectoryIdGenerator;
+import alluxio.master.file.meta.InodeFile;
+import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.file.meta.TtlBucket;
+import alluxio.master.file.meta.TtlBucketList;
+import alluxio.master.file.options.CompleteFileOptions;
+import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.CreatePathOptions;
+import alluxio.master.file.options.MountOptions;
+import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalOutputStream;
+import alluxio.master.journal.JournalProtoUtils;
+import alluxio.proto.journal.File.AddMountPointEntry;
+import alluxio.proto.journal.File.AsyncPersistRequestEntry;
+import alluxio.proto.journal.File.CompleteFileEntry;
+import alluxio.proto.journal.File.DeleteFileEntry;
+import alluxio.proto.journal.File.DeleteMountPointEntry;
+import alluxio.proto.journal.File.InodeDirectoryEntry;
+import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
+import alluxio.proto.journal.File.InodeFileEntry;
+import alluxio.proto.journal.File.InodeLastModificationTimeEntry;
+import alluxio.proto.journal.File.PersistDirectoryEntry;
+import alluxio.proto.journal.File.ReinitializeFileEntry;
+import alluxio.proto.journal.File.RenameEntry;
+import alluxio.proto.journal.File.SetAttributeEntry;
+import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.User;
+import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.FileSystemAction;
+import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.group.GroupMappingService;
+import alluxio.thrift.CommandType;
+import alluxio.thrift.FileSystemCommand;
+import alluxio.thrift.FileSystemCommandOptions;
+import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.FileSystemMasterWorkerService;
+import alluxio.thrift.PersistCommandOptions;
+import alluxio.thrift.PersistFile;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.IdUtils;
+import alluxio.util.SecurityUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.protobuf.Message;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.thrift.TProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.Future;
+
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The master that handles all file system metadata management.
@@ -134,7 +203,6 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   @Override
-  @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<String, TProcessor>();
     services.put(
@@ -148,7 +216,6 @@ public final class FileSystemMaster extends AbstractMaster {
     return services;
   }
 
-  @Override
   @Override
   public String getName() {
     return Constants.FILE_SYSTEM_MASTER_NAME;
@@ -235,7 +302,6 @@ public final class FileSystemMaster extends AbstractMaster {
     outputStream.writeEntry(mDirectoryIdGenerator.toJournalEntry());
   }
 
-  @Override
   @Override
   public void start(boolean isLeader) throws IOException {
     if (isLeader) {
@@ -845,76 +911,6 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-<<<<<<< HEAD
-||||||| merged common ancestors
-   * Returns the {@link FileBlockInfo} for given file and block index.
-   *
-   * @param fileId the file id to get the info for
-   * @param fileBlockIndex the block index of the file to get the block info for
-   * @return the {@link FileBlockInfo} for the file and block index
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws BlockInfoException if the block size is invalid
-   * @throws InvalidPathException if the mount table is not able to resolve the file
-   */
-  public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
-      throws BlockInfoException, FileDoesNotExistException, InvalidPathException {
-    MasterContext.getMasterSource().incGetFileBlockInfoOps(1);
-    synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeById(fileId);
-      if (inode.isDirectory()) {
-        throw new FileDoesNotExistException(
-            ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
-      }
-      InodeFile file = (InodeFile) inode;
-      List<Long> blockIdList = new ArrayList<Long>(1);
-      blockIdList.add(file.getBlockIdByIndex(fileBlockIndex));
-      List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
-      if (blockInfoList.size() != 1) {
-        throw new BlockInfoException(
-            "FileId " + fileId + " BlockIndex " + fileBlockIndex + " is not a valid block.");
-      }
-      FileBlockInfo blockInfo = generateFileBlockInfo(file, blockInfoList.get(0));
-      MasterContext.getMasterSource().incFileBlockInfosGot(1);
-      return blockInfo;
-    }
-  }
-
-  /**
-=======
-   * Returns the {@link FileBlockInfo} for given file and block index.
-   *
-   * @param fileId the file id to get the info for
-   * @param fileBlockIndex the block index of the file to get the block info for
-   * @return the {@link FileBlockInfo} for the file and block index
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws BlockInfoException if the block size is invalid
-   * @throws InvalidPathException if the mount table is not able to resolve the file
-   */
-  public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
-      throws BlockInfoException, FileDoesNotExistException, InvalidPathException {
-    MasterContext.getMasterSource().incGetFileBlockInfoOps(1);
-    synchronized (mInodeTree) {
-      Inode<?> inode = mInodeTree.getInodeById(fileId);
-      if (inode.isDirectory()) {
-        throw new FileDoesNotExistException(
-            ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
-      }
-      InodeFile file = (InodeFile) inode;
-      List<Long> blockIdList = new ArrayList<Long>(1);
-      blockIdList.add(file.getBlockIdByIndex(fileBlockIndex));
-      List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
-      if (blockInfoList.size() != 1) {
-        throw new BlockInfoException(
-            "FileId " + fileId + " BlockIndex " + fileBlockIndex + " is not a valid block.");
-      }
-      FileBlockInfo blockInfo = generateFileBlockInfo(file, blockInfoList.get(0));
-      MasterContext.getMasterSource().incFileBlockInfosGot(1);
-      return blockInfo;
-    }
-  }
-
-  /**
->>>>>>> upstream/master
    * @param path the path to get the info for
    * @return a list of {@link FileBlockInfo} for all the blocks of the given file
    * @throws FileDoesNotExistException if the file does not exist
@@ -1823,38 +1819,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param path the path to schedule asynchronous persistence for
    * @throws AlluxioException if scheduling fails
    */
-<<<<<<< HEAD
   private void scheduleAsyncPersistenceInternal(AlluxioURI path) throws AlluxioException {
     Inode inode = mInodeTree.getInodeByPath(path);
-||||||| merged common ancestors
-  private long scheduleAsyncPersistenceInternal(AlluxioURI path) throws
-      FileDoesNotExistException, InvalidPathException {
-    // find the worker
-    long workerId = getWorkerStoringFile(path);
-
-    if (workerId == IdUtils.INVALID_WORKER_ID) {
-      LOG.warn("No worker found to schedule async persistence for file {}", path);
-      // no worker found, do nothing
-      return workerId;
-    }
-
-    // update the state
-    Inode inode = mInodeTree.getInodeByPath(path);
-=======
-  private long scheduleAsyncPersistenceInternal(AlluxioURI path) throws
-      FileDoesNotExistException, InvalidPathException {
-    // find the worker
-    long workerId = getWorkerStoringFile(path);
-
-    if (workerId == IdUtils.INVALID_WORKER_ID) {
-      LOG.warn("No worker found to schedule async persistence for file {}", path);
-      // no worker found, do nothing
-      return workerId;
-    }
-
-    // update the state
-    Inode<?> inode = mInodeTree.getInodeByPath(path);
->>>>>>> upstream/master
     inode.setPersistenceState(PersistenceState.IN_PROGRESS);
     mAsyncPersistHandler.scheduleAsyncPersistence(path);
   }
