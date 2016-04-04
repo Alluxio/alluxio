@@ -47,20 +47,20 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
    *
    * @param blockId the block id
    * @param blockSize the size of the block
-   * @param workerAddress the address of the local worker
+   * @param workerNetAddress the address of the local worker
    * @throws IOException if I/O error occurs
    */
-  public LocalBlockInStream(long blockId, long blockSize, WorkerNetAddress workerAddress)
+  public LocalBlockInStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress)
       throws IOException {
     super(blockId, blockSize);
     if (!NetworkAddressUtils.getLocalHostName(ClientContext.getConf())
-        .equals(workerAddress.getHost())) {
-      throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage(workerAddress));
+        .equals(workerNetAddress.getHost())) {
+      throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage(workerNetAddress));
     }
     mContext = BlockStoreContext.INSTANCE;
 
     mCloser = Closer.create();
-    mBlockWorkerClient = mContext.acquireWorkerClient(workerAddress);
+    mBlockWorkerClient = mContext.acquireWorkerClient(workerNetAddress);
     try {
       LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
       if (result == null) {
