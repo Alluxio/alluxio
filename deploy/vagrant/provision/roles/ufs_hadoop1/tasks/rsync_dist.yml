@@ -1,7 +1,7 @@
 - name: make sure /hadoop exists
   script: mkdir.sh
 
-- name: rsync hadoop runtime from TachyonMaster
-  shell: rsync -avz TachyonMaster:/hadoop/* /hadoop
+- name: rsync hadoop runtime from AlluxioMaster
+  shell: rsync -avz AlluxioMaster:/hadoop/* /hadoop
 
 # vim :set filetype=ansible.yaml:

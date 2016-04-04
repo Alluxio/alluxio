@@ -2,52 +2,52 @@
 <taskTypes>
   <type>
     <name>SimpleRead</name>
-    <taskClass>tachyon.perf.benchmark.simpleread.SimpleReadTask</taskClass>
-    <taskContextClass>tachyon.perf.benchmark.simpleread.SimpleReadTaskContext</taskContextClass>
-    <taskThreadClass>tachyon.perf.benchmark.simpleread.SimpleReadThread</taskThreadClass>
-    <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
+    <taskClass>alluxio.perf.benchmark.simpleread.SimpleReadTask</taskClass>
+    <taskContextClass>alluxio.perf.benchmark.simpleread.SimpleReadTaskContext</taskContextClass>
+    <taskThreadClass>alluxio.perf.benchmark.simpleread.SimpleReadThread</taskThreadClass>
+    <totalReportClass>alluxio.perf.benchmark.SimpleTotalReport</totalReportClass>
   </type>
   <type>
     <name>SimpleWrite</name>
-    <taskClass>tachyon.perf.benchmark.simplewrite.SimpleWriteTask</taskClass>
-    <taskContextClass>tachyon.perf.benchmark.simplewrite.SimpleWriteTaskContext</taskContextClass>
-    <taskThreadClass>tachyon.perf.benchmark.simplewrite.SimpleWriteThread</taskThreadClass>
-    <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
+    <taskClass>alluxio.perf.benchmark.simplewrite.SimpleWriteTask</taskClass>
+    <taskContextClass>alluxio.perf.benchmark.simplewrite.SimpleWriteTaskContext</taskContextClass>
+    <taskThreadClass>alluxio.perf.benchmark.simplewrite.SimpleWriteThread</taskThreadClass>
+    <totalReportClass>alluxio.perf.benchmark.SimpleTotalReport</totalReportClass>
   </type>
   <type>
     <name>Metadata</name>
-    <taskClass>tachyon.perf.benchmark.metadata.MetadataTask</taskClass>
-    <taskContextClass>tachyon.perf.benchmark.metadata.MetadataTaskContext</taskContextClass>
-    <taskThreadClass>tachyon.perf.benchmark.metadata.MetadataThread</taskThreadClass>
-    <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
+    <taskClass>alluxio.perf.benchmark.metadata.MetadataTask</taskClass>
+    <taskContextClass>alluxio.perf.benchmark.metadata.MetadataTaskContext</taskContextClass>
+    <taskThreadClass>alluxio.perf.benchmark.metadata.MetadataThread</taskThreadClass>
+    <totalReportClass>alluxio.perf.benchmark.SimpleTotalReport</totalReportClass>
   </type>
   <type>
     <name>SkipRead</name>
-    <taskClass>tachyon.perf.benchmark.skipread.SkipReadTask</taskClass>
-    <taskContextClass>tachyon.perf.benchmark.skipread.SkipReadTaskContext</taskContextClass>
-    <taskThreadClass>tachyon.perf.benchmark.skipread.SkipReadThread</taskThreadClass>
-    <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
+    <taskClass>alluxio.perf.benchmark.skipread.SkipReadTask</taskClass>
+    <taskContextClass>alluxio.perf.benchmark.skipread.SkipReadTaskContext</taskContextClass>
+    <taskThreadClass>alluxio.perf.benchmark.skipread.SkipReadThread</taskThreadClass>
+    <totalReportClass>alluxio.perf.benchmark.SimpleTotalReport</totalReportClass>
   </type>
   <type>
     <name>Mixture</name>
-    <taskClass>tachyon.perf.benchmark.mixture.MixtureTask</taskClass>
-    <taskContextClass>tachyon.perf.benchmark.mixture.MixtureTaskContext</taskContextClass>
-    <taskThreadClass>tachyon.perf.benchmark.mixture.MixtureThread</taskThreadClass>
-    <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
+    <taskClass>alluxio.perf.benchmark.mixture.MixtureTask</taskClass>
+    <taskContextClass>alluxio.perf.benchmark.mixture.MixtureTaskContext</taskContextClass>
+    <taskThreadClass>alluxio.perf.benchmark.mixture.MixtureThread</taskThreadClass>
+    <totalReportClass>alluxio.perf.benchmark.SimpleTotalReport</totalReportClass>
   </type>
   <type>
     <name>Iterate</name>
-    <taskClass>tachyon.perf.benchmark.iterate.IterateTask</taskClass>
-    <taskContextClass>tachyon.perf.benchmark.iterate.IterateTaskContext</taskContextClass>
-    <taskThreadClass>tachyon.perf.benchmark.iterate.IterateThread</taskThreadClass>
-    <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
+    <taskClass>alluxio.perf.benchmark.iterate.IterateTask</taskClass>
+    <taskContextClass>alluxio.perf.benchmark.iterate.IterateTaskContext</taskContextClass>
+    <taskThreadClass>alluxio.perf.benchmark.iterate.IterateThread</taskThreadClass>
+    <totalReportClass>alluxio.perf.benchmark.SimpleTotalReport</totalReportClass>
   </type>
   <type>
     <name>Massive</name>
-    <taskClass>tachyon.perf.benchmark.massive.MassiveTask</taskClass>
-    <taskContextClass>tachyon.perf.benchmark.massive.MassiveTaskContext</taskContextClass>
-    <taskThreadClass>tachyon.perf.benchmark.massive.MassiveThread</taskThreadClass>
-    <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
+    <taskClass>alluxio.perf.benchmark.massive.MassiveTask</taskClass>
+    <taskContextClass>alluxio.perf.benchmark.massive.MassiveTaskContext</taskContextClass>
+    <taskThreadClass>alluxio.perf.benchmark.massive.MassiveThread</taskThreadClass>
+    <totalReportClass>alluxio.perf.benchmark.SimpleTotalReport</totalReportClass>
   </type>
 </taskTypes>
 

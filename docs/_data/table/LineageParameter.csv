@@ -1,0 +1,7 @@
+parameter,defaultvalue
+alluxio.master.lineage.checkpoint.interval.ms,300000
+alluxio.master.lineage.checkpoint.class,alluxio.master.lineage.checkpoint  .CheckpointLatestPlanner
+alluxio.master.lineage.recompute.interval.ms,300000
+alluxio.master.lineage.recompute.log.path,${alluxio.home}/logs/recompute.log
+alluxio.user.lineage.enabled,false
+

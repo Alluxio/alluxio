@@ -3,7 +3,7 @@
 
 """
 1. Auto configure external python libraries like boto
-2. Check environment variables 
+2. Check environment variables
 3. Auto set up security group
 """
 
@@ -27,7 +27,7 @@ def get_or_make_group(conn, name, vpc=None):
         return groups[0]
     else:
         info("Creating security group {name} in {region}".format(name=name, region=conn.region))
-        group = conn.create_security_group(name, "Auto created by Tachyon deploy", vpc)
+        group = conn.create_security_group(name, "Auto created by Alluxio deploy", vpc)
         info("Created security group ID {id}".format(id=group.id))
         return group
 
@@ -46,12 +46,12 @@ def set_security_group(conn, name, vpc=None):
 
 
 def get_aws_secret():
-    access_key = os.getenv('AWS_ACCESS_KEY_ID') 
+    access_key = os.getenv('AWS_ACCESS_KEY_ID')
     if access_key is None:
         error("ERROR: The environment variable AWS_ACCESS_KEY_ID must be set")
         sys.exit(1)
 
-    secret_key = os.getenv('AWS_SECRET_ACCESS_KEY') 
+    secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
     if secret_key is None:
         error("ERROR: The environment variable AWS_SECRET_ACCESS_KEY must be set")
         sys.exit(1)
@@ -64,8 +64,8 @@ def gen_boto_config(access_key, secret_key):
     boto_config_path = os.path.join(home, '.boto')
     with open(boto_config_path, 'w') as boto_config:
         boto_config.write('\n'.join([
-            '[Credentials]', 
-            'aws_access_key_id = ' + access_key, 
+            '[Credentials]',
+            'aws_access_key_id = ' + access_key,
             'aws_secret_access_key = ' + secret_key]))
 
 

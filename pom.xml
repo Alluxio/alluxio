@@ -1,38 +1,49 @@
+<!--
+  ~ The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+  ~ (the “License”). You may not use this work except in compliance with the License, which is
+  ~ available at www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+  ~ either express or implied, as more fully set forth in the License.
+  ~
+  ~ See the NOTICE file distributed with this work for information regarding copyright ownership.
+  -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.tachyonproject</groupId>
-  <artifactId>tachyon-parent</artifactId>
-  <version>0.8.0-SNAPSHOT</version>
+  <groupId>org.alluxio</groupId>
+  <artifactId>alluxio-parent</artifactId>
+  <version>1.0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Tachyon Parent</name>
-  <description>Parent POM of Tachyon project: a Reliable Memory Centric Distributed Storage System</description>
-  <url>http://tachyon-project.org/</url>
+  <name>Alluxio Parent</name>
+  <description>Parent POM of Alluxio project: a Reliable Memory Centric Distributed Storage System</description>
+  <url>http://alluxio.org/</url>
   <licenses>
     <license>
       <name>Apache License</name>
-      <url>https://github.com/amplab/tachyon/blob/master/LICENSE</url>
+      <url>https://github.com/alluxio/alluxio/blob/master/LICENSE</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git@github.com:amplab/tachyon.git</connection>
-    <developerConnection>scm:git:git@github.com:amplab/tachyon.git</developerConnection>
-    <url>scm:git:git@github.com:amplab/tachyon.git</url>
+    <connection>scm:git:git@github.com:alluxio/alluxio.git</connection>
+    <developerConnection>scm:git:git@github.com:alluxio/alluxio.git</developerConnection>
+    <url>scm:git:git@github.com:alluxio/alluxio.git</url>
     <tag>HEAD</tag>
   </scm>
   <developers>
     <developer>
       <id>haoyuan</id>
       <name>Haoyuan Li</name>
-      <email>haoyuan.li@gmail.com</email>
+      <email>haoyuan@alluxio.com</email>
       <url>http://www.cs.berkeley.edu/~haoyuan</url>
-      <organization>U.C. Berkeley Computer Science</organization>
-      <organizationUrl>http://www.cs.berkeley.edu/</organizationUrl>
+      <organization>Alluxio Open Foundation</organization>
+      <organizationUrl>http://alluxio.org/</organizationUrl>
     </developer>
   </developers>
   <issueManagement>
-    <system>github</system>
-    <url>https://tachyon.atlassian.net</url>
+    <system>jira</system>
+    <url>https://alluxio.atlassian.net</url>
   </issueManagement>
 
   <parent>
@@ -124,13 +135,13 @@
     <apache.curator.version>2.1.0-incubating</apache.curator.version>
     <checkstyle.path>build/checkstyle/</checkstyle.path>
     <cxf.version>2.7.0</cxf.version>
-    <findbugs.path>build/findbugs/</findbugs.path>
+    <findbugs.path>build/findbugs</findbugs.path>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
-    <hadoop.version>1.0.4</hadoop.version>
-    <java.version>1.6</java.version>
+    <hadoop.version>2.2.0</hadoop.version>
+    <java.version>1.7</java.version>
     <jetty.version>7.6.15.v20140411</jetty.version>
     <junit.version>4.12</junit.version>
-    <libthrift.version>0.9.2</libthrift.version>
+    <libthrift.version>0.9.3</libthrift.version>
     <license.header.path>build/license/</license.header.path>
     <log4j.version>1.2.17</log4j.version>
     <metrics.version>3.1.0</metrics.version>
@@ -142,16 +153,15 @@
   </properties>
 
   <modules>
-    <module>common</module>
     <module>underfs</module>
-    <module>clients</module>
-    <module>servers</module>
+    <module>core</module>
+    <module>keyvalue</module>
     <module>shell</module>
     <module>examples</module>
-    <module>integration-tests</module>
+    <module>tests</module>
+    <module>integration</module>
     <module>assembly</module>
     <module>minicluster</module>
-    <module>integration</module>
     <module>perf</module>
   </modules>
 
@@ -243,43 +253,66 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>${junit.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-test</artifactId>
         <version>${hadoop.version}</version>
         <scope>test</scope>
       </dependency>
+
+      <!--
+          Dependency for FindBugs Plugin. This enables @SuppressFBWarnings.
+          Note that this package can be unnecessary for runtime, and the
+          'provided' scope makes it available for compilation and test,
+          but not be packaged into the jar.
+        -->
       <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-api-mockito</artifactId>
-        <version>${powermock.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-core</artifactId>
-        <version>${powermock.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-module-junit4</artifactId>
-        <version>${powermock.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-reflect</artifactId>
-        <version>${powermock.version}</version>
-        <scope>test</scope>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>annotations</artifactId>
+        <version>3.0.1</version>
+        <scope>provided</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <!-- Dependencies to add to all projects. These should all be in the test scope -->
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.10.8</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-core</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-reflect</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
   <build>
     <pluginManagement>
@@ -312,11 +345,6 @@
           <artifactId>maven-jar-plugin</artifactId>
           <version>2.4</version>
           <configuration>
-            <archive>
-              <manifest>
-                <addClasspath>true</addClasspath>
-              </manifest>
-            </archive>
             <excludes>
               <exclude>**/log4j.properties</exclude>
             </excludes>
@@ -324,6 +352,7 @@
         </plugin>
       </plugins>
     </pluginManagement>
+
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -371,28 +400,67 @@
         </executions>
       </plugin>
 
-      <!-- Find Bugs -->
+      <!-- Enforce versions -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <id>enforce-versions</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>${java.version}</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- FindBugs -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>
-        <version>2.5.2</version>
+        <version>3.0.2</version>
         <configuration>
-          <excludeFilterFile>${findbugs.path}findbugs-exclude.xml</excludeFilterFile>
+          <excludeFilterFile>${findbugs.path}/findbugs-exclude.xml</excludeFilterFile>
+          <!--
+              Enables analysis which takes more memory but finds more bugs.
+              If you run out of memory, changes the value of the effort element
+              to 'Low'.
+            -->
+          <effort>Max</effort>
+          <failOnError>true</failOnError>
+          <threshold>Low</threshold>
           <findbugsXmlOutput>true</findbugsXmlOutput>
           <xmlOutput>true</xmlOutput>
-          <effort>Max</effort>
         </configuration>
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
 
       <!-- Checkstyle -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.13</version>
+        <version>2.17</version>
         <configuration>
-          <configLocation>${checkstyle.path}tachyon_checks.xml</configLocation>
+          <configLocation>${checkstyle.path}alluxio_checks.xml</configLocation>
+          <suppressionsLocation>${checkstyle.path}suppressions.xml</suppressionsLocation>
+          <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/tachyon/thrift/**,**/tachyon/perf/thrift/**,**/tachyon/perf/conf/PerfConf.java</excludes>
+          <excludes>**/org/apache/jsp/**,**/alluxio/thrift/**,**/alluxio/proto/**,**/alluxio/perf/conf/PerfConf.java</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -407,13 +475,6 @@
             </goals>
           </execution>
         </executions>
-        <dependencies>
-          <dependency>
-            <groupId>com.puppycrawl.tools</groupId>
-            <artifactId>checkstyle</artifactId>
-            <version>5.9</version>
-          </dependency>
-        </dependencies>
       </plugin>
 
       <!-- License Plugin -->
@@ -427,14 +488,16 @@
           <aggregate>false</aggregate>
           <excludes>
             <!-- Code Exclusions -->
-            <exclude>**/src/main/java/tachyon/thrift/*</exclude>
-            <exclude>**/src/main/java/tachyon/perf/thrift/*</exclude>
+            <exclude>**/src/main/java/alluxio/thrift/*</exclude>
+            <exclude>**/src/main/java/alluxio/proto/**</exclude>
+            <exclude>**/src/main/java/alluxio/perf/thrift/*</exclude>
             <exclude>**/src/main/webapp/**/*</exclude>
             <exclude>**/src/thrift/*</exclude>
+            <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
             <exclude>**/package-info.java</exclude>
-            <exclude>**/src/main/resources/tachyon-default.properties</exclude>
+            <exclude>**/src/main/resources/alluxio-default.properties</exclude>
 
             <!-- Build and Packaging Exclusions -->
             <exclude>build/**/*</exclude>
@@ -446,7 +509,7 @@
             <exclude>**/conf/testsuite/*</exclude>
             <exclude>**/libexec/*</exclude>
             <exclude>**/src/main/findbugs/*</exclude>
-            <exclude>**/src/main/resources/tachyon_checks*</exclude>
+            <exclude>**/src/main/resources/alluxio_checks*</exclude>
             <exclude>**/src/main/assembly/*</exclude>
 
             <!-- Documentation Exclusions -->
@@ -491,7 +554,7 @@
 
   <profiles>
     <profile>
-      <!-- Turn of doclint for java8 and later -->
+      <!-- Turn off doclint for java8 and later -->
       <id>doclint-java8-disable</id>
       <activation>
         <jdk>[1.8,)</jdk>
@@ -526,16 +589,44 @@
     </profile>
 
     <profile>
-      <id>hdfs1Test</id>
+      <id>hadoop-1</id>
       <properties>
         <hadoop.version>1.0.4</hadoop.version>
       </properties>
     </profile>
 
     <profile>
-      <id>hdfs2Test</id>
+      <id>hadoop-2.2</id>
+      <properties>
+        <hadoop.version>2.2.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.3</id>
+      <properties>
+        <hadoop.version>2.3.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.4</id>
+      <properties>
+        <hadoop.version>2.4.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.6</id>
       <properties>
         <hadoop.version>2.6.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.7</id>
+      <properties>
+        <hadoop.version>2.7.0</hadoop.version>
       </properties>
     </profile>
 
@@ -546,27 +637,73 @@
       </modules>
     </profile>
 
+    <!-- Requires hadoop.version to be 2.4.0 or later -->
     <profile>
       <id>yarn</id>
       <modules>
         <module>integration/yarn</module>
       </modules>
-      <properties>
-        <!-- Requires hadoop.version to be 2.4.0 or later -->
-        <yarn.version>${hadoop.version}</yarn.version>
-      </properties>
     </profile>
 
-    <!-- profile that Tachyon developers should use -->
+    <!-- profile that Alluxio developers should use -->
     <profile>
-      <id>dev</id>
+      <id>developer</id>
       <modules>
-        <module>integration</module>
+        <module>integration/yarn</module>
+        <module>integration/mesos</module>
       </modules>
       <properties>
         <hadoop.version>2.6.0</hadoop.version>
-        <yarn.version>${hadoop.version}</yarn.version>
       </properties>
+    </profile>
+
+    <!-- profile that compiles jsp files -->
+    <profile>
+      <id>compileJsp</id>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.sling</groupId>
+              <artifactId>maven-jspc-plugin</artifactId>
+              <version>2.0.8</version>
+              <executions>
+                <execution>
+                  <phase>prepare-package</phase>
+                  <id>compile-jsp</id>
+                  <goals>
+                    <goal>jspc</goal>
+                  </goals>
+                  <configuration>
+                    <sourceDirectory>src/main/webapp</sourceDirectory>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+
+    <!-- build profile for Apache Flink -->
+    <profile>
+      <id>flink</id>
+    </profile>
+
+    <!-- build profile for Apache Spark -->
+    <profile>
+      <id>spark</id>
+    </profile>
+
+    <!-- profile that activates alluxio fuse for java8 or newer -->
+    <profile>
+      <id>fuse</id>
+      <activation>
+        <jdk>[1.8,)</jdk> <!-- 1.8 or newer -->
+      </activation>
+      <modules>
+        <module>integration/fuse</module>
+      </modules>
     </profile>
   </profiles>
 </project>

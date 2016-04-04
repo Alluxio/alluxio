@@ -1,6 +1,0 @@
-- name: start tachyon mesos framework
-  command: /tachyon/integration/bin/tachyon-framework.sh TachyonMaster:1234
-  async: 10
-  poll: 0
-
-# vim :set filetype=ansible.yaml:

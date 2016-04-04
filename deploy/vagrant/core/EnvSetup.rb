@@ -56,10 +56,10 @@ class ZookeeperVersion
   end
 end
 
-# parse tachyon_version.yml
-class TachyonVersion
+# parse alluxio_version.yml
+class AlluxioVersion
   def initialize(yaml_path)
-    puts 'parsing tachyon_version.yml'
+    puts 'parsing alluxio_version.yml'
     @yml = YAML.load_file(yaml_path)
 
     @type = @yml['Type']
@@ -67,14 +67,14 @@ class TachyonVersion
     @version = ''
     case @type
     when "Local"
-      puts 'using local tachyon dir'
+      puts 'using local alluxio dir'
     when "Github"
       @repo = @yml['Github']['Repo']
       @version = @yml['Github']['Version']
       puts "using github #{@repo}, version #{@version}"
     when "Release"
       @version = @yml['Release']['Version']
-      puts "using tachyon version #{@version}"
+      puts "using alluxio version #{@version}"
     else
       puts "Unknown VersionType"
       exit(1)
@@ -199,13 +199,6 @@ end
 
 class HadoopVersion
   def initialize(yml)
-    apache_url = "http://archive.apache.org/dist/hadoop/common/hadoop-%{Version}/hadoop-%{Version}.tar.gz"
-    cdh_url = "https://repository.cloudera.com/cloudera/cloudera-repos/org/apache/hadoop/hadoop-dist/%{Version}/hadoop-dist-%{Version}.tar.gz"
-    @url_template = {
-      "apache" => apache_url,
-      "cdh"    => cdh_url,
-    }
-
     @type = ''
     @version = ''
     @spark_profile = ''
@@ -223,6 +216,18 @@ class HadoopVersion
       exit(1)
     end
     @spark_profile = yml['SparkProfile'] or @spark_profile
+
+    apache_url = "http://archive.apache.org/dist/hadoop/common/hadoop-%{Version}/hadoop-%{Version}.tar.gz"
+    cdh_url = "https://repository.cloudera.com/cloudera/cloudera-repos/org/apache/hadoop/hadoop-dist/%{Version}/hadoop-dist-%{Version}.tar.gz"
+    # cdh repository is different for cdh5
+    if @version.include?('cdh5')
+      cdh_url = "https://archive.cloudera.com/cdh5/cdh/5/hadoop-%{Version}.tar.gz"
+    end
+    @url_template = {
+      "apache" => apache_url,
+      "cdh"    => cdh_url,
+    }
+
   end
 
   def tarball_url
@@ -241,10 +246,10 @@ class HadoopVersion
     return @spark_profile
   end
 
-  def tachyon_dist(tachyon_version)
-    # compute the tachyon distribution string
+  def alluxio_dist(alluxio_version)
+    # compute the alluxio distribution string
     errmsg = "ERROR: hadoop #{@type}-#{@version} does not have a " \
-             "corresponding tachyon distribution"
+             "corresponding alluxio distribution"
     if @type == 'apache'
       if @version.start_with?('1')
         # It's the release distribution, so no suffix
@@ -260,6 +265,8 @@ class HadoopVersion
     elsif @type == 'cdh'
       if @version.start_with?('2') and @version.include?('cdh4')
         suffix = 'cdh4'
+      elsif @version.start_with?('2') and @version.include?('cdh5')
+        suffix = 'cdh5'
       else
         puts errmsg
         exit(1)
@@ -269,9 +276,9 @@ class HadoopVersion
       exit(1)
     end
     if suffix.empty?
-      return "tachyon-#{tachyon_version}-bin.tar.gz"
+      return "alluxio-#{alluxio_version}-bin.tar.gz"
     else
-      return "tachyon-#{tachyon_version}-#{suffix}-bin.tar.gz"
+      return "alluxio-#{alluxio_version}-#{suffix}-bin.tar.gz"
     end
   end
 end
@@ -315,15 +322,31 @@ class S3Version
     return @bucket
   end
 
-  def tachyon_dist(tachyon_version)
+  def alluxio_dist(alluxio_version)
     # The base version should work for S3
-    return "tachyon-#{tachyon_version}-bin.tar.gz"
+    return "alluxio-#{alluxio_version}-bin.tar.gz"
   end
 end
 
 class UfsVersion
-  def initialize(yaml_path)
+  def get_default_ufs(provider)
+    case provider
+    when 'vb'
+      puts 'use hadoop2 as default ufs'
+      return 'hadoop2'
+    when 'aws'
+      puts 'use s3 as default ufs'
+      return 's3'
+    else
+      return ''
+    end
+  end
+
+  def initialize(yaml_path, provider)
     @yml = YAML.load_file(yaml_path)
+    if @yml['Type'] == nil
+      @yml['Type'] = get_default_ufs(provider)
+    end
     puts @yml
 
     @hadoop = HadoopVersion.new(nil)
@@ -353,15 +376,15 @@ class UfsVersion
     return @s3
   end
 
-  def tachyon_dist(tachyon_version)
+  def alluxio_dist(alluxio_version)
     case @yml['Type']
     when 'hadoop1', 'hadoop2'
-      return @hadoop.tachyon_dist(tachyon_version)
+      return @hadoop.alluxio_dist(alluxio_version)
     when 's3'
-      return @s3.tachyon_dist(tachyon_version)
+      return @s3.alluxio_dist(alluxio_version)
     when 'glusterfs'
     # The base version should work for glusterfs
-      return "tachyon-#{tachyon_version}-bin.tar.gz"
+      return "alluxio-#{alluxio_version}-bin.tar.gz"
     else
       puts 'unsupported ufs'
       exit(1)

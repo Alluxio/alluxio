@@ -12,4 +12,4 @@ Github:
 
 # used when Type is Release
 Release:
-  Dist: spark-1.3.1-bin-hadoop1.tgz # name of release tarball in http://github.com/apache/spark/releases
+  Dist: spark-1.3.1-bin-hadoop1.tgz # name of release tarball in http://archive.apache.org/dist/spark/

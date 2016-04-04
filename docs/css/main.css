@@ -83,7 +83,7 @@ a:hover code {
     text-decoration: underline;
 }
 .container {
-    max-width: 914px;
+    max-width: 919px;
 }
 
 /**
@@ -119,6 +119,7 @@ body {
 .navbar .nav>li>a {
     text-shadow: none;
     padding-bottom: 5px;
+    padding-right: 5px;
     color: #F7F4F3;
 }
 .navbar .nav>li>a:hover, .navbar .nav>li>a:focus {
@@ -229,20 +230,23 @@ body {
 
 /*custom font sizes to make content fit nicely*/
 
-#current-features + ul li:nth-child(1) p {
+#current-features + ul li:nth-child(1) strong {
+    font-size: 16px;
+}
+#current-features + ul li:nth-child(2) strong {
     font-size: 16px;
 }
 #current-features + ul li:nth-child(3) strong {
-    font-size: 14px;
-}
-#current-features + ul li:nth-child(4) p {
     font-size: 16px;
 }
-#current-features + ul li:nth-child(5) p {
-    font-size: 18px;
+#current-features + ul li:nth-child(4) strong {
+    font-size: 16px;
 }
-#current-features + ul li:nth-child(6) p {
-    font-size: 20px;
+#current-features + ul li:nth-child(5) strong {
+    font-size: 16px;
+}
+#current-features + ul li:nth-child(6) strong {
+    font-size: 16px;
 }
 #current-features + ul li p a {
     text-decoration: underline;
