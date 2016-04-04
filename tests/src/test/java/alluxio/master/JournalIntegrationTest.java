@@ -446,61 +446,6 @@ public class JournalIntegrationTest {
     }
     fsMaster.stop();
   }
-
-  // TODO(cc) The edit log behavior this test was testing no longer exists, do we need to add it
-  // back?
-  /// **
-  // * Test renaming completed edit logs.
-  // *
-  // * @throws Exception
-  // */
-  // @Test
-  // public void RenameEditLogTest() throws Exception {
-  // String journalPrefix = "/tmp/JournalDir" + String.valueOf(System.currentTimeMillis());
-  // Journal journal = new Journal(journalPrefix, mMasterAlluxioConf);
-  // UnderFileSystem ufs = UnderFileSystem.get(journalPrefix, mMasterAlluxioConf);
-  // ufs.delete(journalPrefix, true);
-  // ufs.mkdir(journalPrefix, true);
-  // OutputStream ops = ufs.create(journal.getCurrentLogFilePath());
-  // if (ops != null) {
-  // ops.close();
-  // }
-  // if (ufs != null) {
-  // ufs.close();
-  // }
-
-  // // Write operation and flush them to completed directory.
-  // JournalWriter journalWriter = journal.getNewWriter();
-  // journalWriter.setMaxLogSize(100);
-  // JournalOutputStream entryOs = journalWriter.getEntryOutputStream();
-  // for (int i = 0; i < 124; i++) {
-  // entryOs.writeEntry(new InodeFileEntry(System.currentTimeMillis(), i, "/sth" + i, 0L, false,
-  // System.currentTimeMillis(), Constants.DEFAULT_BLOCK_SIZE_BYTE, 10, false, false,
-  // "/sth" + i, Lists.newArrayList(1L)));
-  // entryOs.flush();
-  // }
-  // entryOs.close();
-
-  // // Rename completed edit logs when loading them.
-  // String completedDir = journal.getCompletedDirectory();
-  // ufs = UnderFileSystem.get(completedDir, mMasterAlluxioConf);
-  // int numOfCompleteFiles = ufs.list(completedDir).length;
-  // Assert.assertTrue(numOfCompleteFiles > 0);
-  // EditLog.setBackUpLogStartNum(numOfCompleteFiles / 2);
-  // log = new EditLog(journalPath, false, 0, mMasterAlluxioConf);
-  // int numOfCompleteFilesLeft = numOfCompleteFiles - numOfCompleteFiles / 2 + 1;
-  // Assert.assertEquals(numOfCompleteFilesLeft, ufs.list(completedStr).length);
-  // for (int i = 0; i < numOfCompleteFilesLeft; i++) {
-  // Assert.assertTrue(ufs.exists(completedStr + i + ".editLog"));
-  // }
-  // EditLog.setBackUpLogStartNum(-1);
-  // log.close();
-  // ufs.delete(journalPrefix, true);
-  // if (ufs != null) {
-  // ufs.close();
-  // }
-  // }
-
   /**
    * Tests file and directory creation, and rename.
    */

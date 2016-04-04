@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Contribuindo com o Alluxio
-nickname: Contributor Guide
+nickname: Guia do Contribuidor
 group: Resources
 ---
 

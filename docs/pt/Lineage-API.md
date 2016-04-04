@@ -10,7 +10,7 @@ priority: 2
 {:toc}
 
 O Alluxio pode alcançar alta vazão de escrita e leitura, sem comprometer a tolerância a falhar 
-através de *Lineage* (Linha do Tempo), onde resultados perdidos são recuperados através da re-execução 
+através de *Lineage* (Linhagem), onde resultados perdidos são recuperados através da re-execução 
 de rotinas que criaram o resultado.
 
 Com o `lineage`, os resultados das aplicações são escritos em memória, e o `checkpoints` dos 
@@ -26,7 +26,7 @@ Por padrão, o `linaeage` não é habilitado. Este pode ser habilitado definindo
 
 # Lineage API
 
-O Alluxio provê uma `API` estilo `Java` para gerenciamento e acesso das informações de linha do tempo.
+O Alluxio provê uma `API` estilo `Java` para gerenciamento e acesso das informações de linhagem.
 
 ### Obtendo um Lineage Client
 
@@ -49,7 +49,7 @@ ambientes de execução para garantir que o comando pode ser executado ed ambos 
 Por exemplo,
 {% include Lineage-API/config-lineage.md %}
 
-A função `createLineage` retorna um `id` de um recém registro de linha do tempo criado. Antes de 
+A função `createLineage` retorna um `id` de um recém registro de linhagem criado. Antes de 
 criar este registro, tenha certeza que todos os arquivos de entrada estão mantidos ou especifique 
 um arquivo de saída de outro registro de `lineage`.
 

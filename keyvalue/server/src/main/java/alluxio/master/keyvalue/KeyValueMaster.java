@@ -31,12 +31,14 @@ import alluxio.proto.journal.KeyValue.CompleteStoreEntry;
 import alluxio.proto.journal.KeyValue.CreateStoreEntry;
 import alluxio.proto.journal.KeyValue.DeleteStoreEntry;
 import alluxio.proto.journal.KeyValue.MergeStoreEntry;
+import alluxio.proto.journal.KeyValue.RenameStoreEntry;
 import alluxio.thrift.KeyValueMasterClientService;
 import alluxio.thrift.PartitionInfo;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.protobuf.ByteString;
@@ -115,6 +117,8 @@ public final class KeyValueMaster extends AbstractMaster {
         completeStoreFromEntry((CompleteStoreEntry) innerEntry);
       } else if (innerEntry instanceof DeleteStoreEntry) {
         deleteStoreFromEntry((DeleteStoreEntry) innerEntry);
+      } else if (innerEntry instanceof RenameStoreEntry) {
+        renameStoreFromEntry((RenameStoreEntry) innerEntry);
       } else if (innerEntry instanceof MergeStoreEntry) {
         mergeStoreFromEntry((MergeStoreEntry) innerEntry);
       } else {
@@ -246,8 +250,17 @@ public final class KeyValueMaster extends AbstractMaster {
       // TODO(binfan): Investigate why mFileSystemMaster.mkdir throws IOException
       throw new InvalidPathException(
           String.format("Failed to createStore: can not create path %s", path), e);
+    } catch (FileDoesNotExistException e) {
+      // This should be impossible since we pass the recursive option into mkdir
+      throw Throwables.propagate(e);
     }
-    final long fileId = mFileSystemMaster.getFileId(path);
+    long fileId;
+    try {
+      fileId = mFileSystemMaster.getFileId(path);
+    } catch (FileDoesNotExistException e) {
+      // This is unexpected since we just successfully created this directory
+      throw Throwables.propagate(e);
+    }
     Preconditions.checkState(fileId != IdUtils.INVALID_FILE_ID);
 
     createStoreInternal(fileId);
@@ -311,6 +324,43 @@ public final class KeyValueMaster extends AbstractMaster {
     if (!mCompleteStoreToPartitions.containsKey(fileId)) {
       throw new InvalidPathException(ExceptionMessage.INVALID_KEY_VALUE_STORE_URI.getMessage(uri));
     }
+  }
+
+  /**
+   * Renames one completed key-value store.
+   *
+   * @param oldUri the old {@link AlluxioURI} to the store
+   * @param newUri the {@link AlluxioURI} to the store
+   * @throws IOException if non-Alluxio error occurs
+   * @throws AlluxioException if other Alluxio error occurs
+   */
+  public synchronized void renameStore(AlluxioURI oldUri, AlluxioURI newUri)
+      throws IOException, AlluxioException {
+    long oldFileId = getFileId(oldUri);
+    checkIsCompletePartition(oldFileId, oldUri);
+    try {
+      mFileSystemMaster.rename(oldUri, newUri);
+    } catch (FileAlreadyExistsException e) {
+      throw new FileAlreadyExistsException(
+          String.format("failed to rename store:the path %s has been used", newUri), e);
+    }
+
+    final long newFileId = mFileSystemMaster.getFileId(newUri);
+    Preconditions.checkState(newFileId != IdUtils.INVALID_FILE_ID);
+    renameStoreInternal(oldFileId, newFileId);
+
+    writeJournalEntry(newRenameStoreEntry(oldFileId, newFileId));
+    flushJournal();
+  }
+
+  private void renameStoreInternal(long oldFileId, long newFileId) {
+    List<PartitionInfo> partitionsRenamed = mCompleteStoreToPartitions.remove(oldFileId);
+    mCompleteStoreToPartitions.put(newFileId, partitionsRenamed);
+  }
+
+  // Rename one completed stores, called when replaying journals.
+  private void renameStoreFromEntry(RenameStoreEntry entry) {
+    renameStoreInternal(entry.getOldStoreId(), entry.getNewStoreId());
   }
 
   /**
@@ -391,6 +441,12 @@ public final class KeyValueMaster extends AbstractMaster {
   private JournalEntry newDeleteStoreEntry(long fileId) {
     DeleteStoreEntry deleteStore = DeleteStoreEntry.newBuilder().setStoreId(fileId).build();
     return JournalEntry.newBuilder().setDeleteStore(deleteStore).build();
+  }
+
+  private JournalEntry newRenameStoreEntry(long oldFileId, long newFileId) {
+    RenameStoreEntry renameStore = RenameStoreEntry.newBuilder().setOldStoreId(oldFileId)
+        .setNewStoreId(newFileId).build();
+    return JournalEntry.newBuilder().setRenameStore(renameStore).build();
   }
 
   private JournalEntry newMergeStoreEntry(long fromFileId, long toFileId) {

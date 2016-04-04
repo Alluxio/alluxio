@@ -13,7 +13,7 @@ package alluxio.master.lineage;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidPathException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDeletionException;
 import alluxio.exception.LineageDoesNotExistException;
 import alluxio.job.CommandLineJob;
@@ -101,7 +101,7 @@ public final class LineageMasterTest {
       mLineageMaster.createLineage(Lists.newArrayList(missingInput),
           Lists.newArrayList(new AlluxioURI("/test2")), mJob);
       Assert.fail();
-    } catch (InvalidPathException e) {
+    } catch (FileDoesNotExistException e) {
       Assert.assertEquals(ExceptionMessage.LINEAGE_INPUT_FILE_NOT_EXIST.getMessage("/test1"),
           e.getMessage());
     }
