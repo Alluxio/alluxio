@@ -91,7 +91,7 @@ public final class FileSystemMasterView {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path of the given file is invalid
    */
-  public List<FileBlockInfo> getFileBlockInfoList(AlluxioURI path)
+  public synchronized List<FileBlockInfo> getFileBlockInfoList(AlluxioURI path)
       throws FileDoesNotExistException, InvalidPathException {
     return mFileSystemMaster.getFileBlockInfoList(path);
   }
@@ -103,7 +103,7 @@ public final class FileSystemMasterView {
    * @return the path of the file
    * @throws FileDoesNotExistException raise if the file does not exist
    */
-  public AlluxioURI getPath(long fileId) throws FileDoesNotExistException {
+  public synchronized AlluxioURI getPath(long fileId) throws FileDoesNotExistException {
     return mFileSystemMaster.getPath(fileId);
   }
 }
