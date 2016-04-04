@@ -60,7 +60,7 @@ public class DefaultAsyncPersistHandler implements AsyncPersistHandler {
   }
 
   @Override
-  public void scheduleAsyncPersistence(AlluxioURI path)
+  public synchronized void scheduleAsyncPersistence(AlluxioURI path)
       throws AlluxioException {
     // find the worker
     long workerId = getWorkerStoringFile(path);
@@ -132,7 +132,7 @@ public class DefaultAsyncPersistHandler implements AsyncPersistHandler {
    * @throws InvalidPathException if the path is invalid
    */
   @Override
-  public List<PersistFile> pollFilesToPersist(long workerId)
+  public synchronized List<PersistFile> pollFilesToPersist(long workerId)
       throws FileDoesNotExistException, InvalidPathException {
     List<PersistFile> filesToPersist = Lists.newArrayList();
     List<Long> fileIdsToPersist = Lists.newArrayList();
