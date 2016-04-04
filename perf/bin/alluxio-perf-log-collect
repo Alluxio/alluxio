@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+function printUsage {
+  echo "Usage: alluxio-perf-log-collect <all|[Nodes ...]>"
+  echo "  'all' means collect the logs from all the slave nodes"
+  echo "  or you can specify the nodes such as 'node1 node2 ...'"
+}
+
+# if less than 1 args specified, show usage
+if [ $# -le 0 ]; then
+  printUsage
+  exit 1
+fi
+
+bin=`cd "$( dirname "$0" )"; pwd`
+
+DEFAULT_PERF_LIBEXEC_DIR="$bin"/../libexec
+ALLUXIO_PERF_LIBEXEC_DIR=${ALLUXIO_PERF_LIBEXEC_DIR:-$DEFAULT_PERF_LIBEXEC_DIR}
+. $ALLUXIO_PERF_LIBEXEC_DIR/alluxio-perf-config.sh
+
+ALLUXIO_PERF_LOG_DIR=$ALLUXIO_PERF_HOME/logs
+ALLUXIO_PERF_COLLECT_LOG_DIR=$ALLUXIO_PERF_LOG_DIR/collected-logs
+
+# collect logs from all the slave nodes
+if [ "$1" = "all" ]; then
+  if [ -e $ALLUXIO_PERF_COLLECT_LOG_DIR ]; then
+    rm -rf $ALLUXIO_PERF_COLLECT_LOG_DIR
+  fi
+  mkdir -p $ALLUXIO_PERF_COLLECT_LOG_DIR
+
+  NODELIST=$ALLUXIO_PERF_CONF_DIR/slaves
+  for slave in `sort "$NODELIST" | uniq | sed  "s/#.*$//;/^$/d"`; do
+    echo -n "Collect logs from $slave ... "
+    scp $slave:$ALLUXIO_PERF_LOG_DIR/*.log $ALLUXIO_PERF_COLLECT_LOG_DIR/
+    sleep 0.02
+  done
+  echo "all logs collected at $ALLUXIO_PERF_COLLECT_LOG_DIR"
+  exit 0
+fi
+
+# collect logs from the specified nodes
+mkdir -p $ALLUXIO_PERF_COLLECT_LOG_DIR
+while [ $# -gt 0 ]
+do
+  slave=$1
+  shift
+
+  echo -n "Collect logs from $slave ... "
+  scp $slave:$ALLUXIO_PERF_LOG_DIR/*.log $ALLUXIO_PERF_COLLECT_LOG_DIR/
+  sleep 0.02
+done
+echo "all logs collected at $ALLUXIO_PERF_COLLECT_LOG_DIR"
+
+

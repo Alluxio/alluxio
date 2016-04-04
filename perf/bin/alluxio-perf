@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+function printUsage {
+  echo "Usage: alluxio-perf <TestCase>"
+  echo "now TestCase is one of:"
+  echo -e "  SimpleWrite SimpleRead SkipRead Metadata Mixture Iterate Massive"
+  echo "the detailed configurations are in conf/testsuite/"
+}
+
+# if less than 1 args specified, show usage
+if [ $# -le 0 ]; then
+  printUsage
+  exit 1
+fi
+
+bin=`cd "$( dirname "$0" )"; pwd`
+
+DEFAULT_PERF_LIBEXEC_DIR="$bin"/../libexec
+ALLUXIO_PERF_LIBEXEC_DIR=${ALLUXIO_PERF_LIBEXEC_DIR:-$DEFAULT_PERF_LIBEXEC_DIR}
+. $ALLUXIO_PERF_LIBEXEC_DIR/alluxio-perf-config.sh
+
+NODELIST=$ALLUXIO_PERF_CONF_DIR/slaves
+
+taskid=0
+SLAVES=`sort "$NODELIST"|sed  "s/#.*$//;/^$/d"`
+TOTAL_TASKS=`echo $SLAVES | wc -w`
+UNIQ_SLAVES=`sort "$NODELIST" | uniq | sed  "s/#.*$//;/^$/d"`
+if [ $ALLUXIO_PERF_SHARED_FS = "true" ]; then
+  echo "Installed on a Shared File System, no configuration copy needed"
+else
+  for slave in $UNIQ_SLAVES; do
+    echo -n "Copy configurations to $slave... "
+    scp $ALLUXIO_PERF_CONF_DIR/alluxio-perf-env.sh $slave:$ALLUXIO_PERF_CONF_DIR/alluxio-perf-env.sh
+    scp $ALLUXIO_PERF_CONF_DIR/testsuite/$1.xml $slave:$ALLUXIO_PERF_CONF_DIR/testsuite/$1.xml
+    sleep 0.02
+  done
+  wait
+fi
+
+for slave in $UNIQ_SLAVES; do
+  TSLAVES="$SLAVES \n"
+  slavenum=`echo $TSLAVES | grep -o "$slave\s" | wc -l`
+  lasttaskid=`expr $taskid + $slavenum - 1`
+  echo -n "Connect to $slave... "
+  $bin/alluxio-perf-start.sh $slave $taskid $lasttaskid $TOTAL_TASKS $1 2>&1
+  sleep 0.02
+  taskid=`expr $lasttaskid + 1`
+done
+wait
+
+$JAVA -cp $ALLUXIO_PERF_CONF_DIR/:$ALLUXIO_PERF_JAR -Dalluxio.perf.home=$ALLUXIO_PERF_HOME -Dalluxio.perf.logger.type="PERF_MASTER_LOGGER" -Dalluxio.perf.slave.id="" -Dlog4j.configuration=file:$ALLUXIO_PERF_CONF_DIR/log4j.properties $ALLUXIO_JAVA_OPTS $ALLUXIO_PERF_JAVA_OPTS alluxio.perf.AlluxioPerfMaster $TOTAL_TASKS $SLAVES $1

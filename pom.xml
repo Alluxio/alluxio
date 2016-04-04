@@ -162,7 +162,6 @@
     <module>integration</module>
     <module>assembly</module>
     <module>minicluster</module>
-    <module>integration</module>
     <module>perf</module>
   </modules>
 

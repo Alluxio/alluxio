@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+function printUsage {
+  echo "Usage: alluxio-perf-batch <TestCase> <Clean|CleanHDFS|NoClean> <XmlsDir>"
+  echo -e "  The TestCase is the same as ./alluxio-perf"
+  echo -e "  Clean or CleanHDFS means to clean the Alluxio/HDFS workspace after each test, while NoClean means not to clean"
+  echo -e "  XmlsDir is the directory of the xml conf files"
+}
+
+# if less than 3 args specified, show usage
+if [ $# -le 2 ]; then
+  printUsage
+  exit 1
+fi
+
+bin=`cd "$( dirname "$0" )"; pwd`
+
+DEFAULT_PERF_LIBEXEC_DIR="$bin"/../libexec
+ALLUXIO_PERF_LIBEXEC_DIR=${ALLUXIO_PERF_LIBEXEC_DIR:-$DEFAULT_PERF_LIBEXEC_DIR}
+. $ALLUXIO_PERF_LIBEXEC_DIR/alluxio-perf-config.sh
+
+for file in `ls $3/*.xml`; do
+  filename=${file##*/}
+  echo "$1 Test with $filename"
+  cp $file $bin/../conf/testsuite/$1.xml
+  $bin/alluxio-perf $1
+  $bin/alluxio-perf-collect $1
+  resultfile=$ALLUXIO_PERF_OUT_DIR/AlluxioPerfReport-$1-${filename%.*}
+  echo "mv report to $resultfile"
+  mv $ALLUXIO_PERF_OUT_DIR/AlluxioPerfReport-$1 $resultfile
+  sleep 2
+  if [ $2 = "Clean" ]; then
+    $bin/alluxio-perf-clean Alluxio
+    sleep 2
+  fi
+  if [ $2 = "CleanHDFS" ]; then
+    $bin/alluxio-perf-clean HDFS
+    sleep 2
+  fi
+done
+

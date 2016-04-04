@@ -2,17 +2,17 @@
 <configuration>
   <property>
     <name>files.per.thread</name>
-    <value>2</value>
+    <value>1</value>
     <description>the number of files to write for each write thread</description>
   </property>
   <property>
     <name>block.size.bytes</name>
-    <value>134217728</value>
+    <value>524288000</value>
     <description>the block size of a file</description>
   </property>
   <property>
     <name>file.length.bytes</name>
-    <value>134217728</value>
+    <value>2147483648</value>
     <description>the file size of write test, in bytes</description>
   </property>
   <property>
@@ -22,8 +22,13 @@
   </property>
   <property>
     <name>write.type</name>
-    <value>TRY_CACHE</value>
-    <description>the WriteType of the write operation, now only used for Tachyon</description>
+    <value>CACHE_THROUGH</value>
+    <description>the WriteType of the write operation, now only used for Alluxio</description>
   </property>
+  <property>
+    <name>threads.num</name>
+    <value>1</value>
+    <description>the number of threads</description>
+  </property>    
 </configuration>
 

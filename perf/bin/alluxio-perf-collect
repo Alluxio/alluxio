@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+function printUsage {
+  echo "Usage: alluxio-perf-collect <TestCase>"
+}
+
+# if less than 1 args specified, show usage
+if [ $# -le 0 ]; then
+  printUsage
+  exit 1
+fi
+
+bin=`cd "$( dirname "$0" )"; pwd`
+
+DEFAULT_PERF_LIBEXEC_DIR="$bin"/../libexec
+ALLUXIO_PERF_LIBEXEC_DIR=${ALLUXIO_PERF_LIBEXEC_DIR:-$DEFAULT_PERF_LIBEXEC_DIR}
+. $ALLUXIO_PERF_LIBEXEC_DIR/alluxio-perf-config.sh
+
+NODELIST=$ALLUXIO_PERF_CONF_DIR/slaves
+
+ALLUXIO_PERF_OUT_REPORTS_DIR=$ALLUXIO_PERF_OUT_DIR/contexts_$1
+if [ -e $ALLUXIO_PERF_OUT_REPORTS_DIR ]; then
+  rm -rf $ALLUXIO_PERF_OUT_REPORTS_DIR
+fi
+mkdir -p $ALLUXIO_PERF_OUT_REPORTS_DIR
+
+taskid=0
+for slave in `sort "$NODELIST"|sed  "s/#.*$//;/^$/d"`; do
+  if [ $ALLUXIO_PERF_SHARED_FS = "true" ]; then
+    cp $ALLUXIO_PERF_OUT_DIR/context$1-$taskid@$slave $ALLUXIO_PERF_OUT_REPORTS_DIR/context$1-$taskid@$slave
+  else 
+    echo -n "Collect from $slave... "
+    scp $slave:$ALLUXIO_PERF_OUT_DIR/context$1-$taskid@$slave $ALLUXIO_PERF_OUT_REPORTS_DIR/context$1-$taskid@$slave
+    sleep 0.02
+  fi
+  taskid=`expr $taskid + 1`
+done
+wait
+
+$JAVA -cp $ALLUXIO_PERF_CONF_DIR/:$ALLUXIO_PERF_JAR -Dalluxio.perf.home=$ALLUXIO_PERF_HOME -Dalluxio.perf.logger.type="PERF_TOOLS_LOGGER" -Dlog4j.configuration=file:$ALLUXIO_PERF_CONF_DIR/log4j.properties $ALLUXIO_JAVA_OPTS $ALLUXIO_PERF_JAVA_OPTS alluxio.perf.tools.AlluxioPerfCollector $1 $ALLUXIO_PERF_OUT_REPORTS_DIR

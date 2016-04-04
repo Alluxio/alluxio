@@ -18,7 +18,7 @@
   <property>
     <name>read.type</name>
     <value>NO_CACHE</value>
-    <description>the ReadType of the read operation, no it only used for Tachyon</description>
+    <description>the ReadType of the read operation, no it only used for Alluxio</description>
   </property>
   <property>
     <name>read.bytes</name>

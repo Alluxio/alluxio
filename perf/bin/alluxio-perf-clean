@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+function printUsage {
+  echo "Usage: alluxio-perf-clean Alluxio|HDFS"
+}
+
+# if not equal to 1 arg specified, show usage
+if [ $# -ne 1 ]; then
+  printUsage
+  exit 1
+fi
+
+bin=`cd "$( dirname "$0" )"; pwd`
+
+DEFAULT_PERF_LIBEXEC_DIR="$bin"/../libexec
+ALLUXIO_PERF_LIBEXEC_DIR=${ALLUXIO_PERF_LIBEXEC_DIR:-$DEFAULT_PERF_LIBEXEC_DIR}
+. $ALLUXIO_PERF_LIBEXEC_DIR/alluxio-perf-config.sh
+
+$JAVA -cp $ALLUXIO_PERF_CONF_DIR/:$ALLUXIO_PERF_JAR -Dalluxio.perf.home=$ALLUXIO_PERF_HOME -Dalluxio.perf.logger.type="PERF_TOOLS_LOGGER" -Dlog4j.configuration=file:$ALLUXIO_PERF_CONF_DIR/log4j.properties $ALLUXIO_JAVA_OPTS $ALLUXIO_PERF_JAVA_OPTS alluxio.perf.tools.AlluxioPerfCleaner $1

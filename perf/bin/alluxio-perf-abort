@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+function printUsage {
+  echo "Usage: alluxio-perf-abort"
+}
+
+# if more than 0 args specified, show usage
+if [ $# -ge 1 ]; then
+  printUsage
+  exit 1
+fi
+
+bin=`cd "$( dirname "$0" )"; pwd`
+
+DEFAULT_PERF_LIBEXEC_DIR="$bin"/../libexec
+ALLUXIO_PERF_LIBEXEC_DIR=${ALLUXIO_PERF_LIBEXEC_DIR:-$DEFAULT_PERF_LIBEXEC_DIR}
+. $ALLUXIO_PERF_LIBEXEC_DIR/ALLUXIO-perf-config.sh
+
+NODELIST=$ALLUXIO_PERF_CONF_DIR/slaves
+UNIQ_SLAVES=`sort "$NODELIST" | uniq | sed  "s/#.*$//;/^$/d"`
+
+for slave in $UNIQ_SLAVES; do
+  echo -n "Abort test on $slave... "
+  ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -t $slave $bin/alluxio-perf-abort.sh 2>&1
+  sleep 0.02
+done
+wait
+
+echo "Abort Done"

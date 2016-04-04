@@ -10,5 +10,10 @@
     <value>4</value>
     <description>the metadata operations time for each thread, in seconds</description>
   </property>
+  <property>
+    <name>threads.num</name>
+    <value>2</value>
+    <description>the number of threads</description>
+  </property>     
 </configuration>
 

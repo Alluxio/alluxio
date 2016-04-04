@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+function printUsage() {
+  cat << EOF 
+Usage: alluxio-perf-configure <TestCase> [Name=Value ...]
+
+The TestCase is the same as alluxio-perf
+
+Each Name=Value pair will be used to change the given configuration setting for the
+given test case.  This allows for scriptable changes to the configuration which can
+be used to automate running the same test case with a variety of different
+configurations.
+
+This script uses the xsltproc tool to apply the configuration changes and will fail
+if the tool is not available in your environment.
+EOF
+}
+
+TEST=$1
+if [ -z "${TEST}" ]; then
+  echo "No test case specified"
+  printUsage
+  exit 1
+fi
+
+# Ensure we have the required tools available
+which xsltproc > /dev/null 2>&1
+if [ $? != 0 ]; then
+  echo "Required tool xsltproc is not available on your system"
+  exit 1
+fi
+
+bin=`cd "$( dirname "$0" )"; pwd`
+
+# Pull in standard perf setup
+DEFAULT_PERF_LIBEXEC_DIR="$bin"/../libexec
+ALLUXIO_PERF_LIBEXEC_DIR=${ALLUXIO_PERF_LIBEXEC_DIR:-$DEFAULT_PERF_LIBEXEC_DIR}
+. $ALLUXIO_PERF_LIBEXEC_DIR/alluxio-perf-config.sh
+
+# Locate the configurationn file
+CONFIG_FILE="${ALLUXIO_PERF_HOME}/conf/testsuite/${TEST}.xml"
+
+if [ ! -e "${CONFIG_FILE}" ]; then
+  echo "Failed to locate the configuration file for test case ${TEST}"
+  exit 1
+fi
+
+# Create temporary files
+ORIG_FILE="${ALLUXIO_PERF_HOME}/conf/testsuite/${TEST}.xml.original"
+TEMP_FILE="${ALLUXIO_PERF_HOME}/conf/testsuite/${TEST}.xml.temp"
+cp "${CONFIG_FILE}" "${ORIG_FILE}"
+touch "${TEMP_FILE}"
+
+shift
+
+# Apply transforms
+IFS="="
+while [ $# -gt 0 ]
+do
+  NVP=(${1})
+
+  if [ ${#NVP[@]} != 2 ]; then
+    echo "Invalid NVP ${NVP}"
+    exit 1
+  fi
+
+  NAME=${NVP[0]}
+  VALUE=${NVP[1]}
+
+  # Apply this parameter
+  xsltproc --stringparam name "${NAME}" --stringparam value "${VALUE}" --nonet "${ALLUXIO_PERF_HOME}/bin/configure.xsl" "${CONFIG_FILE}" > "${TEMP_FILE}"
+  RET=$?
+  if [ $RET != 0 ]; then
+    echo "Failed to set parameter ${NAME} to ${VALUE}"
+    cp "${ORIG_FILE}" "${CONFIG_FILE}"
+    exit 1
+  fi
+
+  # Replace configuration file with the updated file
+  mv "${TEMP_FILE}" "${CONFIG_FILE}"
+
+  shift
+done
+
+# Clean up
+if [ -e "${TEMP_FILE}" ]; then
+  rm "${TEMP_FILE}"
+fi
+rm "${ORIG_FILE}"
+
+echo "Successfully configured test case ${TEST} configuration file ${CONFIG_FILE}"
+

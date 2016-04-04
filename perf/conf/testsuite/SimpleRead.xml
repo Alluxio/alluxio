@@ -2,7 +2,7 @@
 <configuration>
   <property>
     <name>files.per.thread</name>
-    <value>2</value>
+    <value>1</value>
     <description>the number of files to read for each read thread</description>
   </property>
   <property>
@@ -17,8 +17,8 @@
   </property>
   <property>
     <name>read.type</name>
-    <value>NO_CACHE</value>
-    <description>the ReadType of the read operation, no it only used for Tachyon</description>
+    <value>CACHE</value>
+    <description>the ReadType of the read operation, no it only used for Alluxio</description>
   </property>
   <property>
     <name>taskid.offset</name>
